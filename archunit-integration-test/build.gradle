@@ -1,0 +1,6 @@
+dependencies {
+    testCompile dependency.junit
+    testCompile project(':archunit-junit')
+    testCompile project(':archunit-example')
+    testCompile project(path: ':archunit-example', configuration: 'tests')
+}

@@ -1,0 +1,1 @@
+include 'archunit', 'archunit-example', 'archunit-integration-test', 'archunit-junit'
