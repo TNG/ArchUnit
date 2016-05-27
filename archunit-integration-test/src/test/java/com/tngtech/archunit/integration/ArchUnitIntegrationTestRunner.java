@@ -4,8 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.tngtech.archunit.integration.CodingRulesWithRunnerIntegrationTest.ExpectedViolationFrom;
-import com.tngtech.archunit.junit.ArchRuleToTest;
+import com.tngtech.archunit.junit.ArchRuleExecution;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchTestExecution;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.runner.Description;
@@ -13,6 +14,8 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     private ExpectedViolation expectedViolation;
@@ -22,7 +25,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     }
 
     @Override
-    protected void runChild(final ArchRuleToTest child, final RunNotifier notifier) {
+    protected void runChild(final ArchTestExecution child, final RunNotifier notifier) {
         expectedViolation = ExpectedViolation.none();
         Description description = describeChild(child);
         notifier.fireTestStarted(description);
@@ -35,7 +38,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         }
     }
 
-    private void configureExpectedViolationFor(ArchRuleToTest child) {
+    private void configureExpectedViolationFor(ArchTestExecution child) {
         String expectationConfiguration = extractConfigurationMethodName(child);
         try {
             Method method = CodingRulesIntegrationTest.class.getDeclaredMethod(expectationConfiguration, ExpectedViolation.class);
@@ -49,8 +52,10 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         }
     }
 
-    private String extractConfigurationMethodName(ArchRuleToTest child) {
-        ExpectedViolationFrom annotation = child.getField().getAnnotation(ExpectedViolationFrom.class);
+    private String extractConfigurationMethodName(ArchTestExecution child) {
+        checkArgument(child instanceof ArchRuleExecution, "%s can only test fields annotated with @%s",
+                getClass().getName(), ArchTest.class.getSimpleName());
+        ExpectedViolationFrom annotation = ((ArchRuleExecution) child).getField().getAnnotation(ExpectedViolationFrom.class);
         if (annotation == null) {
             throw new RuntimeException("IntegrationTests need to annotate their @"
                     + ArchTest.class.getSimpleName() + "'s with @" + ExpectedViolationFrom.class.getSimpleName());
@@ -59,10 +64,10 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     }
 
     private class IntegrationTestStatement extends Statement {
-        private final ArchRuleToTest child;
+        private final ArchRuleExecution child;
 
-        public IntegrationTestStatement(ArchRuleToTest child) {
-            this.child = child;
+        public IntegrationTestStatement(ArchTestExecution child) {
+            this.child = (ArchRuleExecution) child;
         }
 
         @Override

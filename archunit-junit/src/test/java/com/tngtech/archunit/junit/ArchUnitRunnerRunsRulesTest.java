@@ -25,23 +25,22 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.DescribedPredicate.all;
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.SomeArchTest.FAILING_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.SomeArchTest.IGNORED_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.SomeArchTest.SATISFIED_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.WrongArchTest.NO_RULE_AT_ALL_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.FAILING_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.IGNORED_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.SATISFIED_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.WrongArchTest.NO_RULE_AT_ALL_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
 import static com.tngtech.archunit.lang.ArchRule.rule;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ArchUnitRunnerTest {
+public class ArchUnitRunnerRunsRulesTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
@@ -50,6 +49,8 @@ public class ArchUnitRunnerTest {
 
     @Mock
     private SharedCache cache;
+    @Mock
+    private ClassCache classCache;
 
     @Mock
     private RunNotifier runNotifier;
@@ -63,12 +64,12 @@ public class ArchUnitRunnerTest {
     @InjectMocks
     private ArchUnitRunner runner = newRunner();
 
+    private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsRulesTest.class);
+
     @Before
     public void setUp() {
-        ClassCache classCache = mock(ClassCache.class);
         when(cache.get()).thenReturn(classCache);
-        JavaClasses classes = javaClasses(ArchUnitRunnerTest.class);
-        when(classCache.getClassesToAnalyseFor(any(Class.class))).thenReturn(classes);
+        when(classCache.getClassesToAnalyseFor(any(Class.class))).thenReturn(cachedClasses);
     }
 
     @Test
@@ -78,7 +79,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void should_start_rule() {
-        ArchRuleToTest satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -88,7 +89,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void should_accept_satisfied_rule() {
-        ArchRuleToTest satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -123,7 +124,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void should_fail_unsatisfied_rule() {
-        ArchRuleToTest satisfiedRule = getRuleForField(FAILING_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRuleForField(FAILING_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -135,7 +136,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void should_skip_ignored_rule() {
-        ArchRuleToTest satisfiedRule = getRuleForField(IGNORED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRuleForField(IGNORED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -156,13 +157,14 @@ public class ArchUnitRunnerTest {
                 .contains(RULE_ONE_IN_IGNORED_TEST, RULE_TWO_IN_IGNORED_TEST);
     }
 
-    private ArchRuleToTest getRuleForField(String fieldName) {
+    private ArchTestExecution getRuleForField(String fieldName) {
         return getRuleForField(fieldName, runner);
     }
 
-    private ArchRuleToTest getRuleForField(String fieldName, ArchUnitRunner runner) {
-        for (ArchRuleToTest ruleToTest : runner.getChildren()) {
-            if (fieldName.equals(ruleToTest.getField().getName())) {
+    private ArchTestExecution getRuleForField(String fieldName, ArchUnitRunner runner) {
+        for (ArchTestExecution ruleToTest : runner.getChildren()) {
+            if (ruleToTest instanceof ArchRuleExecution
+                    && fieldName.equals(((ArchRuleExecution) ruleToTest).getField().getName())) {
                 return ruleToTest;
             }
         }
@@ -179,9 +181,9 @@ public class ArchUnitRunnerTest {
 
     @AnalyseClasses(packages = "some.pkg")
     public static class SomeArchTest {
-        public static final String SATISFIED_FIELD_NAME = "someSatisfiedRule";
-        public static final String FAILING_FIELD_NAME = "someFailingRule";
-        public static final String IGNORED_FIELD_NAME = "someIgnoredRule";
+        static final String SATISFIED_FIELD_NAME = "someSatisfiedRule";
+        static final String FAILING_FIELD_NAME = "someFailingRule";
+        static final String IGNORED_FIELD_NAME = "someIgnoredRule";
 
         @ArchTest
         public static final ArchRule<JavaClass> someSatisfiedRule =
@@ -206,8 +208,8 @@ public class ArchUnitRunnerTest {
 
     @AnalyseClasses(packages = "some.pkg")
     public static class WrongArchTest {
-        public static final String WRONG_MODIFIER_FIELD_NAME = "ruleWithWrongModifier";
-        public static final String NO_RULE_AT_ALL_FIELD_NAME = "noRuleAtAll";
+        static final String WRONG_MODIFIER_FIELD_NAME = "ruleWithWrongModifier";
+        static final String NO_RULE_AT_ALL_FIELD_NAME = "noRuleAtAll";
 
         @ArchTest
         private ArchRule<JavaClass> ruleWithWrongModifier =
@@ -220,8 +222,8 @@ public class ArchUnitRunnerTest {
     @ArchIgnore
     @AnalyseClasses(packages = "some.pkg")
     public static class IgnoredArchTest {
-        public static final String RULE_ONE_IN_IGNORED_TEST = "someRuleOne";
-        public static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";
+        static final String RULE_ONE_IN_IGNORED_TEST = "someRuleOne";
+        static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";
 
         @ArchTest
         public static final ArchRule<JavaClass> someRuleOne =

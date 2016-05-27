@@ -15,7 +15,7 @@ import static com.tngtech.archunit.library.DependencyRules.noCycles;
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
 @AnalyseClasses(packages = "com.tngtech.archunit.example.cycle")
-public class DependencyRulesWithRunnerTest {
+public class CyclicDependencyRulesWithRunnerTest {
 
     @ArchTest
     public static final ArchRule<Slice> NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES =

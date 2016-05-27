@@ -4,17 +4,14 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.OpenArchRule;
 import org.junit.runner.Description;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.TestClass;
 
-public class ArchRuleToTest {
-    private final TestClass testClass;
+public class ArchRuleExecution extends ArchTestExecution {
     private final FrameworkField ruleField;
 
-    public ArchRuleToTest(TestClass testClass, FrameworkField ruleField) {
-        this.testClass = testClass;
+    public ArchRuleExecution(TestClass testClass, FrameworkField ruleField) {
+        super(testClass);
         this.ruleField = ruleField;
     }
 
@@ -22,15 +19,14 @@ public class ArchRuleToTest {
         return ruleField;
     }
 
-    public Result evaluateOn(JavaClasses classes) {
-        if (testClass.getJavaClass().getAnnotation(ArchIgnore.class) != null) {
-            return new IgnoredResult(describeSelf());
-        }
+    @Override
+    Result doEvaluateOn(JavaClasses classes) {
         return RuleToEvaluate.from(ruleField, testClass.getJavaClass())
                 .evaluateOn(classes)
                 .asResult(describeSelf());
     }
 
+    @Override
     public Description describeSelf() {
         return Description.createTestDescription(testClass.getJavaClass(), ruleField.getField().getName());
     }
@@ -41,10 +37,6 @@ public class ArchRuleToTest {
         }
 
         static RuleToEvaluate from(FrameworkField ruleField, Class<?> testClass) {
-            return getRule(ruleField, testClass);
-        }
-
-        private static RuleToEvaluate getRule(FrameworkField ruleField, Class<?> testClass) {
             try {
                 Object ruleCandidate = ruleField.get(testClass);
                 return ruleCandidate instanceof OpenArchRule ?
@@ -142,48 +134,4 @@ public class ArchRuleToTest {
         }
     }
 
-    public static abstract class Result {
-        public abstract void notify(RunNotifier notifier);
-    }
-
-    public static class PositiveResult extends Result {
-        private final Description description;
-
-        public PositiveResult(Description description) {
-            this.description = description;
-        }
-
-        @Override
-        public void notify(RunNotifier notifier) {
-            notifier.fireTestFinished(description);
-        }
-    }
-
-    public static class IgnoredResult extends Result {
-        private final Description description;
-
-        public IgnoredResult(Description description) {
-            this.description = description;
-        }
-
-        @Override
-        public void notify(RunNotifier notifier) {
-            notifier.fireTestIgnored(description);
-        }
-    }
-
-    public static class NegativeResult extends Result {
-        private final Description description;
-        private final Throwable failure;
-
-        public NegativeResult(Description description, Throwable failure) {
-            this.description = description;
-            this.failure = failure;
-        }
-
-        @Override
-        public void notify(RunNotifier notifier) {
-            notifier.fireTestFailure(new Failure(description, failure));
-        }
-    }
 }

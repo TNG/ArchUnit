@@ -1,5 +1,5 @@
 ext.dependency = [
-        asm               : 'org.ow2.asm:asm:5.0.3',
+        asm               : 'org.ow2.asm:asm:5.1',
         guava             : 'com.google.guava:guava:19.0',
         reflections       : 'org.reflections:reflections:0.9.9',
         slf4j             : 'org.slf4j:slf4j-api:1.7.7',

@@ -1,6 +1,7 @@
 package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.tngtech.archunit.core.JavaClasses;
@@ -9,6 +10,7 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.FrameworkField;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 /**
@@ -30,7 +32,7 @@ import org.junit.runners.model.InitializationError;
  *    }
  * </code></pre>
  */
-public class ArchUnitRunner extends ParentRunner<ArchRuleToTest> {
+public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static reference
 
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {
@@ -38,22 +40,36 @@ public class ArchUnitRunner extends ParentRunner<ArchRuleToTest> {
     }
 
     @Override
-    protected List<ArchRuleToTest> getChildren() {
-        List<FrameworkField> ruleFields = getTestClass().getAnnotatedFields(ArchTest.class);
-        List<ArchRuleToTest> children = new ArrayList<>();
-        for (FrameworkField ruleField : ruleFields) {
-            children.add(new ArchRuleToTest(getTestClass(), ruleField));
-        }
+    protected List<ArchTestExecution> getChildren() {
+        List<ArchTestExecution> children = new ArrayList<>();
+        children.addAll(findArchRules());
+        children.addAll(findArchTestMethods());
         return children;
     }
 
+    private Collection<ArchTestExecution> findArchRules() {
+        List<ArchTestExecution> result = new ArrayList<>();
+        for (FrameworkField ruleField : getTestClass().getAnnotatedFields(ArchTest.class)) {
+            result.add(new ArchRuleExecution(getTestClass(), ruleField));
+        }
+        return result;
+    }
+
+    private Collection<ArchTestExecution> findArchTestMethods() {
+        List<ArchTestExecution> result = new ArrayList<>();
+        for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
+            result.add(new ArchTestMethodExecution(getTestClass(), testMethod));
+        }
+        return result;
+    }
+
     @Override
-    protected Description describeChild(ArchRuleToTest child) {
+    protected Description describeChild(ArchTestExecution child) {
         return child.describeSelf();
     }
 
     @Override
-    protected void runChild(ArchRuleToTest child, RunNotifier notifier) {
+    protected void runChild(ArchTestExecution child, RunNotifier notifier) {
         notifier.fireTestStarted(describeChild(child));
         JavaClasses classes = cache.get().getClassesToAnalyseFor(getTestClass().getJavaClass());
         child.evaluateOn(classes).notify(notifier);
