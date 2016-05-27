@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,7 +8,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JavaClassesTest {
     public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(SomeClass.class).build();
     public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(SomeOtherClass.class).build();
-    public static final JavaClasses ALL_CLASSES = new JavaClasses(ImmutableSet.of(SOME_CLASS, SOME_OTHER_CLASS), "classes");
+    private static final ImmutableMap<Class<?>, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
+            SomeClass.class, SOME_CLASS,
+            SomeOtherClass.class, SOME_OTHER_CLASS);
+    public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_RAW_CLASS, "classes");
 
     @Test
     public void restriction_on_classes_should_filter_the_elements() {
@@ -29,6 +32,17 @@ public class JavaClassesTest {
         JavaClasses allOriginalElements = ALL_CLASSES.that(EXIST);
 
         assertThat(allOriginalElements.getDescription()).isEqualTo(ALL_CLASSES.getDescription());
+    }
+
+    @Test
+    public void contain_type() {
+        assertThat(ALL_CLASSES.contain(getClass())).isFalse();
+        assertThat(ALL_CLASSES.contain(SomeOtherClass.class)).isTrue();
+    }
+
+    @Test
+    public void get_type_returns_correct_JavaClass() {
+        assertThat(ALL_CLASSES.get(SomeOtherClass.class)).isEqualTo(SOME_OTHER_CLASS);
     }
 
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {

@@ -72,7 +72,7 @@ class ClassFileImportContext {
             tryProcess(methodCallRecord, processedConstructorCallRecords);
         }
 
-        return JavaClasses.of(classes.values(), this);
+        return JavaClasses.of(classes, this);
     }
 
     private <T extends AccessRecord<?>> void tryProcess(

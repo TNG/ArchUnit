@@ -1,30 +1,31 @@
 package com.tngtech.archunit.core;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
-import static com.google.common.collect.Iterables.filter;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass, JavaClasses>, HasDescription {
-    private final Set<JavaClass> classes;
+    private final Map<Class<?>, JavaClass> classes;
     private final String description;
 
-    JavaClasses(Collection<JavaClass> classes) {
+    JavaClasses(Map<Class<?>, JavaClass> classes) {
         this(classes, "classes");
     }
 
-    JavaClasses(Collection<JavaClass> classes, String description) {
-        this.classes = ImmutableSet.copyOf(classes);
+    JavaClasses(Map<Class<?>, JavaClass> classes, String description) {
+        this.classes = ImmutableMap.copyOf(classes);
         this.description = description;
     }
 
     @Override
     public JavaClasses that(DescribedPredicate<JavaClass> predicate) {
-        Set<JavaClass> matchingElements = ImmutableSet.copyOf(filter(classes, predicate));
+        Map<Class<?>, JavaClass> matchingElements = Maps.filterValues(classes, predicate);
         String newDescription = predicate.getDescription().or(description);
         return new JavaClasses(matchingElements, newDescription);
     }
@@ -41,12 +42,21 @@ public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass,
 
     @Override
     public Iterator<JavaClass> iterator() {
-        return classes.iterator();
+        return classes.values().iterator();
     }
 
-    static JavaClasses of(Collection<JavaClass> classes, ClassFileImportContext importContext) {
+    public boolean contain(Class<?> reflectedType) {
+        return classes.containsKey(reflectedType);
+    }
+
+    public JavaClass get(Class<?> reflectedType) {
+        return checkNotNull(classes.get(reflectedType), "%s don't contain %s of type %s",
+                getClass().getSimpleName(), JavaClass.class.getSimpleName(), reflectedType.getName());
+    }
+
+    static JavaClasses of(Map<Class<?>, JavaClass> classes, ClassFileImportContext importContext) {
         CompletionProcess completionProcess = new CompletionProcess(importContext);
-        for (JavaClass clazz : classes) {
+        for (JavaClass clazz : new JavaClasses(classes)) {
             completionProcess.completeClass(clazz);
         }
         completionProcess.finish();

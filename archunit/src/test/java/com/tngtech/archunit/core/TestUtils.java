@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Optional;
 import org.mockito.invocation.InvocationOnMock;
@@ -44,9 +44,9 @@ public class TestUtils {
     }
 
     public static JavaClasses javaClasses(Class<?>... classes) {
-        Set<JavaClass> result = new HashSet<>();
+        Map<Class<?>, JavaClass> result = new HashMap<>();
         for (Class<?> c : classes) {
-            result.add(javaClass(c));
+            result.put(c, javaClass(c));
         }
         return new JavaClasses(result);
     }
