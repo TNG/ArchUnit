@@ -7,9 +7,9 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.FluentPredicate;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodLikeCall;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -110,52 +110,52 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> targetIs(
+    public static FluentPredicate<JavaCall<?>> targetIs(
             final Class<?> targetClass, final String methodName, final List<Class<?>> paramTypes) {
-        return new FluentPredicate<JavaMethodLikeCall<?>>() {
+        return new FluentPredicate<JavaCall<?>>() {
             @Override
-            public boolean apply(JavaMethodLikeCall<?> input) {
+            public boolean apply(JavaCall<?> input) {
                 return targetHasName(targetClass, methodName).apply(input)
                         && input.getTarget().getParameters().equals(paramTypes);
             }
         };
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
+    public static FluentPredicate<JavaCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
         return targetIs(FluentPredicate.of(Predicates.<Class<?>>equalTo(targetClass)), methodName);
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> targetIs(final Predicate<Class<?>> targetSelector, final String methodName) {
-        return new FluentPredicate<JavaMethodLikeCall<?>>() {
+    public static FluentPredicate<JavaCall<?>> targetIs(final Predicate<Class<?>> targetSelector, final String methodName) {
+        return new FluentPredicate<JavaCall<?>>() {
             @Override
-            public boolean apply(JavaMethodLikeCall<?> input) {
+            public boolean apply(JavaCall<?> input) {
                 return targetClassIs(targetSelector).apply(input)
                         && input.getTarget().getName().equals(methodName);
             }
         };
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> targetClassIs(final Class<?> targetClass) {
+    public static FluentPredicate<JavaCall<?>> targetClassIs(final Class<?> targetClass) {
         return targetClassIs(Predicates.<Class<?>>equalTo(targetClass));
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> targetClassIs(final Predicate<Class<?>> selector) {
-        return new FluentPredicate<JavaMethodLikeCall<?>>() {
+    public static FluentPredicate<JavaCall<?>> targetClassIs(final Predicate<Class<?>> selector) {
+        return new FluentPredicate<JavaCall<?>>() {
             @Override
-            public boolean apply(JavaMethodLikeCall<?> input) {
+            public boolean apply(JavaCall<?> input) {
                 return selector.apply(input.getTarget().getOwner().reflect());
             }
         };
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> originClassIs(Class<?> originClass) {
+    public static FluentPredicate<JavaCall<?>> originClassIs(Class<?> originClass) {
         return originClassIs(Predicates.<Class<?>>equalTo(originClass));
     }
 
-    public static FluentPredicate<JavaMethodLikeCall<?>> originClassIs(final Predicate<Class<?>> selector) {
-        return new FluentPredicate<JavaMethodLikeCall<?>>() {
+    public static FluentPredicate<JavaCall<?>> originClassIs(final Predicate<Class<?>> selector) {
+        return new FluentPredicate<JavaCall<?>>() {
             @Override
-            public boolean apply(JavaMethodLikeCall<?> input) {
+            public boolean apply(JavaCall<?> input) {
                 return selector.apply(input.getOriginClass().reflect());
             }
         };

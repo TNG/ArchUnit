@@ -2,9 +2,9 @@ package com.tngtech.archunit.exampletest;
 
 import com.google.common.base.Predicate;
 import com.tngtech.archunit.core.FluentPredicate;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.JavaMethodLikeCall;
 import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
@@ -43,16 +43,16 @@ public class ThirdPartyRulesTest {
     }
 
     private AbstractArchCondition<JavaClass> noCreationOutsideOfWorkaroundFactory() {
-        FluentPredicate<JavaMethodLikeCall<?>> constructorCallOfThirdPartyClass =
+        FluentPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
                 targetIs(assignableFrom(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
 
-        Predicate<JavaMethodLikeCall<?>> notFromWithinThirdPartyClass =
+        Predicate<JavaCall<?>> notFromWithinThirdPartyClass =
                 originClassIs(not(assignableFrom(ThirdPartyClassWithProblem.class)));
 
-        Predicate<JavaMethodLikeCall<?>> notFromWorkaroundFactory =
+        Predicate<JavaCall<?>> notFromWorkaroundFactory =
                 not(originClassIs(ThirdPartyClassWorkaroundFactory.class));
 
-        FluentPredicate<JavaMethodLikeCall<?>> targetIsIllegalConstructorOfThirdPartyClass =
+        FluentPredicate<JavaCall<?>> targetIsIllegalConstructorOfThirdPartyClass =
                 constructorCallOfThirdPartyClass.
                         and(notFromWithinThirdPartyClass).
                         and(notFromWorkaroundFactory);

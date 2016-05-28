@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core;
 
-public class JavaMethodCall extends JavaMethodLikeCall<JavaMethod> {
+public class JavaMethodCall extends JavaCall<JavaMethod> {
     JavaMethodCall(AccessRecord<JavaMethod> methodAccessRecord) {
         super(methodAccessRecord);
     }

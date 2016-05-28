@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core;
 
-public class JavaConstructorCall extends JavaMethodLikeCall<JavaConstructor> {
+public class JavaConstructorCall extends JavaCall<JavaConstructor> {
     JavaConstructorCall(AccessRecord<JavaConstructor> record) {
         super(record);
     }

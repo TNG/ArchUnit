@@ -3,9 +3,9 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.google.common.base.Predicate;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodLikeCall;
 import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
@@ -54,7 +54,7 @@ public final class ArchConditions {
         return classCallsMethodWhere(targetIs(clazz, methodName, asList(paramTypes)));
     }
 
-    public static AbstractArchCondition<JavaClass> classCallsMethodWhere(Predicate<JavaMethodLikeCall<?>> predicate) {
+    public static AbstractArchCondition<JavaClass> classCallsMethodWhere(Predicate<JavaCall<?>> predicate) {
         return new ClassCallsMethodCondition(predicate);
     }
 

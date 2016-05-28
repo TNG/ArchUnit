@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.Lists;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaMethodLikeCall;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.assertj.core.api.Condition;
@@ -124,14 +124,14 @@ public class MethodCallConditionTest {
     }
 
     private static class MethodCallToAnalyse {
-        private final JavaMethodLikeCall<?> call;
+        private final JavaCall<?> call;
 
-        private MethodCallToAnalyse(Collection<? extends JavaMethodLikeCall<?>> calls) {
+        private MethodCallToAnalyse(Collection<? extends JavaCall<?>> calls) {
             call = callToTargetIn(calls);
         }
 
-        private JavaMethodLikeCall<?> callToTargetIn(Collection<? extends JavaMethodLikeCall<?>> calls) {
-            for (JavaMethodLikeCall<?> call : calls) {
+        private JavaCall<?> callToTargetIn(Collection<? extends JavaCall<?>> calls) {
+            for (JavaCall<?> call : calls) {
                 if (call.getTarget().getOwner().equals(TARGET_CLASS)) {
                     return call;
                 }

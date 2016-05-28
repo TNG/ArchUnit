@@ -177,8 +177,8 @@ public class JavaClass implements HasName {
      *
      * @see #getProperMethodCalls()
      */
-    public Set<JavaMethodLikeCall<?>> getMethodCalls() {
-        return Sets.<JavaMethodLikeCall<?>>union(getProperMethodCalls(), getConstructorCalls());
+    public Set<JavaCall<?>> getMethodCalls() {
+        return Sets.<JavaCall<?>>union(getProperMethodCalls(), getConstructorCalls());
     }
 
     public JavaMethodCalls getProperMethodCalls() {
