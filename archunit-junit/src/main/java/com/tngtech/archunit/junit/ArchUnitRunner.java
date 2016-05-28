@@ -2,7 +2,9 @@ package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.OpenArchRule;
@@ -42,23 +44,39 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     @Override
     protected List<ArchTestExecution> getChildren() {
         List<ArchTestExecution> children = new ArrayList<>();
-        children.addAll(findArchRules());
-        children.addAll(findArchTestMethods());
+        children.addAll(findArchRuleFields());
+        children.addAll(findArchRuleMethods());
         return children;
     }
 
-    private Collection<ArchTestExecution> findArchRules() {
+    private Collection<ArchTestExecution> findArchRuleFields() {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkField ruleField : getTestClass().getAnnotatedFields(ArchTest.class)) {
-            result.add(new ArchRuleExecution(getTestClass(), ruleField));
+            result.addAll(findArchRulesIn(ruleField));
         }
         return result;
     }
 
-    private Collection<ArchTestExecution> findArchTestMethods() {
+    private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
+        if (ruleField.getType() == ArchRules.class) {
+            return getArchRules(ruleField).asTestExecutions();
+        }
+        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField()));
+    }
+
+    private ArchRules<?> getArchRules(FrameworkField ruleField) {
+        ArchTestExecution.validate(ruleField.getField());
+        try {
+            return (ArchRules<?>) ruleField.get(null);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Collection<ArchTestExecution> findArchRuleMethods() {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
-            result.add(new ArchTestMethodExecution(getTestClass(), testMethod));
+            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod()));
         }
         return result;
     }

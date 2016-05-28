@@ -1,23 +1,24 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import com.tngtech.archunit.core.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.TestClass;
 
 public class ArchTestMethodExecution extends ArchTestExecution {
-    private final FrameworkMethod testMethod;
+    private final Method testMethod;
 
-    public ArchTestMethodExecution(TestClass testClass, FrameworkMethod testMethod) {
+    public ArchTestMethodExecution(Class<?> testClass, Method testMethod) {
         super(testClass);
-        this.testMethod = testMethod;
+        this.testMethod = validate(testMethod);
     }
 
     @Override
     Result doEvaluateOn(JavaClasses classes) {
-        if (testMethod.getMethod().getAnnotation(ArchIgnore.class) != null) {
+        if (testMethod.getAnnotation(ArchIgnore.class) != null) {
             return new IgnoredResult(describeSelf());
         }
         try {
@@ -29,21 +30,27 @@ public class ArchTestMethodExecution extends ArchTestExecution {
     }
 
     private void executeTestMethod(JavaClasses classes) throws Throwable {
-        if (!Arrays.equals(testMethod.getMethod().getParameterTypes(), new Class<?>[]{JavaClasses.class})) {
+        if (!Arrays.equals(testMethod.getParameterTypes(), new Class<?>[]{JavaClasses.class})) {
             throw new IllegalArgumentException(String.format(
                     "Methods annotated with @%s must have exactly one parameter of type %s",
                     ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName()));
         }
 
-        testMethod.invokeExplosively(testClass.getJavaClass().newInstance(), classes);
+        new FrameworkMethod(testMethod).invokeExplosively(testClass.newInstance(), classes);
     }
 
     @Override
     public Description describeSelf() {
-        return Description.createTestDescription(testClass.getJavaClass(), testMethod.getName());
+        return Description.createTestDescription(testClass, testMethod.getName());
     }
 
-    public FrameworkMethod getTestMethod() {
-        return testMethod;
+    @Override
+    public String getName() {
+        return testMethod.getName();
+    }
+
+    @Override
+    public <T extends Annotation> T getAnnotation(Class<T> type) {
+        return testMethod.getAnnotation(type);
     }
 }

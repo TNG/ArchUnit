@@ -5,7 +5,6 @@ import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -24,6 +23,8 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestW
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithTestMethod.testSomething;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredOne;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredTwo;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -31,9 +32,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ArchUnitRunnerRunsMethodsTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -52,7 +50,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     private ArgumentCaptor<Failure> failureCaptor;
 
     @InjectMocks
-    private ArchUnitRunner runner = newRunner();
+    private ArchUnitRunner runner = newRunnerFor(ArchTestWithTestMethod.class);
 
     private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsMethodsTest.class);
 
@@ -64,7 +62,7 @@ public class ArchUnitRunnerRunsMethodsTest {
 
     @Test
     public void executes_test_methods_and_supplies_JavaClasses() throws InitializationError {
-        runner.runChild(getTestMethod(testSomething, runner), runNotifier);
+        runner.runChild(getRule(testSomething, runner), runNotifier);
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
                 .contains(testSomething);
@@ -82,7 +80,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     }
 
     private void runAndAssertWrongParametersForChild(String name, ArchUnitRunner runner) {
-        runner.runChild(getTestMethod(name, runner), runNotifier);
+        runner.runChild(getRule(name, runner), runNotifier);
         verify(runNotifier).fireTestFailure(failureCaptor.capture());
         Failure failure = failureCaptor.getValue();
         assertThat(failure.getDescription().toString()).as("Failure description").contains(name);
@@ -95,8 +93,8 @@ public class ArchUnitRunnerRunsMethodsTest {
     public void ignores_all_methods_in_classes_annotated_with_ArchIgnore() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(IgnoredArchTest.class);
 
-        runner.runChild(getTestMethod(toBeIgnoredOne, runner), runNotifier);
-        runner.runChild(getTestMethod(toBeIgnoredTwo, runner), runNotifier);
+        runner.runChild(getRule(toBeIgnoredOne, runner), runNotifier);
+        runner.runChild(getRule(toBeIgnoredTwo, runner), runNotifier);
         verify(runNotifier, times(2)).fireTestIgnored(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
                 .contains(toBeIgnoredOne)
@@ -107,27 +105,9 @@ public class ArchUnitRunnerRunsMethodsTest {
     public void ignores_methods_annotated_with_ArchIgnore() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(ArchTestWithIgnoredMethod.class);
 
-        runner.runChild(getTestMethod(toBeIgnored, runner), runNotifier);
+        runner.runChild(getRule(toBeIgnored, runner), runNotifier);
         verify(runNotifier).fireTestIgnored(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getValue().toString()).contains(toBeIgnored);
-    }
-
-    private ArchTestExecution getTestMethod(String name, ArchUnitRunner runner) {
-        for (ArchTestExecution ruleToTest : runner.getChildren()) {
-            if (ruleToTest instanceof ArchTestMethodExecution
-                    && name.equals(((ArchTestMethodExecution) ruleToTest).getTestMethod().getName())) {
-                return ruleToTest;
-            }
-        }
-        throw new RuntimeException(String.format("Couldn't find Method with name '%s'", name));
-    }
-
-    private ArchUnitRunner newRunner() {
-        try {
-            return new ArchUnitRunner(ArchTestWithTestMethod.class);
-        } catch (InitializationError initializationError) {
-            throw new RuntimeException(initializationError);
-        }
     }
 
     @AnalyseClasses(packages = "some.pkg")
@@ -137,7 +117,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         static JavaClasses suppliedClasses;
 
         @ArchTest
-        public void testSomething(JavaClasses classes) {
+        public static void testSomething(JavaClasses classes) {
             suppliedClasses = classes;
         }
     }
@@ -148,11 +128,11 @@ public class ArchUnitRunnerRunsMethodsTest {
         static final String tooManyParams = "tooManyParams";
 
         @ArchTest
-        public void noParams() {
+        public static void noParams() {
         }
 
         @ArchTest
-        public void tooManyParams(JavaClasses classes, int tooMuch) {
+        public static void tooManyParams(JavaClasses classes, int tooMuch) {
         }
     }
 
@@ -163,11 +143,11 @@ public class ArchUnitRunnerRunsMethodsTest {
         static final String toBeIgnoredTwo = "toBeIgnoredTwo";
 
         @ArchTest
-        public void toBeIgnoredOne(JavaClasses classes) {
+        public static void toBeIgnoredOne(JavaClasses classes) {
         }
 
         @ArchTest
-        public void toBeIgnoredTwo(JavaClasses classes) {
+        public static void toBeIgnoredTwo(JavaClasses classes) {
         }
     }
 
@@ -177,7 +157,7 @@ public class ArchUnitRunnerRunsMethodsTest {
 
         @ArchIgnore
         @ArchTest
-        public void toBeIgnored(JavaClasses classes) {
+        public static void toBeIgnored(JavaClasses classes) {
         }
     }
 }

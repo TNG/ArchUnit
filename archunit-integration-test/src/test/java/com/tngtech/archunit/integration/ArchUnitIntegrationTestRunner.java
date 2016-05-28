@@ -1,9 +1,7 @@
 package com.tngtech.archunit.integration;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
-import com.tngtech.archunit.integration.CodingRulesWithRunnerIntegrationTest.ExpectedViolationFrom;
 import com.tngtech.archunit.junit.ArchRuleExecution;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTestExecution;
@@ -14,8 +12,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     private ExpectedViolation expectedViolation;
@@ -30,7 +26,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         Description description = describeChild(child);
         notifier.fireTestStarted(description);
         try {
-            configureExpectedViolationFor(child);
+            extractExpectedConfiguration(child).configure(expectedViolation);
             expectedViolation.apply(new IntegrationTestStatement(child), description).evaluate();
             notifier.fireTestFinished(description);
         } catch (Throwable throwable) {
@@ -38,29 +34,13 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         }
     }
 
-    private void configureExpectedViolationFor(ArchTestExecution child) {
-        String expectationConfiguration = extractConfigurationMethodName(child);
-        try {
-            Method method = CodingRulesIntegrationTest.class.getDeclaredMethod(expectationConfiguration, ExpectedViolation.class);
-            method.invoke(null, expectedViolation);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Cannot find method '" + expectationConfiguration + "' on "
-                    + CodingRulesIntegrationTest.class.getSimpleName());
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Can't call method '" + expectationConfiguration + "' on "
-                    + CodingRulesIntegrationTest.class.getSimpleName());
-        }
-    }
-
-    private String extractConfigurationMethodName(ArchTestExecution child) {
-        checkArgument(child instanceof ArchRuleExecution, "%s can only test fields annotated with @%s",
-                getClass().getName(), ArchTest.class.getSimpleName());
-        ExpectedViolationFrom annotation = ((ArchRuleExecution) child).getField().getAnnotation(ExpectedViolationFrom.class);
+    private ExpectedViolationDefinition extractExpectedConfiguration(ArchTestExecution child) {
+        ExpectedViolationFrom annotation = child.getAnnotation(ExpectedViolationFrom.class);
         if (annotation == null) {
             throw new RuntimeException("IntegrationTests need to annotate their @"
                     + ArchTest.class.getSimpleName() + "'s with @" + ExpectedViolationFrom.class.getSimpleName());
         }
-        return annotation.value();
+        return new ExpectedViolationDefinition(annotation);
     }
 
     private class IntegrationTestStatement extends Statement {
@@ -88,6 +68,26 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
 
         void rethrow() throws Throwable {
             throw exception;
+        }
+    }
+
+    private static class ExpectedViolationDefinition {
+        private final Class<?> location;
+        private final String method;
+
+        public ExpectedViolationDefinition(ExpectedViolationFrom annotation) {
+            location = annotation.location();
+            method = annotation.method();
+        }
+
+        public void configure(ExpectedViolation expectedViolation) {
+            try {
+                location.getDeclaredMethod(method, ExpectedViolation.class).invoke(null, expectedViolation);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("Cannot find method '" + method + "' on " + location.getSimpleName());
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException("Can't call method '" + method + "' on " + location.getSimpleName());
+            }
         }
     }
 }

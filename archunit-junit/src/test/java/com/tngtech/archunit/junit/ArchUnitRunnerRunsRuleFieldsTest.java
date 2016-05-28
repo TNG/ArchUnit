@@ -3,11 +3,7 @@ package com.tngtech.archunit.junit;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvent;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.OpenArchRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,13 +21,13 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.DescribedPredicate.all;
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.FAILING_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.IGNORED_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.SomeArchTest.SATISFIED_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.WrongArchTest.NO_RULE_AT_ALL_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRulesTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.FAILING_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.IGNORED_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.SATISFIED_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTest.NO_RULE_AT_ALL_FIELD_NAME;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
 import static com.tngtech.archunit.lang.ArchRule.rule;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +36,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ArchUnitRunnerRunsRulesTest {
+public class ArchUnitRunnerRunsRuleFieldsTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
@@ -62,9 +58,9 @@ public class ArchUnitRunnerRunsRulesTest {
     private ArgumentCaptor<Failure> failureCaptor;
 
     @InjectMocks
-    private ArchUnitRunner runner = newRunner();
+    private ArchUnitRunner runner = ArchUnitRunnerTestUtils.newRunnerFor(SomeArchTest.class);
 
-    private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsRulesTest.class);
+    private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsRuleFieldsTest.class);
 
     @Before
     public void setUp() {
@@ -79,7 +75,7 @@ public class ArchUnitRunnerRunsRulesTest {
 
     @Test
     public void should_start_rule() {
-        ArchTestExecution satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRule(SATISFIED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -89,7 +85,7 @@ public class ArchUnitRunnerRunsRulesTest {
 
     @Test
     public void should_accept_satisfied_rule() {
-        ArchTestExecution satisfiedRule = getRuleForField(SATISFIED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRule(SATISFIED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -101,30 +97,23 @@ public class ArchUnitRunnerRunsRulesTest {
     public void should_fail_on_wrong_field_visibility() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(WrongArchTest.class);
 
-        runner.runChild(getRuleForField(WRONG_MODIFIER_FIELD_NAME, runner), runNotifier);
+        thrown.expectMessage("With @ArchTest annotated members must be public and static");
 
-        verify(runNotifier).fireTestFailure(failureCaptor.capture());
-        assertThat(failureCaptor.getValue().getMessage()).contains("access");
-        assertThat(failureCaptor.getValue().getMessage()).contains("field");
-        assertThat(failureCaptor.getValue().getMessage()).contains(WRONG_MODIFIER_FIELD_NAME);
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(WRONG_MODIFIER_FIELD_NAME, runner), runNotifier);
     }
 
     @Test
     public void should_fail_on_wrong_field_type() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(WrongArchTest.class);
 
-        runner.runChild(getRuleForField(NO_RULE_AT_ALL_FIELD_NAME, runner), runNotifier);
+        thrown.expectMessage("With @ArchTest annotated members must be public and static");
 
-        verify(runNotifier).fireTestFailure(failureCaptor.capture());
-        assertThat(failureCaptor.getValue().getMessage()).contains("type");
-        assertThat(failureCaptor.getValue().getMessage()).contains(OpenArchRule.class.getSimpleName());
-        assertThat(failureCaptor.getValue().getMessage()).contains("@" + ArchTest.class.getName());
-        assertThat(failureCaptor.getValue().getMessage()).contains(NO_RULE_AT_ALL_FIELD_NAME);
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(NO_RULE_AT_ALL_FIELD_NAME, runner), runNotifier);
     }
 
     @Test
     public void should_fail_unsatisfied_rule() {
-        ArchTestExecution satisfiedRule = getRuleForField(FAILING_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRule(FAILING_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -136,7 +125,7 @@ public class ArchUnitRunnerRunsRulesTest {
 
     @Test
     public void should_skip_ignored_rule() {
-        ArchTestExecution satisfiedRule = getRuleForField(IGNORED_FIELD_NAME);
+        ArchTestExecution satisfiedRule = getRule(IGNORED_FIELD_NAME);
 
         runner.runChild(satisfiedRule, runNotifier);
 
@@ -148,8 +137,8 @@ public class ArchUnitRunnerRunsRulesTest {
     public void should_skip_ignored_test() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(IgnoredArchTest.class);
 
-        runner.runChild(getRuleForField(RULE_ONE_IN_IGNORED_TEST, runner), runNotifier);
-        runner.runChild(getRuleForField(RULE_TWO_IN_IGNORED_TEST, runner), runNotifier);
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_ONE_IN_IGNORED_TEST, runner), runNotifier);
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_TWO_IN_IGNORED_TEST, runner), runNotifier);
 
         verify(runNotifier, times(2)).fireTestIgnored(descriptionCaptor.capture());
 
@@ -157,26 +146,8 @@ public class ArchUnitRunnerRunsRulesTest {
                 .contains(RULE_ONE_IN_IGNORED_TEST, RULE_TWO_IN_IGNORED_TEST);
     }
 
-    private ArchTestExecution getRuleForField(String fieldName) {
-        return getRuleForField(fieldName, runner);
-    }
-
-    private ArchTestExecution getRuleForField(String fieldName, ArchUnitRunner runner) {
-        for (ArchTestExecution ruleToTest : runner.getChildren()) {
-            if (ruleToTest instanceof ArchRuleExecution
-                    && fieldName.equals(((ArchRuleExecution) ruleToTest).getField().getName())) {
-                return ruleToTest;
-            }
-        }
-        throw new RuntimeException(String.format("Couldn't find Rule for field name '%s'", fieldName));
-    }
-
-    private ArchUnitRunner newRunner() {
-        try {
-            return new ArchUnitRunner(SomeArchTest.class);
-        } catch (InitializationError initializationError) {
-            throw new RuntimeException(initializationError);
-        }
+    private ArchTestExecution getRule(String name) {
+        return ArchUnitRunnerTestUtils.getRule(name, runner);
     }
 
     @AnalyseClasses(packages = "some.pkg")
@@ -187,24 +158,17 @@ public class ArchUnitRunnerRunsRulesTest {
 
         @ArchTest
         public static final ArchRule<JavaClass> someSatisfiedRule =
-                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ALWAYS_SATISFIED);
+                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED);
 
         @ArchTest
         public static final ArchRule<JavaClass> someFailingRule =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ALWAYS_SATISFIED));
+                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
 
         @ArchIgnore
         @ArchTest
         public static final ArchRule<JavaClass> someIgnoredRule =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ALWAYS_SATISFIED));
+                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
     }
-
-    private static final ArchCondition<JavaClass> ALWAYS_SATISFIED = new ArchCondition<JavaClass>() {
-        @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            events.add(new ConditionEvent(true, "I'm always satisfied"));
-        }
-    };
 
     @AnalyseClasses(packages = "some.pkg")
     public static class WrongArchTest {
@@ -213,7 +177,7 @@ public class ArchUnitRunnerRunsRulesTest {
 
         @ArchTest
         private ArchRule<JavaClass> ruleWithWrongModifier =
-                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ALWAYS_SATISFIED);
+                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED);
 
         @ArchTest
         public static Object noRuleAtAll = new Object();
@@ -227,10 +191,10 @@ public class ArchUnitRunnerRunsRulesTest {
 
         @ArchTest
         public static final ArchRule<JavaClass> someRuleOne =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ALWAYS_SATISFIED));
+                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
 
         @ArchTest
         public static final ArchRule<JavaClass> someRuleTwo =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ALWAYS_SATISFIED));
+                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
     }
 }

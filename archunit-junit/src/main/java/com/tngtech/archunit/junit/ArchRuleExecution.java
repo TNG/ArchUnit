@@ -1,34 +1,41 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.OpenArchRule;
 import org.junit.runner.Description;
-import org.junit.runners.model.FrameworkField;
-import org.junit.runners.model.TestClass;
 
 public class ArchRuleExecution extends ArchTestExecution {
-    private final FrameworkField ruleField;
+    private final Field ruleField;
 
-    public ArchRuleExecution(TestClass testClass, FrameworkField ruleField) {
+    public ArchRuleExecution(Class<?> testClass, Field ruleField) {
         super(testClass);
-        this.ruleField = ruleField;
-    }
-
-    public FrameworkField getField() {
-        return ruleField;
+        this.ruleField = validate(ruleField);
     }
 
     @Override
     Result doEvaluateOn(JavaClasses classes) {
-        return RuleToEvaluate.from(ruleField, testClass.getJavaClass())
+        return RuleToEvaluate.from(testClass, ruleField)
                 .evaluateOn(classes)
                 .asResult(describeSelf());
     }
 
     @Override
     public Description describeSelf() {
-        return Description.createTestDescription(testClass.getJavaClass(), ruleField.getField().getName());
+        return Description.createTestDescription(testClass, ruleField.getName());
+    }
+
+    @Override
+    public String getName() {
+        return ruleField.getName();
+    }
+
+    @Override
+    public <T extends Annotation> T getAnnotation(Class<T> type) {
+        return ruleField.getAnnotation(type);
     }
 
     private static abstract class RuleToEvaluate {
@@ -36,7 +43,7 @@ public class ArchRuleExecution extends ArchTestExecution {
             return new FailedToRetrieve(exception);
         }
 
-        static RuleToEvaluate from(FrameworkField ruleField, Class<?> testClass) {
+        static RuleToEvaluate from(Class<?> testClass, Field ruleField) {
             try {
                 Object ruleCandidate = ruleField.get(testClass);
                 return ruleCandidate instanceof OpenArchRule ?
@@ -53,7 +60,7 @@ public class ArchRuleExecution extends ArchTestExecution {
             return (OpenArchRule<JavaClass>) ruleCandidate;
         }
 
-        private static RuleEvaluationException fieldTypeFailure(FrameworkField ruleField) {
+        private static RuleEvaluationException fieldTypeFailure(Field ruleField) {
             String hint = String.format("Only fields of type %s may be annotated with @%s",
                     OpenArchRule.class.getName(), ArchTest.class.getName());
             String problem = String.format("Cannot evaluate @%s on field %s.%s",
@@ -64,10 +71,10 @@ public class ArchRuleExecution extends ArchTestExecution {
         abstract Evaluation evaluateOn(JavaClasses classes);
 
         private static class Retrieved extends RuleToEvaluate {
-            private final FrameworkField ruleField;
+            private final Field ruleField;
             private OpenArchRule<JavaClass> rule;
 
-            public Retrieved(FrameworkField ruleField, OpenArchRule<JavaClass> rule) {
+            public Retrieved(Field ruleField, OpenArchRule<JavaClass> rule) {
                 this.ruleField = ruleField;
                 this.rule = rule;
             }
@@ -97,11 +104,11 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     private static class RetrievalEvaluation extends Evaluation {
-        private final FrameworkField ruleField;
+        private final Field ruleField;
         private final OpenArchRule<JavaClass> rule;
         private final JavaClasses classes;
 
-        public RetrievalEvaluation(FrameworkField ruleField, OpenArchRule<JavaClass> rule, JavaClasses classes) {
+        public RetrievalEvaluation(Field ruleField, OpenArchRule<JavaClass> rule, JavaClasses classes) {
             this.ruleField = ruleField;
             this.rule = rule;
             this.classes = classes;
@@ -109,7 +116,7 @@ public class ArchRuleExecution extends ArchTestExecution {
 
         @Override
         Result asResult(Description description) {
-            if (ruleField.getField().getAnnotation(ArchIgnore.class) != null) {
+            if (ruleField.getAnnotation(ArchIgnore.class) != null) {
                 return new IgnoredResult(description);
             }
             try {

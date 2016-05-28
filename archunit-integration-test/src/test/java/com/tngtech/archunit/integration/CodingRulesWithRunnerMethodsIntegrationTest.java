@@ -5,7 +5,6 @@ import com.tngtech.archunit.exampletest.CodingRulesWithRunnerMethodsTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
-import org.junit.Rule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
@@ -13,19 +12,16 @@ import static com.tngtech.archunit.integration.CodingRulesIntegrationTest.expect
 
 @AnalyseClasses(packages = "com.tngtech.archunit.example")
 public class CodingRulesWithRunnerMethodsIntegrationTest extends CodingRulesWithRunnerMethodsTest {
-    @Rule
-    public final ExpectedViolation expectViolation = ExpectedViolation.none();
-
     @ArchTest
-    @Override
-    public void no_java_util_logging_as_method(final JavaClasses classes) {
+    public static void no_java_util_logging_as_method(final JavaClasses classes) {
+        ExpectedViolation expectViolation = ExpectedViolation.none();
         expectViolationByUsingJavaUtilLogging(expectViolation);
 
         expectViolation.apply(new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                CodingRulesWithRunnerMethodsIntegrationTest.super.no_java_util_logging_as_method(classes);
+                CodingRulesWithRunnerMethodsTest.no_java_util_logging_as_method(classes);
             }
-        }, Description.createTestDescription(getClass(), "no_java_util_logging_as_method"));
+        }, Description.createTestDescription(CodingRulesWithRunnerMethodsIntegrationTest.class, "no_java_util_logging_as_method"));
     }
 }

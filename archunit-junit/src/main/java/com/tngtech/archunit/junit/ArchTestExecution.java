@@ -1,28 +1,48 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
+
 import com.tngtech.archunit.core.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.TestClass;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public abstract class ArchTestExecution {
-    final TestClass testClass;
+    final Class<?> testClass;
 
-    ArchTestExecution(TestClass testClass) {
+    ArchTestExecution(Class<?> testClass) {
         this.testClass = testClass;
     }
 
     public Result evaluateOn(JavaClasses classes) {
-        if (testClass.getJavaClass().getAnnotation(ArchIgnore.class) != null) {
+        if (testClass.getAnnotation(ArchIgnore.class) != null) {
             return new IgnoredResult(describeSelf());
         }
         return doEvaluateOn(classes);
     }
 
+    static <T extends Member> T validate(T member) {
+        checkArgument(Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
+                "With @%s annotated members must be public and static", ArchTest.class.getSimpleName());
+        return member;
+    }
+
     abstract Result doEvaluateOn(JavaClasses classes);
 
     abstract Description describeSelf();
+
+    @Override
+    public String toString() {
+        return describeSelf().toString();
+    }
+
+    public abstract String getName();
+
+    public abstract <T extends Annotation> T getAnnotation(Class<T> type);
 
     static abstract class Result {
         abstract void notify(RunNotifier notifier);
