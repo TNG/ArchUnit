@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.ClassFileProcessor.MethodIdentifier.staticInitializerIdentifier;
-import static com.tngtech.archunit.core.ClassFileProcessor.MethodLike.staticInitializerOf;
+import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnit.staticInitializerOf;
+import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnitIdentifier.staticInitializerIdentifier;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static org.objectweb.asm.Opcodes.ASM5;
@@ -70,7 +70,7 @@ class ClassFileProcessor extends ClassVisitor {
         }
         LOG.debug("Analysing method {}.{}:{}", processingContext.getCurrentClassName(), name, desc);
         MethodVisitor delegate = super.visitMethod(access, name, desc, signature, exceptions);
-        return new MethodProcessor(processingContext.getMethod(name, desc), context, delegate);
+        return new MethodProcessor(processingContext.getCodeUnit(name, desc), context, delegate);
     }
 
     @Override
@@ -96,7 +96,7 @@ class ClassFileProcessor extends ClassVisitor {
 
     private static class ProcessingContext {
         private Class<?> currentClass;
-        private MethodRecorder methodRecorder;
+        private CodeUnitRecorder codeUnitRecorder;
         private JavaClass.Builder currentClassBuilder;
 
         private boolean canImportCurrentClass;
@@ -118,8 +118,8 @@ class ClassFileProcessor extends ClassVisitor {
 
         private void tryInit(String classDescriptor) {
             currentClass = classForDescriptor(classDescriptor);
-            methodRecorder = new MethodRecorder(currentClass);
-            currentClassBuilder = new JavaClass.Builder(methodRecorder).withType(currentClass);
+            codeUnitRecorder = new CodeUnitRecorder(currentClass);
+            currentClassBuilder = new JavaClass.Builder(codeUnitRecorder).withType(currentClass);
         }
 
         private Class<?> classForDescriptor(String descriptor) {
@@ -130,21 +130,21 @@ class ClassFileProcessor extends ClassVisitor {
             return currentClass.getName();
         }
 
-        MethodLike getMethod(String name, String desc) {
-            return methodRecorder.get(MethodIdentifier.of(currentClass, name, desc));
+        CodeUnit getCodeUnit(String name, String desc) {
+            return codeUnitRecorder.get(CodeUnitIdentifier.of(currentClass, name, desc));
         }
 
         public JavaClass finish() {
             JavaClass javaClass = currentClassBuilder.build();
             currentClass = null;
-            methodRecorder = null;
+            codeUnitRecorder = null;
             currentClassBuilder = null;
             return javaClass;
         }
     }
 
     private static class MethodProcessor extends MethodVisitor {
-        private final MethodLike currentMethod;
+        private final CodeUnit currentCodeUnit;
         private final ClassFileImportContext context;
 
         private Set<RawFieldAccessRecord> fieldAccessRecordBuilders = new HashSet<>();
@@ -152,9 +152,9 @@ class ClassFileProcessor extends ClassVisitor {
         private Set<RawConstructorCallRecord> constructorCallRecordBuilders = new HashSet<>();
         private int actualLineNumber;
 
-        MethodProcessor(MethodLike currentMethod, ClassFileImportContext context, MethodVisitor mv) {
+        MethodProcessor(CodeUnit currentCodeUnit, ClassFileImportContext context, MethodVisitor mv) {
             super(ASM5, mv);
-            this.currentMethod = currentMethod;
+            this.currentCodeUnit = currentCodeUnit;
             this.context = context;
         }
 
@@ -200,7 +200,7 @@ class ClassFileProcessor extends ClassVisitor {
 
         private <BUILDER extends BaseRawAccessRecord.Builder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
-                    .withCaller(currentMethod)
+                    .withCaller(currentCodeUnit)
                     .withTarget(target)
                     .withLineNumber(actualLineNumber);
         }
@@ -224,46 +224,46 @@ class ClassFileProcessor extends ClassVisitor {
         }
     }
 
-    private static class MethodRecorder extends ForwardingMap<MethodIdentifier, MethodLike>
+    private static class CodeUnitRecorder extends ForwardingMap<CodeUnitIdentifier, CodeUnit>
             implements TypeAnalysisListener {
 
-        private final Map<MethodIdentifier, MethodLike> typeToMethod = new HashMap<>();
+        private final Map<CodeUnitIdentifier, CodeUnit> identifierToCodeUnit = new HashMap<>();
 
         @SuppressWarnings("unchecked")
-        public MethodRecorder(Class<?> type) {
+        public CodeUnitRecorder(Class<?> type) {
             for (Class<?> clazzInHierarchy : getAllSuperTypes(type)) {
                 put(staticInitializerIdentifier(clazzInHierarchy), staticInitializerOf(clazzInHierarchy));
             }
         }
 
         @Override
-        public MethodLike get(Object key) {
+        public CodeUnit get(Object key) {
             return checkNotNull(super.get(key),
                     "No Method for %s was encountered, you probably have ambiguous classes on your classpath", key);
         }
 
         @Override
         public void onMethodFound(Method method) {
-            typeToMethod.put(MethodIdentifier.of(method), MethodLike.of(method));
+            identifierToCodeUnit.put(CodeUnitIdentifier.of(method), CodeUnit.of(method));
         }
 
         @Override
         public void onConstructorFound(Constructor<?> constructor) {
-            typeToMethod.put(MethodIdentifier.of(constructor), MethodLike.of(constructor));
+            identifierToCodeUnit.put(CodeUnitIdentifier.of(constructor), CodeUnit.of(constructor));
         }
 
         @Override
-        protected Map<MethodIdentifier, MethodLike> delegate() {
-            return typeToMethod;
+        protected Map<CodeUnitIdentifier, CodeUnit> delegate() {
+            return identifierToCodeUnit;
         }
     }
 
-    static class MethodIdentifier {
+    static class CodeUnitIdentifier {
         private final Class<?> declaringClass;
         private final String name;
         private final Type type;
 
-        public MethodIdentifier(Class<?> declaringClass, String name, Type type) {
+        public CodeUnitIdentifier(Class<?> declaringClass, String name, Type type) {
             this.declaringClass = declaringClass;
             this.name = name;
             this.type = type;
@@ -282,7 +282,7 @@ class ClassFileProcessor extends ClassVisitor {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final MethodIdentifier other = (MethodIdentifier) obj;
+            final CodeUnitIdentifier other = (CodeUnitIdentifier) obj;
             return Objects.equals(this.declaringClass, other.declaringClass) &&
                     Objects.equals(this.name, other.name) &&
                     Objects.equals(this.type, other.type);
@@ -293,31 +293,31 @@ class ClassFileProcessor extends ClassVisitor {
             return "{declaringClass=" + declaringClass + ", name='" + name + "', type=" + type + '}';
         }
 
-        static MethodIdentifier of(Method method) {
-            return new MethodIdentifier(method.getDeclaringClass(), method.getName(), Type.getType(method));
+        static CodeUnitIdentifier of(Method method) {
+            return new CodeUnitIdentifier(method.getDeclaringClass(), method.getName(), Type.getType(method));
         }
 
-        public static MethodIdentifier of(Constructor<?> constructor) {
-            return new MethodIdentifier(constructor.getDeclaringClass(), CONSTRUCTOR_NAME, Type.getType(constructor));
+        public static CodeUnitIdentifier of(Constructor<?> constructor) {
+            return new CodeUnitIdentifier(constructor.getDeclaringClass(), CONSTRUCTOR_NAME, Type.getType(constructor));
         }
 
-        public static MethodIdentifier of(Class<?> declaringClass, String name, String desc) {
-            return new MethodIdentifier(declaringClass, name, Type.getMethodType(desc));
+        public static CodeUnitIdentifier of(Class<?> declaringClass, String name, String desc) {
+            return new CodeUnitIdentifier(declaringClass, name, Type.getMethodType(desc));
         }
 
-        public static MethodIdentifier staticInitializerIdentifier(Class<?> declaringClass) {
-            return new MethodIdentifier(declaringClass, STATIC_INITIALIZER_NAME, Type.getMethodType("()V"));
+        public static CodeUnitIdentifier staticInitializerIdentifier(Class<?> declaringClass) {
+            return new CodeUnitIdentifier(declaringClass, STATIC_INITIALIZER_NAME, Type.getMethodType("()V"));
         }
     }
 
-    static class MethodLike {
+    static class CodeUnit {
         private final Member member;
         private final String name;
         private final List<Class<?>> parameters;
         private final Class<?> declaringClass;
         private final int hashCode;
 
-        private MethodLike(Member member) {
+        private CodeUnit(Member member) {
             this(member,
                     nameOf(member),
                     parametersOf(member),
@@ -325,7 +325,7 @@ class ClassFileProcessor extends ClassVisitor {
                     Objects.hash(member));
         }
 
-        private MethodLike(Member object, String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
+        private CodeUnit(Member object, String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
             this.member = object;
             this.name = name;
             this.parameters = parameters;
@@ -371,31 +371,31 @@ class ClassFileProcessor extends ClassVisitor {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final MethodLike other = (MethodLike) obj;
+            final CodeUnit other = (CodeUnit) obj;
             return Objects.equals(this.member, other.member);
         }
 
         @Override
         public String toString() {
-            return "MethodLike{member=" + member.getName() + '}';
+            return getClass().getSimpleName() + "{member=" + member.getName() + '}';
         }
 
-        static MethodLike of(Object o) {
+        static CodeUnit of(Object o) {
             checkArgument(o instanceof Constructor || o instanceof Method);
-            return new MethodLike((Member) o);
+            return new CodeUnit((Member) o);
         }
 
-        static MethodLike staticInitializerOf(final Class<?> clazz) {
+        static CodeUnit staticInitializerOf(final Class<?> clazz) {
             return new StaticInitializer(clazz);
         }
 
-        public boolean is(JavaMethodLike<?, ?> method) {
+        public boolean is(JavaCodeUnit<?, ?> method) {
             return getName().equals(method.getName())
                     && getParameters().equals(method.getParameters())
                     && getDeclaringClass() == method.getOwner().reflect();
         }
 
-        private static class StaticInitializer extends MethodLike {
+        private static class StaticInitializer extends CodeUnit {
             private StaticInitializer(Class<?> clazz) {
                 super(null, STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), clazz, Objects.hash(STATIC_INITIALIZER_NAME, clazz));
             }
@@ -411,7 +411,7 @@ class ClassFileProcessor extends ClassVisitor {
                 if (!super.equals(obj)) {
                     return false;
                 }
-                final MethodLike.StaticInitializer other = (MethodLike.StaticInitializer) obj;
+                final StaticInitializer other = (StaticInitializer) obj;
                 return Objects.equals(getName(), other.getName()) &&
                         Objects.equals(getDeclaringClass(), other.getDeclaringClass()) &&
                         Objects.equals(getParameters(), other.getParameters());

@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-public class JavaConstructor extends JavaMethodLike<Constructor<?>, MemberDescription.ForConstructor> {
+public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
     public static final String CONSTRUCTOR_NAME = "<init>";
 
     private JavaConstructor(Builder builder) {

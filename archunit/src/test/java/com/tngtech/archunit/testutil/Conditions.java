@@ -3,7 +3,7 @@ package com.tngtech.archunit.testutil;
 import java.util.ArrayList;
 
 import com.google.common.collect.Lists;
-import com.tngtech.archunit.core.JavaMethodLike;
+import com.tngtech.archunit.core.JavaCodeUnit;
 import org.assertj.core.api.Condition;
 
 public final class Conditions {
@@ -22,11 +22,11 @@ public final class Conditions {
         }.as("containing an element that " + condition.description());
     }
 
-    public static Condition<JavaMethodLike<?, ?>> methodWithSignature(final String name, final Class<?>... parameters) {
+    public static Condition<JavaCodeUnit<?, ?>> codeUnitWithSignature(final String name, final Class<?>... parameters) {
         final ArrayList<Class<?>> paramList = Lists.newArrayList(parameters);
-        return new Condition<JavaMethodLike<?, ?>>() {
+        return new Condition<JavaCodeUnit<?, ?>>() {
             @Override
-            public boolean matches(JavaMethodLike<?, ?> value) {
+            public boolean matches(JavaCodeUnit<?, ?> value) {
                 return name.equals(value.getName()) && paramList.equals(value.getParameters());
             }
         }.as("matches signature <" + name + ", " + paramList + ">");

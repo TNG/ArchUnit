@@ -21,8 +21,8 @@ import static com.tngtech.archunit.core.Optionals.valueOrException;
 public class JavaClass implements HasName {
     private final Class<?> type;
     private final Set<JavaField> fields;
-    private final Set<JavaMethodLike<?, ?>> methods;
-    private final Set<JavaMethod> properMethods = new HashSet<>();
+    private final Set<JavaCodeUnit<?, ?>> codeUnits;
+    private final Set<JavaMethod> methods = new HashSet<>();
     private final Set<JavaConstructor> constructors = new HashSet<>();
     private final JavaStaticInitializer staticInitializer;
     private Optional<JavaClass> superClass = Optional.absent();
@@ -32,18 +32,18 @@ public class JavaClass implements HasName {
     private JavaClass(Builder builder) {
         type = checkNotNull(builder.type);
         fields = build(builder.fieldBuilders, this);
-        methods = build(builder.methodBuilders, this);
+        codeUnits = build(builder.codeUnitBuilders, this);
 
-        staticInitializer = addMethodsByTypeAndReturnStaticInitializer(methods);
+        staticInitializer = addCodeUnitsByTypeAndReturnStaticInitializer(codeUnits);
 
         checkNotNull(type);
     }
 
-    private JavaStaticInitializer addMethodsByTypeAndReturnStaticInitializer(Set<JavaMethodLike<?, ?>> methods) {
+    private JavaStaticInitializer addCodeUnitsByTypeAndReturnStaticInitializer(Set<JavaCodeUnit<?, ?>> codeUnits) {
         JavaStaticInitializer result = null;
-        for (JavaMethodLike<?, ?> method : methods) {
+        for (JavaCodeUnit<?, ?> method : codeUnits) {
             if (method instanceof JavaMethod) {
-                properMethods.add((JavaMethod) method);
+                this.methods.add((JavaMethod) method);
             } else if (method instanceof JavaConstructor) {
                 constructors.add((JavaConstructor) method);
             } else {
@@ -105,55 +105,50 @@ public class JavaClass implements HasName {
         return Optional.absent();
     }
 
-    public Set<JavaMethodLike<?, ?>> getMethods() {
-        return methods;
+    public Set<JavaCodeUnit<?, ?>> getCodeUnits() {
+        return codeUnits;
     }
 
-    public JavaMethodLike<?, ?> getMethod(String name, Class<?>... parameters) {
-        return findMatchingMethod(methods, name, parameters);
+    /**
+     * @param name       The name of the code unit, can be a method name, but also
+     *                   {@link JavaConstructor#CONSTRUCTOR_NAME CONSTRUCTOR_NAME}
+     *                   or {@link JavaStaticInitializer#STATIC_INITIALIZER_NAME STATIC_INITIALIZER_NAME}
+     * @param parameters The parameter signature of the method
+     * @return A code unit (method, constructor or static initializer) with the given signature
+     */
+    public JavaCodeUnit<?, ?> getCodeUnit(String name, Class<?>... parameters) {
+        return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    private <T extends JavaMethodLike<?, ?>> T findMatchingMethod(Set<T> methods, String name, Class<?>[] parameters) {
-        return findMatchingMethod(methods, name, newArrayList(parameters));
+    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> methods, String name, Class<?>[] parameters) {
+        return findMatchingCodeUnit(methods, name, newArrayList(parameters));
     }
 
-    private <T extends JavaMethodLike<?, ?>> T findMatchingMethod(Set<T> methods, String name, List<Class<?>> parameters) {
-        return valueOrException(tryFindMatchingMethod(methods, name, parameters),
-                new IllegalArgumentException("No method with name '" + name + "' and parameters " + parameters +
-                        " in methods " + methods + " of class " + getName()));
+    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+        return valueOrException(tryFindMatchingCodeUnit(codeUnits, name, parameters),
+                new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
+                        " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
-    private <T extends JavaMethodLike<?, ?>> Optional<T> tryFindMatchingMethod(Set<T> methods, String name, List<Class<?>> parameters) {
-        for (T method : methods) {
-            if (name.equals(method.getName()) && parameters.equals(method.getParameters())) {
-                return Optional.of(method);
+    private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+        for (T codeUnit : codeUnits) {
+            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters())) {
+                return Optional.of(codeUnit);
             }
         }
         return Optional.absent();
     }
 
-    /**
-     * @return A proper method (represented by a Java Method) with the given signature as opposed to
-     * {@link JavaMethodLike}s that represent Java Constructors
-     */
-    public JavaMethod getProperMethod(String name, Class<?>... parameters) {
-        return findMatchingMethod(properMethods, name, parameters);
+    public JavaMethod getMethod(String name, Class<?>... parameters) {
+        return findMatchingCodeUnit(methods, name, parameters);
     }
 
-    /**
-     * @return Only Methods that are represented by proper Java Methods as opposed to
-     * {@link JavaMethodLike}s that represent Java Constructors
-     */
-    public Set<JavaMethod> getProperMethods() {
-        return properMethods;
+    public Set<JavaMethod> getMethods() {
+        return methods;
     }
 
-    /**
-     * @return A proper constructor (represented by a Java Constructor) with the given signature as opposed to
-     * {@link JavaMethodLike}s that represent Java Methods
-     */
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingMethod(constructors, JavaConstructor.CONSTRUCTOR_NAME, parameters);
+        return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, parameters);
     }
 
     public Set<JavaConstructor> getConstructors() {
@@ -164,35 +159,40 @@ public class JavaClass implements HasName {
         return staticInitializer;
     }
 
+    public Set<JavaAccess<?>> getAccesses() {
+        return Sets.union(getFieldAccesses(), getCalls());
+    }
+
     public JavaFieldAccesses getFieldAccesses() {
         JavaFieldAccesses result = new JavaFieldAccesses();
-        for (JavaMethodLike<?, ?> method : methods) {
-            result.addAll(method.getFieldAccesses());
+        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+            result.addAll(codeUnit.getFieldAccesses());
         }
         return result;
     }
 
     /**
-     * Returns all calls to methods of this class, where methods refers to 'proper' methods as well as constructors.
+     * Returns all calls of this class to methods or constructors.
      *
-     * @see #getProperMethodCalls()
+     * @see #getMethodCalls()
+     * @see #getConstructorCalls()
      */
-    public Set<JavaCall<?>> getMethodCalls() {
-        return Sets.<JavaCall<?>>union(getProperMethodCalls(), getConstructorCalls());
+    public Set<JavaCall<?>> getCalls() {
+        return Sets.<JavaCall<?>>union(getMethodCalls(), getConstructorCalls());
     }
 
-    public JavaMethodCalls getProperMethodCalls() {
+    public JavaMethodCalls getMethodCalls() {
         JavaMethodCalls result = new JavaMethodCalls();
-        for (JavaMethodLike<?, ?> method : methods) {
-            result.addAll(method.getProperMethodCalls());
+        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+            result.addAll(codeUnit.getMethodCalls());
         }
         return result;
     }
 
     public JavaConstructorCalls getConstructorCalls() {
         JavaConstructorCalls result = new JavaConstructorCalls();
-        for (JavaMethodLike<?, ?> method : methods) {
-            result.addAll(method.getConstructorCalls());
+        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+            result.addAll(codeUnit.getConstructorCalls());
         }
         return result;
     }
@@ -202,7 +202,7 @@ public class JavaClass implements HasName {
         for (JavaAccess<?> access : filterTargetNotSelf(getFieldAccesses())) {
             result.add(Dependency.from(access));
         }
-        for (JavaAccess<?> call : filterTargetNotSelf(getMethodCalls())) {
+        for (JavaAccess<?> call : filterTargetNotSelf(getCalls())) {
             result.add(Dependency.from(call));
         }
         return result;
@@ -268,7 +268,7 @@ public class JavaClass implements HasName {
 
     class CompletionProcess {
         void completeMethodsFrom(ClassFileImportContext context) {
-            for (JavaMethodLike<?, ?> method : methods) {
+            for (JavaCodeUnit<?, ?> method : codeUnits) {
                 method.completeFrom(context);
             }
         }
@@ -277,7 +277,7 @@ public class JavaClass implements HasName {
     static final class Builder {
         private Class<?> type;
         private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, ? extends JavaMethodLike<?, ?>>> methodBuilders = new HashSet<>();
+        private final Set<BuilderWithBuildParameter<JavaClass, ? extends JavaCodeUnit<?, ?>>> codeUnitBuilders = new HashSet<>();
         private final TypeAnalysisListener analysisListener;
 
         Builder() {
@@ -296,13 +296,13 @@ public class JavaClass implements HasName {
             }
             for (Method method : type.getDeclaredMethods()) {
                 analysisListener.onMethodFound(method);
-                methodBuilders.add(new JavaMethod.Builder().withMethod(method));
+                codeUnitBuilders.add(new JavaMethod.Builder().withMethod(method));
             }
             for (Constructor<?> constructor : type.getDeclaredConstructors()) {
                 analysisListener.onConstructorFound(constructor);
-                methodBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
+                codeUnitBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
             }
-            methodBuilders.add(new JavaStaticInitializer.Builder());
+            codeUnitBuilders.add(new JavaStaticInitializer.Builder());
             return this;
         }
 

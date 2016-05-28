@@ -99,7 +99,7 @@ public class JavaFieldAccessTest {
 
     private static class TestFieldAccessRecord implements AccessRecord.FieldAccessRecord {
         private final AccessType accessType;
-        private final JavaMethodLike<?, ?> caller;
+        private final JavaCodeUnit<?, ?> caller;
         private final JavaField field;
         private final int lineNumber;
 
@@ -116,7 +116,7 @@ public class JavaFieldAccessTest {
         }
 
         @Override
-        public JavaMethodLike<?, ?> getCaller() {
+        public JavaCodeUnit<?, ?> getCaller() {
             return caller;
         }
 
@@ -132,7 +132,7 @@ public class JavaFieldAccessTest {
 
         public static final class Builder {
             private AccessType accessType;
-            private JavaMethodLike<?, ?> caller;
+            private JavaCodeUnit<?, ?> caller;
             private JavaField field;
             private int lineNumber;
 
@@ -144,7 +144,7 @@ public class JavaFieldAccessTest {
                 return this;
             }
 
-            public Builder withCaller(JavaMethodLike<?, ?> caller) {
+            public Builder withCaller(JavaCodeUnit<?, ?> caller) {
                 this.caller = caller;
                 return this;
             }

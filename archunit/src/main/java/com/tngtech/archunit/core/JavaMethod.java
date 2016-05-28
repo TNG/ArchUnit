@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-public class JavaMethod extends JavaMethodLike<Method, MemberDescription.ForMethod> {
+public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
     private JavaMethod(Builder builder) {
         super(builder);
     }

@@ -21,7 +21,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.ClassFileProcessor.MethodLike;
+import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.objectweb.asm.Type;
 import org.reflections.ReflectionsException;
@@ -43,11 +43,11 @@ class ClassFileImportContext {
     private final Map<Class<?>, JavaClass> classes = new ConcurrentHashMap<>();
 
     private final Set<RawFieldAccessRecord> rawFieldAccessRecords = new HashSet<>();
-    private final SetMultimap<JavaMethodLike<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final Set<RawMethodCallRecord> rawMethodCallRecords = new HashSet<>();
-    private final SetMultimap<JavaMethodLike<?, ?>, AccessRecord<JavaMethod>> processedMethodCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<JavaMethod>> processedMethodCallRecords = HashMultimap.create();
     private final Set<RawConstructorCallRecord> rawConstructorCallRecords = new HashSet<>();
-    private final SetMultimap<JavaMethodLike<?, ?>, AccessRecord<JavaConstructor>> processedConstructorCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<JavaConstructor>> processedConstructorCallRecords = HashMultimap.create();
 
     void registerFieldAccess(RawFieldAccessRecord record) {
         rawFieldAccessRecords.add(record);
@@ -76,7 +76,7 @@ class ClassFileImportContext {
     }
 
     private <T extends AccessRecord<?>> void tryProcess(
-            BaseRawAccessRecord<T> fieldAccessRecord, Multimap<JavaMethodLike<?, ?>, T> processedAccessRecords) {
+            BaseRawAccessRecord<T> fieldAccessRecord, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
         try {
             T processed = fieldAccessRecord.process(classes);
             processedAccessRecords.put(processed.getCaller(), processed);
@@ -89,15 +89,15 @@ class ClassFileImportContext {
         }
     }
 
-    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaMethodLike<?, ?> method) {
+    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedFieldAccessRecords.get(method);
     }
 
-    Set<AccessRecord<JavaMethod>> getMethodCallRecordsFor(JavaMethodLike<?, ?> method) {
+    Set<AccessRecord<JavaMethod>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedMethodCallRecords.get(method);
     }
 
-    Set<AccessRecord<JavaConstructor>> getConstructorCallRecordsFor(JavaMethodLike<?, ?> method) {
+    Set<AccessRecord<JavaConstructor>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedConstructorCallRecords.get(method);
     }
 
@@ -250,7 +250,7 @@ class ClassFileImportContext {
 
             Processed(Map<Class<?>, JavaClass> classes) {
                 super(classes);
-                methods = getTargetOwnerClass().getProperMethods();
+                methods = getTargetOwnerClass().getMethods();
             }
 
             @Override
@@ -262,11 +262,11 @@ class ClassFileImportContext {
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
                 JavaClass owner = new JavaClass.Builder().withType(targetInfo.owner.asClass()).build();
-                return createProperMethod(targetInfo, owner);
+                return createMethod(targetInfo, owner);
             }
 
             @SuppressWarnings("unchecked")
-            private JavaMethod createProperMethod(final TargetInfo targetInfo, JavaClass owner) {
+            private JavaMethod createMethod(final TargetInfo targetInfo, JavaClass owner) {
                 MemberDescription.ForMethod member = new MethodTargetDescription(targetInfo);
                 IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new Predicate<Method>() {
                     @Override
@@ -293,7 +293,7 @@ class ClassFileImportContext {
         }
     }
 
-    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> extends BaseAccessRecord<MethodLike, TargetInfo> {
+    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> extends BaseAccessRecord<CodeUnit, TargetInfo> {
         private BaseRawAccessRecord(Builder<?> builder) {
             super(builder.caller, builder.target, builder.lineNumber);
         }
@@ -311,13 +311,13 @@ class ClassFileImportContext {
                 return lineNumber;
             }
 
-            public JavaMethodLike<?, ?> getCaller() {
-                for (JavaMethodLike<?, ?> method : getJavaClass(caller.getDeclaringClass()).getMethods()) {
+            public JavaCodeUnit<?, ?> getCaller() {
+                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClass()).getCodeUnits()) {
                     if (caller.is(method)) {
                         return method;
                     }
                 }
-                throw new IllegalStateException("Never found a " + JavaMethodLike.class.getSimpleName() +
+                throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
                         " that matches supposed caller " + caller);
             }
 
@@ -343,11 +343,11 @@ class ClassFileImportContext {
         }
 
         static class Builder<SELF extends Builder<SELF>> {
-            private MethodLike caller;
+            private CodeUnit caller;
             private TargetInfo target;
             private int lineNumber = -1;
 
-            SELF withCaller(MethodLike caller) {
+            SELF withCaller(CodeUnit caller) {
                 this.caller = caller;
                 return self();
             }
@@ -444,7 +444,7 @@ class ClassFileImportContext {
 
         @Override
         protected boolean signatureExistsIn(JavaClass javaClass) {
-            for (JavaMethod method : javaClass.getProperMethods()) {
+            for (JavaMethod method : javaClass.getMethods()) {
                 if (hasMatchingSignatureTo(method.reflect())) {
                     return true;
                 }

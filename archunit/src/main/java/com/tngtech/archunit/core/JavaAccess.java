@@ -2,16 +2,16 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
-import com.tngtech.archunit.core.HasOwner.IsOwnedByMethod;
+import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaAccess<TARGET extends HasName.AndFullName & HasOwner<JavaClass>>
-        implements HasName, IsOwnedByMethod, HasDescription {
+        implements HasName, IsOwnedByCodeUnit, HasDescription {
 
     private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
 
-    private final JavaMethodLike<?, ?> origin;
+    private final JavaCodeUnit<?, ?> origin;
     private final TARGET target;
     private final int lineNumber;
     private final int hashCode;
@@ -20,7 +20,7 @@ public abstract class JavaAccess<TARGET extends HasName.AndFullName & HasOwner<J
         this(record.getCaller(), record.getTarget(), record.getLineNumber());
     }
 
-    JavaAccess(JavaMethodLike<?, ?> origin, TARGET target, int lineNumber) {
+    JavaAccess(JavaCodeUnit<?, ?> origin, TARGET target, int lineNumber) {
         this.origin = checkNotNull(origin);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
@@ -32,7 +32,7 @@ public abstract class JavaAccess<TARGET extends HasName.AndFullName & HasOwner<J
         return target.getName();
     }
 
-    public JavaMethodLike<?, ?> getOrigin() {
+    public JavaCodeUnit<?, ?> getOrigin() {
         return origin;
     }
 
@@ -49,7 +49,7 @@ public abstract class JavaAccess<TARGET extends HasName.AndFullName & HasOwner<J
     }
 
     @Override
-    public JavaMethodLike<?, ?> getOwner() {
+    public JavaCodeUnit<?, ?> getOwner() {
         return getOrigin();
     }
 

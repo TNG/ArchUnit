@@ -2,7 +2,6 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.AbstractArchCondition;
@@ -16,7 +15,7 @@ class ClassAccessesPackageCondition extends ClassMatchesAnyCondition<JavaAccess<
 
     @Override
     Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
-        return Sets.union(item.getMethodCalls(), item.getFieldAccesses());
+        return item.getAccesses();
     }
 
     static class PackageAccessCondition extends AbstractArchCondition<JavaAccess<?>> {

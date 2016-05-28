@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import static java.util.Collections.emptyList;
 
-public class JavaStaticInitializer extends JavaMethodLike<Method, MemberDescription.ForMethod> {
+public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
     private int hashCode;

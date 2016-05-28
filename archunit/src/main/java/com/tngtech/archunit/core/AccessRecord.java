@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core;
 
 interface AccessRecord<TARGET> {
-    JavaMethodLike<?, ?> getCaller();
+    JavaCodeUnit<?, ?> getCaller();
 
     TARGET getTarget();
 

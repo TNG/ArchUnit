@@ -6,8 +6,8 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
-import static com.tngtech.archunit.testutil.Conditions.methodWithSignature;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassTest {
@@ -18,12 +18,12 @@ public class JavaClassTest {
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
-        assertThat(javaClass.getProperMethods()).hasSize(2);
+        assertThat(javaClass.getMethods()).hasSize(2);
 
         for (JavaField field : javaClass.getFields()) {
             assertThat(field.getOwner()).isSameAs(javaClass);
         }
-        for (JavaMethodLike<?, ?> method : javaClass.getMethods()) {
+        for (JavaCodeUnit<?, ?> method : javaClass.getCodeUnits()) {
             assertThat(method.getOwner()).isSameAs(javaClass);
         }
     }
@@ -33,9 +33,9 @@ public class JavaClassTest {
         JavaClass javaClass = new JavaClass.Builder().withType(ClassWithSeveralConstructors.class).build();
 
         assertThat(javaClass.getConstructors()).hasSize(3);
-        assertThat(javaClass.getConstructors()).is(containing(methodWithSignature(CONSTRUCTOR_NAME)));
-        assertThat(javaClass.getConstructors()).is(containing(methodWithSignature(CONSTRUCTOR_NAME, String.class)));
-        assertThat(javaClass.getConstructors()).is(containing(methodWithSignature(CONSTRUCTOR_NAME, int.class, Object[].class)));
+        assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
+        assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME, String.class)));
+        assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME, int.class, Object[].class)));
     }
 
     @Test

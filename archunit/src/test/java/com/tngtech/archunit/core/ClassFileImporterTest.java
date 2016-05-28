@@ -13,7 +13,7 @@ import java.util.Set;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.tngtech.archunit.core.HasOwner.IsOwnedByMethod;
+import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithIntValue;
@@ -236,7 +236,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_correct_parameters() throws Exception {
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classesIn("testexamples/methodimport"));
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/methodimport"));
 
         assertThat(getByName(methods, "createString").getParameters())
                 .as("Parameters of method 'createString'")
@@ -251,7 +251,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_complex_method_with_correct_parameters() throws Exception {
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classesIn("testexamples/complexmethodimport"));
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/complexmethodimport"));
 
         assertThat(getByName(methods, "complex").getParameters())
                 .as("Parameters of method 'complex'")
@@ -265,7 +265,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_correct_return_types() throws Exception {
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classesIn("testexamples/methodimport"));
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/methodimport"));
 
         assertThat(getByName(methods, "createString").getReturnType())
                 .as("Parameters of method 'createString'")
@@ -280,9 +280,9 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_one_annotation_correctly() throws Exception {
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
 
-        JavaMethodLike<?, ?> method = getByName(methods, "stringAnnotatedMethod");
+        JavaCodeUnit<?, ?> method = getByName(methods, "stringAnnotatedMethod");
         JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(MethodAnnotationWithStringValue.class);
 
@@ -292,9 +292,9 @@ public class ClassFileImporterTest {
 
     @Test
     public void methods_handle_optional_annotation_correctly() throws Exception {
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
 
-        JavaMethodLike<?, ?> method = getByName(methods, "stringAnnotatedMethod");
+        JavaCodeUnit<?, ?> method = getByName(methods, "stringAnnotatedMethod");
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
         assertThat(method.tryGetReflectionAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class)).isAbsent();
@@ -305,9 +305,9 @@ public class ClassFileImporterTest {
     public void imports_methods_with_two_annotations_correctly() throws Exception {
         Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
 
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classes);
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classes);
 
-        JavaMethodLike<?, ?> method = getByName(methods, "stringAndIntAnnotatedMethod");
+        JavaCodeUnit<?, ?> method = getByName(methods, "stringAndIntAnnotatedMethod");
         assertThat(method.getAnnotations()).hasSize(2);
 
         MethodAnnotationWithStringValue annotationWithString = method.getReflectionAnnotationOfType(MethodAnnotationWithStringValue.class);
@@ -323,7 +323,7 @@ public class ClassFileImporterTest {
         Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
 
         for (JavaClass clazz : classes) {
-            for (JavaMethodLike<?, ?> method : clazz.getMethods()) {
+            for (JavaCodeUnit<?, ?> method : clazz.getCodeUnits()) {
                 for (JavaAnnotation<?> annotation : method.getAnnotations()) {
                     assertThat(annotation.getOwner()).isSameAs(method);
                 }
@@ -335,9 +335,9 @@ public class ClassFileImporterTest {
     public void imports_methods_with_complex_annotations_correctly() throws Exception {
         Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
 
-        Set<JavaMethodLike<?, ?>> methods = methodsOf(classes);
+        Set<JavaCodeUnit<?, ?>> methods = methodsOf(classes);
 
-        JavaMethodLike<?, ?> method = getByName(methods, "enumAndArrayAnnotatedMethod");
+        JavaCodeUnit<?, ?> method = getByName(methods, "enumAndArrayAnnotatedMethod");
 
         MethodAnnotationWithEnumAndArrayValue annotation = method.getReflectionAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.value()).isEqualTo(SOME_VALUE);
@@ -360,8 +360,8 @@ public class ClassFileImporterTest {
 
         assertThat(baseClass.getConstructors()).hasSize(2);
         assertThat(baseClass.getFields()).hasSize(1);
-        assertThat(baseClass.getProperMethods()).hasSize(2);
-        assertThat(baseClass.getStaticInitializer().getProperMethodCalls().size()).isGreaterThan(0);
+        assertThat(baseClass.getMethods()).hasSize(2);
+        assertThat(baseClass.getStaticInitializer().getMethodCalls().size()).isGreaterThan(0);
     }
 
     @Test
@@ -370,8 +370,8 @@ public class ClassFileImporterTest {
 
         assertThat(subClass.getConstructors()).hasSize(3);
         assertThat(subClass.getFields()).hasSize(1);
-        assertThat(subClass.getProperMethods()).hasSize(3);
-        assertThat(subClass.getStaticInitializer().getProperMethodCalls().size()).isGreaterThan(0);
+        assertThat(subClass.getMethods()).hasSize(3);
+        assertThat(subClass.getStaticInitializer().getMethodCalls().size()).isGreaterThan(0);
     }
 
     @Test
@@ -395,17 +395,17 @@ public class ClassFileImporterTest {
         JavaClass classWithInnerClass = classes.get(ClassWithInnerClass.class);
         JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
-        JavaMethod calledTarget = getOnlyElement(classes.get(CalledClass.class).getProperMethods());
+        JavaMethod calledTarget = getOnlyElement(classes.get(CalledClass.class).getMethods());
 
         assertThat(innerClass.getEnclosingClass()).contains(classWithInnerClass);
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
 
-        JavaMethodCall call = getOnlyElement(innerClass.getMethod("call").getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(innerClass.getCodeUnit("call").getMethodCalls());
 
-        assertThatCall(call).isFromMethod("call").isTo(calledTarget).inLineNumber(20);
-        call = getOnlyElement(anonymousClass.getMethod("call").getProperMethodCalls());
+        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(20);
+        call = getOnlyElement(anonymousClass.getCodeUnit("call").getMethodCalls());
 
-        assertThatCall(call).isFromMethod("call").isTo(calledTarget).inLineNumber(10);
+        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(10);
     }
 
     @Test
@@ -414,20 +414,20 @@ public class ClassFileImporterTest {
         JavaClass baseClass = classes.get(BaseClass.class);
         JavaClass subClass = classes.get(SubClass.class);
 
-        assertThat(baseClass.getMethod("getSomeField").getModifiers()).containsOnly(PROTECTED);
-        assertThat(subClass.getMethod("getSomeField").getModifiers()).containsOnly(PUBLIC);
+        assertThat(baseClass.getCodeUnit("getSomeField").getModifiers()).containsOnly(PROTECTED);
+        assertThat(subClass.getCodeUnit("getSomeField").getModifiers()).containsOnly(PUBLIC);
     }
 
     @Test
     public void imports_own_get_field_access() throws Exception {
         JavaClass classWithOwnFieldAccess = classesIn("testexamples/fieldaccessimport").get(OwnFieldAccess.class);
 
-        JavaMethod getStringValue = classWithOwnFieldAccess.getProperMethod("getStringValue");
+        JavaMethod getStringValue = classWithOwnFieldAccess.getMethod("getStringValue");
 
         JavaFieldAccess access = getOnlyElement(getStringValue.getFieldAccesses());
         assertThatAccess(access)
                 .isOfType(GET)
-                .isFromMethod(getStringValue)
+                .isFrom(getStringValue)
                 .isTo("stringValue")
                 .inLineNumber(8);
     }
@@ -436,12 +436,12 @@ public class ClassFileImporterTest {
     public void imports_own_set_field_access() throws Exception {
         JavaClass classWithOwnFieldAccess = classesIn("testexamples/fieldaccessimport").get(OwnFieldAccess.class);
 
-        JavaMethod setStringValue = classWithOwnFieldAccess.getProperMethod("setStringValue", String.class);
+        JavaMethod setStringValue = classWithOwnFieldAccess.getMethod("setStringValue", String.class);
 
         JavaFieldAccess access = getOnlyElement(setStringValue.getFieldAccesses());
         assertThatAccess(access)
                 .isOfType(SET)
-                .isFromMethod(setStringValue)
+                .isFrom(setStringValue)
                 .isTo(classWithOwnFieldAccess.getField("stringValue"))
                 .inLineNumber(12);
     }
@@ -474,14 +474,14 @@ public class ClassFileImporterTest {
         JavaFieldAccess getAccess = getOnly(accesses, "staticStringValue", GET);
 
         assertThatAccess(getAccess)
-                .isFromMethod("getStaticStringValue")
+                .isFrom("getStaticStringValue")
                 .isTo("staticStringValue")
                 .inLineNumber(7);
 
         JavaFieldAccess setAccess = getOnly(accesses, "staticStringValue", SET);
 
         assertThatAccess(setAccess)
-                .isFromMethod("setStaticStringValue", String.class)
+                .isFrom("setStaticStringValue", String.class)
                 .isTo("staticStringValue")
                 .inLineNumber(11);
     }
@@ -497,22 +497,22 @@ public class ClassFileImporterTest {
         assertThat(accesses).hasSize(4);
 
         assertThatAccess(getOnly(accesses, "stringValue", GET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("getStringFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("getStringFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("stringValue"))
                 .inLineNumber(5);
 
         assertThatAccess(getOnly(accesses, "stringValue", SET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("setStringFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("setStringFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("stringValue"))
                 .inLineNumber(9);
 
         assertThatAccess(getOnly(accesses, "intValue", GET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("getIntFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("getIntFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("intValue"))
                 .inLineNumber(13);
 
         assertThatAccess(getOnly(accesses, "intValue", SET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("setIntFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("setIntFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("intValue"))
                 .inLineNumber(17);
     }
@@ -528,12 +528,12 @@ public class ClassFileImporterTest {
         assertThat(accesses).as("Number of field accesses from " + classWithForeignFieldAccess.getName()).hasSize(2);
 
         assertThatAccess(getOnly(accesses, "staticStringValue", GET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("getStaticStringFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("getStaticStringFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("staticStringValue"))
                 .inLineNumber(5);
 
         assertThatAccess(getOnly(accesses, "staticStringValue", SET))
-                .isFromMethod(classWithForeignFieldAccess.getMethod("setStaticStringFromOther"))
+                .isFrom(classWithForeignFieldAccess.getCodeUnit("setStaticStringFromOther"))
                 .isTo(classWithOwnFieldAccess.getField("staticStringValue"))
                 .inLineNumber(9);
     }
@@ -577,12 +577,12 @@ public class ClassFileImporterTest {
         assertThat(accesses).as("Number of field accesses from " + fieldAccessFromConstructor.getName()).hasSize(2);
 
         assertThatAccess(getOnly(accesses, "stringValue", GET))
-                .isFromMethod(fieldAccessFromConstructor.getMethod(CONSTRUCTOR_NAME))
+                .isFrom(fieldAccessFromConstructor.getCodeUnit(CONSTRUCTOR_NAME))
                 .isTo(classWithOwnFieldAccess.getField("stringValue"))
                 .inLineNumber(5);
 
         assertThatAccess(getOnly(accesses, "intValue", SET))
-                .isFromMethod(fieldAccessFromConstructor.getMethod(CONSTRUCTOR_NAME))
+                .isFrom(fieldAccessFromConstructor.getCodeUnit(CONSTRUCTOR_NAME))
                 .isTo(classWithOwnFieldAccess.getField("intValue"))
                 .inLineNumber(6);
     }
@@ -598,12 +598,12 @@ public class ClassFileImporterTest {
         assertThat(accesses).as("Number of field accesses from " + fieldAccessFromInitializer.getName()).hasSize(2);
 
         assertThatAccess(getOnly(accesses, "stringValue", GET))
-                .isFromMethod(fieldAccessFromInitializer.getMethod(STATIC_INITIALIZER_NAME))
+                .isFrom(fieldAccessFromInitializer.getCodeUnit(STATIC_INITIALIZER_NAME))
                 .isTo(classWithOwnFieldAccess.getField("stringValue"))
                 .inLineNumber(5);
 
         assertThatAccess(getOnly(accesses, "intValue", SET))
-                .isFromMethod(fieldAccessFromInitializer.getMethod(STATIC_INITIALIZER_NAME))
+                .isFrom(fieldAccessFromInitializer.getCodeUnit(STATIC_INITIALIZER_NAME))
                 .isTo(classWithOwnFieldAccess.getField("intValue"))
                 .inLineNumber(6);
     }
@@ -615,7 +615,7 @@ public class ClassFileImporterTest {
         JavaFieldAccess access = getOnlyElement(classWithExternalFieldAccess.getFieldAccesses());
 
         assertThatAccess(access)
-                .isFromMethod(classWithExternalFieldAccess.getMethod("access"))
+                .isFrom(classWithExternalFieldAccess.getCodeUnit("access"))
                 .inLineNumber(7);
 
         JavaField target = access.getTarget();
@@ -630,7 +630,7 @@ public class ClassFileImporterTest {
         JavaFieldAccess access = getOnlyElement(classWithExternalFieldAccess.getFieldAccesses());
 
         assertThatAccess(access)
-                .isFromMethod(classWithExternalFieldAccess.getMethod("accessField"))
+                .isFrom(classWithExternalFieldAccess.getCodeUnit("accessField"))
                 .inLineNumber(7);
 
         JavaField target = access.getTarget();
@@ -650,11 +650,11 @@ public class ClassFileImporterTest {
 
         assertThat(accesses).hasSize(2);
         assertThatAccess(getOnly(accesses, "field", GET))
-                .isFromMethod("accessSuperClassField")
+                .isFrom("accessSuperClassField")
                 .isTo(superClassWithAccessedField.getField("field"))
                 .inLineNumber(5);
         assertThatAccess(getOnly(accesses, "maskedField", GET))
-                .isFromMethod("accessSubClassField")
+                .isFrom("accessSubClassField")
                 .isTo(subClassWithAccessedField.getField("maskedField"))
                 .inLineNumber(9);
     }
@@ -666,34 +666,34 @@ public class ClassFileImporterTest {
         JavaClass superClassWithCalledMethod = classes.get(SuperClassWithCalledMethod.class);
         JavaClass subClassWithCalledMethod = classes.get(SubClassWithCalledMethod.class);
 
-        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperClass.getProperMethodCalls();
+        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperClass.getMethodCalls();
 
         assertThat(calls).hasSize(2);
 
-        JavaMethodLike<?, ?> callSuperClassMethod = classThatCallsMethodOfSuperClass
-                .getMethod(CallOfSuperAndSubClassMethod.callSuperClassMethod);
+        JavaCodeUnit<?, ?> callSuperClassMethod = classThatCallsMethodOfSuperClass
+                .getCodeUnit(CallOfSuperAndSubClassMethod.callSuperClassMethod);
         assertThatCall(getOnlyByCaller(calls, callSuperClassMethod))
-                .isFromMethod(callSuperClassMethod)
-                .isTo(superClassWithCalledMethod.getProperMethod(SuperClassWithCalledMethod.method))
+                .isFrom(callSuperClassMethod)
+                .isTo(superClassWithCalledMethod.getMethod(SuperClassWithCalledMethod.method))
                 .inLineNumber(CallOfSuperAndSubClassMethod.callSuperClassLineNumber);
 
-        JavaMethodLike<?, ?> callSubClassMethod = classThatCallsMethodOfSuperClass
-                .getMethod(CallOfSuperAndSubClassMethod.callSubClassMethod);
+        JavaCodeUnit<?, ?> callSubClassMethod = classThatCallsMethodOfSuperClass
+                .getCodeUnit(CallOfSuperAndSubClassMethod.callSubClassMethod);
         assertThatCall(getOnlyByCaller(calls, callSubClassMethod))
-                .isFromMethod(callSubClassMethod)
-                .isTo(subClassWithCalledMethod.getProperMethod(SubClassWithCalledMethod.maskedMethod))
+                .isFrom(callSubClassMethod)
+                .isTo(subClassWithCalledMethod.getMethod(SubClassWithCalledMethod.maskedMethod))
                 .inLineNumber(CallOfSuperAndSubClassMethod.callSubClassLineNumber);
     }
 
     @Test
     public void imports_constructor_calls_on_self() throws Exception {
         JavaClass classThatCallsOwnConstructor = classesIn("testexamples/callimport").get(CallsOwnConstructor.class);
-        JavaMethodLike<?, ?> caller = classThatCallsOwnConstructor.getMethod("copy");
+        JavaCodeUnit<?, ?> caller = classThatCallsOwnConstructor.getCodeUnit("copy");
 
         Set<JavaConstructorCall> calls = classThatCallsOwnConstructor.getConstructorCalls();
 
         assertThatCall(getOnlyByCaller(calls, caller))
-                .isFromMethod(caller)
+                .isFrom(caller)
                 .isTo(classThatCallsOwnConstructor.getConstructor(String.class))
                 .inLineNumber(8);
     }
@@ -702,11 +702,11 @@ public class ClassFileImporterTest {
     public void imports_method_calls_on_self() throws Exception {
         JavaClass classThatCallsOwnMethod = classesIn("testexamples/callimport").get(CallsOwnMethod.class);
 
-        JavaMethodCall call = getOnlyElement(classThatCallsOwnMethod.getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(classThatCallsOwnMethod.getMethodCalls());
 
         assertThatCall(call)
-                .isFromMethod(classThatCallsOwnMethod.getMethod("getString"))
-                .isTo(classThatCallsOwnMethod.getProperMethod("string"))
+                .isFrom(classThatCallsOwnMethod.getCodeUnit("getString"))
+                .isTo(classThatCallsOwnMethod.getMethod("string"))
                 .inLineNumber(6);
     }
 
@@ -715,12 +715,12 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/callimport");
         JavaClass classThatCallsOtherConstructor = classes.get(CallsOtherConstructor.class);
         JavaClass otherClass = classes.get(CallsOwnConstructor.class);
-        JavaMethodLike<?, ?> caller = classThatCallsOtherConstructor.getMethod("createOther");
+        JavaCodeUnit<?, ?> caller = classThatCallsOtherConstructor.getCodeUnit("createOther");
 
         Set<JavaConstructorCall> calls = classThatCallsOtherConstructor.getConstructorCalls();
 
         assertThatCall(getOnlyByCaller(calls, caller))
-                .isFromMethod(caller)
+                .isFrom(caller)
                 .isTo(otherClass.getConstructor(String.class))
                 .inLineNumber(5);
     }
@@ -731,23 +731,23 @@ public class ClassFileImporterTest {
         JavaClass classThatCallsOtherMethod = classes.get(CallsOtherMethod.class);
         JavaClass other = classes.get(CallsOwnMethod.class);
 
-        JavaMethodCall call = getOnlyElement(classThatCallsOtherMethod.getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(classThatCallsOtherMethod.getMethodCalls());
 
         assertThatCall(call)
-                .isFromMethod(classThatCallsOtherMethod.getMethod("getFromOther"))
-                .isTo(other.getProperMethod("getString"))
+                .isFrom(classThatCallsOtherMethod.getCodeUnit("getFromOther"))
+                .isTo(other.getMethod("getString"))
                 .inLineNumber(7);
     }
 
     @Test
     public void imports_constructor_calls_on_external_class() throws Exception {
         JavaClass classThatCallsOwnConstructor = classesIn("testexamples/callimport").get(CallsOwnConstructor.class);
-        JavaMethodLike<?, ?> constructorCallingObjectInit = classThatCallsOwnConstructor.getConstructor(String.class);
+        JavaCodeUnit<?, ?> constructorCallingObjectInit = classThatCallsOwnConstructor.getConstructor(String.class);
 
         JavaConstructorCall objectInitCall = getOnlyElement(constructorCallingObjectInit.getConstructorCalls());
 
         assertThatCall(objectInitCall)
-                .isFromMethod(constructorCallingObjectInit)
+                .isFrom(constructorCallingObjectInit)
                 .inLineNumber(4);
 
         JavaConstructor target = objectInitCall.getTarget();
@@ -758,12 +758,12 @@ public class ClassFileImporterTest {
     @Test
     public void imports_constructor_calls_to_sub_type_constructor_on_external_class() throws Exception {
         JavaClass classWithExternalConstructorCall = classesIn("testexamples/callimport").get(ExternalSubTypeConstructorCall.class);
-        JavaMethodLike<?, ?> call = classWithExternalConstructorCall.getMethod("call");
+        JavaCodeUnit<?, ?> call = classWithExternalConstructorCall.getCodeUnit("call");
 
         JavaConstructorCall callToExternalClass = getOnlyElement(call.getConstructorCalls());
 
         assertThatCall(callToExternalClass)
-                .isFromMethod(call)
+                .isFrom(call)
                 .inLineNumber(7);
 
         JavaConstructor target = callToExternalClass.getTarget();
@@ -775,10 +775,10 @@ public class ClassFileImporterTest {
     public void imports_method_calls_on_external_class() throws Exception {
         JavaClass classThatCallsExternalMethod = classesIn("testexamples/callimport").get(CallsExternalMethod.class);
 
-        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getMethodCalls());
 
         assertThatCall(call)
-                .isFromMethod(classThatCallsExternalMethod.getMethod("getString"))
+                .isFrom(classThatCallsExternalMethod.getCodeUnit("getString"))
                 .inLineNumber(7);
 
         JavaMethod target = call.getTarget();
@@ -790,10 +790,10 @@ public class ClassFileImporterTest {
     public void imports_method_calls_on_overridden_external_class() throws Exception {
         JavaClass classThatCallsExternalMethod = classesIn("testexamples/callimport").get(ExternalOverriddenMethodCall.class);
 
-        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getMethodCalls());
 
         assertThatCall(call)
-                .isFromMethod(classThatCallsExternalMethod.getMethod("call"))
+                .isFrom(classThatCallsExternalMethod.getCodeUnit("call"))
                 .inLineNumber(9);
 
         JavaMethod target = call.getTarget();
@@ -805,10 +805,10 @@ public class ClassFileImporterTest {
     public void imports_method_calls_on_external_interface_hierarchies() throws Exception {
         JavaClass classThatCallsExternalMethod = classesIn("testexamples/callimport").get(ExternalInterfaceMethodCall.class);
 
-        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getProperMethodCalls());
+        JavaMethodCall call = getOnlyElement(classThatCallsExternalMethod.getMethodCalls());
 
         assertThatCall(call)
-                .isFromMethod(classThatCallsExternalMethod.getMethod("call"))
+                .isFrom(classThatCallsExternalMethod.getCodeUnit("call"))
                 .inLineNumber(9);
 
         JavaMethod target = call.getTarget();
@@ -821,26 +821,26 @@ public class ClassFileImporterTest {
         JavaClass diamondPeakInterface = classesIn("testexamples/diamond").get(InterfaceD.class);
         JavaClass diamondPeakClass = classesIn("testexamples/diamond").get(ClassImplementingD.class);
 
-        JavaMethodCalls calls = classCallingDiamond.getProperMethodCalls();
+        JavaMethodCalls calls = classCallingDiamond.getMethodCalls();
 
         assertThat(calls).hasSize(2);
 
-        JavaMethodLike<?, ?> callInterface = classCallingDiamond
-                .getMethod(ClassCallingDiamond.callInterface);
+        JavaCodeUnit<?, ?> callInterface = classCallingDiamond
+                .getCodeUnit(ClassCallingDiamond.callInterface);
         JavaMethodCall callToInterface = getOnlyByCaller(calls, callInterface);
         assertThatCall(callToInterface)
-                .isFromMethod(callInterface)
+                .isFrom(callInterface)
                 .inLineNumber(ClassCallingDiamond.callInterfaceLineNumber);
-        // NOTE: There is no 'proper' method InterfaceD.implementMe(), because the method is inherited
+        // NOTE: There is no java.lang.reflect.Method InterfaceD.implementMe(), because the method is inherited
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
         assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
         assertThat(callToInterface.getTarget().getParameters()).isEmpty();
 
-        JavaMethodLike<?, ?> callImplementation = classCallingDiamond
-                .getMethod(ClassCallingDiamond.callImplementation);
+        JavaCodeUnit<?, ?> callImplementation = classCallingDiamond
+                .getCodeUnit(ClassCallingDiamond.callImplementation);
         assertThatCall(getOnlyByCaller(calls, callImplementation))
-                .isFromMethod(callImplementation)
-                .isTo(diamondPeakClass.getProperMethod(InterfaceD.implementMe))
+                .isFrom(callImplementation)
+                .isTo(diamondPeakClass.getMethod(InterfaceD.implementMe))
                 .inLineNumber(ClassCallingDiamond.callImplementationLineNumber);
     }
 
@@ -848,10 +848,10 @@ public class ClassFileImporterTest {
     public void imports_method_calls_that_return_Arrays() throws Exception {
         JavaClass classThatCallsMethodReturningArray = classesIn("testexamples/callimport").get(CallsMethodReturningArray.class);
 
-        assertThat(classThatCallsMethodReturningArray.getProperMethodCalls())
+        assertThat(classThatCallsMethodReturningArray.getMethodCalls())
                 .extracting("target").extracting("owner").extracting("name")
                 .containsOnly(SomeEnum.class.getName());
-        assertThat(classThatCallsMethodReturningArray.getProperMethodCalls())
+        assertThat(classThatCallsMethodReturningArray.getMethodCalls())
                 .extracting("target").extracting("returnType")
                 .containsOnly(SomeEnum[].class);
     }
@@ -931,11 +931,11 @@ public class ClassFileImporterTest {
         return result;
     }
 
-    private <T extends IsOwnedByMethod> T getOnlyByCaller(Set<T> calls, JavaMethodLike<?, ?> caller) {
+    private <T extends IsOwnedByCodeUnit> T getOnlyByCaller(Set<T> calls, JavaCodeUnit<?, ?> caller) {
         return getOnlyElement(getByCaller(calls, caller));
     }
 
-    private <T extends IsOwnedByMethod> Set<T> getByCaller(Set<T> calls, JavaMethodLike<?, ?> caller) {
+    private <T extends IsOwnedByCodeUnit> Set<T> getByCaller(Set<T> calls, JavaCodeUnit<?, ?> caller) {
         Set<T> result = new HashSet<>();
         for (T call : calls) {
             if (caller.equals(call.getOwner())) {
@@ -969,10 +969,10 @@ public class ClassFileImporterTest {
         return fields;
     }
 
-    private Set<JavaMethodLike<?, ?>> methodsOf(Iterable<JavaClass> classes) {
-        Set<JavaMethodLike<?, ?>> methods = new HashSet<>();
+    private Set<JavaCodeUnit<?, ?>> methodsOf(Iterable<JavaClass> classes) {
+        Set<JavaCodeUnit<?, ?>> methods = new HashSet<>();
         for (JavaClass clazz : classes) {
-            methods.addAll(clazz.getMethods());
+            methods.addAll(clazz.getCodeUnits());
         }
         return methods;
     }
@@ -1043,12 +1043,12 @@ public class ClassFileImporterTest {
             this.access = access;
         }
 
-        protected SELF isFromMethod(String name, Class<?>... parameterTypes) {
-            return isFromMethod(access.getOrigin().getOwner().getMethod(name, parameterTypes));
+        protected SELF isFrom(String name, Class<?>... parameterTypes) {
+            return isFrom(access.getOrigin().getOwner().getCodeUnit(name, parameterTypes));
         }
 
-        protected SELF isFromMethod(JavaMethodLike<?, ?> method) {
-            assertThat(access.getOrigin()).as("Origin of field access").isEqualTo(method);
+        protected SELF isFrom(JavaCodeUnit<?, ?> codeUnit) {
+            assertThat(access.getOrigin()).as("Origin of field access").isEqualTo(codeUnit);
             return newAssertion(access);
         }
 

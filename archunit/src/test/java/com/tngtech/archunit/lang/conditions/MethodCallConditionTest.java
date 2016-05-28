@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MethodCallConditionTest {
 
     @DataPoint
-    public static final MethodCallToAnalyse properMethodCall = properMethodCallToTargetFrom(CALLER_CLASS);
+    public static final MethodCallToAnalyse methodCall = methodCallToTargetFrom(CALLER_CLASS);
 
     @DataPoint
     public static final MethodCallToAnalyse constructorCall = constructorCallToTargetFrom(CALLER_CLASS);
@@ -86,8 +86,8 @@ public class MethodCallConditionTest {
         return new MethodCallConditionBuilder(callToAnalyse);
     }
 
-    private static MethodCallToAnalyse properMethodCallToTargetFrom(JavaClass callerClass) {
-        return new MethodCallToAnalyse(callerClass.getProperMethodCalls());
+    private static MethodCallToAnalyse methodCallToTargetFrom(JavaClass callerClass) {
+        return new MethodCallToAnalyse(callerClass.getMethodCalls());
     }
 
     private static MethodCallToAnalyse constructorCallToTargetFrom(JavaClass callerClass) {
