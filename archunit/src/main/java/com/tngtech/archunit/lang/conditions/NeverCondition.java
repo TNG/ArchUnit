@@ -1,13 +1,13 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class NeverCondition<T> extends ArchCondition<T> {
-    private final ArchCondition<T> condition;
+class NeverCondition<T> extends AbstractArchCondition<T> {
+    private final AbstractArchCondition<T> condition;
 
-    NeverCondition(ArchCondition<T> condition) {
+    NeverCondition(AbstractArchCondition<T> condition) {
         this.condition = condition;
     }
 

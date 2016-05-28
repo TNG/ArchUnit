@@ -19,12 +19,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ClosedArchRule<T> extends ArchRule<T> {
     private final Iterable<T> objectsToTest;
 
-    private ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
+    private ClosedArchRule(Iterable<T> objectsToTest, String text, AbstractArchCondition<T> condition) {
         super(text, finish(condition, objectsToTest));
         this.objectsToTest = objectsToTest;
     }
 
-    private static <T> ArchCondition<T> finish(ArchCondition<T> condition, Iterable<T> objectsToTest) {
+    private static <T> AbstractArchCondition<T> finish(AbstractArchCondition<T> condition, Iterable<T> objectsToTest) {
         condition.objectsToTest = objectsToTest;
         return condition;
     }
@@ -64,7 +64,7 @@ public final class ClosedArchRule<T> extends ArchRule<T> {
             return this;
         }
 
-        public void assertedBy(ArchCondition<T> condition) {
+        public void assertedBy(AbstractArchCondition<T> condition) {
             ClosedArchRule<?> rule = new ClosedArchRule<>(objectsToTest, ruleText, condition);
             ArchRuleAssertion.from(rule).assertNoViolations(priority);
         }

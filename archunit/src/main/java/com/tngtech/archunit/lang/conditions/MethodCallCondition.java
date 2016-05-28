@@ -2,11 +2,11 @@ package com.tngtech.archunit.lang.conditions;
 
 import com.google.common.base.Predicate;
 import com.tngtech.archunit.core.JavaMethodLikeCall;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class MethodCallCondition extends ArchCondition<JavaMethodLikeCall<?>> {
+class MethodCallCondition extends AbstractArchCondition<JavaMethodLikeCall<?>> {
     private final Predicate<JavaMethodLikeCall<?>> callIdentifier;
 
     MethodCallCondition(Predicate<JavaMethodLikeCall<?>> callIdentifier) {

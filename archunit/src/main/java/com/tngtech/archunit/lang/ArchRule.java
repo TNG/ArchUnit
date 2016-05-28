@@ -36,9 +36,9 @@ import com.tngtech.archunit.lang.OpenArchRule.OpenDescribable;
  */
 public abstract class ArchRule<T> {
     final String text;
-    final ArchCondition<T> condition;
+    final AbstractArchCondition<T> condition;
 
-    ArchRule(String text, ArchCondition<T> condition) {
+    ArchRule(String text, AbstractArchCondition<T> condition) {
         this.text = text;
         this.condition = condition;
     }

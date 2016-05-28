@@ -2,14 +2,14 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class ContainsAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
-    private final ArchCondition<T> condition;
+class ContainsAnyCondition<T> extends AbstractArchCondition<Collection<? extends T>> {
+    private final AbstractArchCondition<T> condition;
 
-    ContainsAnyCondition(ArchCondition<T> condition) {
+    ContainsAnyCondition(AbstractArchCondition<T> condition) {
         this.condition = condition;
     }
 

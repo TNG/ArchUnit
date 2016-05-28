@@ -1,11 +1,11 @@
 package com.tngtech.archunit.lang.conditions;
 
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class ClassResidesInCondition extends ArchCondition<JavaClass> {
+class ClassResidesInCondition extends AbstractArchCondition<JavaClass> {
     private final String packageIdentifier;
 
     ClassResidesInCondition(String packageIdentifier) {

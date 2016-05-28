@@ -3,15 +3,15 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containsAny;
 
-abstract class ClassMatchesAnyCondition<T> extends ArchCondition<JavaClass> {
-    private final ArchCondition<T> condition;
+abstract class ClassMatchesAnyCondition<T> extends AbstractArchCondition<JavaClass> {
+    private final AbstractArchCondition<T> condition;
 
-    ClassMatchesAnyCondition(ArchCondition<T> condition) {
+    ClassMatchesAnyCondition(AbstractArchCondition<T> condition) {
         this.condition = condition;
     }
 

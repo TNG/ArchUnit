@@ -1,7 +1,7 @@
 package com.tngtech.archunit.library;
 
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.OpenArchRule;
 
 import static com.tngtech.archunit.core.DescribedPredicate.all;
@@ -15,12 +15,12 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.fieldTypeIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetHasName;
 
 public class GeneralCodingRules {
-    public static final ArchCondition<JavaClass> NO_ACCESS_TO_STANDARD_STREAMS = noAccessToStandardStreams();
+    public static final AbstractArchCondition<JavaClass> NO_ACCESS_TO_STANDARD_STREAMS = noAccessToStandardStreams();
 
-    private static ArchCondition<JavaClass> noAccessToStandardStreams() {
-        ArchCondition<JavaClass> noAccessToSystemOut = never(classAccessesField(System.class, "out"));
-        ArchCondition<JavaClass> noAccessToSystemErr = never(classAccessesField(System.class, "err"));
-        ArchCondition<JavaClass> noCallOfPrintStackTrace = never(classCallsMethod(Throwable.class, "printStackTrace"));
+    private static AbstractArchCondition<JavaClass> noAccessToStandardStreams() {
+        AbstractArchCondition<JavaClass> noAccessToSystemOut = never(classAccessesField(System.class, "out"));
+        AbstractArchCondition<JavaClass> noAccessToSystemErr = never(classAccessesField(System.class, "err"));
+        AbstractArchCondition<JavaClass> noCallOfPrintStackTrace = never(classCallsMethod(Throwable.class, "printStackTrace"));
 
         return noAccessToSystemOut.and(noAccessToSystemErr).and(noCallOfPrintStackTrace);
     }
@@ -37,12 +37,12 @@ public class GeneralCodingRules {
                     .should("not write to standard streams")
                     .assertedBy(NO_ACCESS_TO_STANDARD_STREAMS);
 
-    public static final ArchCondition<JavaClass> NO_GENERIC_EXCEPTIONS = noGenericExceptions();
+    public static final AbstractArchCondition<JavaClass> NO_GENERIC_EXCEPTIONS = noGenericExceptions();
 
-    private static ArchCondition<JavaClass> noGenericExceptions() {
-        ArchCondition<JavaClass> noCreationOfThrowable = never(classCallsMethodWhere(targetHasName(Throwable.class, "<init>")));
-        ArchCondition<JavaClass> noCreationOfException = never(classCallsMethodWhere(targetHasName(Exception.class, "<init>")));
-        ArchCondition<JavaClass> noCreationOfRuntimeException = never(classCallsMethodWhere(targetHasName(RuntimeException.class, "<init>")));
+    private static AbstractArchCondition<JavaClass> noGenericExceptions() {
+        AbstractArchCondition<JavaClass> noCreationOfThrowable = never(classCallsMethodWhere(targetHasName(Throwable.class, "<init>")));
+        AbstractArchCondition<JavaClass> noCreationOfException = never(classCallsMethodWhere(targetHasName(Exception.class, "<init>")));
+        AbstractArchCondition<JavaClass> noCreationOfRuntimeException = never(classCallsMethodWhere(targetHasName(RuntimeException.class, "<init>")));
 
         return noCreationOfThrowable.and(noCreationOfException).and(noCreationOfRuntimeException);
     }
@@ -56,7 +56,7 @@ public class GeneralCodingRules {
                     .should("not throw generic exceptions")
                     .assertedBy(NO_GENERIC_EXCEPTIONS);
 
-    public static final ArchCondition<JavaClass> NO_SETTING_OF_JAVA_UTIL_LOGGING_FIELDS =
+    public static final AbstractArchCondition<JavaClass> NO_SETTING_OF_JAVA_UTIL_LOGGING_FIELDS =
             never(classSetsFieldWith(fieldTypeIn("java.util.logging..")));
 
     /**

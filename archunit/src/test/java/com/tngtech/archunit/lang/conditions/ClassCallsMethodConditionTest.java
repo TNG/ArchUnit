@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.testobjects.CallerClass;
 import com.tngtech.archunit.lang.conditions.testobjects.TargetClass;
@@ -45,7 +45,7 @@ public class ClassCallsMethodConditionTest {
         assertThat(events).haveOneViolationMessageContaining(VIOLATION_MESSAGE_PARTS);
     }
 
-    private ConditionEvents checkCondition(ArchCondition<JavaClass> condition) {
+    private ConditionEvents checkCondition(AbstractArchCondition<JavaClass> condition) {
         ConditionEvents events = new ConditionEvents();
         condition.check(CALLER_CLASS, events);
         return events;

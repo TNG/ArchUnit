@@ -1,36 +1,40 @@
 package com.tngtech.archunit.lang;
 
+import java.io.Serializable;
+
+import com.google.common.base.Predicate;
 import org.junit.Test;
 
+import static com.tngtech.archunit.lang.ArchCondition.violationIf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionTest {
+    private static final Predicate<Object> INSTANCE_OF_SERIALIZABLE = new Predicate<Object>() {
+        @Override
+        public boolean apply(Object input) {
+            return input instanceof Serializable;
+        }
+    };
+    private static final ArchCondition.Message<Object> ITEM_IS_SERIALIZABLE_MESSAGE = new ArchCondition.Message<Object>() {
+        @Override
+        public String createFor(Object item) {
+            return String.format("%s is instance of Serializable", item);
+        }
+    };
 
     @Test
-    public void and_works() {
-        ArchCondition<Integer> greaterThanTenAndTwenty = greaterThan(10).and(greaterThan(20));
+    public void simple_violation() {
+        ArchCondition<Object> condition = violationIf(INSTANCE_OF_SERIALIZABLE).withMessage(ITEM_IS_SERIALIZABLE_MESSAGE);
 
         ConditionEvents events = new ConditionEvents();
-        greaterThanTenAndTwenty.check(15, events);
-        assertThat(events).containViolations("15 is not greater than 20");
+        condition.check(new Object(), events);
+        assertThat(events).containNoViolation();
 
         events = new ConditionEvents();
-        greaterThanTenAndTwenty.check(21, events);
-        assertThat(events).containNoViolation();
-    }
-
-    private ArchCondition<Integer> greaterThan(final int number) {
-        return new ArchCondition<Integer>() {
-            @Override
-            public void check(final Integer item, ConditionEvents events) {
-                events.add(new GreaterThanEvent(item, number));
-            }
+        Serializable evil = new Serializable() {
         };
-    }
-
-    private static class GreaterThanEvent extends ConditionEvent {
-        public GreaterThanEvent(Integer item, int number) {
-            super(item > number, String.format("%d is not greater than %d", item, number));
-        }
+        condition.check(evil, events);
+        assertThat(events.getViolating()).hasSize(1);
+        assertThat(events).containViolations(evil + " is instance of Serializable");
     }
 }

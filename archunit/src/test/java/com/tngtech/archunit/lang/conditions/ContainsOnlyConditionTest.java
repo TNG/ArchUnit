@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.io.Serializable;
 import java.util.List;
 
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class ContainsOnlyConditionTest {
     static final List<SerializableObject> TWO_SERIALIZABLE_OBJECTS = asList(new SerializableObject(), new SerializableObject());
     static final List<Object> ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT = asList(new SerializableObject(), new Object());
 
-    static final ArchCondition<Object> IS_SERIALIZABLE = new ArchCondition<Object>() {
+    static final AbstractArchCondition<Object> IS_SERIALIZABLE = new AbstractArchCondition<Object>() {
         @Override
         public void check(Object item, ConditionEvents events) {
             boolean satisfied = item instanceof Serializable;

@@ -21,7 +21,7 @@ public final class OpenArchRule<T> extends ArchRule<T> {
     private final Priority priority;
     private final InputTransformer<T> inputTransformer;
 
-    private OpenArchRule(Creator<T> creator, ArchCondition<T> condition) {
+    private OpenArchRule(Creator<T> creator, AbstractArchCondition<T> condition) {
         super(creator.ruleTextSuffix, condition);
         this.priority = creator.priority;
         this.inputTransformer = creator.inputTransformer;
@@ -58,7 +58,7 @@ public final class OpenArchRule<T> extends ArchRule<T> {
             return this;
         }
 
-        public OpenArchRule<T> assertedBy(ArchCondition<T> condition) {
+        public OpenArchRule<T> assertedBy(AbstractArchCondition<T> condition) {
             return new OpenArchRule<>(this, condition);
         }
     }

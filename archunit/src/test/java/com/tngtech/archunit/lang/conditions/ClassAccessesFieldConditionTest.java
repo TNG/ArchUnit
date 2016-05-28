@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Set;
 
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.AbstractArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.testobjects.CallerClass;
 import com.tngtech.archunit.lang.conditions.testobjects.TargetClass;
@@ -102,7 +102,7 @@ public class ClassAccessesFieldConditionTest {
 
     static abstract class TestCase<SELF extends TestCase> {
         AccessInfo accessInfo;
-        ArchCondition<JavaClass> condition;
+        AbstractArchCondition<JavaClass> condition;
 
         Set<String> violationMessageParts() {
             Set<String> parts = newHashSet(accessInfo.callerName, accessInfo.targetName);
@@ -115,7 +115,7 @@ public class ClassAccessesFieldConditionTest {
             return self();
         }
 
-        SELF condition(ArchCondition<JavaClass> condition) {
+        SELF condition(AbstractArchCondition<JavaClass> condition) {
             this.condition = condition;
             return self();
         }

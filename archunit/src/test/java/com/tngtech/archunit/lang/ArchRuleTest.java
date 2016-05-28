@@ -80,7 +80,7 @@ public class ArchRuleTest {
         }
     }
 
-    private static final ArchCondition<JavaClass> ALWAYS_VIOLATED = new ArchCondition<JavaClass>() {
+    private static final AbstractArchCondition<JavaClass> ALWAYS_VIOLATED = new AbstractArchCondition<JavaClass>() {
         @Override
         public void check(JavaClass item, ConditionEvents events) {
             events.add(new ConditionEvent(false, "I'm violated"));
