@@ -20,11 +20,6 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
         return memberDescription.getReturnType();
     }
 
-    @Override
-    public String getDescriptor() {
-        return memberDescription.getDescriptor();
-    }
-
     static class Builder extends JavaMember.Builder<MemberDescription.ForMethod, JavaMethod> {
         @Override
         public JavaMethod build(JavaClass owner) {

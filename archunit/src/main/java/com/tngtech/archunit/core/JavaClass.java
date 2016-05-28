@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -8,8 +9,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -54,8 +58,36 @@ public class JavaClass implements HasName {
         return type.getPackage() != null ? type.getPackage().getName() : "";
     }
 
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
+        return reflect().isAnnotationPresent(annotation);
+    }
+
     public Optional<JavaClass> getSuperClass() {
         return superClass;
+    }
+
+    /**
+     * @return The complete class hierarchy, i.e. the class itself and the result of {@link #getAllSuperClasses()}
+     */
+    public List<JavaClass> getClassHierarchy() {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        result.add(this);
+        result.addAll(getAllSuperClasses());
+        return result.build();
+    }
+
+    /**
+     * @return All super classes sorted ascending by distance in the class hierarchy, i.e. first the direct super class,
+     * then the super class of the super class and so on. Includes Object.class in the result.
+     */
+    public List<JavaClass> getAllSuperClasses() {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        JavaClass current = this;
+        while (current.getSuperClass().isPresent()) {
+            current = current.getSuperClass().get();
+            result.add(current);
+        }
+        return result.build();
     }
 
     public Set<JavaClass> getSubClasses() {
@@ -149,6 +181,17 @@ public class JavaClass implements HasName {
 
     public Set<JavaAccess<?>> getAccesses() {
         return Sets.union(getFieldAccesses(), getCalls());
+    }
+
+    /**
+     * @return Set of all {@link JavaAccess} in the class hierarchy, as opposed to the accesses this class directly performs.
+     */
+    public Set<JavaAccess<?>> getAllAccesses() {
+        ImmutableSet.Builder<JavaAccess<?>> result = ImmutableSet.builder();
+        for (JavaClass clazz : getClassHierarchy()) {
+            result.addAll(clazz.getAccesses());
+        }
+        return result.build();
     }
 
     public JavaFieldAccesses getFieldAccesses() {
@@ -246,13 +289,15 @@ public class JavaClass implements HasName {
     }
 
     public static Predicate<JavaClass> withType(final Class<?> type) {
-        return new Predicate<JavaClass>() {
-            @Override
-            public boolean apply(JavaClass input) {
-                return input.reflect().equals(type);
-            }
-        };
+        return Predicates.compose(Predicates.<Class<?>>equalTo(type), REFLECT);
     }
+
+    public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
+        @Override
+        public Class<?> apply(JavaClass input) {
+            return input.reflect();
+        }
+    };
 
     class CompletionProcess {
         void completeMethodsFrom(ClassFileImportContext context) {

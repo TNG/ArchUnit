@@ -6,7 +6,7 @@ import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class JavaAccess<TARGET extends HasName.AndFullName & HasOwner<JavaClass>>
+public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
         implements HasName, IsOwnedByCodeUnit, HasDescription {
 
     private static final String LOCATION_TEMPLATE = "(%s.java:%d)";

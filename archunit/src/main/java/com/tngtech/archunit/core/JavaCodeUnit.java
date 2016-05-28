@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.HasOwner.IsOwnedByClass;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -22,9 +21,7 @@ import com.tngtech.archunit.core.HasOwner.IsOwnedByClass;
  * @param <T> The type of the description for this member; the description is an abstraction in case there are problems
  *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
-public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T>
-        implements HasName.AndFullName, IsOwnedByClass, HasDescriptor {
-
+public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> {
     private static final String FULL_NAME_TEMPLATE = "%s.%s(%s)";
 
     private final JavaFieldAccesses fieldAccesses = new JavaFieldAccesses();

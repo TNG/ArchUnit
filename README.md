@@ -107,6 +107,50 @@ Thus `classAccessesPackage("..")` is a condition of a JavaClass, matching classe
 Consequently `never(classAccessesPackage(".."))` is again a condition matching the negative case, and the rule fails
 if any element of `<<objectsToTest>>` violates the condition.
 
+## Writing custom rules
+
+ArchUnit comes with some predefined rules and conditions for typical use cases like accessing a field, calling a
+method or accessing a package. Predefined rules can be found inside of the package `com.tngtech.archunit.library`,
+while reusable conditions and predicates can be found inside of the classes 
+`com.tngtech.archunit.lang.conditions.ArchConditions` and `com.tngtech.archunit.lang.conditions.ArchPredicates`
+respectively. However, if the set of predefined rules is missing a specific condition necessary for a certain
+architecture or code style test, it's easy to define custom conditions and rules the following way:
+
+```Java
+// assign imported classes to a variable classes
+
+@Test
+public void core_classes_shouldnt_access_remote_endpoints() {
+    DescribedPredicate<JavaClass> areCore = DescribedPredicate.of(withAnnotation(Core.class))
+                    .onResultOf(REFLECT).as("Classes annotated with @Core");
+    
+    ArchCondition<JavaClass> classAccessesTargetAnnotatedWithRemote = new ArchCondition<JavaClass>() {
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            for (JavaAccess<?> access : item.getAllAccesses()) {
+                if (access.getTarget().isAnnotationPresent(Remote.class)) {
+                    events.add(ConditionEvent.violated(
+                            "Target is annotated with @Remote where " + access.getDescription()));
+                }
+            }
+        }
+    };
+
+    all(classes.that(areCore)).should("not call remote api endpoints")
+            .assertedBy(classAccessesTargetAnnotatedWithRemote);
+}
+```
+
+A resulting violation could be reported for example as
+
+```
+com.tngtech.archunit.lang.ArchAssertionError: 
+Architecture Violation [Priority: MEDIUM] - Rule 'Classes annotated with @Core should not call remote api endpoints' was violated:
+Target is annotated with @Remote where 
+Method <com.tngtech.archunit.example.foo.SomeCoreClass.accessRemote()> 
+calls method <com.tngtech.archunit.example.foo.SomeRemoteEndpoint.execute()> in (SomeCoreClass.java:6)
+```
+
 ## Using ArchUnit with JUnit
 
 The approach of the last section is inefficient in some ways. First of all, sharing rules is not as convenient as
@@ -126,16 +170,63 @@ This way the rule can easily be reused and it can be evaluated using the `ArchUn
 
 ```Java
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = {"my.package.one", "my.package.two"})
+@AnalyseClasses(packages = {"my.pkg.one", "my.pkg.two"})
 public class MyArchTest {
     @ArchTest
-    public final ArchRule<JavaClass> oneShouldntAccessTwo = 
+    public static final ArchRule<JavaClass> oneShouldntAccessTwo = 
             // This could of course easily come from a central library instead of being defined here
             rule(all(JavaClass.class).that(resideIn("..one..")))
                     .should("not access classes that reside in '..two..'")
                     .assertedBy(never(classAccessesPackage("..two..")));
 }
 ```
+
+Additional tests can also be specified as methods that take `JavaClasses` as input, which will result in reusing
+the cached classes as well:
+
+
+```Java
+@RunWith(ArchUnitRunner.class)
+@AnalyseClasses(packages = {"my.pkg.one", "my.pkg.two"})
+public class MyArchTest {
+    // ...
+
+    @ArchTest
+    public static void oneShouldntAccessTwoCouldAlsoBeSpecifiedAsMethod(JavaClasses classes) {
+        all(classes).that(resideIn("..one.."))
+                .should("not access classes that reside in '..two..'")
+                .assertedBy(never(classAccessesPackage("..two..")));
+    }
+}
+```
+
+It is possible to define reusable rule sets as classes like:
+
+```Java
+public class MyArchRules {
+    @ArchTest
+    public static final ArchRule<JavaClass> someRuleAsField = /* definition of some rule */;
+                    
+    @ArchTest
+    public static void anotherRuleAsMethod(JavaClasses classes) {
+        /* definition of another rule */
+    }
+}
+```
+
+and then import those in dependent projects to easily evaluate them
+
+```Java
+@RunWith(ArchUnitRunner.class)
+@AnalyseClasses(packages = {"some.pkg.of.my.project"})
+public class MyArchTestThatUsesMyRules {
+    @ArchTest
+    public static final ArchRules<JavaClass> myArchRules = ArchRules.in(MyArchRules.class);
+}
+```
+
+If this test is run, it will evaluate all rules (fields and methods) defined in `MyArchRules` against the imported
+classes.
 
 ## Where to look next
 

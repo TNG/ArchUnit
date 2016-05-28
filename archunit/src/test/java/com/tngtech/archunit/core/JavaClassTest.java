@@ -1,13 +1,17 @@
 package com.tngtech.archunit.core;
 
 import java.io.Serializable;
+import java.lang.annotation.Retention;
 
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.TestUtils.javaClass;
+import static com.tngtech.archunit.core.TestUtils.simulateCallFrom;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassTest {
@@ -83,6 +87,42 @@ public class JavaClassTest {
         assertThat(arrayType.getPackage()).isEmpty();
     }
 
+    @Test
+    public void superclasses_are_found() {
+        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+
+        assertThat(clazz.getAllSuperClasses()).containsExactly(
+                javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+    }
+
+    @Test
+    public void hierarchy_is_found() {
+        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+
+        assertThat(clazz.getClassHierarchy()).containsExactly(
+                clazz, javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+    }
+
+    @Test
+    public void Annotations_are_reported() {
+        assertThat(javaClass(Parent.class).isAnnotationPresent(SomeAnnotation.class))
+                .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
+        assertThat(javaClass(Parent.class).isAnnotationPresent(Retention.class))
+                .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
+    }
+
+    @Test
+    public void allAccesses_contains_accesses_from_superclass() {
+        JavaClass javaClass = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass anotherClass = javaClass(Object.class);
+        simulateCallFrom(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
+        simulateCallFrom(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
+
+        assertThat(javaClass.getAccesses()).extractingResultOf("getOriginClass").containsOnly(javaClass);
+        assertThat(javaClass.getAllAccesses()).extractingResultOf("getOriginClass")
+                .containsOnly(javaClass, javaClass.getSuperClass().get());
+    }
+
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {
         String stringField;
         private int intField;
@@ -95,12 +135,16 @@ public class JavaClassTest {
         }
     }
 
-    static abstract class SuperClassWithFieldAndMethod {
+    static abstract class SuperClassWithFieldAndMethod extends Parent {
         private Object objectField;
 
         private Object objectMethod() {
             return null;
         }
+    }
+
+    @SomeAnnotation
+    static abstract class Parent {
     }
 
     static class ClassWithSeveralConstructors {
@@ -117,5 +161,9 @@ public class JavaClassTest {
     static class ClassWithInnerClass {
         class Inner {
         }
+    }
+
+    @Retention(RUNTIME)
+    @interface SomeAnnotation {
     }
 }

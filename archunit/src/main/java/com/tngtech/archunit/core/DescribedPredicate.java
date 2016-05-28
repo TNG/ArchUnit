@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -25,7 +26,11 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
     }
 
     public DescribedPredicate<T> as(String description) {
-        this.description = Optional.of(description);
+        return as(Optional.of(description));
+    }
+
+    private DescribedPredicate<T> as(Optional<String> description) {
+        this.description = description;
         return this;
     }
 
@@ -67,6 +72,10 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
 
     public static <T> DescribedPredicate<T> not(Predicate<T> predicate) {
         return DescribedPredicate.of(Predicates.not(predicate));
+    }
+
+    public <F> DescribedPredicate<F> onResultOf(Function<F, ? extends T> function) {
+        return DescribedPredicate.of(Predicates.compose(this, function)).as(description);
     }
 
     public static class AlwaysTrue<T> extends DescribedPredicate<T> {

@@ -2,7 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.lang.reflect.Field;
 
-public class JavaField extends JavaMember<Field, MemberDescription.ForField> implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
+public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
     private JavaField(Builder builder) {
         super(builder.member, builder.owner);
     }
@@ -14,11 +14,6 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> imp
 
     public Class<?> getType() {
         return memberDescription.getType();
-    }
-
-    @Override
-    public String getDescriptor() {
-        return memberDescription.getDescriptor();
     }
 
     static final class Builder extends JavaMember.Builder<MemberDescription.ForField, JavaField> {

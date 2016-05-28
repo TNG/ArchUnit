@@ -96,6 +96,11 @@ public interface MemberDescription<T extends Member> {
         }
 
         @Override
+        public String getName() {
+            return JavaConstructor.CONSTRUCTOR_NAME;
+        }
+
+        @Override
         public String getDescriptor() {
             return Type.getConstructorDescriptor(member);
         }

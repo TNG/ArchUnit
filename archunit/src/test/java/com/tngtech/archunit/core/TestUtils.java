@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +50,50 @@ public class TestUtils {
             result.put(c, javaClass(c));
         }
         return new JavaClasses(result);
+    }
+
+    public static AccessSimulator simulateCallFrom(JavaMethod method, int lineNumber) {
+        return new AccessSimulator(method, lineNumber);
+    }
+
+    static class AccessSimulator {
+        private final JavaMethod method;
+        private final int lineNumber;
+
+        public AccessSimulator(JavaMethod method, int lineNumber) {
+            this.method = method;
+            this.lineNumber = lineNumber;
+        }
+
+        public void to(JavaMethod target) {
+            ClassFileImportContext context = mock(ClassFileImportContext.class);
+            when(context.getMethodCallRecordsFor(method))
+                    .thenReturn(Collections.<AccessRecord<JavaMethod>>singleton(new TestAccessRecord(target)));
+            method.completeFrom(context);
+        }
+
+        private class TestAccessRecord implements AccessRecord<JavaMethod> {
+            private final JavaMethod target;
+
+            public TestAccessRecord(JavaMethod target) {
+                this.target = target;
+            }
+
+            @Override
+            public JavaCodeUnit<?, ?> getCaller() {
+                return method;
+            }
+
+            @Override
+            public JavaMethod getTarget() {
+                return target;
+            }
+
+            @Override
+            public int getLineNumber() {
+                return lineNumber;
+            }
+        }
     }
 
     static class ClassWithMethodNamedMethod {

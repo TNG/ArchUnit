@@ -23,18 +23,8 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     }
 
     @Override
-    public String getName() {
-        return CONSTRUCTOR_NAME;
-    }
-
-    @Override
     public boolean isConstructor() {
         return true;
-    }
-
-    @Override
-    public String getDescriptor() {
-        return memberDescription.getDescriptor();
     }
 
     static final class Builder extends JavaMember.Builder<MemberDescription.ForConstructor, JavaConstructor> {

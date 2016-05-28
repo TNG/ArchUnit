@@ -1035,7 +1035,7 @@ public class ClassFileImporterTest {
     protected abstract static class BaseAccessAssertion<
             SELF extends BaseAccessAssertion<SELF, ACCESS, TARGET>,
             ACCESS extends JavaAccess<TARGET>,
-            TARGET extends HasName.AndFullName & HasOwner<JavaClass>> {
+            TARGET extends JavaMember<?, ?>> {
 
         protected ACCESS access;
 

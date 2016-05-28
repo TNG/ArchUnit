@@ -49,11 +49,6 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
         return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
     }
 
-    @Override
-    public String getDescriptor() {
-        return memberDescription.getDescriptor();
-    }
-
     static class Builder implements BuilderWithBuildParameter<JavaClass, JavaStaticInitializer> {
         @Override
         public JavaStaticInitializer build(JavaClass owner) {

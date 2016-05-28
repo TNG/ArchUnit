@@ -11,7 +11,8 @@ import com.google.common.base.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaMember<M extends Member, T extends MemberDescription<M>> {
+public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
+        implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
     final T memberDescription;
     private final Set<JavaAnnotation<?>> annotations;
     private final JavaClass owner;
@@ -79,6 +80,7 @@ public class JavaMember<M extends Member, T extends MemberDescription<M>> {
         return Optional.absent();
     }
 
+    @Override
     public JavaClass getOwner() {
         return owner;
     }
@@ -87,8 +89,14 @@ public class JavaMember<M extends Member, T extends MemberDescription<M>> {
         return modifiers;
     }
 
+    @Override
     public String getName() {
         return memberDescription.getName();
+    }
+
+    @Override
+    public String getDescriptor() {
+        return memberDescription.getDescriptor();
     }
 
     public M reflect() {
