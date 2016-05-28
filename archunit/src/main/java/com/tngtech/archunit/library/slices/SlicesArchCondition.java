@@ -21,11 +21,11 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-public class SlicesArchCondition extends AbstractArchCondition<Slice> {
+public class SlicesArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();

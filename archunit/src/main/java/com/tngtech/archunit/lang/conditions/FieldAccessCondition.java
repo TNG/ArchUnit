@@ -7,7 +7,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
@@ -16,7 +16,7 @@ import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasAccessType;
 import static java.util.Collections.singleton;
 
-class FieldAccessCondition extends AbstractArchCondition<JavaFieldAccess> {
+class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
     private final Predicate<JavaFieldAccess> fieldAccessIdentifier;
     private final String descriptionTemplate;
 

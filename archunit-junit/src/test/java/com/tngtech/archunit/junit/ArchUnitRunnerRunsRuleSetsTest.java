@@ -3,7 +3,7 @@ package com.tngtech.archunit.junit;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Before;
@@ -95,7 +95,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
 
         @ArchTest
         public static final ArchRule<JavaClass> someFieldRule = rule(all(JavaClass.class)).should("satisfy something")
-                .assertedBy(new AbstractArchCondition<JavaClass>() {
+                .assertedBy(new ArchCondition<JavaClass>() {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                     }

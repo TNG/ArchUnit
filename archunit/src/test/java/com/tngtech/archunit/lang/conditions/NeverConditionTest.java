@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class NeverConditionTest {
 
     public static final ConditionEvent ORIGINALLY_ALLOWED_EVENT = new ConditionEvent(true, ORIGINALLY_NO_MISMATCH);
 
-    public static final AbstractArchCondition<Object> ONE_VIOLATED_ONE_SATISFIED = new AbstractArchCondition<Object>() {
+    public static final ArchCondition<Object> ONE_VIOLATED_ONE_SATISFIED = new ArchCondition<Object>() {
         @Override
         public void check(Object item, ConditionEvents events) {
             events.add(ORIGINALLY_VIOLATING_EVENT);

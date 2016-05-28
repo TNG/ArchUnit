@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class AbstractArchCondition<T> {
+public abstract class ArchCondition<T> {
     Iterable<T> objectsToTest;
 
     public abstract void check(T item, ConditionEvents events);
@@ -15,24 +15,24 @@ public abstract class AbstractArchCondition<T> {
         return checkNotNull(objectsToTest, "Objects to test were never set, this is most likely a bug");
     }
 
-    public AbstractArchCondition<T> and(AbstractArchCondition<T> condition) {
+    public ArchCondition<T> and(ArchCondition<T> condition) {
         return new AndCondition<>(this, condition);
     }
 
-    private static class AndCondition<T> extends AbstractArchCondition<T> {
-        private final Collection<AbstractArchCondition<T>> conditions;
+    private static class AndCondition<T> extends ArchCondition<T> {
+        private final Collection<ArchCondition<T>> conditions;
 
-        private AndCondition(AbstractArchCondition<T> first, AbstractArchCondition<T> second) {
+        private AndCondition(ArchCondition<T> first, ArchCondition<T> second) {
             this(ImmutableList.of(first, second));
         }
 
-        private AndCondition(Collection<AbstractArchCondition<T>> conditions) {
+        private AndCondition(Collection<ArchCondition<T>> conditions) {
             this.conditions = conditions;
         }
 
         @Override
         public void check(T item, ConditionEvents events) {
-            for (AbstractArchCondition<T> condition : conditions) {
+            for (ArchCondition<T> condition : conditions) {
                 condition.check(item, events);
             }
         }

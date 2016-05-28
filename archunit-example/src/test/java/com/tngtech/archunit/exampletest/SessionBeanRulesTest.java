@@ -10,7 +10,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,6 +55,6 @@ public class SessionBeanRulesTest {
         }
     };
 
-    private static final AbstractArchCondition<JavaClass> NO_FIELDS_ARE_SET_AFTER_CONSTRUCTION =
+    private static final ArchCondition<JavaClass> NO_FIELDS_ARE_SET_AFTER_CONSTRUCTION =
             never(classSetsFieldWith(ACCESS_ORIGIN_OUTSIDE_OF_CONSTRUCTION));
 }

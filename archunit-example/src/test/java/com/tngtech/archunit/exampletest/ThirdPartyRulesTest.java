@@ -8,7 +8,7 @@ import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -42,7 +42,7 @@ public class ThirdPartyRulesTest {
         all(classes).should(THIRD_PARTY_CLASS_RULE_TEXT).assertedBy(noCreationOutsideOfWorkaroundFactory());
     }
 
-    private AbstractArchCondition<JavaClass> noCreationOutsideOfWorkaroundFactory() {
+    private ArchCondition<JavaClass> noCreationOutsideOfWorkaroundFactory() {
         FluentPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
                 targetIs(assignableFrom(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
 

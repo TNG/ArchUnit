@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.lang.AbstractArchCondition;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
@@ -18,7 +18,7 @@ class ClassAccessesPackageCondition extends ClassMatchesAnyCondition<JavaAccess<
         return item.getAccesses();
     }
 
-    static class PackageAccessCondition extends AbstractArchCondition<JavaAccess<?>> {
+    static class PackageAccessCondition extends ArchCondition<JavaAccess<?>> {
         private final PackageMatcher packageMatcher;
 
         PackageAccessCondition(String packageIdentifier) {

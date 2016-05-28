@@ -4,11 +4,11 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
-public class AbstractArchConditionTest {
+public class ArchConditionTest {
 
     @Test
     public void and_works() {
-        AbstractArchCondition<Integer> greaterThanTenAndTwenty = greaterThan(10).and(greaterThan(20));
+        ArchCondition<Integer> greaterThanTenAndTwenty = greaterThan(10).and(greaterThan(20));
 
         ConditionEvents events = new ConditionEvents();
         greaterThanTenAndTwenty.check(15, events);
@@ -19,8 +19,8 @@ public class AbstractArchConditionTest {
         assertThat(events).containNoViolation();
     }
 
-    private AbstractArchCondition<Integer> greaterThan(final int number) {
-        return new AbstractArchCondition<Integer>() {
+    private ArchCondition<Integer> greaterThan(final int number) {
+        return new ArchCondition<Integer>() {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 events.add(new GreaterThanEvent(item, number));
