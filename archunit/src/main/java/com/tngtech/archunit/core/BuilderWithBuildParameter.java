@@ -1,7 +1,8 @@
 package com.tngtech.archunit.core;
 
-import java.util.HashSet;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -13,11 +14,11 @@ interface BuilderWithBuildParameter<PARAMETER, VALUE> {
             checkNotNull(builders);
             checkNotNull(parameter);
 
-            Set<VALUE> result = new HashSet<>();
+            ImmutableSet.Builder<VALUE> result = ImmutableSet.builder();
             for (BuilderWithBuildParameter<PARAMETER, ? extends VALUE> builder : builders) {
                 result.add(builder.build(parameter));
             }
-            return result;
+            return result.build();
         }
     }
 }

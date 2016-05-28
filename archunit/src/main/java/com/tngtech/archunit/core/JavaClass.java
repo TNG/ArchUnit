@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -22,8 +23,8 @@ public class JavaClass implements HasName {
     private final Class<?> type;
     private final Set<JavaField> fields;
     private final Set<JavaCodeUnit<?, ?>> codeUnits;
-    private final Set<JavaMethod> methods = new HashSet<>();
-    private final Set<JavaConstructor> constructors = new HashSet<>();
+    private final Set<JavaMethod> methods;
+    private final Set<JavaConstructor> constructors;
     private final JavaStaticInitializer staticInitializer;
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> subClasses = new HashSet<>();
@@ -32,25 +33,12 @@ public class JavaClass implements HasName {
     private JavaClass(Builder builder) {
         type = checkNotNull(builder.type);
         fields = build(builder.fieldBuilders, this);
-        codeUnits = build(builder.codeUnitBuilders, this);
-
-        staticInitializer = addCodeUnitsByTypeAndReturnStaticInitializer(codeUnits);
-
-        checkNotNull(type);
-    }
-
-    private JavaStaticInitializer addCodeUnitsByTypeAndReturnStaticInitializer(Set<JavaCodeUnit<?, ?>> codeUnits) {
-        JavaStaticInitializer result = null;
-        for (JavaCodeUnit<?, ?> method : codeUnits) {
-            if (method instanceof JavaMethod) {
-                this.methods.add((JavaMethod) method);
-            } else if (method instanceof JavaConstructor) {
-                constructors.add((JavaConstructor) method);
-            } else {
-                result = (JavaStaticInitializer) method;
-            }
-        }
-        return checkNotNull(result, "No static initializer found for class " + this + ". Something went wrong");
+        methods = build(builder.methodBuilders, this);
+        constructors = build(builder.constructorBuilders, this);
+        staticInitializer = new JavaStaticInitializer.Builder().build(this);
+        codeUnits = ImmutableSet.<JavaCodeUnit<?, ?>>builder()
+                .addAll(methods).addAll(constructors).add(staticInitializer)
+                .build();
     }
 
     @Override
@@ -277,7 +265,8 @@ public class JavaClass implements HasName {
     static final class Builder {
         private Class<?> type;
         private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, ? extends JavaCodeUnit<?, ?>>> codeUnitBuilders = new HashSet<>();
+        private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
+        private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         private final TypeAnalysisListener analysisListener;
 
         Builder() {
@@ -296,13 +285,12 @@ public class JavaClass implements HasName {
             }
             for (Method method : type.getDeclaredMethods()) {
                 analysisListener.onMethodFound(method);
-                codeUnitBuilders.add(new JavaMethod.Builder().withMethod(method));
+                methodBuilders.add(new JavaMethod.Builder().withMethod(method));
             }
             for (Constructor<?> constructor : type.getDeclaredConstructors()) {
                 analysisListener.onConstructorFound(constructor);
-                codeUnitBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
+                constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
             }
-            codeUnitBuilders.add(new JavaStaticInitializer.Builder());
             return this;
         }
 
