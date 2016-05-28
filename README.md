@@ -121,8 +121,12 @@ architecture or code style test, it's easy to define custom conditions and rules
 
 @Test
 public void core_classes_shouldnt_access_remote_endpoints() {
-    DescribedPredicate<JavaClass> areCore = DescribedPredicate.of(withAnnotation(Core.class))
-                    .onResultOf(REFLECT).as("Classes annotated with @Core");
+    DescribedPredicate<JavaClass> areCore = new DescribedPredicate<JavaClass>(){
+        @Override
+        public boolean apply( JavaClass input) {
+            return input.isAnnotationPresent(Core.class);
+        }
+    }.as("Classes annotated with @Core");
     
     ArchCondition<JavaClass> classAccessesTargetAnnotatedWithRemote = new ArchCondition<JavaClass>() {
         @Override
