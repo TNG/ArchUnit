@@ -156,7 +156,7 @@ public class ArchPredicates {
         return new FluentPredicate<JavaCall<?>>() {
             @Override
             public boolean apply(JavaCall<?> input) {
-                return selector.apply(input.getOriginClass().reflect());
+                return selector.apply(input.getOriginOwner().reflect());
             }
         };
     }

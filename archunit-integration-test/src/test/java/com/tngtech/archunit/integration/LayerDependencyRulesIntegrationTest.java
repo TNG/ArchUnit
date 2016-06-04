@@ -1,16 +1,20 @@
 package com.tngtech.archunit.integration;
 
+import com.tngtech.archunit.example.SomeMediator;
+import com.tngtech.archunit.example.controller.one.UseCaseOneController;
+import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
+import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
-import com.tngtech.archunit.example.usecase.one.UseCaseOneController;
-import com.tngtech.archunit.example.usecase.two.UseCaseTwoController;
 import com.tngtech.archunit.exampletest.LayerDependencyRulesTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToUseCase;
-import static com.tngtech.archunit.example.usecase.one.UseCaseOneController.someString;
-import static com.tngtech.archunit.example.usecase.two.UseCaseTwoController.doSomething;
+import static com.tngtech.archunit.example.SomeMediator.violateLayerRulesIndirectly;
+import static com.tngtech.archunit.example.controller.one.UseCaseOneController.someString;
+import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomething;
+import static com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService.violateLayerRules;
+import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToController;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTest {
@@ -20,18 +24,45 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
 
     @Test
     @Override
-    public void services_should_not_access_usecases() {
-        expectViolation.ofRule("classes that reside in '..service..' should not access classes that reside in '..usecase..'")
-                .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToUseCase)
+    public void services_should_not_access_controllers() {
+        expectViolation.ofRule("classes that reside in '..service..' should not access classes that reside in '..controller..'")
+                .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneController.class, someString)
-                        .inLine(10))
-                .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToUseCase)
-                        .toConstructor(UseCaseTwoController.class)
                         .inLine(11))
-                .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToUseCase)
+                .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toConstructor(UseCaseTwoController.class)
+                        .inLine(12))
+                .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toMethod(UseCaseTwoController.class, doSomething)
-                        .inLine(12));
+                        .inLine(13));
 
-        super.services_should_not_access_usecases();
+        super.services_should_not_access_controllers();
+    }
+
+    @Test
+    @Override
+    public void persistence_should_not_access_services() {
+        expectViolation.ofRule("classes that reside in '..persistence..' should " +
+                "not access classes that reside in '..service..'")
+                .byCall(from(DaoCallingService.class, violateLayerRules)
+                        .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
+                        .inLine(13));
+
+        super.persistence_should_not_access_services();
+    }
+
+    @Test
+    @Override
+    public void services_should_only_be_accessed_by_controllers_or_other_services() {
+        expectViolation.ofRule("classes that reside in '..service..' should " +
+                "only be accessed by classes that either reside in '..controller..' or '..service'")
+                .byCall(from(DaoCallingService.class, violateLayerRules)
+                        .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
+                        .inLine(13))
+                .byCall(from(SomeMediator.class, violateLayerRulesIndirectly)
+                        .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
+                        .inLine(15));
+
+        super.services_should_only_be_accessed_by_controllers_or_other_services();
     }
 }

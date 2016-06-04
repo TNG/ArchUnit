@@ -23,7 +23,31 @@ public final class ArchConditions {
      * @return A condition matching accesses to packages matching the identifier
      */
     public static ArchCondition<JavaClass> classAccessesPackage(String packageIdentifier) {
-        return new ClassAccessesPackageCondition(packageIdentifier);
+        return classAccessesAnyPackage(packageIdentifier);
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying a package according to {@link PackageMatcher}
+     * @return A condition matching accesses to packages matching any of the identifiers
+     */
+    public static ArchCondition<JavaClass> classAccessesAnyPackage(String... packageIdentifiers) {
+        return new ClassAccessesAnyPackageCondition(packageIdentifiers);
+    }
+
+    /**
+     * @param packageIdentifier A String identifying a package according to {@link PackageMatcher}
+     * @return A condition matching accesses by packages matching the identifier
+     */
+    public static ArchCondition<JavaClass> classIsOnlyAccessedByPackage(String packageIdentifier) {
+        return classIsOnlyAccessedByAnyPackage(packageIdentifier);
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
+     * @return A condition matching accesses by packages matching any of the identifiers
+     */
+    public static ArchCondition<JavaClass> classIsOnlyAccessedByAnyPackage(String... packageIdentifiers) {
+        return new ClassIsOnlyAccessedByAnyPackageCondition(packageIdentifiers);
     }
 
     public static ArchCondition<JavaClass> classGetsField(final Class<?> clazz, final String fieldName) {

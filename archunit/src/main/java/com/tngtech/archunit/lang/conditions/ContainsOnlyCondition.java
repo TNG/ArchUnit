@@ -16,8 +16,8 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
     @Override
     public void check(Collection<? extends T> collection, ConditionEvents events) {
         ConditionEvents subEvents = new ConditionEvents();
-        for (T fieldAccess : collection) {
-            condition.check(fieldAccess, subEvents);
+        for (T item : collection) {
+            condition.check(item, subEvents);
         }
         events.add(new OnlyConditionEvent(subEvents));
     }

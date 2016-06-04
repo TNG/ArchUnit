@@ -118,7 +118,7 @@ public class MethodCallConditionTest {
     }
 
     private static String ideJumpHookFor(MethodCallToAnalyse callToAnalyse) {
-        String simpleCallerName = callToAnalyse.call.getOriginClass().getSimpleName();
+        String simpleCallerName = callToAnalyse.call.getOriginOwner().getSimpleName();
         int lineNumber = callToAnalyse.call.getLineNumber();
         return String.format("(%s.java:%d)", simpleCallerName, lineNumber);
     }

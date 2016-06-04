@@ -45,11 +45,13 @@ public class PackageMatcher {
 
     private static final Set<Character> PACKAGE_CONTROL_SYMBOLS = ImmutableSet.of('*', '(', ')', '.');
 
+    private final String packageIdentifier;
     private final Pattern packagePattern;
 
     private PackageMatcher(String packageIdentifier) {
         validate(packageIdentifier);
 
+        this.packageIdentifier = packageIdentifier;
         this.packagePattern = Pattern.compile(convertToRegex(packageIdentifier));
     }
 
@@ -111,6 +113,11 @@ public class PackageMatcher {
     public Optional<Result> match(String aPackage) {
         Matcher matcher = packagePattern.matcher(aPackage);
         return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.<Result>absent();
+    }
+
+    @Override
+    public String toString() {
+        return "PackageMatcher{" + packageIdentifier + '}';
     }
 
     public static class Result {

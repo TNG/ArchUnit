@@ -118,8 +118,8 @@ public class JavaClassTest {
         simulateCallFrom(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
         simulateCallFrom(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
-        assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginClass").containsOnly(javaClass);
-        assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginClass")
+        assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
+        assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
                 .containsOnly(javaClass, javaClass.getSuperClass().get());
     }
 

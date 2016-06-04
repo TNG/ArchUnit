@@ -36,8 +36,12 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
         return origin;
     }
 
-    public JavaClass getOriginClass() {
+    public JavaClass getOriginOwner() {
         return getOrigin().getOwner();
+    }
+
+    public JavaClass getTargetOwner() {
+        return getTarget().getOwner();
     }
 
     public TARGET getTarget() {
@@ -94,7 +98,7 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
     }
 
     private JavaClass getLocationClass() {
-        JavaClass location = getOriginClass();
+        JavaClass location = getOriginOwner();
         while (location.getEnclosingClass().isPresent()) {
             location = location.getEnclosingClass().get();
         }

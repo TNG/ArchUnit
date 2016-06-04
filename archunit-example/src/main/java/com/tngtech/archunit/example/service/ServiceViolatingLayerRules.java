@@ -1,14 +1,18 @@
 package com.tngtech.archunit.example.service;
 
-import com.tngtech.archunit.example.usecase.one.UseCaseOneController;
-import com.tngtech.archunit.example.usecase.two.UseCaseTwoController;
+import com.tngtech.archunit.example.controller.one.UseCaseOneController;
+import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 
 public class ServiceViolatingLayerRules {
-    public static final String illegalAccessToUseCase = "illegalAccessToUseCase";
+    public static final String illegalAccessToController = "illegalAccessToController";
+    public static final String doSomething = "doSomething";
 
-    void illegalAccessToUseCase() {
+    void illegalAccessToController() {
         System.out.println(UseCaseOneController.someString);
         UseCaseTwoController otherController = new UseCaseTwoController();
         otherController.doSomething();
+    }
+
+    public void doSomething() {
     }
 }
