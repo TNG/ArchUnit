@@ -1,11 +1,17 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
+    private Set<JavaConstructorCall> calls = Collections.emptySet();
+
     public static final String CONSTRUCTOR_NAME = "<init>";
 
     private JavaConstructor(Builder builder) {
@@ -25,6 +31,19 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     @Override
     public boolean isConstructor() {
         return true;
+    }
+
+    public Set<JavaConstructorCall> getCallsOfSelf() {
+        return getAccessesToSelf();
+    }
+
+    @Override
+    public Set<JavaConstructorCall> getAccessesToSelf() {
+        return calls;
+    }
+
+    public void registerCalls(Collection<JavaConstructorCall> calls) {
+        this.calls = ImmutableSet.copyOf(calls);
     }
 
     static final class Builder extends JavaMember.Builder<MemberDescription.ForConstructor, JavaConstructor> {

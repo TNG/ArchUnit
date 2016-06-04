@@ -13,6 +13,6 @@ class ClassCallsMethodCondition extends ClassMatchesAnyCondition<JavaCall<?>> {
 
     @Override
     Collection<JavaCall<?>> relevantAttributes(JavaClass item) {
-        return item.getCalls();
+        return item.getCallsFromSelf();
     }
 }

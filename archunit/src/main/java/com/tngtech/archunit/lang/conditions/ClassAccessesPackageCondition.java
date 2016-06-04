@@ -15,7 +15,7 @@ class ClassAccessesPackageCondition extends ClassMatchesAnyCondition<JavaAccess<
 
     @Override
     Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
-        return item.getAccesses();
+        return item.getAccessesFromSelf();
     }
 
     static class PackageAccessCondition extends ArchCondition<JavaAccess<?>> {

@@ -4,8 +4,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
@@ -25,6 +27,11 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     @Override
     public Class<?> getReturnType() {
         return memberDescription.getReturnType();
+    }
+
+    @Override
+    public Set<? extends JavaAccess<?>> getAccessesToSelf() {
+        return emptySet();
     }
 
     @Override

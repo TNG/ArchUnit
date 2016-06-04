@@ -1,8 +1,15 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
+    private Set<JavaFieldAccess> accesses = Collections.emptySet();
+
     private JavaField(Builder builder) {
         super(builder.member, builder.owner);
     }
@@ -14,6 +21,15 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
 
     public Class<?> getType() {
         return memberDescription.getType();
+    }
+
+    @Override
+    public Set<JavaFieldAccess> getAccessesToSelf() {
+        return accesses;
+    }
+
+    void registerAccesses(Collection<JavaFieldAccess> accesses) {
+        this.accesses = ImmutableSet.copyOf(accesses);
     }
 
     static final class Builder extends JavaMember.Builder<MemberDescription.ForField, JavaField> {

@@ -105,7 +105,7 @@ public class FieldAccessConditionTest {
     }
 
     static JavaFieldAccess accessFromCallerToTargetWithType(AccessType type) {
-        for (JavaFieldAccess access : CALLER_CLASS.getFieldAccesses()) {
+        for (JavaFieldAccess access : CALLER_CLASS.getFieldAccessesFromSelf()) {
             if (access.getTarget().getOwner().equals(TARGET_CLASS) && access.getAccessType() == type) {
                 return access;
             }

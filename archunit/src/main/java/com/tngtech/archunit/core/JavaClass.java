@@ -179,22 +179,22 @@ public class JavaClass implements HasName {
         return staticInitializer;
     }
 
-    public Set<JavaAccess<?>> getAccesses() {
-        return Sets.union(getFieldAccesses(), getCalls());
+    public Set<JavaAccess<?>> getAccessesFromSelf() {
+        return Sets.union(getFieldAccessesFromSelf(), getCallsFromSelf());
     }
 
     /**
      * @return Set of all {@link JavaAccess} in the class hierarchy, as opposed to the accesses this class directly performs.
      */
-    public Set<JavaAccess<?>> getAllAccesses() {
+    public Set<JavaAccess<?>> getAllAccessesFromSelf() {
         ImmutableSet.Builder<JavaAccess<?>> result = ImmutableSet.builder();
         for (JavaClass clazz : getClassHierarchy()) {
-            result.addAll(clazz.getAccesses());
+            result.addAll(clazz.getAccessesFromSelf());
         }
         return result.build();
     }
 
-    public JavaFieldAccesses getFieldAccesses() {
+    public JavaFieldAccesses getFieldAccessesFromSelf() {
         JavaFieldAccesses result = new JavaFieldAccesses();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getFieldAccesses());
@@ -205,35 +205,35 @@ public class JavaClass implements HasName {
     /**
      * Returns all calls of this class to methods or constructors.
      *
-     * @see #getMethodCalls()
-     * @see #getConstructorCalls()
+     * @see #getMethodCallsFromSelf()
+     * @see #getConstructorCallsFromSelf()
      */
-    public Set<JavaCall<?>> getCalls() {
-        return Sets.<JavaCall<?>>union(getMethodCalls(), getConstructorCalls());
+    public Set<JavaCall<?>> getCallsFromSelf() {
+        return Sets.<JavaCall<?>>union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
-    public JavaMethodCalls getMethodCalls() {
+    public JavaMethodCalls getMethodCallsFromSelf() {
         JavaMethodCalls result = new JavaMethodCalls();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
-            result.addAll(codeUnit.getMethodCalls());
+            result.addAll(codeUnit.getMethodCallsFromSelf());
         }
         return result;
     }
 
-    public JavaConstructorCalls getConstructorCalls() {
+    public JavaConstructorCalls getConstructorCallsFromSelf() {
         JavaConstructorCalls result = new JavaConstructorCalls();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
-            result.addAll(codeUnit.getConstructorCalls());
+            result.addAll(codeUnit.getConstructorCallsFromSelf());
         }
         return result;
     }
 
     public Set<Dependency> getDirectDependencies() {
         Set<Dependency> result = new HashSet<>();
-        for (JavaAccess<?> access : filterTargetNotSelf(getFieldAccesses())) {
+        for (JavaAccess<?> access : filterTargetNotSelf(getFieldAccessesFromSelf())) {
             result.add(Dependency.from(access));
         }
-        for (JavaAccess<?> call : filterTargetNotSelf(getCalls())) {
+        for (JavaAccess<?> call : filterTargetNotSelf(getCallsFromSelf())) {
             result.add(Dependency.from(call));
         }
         return result;
@@ -299,11 +299,45 @@ public class JavaClass implements HasName {
         }
     };
 
+    public Set<JavaFieldAccess> getFieldAccessesToSelf() {
+        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
+        for (JavaField field : fields) {
+            result.addAll(field.getAccessesToSelf());
+        }
+        return result.build();
+    }
+
+    public Set<JavaMethodCall> getMethodCallsToSelf() {
+        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
+        for (JavaMethod method : methods) {
+            result.addAll(method.getCallsOfSelf());
+        }
+        return result.build();
+    }
+
+    public Set<JavaConstructorCall> getConstructorCallsToSelf() {
+        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
+        for (JavaConstructor constructor : constructors) {
+            result.addAll(constructor.getCallsOfSelf());
+        }
+        return result.build();
+    }
+
+    public Set<JavaAccess<?>> getAccessesToSelf() {
+        return ImmutableSet.<JavaAccess<?>>builder()
+                .addAll(getFieldAccessesToSelf())
+                .addAll(getMethodCallsToSelf())
+                .addAll(getConstructorCallsToSelf())
+                .build();
+    }
+
     class CompletionProcess {
-        void completeMethodsFrom(ClassFileImportContext context) {
-            for (JavaCodeUnit<?, ?> method : codeUnits) {
-                method.completeFrom(context);
+        AccessCompletion.SubProcess completeCodeUnitsFrom(ClassFileImportContext context) {
+            AccessCompletion.SubProcess accessCompletionProcess = new AccessCompletion.SubProcess();
+            for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+                accessCompletionProcess.mergeWith(codeUnit.completeFrom(context));
             }
+            return accessCompletionProcess;
         }
     }
 

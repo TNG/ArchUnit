@@ -19,7 +19,7 @@ class ClassAccessesFieldCondition extends ClassMatchesAnyCondition<JavaFieldAcce
 
     @Override
     Collection<JavaFieldAccess> relevantAttributes(JavaClass item) {
-        return item.getFieldAccesses();
+        return item.getFieldAccessesFromSelf();
     }
 
     static class ClassGetsFieldCondition extends ClassAccessesFieldCondition {

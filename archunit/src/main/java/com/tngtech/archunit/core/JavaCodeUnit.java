@@ -55,11 +55,11 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return fieldAccesses;
     }
 
-    public JavaMethodCalls getMethodCalls() {
+    public JavaMethodCalls getMethodCallsFromSelf() {
         return methodCalls;
     }
 
-    public JavaConstructorCalls getConstructorCalls() {
+    public JavaConstructorCalls getConstructorCallsFromSelf() {
         return constructorCalls;
     }
 
@@ -67,7 +67,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return false;
     }
 
-    void completeFrom(ClassFileImportContext context) {
+    AccessCompletion.SubProcess completeFrom(ClassFileImportContext context) {
         for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
             fieldAccesses.add(new JavaFieldAccess(record));
         }
@@ -77,5 +77,6 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         for (AccessRecord<JavaConstructor> record : context.getConstructorCallRecordsFor(this)) {
             constructorCalls.add(new JavaConstructorCall(record));
         }
+        return new AccessCompletion.SubProcess(this);
     }
 }

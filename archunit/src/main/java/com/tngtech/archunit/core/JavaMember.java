@@ -103,6 +103,8 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         return memberDescription.getDescriptor();
     }
 
+    public abstract Set<? extends JavaAccess<?>> getAccessesToSelf();
+
     public M reflect() {
         return memberDescription.reflect();
     }

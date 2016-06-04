@@ -76,9 +76,11 @@ public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass,
         }
 
         public void finish() {
+            AccessCompletion.TopProcess accessCompletionProcess = new AccessCompletion.TopProcess();
             for (JavaClass.CompletionProcess process : classCompletionProcesses) {
-                process.completeMethodsFrom(context);
+                accessCompletionProcess.mergeWith(process.completeCodeUnitsFrom(context));
             }
+            accessCompletionProcess.finish();
         }
     }
 }

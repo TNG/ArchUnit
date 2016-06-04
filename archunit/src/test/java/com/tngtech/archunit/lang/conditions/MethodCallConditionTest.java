@@ -87,11 +87,11 @@ public class MethodCallConditionTest {
     }
 
     private static MethodCallToAnalyse methodCallToTargetFrom(JavaClass callerClass) {
-        return new MethodCallToAnalyse(callerClass.getMethodCalls());
+        return new MethodCallToAnalyse(callerClass.getMethodCallsFromSelf());
     }
 
     private static MethodCallToAnalyse constructorCallToTargetFrom(JavaClass callerClass) {
-        return new MethodCallToAnalyse(callerClass.getConstructorCalls());
+        return new MethodCallToAnalyse(callerClass.getConstructorCallsFromSelf());
     }
 
     private static Condition<Iterable<? extends ConditionEvent>> containingMessageFor(final MethodCallToAnalyse callToAnalyse) {
