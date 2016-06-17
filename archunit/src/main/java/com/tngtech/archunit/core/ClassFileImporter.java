@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
@@ -237,7 +236,7 @@ public class ClassFileImporter {
         DONT_INCLUDE_TESTS {
             @Override
             public boolean includes(URL url) {
-                return !url.getFile().contains(String.format("%stest%s", File.separator, File.separator));
+                return !url.getFile().contains("/test/");
             }
         },
         DONT_INCLUDE_JARS {

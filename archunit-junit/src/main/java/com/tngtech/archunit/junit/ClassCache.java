@@ -1,6 +1,5 @@
 package com.tngtech.archunit.junit;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -77,7 +76,7 @@ class ClassCache {
 
     private URL newUrl(String pkg, URL rootUrl) {
         try {
-            return new URL(rootUrl, pkg.replace('.', File.separatorChar));
+            return new URL(rootUrl, pkg.replace('.', '/'));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
