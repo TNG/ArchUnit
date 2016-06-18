@@ -25,4 +25,5 @@ configurations {
 
 artifacts {
     tests testJar
+    archives testJar
 }

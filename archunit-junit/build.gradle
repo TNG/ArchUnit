@@ -17,3 +17,10 @@ test {
         }
     }
 }
+
+// NOTE: Quick and dirty: maven plugin doesn't treat testJar dependencies correctly
+install.repositories.mavenInstaller.pom.whenConfigured { pom ->
+    pom.dependencies.find {
+        it.artifactId == 'archunit' && it.scope == 'test'
+    }.type = 'test-jar'
+}

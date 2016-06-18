@@ -4,3 +4,10 @@ dependencies {
     testCompile project(':archunit-example')
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
+
+// NOTE: Quick and dirty: maven plugin doesn't treat testJar dependencies correctly
+install.repositories.mavenInstaller.pom.whenConfigured { pom ->
+    pom.dependencies.find {
+        it.artifactId == 'archunit-example'
+    }.type = 'test-jar'
+}

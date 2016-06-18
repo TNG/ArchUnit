@@ -14,6 +14,7 @@ public class ArchRules<T> {
     private final Set<Field> fields;
     private final Set<Method> methods;
 
+    @SuppressWarnings("unchecked")
     public ArchRules(Class<?> definitionLocation) {
         fields = getAllFields(definitionLocation, withAnnotation(ArchTest.class));
         methods = getAllMethods(definitionLocation, withAnnotation(ArchTest.class));
