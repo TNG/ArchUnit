@@ -9,7 +9,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.inTheHierarchyOfAClass;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -21,44 +23,66 @@ public class ArchPredicatesTest {
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private JavaClass javaClass;
+    private JavaClass mockClass;
 
     @Test
     public void matches_class_package() {
-        when(javaClass.getPackage()).thenReturn("some.arbitrary.pkg");
+        when(mockClass.getPackage()).thenReturn("some.arbitrary.pkg");
 
-        assertThat(resideIn("some..pkg").apply(javaClass)).as("package matches").isTrue();
+        assertThat(resideIn("some..pkg").apply(mockClass)).as("package matches").isTrue();
     }
 
     @Test
     public void mismatches_class_package() {
-        when(javaClass.getPackage()).thenReturn("wrong.arbitrary.pkg");
+        when(mockClass.getPackage()).thenReturn("wrong.arbitrary.pkg");
 
-        assertThat(resideIn("some..pkg").apply(javaClass)).as("package matches").isFalse();
+        assertThat(resideIn("some..pkg").apply(mockClass)).as("package matches").isFalse();
     }
 
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void matches_annotation() {
-        when(javaClass.reflect()).thenReturn((Class) AnnotatedClass.class);
+        when(mockClass.reflect()).thenReturn((Class) AnnotatedClass.class);
 
-        assertThat(annotatedWith(SomeAnnotation.class).apply(javaClass))
+        assertThat(annotatedWith(SomeAnnotation.class).apply(mockClass))
                 .as("annotated class matches")
                 .isTrue();
 
-        when(javaClass.reflect()).thenReturn((Class) NotAnnotatedClass.class);
+        when(mockClass.reflect()).thenReturn((Class) NotAnnotatedClass.class);
 
-        assertThat(annotatedWith(SomeAnnotation.class).apply(javaClass))
+        assertThat(annotatedWith(SomeAnnotation.class).apply(mockClass))
                 .as("annotated class matches")
                 .isFalse();
     }
 
     @Test
     public void matches_name() {
-        when(javaClass.getSimpleName()).thenReturn("SomeClass");
+        when(mockClass.getSimpleName()).thenReturn("SomeClass");
 
-        assertThat(named("*Class").apply(javaClass)).as("class name matches").isTrue();
-        assertThat(named("*Wrong").apply(javaClass)).as("class name matches").isFalse();
+        assertThat(named(".*Class").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(named(".*Wrong").apply(mockClass)).as("class name matches").isFalse();
+        assertThat(named("Some.*").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(named("Wrong.*").apply(mockClass)).as("class name matches").isFalse();
+        assertThat(named("S.*s").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(named("W.*").apply(mockClass)).as("class name matches").isFalse();
+    }
+
+    @Test
+    public void inTheHierarchyOfAClass_matches_class_itself() {
+        assertThat(inTheHierarchyOfAClass(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
+                .as("class itself matches the predicate").isTrue();
+    }
+
+    @Test
+    public void inTheHierarchyOfAClass_matches_subclass() {
+        assertThat(inTheHierarchyOfAClass(named("Annotated.*")).apply(javaClass(SubClass.class)))
+                .as("subclass matches the predicate").isTrue();
+    }
+
+    @Test
+    public void inTheHierarchyOfAClass_does_not_match_superclass() {
+        assertThat(inTheHierarchyOfAClass(named("Annotated.*")).apply(javaClass(Object.class)))
+                .as("superclass matches the predicate").isFalse();
     }
 
     @Retention(RUNTIME)
@@ -67,6 +91,9 @@ public class ArchPredicatesTest {
 
     @SomeAnnotation
     public static class AnnotatedClass {
+    }
+
+    static class SubClass extends AnnotatedClass {
     }
 
     public static class NotAnnotatedClass {

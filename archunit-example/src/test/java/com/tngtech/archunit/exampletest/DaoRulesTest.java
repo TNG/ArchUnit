@@ -33,7 +33,7 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
-        all(classes.that(are(named("*Dao")).as("DAOs")))
+        all(classes.that(are(named(".*Dao")).as("DAOs")))
                 .should("reside in a package 'dao'")
                 .assertedBy(classResidesIn("..dao.."));
     }

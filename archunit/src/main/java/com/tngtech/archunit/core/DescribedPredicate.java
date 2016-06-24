@@ -46,8 +46,10 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
      * @param <T>       The type of the object to decide on
      * @return The original predicate
      */
-    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
-        return predicate;
+    public static <T> DescribedPredicate<T> is(Predicate<T> predicate) {
+        return predicate instanceof DescribedPredicate ?
+                (DescribedPredicate<T>) predicate :
+                DescribedPredicate.of(predicate);
     }
 
     /**
@@ -57,8 +59,8 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
      * @param <T>       The type of the object to decide on
      * @return The original predicate
      */
-    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
-        return predicate;
+    public static <T> DescribedPredicate<T> are(Predicate<T> predicate) {
+        return is(predicate);
     }
 
     public static <T> DescribedPredicate<T> of(final Predicate<T> predicate) {

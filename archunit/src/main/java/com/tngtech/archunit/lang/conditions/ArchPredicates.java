@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -45,16 +46,30 @@ public class ArchPredicates {
     }
 
     /**
-     * Predicate for simple class name matching where the only wildcard is the asterisk '*' meaning arbitrary many symbols
+     * Predicate for matching of simple class names against a regular expression.
      *
-     * @param classNameIdentifier A string identifying class names
+     * @param classNameRegex A regex to match against class names
      * @return A predicate for classes with matching name
      */
-    public static DescribedPredicate<JavaClass> named(final String classNameIdentifier) {
+    public static DescribedPredicate<JavaClass> named(final String classNameRegex) {
+        final Pattern pattern = Pattern.compile(classNameRegex);
         return new DescribedPredicate<JavaClass>() {
             @Override
             public boolean apply(JavaClass input) {
-                return ClassNameMatcher.of(classNameIdentifier).matches(input.getSimpleName());
+                return pattern.matcher(input.getSimpleName()).matches();
+            }
+        };
+    }
+
+    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClass(final Predicate<JavaClass> predicate) {
+        return new DescribedPredicate<JavaClass>() {
+            @Override
+            public boolean apply(JavaClass input) {
+                JavaClass current = input;
+                while (current.getSuperClass().isPresent() && !predicate.apply(current)) {
+                    current = current.getSuperClass().get();
+                }
+                return predicate.apply(current);
             }
         };
     }
