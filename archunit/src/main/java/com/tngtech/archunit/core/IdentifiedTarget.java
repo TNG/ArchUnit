@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -15,6 +16,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.reflections.ReflectionUtils.getAllConstructors;
 import static org.reflections.ReflectionUtils.getAllFields;
 import static org.reflections.ReflectionUtils.getAllMethods;
 
@@ -27,19 +29,25 @@ public class IdentifiedTarget<T extends Member> {
 
     @SuppressWarnings("unchecked")
     public static IdentifiedTarget<Field> ofField(Class<?> owner, Predicate<Field> predicate) {
-        return getMethodIdentifiedTarget(getAllFields(owner, predicate));
+        return identifyTarget(getAllFields(owner, predicate));
     }
 
     @SuppressWarnings("unchecked")
     public static IdentifiedTarget<Method> ofMethod(Class<?> owner, Predicate<Method> predicate) {
-        return getMethodIdentifiedTarget(getAllMethods(owner, predicate));
+        return identifyTarget(getAllMethods(owner, predicate));
     }
 
-    private static <T extends Member> IdentifiedTarget<T> getMethodIdentifiedTarget(Set<T> matchingMethods) {
+    public static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, Predicate<Constructor<?>> predicate) {
+        @SuppressWarnings("unchecked")
+        Set<Constructor<?>> allConstructors = (Set) getAllConstructors(owner, (Predicate) predicate);
+        return identifyTarget(allConstructors);
+    }
+
+    private static <T extends Member> IdentifiedTarget<T> identifyTarget(Set<T> matchingMembers) {
         // NOTE: Don't use Set here, because our Comparator is very special and can't compare arbitrary T,
         //       thus we can't check the SortedSets for equality. Unique elements are guaranteed by the algorithm.
         ImmutableList.Builder<SortedSet<T>> builder = ImmutableList.builder();
-        Set<Set<T>> orderableSubsets = findOrderableSubsets(matchingMethods);
+        Set<Set<T>> orderableSubsets = findOrderableSubsets(matchingMembers);
         for (Set<T> subset : orderableSubsets) {
             builder.add(sortedByTypeHierarchy(subset));
         }
@@ -101,6 +109,13 @@ public class IdentifiedTarget<T extends Member> {
     }
 
     public T get() {
+        return getOrThrow("Target could not be identified");
+    }
+
+    public T getOrThrow(String message, Object... args) {
+        if (!wasIdentified()) {
+            throw new UnidentifiableTargetException(String.format(message, args));
+        }
         return target.get();
     }
 

@@ -32,8 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllConstructorsSortedFromChildToParent;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllFieldsSortedFromChildToParent;
 import static java.util.Collections.singleton;
 import static org.reflections.ReflectionUtils.forName;
 
@@ -149,17 +147,12 @@ class ClassFileImportContext {
 
             @SuppressWarnings("unchecked")
             private JavaField createField(final TargetInfo targetInfo, JavaClass owner) {
-                for (Field field : getAllFieldsSortedFromChildToParent(owner.reflect())) {
-                    if (targetInfo.hasMatchingSignatureTo(field)) {
-                        return new JavaField.Builder().withField(field).build(owner);
-                    }
-                }
                 Field field = IdentifiedTarget.ofField(owner.reflect(), new Predicate<Field>() {
                     @Override
                     public boolean apply(Field input) {
                         return targetInfo.hasMatchingSignatureTo(input);
                     }
-                }).get();
+                }).getOrThrow("Could not determine Field %s of type %s", targetInfo.name, targetInfo.desc);
                 return new JavaField.Builder().withField(field).build(owner);
             }
         }
@@ -213,13 +206,14 @@ class ClassFileImportContext {
                 return createConstructor(targetInfo, owner);
             }
 
-            private JavaConstructor createConstructor(TargetInfo targetInfo, JavaClass owner) {
-                for (Constructor<?> constructor : getAllConstructorsSortedFromChildToParent(owner.reflect())) {
-                    if (targetInfo.hasMatchingSignatureTo(constructor)) {
-                        return new JavaConstructor.Builder().withConstructor(constructor).build(owner);
+            private JavaConstructor createConstructor(final TargetInfo targetInfo, JavaClass owner) {
+                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new Predicate<Constructor<?>>() {
+                    @Override
+                    public boolean apply(Constructor<?> input) {
+                        return targetInfo.hasMatchingSignatureTo(input);
                     }
-                }
-                throw new IllegalStateException("Never found a target that matches supposed target " + targetInfo);
+                }).getOrThrow("Could not determine Constructor of type %s", targetInfo.desc);
+                return new JavaConstructor.Builder().withConstructor(constructor).build(owner);
             }
         }
 

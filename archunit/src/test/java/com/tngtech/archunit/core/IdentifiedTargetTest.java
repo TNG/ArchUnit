@@ -1,14 +1,21 @@
 package com.tngtech.archunit.core;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IdentifiedTargetTest {
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
     private static final Predicate<Method> IN_TEST_CLASSES = new Predicate<Method>() {
         @SuppressWarnings("unchecked")
         @Override
@@ -51,6 +58,21 @@ public class IdentifiedTargetTest {
         IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(E.class, IN_TEST_CLASSES);
 
         assertThat(target.get()).isEqualTo(E.class.getDeclaredMethod("method"));
+    }
+
+    @Test
+    public void getOrThrow_gives_target_if_target_was_identified() throws Exception {
+        IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(E.class, IN_TEST_CLASSES);
+
+        assertThat(target.getOrThrow("Irrelevant")).isEqualTo(E.class.getDeclaredMethod("method"));
+    }
+
+    @Test
+    public void getOrThrow_throws_exception_if_target_was_not_identified() {
+        IdentifiedTarget<Field> target = IdentifiedTarget.ofField(getClass(), Predicates.<Field>alwaysFalse());
+
+        thrown.expectMessage("my custom message with 1 arg");
+        target.getOrThrow("my custom message with %d arg", 1);
     }
 
     private interface A {
