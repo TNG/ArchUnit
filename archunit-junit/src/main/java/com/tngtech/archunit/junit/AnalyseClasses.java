@@ -3,6 +3,8 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
+
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -18,5 +20,5 @@ public @interface AnalyseClasses {
 
     Class[] locationsOf() default {};
 
-    Class<? extends UrlFilter> urlFilter() default UrlFilter.NoOp.class;
+    Class<? extends ImportOption> importOption() default ImportOption.Everything.class;
 }

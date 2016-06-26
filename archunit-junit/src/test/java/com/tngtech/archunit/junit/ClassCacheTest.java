@@ -3,6 +3,7 @@ package com.tngtech.archunit.junit;
 import java.net.URL;
 
 import com.tngtech.archunit.core.ClassFileImporter;
+import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import org.junit.Rule;
@@ -124,13 +125,13 @@ public class ClassCacheTest {
     public static class TestClassWithEmptyIntersection {
     }
 
-    @AnalyseClasses(urlFilter = TestFilter.class)
+    @AnalyseClasses(importOption = TestFilter.class)
     public static class TestClassWithUrlFilter {
     }
 
-    public static class TestFilter implements UrlFilter {
+    public static class TestFilter implements ImportOption {
         @Override
-        public boolean accept(URL url) {
+        public boolean includes(URL url) {
             return url.getFile().contains("junit") && url.getFile().endsWith(".jar");
         }
     }

@@ -40,7 +40,7 @@ class ClassCache {
         Urls<?> packageUrls = packageUrls(analyseClasses.packages());
         Urls<?> classUrls = urlsOfClasses(analyseClasses);
         Collection<URL> result = calculateUrls(packageUrls, classUrls);
-        return filter(result, analyseClasses.urlFilter());
+        return filter(result, analyseClasses.importOption());
     }
 
     private Urls<?> packageUrls(String[] packages) {
@@ -94,11 +94,13 @@ class ClassCache {
         return result;
     }
 
-    private Collection<URL> filter(Collection<URL> urls, Class<? extends UrlFilter> filterType) {
-        UrlFilter filter = newInstanceOf(filterType);
+    // Would be great, if we could just pass the import option on to the ClassFileImporter, but this would be
+    // problematic with respect to caching classes for certain URL combinations
+    private Collection<URL> filter(Collection<URL> urls, Class<? extends ClassFileImporter.ImportOption> importOption) {
+        ClassFileImporter.ImportOption option = newInstanceOf(importOption);
         Set<URL> result = new HashSet<>();
         for (URL url : urls) {
-            if (filter.accept(url)) {
+            if (option.includes(url)) {
                 result.add(url);
             }
         }

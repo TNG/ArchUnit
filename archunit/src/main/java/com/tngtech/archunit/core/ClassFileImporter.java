@@ -226,24 +226,54 @@ public class ClassFileImporter {
 
     public interface ImportOption {
         boolean includes(URL url);
+
+        class Everything implements ImportOption {
+            @Override
+            public boolean includes(URL url) {
+                return true;
+            }
+        }
     }
 
     public enum PredefinedImportOption implements ImportOption {
         /**
-         * NOTE: This excludes all class files residing in some directory ../test/.., so don't use this, if you
-         * have a package test that you want to import.
+         * @see DontIncludeTests
          */
         DONT_INCLUDE_TESTS {
+            private final DontIncludeTests dontIncludeTests = new DontIncludeTests();
+
             @Override
             public boolean includes(URL url) {
-                return !url.getFile().contains("/test/");
+                return dontIncludeTests.includes(url);
             }
         },
         DONT_INCLUDE_JARS {
+            private DontIncludeJars dontIncludeJars = new DontIncludeJars();
+
             @Override
             public boolean includes(URL url) {
-                return !JAR_PROTOCOL.equals(url.getProtocol()) && !url.getFile().endsWith(".jar");
+                return dontIncludeJars.includes(url);
             }
+        }
+    }
+
+    /**
+     * NOTE: This excludes all class files residing in some directory ../test/.. or
+     * ../test-classes/.. (Maven/Gradle standard), so don't use this, if you have a package
+     * test that you want to import.
+     */
+    public static class DontIncludeTests implements ImportOption {
+        @Override
+        public boolean includes(URL url) {
+            return !url.getFile().contains("/test/") && !url.getFile().contains("/test-classes/");
+        }
+    }
+
+    public static class DontIncludeJars implements ImportOption {
+
+        @Override
+        public boolean includes(URL url) {
+            return !JAR_PROTOCOL.equals(url.getProtocol()) && !url.getFile().endsWith(".jar");
         }
     }
 }
