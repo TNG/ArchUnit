@@ -35,6 +35,9 @@ public class TestUtils {
             }
         });
         javaClass.completeClassHierarchyFrom(context);
+        for (JavaCodeUnit<?, ?> unit : javaClass.getCodeUnits()) {
+            unit.completeFrom(context);
+        }
         return javaClass;
     }
 

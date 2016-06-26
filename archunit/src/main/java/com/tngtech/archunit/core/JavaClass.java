@@ -194,12 +194,12 @@ public class JavaClass implements HasName {
         return result.build();
     }
 
-    public JavaFieldAccesses getFieldAccessesFromSelf() {
-        JavaFieldAccesses result = new JavaFieldAccesses();
+    public Set<JavaFieldAccess> getFieldAccessesFromSelf() {
+        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getFieldAccesses());
         }
-        return result;
+        return result.build();
     }
 
     /**
@@ -212,20 +212,20 @@ public class JavaClass implements HasName {
         return Sets.<JavaCall<?>>union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
-    public JavaMethodCalls getMethodCallsFromSelf() {
-        JavaMethodCalls result = new JavaMethodCalls();
+    public Set<JavaMethodCall> getMethodCallsFromSelf() {
+        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getMethodCallsFromSelf());
         }
-        return result;
+        return result.build();
     }
 
-    public JavaConstructorCalls getConstructorCallsFromSelf() {
-        JavaConstructorCalls result = new JavaConstructorCalls();
+    public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
+        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getConstructorCallsFromSelf());
         }
-        return result;
+        return result.build();
     }
 
     public Set<Dependency> getDirectDependencies() {

@@ -3,8 +3,10 @@ package com.tngtech.archunit.core;
 import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 
 /**
@@ -24,9 +26,9 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> {
     private static final String FULL_NAME_TEMPLATE = "%s.%s(%s)";
 
-    private final JavaFieldAccesses fieldAccesses = new JavaFieldAccesses();
-    private final JavaMethodCalls methodCalls = new JavaMethodCalls();
-    private final JavaConstructorCalls constructorCalls = new JavaConstructorCalls();
+    private Set<JavaFieldAccess> fieldAccesses;
+    private Set<JavaMethodCall> methodCalls;
+    private Set<JavaConstructorCall> constructorCalls;
     private final String formattedParameters;
 
     JavaCodeUnit(Builder<T, ?> builder) {
@@ -51,15 +53,15 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
 
     public abstract Class<?> getReturnType();
 
-    public JavaFieldAccesses getFieldAccesses() {
+    public Set<JavaFieldAccess> getFieldAccesses() {
         return fieldAccesses;
     }
 
-    public JavaMethodCalls getMethodCallsFromSelf() {
+    public Set<JavaMethodCall> getMethodCallsFromSelf() {
         return methodCalls;
     }
 
-    public JavaConstructorCalls getConstructorCallsFromSelf() {
+    public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         return constructorCalls;
     }
 
@@ -68,15 +70,24 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
     }
 
     AccessCompletion.SubProcess completeFrom(ClassFileImportContext context) {
+        ImmutableSet.Builder<JavaFieldAccess> fieldAccessesBuilder = ImmutableSet.builder();
         for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
-            fieldAccesses.add(new JavaFieldAccess(record));
+            fieldAccessesBuilder.add(new JavaFieldAccess(record));
         }
+        fieldAccesses = fieldAccessesBuilder.build();
+
+        ImmutableSet.Builder<JavaMethodCall> methodCallsBuilder = ImmutableSet.builder();
         for (AccessRecord<JavaMethod> record : context.getMethodCallRecordsFor(this)) {
-            methodCalls.add(new JavaMethodCall(record));
+            methodCallsBuilder.add(new JavaMethodCall(record));
         }
+        methodCalls = methodCallsBuilder.build();
+
+        ImmutableSet.Builder<JavaConstructorCall> constructorCallsBuilder = ImmutableSet.builder();
         for (AccessRecord<JavaConstructor> record : context.getConstructorCallRecordsFor(this)) {
-            constructorCalls.add(new JavaConstructorCall(record));
+            constructorCallsBuilder.add(new JavaConstructorCall(record));
         }
+        constructorCalls = constructorCallsBuilder.build();
+
         return new AccessCompletion.SubProcess(this);
     }
 }

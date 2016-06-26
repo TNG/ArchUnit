@@ -827,7 +827,7 @@ public class ClassFileImporterTest {
         JavaClass diamondPeakInterface = classesIn("testexamples/diamond").get(InterfaceD.class);
         JavaClass diamondPeakClass = classesIn("testexamples/diamond").get(ClassImplementingD.class);
 
-        JavaMethodCalls calls = classCallingDiamond.getMethodCallsFromSelf();
+        Set<JavaMethodCall> calls = classCallingDiamond.getMethodCallsFromSelf();
 
         assertThat(calls).hasSize(2);
 
