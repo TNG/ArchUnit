@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,6 +90,10 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
                 slices.namingSlices(namingPattern.get());
             }
             return slices;
+        }
+
+        public Slices of(JavaClasses classes) {
+            return transform(classes);
         }
     }
 

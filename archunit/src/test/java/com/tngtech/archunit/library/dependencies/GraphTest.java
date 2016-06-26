@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.Collections;
 import java.util.Random;
@@ -9,8 +9,8 @@ import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.library.slices.SimpleEdge.singleEdge;
-import static com.tngtech.archunit.library.slices.SimpleEdge.singleEdgeList;
+import static com.tngtech.archunit.library.dependencies.SimpleEdge.singleEdge;
+import static com.tngtech.archunit.library.dependencies.SimpleEdge.singleEdgeList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 

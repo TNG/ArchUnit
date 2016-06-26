@@ -28,8 +28,8 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
         super.classes_should_not_write_to_standard_streams_from_library();
     }
 
-    static void expectViolationByWritingToStandardStream(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes should not write to standard streams")
+    static void expectViolationByWritingToStandardStream(ExpectedViolation expectedViolation) {
+        expectedViolation.ofRule("classes should not write to standard streams")
                 .byAccess(from(ClassViolatingCodingRules.class, "printToStandardStream")
                         .accessing().field(System.class, "out")
                         .inLine(9))
@@ -49,8 +49,8 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
         super.classes_should_not_throw_generic_exceptions();
     }
 
-    static void expectViolationByThrowingGenericException(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes should not throw generic exceptions")
+    static void expectViolationByThrowingGenericException(ExpectedViolation expectedViolation) {
+        expectedViolation.ofRule("classes should not throw generic exceptions")
                 .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
                         .inLine(16))
@@ -70,8 +70,8 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
         super.classes_should_not_use_java_util_logging();
     }
 
-    static void expectViolationByUsingJavaUtilLogging(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes should not use java.util.logging")
+    static void expectViolationByUsingJavaUtilLogging(ExpectedViolation expectedViolation) {
+        expectedViolation.ofRule("classes should not use java.util.logging")
                 .byAccess(from(ClassViolatingCodingRules.class, "<clinit>")
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(6));

@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.tngtech.archunit.library.slices.GraphTest.randomNode;
+import static com.tngtech.archunit.library.dependencies.GraphTest.randomNode;
 
 public class PathTest {
     @Rule

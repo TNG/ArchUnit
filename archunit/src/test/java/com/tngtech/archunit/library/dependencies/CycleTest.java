@@ -1,11 +1,11 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
-import static com.tngtech.archunit.library.slices.GraphTest.randomNode;
+import static com.tngtech.archunit.library.dependencies.GraphTest.randomNode;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CycleTest extends PathTest {

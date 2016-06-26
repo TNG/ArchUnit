@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.slices;
+package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-public class SlicesArchCondition extends ArchCondition<Slice> {
+class SlicesArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();
