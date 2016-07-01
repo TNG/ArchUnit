@@ -1,7 +1,6 @@
 ext.dependency = [
         asm               : 'org.ow2.asm:asm:5.1',
         guava             : 'com.google.guava:guava:19.0',
-        reflections       : 'org.reflections:reflections:0.9.9',
         slf4j             : 'org.slf4j:slf4j-api:1.7.7',
         log4j_api         : 'org.apache.logging.log4j:log4j-api:2.1',
         log4j_core        : 'org.apache.logging.log4j:log4j-core:2.1',

@@ -1,57 +1,27 @@
 package com.tngtech.archunit.core;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import org.reflections.util.ClasspathHelper;
 
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 
 public class ClassFileImporter {
-    public static final String FILE_PROTOCOL = "file";
-    public static final String JAR_PROTOCOL = "jar";
-
     public JavaClasses importPath(Path path) {
-        return new ClassFileProcessor().process(new FilePathClassFileSource(path));
+        return new ClassFileProcessor().process(new ClassFileSource.FromFilePath(path));
     }
 
     public JavaClasses importJar(JarFile jar) {
-        return new ClassFileProcessor().process(new JarClassFileSource(connectionTo(jar)));
-    }
-
-    private JarURLConnection connectionTo(JarFile jar) {
-        try {
-            URL url = new URL(String.format("%s:%s:%s!/", JAR_PROTOCOL, FILE_PROTOCOL, jar.getName()));
-            return (JarURLConnection) url.openConnection();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new ClassFileProcessor().process(Location.of(jar).asClassFileSource());
     }
 
     /**
@@ -64,64 +34,33 @@ public class ClassFileImporter {
     }
 
     public JavaClasses importClasspath(ImportOptions options) {
-        Set<URL> urls = new HashSet<>();
-        for (URL url : ClasspathHelper.forClassLoader()) {
-            if (options.include(url)) {
-                urls.add(url);
+        Set<Location> locations = new HashSet<>();
+        for (Location location : Locations.inClassPath()) {
+            if (options.include(location)) {
+                locations.add(location);
             }
         }
-        return importUrls(urls);
+        return importLocations(locations);
     }
 
     public JavaClasses importUrl(URL url) {
-        return importUrls(singleton(url));
+        return importUrls(singletonList(url));
     }
 
     public JavaClasses importUrls(Collection<URL> urls) {
+        return importLocations(Locations.of(urls));
+    }
+
+    public JavaClasses importLocations(Collection<Location> urls) {
         List<ClassFileSource> sources = new ArrayList<>();
-        for (URL url : urls) {
-            sources.add(classFileSourceFor(url));
+        for (Location location : urls) {
+            sources.add(classFileSourceFor(location));
         }
         return new ClassFileProcessor().process(unify(sources));
     }
 
-    private ClassFileSource classFileSourceFor(URL input) {
-        URL url = ensureJarProtokoll(input);
-        if (FILE_PROTOCOL.equals(url.getProtocol())) {
-            return new FilePathClassFileSource(Paths.get(asUri(url)));
-        }
-        if (JAR_PROTOCOL.equals(url.getProtocol())) {
-            return new JarClassFileSource(connectionFrom(url));
-        }
-        throw new UnsupportedUrlProtocolException(url);
-    }
-
-    private URL ensureJarProtokoll(URL url) {
-        return FILE_PROTOCOL.equals(url.getProtocol()) && url.getFile().endsWith(".jar") ? newJarUrl(url) : url;
-    }
-
-    private URL newJarUrl(URL url) {
-        try {
-            return new URL(String.format("%s:%s!/", JAR_PROTOCOL, url.toExternalForm()));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private URI asUri(URL url) {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private JarURLConnection connectionFrom(URL url) {
-        try {
-            return ((JarURLConnection) url.openConnection());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private ClassFileSource classFileSourceFor(Location input) {
+        return input.asClassFileSource();
     }
 
     private ClassFileSource unify(final List<ClassFileSource> sources) {
@@ -134,78 +73,6 @@ public class ClassFileImporter {
         };
     }
 
-    private static class FilePathClassFileSource extends SimpleFileVisitor<Path> implements ClassFileSource {
-        private static final PathMatcher classMatcher = FileSystems.getDefault().getPathMatcher("glob:**/*.class");
-        private final Set<InputStream> inputStreams = new HashSet<>();
-
-        public FilePathClassFileSource(Path path) {
-            if (path.toFile().exists()) {
-                try {
-                    Files.walkFileTree(path, this);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        @Override
-        public Iterator<InputStream> iterator() {
-            return inputStreams.iterator();
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (classMatcher.matches(file)) {
-                inputStreams.add(Files.newInputStream(file));
-            }
-            return super.visitFile(file, attrs);
-        }
-    }
-
-    private static class JarClassFileSource implements ClassFileSource {
-        private final FluentIterable<InputStream> inputStreams;
-
-        private JarClassFileSource(JarURLConnection url) {
-            try {
-                JarFile jarFile = url.getJarFile();
-                String prefix = url.getJarEntry() != null ? url.getJarEntry().getName() : "";
-                inputStreams = FluentIterable.from(Collections.list(jarFile.entries()))
-                        .filter(classFilesBeneath(prefix))
-                        .transform(toInputStreamFrom(jarFile));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private Predicate<JarEntry> classFilesBeneath(final String prefix) {
-            return new Predicate<JarEntry>() {
-                @Override
-                public boolean apply(JarEntry input) {
-                    return input.getName().startsWith(prefix)
-                            && input.getName().endsWith(".class");
-                }
-            };
-        }
-
-        private Function<JarEntry, InputStream> toInputStreamFrom(final JarFile jar) {
-            return new Function<JarEntry, InputStream>() {
-                @Override
-                public InputStream apply(JarEntry input) {
-                    try {
-                        return jar.getInputStream(input);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-        }
-
-        @Override
-        public Iterator<InputStream> iterator() {
-            return inputStreams.iterator();
-        }
-    }
-
     public static class ImportOptions {
         private final Set<ImportOption> options = new HashSet<>();
 
@@ -214,7 +81,7 @@ public class ClassFileImporter {
             return this;
         }
 
-        public boolean include(URL url) {
+        public boolean include(Location url) {
             for (ImportOption option : options) {
                 if (!option.includes(url)) {
                     return false;
@@ -225,11 +92,11 @@ public class ClassFileImporter {
     }
 
     public interface ImportOption {
-        boolean includes(URL url);
+        boolean includes(Location location);
 
         class Everything implements ImportOption {
             @Override
-            public boolean includes(URL url) {
+            public boolean includes(Location location) {
                 return true;
             }
         }
@@ -243,16 +110,16 @@ public class ClassFileImporter {
             private final DontIncludeTests dontIncludeTests = new DontIncludeTests();
 
             @Override
-            public boolean includes(URL url) {
-                return dontIncludeTests.includes(url);
+            public boolean includes(Location location) {
+                return dontIncludeTests.includes(location);
             }
         },
         DONT_INCLUDE_JARS {
             private DontIncludeJars dontIncludeJars = new DontIncludeJars();
 
             @Override
-            public boolean includes(URL url) {
-                return dontIncludeJars.includes(url);
+            public boolean includes(Location location) {
+                return dontIncludeJars.includes(location);
             }
         }
     }
@@ -264,16 +131,15 @@ public class ClassFileImporter {
      */
     public static class DontIncludeTests implements ImportOption {
         @Override
-        public boolean includes(URL url) {
-            return !url.getFile().contains("/test/") && !url.getFile().contains("/test-classes/");
+        public boolean includes(Location location) {
+            return !location.contains("/test/") && !location.contains("/test-classes/");
         }
     }
 
     public static class DontIncludeJars implements ImportOption {
-
         @Override
-        public boolean includes(URL url) {
-            return !JAR_PROTOCOL.equals(url.getProtocol()) && !url.getFile().endsWith(".jar");
+        public boolean includes(Location location) {
+            return !location.isJar();
         }
     }
 }

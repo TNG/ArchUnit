@@ -79,7 +79,6 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.tngtech.archunit.core.ClassFileImporter.JAR_PROTOCOL;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
@@ -1025,7 +1024,7 @@ public class ClassFileImporterTest {
     public void imports_urls_of_jars() throws IOException {
         Set<URL> urls = newHashSet(urlOf(Test.class), urlOf(RunWith.class));
         assumeTrue("We can't completely ensure, that this will always be taken from a JAR file, though it's very likely",
-                JAR_PROTOCOL.equals(urls.iterator().next().getProtocol()));
+                "jar".equals(urls.iterator().next().getProtocol()));
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls);
 

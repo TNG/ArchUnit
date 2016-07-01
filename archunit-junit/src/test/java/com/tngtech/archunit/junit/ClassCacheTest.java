@@ -1,11 +1,10 @@
 package com.tngtech.archunit.junit;
 
-import java.net.URL;
-
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.Location;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -47,7 +46,7 @@ public class ClassCacheTest {
         cache.getClassesToAnalyseFor(TestClass.class);
         cache.getClassesToAnalyseFor(TestClass.class);
 
-        verify(classFileImporter, times(1)).importUrls(anyCollection());
+        verify(classFileImporter, times(1)).importLocations(anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 
@@ -57,7 +56,7 @@ public class ClassCacheTest {
         cache.getClassesToAnalyseFor(TestClass.class);
         cache.getClassesToAnalyseFor(EquivalentTestClass.class);
 
-        verify(classFileImporter, times(1)).importUrls(anyCollection());
+        verify(classFileImporter, times(1)).importLocations(anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 
@@ -73,7 +72,7 @@ public class ClassCacheTest {
 
     @Test
     public void filters_jars_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterByPackageAndJarOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -83,14 +82,14 @@ public class ClassCacheTest {
 
     @Test
     public void gets_all_classes_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterJustByJarOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(classes).isNotEmpty();
     }
 
     @Test
     public void filters_urls() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithUrlFilter.class);
+        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithImportOption.class);
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -99,10 +98,13 @@ public class ClassCacheTest {
     }
 
     @Test
-    public void if_intersection_is_empty_no_urls_are_scanned() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithEmptyIntersection.class);
+    public void non_existing_packages_are_ignored() {
+        JavaClasses first = cache.getClassesToAnalyseFor(TestClassWithNonExistingPackage.class);
+        JavaClasses second = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
 
-        assertThat(classes).isEmpty();
+        assertThat(first).isEqualTo(second);
+        verify(classFileImporter, times(1)).importLocations(anyCollection());
+        verifyNoMoreInteractions(classFileImporter);
     }
 
     @AnalyseClasses(packages = "com.tngtech.archunit.junit")
@@ -113,26 +115,22 @@ public class ClassCacheTest {
     public static class EquivalentTestClass {
     }
 
-    @AnalyseClasses(packages = {"org", "com"}, locationsOf = Rule.class)
-    public static class TestClassWithFilterByPackageAndJarOfClass {
+    @AnalyseClasses(packagesOf = Rule.class)
+    public static class TestClassWithFilterJustByPackageOfClass {
     }
 
-    @AnalyseClasses(locationsOf = Rule.class)
-    public static class TestClassWithFilterJustByJarOfClass {
-    }
-
-    @AnalyseClasses(packages = "something.that.doesnt.exist", locationsOf = Rule.class)
-    public static class TestClassWithEmptyIntersection {
+    @AnalyseClasses(packages = "something.that.doesnt.exist", packagesOf = Rule.class)
+    public static class TestClassWithNonExistingPackage {
     }
 
     @AnalyseClasses(importOption = TestFilter.class)
-    public static class TestClassWithUrlFilter {
+    public static class TestClassWithImportOption {
     }
 
     public static class TestFilter implements ImportOption {
         @Override
-        public boolean includes(URL url) {
-            return url.getFile().contains("junit") && url.getFile().endsWith(".jar");
+        public boolean includes(Location location) {
+            return location.contains("junit") && location.contains(".jar");
         }
     }
 }

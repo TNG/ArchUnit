@@ -1,7 +1,6 @@
 dependencies {
     compile dependency.asm
     compile dependency.guava
-    compile dependency.reflections
     compile dependency.slf4j
     compile dependency.log4j_api
     compile dependency.log4j_core

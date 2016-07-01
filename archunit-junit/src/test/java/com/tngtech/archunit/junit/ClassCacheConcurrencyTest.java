@@ -50,7 +50,7 @@ public class ClassCacheConcurrencyTest {
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
         }
-        verify(classFileImporter, atMost(TEST_CLASSES.size())).importUrls(anyCollection());
+        verify(classFileImporter, atMost(TEST_CLASSES.size())).importLocations(anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 

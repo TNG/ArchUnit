@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -16,9 +17,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.reflections.ReflectionUtils.getAllConstructors;
-import static org.reflections.ReflectionUtils.getAllFields;
-import static org.reflections.ReflectionUtils.getAllMethods;
+import static com.tngtech.archunit.core.ReflectionUtils.getAllConstructors;
+import static com.tngtech.archunit.core.ReflectionUtils.getAllFields;
+import static com.tngtech.archunit.core.ReflectionUtils.getAllMethods;
 
 public class IdentifiedTarget<T extends Member> {
     private Optional<T> target;
@@ -38,12 +39,10 @@ public class IdentifiedTarget<T extends Member> {
     }
 
     public static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, Predicate<Constructor<?>> predicate) {
-        @SuppressWarnings("unchecked")
-        Set<Constructor<?>> allConstructors = (Set) getAllConstructors(owner, (Predicate) predicate);
-        return identifyTarget(allConstructors);
+        return identifyTarget(getAllConstructors(owner, predicate));
     }
 
-    private static <T extends Member> IdentifiedTarget<T> identifyTarget(Set<T> matchingMembers) {
+    private static <T extends Member> IdentifiedTarget<T> identifyTarget(Collection<T> matchingMembers) {
         // NOTE: Don't use Set here, because our Comparator is very special and can't compare arbitrary T,
         //       thus we can't check the SortedSets for equality. Unique elements are guaranteed by the algorithm.
         ImmutableList.Builder<SortedSet<T>> builder = ImmutableList.builder();
@@ -54,7 +53,7 @@ public class IdentifiedTarget<T extends Member> {
         return new IdentifiedTarget<>(tryToDetermineUniqueTarget(builder.build()));
     }
 
-    private static <T extends Member> Set<Set<T>> findOrderableSubsets(Set<T> members) {
+    private static <T extends Member> Set<Set<T>> findOrderableSubsets(Collection<T> members) {
         Set<Set<T>> result = new HashSet<>();
         for (T member : members) {
             boolean added = false;

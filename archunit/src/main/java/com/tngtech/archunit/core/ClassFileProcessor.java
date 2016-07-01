@@ -31,7 +31,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.reflections.ReflectionsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +40,8 @@ import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnit.staticInitia
 import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnitIdentifier.staticInitializerIdentifier;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
 import static org.objectweb.asm.Opcodes.ASM5;
-import static org.reflections.ReflectionUtils.getAllSuperTypes;
 
 class ClassFileProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
@@ -109,7 +108,7 @@ class ClassFileProcessor extends ClassVisitor {
                 LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
                         classDescriptor, e.getMessage());
                 canImportCurrentClass = false;
-            } catch (ReflectionsException e) {
+            } catch (ReflectionException e) {
                 LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
                         classDescriptor, e.getMessage());
                 canImportCurrentClass = false;

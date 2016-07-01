@@ -2,8 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-
 import com.google.common.collect.ComparisonChain;
 
 /**
@@ -61,7 +59,7 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     @Override
-    public int compareTo(@Nonnull Dependency o) {
+    public int compareTo(Dependency o) {
         return ComparisonChain.start()
                 .compare(access.getLineNumber(), o.access.getLineNumber())
                 .compare(getDescription(), o.getDescription())

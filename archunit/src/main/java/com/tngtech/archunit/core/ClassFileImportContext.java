@@ -24,7 +24,6 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.objectweb.asm.Type;
-import org.reflections.ReflectionsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static java.util.Collections.singleton;
-import static org.reflections.ReflectionUtils.forName;
 
 class ClassFileImportContext {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportContext.class);
@@ -81,7 +80,7 @@ class ClassFileImportContext {
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency '{}'",
                     fieldAccessRecord.target, e.getMessage());
-        } catch (ReflectionsException e) {
+        } catch (ReflectionException e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency. Error was: '{}'",
                     fieldAccessRecord.target, e.getMessage());
         }
@@ -584,14 +583,14 @@ class ClassFileImportContext {
             Type[] argumentTypes = Type.getArgumentTypes(targetInfo.desc);
             ImmutableList.Builder<Class<?>> result = ImmutableList.builder();
             for (Type type : argumentTypes) {
-                result.add(forName(type.getClassName()));
+                result.add(classForName(type.getClassName()));
             }
             return result.build();
         }
 
         @Override
         public Class<?> getReturnType() {
-            return forName(Type.getReturnType(targetInfo.desc).getClassName());
+            return classForName(Type.getReturnType(targetInfo.desc).getClassName());
         }
 
         @Override

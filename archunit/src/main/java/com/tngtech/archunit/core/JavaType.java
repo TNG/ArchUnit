@@ -5,8 +5,8 @@ import java.util.Objects;
 
 import com.google.common.collect.ImmutableMap;
 import org.objectweb.asm.Type;
-import org.reflections.ReflectionUtils;
 
+import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static org.objectweb.asm.Type.ARRAY;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.BYTE_TYPE;
@@ -49,7 +49,7 @@ class JavaType {
     }
 
     public Class<?> asClass() {
-        return ReflectionUtils.forName(typeName);
+        return classForName(typeName);
     }
 
     public String getName() {

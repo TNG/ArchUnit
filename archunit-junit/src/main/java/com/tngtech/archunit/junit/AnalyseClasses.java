@@ -18,7 +18,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface AnalyseClasses {
     String[] packages() default {};
 
-    Class[] locationsOf() default {};
+    Class[] packagesOf() default {};
 
     Class<? extends ImportOption> importOption() default ImportOption.Everything.class;
 }
