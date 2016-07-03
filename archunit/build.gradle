@@ -2,10 +2,10 @@ dependencies {
     compile dependency.asm
     compile dependency.guava
     compile dependency.slf4j
-    compile dependency.log4j_api
-    compile dependency.log4j_core
-    compile dependency.log4j_slf4j
 
+    testCompile dependency.log4j_api
+    testCompile dependency.log4j_core
+    testCompile dependency.log4j_slf4j
     testCompile dependency.junit
     testCompile dependency.junit_dataprovider
     testCompile dependency.mockito
@@ -15,7 +15,7 @@ dependencies {
     }
 }
 
-task testJar(type: Jar, dependsOn: testClasses) {
+task testJar(type: Jar, dependsOn: shadowJar) {
     classifier 'tests'
     from sourceSets.test.output
 }
@@ -27,4 +27,17 @@ configurations {
 artifacts {
     tests testJar
     archives testJar
+}
+
+/* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/
+install.repositories.mavenInstaller.pom.whenConfigured { pom ->
+    pom.dependencies.removeAll {
+        it.artifactId != 'slf4j-api' || it.scope != 'compile'
+    }
+}
+
+shadowJar {
+    dependencies {
+        exclude(dependency(project.dependency.slf4j))
+    }
 }

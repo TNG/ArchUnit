@@ -1,7 +1,11 @@
 dependencies {
-    compile project(':archunit')
+    compile project(path: ':archunit', configuration: 'shadow')
+    compile dependency.guava
     compile dependency.junit
 
+    testCompile dependency.log4j_api
+    testCompile dependency.log4j_core
+    testCompile dependency.log4j_slf4j
     testCompile dependency.mockito
     testCompile dependency.assertj
     testCompile(dependency.assertj_guava) {
@@ -18,9 +22,14 @@ test {
     }
 }
 
-// NOTE: Quick and dirty: maven plugin doesn't treat testJar dependencies correctly
+/* We only depend on archunit core and nothing else */
 install.repositories.mavenInstaller.pom.whenConfigured { pom ->
-    pom.dependencies.find {
-        it.artifactId == 'archunit' && it.scope == 'test'
-    }.type = 'test-jar'
+    pom.dependencies.removeAll {
+        it.artifactId != 'archunit' || it.scope != 'compile'
+    }
+}
+
+configurations {
+    /* Exclude archunit from the shadow jar */
+    runtime.exclude module: ':archunit'
 }

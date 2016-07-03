@@ -1,3 +1,7 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
 ext.dependency = [
         asm               : 'org.ow2.asm:asm:5.1',
         guava             : 'com.google.guava:guava:19.0',
@@ -16,6 +20,7 @@ ext.dependency = [
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
@@ -25,5 +30,18 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    assemble.dependsOn(shadowJar)
+
+    shadowJar {
+        classifier = ''
+
+        exclude 'org/apache/**'
+        exclude 'Log4j*'
+        exclude 'META-INF/**'
+
+        relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
+        relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
     }
 }

@@ -4,7 +4,12 @@ dependencies {
     compile 'org.apache.geronimo.specs:geronimo-ejb_3.1_spec:1.0'
     compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
 
-    testCompile project(':archunit-junit')
+    testCompile project(path: ':archunit', configuration: 'shadow')
+    testCompile project(path: ':archunit-junit', configuration: 'shadow')
+    testCompile dependency.guava
+    testCompile dependency.log4j_api
+    testCompile dependency.log4j_core
+    testCompile dependency.log4j_slf4j
 }
 
 task testJar(type: Jar, dependsOn: testClasses) {
@@ -19,3 +24,5 @@ configurations {
 artifacts {
     tests testJar
 }
+
+install.enabled = false

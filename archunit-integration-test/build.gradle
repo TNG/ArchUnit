@@ -1,13 +1,12 @@
 dependencies {
     testCompile dependency.junit
-    testCompile project(':archunit-junit')
-    testCompile project(':archunit-example')
+    testCompile dependency.guava
+    testCompile dependency.log4j_api
+    testCompile dependency.log4j_core
+    testCompile dependency.log4j_slf4j
+    testCompile project(path: ':archunit-junit', configuration: 'shadow')
+    testCompile project(path: ':archunit-example', configuration: 'shadow')
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
 
-// NOTE: Quick and dirty: maven plugin doesn't treat testJar dependencies correctly
-install.repositories.mavenInstaller.pom.whenConfigured { pom ->
-    pom.dependencies.find {
-        it.artifactId == 'archunit-example'
-    }.type = 'test-jar'
-}
+install.enabled = false
