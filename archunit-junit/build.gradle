@@ -4,10 +4,10 @@ dependencies {
 
     testCompile dependency.mockito
     testCompile dependency.assertj
-    testCompile dependency.assertj_guava
+    testCompile(dependency.assertj_guava) {
+        exclude module: 'assertj-core'
+    }
     testCompile project(path: ':archunit', configuration: 'tests')
-    testCompile 'javax.servlet:servlet-api:2.5'
-    // NOTE: 'Optional' dependency that causes NoClassDefFoundError on getMethods()
 }
 
 test {

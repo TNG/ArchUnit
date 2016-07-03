@@ -2,14 +2,14 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.base.Predicate;
+import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldGetAccessCondition;
 import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldSetAccessCondition;
 
 class ClassAccessesFieldCondition extends ClassMatchesAnyCondition<JavaFieldAccess> {
-    ClassAccessesFieldCondition(Predicate<JavaFieldAccess> predicate) {
+    ClassAccessesFieldCondition(FluentPredicate<JavaFieldAccess> predicate) {
         this(new FieldAccessCondition(predicate));
     }
 
@@ -23,13 +23,13 @@ class ClassAccessesFieldCondition extends ClassMatchesAnyCondition<JavaFieldAcce
     }
 
     static class ClassGetsFieldCondition extends ClassAccessesFieldCondition {
-        ClassGetsFieldCondition(Predicate<JavaFieldAccess> predicate) {
+        ClassGetsFieldCondition(FluentPredicate<JavaFieldAccess> predicate) {
             super(new FieldGetAccessCondition(predicate));
         }
     }
 
     static class ClassSetsFieldCondition extends ClassAccessesFieldCondition {
-        ClassSetsFieldCondition(Predicate<JavaFieldAccess> predicate) {
+        ClassSetsFieldCondition(FluentPredicate<JavaFieldAccess> predicate) {
             super(new FieldSetAccessCondition(predicate));
         }
     }

@@ -1,6 +1,5 @@
 package com.tngtech.archunit.exampletest;
 
-import com.google.common.base.Predicate;
 import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
@@ -13,13 +12,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.google.common.base.Predicates.assignableFrom;
-import static com.google.common.base.Predicates.not;
+import static com.tngtech.archunit.core.FluentPredicate.not;
+import static com.tngtech.archunit.core.JavaClass.assignableTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.classCallsMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.originClassIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.originClassIsNot;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetIs;
 
 public class ThirdPartyRulesTest {
@@ -44,13 +44,13 @@ public class ThirdPartyRulesTest {
 
     private ArchCondition<JavaClass> noCreationOutsideOfWorkaroundFactory() {
         FluentPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
-                targetIs(assignableFrom(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
+                targetIs(assignableTo(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
 
-        Predicate<JavaCall<?>> notFromWithinThirdPartyClass =
-                originClassIs(not(assignableFrom(ThirdPartyClassWithProblem.class)));
+        FluentPredicate<JavaCall<?>> notFromWithinThirdPartyClass =
+                originClassIs(not(assignableTo(ThirdPartyClassWithProblem.class)));
 
-        Predicate<JavaCall<?>> notFromWorkaroundFactory =
-                not(originClassIs(ThirdPartyClassWorkaroundFactory.class));
+        FluentPredicate<JavaCall<?>> notFromWorkaroundFactory =
+                originClassIsNot(ThirdPartyClassWorkaroundFactory.class);
 
         FluentPredicate<JavaCall<?>> targetIsIllegalConstructorOfThirdPartyClass =
                 constructorCallOfThirdPartyClass.

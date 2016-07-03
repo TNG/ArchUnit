@@ -7,12 +7,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.tngtech.archunit.core.FluentPredicate.alwaysTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReflectionUtilsTest {
@@ -40,7 +39,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllConstructors() {
-        Collection<Constructor<?>> constructors = ReflectionUtils.getAllConstructors(Child.class, new Predicate<Constructor<?>>() {
+        Collection<Constructor<?>> constructors = ReflectionUtils.getAllConstructors(Child.class, new FluentPredicate<Constructor<?>>() {
             @Override
             public boolean apply(Constructor<?> input) {
                 return input.getDeclaringClass() == Child.class || input.getDeclaringClass() == LowerMiddle.class;
@@ -89,7 +88,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllMethods_of_interface() {
-        assertThat(ReflectionUtils.getAllMethods(SubInterface.class, Predicates.alwaysTrue()))
+        assertThat(ReflectionUtils.getAllMethods(SubInterface.class, alwaysTrue()))
                 .containsOnly(
                         method(SomeInterface.class, "foo"),
                         method(OtherInterface.class, "bar"));
@@ -97,14 +96,14 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllFields_of_interface() {
-        assertThat(ReflectionUtils.getAllFields(SubInterface.class, Predicates.alwaysTrue()))
+        assertThat(ReflectionUtils.getAllFields(SubInterface.class, alwaysTrue()))
                 .containsOnly(
                         field(SomeInterface.class, "SOME_CONSTANT"),
                         field(OtherInterface.class, "OTHER_CONSTANT"));
     }
 
-    private Predicate<Member> named(final String name) {
-        return new Predicate<Member>() {
+    private FluentPredicate<Member> named(final String name) {
+        return new FluentPredicate<Member>() {
             @Override
             public boolean apply(Member input) {
                 return input.getName().equals(name);

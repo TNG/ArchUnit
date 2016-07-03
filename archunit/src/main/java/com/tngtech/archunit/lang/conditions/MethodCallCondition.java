@@ -1,15 +1,15 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.google.common.base.Predicate;
+import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
 class MethodCallCondition extends ArchCondition<JavaCall<?>> {
-    private final Predicate<JavaCall<?>> callIdentifier;
+    private final FluentPredicate<JavaCall<?>> callIdentifier;
 
-    MethodCallCondition(Predicate<JavaCall<?>> callIdentifier) {
+    MethodCallCondition(FluentPredicate<JavaCall<?>> callIdentifier) {
         this.callIdentifier = callIdentifier;
     }
 

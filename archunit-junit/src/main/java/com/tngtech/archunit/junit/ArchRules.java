@@ -7,9 +7,9 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
+import static com.tngtech.archunit.core.JavaMember.withAnnotation;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllMethods;
-import static com.tngtech.archunit.core.ReflectionUtils.withAnnotation;
 
 public class ArchRules<T> {
     private final Collection<Field> fields;

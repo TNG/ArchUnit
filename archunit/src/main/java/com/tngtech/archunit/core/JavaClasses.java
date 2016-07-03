@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.GuavaConversion.toGuava;
 
 public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass, JavaClasses>, HasDescription {
     private final Map<Class<?>, JavaClass> classes;
@@ -25,7 +26,7 @@ public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass,
 
     @Override
     public JavaClasses that(DescribedPredicate<JavaClass> predicate) {
-        Map<Class<?>, JavaClass> matchingElements = Maps.filterValues(classes, predicate);
+        Map<Class<?>, JavaClass> matchingElements = Maps.filterValues(classes, toGuava(predicate));
         String newDescription = predicate.getDescription().or(description);
         return new JavaClasses(matchingElements, newDescription);
     }

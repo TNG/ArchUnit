@@ -2,7 +2,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.base.Predicate;
+import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
@@ -54,7 +54,7 @@ public final class ArchConditions {
         return classGetsFieldWith(ownerAndName(clazz, fieldName));
     }
 
-    public static ArchCondition<JavaClass> classGetsFieldWith(Predicate<JavaFieldAccess> predicate) {
+    public static ArchCondition<JavaClass> classGetsFieldWith(FluentPredicate<JavaFieldAccess> predicate) {
         return new ClassGetsFieldCondition(predicate);
     }
 
@@ -62,7 +62,7 @@ public final class ArchConditions {
         return classSetsFieldWith(ownerAndName(clazz, fieldName));
     }
 
-    public static ArchCondition<JavaClass> classSetsFieldWith(Predicate<JavaFieldAccess> predicate) {
+    public static ArchCondition<JavaClass> classSetsFieldWith(FluentPredicate<JavaFieldAccess> predicate) {
         return new ClassSetsFieldCondition(predicate);
     }
 
@@ -70,7 +70,7 @@ public final class ArchConditions {
         return classAccessesFieldWith(ownerAndName(clazz, fieldName));
     }
 
-    public static ArchCondition<JavaClass> classAccessesFieldWith(Predicate<JavaFieldAccess> predicate) {
+    public static ArchCondition<JavaClass> classAccessesFieldWith(FluentPredicate<JavaFieldAccess> predicate) {
         return new ClassAccessesFieldCondition(predicate);
     }
 
@@ -78,7 +78,7 @@ public final class ArchConditions {
         return classCallsMethodWhere(targetIs(clazz, methodName, asList(paramTypes)));
     }
 
-    public static ArchCondition<JavaClass> classCallsMethodWhere(Predicate<JavaCall<?>> predicate) {
+    public static ArchCondition<JavaClass> classCallsMethodWhere(FluentPredicate<JavaCall<?>> predicate) {
         return new ClassCallsMethodCondition(predicate);
     }
 

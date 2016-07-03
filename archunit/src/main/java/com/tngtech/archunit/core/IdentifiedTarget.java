@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -21,24 +19,24 @@ import static com.tngtech.archunit.core.ReflectionUtils.getAllConstructors;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllMethods;
 
-public class IdentifiedTarget<T extends Member> {
+class IdentifiedTarget<T extends Member> {
     private Optional<T> target;
 
-    public IdentifiedTarget(Optional<T> target) {
+    IdentifiedTarget(Optional<T> target) {
         this.target = target;
     }
 
     @SuppressWarnings("unchecked")
-    public static IdentifiedTarget<Field> ofField(Class<?> owner, Predicate<Field> predicate) {
+    static IdentifiedTarget<Field> ofField(Class<?> owner, FluentPredicate<Field> predicate) {
         return identifyTarget(getAllFields(owner, predicate));
     }
 
     @SuppressWarnings("unchecked")
-    public static IdentifiedTarget<Method> ofMethod(Class<?> owner, Predicate<Method> predicate) {
+    static IdentifiedTarget<Method> ofMethod(Class<?> owner, FluentPredicate<Method> predicate) {
         return identifyTarget(getAllMethods(owner, predicate));
     }
 
-    public static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, Predicate<Constructor<?>> predicate) {
+    static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, FluentPredicate<Constructor<?>> predicate) {
         return identifyTarget(getAllConstructors(owner, predicate));
     }
 
@@ -103,15 +101,15 @@ public class IdentifiedTarget<T extends Member> {
     }
 
 
-    public boolean wasIdentified() {
+    boolean wasIdentified() {
         return target.isPresent();
     }
 
-    public T get() {
+    T get() {
         return getOrThrow("Target could not be identified");
     }
 
-    public T getOrThrow(String message, Object... args) {
+    T getOrThrow(String message, Object... args) {
         if (!wasIdentified()) {
             throw new UnidentifiableTargetException(String.format(message, args));
         }

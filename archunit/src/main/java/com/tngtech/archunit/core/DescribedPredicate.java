@@ -1,9 +1,5 @@
 package com.tngtech.archunit.core;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 
 /**
  * A predicate optionally holding an description denoting how a subset of a collection matching this
@@ -29,7 +25,7 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
         return as(Optional.of(description));
     }
 
-    private DescribedPredicate<T> as(Optional<String> description) {
+    DescribedPredicate<T> as(Optional<String> description) {
         this.description = description;
         return this;
     }
@@ -46,7 +42,7 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
      * @param <T>       The type of the object to decide on
      * @return The original predicate
      */
-    public static <T> DescribedPredicate<T> is(Predicate<T> predicate) {
+    public static <T> DescribedPredicate<T> is(FluentPredicate<T> predicate) {
         return predicate instanceof DescribedPredicate ?
                 (DescribedPredicate<T>) predicate :
                 DescribedPredicate.of(predicate);
@@ -59,11 +55,11 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
      * @param <T>       The type of the object to decide on
      * @return The original predicate
      */
-    public static <T> DescribedPredicate<T> are(Predicate<T> predicate) {
+    public static <T> DescribedPredicate<T> are(FluentPredicate<T> predicate) {
         return is(predicate);
     }
 
-    public static <T> DescribedPredicate<T> of(final Predicate<T> predicate) {
+    public static <T> DescribedPredicate<T> of(final FluentPredicate<T> predicate) {
         return new DescribedPredicate<T>() {
             @Override
             public boolean apply(T input) {
@@ -72,12 +68,13 @@ public abstract class DescribedPredicate<T> extends FluentPredicate<T> {
         };
     }
 
-    public static <T> DescribedPredicate<T> not(Predicate<T> predicate) {
-        return DescribedPredicate.of(Predicates.not(predicate));
+    public static <T> DescribedPredicate<T> not(FluentPredicate<T> predicate) {
+        return DescribedPredicate.of(FluentPredicate.not(predicate));
     }
 
+    @Override
     public <F> DescribedPredicate<F> onResultOf(Function<F, ? extends T> function) {
-        return DescribedPredicate.of(Predicates.compose(this, function)).as(description);
+        return DescribedPredicate.of(super.onResultOf(function)).as(description);
     }
 
     public static class AlwaysTrue<T> extends DescribedPredicate<T> {

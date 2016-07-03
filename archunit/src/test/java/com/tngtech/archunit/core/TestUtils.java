@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.base.Optional;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 

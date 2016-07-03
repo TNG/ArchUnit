@@ -94,8 +94,7 @@ import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.guava.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {

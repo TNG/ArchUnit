@@ -1,8 +1,8 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import org.assertj.core.api.Condition;
 
@@ -23,7 +23,7 @@ public final class Conditions {
     }
 
     public static Condition<JavaCodeUnit<?, ?>> codeUnitWithSignature(final String name, final Class<?>... parameters) {
-        final ArrayList<Class<?>> paramList = Lists.newArrayList(parameters);
+        final List<Class<?>> paramList = ImmutableList.copyOf(parameters);
         return new Condition<JavaCodeUnit<?, ?>>() {
             @Override
             public boolean matches(JavaCodeUnit<?, ?> value) {

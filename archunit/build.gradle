@@ -10,7 +10,9 @@ dependencies {
     testCompile dependency.junit_dataprovider
     testCompile dependency.mockito
     testCompile dependency.assertj
-    testCompile dependency.assertj_guava
+    testCompile(dependency.assertj_guava) {
+        exclude module: 'assertj-core'
+    }
 }
 
 task testJar(type: Jar, dependsOn: testClasses) {

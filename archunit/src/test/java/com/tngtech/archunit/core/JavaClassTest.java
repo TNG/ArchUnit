@@ -3,8 +3,13 @@ package com.tngtech.archunit.core;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 
+import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.JavaClass.REFLECT;
+import static com.tngtech.archunit.core.JavaClass.assignableFrom;
+import static com.tngtech.archunit.core.JavaClass.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
@@ -121,6 +126,90 @@ public class JavaClassTest {
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
                 .containsOnly(javaClass, javaClass.getSuperClass().get());
+    }
+
+    @Test
+    public void withType_works() {
+        assertThat(withType(Parent.class).apply(javaClass(Parent.class)))
+                .as("withType(Parent) matches JavaClass Parent").isTrue();
+        assertThat(withType(Parent.class).apply(javaClass(SuperClassWithFieldAndMethod.class)))
+                .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+    }
+
+    @Test
+    public void assignableFrom_works() {
+        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+                .to(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+        assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
+                .to(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+                .to(Parent.class)
+                .isTrue();
+        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+                .to(ClassWithTwoFieldsAndTwoMethods.class)
+                .isFalse();
+        assertThatAssignable().from(Parent.class)
+                .to(SuperClassWithFieldAndMethod.class)
+                .isFalse();
+    }
+
+    @Test
+    public void assignableTo_works() {
+        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+                .from(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+        assertThatAssignable().to(ClassWithTwoFieldsAndTwoMethods.class)
+                .from(SuperClassWithFieldAndMethod.class)
+                .isFalse();
+        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+                .from(Parent.class)
+                .isFalse();
+        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+                .from(ClassWithTwoFieldsAndTwoMethods.class)
+                .isTrue();
+        assertThatAssignable().to(Parent.class)
+                .from(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+    }
+
+    private static AssignableAssert assertThatAssignable() {
+        return new AssignableAssert();
+    }
+
+    private static class AssignableAssert {
+        private String message;
+        private FluentPredicate<Class<?>> predicate;
+
+        public FromEvaluation from(Class<?> type) {
+            message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
+            predicate = assignableFrom(type);
+            return new FromEvaluation();
+        }
+
+        public ToEvaluation to(Class<?> type) {
+            message = String.format("assignableTo(%s) matches ", type.getSimpleName());
+            predicate = assignableTo(type);
+            return new ToEvaluation();
+        }
+
+        private class FromEvaluation {
+            public AbstractBooleanAssert to(Class<?> toType) {
+                return assertThat(predicate.apply(toType)).as(message + toType.getSimpleName());
+            }
+        }
+
+        private class ToEvaluation {
+            public AbstractBooleanAssert from(Class<?> toType) {
+                return assertThat(predicate.apply(toType)).as(message + toType.getSimpleName());
+            }
+        }
+    }
+
+    @Test
+    public void REFLECT_works() {
+        assertThat(REFLECT.apply(javaClass(Parent.class))).isEqualTo(Parent.class);
     }
 
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {

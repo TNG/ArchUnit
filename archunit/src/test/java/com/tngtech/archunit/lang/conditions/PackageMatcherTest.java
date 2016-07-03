@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.google.common.base.Optional;
+import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.conditions.PackageMatcher.Result;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -10,8 +10,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.guava.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class PackageMatcherTest {

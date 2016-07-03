@@ -1,7 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -11,13 +9,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.collect.Collections2.filter;
+import static com.tngtech.archunit.core.GuavaConversion.toGuava;
 
-public class ReflectionUtils {
+public final class ReflectionUtils {
+    private ReflectionUtils() {
+    }
+
     public static <T> T newInstanceOf(Class<T> type) {
         try {
             return type.newInstance();
@@ -48,31 +49,31 @@ public class ReflectionUtils {
         return result.build();
     }
 
-    public static Collection<Constructor<?>> getAllConstructors(Class<?> owner, Predicate<? super Constructor<?>> predicate) {
+    public static Collection<Constructor<?>> getAllConstructors(Class<?> owner, FluentPredicate<? super Constructor<?>> predicate) {
         return filter(getAll(owner, new Collector<Constructor<?>>() {
             @Override
             protected Collection<? extends Constructor<?>> extractFrom(Class<?> type) {
                 return ImmutableList.copyOf(type.getDeclaredConstructors());
             }
-        }), predicate);
+        }), toGuava(predicate));
     }
 
-    public static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
+    public static Collection<Field> getAllFields(Class<?> owner, FluentPredicate<? super Field> predicate) {
         return filter(getAll(owner, new Collector<Field>() {
             @Override
             protected Collection<? extends Field> extractFrom(Class<?> type) {
                 return ImmutableList.copyOf(type.getDeclaredFields());
             }
-        }), predicate);
+        }), toGuava(predicate));
     }
 
-    public static Collection<Method> getAllMethods(Class<?> owner, Predicate<? super Method> predicate) {
+    public static Collection<Method> getAllMethods(Class<?> owner, FluentPredicate<? super Method> predicate) {
         return filter(getAll(owner, new Collector<Method>() {
             @Override
             protected Collection<? extends Method> extractFrom(Class<?> type) {
                 return ImmutableList.copyOf(type.getDeclaredMethods());
             }
-        }), predicate);
+        }), toGuava(predicate));
     }
 
     private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {
@@ -80,15 +81,6 @@ public class ReflectionUtils {
             collector.collectFrom(t);
         }
         return collector.collected;
-    }
-
-    public static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
-        return new Predicate<AnnotatedElement>() {
-            @Override
-            public boolean apply(AnnotatedElement input) {
-                return input.getAnnotation(annotationType) != null;
-            }
-        };
     }
 
     private static abstract class Collector<T> {

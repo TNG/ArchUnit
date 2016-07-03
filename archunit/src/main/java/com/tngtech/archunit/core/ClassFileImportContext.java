@@ -13,8 +13,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -28,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.tryFind;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
@@ -146,7 +143,7 @@ class ClassFileImportContext {
 
             @SuppressWarnings("unchecked")
             private JavaField createField(final TargetInfo targetInfo, JavaClass owner) {
-                Field field = IdentifiedTarget.ofField(owner.reflect(), new Predicate<Field>() {
+                Field field = IdentifiedTarget.ofField(owner.reflect(), new FluentPredicate<Field>() {
                     @Override
                     public boolean apply(Field input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -206,7 +203,7 @@ class ClassFileImportContext {
             }
 
             private JavaConstructor createConstructor(final TargetInfo targetInfo, JavaClass owner) {
-                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new Predicate<Constructor<?>>() {
+                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new FluentPredicate<Constructor<?>>() {
                     @Override
                     public boolean apply(Constructor<?> input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -261,7 +258,7 @@ class ClassFileImportContext {
             @SuppressWarnings("unchecked")
             private JavaMethod createMethod(final TargetInfo targetInfo, JavaClass owner) {
                 MemberDescription.ForMethod member = new MethodTargetDescription(targetInfo);
-                IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new Predicate<Method>() {
+                IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new FluentPredicate<Method>() {
                     @Override
                     public boolean apply(Method input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -519,6 +516,15 @@ class ClassFileImportContext {
             if (child.isPresent()) {
                 createPath(child.get(), parent);
             }
+        }
+
+        private static <T> Optional<T> tryFind(Iterable<T> collection, FluentPredicate<T> predicate) {
+            for (T elem : collection) {
+                if (predicate.apply(elem)) {
+                    return Optional.of(elem);
+                }
+            }
+            return Optional.absent();
         }
 
         private void createPath(JavaClass child, JavaClass parent) {

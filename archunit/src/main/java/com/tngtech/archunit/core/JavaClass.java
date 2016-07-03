@@ -9,10 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -21,7 +17,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
-import static com.tngtech.archunit.core.Optionals.valueOrException;
 
 public class JavaClass implements HasName {
     private final Class<?> type;
@@ -112,8 +107,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaField getField(String name) {
-        return valueOrException(tryGetField(name),
-                new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
+        return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
     }
 
     public Optional<JavaField> tryGetField(String name) {
@@ -145,9 +139,8 @@ public class JavaClass implements HasName {
     }
 
     private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
-        return valueOrException(tryFindMatchingCodeUnit(codeUnits, name, parameters),
-                new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
-                        " in codeUnits " + codeUnits + " of class " + getName()));
+        return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
+                " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
     private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
@@ -288,17 +281,6 @@ public class JavaClass implements HasName {
         return "JavaClass{name='" + type.getName() + "\'}";
     }
 
-    public static Predicate<JavaClass> withType(final Class<?> type) {
-        return Predicates.compose(Predicates.<Class<?>>equalTo(type), REFLECT);
-    }
-
-    public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
-        @Override
-        public Class<?> apply(JavaClass input) {
-            return input.reflect();
-        }
-    };
-
     public Set<JavaFieldAccess> getFieldAccessesToSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaField field : fields) {
@@ -330,6 +312,37 @@ public class JavaClass implements HasName {
                 .addAll(getConstructorCallsToSelf())
                 .build();
     }
+
+    public static FluentPredicate<JavaClass> withType(final Class<?> type) {
+        return FluentPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT);
+    }
+
+    public static FluentPredicate<Class<?>> assignableTo(final Class<?> type) {
+        checkNotNull(type);
+        return new FluentPredicate<Class<?>>() {
+            @Override
+            public boolean apply(Class<?> input) {
+                return type.isAssignableFrom(input);
+            }
+        };
+    }
+
+    public static FluentPredicate<Class<?>> assignableFrom(final Class<?> type) {
+        checkNotNull(type);
+        return new FluentPredicate<Class<?>>() {
+            @Override
+            public boolean apply(Class<?> input) {
+                return input.isAssignableFrom(type);
+            }
+        };
+    }
+
+    public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
+        @Override
+        public Class<?> apply(JavaClass input) {
+            return input.reflect();
+        }
+    };
 
     class CompletionProcess {
         AccessCompletion.SubProcess completeCodeUnitsFrom(ClassFileImportContext context) {

@@ -3,12 +3,12 @@ package com.tngtech.archunit.exampletest;
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
 import com.tngtech.archunit.lang.ArchCondition;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class SessionBeanRulesTest {
         }
     };
 
-    private static final Predicate<JavaFieldAccess> ACCESS_ORIGIN_OUTSIDE_OF_CONSTRUCTION = new Predicate<JavaFieldAccess>() {
+    private static final FluentPredicate<JavaFieldAccess> ACCESS_ORIGIN_OUTSIDE_OF_CONSTRUCTION = new FluentPredicate<JavaFieldAccess>() {
         @Override
         public boolean apply(JavaFieldAccess input) {
             return !input.getOrigin().isConstructor() &&

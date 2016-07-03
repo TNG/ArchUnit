@@ -4,13 +4,13 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
+
+import static com.tngtech.archunit.core.FluentPredicate.not;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -61,7 +61,7 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClass(final Predicate<JavaClass> predicate) {
+    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClass(final FluentPredicate<JavaClass> predicate) {
         return new DescribedPredicate<JavaClass>() {
             @Override
             public boolean apply(JavaClass input) {
@@ -137,10 +137,10 @@ public class ArchPredicates {
     }
 
     public static FluentPredicate<JavaCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
-        return targetIs(FluentPredicate.of(Predicates.<Class<?>>equalTo(targetClass)), methodName);
+        return targetIs(FluentPredicate.<Class<?>>equalTo(targetClass), methodName);
     }
 
-    public static FluentPredicate<JavaCall<?>> targetIs(final Predicate<Class<?>> targetSelector, final String methodName) {
+    public static FluentPredicate<JavaCall<?>> targetIs(final FluentPredicate<Class<?>> targetSelector, final String methodName) {
         return new FluentPredicate<JavaCall<?>>() {
             @Override
             public boolean apply(JavaCall<?> input) {
@@ -151,10 +151,10 @@ public class ArchPredicates {
     }
 
     public static FluentPredicate<JavaCall<?>> targetClassIs(final Class<?> targetClass) {
-        return targetClassIs(Predicates.<Class<?>>equalTo(targetClass));
+        return targetClassIs(FluentPredicate.<Class<?>>equalTo(targetClass));
     }
 
-    public static FluentPredicate<JavaCall<?>> targetClassIs(final Predicate<Class<?>> selector) {
+    public static FluentPredicate<JavaCall<?>> targetClassIs(final FluentPredicate<Class<?>> selector) {
         return new FluentPredicate<JavaCall<?>>() {
             @Override
             public boolean apply(JavaCall<?> input) {
@@ -164,10 +164,14 @@ public class ArchPredicates {
     }
 
     public static FluentPredicate<JavaCall<?>> originClassIs(Class<?> originClass) {
-        return originClassIs(Predicates.<Class<?>>equalTo(originClass));
+        return originClassIs(FluentPredicate.<Class<?>>equalTo(originClass));
     }
 
-    public static FluentPredicate<JavaCall<?>> originClassIs(final Predicate<Class<?>> selector) {
+    public static FluentPredicate<JavaCall<?>> originClassIsNot(Class<?> originClass) {
+        return not(originClassIs(FluentPredicate.<Class<?>>equalTo(originClass)));
+    }
+
+    public static FluentPredicate<JavaCall<?>> originClassIs(final FluentPredicate<Class<?>> selector) {
         return new FluentPredicate<JavaCall<?>>() {
             @Override
             public boolean apply(JavaCall<?> input) {

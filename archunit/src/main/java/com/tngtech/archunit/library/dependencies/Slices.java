@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ForwardingSet;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.InputTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 

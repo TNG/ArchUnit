@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.FailureMessages;
@@ -18,6 +19,10 @@ import static com.google.common.collect.Lists.newArrayList;
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
         return new ConditionEventsAssert(events);
+    }
+
+    public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
+        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
     }
 
     public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {
