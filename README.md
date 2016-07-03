@@ -232,6 +232,15 @@ public class MyArchTestThatUsesMyRules {
 If this test is run, it will evaluate all rules (fields and methods) defined in `MyArchRules` against the imported
 classes.
 
+## Ignoring certain violations
+
+In legacy projects where architecture tests are introduced, there might be too many violations to fix at the current
+time. Nevertheless tests should be activated to ensure no new violations will be introduced. To keep the focus on
+those new violations, it's possible to ignore the current violations.
+This is configured by putting a file named 'archunit_ignore_patterns.txt' in the root of the classpath. Each line
+of this file will be interpreted as a regular expression. Violations with a message matching any of these regular
+expressions, will be filtered out of the result. If no messages are left, the test will consequently pass.
+
 ## Where to look next
 
 Further examples can be found inside of the project `archunit-example`, including some further predefined rules
