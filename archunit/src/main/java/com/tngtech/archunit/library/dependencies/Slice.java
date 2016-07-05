@@ -12,6 +12,8 @@ import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
     private final List<String> matchingGroups;
     private Description description;
@@ -70,6 +72,19 @@ public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
     @Override
     public String toString() {
         return getDescription();
+    }
+
+    /**
+     * Returns a matching part of this slice. E.g. if the slice was created by matching '..(*).controller.(*)..',
+     * against 'some.other.controller.here.more', then name part '1' would be 'other' and name part '2' would
+     * be 'here'.
+     *
+     * @param index The index of the matched group
+     * @return The part of the matched package name.
+     */
+    public String getNamePart(int index) {
+        checkArgument(index > 0 && index <= matchingGroups.size(), "Found no name part with index %d", index);
+        return matchingGroups.get(index - 1);
     }
 
     private static class Description {

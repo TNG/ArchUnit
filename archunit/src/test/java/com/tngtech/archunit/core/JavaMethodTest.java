@@ -12,9 +12,9 @@ public class JavaMethodTest {
 
     @Test
     public void equals_works() throws Exception {
-        JavaMethod method = javaMethod("method", ClassWithMethodNamedMethod.class);
-        JavaMethod equalMethod = javaMethod("method", ClassWithMethodNamedMethod.class);
-        JavaMethod differentMethod = javaMethod("method", AnotherClassWithMethodNamedMethod.class);
+        JavaMethod method = javaMethod(ClassWithMethodNamedMethod.class, "method");
+        JavaMethod equalMethod = javaMethod(ClassWithMethodNamedMethod.class, "method");
+        JavaMethod differentMethod = javaMethod(AnotherClassWithMethodNamedMethod.class, "method");
 
         assertThat(method).isEqualTo(method);
         assertThat(method).isEqualTo(equalMethod);

@@ -10,7 +10,7 @@ public class ServiceViolatingLayerRules {
     void illegalAccessToController() {
         System.out.println(UseCaseOneController.someString);
         UseCaseTwoController otherController = new UseCaseTwoController();
-        otherController.doSomething();
+        otherController.doSomethingTwo();
     }
 
     public void doSomething() {

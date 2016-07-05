@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.example.SomeMediator.violateLayerRulesIndirectly;
 import static com.tngtech.archunit.example.controller.one.UseCaseOneController.someString;
-import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomething;
+import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
 import static com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService.violateLayerRules;
 import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToController;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
@@ -33,7 +33,7 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                         .toConstructor(UseCaseTwoController.class)
                         .inLine(12))
                 .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toMethod(UseCaseTwoController.class, doSomething)
+                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
                         .inLine(13));
 
         super.services_should_not_access_controllers();

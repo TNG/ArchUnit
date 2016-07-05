@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ForwardingSet;
+import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
@@ -14,6 +15,7 @@ import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.InputTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
+import static com.tngtech.archunit.core.Dependency.toTargetClasses;
 import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
 public class Slices extends ForwardingSet<Slice> implements HasDescription {
@@ -68,7 +70,8 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
 
     public static class Transformer implements InputTransformer<Slice> {
         private final String packageIdentifier;
-        private Optional<String> namingPattern;
+        private Optional<String> namingPattern = Optional.absent();
+        private Optional<String> description = Optional.absent();
 
         private Transformer(String packageIdentifier) {
             this.packageIdentifier = packageIdentifier;
@@ -82,6 +85,11 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
             return this;
         }
 
+        public Transformer as(String description) {
+            this.description = Optional.of(description);
+            return this;
+        }
+
         @Override
         @SuppressWarnings("unchecked")
         public Slices transform(JavaClasses classes) {
@@ -89,11 +97,18 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
             if (namingPattern.isPresent()) {
                 slices.namingSlices(namingPattern.get());
             }
+            if (description.isPresent()) {
+                slices.as(description.get());
+            }
             return slices;
         }
 
         public Slices of(JavaClasses classes) {
             return transform(classes);
+        }
+
+        public Slices transform(Iterable<Dependency> dependencies) {
+            return transform(toTargetClasses(dependencies));
         }
     }
 

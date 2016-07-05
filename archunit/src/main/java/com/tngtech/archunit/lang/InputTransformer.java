@@ -13,8 +13,8 @@ public interface InputTransformer<T> {
             return new InputTransformer<JavaClass>() {
                 @Override
                 @SuppressWarnings("unchecked")
-                public JavaClasses transform(JavaClasses collection) {
-                    return collection.that(predicate);
+                public JavaClasses transform(JavaClasses classes) {
+                    return classes.that(predicate);
                 }
             };
         }

@@ -46,11 +46,11 @@ public class JavaAccessTest {
             private JavaMethod target;
 
             public Creator(JavaClass owner, String name) {
-                this.origin = javaMethod(name, owner);
+                this.origin = javaMethod(owner, name);
             }
 
             public Creator to(Class<?> owner, String name) {
-                this.target = javaMethod(name, owner);
+                this.target = javaMethod(owner, name);
                 return this;
             }
 

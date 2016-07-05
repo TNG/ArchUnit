@@ -1,6 +1,8 @@
 package com.tngtech.archunit.core;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import com.google.common.collect.ComparisonChain;
 
@@ -64,5 +66,13 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
                 .compare(access.getLineNumber(), o.access.getLineNumber())
                 .compare(getDescription(), o.getDescription())
                 .result();
+    }
+
+    public static JavaClasses toTargetClasses(Iterable<Dependency> dependencies) {
+        Set<JavaClass> classes = new HashSet<>();
+        for (Dependency dependency : dependencies) {
+            classes.add(dependency.getTargetClass());
+        }
+        return JavaClasses.of(classes);
     }
 }

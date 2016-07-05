@@ -1,8 +1,11 @@
 package com.tngtech.archunit.example.controller.two;
 
-public class UseCaseTwoController {
-    public static final String doSomething = "doSomething";
+import com.tngtech.archunit.example.controller.one.UseCaseOneController;
 
-    public void doSomething() {
+public class UseCaseTwoController {
+    public static final String doSomethingTwo = "doSomethingTwo";
+
+    public void doSomethingTwo() {
+        new UseCaseOneController().doSomethingOne();
     }
 }

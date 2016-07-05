@@ -44,11 +44,11 @@ public class ConditionEvent {
         }
     };
 
-    public static ConditionEvent violated(String message) {
-        return new ConditionEvent(false, message);
+    public static ConditionEvent violated(String message, Object... args) {
+        return new ConditionEvent(false, message, args);
     }
 
-    public static ConditionEvent satisfied(String message) {
-        return new ConditionEvent(true, message);
+    public static ConditionEvent satisfied(String message, Object... args) {
+        return new ConditionEvent(true, message, args);
     }
 }

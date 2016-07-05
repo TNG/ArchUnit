@@ -25,7 +25,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class SlicesArchCondition extends ArchCondition<Slice> {
+class SliceCycleArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();

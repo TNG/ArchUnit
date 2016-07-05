@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,6 +54,14 @@ public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass,
     public JavaClass get(Class<?> reflectedType) {
         return checkNotNull(classes.get(reflectedType), "%s don't contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), reflectedType.getName());
+    }
+
+    public static JavaClasses of(Iterable<JavaClass> classes) {
+        Map<Class<?>, JavaClass> mapping = new HashMap<>();
+        for (JavaClass clazz : classes) {
+            mapping.put(clazz.reflect(), clazz);
+        }
+        return new JavaClasses(mapping);
     }
 
     static JavaClasses of(Map<Class<?>, JavaClass> classes, ClassFileImportContext importContext) {

@@ -12,13 +12,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
-    public static JavaMethod javaMethod(String name, Class<?> owner) {
-        return javaMethod(name, javaClass(owner));
+    public static JavaMethod javaMethod(Class<?> owner, String name, Class<?>... args) {
+        return javaMethod(javaClass(owner), name, args);
     }
 
-    public static JavaMethod javaMethod(String name, JavaClass clazz) {
+    public static JavaMethod javaMethod(JavaClass clazz, String name, Class<?>... args) {
         try {
-            return new JavaMethod.Builder().withMethod(clazz.reflect().getDeclaredMethod(name)).build(clazz);
+            return new JavaMethod.Builder().withMethod(clazz.reflect().getDeclaredMethod(name, args)).build(clazz);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -58,11 +58,11 @@ public class TestUtils {
         return new AccessSimulator(method, lineNumber);
     }
 
-    static class AccessSimulator {
+    public static class AccessSimulator {
         private final JavaMethod method;
         private final int lineNumber;
 
-        public AccessSimulator(JavaMethod method, int lineNumber) {
+        private AccessSimulator(JavaMethod method, int lineNumber) {
             this.method = method;
             this.lineNumber = lineNumber;
         }

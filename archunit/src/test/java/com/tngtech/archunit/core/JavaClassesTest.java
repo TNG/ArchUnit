@@ -1,8 +1,10 @@
 package com.tngtech.archunit.core;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
@@ -43,6 +45,14 @@ public class JavaClassesTest {
     @Test
     public void get_type_returns_correct_JavaClass() {
         assertThat(ALL_CLASSES.get(SomeOtherClass.class)).isEqualTo(SOME_OTHER_CLASS);
+    }
+
+    @Test
+    public void javaClasses_of_iterable() {
+        ImmutableSet<JavaClass> iterable = ImmutableSet.of(javaClass(JavaClassesTest.class), javaClass(JavaClass.class));
+        JavaClasses classes = JavaClasses.of(iterable);
+
+        assertThat(ImmutableSet.copyOf(classes)).isEqualTo(iterable);
     }
 
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {
