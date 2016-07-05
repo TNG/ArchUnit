@@ -1,8 +1,11 @@
 package com.tngtech.archunit.core;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 
 public abstract class Optional<T> {
     private static final Absent<Object> ABSENT = new Absent<>();
@@ -36,6 +39,8 @@ public abstract class Optional<T> {
 
     public abstract T or(T value);
 
+    public abstract Set<T> asSet();
+
     private static class Absent<T> extends Optional<T> {
         @Override
         public boolean isPresent() {
@@ -55,6 +60,11 @@ public abstract class Optional<T> {
         @Override
         public T or(T value) {
             return value;
+        }
+
+        @Override
+        public Set<T> asSet() {
+            return emptySet();
         }
 
         @Override
@@ -103,6 +113,11 @@ public abstract class Optional<T> {
         @Override
         public T or(T value) {
             return object;
+        }
+
+        @Override
+        public Set<T> asSet() {
+            return singleton(object);
         }
 
         @Override

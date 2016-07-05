@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
@@ -56,6 +58,7 @@ class ClassFileImportContext {
     }
 
     JavaClasses complete() {
+        completeHierarchy();
         for (RawFieldAccessRecord fieldAccessRecord : rawFieldAccessRecords) {
             tryProcess(fieldAccessRecord, processedFieldAccessRecords);
         }
@@ -65,8 +68,50 @@ class ClassFileImportContext {
         for (RawConstructorCallRecord methodCallRecord : rawConstructorCallRecords) {
             tryProcess(methodCallRecord, processedConstructorCallRecords);
         }
-
         return JavaClasses.of(classes, this);
+    }
+
+    private void completeHierarchy() {
+        Map<Class<?>, JavaClass> missingTypes = new HashMap<>();
+        for (Class<?> clazz : classes.keySet()) {
+            tryAddSuperClass(missingTypes, clazz);
+            tryAddInterfaces(missingTypes, clazz);
+        }
+        classes.putAll(missingTypes);
+    }
+
+    private void tryAddInterfaces(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
+        tryAddRelatedClasses(missingTypes, clazz, new Function<Class<?>, Set<Class<?>>>() {
+            @Override
+            public Set<Class<?>> apply(Class<?> input) {
+                return ImmutableSet.copyOf(input.getInterfaces());
+            }
+        });
+    }
+
+    private void tryAddSuperClass(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
+        tryAddRelatedClasses(missingTypes, clazz, new Function<Class<?>, Set<Class<?>>>() {
+            @Override
+            public Set<Class<?>> apply(Class<?> input) {
+                return Optional.<Class<?>>fromNullable(input.getSuperclass()).asSet();
+            }
+        });
+    }
+
+    private void tryAddRelatedClasses(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz, Function<Class<?>, Set<Class<?>>> extractRelatedClasses) {
+        try {
+            for (Class<?> toAdd : extractRelatedClasses.apply(clazz)) {
+                if (!classes.containsKey(toAdd)) {
+                    missingTypes.put(toAdd, new JavaClass.Builder().withType(toAdd).build());
+                }
+            }
+        } catch (NoClassDefFoundError e) {
+            LOG.warn("Can't analyse related type of '{}' because of missing dependency '{}'",
+                    clazz.getName(), e.getMessage());
+        } catch (ReflectionException e) {
+            LOG.warn("Can't analyse related type of '{}' because of missing dependency. Error was: '{}'",
+                    clazz.getName(), e.getMessage());
+        }
     }
 
     private <T extends AccessRecord<?>> void tryProcess(

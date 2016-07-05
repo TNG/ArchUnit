@@ -1,10 +1,12 @@
 package com.tngtech.archunit.example;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Local;
 import javax.ejb.Stateless;
 
 @Stateless
-public class ClassViolatingSessionBeanRules {
+@Local(SomeBusinessInterface.class)
+public class ClassViolatingSessionBeanRules implements SomeBusinessInterface {
     public static final String CONSTANT = "CONSTANT";
     private final String CONSTANT_FROM_CONSTRUCTOR;
     private String setOnConstruction;

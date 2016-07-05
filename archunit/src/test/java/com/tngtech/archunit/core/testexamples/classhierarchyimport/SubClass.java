@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.testexamples.classhierarchyimport;
 
-public class SubClass extends BaseClass {
+public class SubClass extends BaseClass implements SubInterface {
     static {
         System.out.println(SubClass.class.getSimpleName() + " initializing");
     }

@@ -13,7 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.FluentPredicate.not;
-import static com.tngtech.archunit.core.JavaClass.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.classCallsMethodWhere;
@@ -44,10 +44,10 @@ public class ThirdPartyRulesTest {
 
     private ArchCondition<JavaClass> noCreationOutsideOfWorkaroundFactory() {
         FluentPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
-                targetIs(assignableTo(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
+                targetIs(reflectionAssignableTo(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
 
         FluentPredicate<JavaCall<?>> notFromWithinThirdPartyClass =
-                originClassIs(not(assignableTo(ThirdPartyClassWithProblem.class)));
+                originClassIs(not(reflectionAssignableTo(ThirdPartyClassWithProblem.class)));
 
         FluentPredicate<JavaCall<?>> notFromWorkaroundFactory =
                 originClassIsNot(ThirdPartyClassWorkaroundFactory.class);

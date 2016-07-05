@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.StringContains;
 import org.junit.internal.matchers.ThrowableMessageMatcher;
 import org.junit.rules.TestRule;
@@ -58,6 +59,21 @@ public class ExpectedViolation implements TestRule {
 
     public ExpectedViolation by(Matcher<AssertionError> matcher) {
         errorMatchers.add(matcher);
+        return this;
+    }
+
+    public ExpectedViolation byViolation(final Matcher<String> matcher) {
+        errorMatchers.add(new TypeSafeMatcher<AssertionError>() {
+            @Override
+            protected boolean matchesSafely(AssertionError item) {
+                return matcher.matches(item.getMessage());
+            }
+
+            @Override
+            public void describeTo(org.hamcrest.Description description) {
+                description.appendDescriptionOf(matcher);
+            }
+        });
         return this;
     }
 

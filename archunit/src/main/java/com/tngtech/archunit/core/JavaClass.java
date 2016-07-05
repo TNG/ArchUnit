@@ -26,6 +26,7 @@ public class JavaClass implements HasName {
     private final Set<JavaConstructor> constructors;
     private final JavaStaticInitializer staticInitializer;
     private Optional<JavaClass> superClass = Optional.absent();
+    private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
 
@@ -51,6 +52,10 @@ public class JavaClass implements HasName {
 
     public String getPackage() {
         return type.getPackage() != null ? type.getPackage().getName() : "";
+    }
+
+    public boolean isInterface() {
+        return type.isInterface();
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
@@ -87,6 +92,22 @@ public class JavaClass implements HasName {
 
     public Set<JavaClass> getSubClasses() {
         return subClasses;
+    }
+
+    public Set<JavaClass> getInterfaces() {
+        return interfaces;
+    }
+
+    public Set<JavaClass> getAllInterfaces() {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaClass i : interfaces) {
+            result.add(i);
+            result.addAll(i.getAllInterfaces());
+        }
+        if (superClass.isPresent()) {
+            result.addAll(superClass.get().getAllInterfaces());
+        }
+        return result.build();
     }
 
     public Optional<JavaClass> getEnclosingClass() {
@@ -242,17 +263,55 @@ public class JavaClass implements HasName {
         return result;
     }
 
+    public Set<JavaMethodCall> getMethodCallsToSelf() {
+        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
+        for (JavaMethod method : methods) {
+            result.addAll(method.getCallsOfSelf());
+        }
+        return result.build();
+    }
+
+    public Set<JavaConstructorCall> getConstructorCallsToSelf() {
+        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
+        for (JavaConstructor constructor : constructors) {
+            result.addAll(constructor.getCallsOfSelf());
+        }
+        return result.build();
+    }
+
+    public Set<JavaAccess<?>> getAccessesToSelf() {
+        return ImmutableSet.<JavaAccess<?>>builder()
+                .addAll(getFieldAccessesToSelf())
+                .addAll(getMethodCallsToSelf())
+                .addAll(getConstructorCallsToSelf())
+                .build();
+    }
+
     public Class<?> reflect() {
         return type;
     }
 
     CompletionProcess completeClassHierarchyFrom(ClassFileImportContext context) {
+        completeSuperClassFrom(context);
+        completeInterfacesFrom(context);
+        enclosingClass = findClass(type.getEnclosingClass(), context);
+        return new CompletionProcess();
+    }
+
+    private void completeSuperClassFrom(ClassFileImportContext context) {
         superClass = findClass(type.getSuperclass(), context);
         if (superClass.isPresent()) {
             superClass.get().subClasses.add(this);
         }
-        enclosingClass = findClass(type.getEnclosingClass(), context);
-        return new CompletionProcess();
+    }
+
+    private void completeInterfacesFrom(ClassFileImportContext context) {
+        for (Class<?> i : type.getInterfaces()) {
+            interfaces.addAll(findClass(i, context).asSet());
+        }
+        for (JavaClass i : interfaces) {
+            i.subClasses.add(this);
+        }
     }
 
     private static Optional<JavaClass> findClass(Class<?> clazz, ClassFileImportContext context) {
@@ -289,35 +348,11 @@ public class JavaClass implements HasName {
         return result.build();
     }
 
-    public Set<JavaMethodCall> getMethodCallsToSelf() {
-        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaMethod method : methods) {
-            result.addAll(method.getCallsOfSelf());
-        }
-        return result.build();
-    }
-
-    public Set<JavaConstructorCall> getConstructorCallsToSelf() {
-        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaConstructor constructor : constructors) {
-            result.addAll(constructor.getCallsOfSelf());
-        }
-        return result.build();
-    }
-
-    public Set<JavaAccess<?>> getAccessesToSelf() {
-        return ImmutableSet.<JavaAccess<?>>builder()
-                .addAll(getFieldAccessesToSelf())
-                .addAll(getMethodCallsToSelf())
-                .addAll(getConstructorCallsToSelf())
-                .build();
-    }
-
     public static FluentPredicate<JavaClass> withType(final Class<?> type) {
         return FluentPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT);
     }
 
-    public static FluentPredicate<Class<?>> assignableTo(final Class<?> type) {
+    public static FluentPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
         checkNotNull(type);
         return new FluentPredicate<Class<?>>() {
             @Override
@@ -327,7 +362,7 @@ public class JavaClass implements HasName {
         };
     }
 
-    public static FluentPredicate<Class<?>> assignableFrom(final Class<?> type) {
+    public static FluentPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
         checkNotNull(type);
         return new FluentPredicate<Class<?>>() {
             @Override
@@ -336,6 +371,23 @@ public class JavaClass implements HasName {
             }
         };
     }
+
+    public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
+        return DescribedPredicate.of(reflectionAssignableTo(type).onResultOf(REFLECT))
+                .as("assignable to " + type.getSimpleName());
+    }
+
+    public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
+        return DescribedPredicate.of(reflectionAssignableFrom(type).onResultOf(REFLECT))
+                .as("assignable from " + type.getSimpleName());
+    }
+
+    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>() {
+        @Override
+        public boolean apply(JavaClass input) {
+            return input.isInterface();
+        }
+    }.as("Interfaces");
 
     public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
         @Override

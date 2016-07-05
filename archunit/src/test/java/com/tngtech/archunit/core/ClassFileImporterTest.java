@@ -2,9 +2,11 @@ package com.tngtech.archunit.core;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,8 +36,14 @@ import com.tngtech.archunit.core.testexamples.callimport.ExternalInterfaceMethod
 import com.tngtech.archunit.core.testexamples.callimport.ExternalOverriddenMethodCall;
 import com.tngtech.archunit.core.testexamples.callimport.ExternalSubTypeConstructorCall;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.BaseClass;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.CollectionInterface;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.GrandParentInterface;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.OtherInterface;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.OtherSubClass;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.ParentInterface;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.SomeCollection;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubClass;
+import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubInterface;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubSubClass;
 import com.tngtech.archunit.core.testexamples.complexexternal.ChildClass;
 import com.tngtech.archunit.core.testexamples.dependents.ClassWithDependents;
@@ -79,6 +87,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
@@ -359,6 +368,16 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_interfaces_and_classes() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
+        JavaClass baseClass = classes.get(BaseClass.class);
+        JavaClass parentInterface = classes.get(ParentInterface.class);
+
+        assertThat(baseClass.isInterface()).as(BaseClass.class.getSimpleName() + " is interface").isFalse();
+        assertThat(parentInterface.isInterface()).as(ParentInterface.class.getSimpleName() + " is interface").isTrue();
+    }
+
+    @Test
     public void imports_base_class_in_class_hierarchy_correctly() throws Exception {
         JavaClass baseClass = classesIn("testexamples/classhierarchyimport").get(BaseClass.class);
 
@@ -385,12 +404,83 @@ public class ClassFileImporterTest {
         JavaClass subClass = classes.get(SubClass.class);
         JavaClass otherSubClass = classes.get(OtherSubClass.class);
         JavaClass subSubClass = classes.get(SubSubClass.class);
+        JavaClass object = classes.get(Object.class);
 
+        assertThat(baseClass.getSuperClass()).contains(object);
         assertThat(baseClass.getSubClasses()).containsOnly(subClass, otherSubClass);
         assertThat(baseClass.getAllSubClasses()).containsOnly(subClass, otherSubClass, subSubClass);
         assertThat(subClass.getSuperClass()).contains(baseClass);
         assertThat(subClass.getAllSubClasses()).containsOnly(subSubClass);
         assertThat(subSubClass.getSuperClass()).contains(subClass);
+    }
+
+    @Test
+    public void creates_relations_between_classes_and_interfaces() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
+        JavaClass baseClass = classes.get(BaseClass.class);
+        JavaClass otherInterface = classes.get(OtherInterface.class);
+        JavaClass subClass = classes.get(SubClass.class);
+        JavaClass subInterface = classes.get(SubInterface.class);
+        JavaClass otherSubClass = classes.get(OtherSubClass.class);
+        JavaClass parentInterface = classes.get(ParentInterface.class);
+        JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
+        JavaClass someCollection = classes.get(SomeCollection.class);
+        JavaClass collectionInterface = classes.get(CollectionInterface.class);
+        JavaClass collection = classes.get(Collection.class);
+
+        assertThat(baseClass.getInterfaces()).containsOnly(otherInterface);
+        assertThat(baseClass.getAllInterfaces()).containsOnly(otherInterface, grandParentInterface);
+        assertThat(subClass.getInterfaces()).containsOnly(subInterface);
+        assertThat(subClass.getAllInterfaces()).containsOnly(
+                subInterface, otherInterface, parentInterface, grandParentInterface);
+        assertThat(otherSubClass.getInterfaces()).containsOnly(parentInterface);
+        assertThat(otherSubClass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
+        assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subInterface);
+        assertThat(someCollection.getAllInterfaces()).containsOnly(
+                collectionInterface, otherInterface, subInterface, parentInterface, grandParentInterface, collection);
+    }
+
+    @Test
+    public void creates_relations_between_interfaces_and_interfaces() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
+        JavaClass subInterface = classes.get(SubInterface.class);
+        JavaClass parentInterface = classes.get(ParentInterface.class);
+        JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
+        JavaClass collectionInterface = classes.get(CollectionInterface.class);
+        JavaClass collection = classes.get(Collection.class);
+
+        assertThat(grandParentInterface.getAllInterfaces()).isEmpty();
+        assertThat(parentInterface.getInterfaces()).containsOnly(grandParentInterface);
+        assertThat(parentInterface.getAllInterfaces()).containsOnly(grandParentInterface);
+        assertThat(subInterface.getInterfaces()).containsOnly(parentInterface);
+        assertThat(subInterface.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface);
+        assertThat(collectionInterface.getInterfaces()).containsOnly(collection);
+    }
+
+    @Test
+    public void creates_relations_between_interfaces_and_sub_classes() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
+        JavaClass baseClass = classes.get(BaseClass.class);
+        JavaClass otherInterface = classes.get(OtherInterface.class);
+        JavaClass subClass = classes.get(SubClass.class);
+        JavaClass subSubClass = classes.get(SubSubClass.class);
+        JavaClass subInterface = classes.get(SubInterface.class);
+        JavaClass otherSubClass = classes.get(OtherSubClass.class);
+        JavaClass parentInterface = classes.get(ParentInterface.class);
+        JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
+        JavaClass someCollection = classes.get(SomeCollection.class);
+        JavaClass collectionInterface = classes.get(CollectionInterface.class);
+        JavaClass collection = classes.get(Collection.class);
+
+        assertThat(grandParentInterface.getSubClasses()).containsOnly(parentInterface, otherInterface);
+        assertThat(grandParentInterface.getAllSubClasses()).containsOnly(
+                parentInterface, subInterface, otherInterface,
+                baseClass, subClass, otherSubClass, subSubClass, someCollection
+        );
+        assertThat(parentInterface.getSubClasses()).containsOnly(subInterface, otherSubClass);
+        assertThat(parentInterface.getAllSubClasses()).containsOnly(
+                subInterface, subClass, subSubClass, someCollection, otherSubClass);
+        assertThat(collection.getAllSubClasses()).containsOnly(collectionInterface, someCollection);
     }
 
     @Test
@@ -1025,7 +1115,8 @@ public class ClassFileImporterTest {
         assumeTrue("We can't completely ensure, that this will always be taken from a JAR file, though it's very likely",
                 "jar".equals(urls.iterator().next().getProtocol()));
 
-        JavaClasses classes = new ClassFileImporter().importUrls(urls);
+        JavaClasses classes = new ClassFileImporter().importUrls(urls)
+                .that(DescribedPredicate.not(withType(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
 
         assertThat(classes).as("Number of classes at the given URLs").hasSize(2);
     }

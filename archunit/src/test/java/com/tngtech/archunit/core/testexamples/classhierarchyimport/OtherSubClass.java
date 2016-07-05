@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.testexamples.classhierarchyimport;
 
-public class OtherSubClass extends BaseClass {
+public class OtherSubClass extends BaseClass implements ParentInterface {
     private int foo = 5;
 
     void soSthOtherSub() {

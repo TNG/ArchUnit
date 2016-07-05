@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.testexamples.classhierarchyimport;
 
-public class BaseClass {
+public class BaseClass implements OtherInterface {
     static {
         System.out.println(BaseClass.class.getSimpleName() + " initializing");
     }

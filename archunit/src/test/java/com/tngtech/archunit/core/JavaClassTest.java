@@ -6,9 +6,13 @@ import java.lang.annotation.Retention;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaClass.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.reflectionAssignableFrom;
+import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
@@ -180,29 +184,55 @@ public class JavaClassTest {
 
     private static class AssignableAssert {
         private String message;
-        private FluentPredicate<Class<?>> predicate;
+        private FluentPredicate<Class<?>> reflectionAssignable;
+        private FluentPredicate<JavaClass> assignable;
 
         public FromEvaluation from(Class<?> type) {
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
-            predicate = assignableFrom(type);
+            reflectionAssignable = reflectionAssignableFrom(type);
+            assignable = assignableFrom(type);
             return new FromEvaluation();
         }
 
         public ToEvaluation to(Class<?> type) {
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
-            predicate = assignableTo(type);
+            reflectionAssignable = reflectionAssignableTo(type);
+            assignable = assignableTo(type);
             return new ToEvaluation();
         }
 
-        private class FromEvaluation {
-            public AbstractBooleanAssert to(Class<?> toType) {
-                return assertThat(predicate.apply(toType)).as(message + toType.getSimpleName());
+        private class FromEvaluation extends Evaluation {
+            public Evaluation to(Class<?> toType) {
+                return evaluationToType(toType);
             }
         }
 
-        private class ToEvaluation {
-            public AbstractBooleanAssert from(Class<?> toType) {
-                return assertThat(predicate.apply(toType)).as(message + toType.getSimpleName());
+        private class ToEvaluation extends Evaluation {
+            public Evaluation from(Class<?> toType) {
+                return evaluationToType(toType);
+            }
+        }
+
+        private class Evaluation {
+            private AbstractBooleanAssert<?> reflectionAssignableAssertion;
+            private AbstractBooleanAssert<?> assignableAssertion;
+
+            Evaluation evaluationToType(Class<?> toType) {
+                reflectionAssignableAssertion = assertThat(reflectionAssignable.apply(toType))
+                        .as(LOWER_UNDERSCORE.to(LOWER_CAMEL, "reflection_" + message) + toType.getSimpleName());
+                assignableAssertion = assertThat(assignable.apply(javaClass(toType)))
+                        .as(message + toType.getSimpleName());
+                return this;
+            }
+
+            public void isTrue() {
+                reflectionAssignableAssertion.isTrue();
+                assignableAssertion.isTrue();
+            }
+
+            public void isFalse() {
+                reflectionAssignableAssertion.isFalse();
+                assignableAssertion.isFalse();
             }
         }
     }
