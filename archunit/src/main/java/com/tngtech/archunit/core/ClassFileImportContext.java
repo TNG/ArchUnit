@@ -58,7 +58,7 @@ class ClassFileImportContext {
     }
 
     JavaClasses complete() {
-        completeHierarchy();
+        ensureClassesOfHierarchyInContext();
         for (RawFieldAccessRecord fieldAccessRecord : rawFieldAccessRecords) {
             tryProcess(fieldAccessRecord, processedFieldAccessRecords);
         }
@@ -71,7 +71,7 @@ class ClassFileImportContext {
         return JavaClasses.of(classes, this);
     }
 
-    private void completeHierarchy() {
+    private void ensureClassesOfHierarchyInContext() {
         Map<Class<?>, JavaClass> missingTypes = new HashMap<>();
         for (Class<?> clazz : classes.keySet()) {
             tryAddSuperClass(missingTypes, clazz);
