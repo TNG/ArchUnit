@@ -17,6 +17,10 @@ ext.dependency = [
         assertj_guava     : 'org.assertj:assertj-guava:2.0.0'
 ]
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
