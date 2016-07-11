@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Lists;
 import com.tngtech.archunit.core.ClassFileImportContext.BaseRawAccessRecord;
@@ -83,8 +84,8 @@ class ClassFileProcessor extends ClassVisitor {
 
     public JavaClasses process(ClassFileSource source) {
         ClassFileProcessor child = new ClassFileProcessor();
-        for (InputStream stream : source) {
-            try (InputStream s = stream) {
+        for (Supplier<InputStream> stream : source) {
+            try (InputStream s = stream.get()) {
                 new ClassReader(s).accept(child, 0);
             } catch (IOException e) {
                 throw new RuntimeException(e);

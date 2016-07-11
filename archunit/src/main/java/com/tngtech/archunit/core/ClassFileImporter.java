@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 
 import static java.util.Collections.singletonList;
@@ -64,10 +65,10 @@ public class ClassFileImporter {
     }
 
     private ClassFileSource unify(final List<ClassFileSource> sources) {
-        final Iterable<InputStream> concatenatedStreams = Iterables.concat(sources);
+        final Iterable<Supplier<InputStream>> concatenatedStreams = Iterables.concat(sources);
         return new ClassFileSource() {
             @Override
-            public Iterator<InputStream> iterator() {
+            public Iterator<Supplier<InputStream>> iterator() {
                 return concatenatedStreams.iterator();
             }
         };

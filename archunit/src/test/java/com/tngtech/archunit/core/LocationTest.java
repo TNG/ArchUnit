@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 
+import com.google.common.base.Supplier;
 import org.junit.Test;
 
 import static com.google.common.io.ByteStreams.toByteArray;
@@ -61,8 +62,10 @@ public class LocationTest {
         ClassFileSource source = Location.of(urlOfOwnClass()).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
-        for (InputStream stream : source) {
-            importedFiles.add(asList(toByteArray(stream)));
+        for (Supplier<InputStream> stream : source) {
+            try (InputStream s = stream.get()) {
+                importedFiles.add(asList(toByteArray(s)));
+            }
         }
         assertThat(importedFiles).as("Imported Files as byte arrays")
                 .contains(asList(toByteArray(streamOfOwnClass())));
@@ -77,8 +80,10 @@ public class LocationTest {
         ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
-        for (InputStream stream : source) {
-            importedFiles.add(asList(toByteArray(stream)));
+        for (Supplier<InputStream> stream : source) {
+            try (InputStream s = stream.get()) {
+                importedFiles.add(asList(toByteArray(s)));
+            }
         }
         assertThat(importedFiles).as("Imported Files as byte arrays")
                 .contains(
