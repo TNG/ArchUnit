@@ -1,12 +1,12 @@
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.DescribedPredicate.AlwaysTrue;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ClosedArchRule.ClosedDescribable;
 import com.tngtech.archunit.lang.OpenArchRule.OpenDescribable;
+
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 
 /**
  * Base class for all rules about a specified set of objects of interest
@@ -17,7 +17,7 @@ import com.tngtech.archunit.lang.OpenArchRule.OpenDescribable;
  * <br/><br/><pre><code>
  * all(classes).should("do something").assertedBy(conditionThatDetectsThis)
  * </code></pre>
- * If you want to define a rule for later use, use {@link #rule(InputTransformer)},
+ * If you want to define a rule for later use, use {@link #all(InputTransformer)},
  * for example
  * <br/><br/><pre><code>
  * all(services).should("not access the ui").assertedBy(conditionThatDetectsThis)
@@ -56,18 +56,50 @@ public abstract class ArchRule<T> {
 
     public static <TYPE, ITERABLE extends Iterable<TYPE> & HasDescription>
     ClosedDescribable<TYPE, ITERABLE> all(ITERABLE iterable) {
-        return new ClosedDescribable<>(iterable);
+        return priority(MEDIUM).all(iterable);
     }
 
-    public static <TYPE> AlwaysTrue<TYPE> all(Class<TYPE> type) {
-        return DescribedPredicate.all(type);
+    /**
+     * Takes an {@link InputTransformer} to specify how the set of objects of interest is to be created
+     * from {@link JavaClasses} (which are the general input obtained from a
+     * {@link com.tngtech.archunit.core.ClassFileImporter ClassFileImporter}). The most simple {@link InputTransformer}
+     * is {@link #classes()}, which simply forwards the {@link JavaClasses} as a collection of {@link JavaClass}.
+     *
+     * @param inputTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
+     * @param <TYPE>           The target type to which the {@link ArchCondition ArchCondition&lt;TYPE&gt;} will refer to
+     * @return An {@link OpenDescribable OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRule ArchRule&lt;TYPE&gt;}
+     */
+    public static <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
+        return priority(MEDIUM).all(inputTransformer);
     }
 
-    public static OpenDescribable<JavaClass> rule(DescribedPredicate<JavaClass> selector) {
-        return rule(InputTransformer.Of.predicate(selector));
+    public static Creator priority(Priority priority) {
+        return new Creator(priority);
     }
 
-    public static <TYPE> OpenDescribable<TYPE> rule(InputTransformer<TYPE> inputTransformer) {
-        return new OpenDescribable<>(inputTransformer);
+    public static InputTransformer<JavaClass> classes() {
+        return new InputTransformer<JavaClass>("classes") {
+            @Override
+            public JavaClasses transform(JavaClasses collection) {
+                return collection;
+            }
+        };
+    }
+
+    public static class Creator {
+        private final Priority priority;
+
+        private Creator(Priority priority) {
+            this.priority = priority;
+        }
+
+        public <TYPE, ITERABLE extends Iterable<TYPE> & HasDescription>
+        ClosedDescribable<TYPE, ITERABLE> all(ITERABLE iterable) {
+            return new ClosedDescribable<>(iterable, priority);
+        }
+
+        public <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
+            return new OpenDescribable<>(inputTransformer, priority);
+        }
     }
 }

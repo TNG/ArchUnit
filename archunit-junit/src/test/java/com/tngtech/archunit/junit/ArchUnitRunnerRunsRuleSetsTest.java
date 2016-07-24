@@ -18,13 +18,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.DescribedPredicate.all;
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
-import static com.tngtech.archunit.lang.ArchRule.rule;
+import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -94,8 +94,8 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         public static final String someMethodRuleName = "someMethodRule";
 
         @ArchTest
-        public static final ArchRule<JavaClass> someFieldRule = rule(all(JavaClass.class)).should("satisfy something")
-                .assertedBy(new ArchCondition<JavaClass>() {
+        public static final ArchRule<JavaClass> someFieldRule = all(classes())
+                .should(new ArchCondition<JavaClass>("satisfy something") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                     }

@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.DescribedPredicate.all;
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
@@ -28,8 +27,10 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeAr
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.SATISFIED_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTest.NO_RULE_AT_ALL_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
-import static com.tngtech.archunit.lang.ArchRule.rule;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
+import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -158,16 +159,16 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         public static final ArchRule<JavaClass> someSatisfiedRule =
-                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED);
+                all(classes()).should(BE_SATISFIED);
 
         @ArchTest
         public static final ArchRule<JavaClass> someFailingRule =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
+                all(classes()).should(NEVER_BE_SATISFIED);
 
         @ArchIgnore
         @ArchTest
         public static final ArchRule<JavaClass> someIgnoredRule =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
+                all(classes()).should(NEVER_BE_SATISFIED);
     }
 
     @AnalyseClasses(packages = "some.pkg")
@@ -177,7 +178,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         private ArchRule<JavaClass> ruleWithWrongModifier =
-                rule(all(JavaClass.class)).should("satisfy something").assertedBy(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED);
+                all(classes()).should(BE_SATISFIED);
 
         @ArchTest
         public static Object noRuleAtAll = new Object();
@@ -191,10 +192,10 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         public static final ArchRule<JavaClass> someRuleOne =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
+                all(classes()).should(NEVER_BE_SATISFIED);
 
         @ArchTest
         public static final ArchRule<JavaClass> someRuleTwo =
-                rule(all(JavaClass.class)).should("satisfy something, but don't").assertedBy(never(ArchUnitRunnerTestUtils.ALWAYS_SATISFIED));
+                all(classes()).should(NEVER_BE_SATISFIED);
     }
 }

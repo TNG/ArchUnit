@@ -13,9 +13,9 @@ import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.classAccessesField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.classGetsField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.classSetsField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -29,32 +29,32 @@ public class ClassAccessesFieldConditionTest {
     @DataPoint
     public static final PositiveTestCase existingGetAccess = positiveTestCase()
             .accessInfo(getAccess)
-            .condition(classGetsField(TargetClass.class, getAccess.targetName));
+            .condition(getField(TargetClass.class, getAccess.targetName));
 
     @DataPoint
     public static final NegativeTestCase nonExistingGetAccess = negativeTestCase()
             .accessInfo(getAccess)
-            .condition(classGetsField(TargetClass.class, "nonExisting"));
+            .condition(getField(TargetClass.class, "nonExisting"));
 
     @DataPoint
     public static final PositiveTestCase existingSetAccess = positiveTestCase()
             .accessInfo(setAccess)
-            .condition(classSetsField(TargetClass.class, setAccess.targetName));
+            .condition(setField(TargetClass.class, setAccess.targetName));
 
     @DataPoint
     public static final NegativeTestCase nonExistingSetAccess = negativeTestCase()
             .accessInfo(setAccess)
-            .condition(classSetsField(TargetClass.class, "nonExisting"));
+            .condition(setField(TargetClass.class, "nonExisting"));
 
     @DataPoint
     public static final PositiveTestCase existingArbitraryAccess = positiveTestCase()
             .accessInfo(getAccess)
-            .condition(classAccessesField(TargetClass.class, TargetClass.publicStringField));
+            .condition(accessField(TargetClass.class, TargetClass.publicStringField));
 
     @DataPoint
     public static final NegativeTestCase nonExistingArbitraryAccess = negativeTestCase()
             .accessInfo(getAccess)
-            .condition(classAccessesField(TargetClass.class, "nonExisting"));
+            .condition(accessField(TargetClass.class, "nonExisting"));
 
     @Theory
     public void condition_works(PositiveTestCase testCase) {

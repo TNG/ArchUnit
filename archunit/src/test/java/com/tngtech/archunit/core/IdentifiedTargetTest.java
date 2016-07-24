@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,7 +15,7 @@ public class IdentifiedTargetTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private static final FluentPredicate<Method> IN_TEST_CLASSES = new FluentPredicate<Method>() {
+    private static final Predicate<Method> IN_TEST_CLASSES = new Predicate<Method>() {
         @SuppressWarnings("unchecked")
         @Override
         public boolean apply(Method input) {
@@ -67,7 +68,12 @@ public class IdentifiedTargetTest {
 
     @Test
     public void getOrThrow_throws_exception_if_target_was_not_identified() {
-        IdentifiedTarget<Field> target = IdentifiedTarget.ofField(getClass(), FluentPredicate.<Field>alwaysFalse());
+        IdentifiedTarget<Field> target = IdentifiedTarget.ofField(getClass(), new Predicate<Field>() {
+            @Override
+            public boolean apply(Field input) {
+                return false;
+            }
+        });
 
         thrown.expectMessage("my custom message with 1 arg");
         target.getOrThrow("my custom message with %d arg", 1);

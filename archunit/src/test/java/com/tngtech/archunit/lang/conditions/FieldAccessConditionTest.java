@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndName;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +25,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess getAccess = accessFromCallerToTargetWithType(GET);
 
         FieldAccessCondition getFieldCondition = new FieldGetAccessCondition(
-                ownerAndName(TargetClass.class, getAccess.getTarget().getName()));
+                ownerAndNameAre(TargetClass.class, getAccess.getTarget().getName()));
         ConditionEvents events = new ConditionEvents();
         getFieldCondition.check(getAccess, events);
         boolean satisfied = !events.containViolation();
@@ -40,7 +40,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess setAccess = accessFromCallerToTargetWithType(SET);
 
         FieldAccessCondition getFieldCondition = new FieldGetAccessCondition(
-                ownerAndName(TargetClass.class, setAccess.getTarget().getName()));
+                ownerAndNameAre(TargetClass.class, setAccess.getTarget().getName()));
         ConditionEvents events = new ConditionEvents();
         getFieldCondition.check(setAccess, events);
         boolean satisfied = !events.containViolation();
@@ -55,7 +55,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess setAccess = accessFromCallerToTargetWithType(SET);
 
         FieldAccessCondition setFieldCondition = new FieldSetAccessCondition(
-                ownerAndName(TargetClass.class, setAccess.getTarget().getName()));
+                ownerAndNameAre(TargetClass.class, setAccess.getTarget().getName()));
         ConditionEvents events = new ConditionEvents();
         setFieldCondition.check(setAccess, events);
         boolean satisfied = !events.containViolation();
@@ -70,7 +70,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess getAccess = accessFromCallerToTargetWithType(GET);
 
         FieldAccessCondition getFieldCondition = new FieldAccessCondition(
-                ownerAndName(TargetClass.class, getAccess.getTarget().getName()));
+                ownerAndNameAre(TargetClass.class, getAccess.getTarget().getName()));
         ConditionEvents events = new ConditionEvents();
         getFieldCondition.check(getAccess, events);
         boolean satisfied = !events.containViolation();

@@ -11,24 +11,19 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-import static com.tngtech.archunit.lang.ArchRule.rule;
+import static com.tngtech.archunit.lang.ArchRule.all;
 
 public class DependencyRules {
-    public static ArchCondition<Slice> noCycles() {
+    public static ArchCondition<Slice> beFreeOfCycles() {
         return new SliceCycleArchCondition();
     }
 
-    public static ArchRule<Slice> noCyclesIn(Slices.Transformer inputTransformer) {
-        return rule(inputTransformer).should("be free of cycles").assertedBy(noCycles());
+    public static ArchRule<Slice> slicesShouldOnlyDependOnTheirOwnSliceIn(Slices.Transformer inputTransformer) {
+        return all(inputTransformer).should(onlyDependOnTheirOwnSlice(inputTransformer));
     }
 
-    public static ArchRule<Slice> slicesShouldNotDependOnEachOtherIn(Slices.Transformer inputTransformer) {
-        return rule(inputTransformer).should("only depend on their own slice")
-                .assertedBy(slicesDontDependOnEachOther(inputTransformer));
-    }
-
-    private static ArchCondition<Slice> slicesDontDependOnEachOther(final Slices.Transformer inputTransformer) {
-        return new ArchCondition<Slice>() {
+    private static ArchCondition<Slice> onlyDependOnTheirOwnSlice(final Slices.Transformer inputTransformer) {
+        return new ArchCondition<Slice>("only depend on their own slice") {
             @Override
             public void check(Slice slice, ConditionEvents events) {
                 Slices dependencySlices = inputTransformer.transform(slice.getDependencies());

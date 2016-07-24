@@ -30,6 +30,10 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();
 
+    public SliceCycleArchCondition() {
+        super("be free of cycles");
+    }
+
     @Override
     public void check(Slice slice, ConditionEvents events) {
         initGraph();

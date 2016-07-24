@@ -13,21 +13,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.collect.Collections2.filter;
-import static com.tngtech.archunit.core.GuavaConversion.toGuava;
 
-public final class ReflectionUtils {
+public class ReflectionUtils {
     private ReflectionUtils() {
     }
 
-    public static <T> T newInstanceOf(Class<T> type) {
-        try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ReflectionException(e);
-        }
-    }
-
-    public static Class<?> classForName(String name) {
+    static Class<?> classForName(String name) {
         try {
             return Class.forName(name);
         } catch (Throwable e) {
@@ -35,7 +26,7 @@ public final class ReflectionUtils {
         }
     }
 
-    public static Set<Class<?>> getAllSuperTypes(Class<?> type) {
+    static Set<Class<?>> getAllSuperTypes(Class<?> type) {
         if (type == null) {
             return Collections.emptySet();
         }
@@ -49,7 +40,7 @@ public final class ReflectionUtils {
         return result.build();
     }
 
-    public static Collection<Constructor<?>> getAllConstructors(Class<?> owner, FluentPredicate<? super Constructor<?>> predicate) {
+    public static Collection<Constructor<?>> getAllConstructors(Class<?> owner, Predicate<? super Constructor<?>> predicate) {
         return filter(getAll(owner, new Collector<Constructor<?>>() {
             @Override
             protected Collection<? extends Constructor<?>> extractFrom(Class<?> type) {
@@ -58,7 +49,7 @@ public final class ReflectionUtils {
         }), toGuava(predicate));
     }
 
-    public static Collection<Field> getAllFields(Class<?> owner, FluentPredicate<? super Field> predicate) {
+    public static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
         return filter(getAll(owner, new Collector<Field>() {
             @Override
             protected Collection<? extends Field> extractFrom(Class<?> type) {
@@ -67,7 +58,7 @@ public final class ReflectionUtils {
         }), toGuava(predicate));
     }
 
-    public static Collection<Method> getAllMethods(Class<?> owner, FluentPredicate<? super Method> predicate) {
+    public static Collection<Method> getAllMethods(Class<?> owner, Predicate<? super Method> predicate) {
         return filter(getAll(owner, new Collector<Method>() {
             @Override
             protected Collection<? extends Method> extractFrom(Class<?> type) {
@@ -91,5 +82,19 @@ public final class ReflectionUtils {
         }
 
         protected abstract Collection<? extends T> extractFrom(Class<?> type);
+    }
+
+    // NOTE: Don't use Guava classes in public API
+    public interface Predicate<T> {
+        boolean apply(T input);
+    }
+
+    private static <T> com.google.common.base.Predicate<T> toGuava(final Predicate<T> predicate) {
+        return new com.google.common.base.Predicate<T>() {
+            @Override
+            public boolean apply(T input) {
+                return predicate.apply(input);
+            }
+        };
     }
 }

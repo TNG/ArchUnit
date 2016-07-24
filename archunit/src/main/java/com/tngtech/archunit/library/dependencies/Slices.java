@@ -15,6 +15,7 @@ import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.InputTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Dependency.toTargetClasses;
 import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
@@ -65,15 +66,15 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
      * @see ClosedCreator#matching(String)
      */
     public static Transformer matching(String packageIdentifier) {
-        return new Transformer(packageIdentifier);
+        return new Transformer(packageIdentifier, String.format("slices matching '%s'", packageIdentifier));
     }
 
-    public static class Transformer implements InputTransformer<Slice> {
+    public static class Transformer extends InputTransformer<Slice> {
         private final String packageIdentifier;
         private Optional<String> namingPattern = Optional.absent();
-        private Optional<String> description = Optional.absent();
 
-        private Transformer(String packageIdentifier) {
+        private Transformer(String packageIdentifier, String description) {
+            super(description);
             this.packageIdentifier = packageIdentifier;
         }
 
@@ -81,13 +82,17 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
          * @see ClosedCreator#namingSlices(String)
          */
         public Transformer namingSlices(String pattern) {
-            this.namingPattern = Optional.of(pattern);
+            return namingSlices(Optional.of(pattern));
+        }
+
+        Transformer namingSlices(Optional<String> pattern) {
+            this.namingPattern = checkNotNull(pattern);
             return this;
         }
 
+        @Override
         public Transformer as(String description) {
-            this.description = Optional.of(description);
-            return this;
+            return new Transformer(packageIdentifier, description).namingSlices(namingPattern);
         }
 
         @Override
@@ -97,10 +102,7 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
             if (namingPattern.isPresent()) {
                 slices.namingSlices(namingPattern.get());
             }
-            if (description.isPresent()) {
-                slices.as(description.get());
-            }
-            return slices;
+            return slices.as(getDescription());
         }
 
         public Slices of(JavaClasses classes) {
@@ -145,7 +147,7 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
                 Optional<List<String>> groups = matcher.match(clazz.getPackage()).transform(TO_GROUPS);
                 sliceBuilders.add(groups, clazz);
             }
-            return new Slices(sliceBuilders.build());
+            return new Slices(sliceBuilders.build()).as(String.format("slices matching '%s'", packageIdentifier));
         }
     }
 

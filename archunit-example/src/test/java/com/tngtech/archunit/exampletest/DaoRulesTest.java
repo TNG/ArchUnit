@@ -14,13 +14,13 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.DescribedPredicate.are;
 import static com.tngtech.archunit.core.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.classCallsMethodWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.classResidesIn;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetClassIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetOwnerIs;
 
 public class DaoRulesTest {
     private JavaClasses classes;
@@ -33,25 +33,25 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
-        all(classes.that(are(named(".*Dao")).as("DAOs")))
-                .should("reside in a package 'dao'")
-                .assertedBy(classResidesIn("..dao.."));
+        all(classes.that(are(named(".*Dao"))).as("DAOs"))
+                .should(resideInAPackage("..dao.."));
     }
 
     @Ignore
     @Test
     public void only_DAOs_may_use_the_EntityManager() {
-        JavaClasses classesThatAreNoDaos = classes.that(not(resideIn("..dao..")).as("classes that are no DAOs"));
+        JavaClasses classesThatAreNoDaos = classes.that(not(resideIn("..dao.."))).as("classes that are no DAOs");
 
-        all(classesThatAreNoDaos).should("not access the " + EntityManager.class.getSimpleName()).
-                assertedBy(never(classCallsMethodWhere(targetClassIs(EntityManager.class))));
+        all(classesThatAreNoDaos)
+                .should(never(callMethodWhere(targetOwnerIs(EntityManager.class)))
+                        .as("not access the " + EntityManager.class.getSimpleName()));
     }
 
     @Ignore
     @Test
     public void entities_must_reside_in_a_domain_package() {
-        JavaClasses entities = classes.that(are(annotatedWith(Entity.class)).as("Entities"));
+        JavaClasses entities = classes.that(are(annotatedWith(Entity.class))).as("Entities");
 
-        all(entities).should("reside in a package 'domain'").assertedBy(classResidesIn("..domain.."));
+        all(entities).should(resideInAPackage("..domain.."));
     }
 }

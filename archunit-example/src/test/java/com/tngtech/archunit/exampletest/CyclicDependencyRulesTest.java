@@ -8,7 +8,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.library.dependencies.DependencyRules.noCycles;
+import static com.tngtech.archunit.library.dependencies.DependencyRules.beFreeOfCycles;
 
 public class CyclicDependencyRulesTest {
     private JavaClasses classes;
@@ -22,47 +22,41 @@ public class CyclicDependencyRulesTest {
     @Test
     public void slices_should_not_contain_cyclic_dependencies_by_simple_method_calls() {
         all(Slices.of(classes).matching("..(simplecycle).(*)..").namingSlices("$2 of $1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 
     @Ignore
     @Test
     public void slices_should_not_contain_cyclic_dependencies_by_simple_constructor_calls() {
         all(Slices.of(classes).matching("..(constructorcycle).(*)..").namingSlices("$2 of $1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 
     @Ignore
     @Test
     public void slices_should_not_contain_cyclic_dependencies_by_inheritance() {
         all(Slices.of(classes).matching("..(inheritancecycle).(*)..").namingSlices("$2 of $1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 
     @Ignore
     @Test
     public void slices_should_not_contain_cyclic_dependencies_by_field_access() {
         all(Slices.of(classes).matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 
     @Ignore
     @Test
     public void simple_cyclic_scenario() {
         all(Slices.of(classes).matching("..simplescenario.(*)..").namingSlices("$1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 
     @Ignore
     @Test
     public void slices_should_not_contain_cyclic_dependencies() {
         all(Slices.of(classes).matching("..(complexcycles).(*)..").namingSlices("$2 of $1"))
-                .should("be free of cycles")
-                .assertedBy(noCycles());
+                .should(beFreeOfCycles());
     }
 }

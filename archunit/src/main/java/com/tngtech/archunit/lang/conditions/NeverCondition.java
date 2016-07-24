@@ -8,6 +8,7 @@ class NeverCondition<T> extends ArchCondition<T> {
     private final ArchCondition<T> condition;
 
     NeverCondition(ArchCondition<T> condition) {
+        super("never " + condition.getDescription());
         this.condition = condition;
     }
 

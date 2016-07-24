@@ -4,26 +4,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 
+import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.tngtech.archunit.core.FluentPredicate.alwaysTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReflectionUtilsTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Test
-    public void new_Instance() {
-        ArrayList list = ReflectionUtils.newInstanceOf(ArrayList.class);
-
-        assertThat(list.isEmpty());
-    }
 
     @Test
     public void getAllFields() {
@@ -39,7 +31,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllConstructors() {
-        Collection<Constructor<?>> constructors = ReflectionUtils.getAllConstructors(Child.class, new FluentPredicate<Constructor<?>>() {
+        Collection<Constructor<?>> constructors = ReflectionUtils.getAllConstructors(Child.class, new Predicate<Constructor<?>>() {
             @Override
             public boolean apply(Constructor<?> input) {
                 return input.getDeclaringClass() == Child.class || input.getDeclaringClass() == LowerMiddle.class;
@@ -88,22 +80,31 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllMethods_of_interface() {
-        assertThat(ReflectionUtils.getAllMethods(SubInterface.class, alwaysTrue()))
+        assertThat(ReflectionUtils.getAllMethods(SubInterface.class, always(true)))
                 .containsOnly(
                         method(SomeInterface.class, "foo"),
                         method(OtherInterface.class, "bar"));
     }
 
+    private <T> Predicate<T> always(final boolean bool) {
+        return new Predicate<T>() {
+            @Override
+            public boolean apply(T input) {
+                return bool;
+            }
+        };
+    }
+
     @Test
     public void getAllFields_of_interface() {
-        assertThat(ReflectionUtils.getAllFields(SubInterface.class, alwaysTrue()))
+        assertThat(ReflectionUtils.getAllFields(SubInterface.class, always(true)))
                 .containsOnly(
                         field(SomeInterface.class, "SOME_CONSTANT"),
                         field(OtherInterface.class, "OTHER_CONSTANT"));
     }
 
-    private FluentPredicate<Member> named(final String name) {
-        return new FluentPredicate<Member>() {
+    private Predicate<Member> named(final String name) {
+        return new Predicate<Member>() {
             @Override
             public boolean apply(Member input) {
                 return input.getName().equals(name);

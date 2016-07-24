@@ -1,15 +1,16 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.tngtech.archunit.core.FluentPredicate;
+import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
 class MethodCallCondition extends ArchCondition<JavaCall<?>> {
-    private final FluentPredicate<JavaCall<?>> callIdentifier;
+    private final DescribedPredicate<JavaCall<?>> callIdentifier;
 
-    MethodCallCondition(FluentPredicate<JavaCall<?>> callIdentifier) {
+    MethodCallCondition(DescribedPredicate<JavaCall<?>> callIdentifier) {
+        super("call method where " + callIdentifier.getDescription());
         this.callIdentifier = callIdentifier;
     }
 

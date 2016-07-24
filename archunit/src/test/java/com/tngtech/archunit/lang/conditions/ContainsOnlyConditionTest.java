@@ -8,7 +8,7 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.conditions.ArchConditions.containsOnly;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Arrays.asList;
 
@@ -16,7 +16,7 @@ public class ContainsOnlyConditionTest {
     static final List<SerializableObject> TWO_SERIALIZABLE_OBJECTS = asList(new SerializableObject(), new SerializableObject());
     static final List<Object> ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT = asList(new SerializableObject(), new Object());
 
-    static final ArchCondition<Object> IS_SERIALIZABLE = new ArchCondition<Object>() {
+    static final ArchCondition<Object> IS_SERIALIZABLE = new ArchCondition<Object>("be serializable") {
         @Override
         public void check(Object item, ConditionEvents events) {
             boolean satisfied = item instanceof Serializable;
@@ -31,12 +31,12 @@ public class ContainsOnlyConditionTest {
     @Test
     public void satisfied_works_and_description_contains_mismatches() {
         ConditionEvents events = new ConditionEvents();
-        containsOnly(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
+        containOnlyElementsThat(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
 
         assertThat(events).containViolations(isSerializableMessageFor(Object.class));
 
         events = new ConditionEvents();
-        containsOnly(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
+        containOnlyElementsThat(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
 
         assertThat(events).containNoViolation();
     }
@@ -44,7 +44,7 @@ public class ContainsOnlyConditionTest {
     @Test
     public void inverting_works() throws Exception {
         ConditionEvents events = new ConditionEvents();
-        containsOnly(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
+        containOnlyElementsThat(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
 
         assertThat(events).containNoViolation();
         assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);

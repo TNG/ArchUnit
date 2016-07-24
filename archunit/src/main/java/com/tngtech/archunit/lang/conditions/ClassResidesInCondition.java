@@ -9,6 +9,7 @@ class ClassResidesInCondition extends ArchCondition<JavaClass> {
     private final String packageIdentifier;
 
     ClassResidesInCondition(String packageIdentifier) {
+        super(String.format("reside in a package '%s'", packageIdentifier));
         this.packageIdentifier = packageIdentifier;
     }
 

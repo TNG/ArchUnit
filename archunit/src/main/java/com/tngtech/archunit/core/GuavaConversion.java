@@ -8,7 +8,7 @@ import com.google.common.base.Predicate;
  * scanning classes from the classpath.
  */
 class GuavaConversion {
-    static <T> Predicate<T> toGuava(final FluentPredicate<T> predicate) {
+    static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
         return new Predicate<T>() {
             @Override
             public boolean apply(T input) {

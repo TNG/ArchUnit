@@ -8,7 +8,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.Slices;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldNotDependOnEachOtherIn;
+import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldOnlyDependOnTheirOwnSliceIn;
 
 @RunWith(ArchUnitRunner.class)
 @AnalyseClasses(packages = "com.tngtech.archunit.example")
@@ -16,7 +16,7 @@ public class SlicesIsolationTest {
     @ArchIgnore
     @ArchTest
     public static final ArchRule<?> controllers_should_only_use_their_own_slice =
-            slicesShouldNotDependOnEachOtherIn(
+            slicesShouldOnlyDependOnTheirOwnSliceIn(
                     Slices.matching("..controller.(*)..")
                             .namingSlices("Controller $1").as("Controllers"));
 }

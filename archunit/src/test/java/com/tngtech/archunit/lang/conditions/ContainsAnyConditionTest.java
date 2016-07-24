@@ -5,7 +5,7 @@ import java.util.List;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.conditions.ArchConditions.containsAny;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.IS_SERIALIZABLE;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.SerializableObject;
@@ -21,18 +21,18 @@ public class ContainsAnyConditionTest {
     @Test
     public void satisfied_works_and_description_contains_mismatches() {
         ConditionEvents events = new ConditionEvents();
-        containsAny(IS_SERIALIZABLE).check(TWO_NONSERIALIZABLE_OBJECTS, events);
+        containAnyElementThat(IS_SERIALIZABLE).check(TWO_NONSERIALIZABLE_OBJECTS, events);
         assertThat(events).containViolations(messageForTwoTimes(isSerializableMessageFor(Object.class)));
 
         events = new ConditionEvents();
-        containsAny(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
+        containAnyElementThat(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
         assertThat(events).containNoViolation();
     }
 
     @Test
     public void inverting_works() throws Exception {
         ConditionEvents events = new ConditionEvents();
-        containsAny(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
+        containAnyElementThat(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
 
         assertThat(events).containNoViolation();
         assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);

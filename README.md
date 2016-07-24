@@ -77,8 +77,7 @@ public void setUp() {
 @Test
 public void one_should_not_access_two() {
     all(classes.that(resideIn("..one..")))
-            .should("not access classes that reside in '..two..'")
-            .assertedBy(never(classAccessesPackage("..two..")));
+            .should(never(accessClassesIn("..two..")));
 }
 
 // ...
@@ -89,7 +88,7 @@ If this rule is violated, the test will fail with an error message like
 ```
 com.tngtech.archunit.lang.ArchAssertionError: 
 Architecture Violation [Priority: MEDIUM] - 
-Rule 'classes that reside in '..one..' should not access classes that reside in '..two..'' was violated:
+Rule 'classes that reside in '..one..' should never access classes that reside in '..two..'' was violated:
 Method <my.one.ClassInOne.illegalAccessToTwo()> calls method <my.two.ClassInTwo.doSomething()> in (ClassInOne.java:12)
 Method <my.one.ClassInOne.illegalAccessToTwo()> calls constructor <my.two.ClassInTwo.<init>()> in (ClassInOne.java:11)
 Method <my.one.ClassInOne.illegalAccessToTwo()> gets field <my.two.ClassInTwo.someField> in (ClassInOne.java:10)
@@ -99,12 +98,11 @@ The syntax to specify a rule this way, is
 
 ```
 all(<<objectsToTest>>)
-    .should(<<ruleText>>)
-    .assertedBy(<<conditionThatNeedsToHoldForAllObjects>>)
+    .should(<<conditionThatNeedsToHoldForAllObjects>>)
 ```
 
-Thus `classAccessesPackage("..")` is a condition of a JavaClass, matching classes that access the package.
-Consequently `never(classAccessesPackage(".."))` is again a condition matching the negative case, and the rule fails
+Thus `accessClassesIn("..")` is a condition of a JavaClass, matching classes that access the package.
+Consequently `never(accessClassesIn(".."))` is again a condition matching the negative case, and the rule fails
 if any element of `<<objectsToTest>>` violates the condition.
 
 ## Writing custom rules
@@ -121,27 +119,27 @@ architecture or code style test, it's easy to define custom conditions and rules
 
 @Test
 public void core_classes_shouldnt_access_remote_endpoints() {
-    DescribedPredicate<JavaClass> areCore = new DescribedPredicate<JavaClass>(){
+    DescribedPredicate<JavaClass> areCore = new DescribedPredicate<JavaClass>("are annotated with @Core"){
         @Override
         public boolean apply( JavaClass input) {
             return input.isAnnotationPresent(Core.class);
         }
-    }.as("Classes annotated with @Core");
-    
-    ArchCondition<JavaClass> classAccessesTargetAnnotatedWithRemote = new ArchCondition<JavaClass>() {
-        @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            for (JavaAccess<?> access : item.getAllAccesses()) {
-                if (access.getTarget().isAnnotationPresent(Remote.class)) {
-                    events.add(ConditionEvent.violated(
-                            "Target is annotated with @Remote where " + access.getDescription()));
-                }
-            }
-        }
     };
+    
+    ArchCondition<JavaClass> notCallRemoteApiEndpoints = 
+            new ArchCondition<JavaClass>("not call remote api endpoints") {
+                @Override
+                public void check(JavaClass item, ConditionEvents events) {
+                    for (JavaAccess<?> access : item.getAllAccesses()) {
+                        if (access.getTarget().isAnnotationPresent(Remote.class)) {
+                            events.add(ConditionEvent.violated(
+                                    "Target is annotated with @Remote where " + access.getDescription()));
+                        }
+                    }
+                }
+            };
 
-    all(classes.that(areCore)).should("not call remote api endpoints")
-            .assertedBy(classAccessesTargetAnnotatedWithRemote);
+    all(classes.that(areCore)).should(notCallRemoteApiEndpoints);
 }
 ```
 
@@ -149,7 +147,7 @@ A resulting violation could be reported for example as
 
 ```
 com.tngtech.archunit.lang.ArchAssertionError: 
-Architecture Violation [Priority: MEDIUM] - Rule 'Classes annotated with @Core should not call remote api endpoints' was violated:
+Architecture Violation [Priority: MEDIUM] - Rule 'classes that are annotated with @Core should not call remote api endpoints' was violated:
 Target is annotated with @Remote where 
 Method <com.tngtech.archunit.example.foo.SomeCoreClass.accessRemote()> 
 calls method <com.tngtech.archunit.example.foo.SomeRemoteEndpoint.execute()> in (SomeCoreClass.java:6)
@@ -165,9 +163,8 @@ classes by URLs. Thus when several tests, importing classes from the same URLs, 
 The format to specify a rule without yet passing the classes to test in, is the following:
 
 ```Java
-rule(all(JavaClass.class).that(resideIn("..one..")))
-        .should("not access classes that reside in '..two..'")
-        .assertedBy(never(classAccessesPackage("..two..")));
+all(classes()).that(resideIn("..one..")))
+        .should(never(accessClassesIn("..two..")));
 ```
 
 This way the rule can easily be reused and it can be evaluated using the `ArchUnitRunner`:
@@ -179,9 +176,8 @@ public class MyArchTest {
     @ArchTest
     public static final ArchRule<JavaClass> oneShouldntAccessTwo = 
             // This could of course easily come from a central library instead of being defined here
-            rule(all(JavaClass.class).that(resideIn("..one..")))
-                    .should("not access classes that reside in '..two..'")
-                    .assertedBy(never(classAccessesPackage("..two..")));
+            all(classes()).that(resideIn("..one.."))
+                    .should(never(accessClassesIn("..two..")));
 }
 ```
 
@@ -198,8 +194,7 @@ public class MyArchTest {
     @ArchTest
     public static void oneShouldntAccessTwoCouldAlsoBeSpecifiedAsMethod(JavaClasses classes) {
         all(classes).that(resideIn("..one.."))
-                .should("not access classes that reside in '..two..'")
-                .assertedBy(never(classAccessesPackage("..two..")));
+                .should(never(accessClassesIn("..two..")));
     }
 }
 ```

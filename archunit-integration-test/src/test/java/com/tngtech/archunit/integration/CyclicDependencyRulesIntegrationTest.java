@@ -52,7 +52,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromSimpleCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of simplecycle")
                         .byAccess(from(SliceOneCallingMethodInSliceTwo.class, "callSliceTwo")
@@ -77,7 +77,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromConstructorCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..(constructorcycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of constructorcycle")
                         .byAccess(from(SliceOneCallingConstructorInSliceTwo.class, "callSliceTwo")
@@ -98,7 +98,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromInheritanceCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..(inheritancecycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of inheritancecycle")
                         .byAccess(from(ClassThatInheritsFromSliceTwo.class, CONSTRUCTOR_NAME)
@@ -119,7 +119,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromFieldAccessCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..(fieldaccesscycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of fieldaccesscycle")
                         .byAccess(from(SliceOneAccessingFieldInSliceTwo.class, "accessSliceTwo")
@@ -140,7 +140,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromSimpleCyclicScenario(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..simplescenario.(*)..' should be free of cycles")
                 .by(cycle().from("administration")
                         .byAccess(from(AdministrationService.class, "saveNewInvoice", Invoice.class)
                                 .toMethod(ReportService.class, "getReport", String.class)
@@ -167,7 +167,7 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
     }
 
     static void expectViolationFromComplexCyclicScenario(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("Slices should be free of cycles")
+        expectedViolation.ofRule("slices matching '..(complexcycles).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of complexcycles")
                         .byAccess(from(ClassOfMinimalCircleCallingSliceTwo.class, "callSliceTwo")
