@@ -35,17 +35,21 @@ subprojects {
     repositories {
         mavenCentral()
     }
+}
 
-    assemble.dependsOn(shadowJar)
+[':archunit', ':archunit-junit'].each {
+    project(it) {
+        assemble.dependsOn(shadowJar)
 
-    shadowJar {
-        classifier = ''
+        shadowJar {
+            classifier = ''
 
-        exclude 'org/apache/**'
-        exclude 'Log4j*'
-        exclude 'META-INF/**'
+            exclude 'org/apache/**'
+            exclude 'Log4j*'
+            exclude 'META-INF/**'
 
-        relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
-        relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
+            relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
+            relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
+        }
     }
 }
