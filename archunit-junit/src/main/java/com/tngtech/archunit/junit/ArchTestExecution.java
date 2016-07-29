@@ -57,7 +57,7 @@ public abstract class ArchTestExecution {
 
         @Override
         void notify(RunNotifier notifier) {
-            notifier.fireTestFinished(description);
+            // Do nothing
         }
     }
 

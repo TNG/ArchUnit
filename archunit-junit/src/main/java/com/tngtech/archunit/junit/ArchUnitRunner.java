@@ -91,6 +91,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         notifier.fireTestStarted(describeChild(child));
         JavaClasses classes = cache.get().getClassesToAnalyseFor(getTestClass().getJavaClass());
         child.evaluateOn(classes).notify(notifier);
+        notifier.fireTestFinished(describeChild(child));
     }
 
     static class SharedCache {
