@@ -10,6 +10,7 @@ class ContainsAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
 
     ContainsAnyCondition(ArchCondition<T> condition) {
+        super("contains any element that " + condition.getDescription());
         this.condition = condition;
     }
 

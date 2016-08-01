@@ -26,14 +26,19 @@ public class JavaClassesTest {
     public void restriction_on_classes_should_set_description() {
         JavaClasses onlySomeClass = ALL_CLASSES.that(haveTheNameOf(SomeClass.class));
 
-        assertThat(onlySomeClass.getDescription()).isEqualTo(SOME_CLASS.reflect().getSimpleName());
+        assertThat(onlySomeClass.getDescription()).
+                isEqualTo("classes that have the name " + SOME_CLASS.reflect().getSimpleName());
     }
 
     @Test
     public void restriction_on_classes_with_undescribed_predicate_should_keep_the_old_description() {
         JavaClasses allOriginalElements = ALL_CLASSES.that(EXIST);
 
-        assertThat(allOriginalElements.getDescription()).isEqualTo(ALL_CLASSES.getDescription());
+        assertThat(allOriginalElements.getDescription()).isEqualTo("classes that exist");
+
+        allOriginalElements = ALL_CLASSES.that(EXIST).as("customized");
+
+        assertThat(allOriginalElements.getDescription()).isEqualTo("customized");
     }
 
     @Test
@@ -56,7 +61,7 @@ public class JavaClassesTest {
     }
 
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {
-        return new DescribedPredicate<JavaClass>(clazz.getSimpleName()) {
+        return new DescribedPredicate<JavaClass>("have the name " + clazz.getSimpleName()) {
             @Override
             public boolean apply(JavaClass input) {
                 return input.reflect().getName().equals(clazz.getName());
@@ -64,7 +69,7 @@ public class JavaClassesTest {
         };
     }
 
-    private static final DescribedPredicate<JavaClass> EXIST = new DescribedPredicate<JavaClass>() {
+    private static final DescribedPredicate<JavaClass> EXIST = new DescribedPredicate<JavaClass>("exist") {
         @Override
         public boolean apply(JavaClass input) {
             return true;

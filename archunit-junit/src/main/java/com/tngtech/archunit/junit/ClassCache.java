@@ -9,8 +9,7 @@ import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;
 import com.tngtech.archunit.core.Locations;
-
-import static com.tngtech.archunit.core.ReflectionUtils.newInstanceOf;
+import com.tngtech.archunit.core.ReflectionException;
 
 class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
@@ -68,6 +67,14 @@ class ClassCache {
             }
         }
         return result;
+    }
+
+    private static <T> T newInstanceOf(Class<T> type) {
+        try {
+            return type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ReflectionException(e);
+        }
     }
 
     private void checkArgument(Class<?> testClass) {

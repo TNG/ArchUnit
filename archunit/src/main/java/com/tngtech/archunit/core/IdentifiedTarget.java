@@ -13,6 +13,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllConstructors;
@@ -27,16 +28,16 @@ class IdentifiedTarget<T extends Member> {
     }
 
     @SuppressWarnings("unchecked")
-    static IdentifiedTarget<Field> ofField(Class<?> owner, FluentPredicate<Field> predicate) {
+    static IdentifiedTarget<Field> ofField(Class<?> owner, Predicate<Field> predicate) {
         return identifyTarget(getAllFields(owner, predicate));
     }
 
     @SuppressWarnings("unchecked")
-    static IdentifiedTarget<Method> ofMethod(Class<?> owner, FluentPredicate<Method> predicate) {
+    static IdentifiedTarget<Method> ofMethod(Class<?> owner, Predicate<Method> predicate) {
         return identifyTarget(getAllMethods(owner, predicate));
     }
 
-    static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, FluentPredicate<Constructor<?>> predicate) {
+    static IdentifiedTarget<Constructor<?>> ofConstructor(Class<?> owner, Predicate<Constructor<?>> predicate) {
         return identifyTarget(getAllConstructors(owner, predicate));
     }
 

@@ -14,22 +14,22 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
 
     @Test
     @Override
-    public void classes_should_not_write_to_standard_streams_defined_by_hand() {
+    public void classes_should_not_access_standard_streams_defined_by_hand() {
         expectViolationByWritingToStandardStream(expectViolation);
 
-        super.classes_should_not_write_to_standard_streams_defined_by_hand();
+        super.classes_should_not_access_standard_streams_defined_by_hand();
     }
 
     @Test
     @Override
-    public void classes_should_not_write_to_standard_streams_from_library() {
+    public void classes_should_not_access_standard_streams_from_library() {
         expectViolationByWritingToStandardStream(expectViolation);
 
-        super.classes_should_not_write_to_standard_streams_from_library();
+        super.classes_should_not_access_standard_streams_from_library();
     }
 
     static void expectViolationByWritingToStandardStream(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("classes should not write to standard streams")
+        expectedViolation.ofRule("classes should not access standard streams")
                 .byAccess(from(ClassViolatingCodingRules.class, "printToStandardStream")
                         .accessing().field(System.class, "out")
                         .inLine(9))

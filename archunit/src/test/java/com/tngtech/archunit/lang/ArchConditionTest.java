@@ -20,7 +20,7 @@ public class ArchConditionTest {
     }
 
     private ArchCondition<Integer> greaterThan(final int number) {
-        return new ArchCondition<Integer>() {
+        return new ArchCondition<Integer>("greater than " + number) {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 events.add(new GreaterThanEvent(item, number));

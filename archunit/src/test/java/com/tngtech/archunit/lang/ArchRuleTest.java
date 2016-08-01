@@ -15,8 +15,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.tngtech.archunit.core.DescribedPredicate.all;
 import static com.tngtech.archunit.core.JavaClassesTest.SOME_CLASS;
+import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.Priority.LOW;
 import static java.util.Collections.singleton;
 
@@ -29,19 +30,17 @@ public class ArchRuleTest {
         thrown.expect(ArchAssertionError.class);
         thrown.expect(priority(LOW));
 
-        ArchRule.all(new DummyCollection()).should("satisfy something")
-                .withPriority(LOW)
-                .assertedBy(ALWAYS_VIOLATED);
+        ArchRule.priority(LOW).all(new DummyCollection())
+                .should(ALWAYS_BE_VIOLATED);
     }
 
     @Test
     public void priority_is_passed_on_open_rule() {
         thrown.expect(ArchAssertionError.class);
-        thrown.expect(priority(LOW));
+        thrown.expect(priority(HIGH));
 
-        ArchRule.rule(all(JavaClass.class)).should("satisfy something")
-                .withPriority(LOW)
-                .assertedBy(ALWAYS_VIOLATED)
+        ArchRule.priority(HIGH).all(classes())
+                .should(ALWAYS_BE_VIOLATED)
                 .check(JavaClassesTest.ALL_CLASSES);
     }
 
@@ -80,10 +79,11 @@ public class ArchRuleTest {
         }
     }
 
-    private static final ArchCondition<JavaClass> ALWAYS_VIOLATED = new ArchCondition<JavaClass>() {
-        @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            events.add(new ConditionEvent(false, "I'm violated"));
-        }
-    };
+    private static final ArchCondition<JavaClass> ALWAYS_BE_VIOLATED =
+            new ArchCondition<JavaClass>("always be violated") {
+                @Override
+                public void check(JavaClass item, ConditionEvents events) {
+                    events.add(new ConditionEvent(false, "I'm violated"));
+                }
+            };
 }

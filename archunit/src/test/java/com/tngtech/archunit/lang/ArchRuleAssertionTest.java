@@ -42,8 +42,7 @@ public class ArchRuleAssertionTest {
         expectAssertionErrorWithMessages("first", "second");
 
         all(javaClasses(ArchRuleAssertionTest.class))
-                .should("satisfy rule")
-                .assertedBy(errors("first", "second"));
+                .should(conditionThatReportsErrors("first", "second"));
     }
 
     @Test
@@ -53,8 +52,7 @@ public class ArchRuleAssertionTest {
         expectAssertionErrorWithMessages("third one more", "fourth");
 
         all(javaClasses(ArchRuleAssertionTest.class))
-                .should("satisfy rule")
-                .assertedBy(errors("first one", "second two", "third one more", "fourth"));
+                .should(conditionThatReportsErrors("first one", "second two", "third one more", "fourth"));
     }
 
     @Test
@@ -62,8 +60,7 @@ public class ArchRuleAssertionTest {
         writeIgnoreFileWithPatterns(".*");
 
         all(javaClasses(ArchRuleAssertionTest.class))
-                .should("satisfy rule")
-                .assertedBy(errors("first one", "second two"));
+                .should(conditionThatReportsErrors("first one", "second two"));
     }
 
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {
@@ -114,8 +111,8 @@ public class ArchRuleAssertionTest {
         };
     }
 
-    private ArchCondition<JavaClass> errors(final String... messages) {
-        return new ArchCondition<JavaClass>() {
+    private ArchCondition<JavaClass> conditionThatReportsErrors(final String... messages) {
+        return new ArchCondition<JavaClass>("not have errors " + Joiner.on(", ").join(messages)) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 for (String message : messages) {

@@ -2,8 +2,6 @@ package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.core.HasDescription;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * A specification of {@link ArchRule} where the set of classes is known at the time the
  * rule is defined.<br><p>
@@ -37,35 +35,16 @@ public final class ClosedArchRule<T> extends ArchRule<T> {
 
     public static class ClosedDescribable<TYPE, ITERABLE extends Iterable<TYPE> & HasDescription> {
         private final ITERABLE describedCollection;
+        private final Priority priority;
 
-        ClosedDescribable(ITERABLE describedCollection) {
+        ClosedDescribable(ITERABLE describedCollection, Priority priority) {
             this.describedCollection = describedCollection;
+            this.priority = priority;
         }
 
-        public Assertion<TYPE, ITERABLE> should(String ruleTextSuffix) {
-            String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), ruleTextSuffix);
-            return new Assertion<>(describedCollection, completeRuleText);
-        }
-    }
-
-    public static class Assertion<T, S extends Iterable<T>> {
-        private final Iterable<T> objectsToTest;
-        private Priority priority = Priority.MEDIUM;
-
-        private final String ruleText;
-
-        Assertion(S objectsToTest, String ruleText) {
-            this.objectsToTest = objectsToTest;
-            this.ruleText = ruleText;
-        }
-
-        public Assertion<T, S> withPriority(Priority priority) {
-            this.priority = checkNotNull(priority);
-            return this;
-        }
-
-        public void assertedBy(ArchCondition<T> condition) {
-            ClosedArchRule<?> rule = new ClosedArchRule<>(objectsToTest, ruleText, condition);
+        public void should(ArchCondition<TYPE> condition) {
+            String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
+            ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
             ArchRuleAssertion.from(rule).assertNoViolations(priority);
         }
     }

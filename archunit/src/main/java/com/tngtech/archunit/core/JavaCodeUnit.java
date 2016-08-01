@@ -1,13 +1,13 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Member;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+
+import static com.tngtech.archunit.core.Formatters.formatMethod;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -24,12 +24,11 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
  *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
 public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> {
-    private static final String FULL_NAME_TEMPLATE = "%s.%s(%s)";
 
     private Set<JavaFieldAccess> fieldAccesses;
     private Set<JavaMethodCall> methodCalls;
     private Set<JavaConstructorCall> constructorCalls;
-    private final String formattedParameters;
+    private String fullName;
 
     JavaCodeUnit(Builder<T, ?> builder) {
         this(builder.member, builder.owner);
@@ -37,16 +36,12 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
 
     JavaCodeUnit(T memberDescription, JavaClass owner) {
         super(memberDescription, owner);
-        List<String> formatted = new ArrayList<>();
-        for (Class<?> type : getParameters()) {
-            formatted.add(String.format("%s.class", type.getSimpleName()));
-        }
-        formattedParameters = Joiner.on(", ").join(formatted);
+        fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
     @Override
     public String getFullName() {
-        return String.format(FULL_NAME_TEMPLATE, getOwner().getName(), getName(), formattedParameters);
+        return fullName;
     }
 
     public abstract List<Class<?>> getParameters();

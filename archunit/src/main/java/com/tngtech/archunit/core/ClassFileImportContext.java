@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,7 +189,7 @@ class ClassFileImportContext {
 
             @SuppressWarnings("unchecked")
             private JavaField createField(final TargetInfo targetInfo, JavaClass owner) {
-                Field field = IdentifiedTarget.ofField(owner.reflect(), new FluentPredicate<Field>() {
+                Field field = IdentifiedTarget.ofField(owner.reflect(), new Predicate<Field>() {
                     @Override
                     public boolean apply(Field input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -248,7 +249,7 @@ class ClassFileImportContext {
             }
 
             private JavaConstructor createConstructor(final TargetInfo targetInfo, JavaClass owner) {
-                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new FluentPredicate<Constructor<?>>() {
+                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new Predicate<Constructor<?>>() {
                     @Override
                     public boolean apply(Constructor<?> input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -303,7 +304,7 @@ class ClassFileImportContext {
             @SuppressWarnings("unchecked")
             private JavaMethod createMethod(final TargetInfo targetInfo, JavaClass owner) {
                 MemberDescription.ForMethod member = new MethodTargetDescription(targetInfo);
-                IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new FluentPredicate<Method>() {
+                IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new Predicate<Method>() {
                     @Override
                     public boolean apply(Method input) {
                         return targetInfo.hasMatchingSignatureTo(input);
@@ -563,7 +564,7 @@ class ClassFileImportContext {
             }
         }
 
-        private static <T> Optional<T> tryFind(Iterable<T> collection, FluentPredicate<T> predicate) {
+        private static <T> Optional<T> tryFind(Iterable<T> collection, DescribedPredicate<T> predicate) {
             for (T elem : collection) {
                 if (predicate.apply(elem)) {
                     return Optional.of(elem);

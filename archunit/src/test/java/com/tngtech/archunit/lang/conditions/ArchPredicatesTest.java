@@ -11,7 +11,7 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.inTheHierarchyOfAClass;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.inTheHierarchyOfAClassThat;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -69,19 +69,19 @@ public class ArchPredicatesTest {
 
     @Test
     public void inTheHierarchyOfAClass_matches_class_itself() {
-        assertThat(inTheHierarchyOfAClass(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
+        assertThat(inTheHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
                 .as("class itself matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_subclass() {
-        assertThat(inTheHierarchyOfAClass(named("Annotated.*")).apply(javaClass(SubClass.class)))
+        assertThat(inTheHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(SubClass.class)))
                 .as("subclass matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_does_not_match_superclass() {
-        assertThat(inTheHierarchyOfAClass(named("Annotated.*")).apply(javaClass(Object.class)))
+        assertThat(inTheHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(Object.class)))
                 .as("superclass matches the predicate").isFalse();
     }
 

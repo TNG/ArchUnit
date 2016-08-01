@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.util.HashSet;
 import java.util.Objects;
@@ -25,15 +24,6 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
 
         memberDescription.checkCompatibility(owner);
         hashCode = Objects.hash(memberDescription);
-    }
-
-    public static FluentPredicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
-        return new FluentPredicate<AnnotatedElement>() {
-            @Override
-            public boolean apply(AnnotatedElement input) {
-                return input.getAnnotation(annotationType) != null;
-            }
-        };
     }
 
     private Set<JavaAnnotation<?>> convert(Annotation[] reflectionAnnotations) {

@@ -1,13 +1,26 @@
 package com.tngtech.archunit.lang;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class ArchCondition<T> {
     Iterable<T> objectsToTest;
+    private String description;
+
+    public ArchCondition(String description) {
+        this(null, description);
+    }
+
+    public ArchCondition(Iterable<T> objectsToTest, String description) {
+        this.objectsToTest = objectsToTest;
+        this.description = checkNotNull(description);
+    }
 
     public abstract void check(T item, ConditionEvents events);
 
@@ -19,6 +32,19 @@ public abstract class ArchCondition<T> {
         return new AndCondition<>(this, condition);
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public ArchCondition<T> as(String description) {
+        return new ArchCondition<T>(objectsToTest, description) {
+            @Override
+            public void check(T item, ConditionEvents events) {
+                ArchCondition.this.check(item, events);
+            }
+        };
+    }
+
     private static class AndCondition<T> extends ArchCondition<T> {
         private final Collection<ArchCondition<T>> conditions;
 
@@ -27,7 +53,16 @@ public abstract class ArchCondition<T> {
         }
 
         private AndCondition(Collection<ArchCondition<T>> conditions) {
+            super(joinDescriptionsOf(conditions));
             this.conditions = conditions;
+        }
+
+        private static <T> String joinDescriptionsOf(Collection<ArchCondition<T>> conditions) {
+            List<String> descriptions = new ArrayList<>();
+            for (ArchCondition<T> condition : conditions) {
+                descriptions.add(condition.getDescription());
+            }
+            return Joiner.on(" and ").join(descriptions);
         }
 
         @Override

@@ -348,13 +348,13 @@ public class JavaClass implements HasName {
         return result.build();
     }
 
-    public static FluentPredicate<JavaClass> withType(final Class<?> type) {
-        return FluentPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT);
+    public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
+        return DescribedPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT).as("with type " + type.getSimpleName());
     }
 
-    public static FluentPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
+    public static DescribedPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
         checkNotNull(type);
-        return new FluentPredicate<Class<?>>() {
+        return new DescribedPredicate<Class<?>>("assignable to " + type.getSimpleName()) {
             @Override
             public boolean apply(Class<?> input) {
                 return type.isAssignableFrom(input);
@@ -362,9 +362,9 @@ public class JavaClass implements HasName {
         };
     }
 
-    public static FluentPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
+    public static DescribedPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
         checkNotNull(type);
-        return new FluentPredicate<Class<?>>() {
+        return new DescribedPredicate<Class<?>>("assignable from " + type.getSimpleName()) {
             @Override
             public boolean apply(Class<?> input) {
                 return input.isAssignableFrom(type);
@@ -373,21 +373,19 @@ public class JavaClass implements HasName {
     }
 
     public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
-        return DescribedPredicate.of(reflectionAssignableTo(type).onResultOf(REFLECT))
-                .as("assignable to " + type.getSimpleName());
+        return reflectionAssignableTo(type).onResultOf(REFLECT);
     }
 
     public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
-        return DescribedPredicate.of(reflectionAssignableFrom(type).onResultOf(REFLECT))
-                .as("assignable from " + type.getSimpleName());
+        return reflectionAssignableFrom(type).onResultOf(REFLECT);
     }
 
-    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>() {
+    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("Interfaces") {
         @Override
         public boolean apply(JavaClass input) {
             return input.isInterface();
         }
-    }.as("Interfaces");
+    };
 
     public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
         @Override

@@ -6,13 +6,18 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.runners.model.InitializationError;
 
+import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+
 public class ArchUnitRunnerTestUtils {
-    static final ArchCondition<JavaClass> ALWAYS_SATISFIED = new ArchCondition<JavaClass>() {
+    static final ArchCondition<JavaClass> BE_SATISFIED = new ArchCondition<JavaClass>("satisfy something") {
         @Override
         public void check(JavaClass item, ConditionEvents events) {
             events.add(ConditionEvent.satisfied("I'm always satisfied"));
         }
     };
+
+    static final ArchCondition<JavaClass> NEVER_BE_SATISFIED = never(BE_SATISFIED)
+            .as("satisfy something, but don't");
 
     static ArchUnitRunner newRunnerFor(Class<?> testClass) {
         try {

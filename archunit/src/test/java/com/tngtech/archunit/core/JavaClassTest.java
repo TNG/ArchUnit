@@ -184,8 +184,8 @@ public class JavaClassTest {
 
     private static class AssignableAssert {
         private String message;
-        private FluentPredicate<Class<?>> reflectionAssignable;
-        private FluentPredicate<JavaClass> assignable;
+        private DescribedPredicate<Class<?>> reflectionAssignable;
+        private DescribedPredicate<JavaClass> assignable;
 
         public FromEvaluation from(Class<?> type) {
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());

@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.FluentPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
-import static com.tngtech.archunit.core.FluentPredicate.not;
+import static com.tngtech.archunit.core.DescribedPredicate.not;
+import static com.tngtech.archunit.core.Formatters.formatMethod;
+import static com.tngtech.archunit.core.JavaClass.REFLECT;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -26,7 +28,7 @@ public class ArchPredicates {
      * tested {@link com.tngtech.archunit.core.JavaClass} matches the identifier
      */
     public static DescribedPredicate<JavaClass> resideIn(final String packageIdentifier) {
-        return new DescribedPredicate<JavaClass>(String.format("classes that reside in '%s'", packageIdentifier)) {
+        return new DescribedPredicate<JavaClass>(String.format("reside in '%s'", packageIdentifier)) {
             private final PackageMatcher packageMatcher = PackageMatcher.of(packageIdentifier);
 
             @Override
@@ -37,7 +39,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaClass> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<JavaClass>() {
+        return new DescribedPredicate<JavaClass>("annotated with @") {
             @Override
             public boolean apply(JavaClass input) {
                 return input.reflect().getAnnotation(annotationType) != null;
@@ -53,7 +55,7 @@ public class ArchPredicates {
      */
     public static DescribedPredicate<JavaClass> named(final String classNameRegex) {
         final Pattern pattern = Pattern.compile(classNameRegex);
-        return new DescribedPredicate<JavaClass>() {
+        return new DescribedPredicate<JavaClass>(String.format("named '%s'", classNameRegex)) {
             @Override
             public boolean apply(JavaClass input) {
                 return pattern.matcher(input.getSimpleName()).matches();
@@ -61,8 +63,8 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClass(final FluentPredicate<JavaClass> predicate) {
-        return new DescribedPredicate<JavaClass>() {
+    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClassThat(final DescribedPredicate<JavaClass> predicate) {
+        return new DescribedPredicate<JavaClass>("in the hierarchy of a class that " + predicate.getDescription()) {
             @Override
             public boolean apply(JavaClass input) {
                 JavaClass current = input;
@@ -74,8 +76,9 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaFieldAccess> ownerAndName(final Class<?> target, final String fieldName) {
-        return new FluentPredicate<JavaFieldAccess>() {
+    public static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
+        return new DescribedPredicate<JavaFieldAccess>(
+                String.format("owner is %s and name is %s", target.getName(), fieldName)) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return owner(target).apply(input) &&
@@ -84,8 +87,8 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaFieldAccess> owner(final Class<?> target) {
-        return new FluentPredicate<JavaFieldAccess>() {
+    public static DescribedPredicate<JavaFieldAccess> owner(final Class<?> target) {
+        return new DescribedPredicate<JavaFieldAccess>("owner " + target.getName()) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return input.getTarget().getOwner().reflect() == target;
@@ -93,8 +96,8 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaFieldAccess> hasAccessType(final JavaFieldAccess.AccessType accessType) {
-        return new FluentPredicate<JavaFieldAccess>() {
+    public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
+        return new DescribedPredicate<JavaFieldAccess>("access type " + accessType) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return accessType == input.getAccessType();
@@ -108,13 +111,13 @@ public class ArchPredicates {
      * For further details see {@link PackageMatcher}.
      *
      * @param packageIdentifier A string representing the identifier to match packages against
-     * @return A {@link com.tngtech.archunit.core.FluentPredicate} returning true iff the package of the
+     * @return A {@link com.tngtech.archunit.core.DescribedPredicate} returning true iff the package of the
      * tested {@link JavaClass} matches the identifier
      */
-    public static FluentPredicate<JavaFieldAccess> fieldTypeIn(String packageIdentifier) {
+    public static DescribedPredicate<JavaFieldAccess> targetTypeResidesIn(String packageIdentifier) {
         final PackageMatcher packageMatcher = PackageMatcher.of(packageIdentifier);
 
-        return new FluentPredicate<JavaFieldAccess>() {
+        return new DescribedPredicate<JavaFieldAccess>("target type resides in '%s'", packageIdentifier) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 Class<?> fieldType = input.getTarget().reflect().getType();
@@ -125,9 +128,9 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaCall<?>> targetIs(
+    public static DescribedPredicate<JavaCall<?>> targetIs(
             final Class<?> targetClass, final String methodName, final List<Class<?>> paramTypes) {
-        return new FluentPredicate<JavaCall<?>>() {
+        return new DescribedPredicate<JavaCall<?>>("target is %s", formatMethod(targetClass.getName(), methodName, paramTypes)) {
             @Override
             public boolean apply(JavaCall<?> input) {
                 return targetHasName(targetClass, methodName).apply(input)
@@ -136,46 +139,47 @@ public class ArchPredicates {
         };
     }
 
-    public static FluentPredicate<JavaCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
-        return targetIs(FluentPredicate.<Class<?>>equalTo(targetClass), methodName);
+    public static DescribedPredicate<JavaCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
+        return targetIs(DescribedPredicate.<Class<?>>equalTo(targetClass).onResultOf(REFLECT), methodName);
     }
 
-    public static FluentPredicate<JavaCall<?>> targetIs(final FluentPredicate<Class<?>> targetSelector, final String methodName) {
-        return new FluentPredicate<JavaCall<?>>() {
+    public static DescribedPredicate<JavaCall<?>> targetIs(final DescribedPredicate<JavaClass> targetSelector, final String methodName) {
+        return new DescribedPredicate<JavaCall<?>>("target is %s and has name '%s'", targetSelector.getDescription(), methodName) {
             @Override
             public boolean apply(JavaCall<?> input) {
-                return targetClassIs(targetSelector).apply(input)
+                return targetOwnerIs(targetSelector).apply(input)
                         && input.getTarget().getName().equals(methodName);
             }
         };
     }
 
-    public static FluentPredicate<JavaCall<?>> targetClassIs(final Class<?> targetClass) {
-        return targetClassIs(FluentPredicate.<Class<?>>equalTo(targetClass));
+    public static DescribedPredicate<JavaCall<?>> targetOwnerIs(final Class<?> targetClass) {
+        return targetOwnerIs(DescribedPredicate.<Class<?>>equalTo(targetClass).onResultOf(REFLECT));
     }
 
-    public static FluentPredicate<JavaCall<?>> targetClassIs(final FluentPredicate<Class<?>> selector) {
-        return new FluentPredicate<JavaCall<?>>() {
+    public static DescribedPredicate<JavaCall<?>> targetOwnerIs(final DescribedPredicate<JavaClass> selector) {
+        return new DescribedPredicate<JavaCall<?>>("target is " + selector) {
             @Override
             public boolean apply(JavaCall<?> input) {
-                return selector.apply(input.getTarget().getOwner().reflect());
+                return selector.apply(input.getTarget().getOwner());
             }
         };
     }
 
-    public static FluentPredicate<JavaCall<?>> originClassIs(Class<?> originClass) {
-        return originClassIs(FluentPredicate.<Class<?>>equalTo(originClass));
+    public static DescribedPredicate<JavaCall<?>> originClassIs(Class<?> originClass) {
+        return originClassIs(DescribedPredicate.<Class<?>>equalTo(originClass).onResultOf(REFLECT)
+                .as("equal to %s.class", originClass.getSimpleName()));
     }
 
-    public static FluentPredicate<JavaCall<?>> originClassIsNot(Class<?> originClass) {
-        return not(originClassIs(FluentPredicate.<Class<?>>equalTo(originClass)));
+    public static DescribedPredicate<JavaCall<?>> originClassIsNot(Class<?> originClass) {
+        return not(originClassIs(originClass)).as("origin class is not %s.class", originClass.getSimpleName());
     }
 
-    public static FluentPredicate<JavaCall<?>> originClassIs(final FluentPredicate<Class<?>> selector) {
-        return new FluentPredicate<JavaCall<?>>() {
+    public static DescribedPredicate<JavaCall<?>> originClassIs(final DescribedPredicate<JavaClass> selector) {
+        return new DescribedPredicate<JavaCall<?>>("origin class is " + selector.getDescription()) {
             @Override
             public boolean apply(JavaCall<?> input) {
-                return selector.apply(input.getOriginOwner().reflect());
+                return selector.apply(input.getOriginOwner());
             }
         };
     }

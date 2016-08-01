@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.tngtech.archunit.core.FluentPredicate;
+import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -13,18 +13,21 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.JavaFieldAccess.getDescriptionTemplateFor;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasAccessType;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static java.util.Collections.singleton;
 
 class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
-    private final FluentPredicate<JavaFieldAccess> fieldAccessIdentifier;
+    private final DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier;
     private final String descriptionTemplate;
 
-    FieldAccessCondition(FluentPredicate<JavaFieldAccess> fieldAccessIdentifier) {
+    FieldAccessCondition(DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier) {
         this(fieldAccessIdentifier, EnumSet.allOf(AccessType.class));
     }
 
-    FieldAccessCondition(FluentPredicate<JavaFieldAccess> fieldAccessIdentifier, Set<AccessType> accessTypes) {
+    FieldAccessCondition(DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier, Set<AccessType> accessTypes) {
+        super(String.format("access field where %s and access type is one of %s",
+                fieldAccessIdentifier.getDescription(), accessTypes));
+
         this.fieldAccessIdentifier = fieldAccessIdentifier;
         this.descriptionTemplate = getDescriptionTemplateFor(accessTypes);
     }
@@ -36,14 +39,14 @@ class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
     }
 
     static class FieldGetAccessCondition extends FieldAccessCondition {
-        FieldGetAccessCondition(FluentPredicate<JavaFieldAccess> predicate) {
-            super(predicate.and(hasAccessType(GET)), singleton(GET));
+        FieldGetAccessCondition(DescribedPredicate<JavaFieldAccess> predicate) {
+            super(predicate.and(accessType(GET)), singleton(GET));
         }
     }
 
     static class FieldSetAccessCondition extends FieldAccessCondition {
-        FieldSetAccessCondition(FluentPredicate<JavaFieldAccess> predicate) {
-            super(predicate.and(hasAccessType(SET)), singleton(SET));
+        FieldSetAccessCondition(DescribedPredicate<JavaFieldAccess> predicate) {
+            super(predicate.and(accessType(SET)), singleton(SET));
         }
     }
 }
