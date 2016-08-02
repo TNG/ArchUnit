@@ -7,23 +7,58 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Collections2.filter;
+import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 
 public class ReflectionUtils {
+    private static final Map<String, Class<?>> primitiveClassesByName =
+            Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
+                @Override
+                public String apply(Class<?> input) {
+                    return input.getName();
+                }
+            });
+
     private ReflectionUtils() {
     }
 
     static Class<?> classForName(String name) {
+        if (primitiveClassesByName.containsKey(name)) {
+            return primitiveClassesByName.get(name);
+        }
+        name = ensureCorrectArrayTypeName(name);
         try {
             return Class.forName(name);
         } catch (Throwable e) {
             throw new ReflectionException(e);
         }
+    }
+
+    private static String ensureCorrectArrayTypeName(String name) {
+        return name.endsWith("[]") ? fixArrayTypeName(name) : name;
+    }
+
+    private static String fixArrayTypeName(String name) {
+        String componentTypeName = name.replaceAll("(\\[\\])*$", "");
+
+        componentTypeName = primitiveClassesByName.containsKey(componentTypeName) ?
+                Type.getDescriptor(primitiveClassesByName.get(componentTypeName)) :
+                Type.getObjectType(componentTypeName.replaceAll("/", ".")).getDescriptor();
+
+        String arrayDesignator = Strings.repeat("[", CharMatcher.is('[').countIn(name));
+
+        return arrayDesignator + componentTypeName;
     }
 
     static Set<Class<?>> getAllSuperTypes(Class<?> type) {

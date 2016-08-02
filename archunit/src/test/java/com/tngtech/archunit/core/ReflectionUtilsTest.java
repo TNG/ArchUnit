@@ -5,14 +5,21 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.ReflectionUtils.Predicate;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ReflectionUtilsTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -56,16 +63,76 @@ public class ReflectionUtilsTest {
         );
     }
 
-    @Test
-    public void classForName() {
-        assertThat(ReflectionUtils.classForName(getClass().getName())).isEqualTo(getClass());
+    @DataProvider
+    public static Object[][] primitives() {
+        return new Object[][]{
+                {void.class.getName(), void.class},
+                {boolean.class.getName(), boolean.class},
+                {byte.class.getName(), byte.class},
+                {char.class.getName(), char.class},
+                {short.class.getName(), short.class},
+                {int.class.getName(), int.class},
+                {long.class.getName(), long.class},
+                {float.class.getName(), float.class},
+                {double.class.getName(), double.class},
+        };
+    }
 
+    @Test
+    @UseDataProvider("primitives")
+    public void classForName_resolves_primitive_type_names(String name, Class<?> expected) {
+        assertThat(ReflectionUtils.classForName(name)).isEqualTo(expected);
+    }
+
+    @DataProvider
+    public static Object[][] arrays() {
+        return ImmutableList.builder()
+                .addAll(namesTo(boolean[].class))
+                .addAll(namesTo(byte[].class))
+                .addAll(namesTo(char[].class))
+                .addAll(namesTo(short[].class))
+                .addAll(namesTo(int[].class))
+                .addAll(namesTo(long[].class))
+                .addAll(namesTo(float[].class))
+                .addAll(namesTo(double[].class))
+                .addAll(namesTo(Object[].class))
+                .addAll(namesTo(boolean[][].class))
+                .addAll(namesTo(byte[][].class))
+                .addAll(namesTo(char[][].class))
+                .addAll(namesTo(short[][].class))
+                .addAll(namesTo(int[][].class))
+                .addAll(namesTo(long[][].class))
+                .addAll(namesTo(float[][].class))
+                .addAll(namesTo(double[][].class))
+                .addAll(namesTo(Object[][].class))
+                .build().toArray(new Object[0][]);
+    }
+
+    private static List<Object[]> namesTo(Class<?> arrayType) {
+        return ImmutableList.of(
+                new Object[]{arrayType.getName(), arrayType},
+                new Object[]{arrayType.getCanonicalName(), arrayType});
+    }
+
+    @Test
+    @UseDataProvider("arrays")
+    public void classForName_resolves_arrays_type_names(String name, Class<?> expected) {
+        assertThat(ReflectionUtils.classForName(name)).isEqualTo(expected);
+    }
+
+    @Test
+    public void classForName_if_name_is_a_standard_class_name() {
+        assertThat(ReflectionUtils.classForName(getClass().getName())).isEqualTo(getClass());
+    }
+
+    @Test
+    public void classForName_if_type_doesnt_exist() {
         thrown.expect(ReflectionException.class);
         ReflectionUtils.classForName("does.not.exist");
     }
 
     @Test
-    public void classForName_when_Exception_occurs_on_loading() {
+    public void classForName_if_Exception_occurs_on_loading() {
         thrown.expect(ReflectionException.class);
         ReflectionUtils.classForName(EvilClass.class.getName());
     }

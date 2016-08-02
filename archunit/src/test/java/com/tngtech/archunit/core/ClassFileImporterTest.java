@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -78,6 +79,7 @@ import com.tngtech.archunit.core.testexamples.integration.ClassXDependingOnClass
 import com.tngtech.archunit.core.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportTwo;
+import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecialTarget;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -154,6 +156,32 @@ public class ClassFileImporterTest {
         assertThat(findAnyByName(fields, "aLong").getType()).isEqualTo(long.class);
         assertThat(findAnyByName(fields, "aFloat").getType()).isEqualTo(float.class);
         assertThat(findAnyByName(fields, "aDouble").getType()).isEqualTo(double.class);
+    }
+
+    // NOTE: This provokes the scenario where the target type can't be determined uniquely due to a diamond
+    //       scenario and thus a fallback to (primitive and array) type names by ASM descriptors occurs.
+    //       Unfortunately those ASM type names for example are the canonical name instead of the class name.
+    @Test
+    public void imports_special_target_parameters() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/specialtargets");
+        Set<JavaMethodCall> calls = classes.get(ClassCallingSpecialTarget.class).getMethodCallsFromSelf();
+
+        assertThat(targetParametersOf(calls, "primitiveArgs")).containsExactly(byte.class, long.class);
+        assertThat(returnTypeOf(calls, "primitiveReturnType")).isEqualTo(byte.class);
+        assertThat(targetParametersOf(calls, "arrayArgs")).containsExactly(byte[].class, Object[].class);
+        assertThat(returnTypeOf(calls, "primitiveArrayReturnType")).isEqualTo(short[].class);
+        assertThat(returnTypeOf(calls, "objectArrayReturnType")).isEqualTo(String[].class);
+        assertThat(targetParametersOf(calls, "twoDimArrayArgs")).containsExactly(float[][].class, Object[][].class);
+        assertThat(returnTypeOf(calls, "primitiveTwoDimArrayReturnType")).isEqualTo(double[][].class);
+        assertThat(returnTypeOf(calls, "objectTwoDimArrayReturnType")).isEqualTo(String[][].class);
+    }
+
+    private List<Class<?>> targetParametersOf(Set<JavaMethodCall> calls, String name) {
+        return findAnyByName(calls, name).getTarget().getParameters();
+    }
+
+    private Class<?> returnTypeOf(Set<JavaMethodCall> calls, String name) {
+        return findAnyByName(calls, name).getTarget().getReturnType();
     }
 
     @Test
