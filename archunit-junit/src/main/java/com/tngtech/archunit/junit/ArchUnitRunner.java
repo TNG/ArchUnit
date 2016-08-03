@@ -88,10 +88,14 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     @Override
     protected void runChild(ArchTestExecution child, RunNotifier notifier) {
-        notifier.fireTestStarted(describeChild(child));
-        JavaClasses classes = cache.get().getClassesToAnalyseFor(getTestClass().getJavaClass());
-        child.evaluateOn(classes).notify(notifier);
-        notifier.fireTestFinished(describeChild(child));
+        if (child.ignore()) {
+            notifier.fireTestIgnored(describeChild(child));
+        } else {
+            notifier.fireTestStarted(describeChild(child));
+            JavaClasses classes = cache.get().getClassesToAnalyseFor(getTestClass().getJavaClass());
+            child.evaluateOn(classes).notify(notifier);
+            notifier.fireTestFinished(describeChild(child));
+        }
     }
 
     static class SharedCache {

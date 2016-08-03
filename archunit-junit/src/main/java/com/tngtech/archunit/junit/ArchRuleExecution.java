@@ -17,7 +17,7 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     @Override
-    Result doEvaluateOn(JavaClasses classes) {
+    public Result evaluateOn(JavaClasses classes) {
         return RuleToEvaluate.from(testClass, ruleField)
                 .evaluateOn(classes)
                 .asResult(describeSelf());
@@ -116,9 +116,6 @@ public class ArchRuleExecution extends ArchTestExecution {
 
         @Override
         Result asResult(Description description) {
-            if (ruleField.getAnnotation(ArchIgnore.class) != null) {
-                return new IgnoredResult(description);
-            }
             try {
                 rule.check(classes);
             } catch (Exception | AssertionError e) {

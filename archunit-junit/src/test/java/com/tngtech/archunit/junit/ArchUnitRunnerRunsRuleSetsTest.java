@@ -19,6 +19,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.ArchTestWithRuleLibrary.someOtherMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
@@ -46,7 +47,10 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     private ArgumentCaptor<Description> descriptionCaptor;
 
     @InjectMocks
-    private ArchUnitRunner runner = newRunnerFor(ArchTestWithRuleSet.class);
+    private ArchUnitRunner runnerForRuleSet = newRunnerFor(ArchTestWithRuleSet.class);
+
+    @InjectMocks
+    private ArchUnitRunner runnerForRuleLibrary = newRunnerFor(ArchTestWithRuleLibrary.class);
 
     private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsRuleSetsTest.class);
 
@@ -57,10 +61,17 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     @Test
-    public void should_find_children() throws Exception {
-        assertThat(runner.getChildren()).as("Rules defined in Test Class").hasSize(2);
-        assertThat(runner.getChildren()).extractingResultOf("describeSelf").extractingResultOf("getMethodName")
+    public void should_find_children_in_rule_set() throws Exception {
+        assertThat(runnerForRuleSet.getChildren()).as("Rules defined in Test Class").hasSize(2);
+        assertThat(runnerForRuleSet.getChildren()).extractingResultOf("describeSelf").extractingResultOf("getMethodName")
                 .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName);
+    }
+
+    @Test
+    public void should_find_children_in_rule_library() throws Exception {
+        assertThat(runnerForRuleLibrary.getChildren()).as("Rules defined in Library").hasSize(3);
+        assertThat(runnerForRuleLibrary.getChildren()).extractingResultOf("describeSelf").extractingResultOf("getMethodName")
+                .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName, someOtherMethodRuleName);
     }
 
     @Test
@@ -74,13 +85,25 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     private void run(String ruleName) {
-        ArchTestExecution rule = getRule(ruleName, runner);
+        ArchTestExecution rule = getRule(ruleName, runnerForRuleSet);
 
-        runner.runChild(rule, runNotifier);
+        runnerForRuleSet.runChild(rule, runNotifier);
 
         verify(runNotifier).fireTestStarted(any(Description.class));
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getValue().toString()).contains(ruleName);
+    }
+
+    @AnalyseClasses(packages = "some.pkg")
+    public static class ArchTestWithRuleLibrary {
+        public static final String someOtherMethodRuleName = "someOtherMethodRule";
+
+        @ArchTest
+        public static final ArchRules<JavaClass> rules = ArchRules.in(ArchTestWithRuleSet.class);
+
+        @ArchTest
+        public static void someOtherMethodRule(JavaClasses classes) {
+        }
     }
 
     @AnalyseClasses(packages = "some.pkg")

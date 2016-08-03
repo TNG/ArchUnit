@@ -17,10 +17,7 @@ public class ArchTestMethodExecution extends ArchTestExecution {
     }
 
     @Override
-    Result doEvaluateOn(JavaClasses classes) {
-        if (testMethod.getAnnotation(ArchIgnore.class) != null) {
-            return new IgnoredResult(describeSelf());
-        }
+    public Result evaluateOn(JavaClasses classes) {
         try {
             executeTestMethod(classes);
             return new PositiveResult(describeSelf());

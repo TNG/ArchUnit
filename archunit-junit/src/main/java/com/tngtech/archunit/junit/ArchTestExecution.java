@@ -18,20 +18,13 @@ public abstract class ArchTestExecution {
         this.testClass = testClass;
     }
 
-    public Result evaluateOn(JavaClasses classes) {
-        if (testClass.getAnnotation(ArchIgnore.class) != null) {
-            return new IgnoredResult(describeSelf());
-        }
-        return doEvaluateOn(classes);
-    }
-
     static <T extends Member> T validate(T member) {
         checkArgument(Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
                 "With @%s annotated members must be public and static", ArchTest.class.getSimpleName());
         return member;
     }
 
-    abstract Result doEvaluateOn(JavaClasses classes);
+    public abstract Result evaluateOn(JavaClasses classes);
 
     abstract Description describeSelf();
 
@@ -43,6 +36,10 @@ public abstract class ArchTestExecution {
     public abstract String getName();
 
     public abstract <T extends Annotation> T getAnnotation(Class<T> type);
+
+    public boolean ignore() {
+        return testClass.getAnnotation(ArchIgnore.class) != null || getAnnotation(ArchIgnore.class) != null;
+    }
 
     static abstract class Result {
         abstract void notify(RunNotifier notifier);
@@ -58,19 +55,6 @@ public abstract class ArchTestExecution {
         @Override
         void notify(RunNotifier notifier) {
             // Do nothing
-        }
-    }
-
-    static class IgnoredResult extends Result {
-        private final Description description;
-
-        IgnoredResult(Description description) {
-            this.description = description;
-        }
-
-        @Override
-        void notify(RunNotifier notifier) {
-            notifier.fireTestIgnored(description);
         }
     }
 
