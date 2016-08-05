@@ -77,7 +77,7 @@ public class LocationTest {
                 .withEntry(fullClassFileName(getClass()))
                 .withEntry(fullClassFileName(Location.class))
                 .create();
-        ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource();
+        ClassFileSource source = Location.of(new URL("file:///" + jar.getName())).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (Supplier<InputStream> stream : source) {

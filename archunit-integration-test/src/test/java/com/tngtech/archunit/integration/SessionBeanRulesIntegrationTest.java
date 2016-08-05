@@ -51,7 +51,7 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
 
         @Override
         protected boolean matchesSafely(String item) {
-            String[] parts = item.replaceAll(".*\n", "").split(" is implemented by ");
+            String[] parts = item.replaceAll(String.format(".*%n"), "").split(" is implemented by ");
             if (parts.length != 2) {
                 return false;
             }
