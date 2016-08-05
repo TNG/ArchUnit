@@ -28,9 +28,10 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         try {
             extractExpectedConfiguration(child).configure(expectedViolation);
             expectedViolation.apply(new IntegrationTestStatement(child), description).evaluate();
-            notifier.fireTestFinished(description);
         } catch (Throwable throwable) {
             notifier.fireTestFailure(new Failure(description, throwable));
+        } finally {
+            notifier.fireTestFinished(description);
         }
     }
 
