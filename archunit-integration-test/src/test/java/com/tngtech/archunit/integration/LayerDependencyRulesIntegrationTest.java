@@ -25,6 +25,12 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
     @Test
     @Override
     public void services_should_not_access_controllers() {
+        expectViolationByAccessFromServiceToController(expectViolation);
+
+        super.services_should_not_access_controllers();
+    }
+
+    static void expectViolationByAccessFromServiceToController(ExpectedViolation expectViolation) {
         expectViolation.ofRule("classes that reside in '..service..' " +
                 "should never access classes that reside in '..controller..'")
                 .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToController)
@@ -36,25 +42,33 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                 .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toMethod(UseCaseTwoController.class, doSomethingTwo)
                         .inLine(13));
-
-        super.services_should_not_access_controllers();
     }
 
     @Test
     @Override
     public void persistence_should_not_access_services() {
+        expectViolationByAccessFromPersistenceToService(expectViolation);
+
+        super.persistence_should_not_access_services();
+    }
+
+    static void expectViolationByAccessFromPersistenceToService(ExpectedViolation expectViolation) {
         expectViolation.ofRule("classes that reside in '..persistence..' should " +
                 "never access classes that reside in '..service..'")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(13));
-
-        super.persistence_should_not_access_services();
     }
 
     @Test
     @Override
     public void services_should_only_be_accessed_by_controllers_or_other_services() {
+        expectViolationByIllegalAccessToService(expectViolation);
+
+        super.services_should_only_be_accessed_by_controllers_or_other_services();
+    }
+
+    static void expectViolationByIllegalAccessToService(ExpectedViolation expectViolation) {
         expectViolation.ofRule("classes that reside in '..service..' should " +
                 "only be accessed by classes that reside in any package ['..controller..', '..service..']")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
@@ -63,7 +77,5 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                 .byCall(from(SomeMediator.class, violateLayerRulesIndirectly)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(15));
-
-        super.services_should_only_be_accessed_by_controllers_or_other_services();
     }
 }

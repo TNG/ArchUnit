@@ -26,7 +26,7 @@ public final class OpenArchRule<T> extends ArchRule<T> {
     }
 
     public <U extends Iterable<T> & HasDescription> void check(JavaClasses classes) {
-        priority(priority).all(inputTransformer.<U>transform(classes)).should(condition);
+        priority(priority).all(inputTransformer.transform(classes)).should(condition);
     }
 
     public static class OpenDescribable<TYPE> {

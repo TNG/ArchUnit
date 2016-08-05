@@ -2,16 +2,16 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ForwardingSet;
 import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.lang.DescribedIterable;
 import com.tngtech.archunit.lang.InputTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
@@ -19,21 +19,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Dependency.toTargetClasses;
 import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
-public class Slices extends ForwardingSet<Slice> implements HasDescription {
-    private final Set<Slice> slices;
+public class Slices implements DescribedIterable<Slice> {
+    private final Iterable<Slice> slices;
     private String description = "Slices";
 
-    private Slices(Set<Slice> slices) {
+    private Slices(Iterable<Slice> slices) {
         this.slices = slices;
-    }
-
-    @Override
-    protected Set<Slice> delegate() {
-        return slices;
     }
 
     public static ClosedCreator of(JavaClasses classes) {
         return new ClosedCreator(classes);
+    }
+
+    @Override
+    public Iterator<Slice> iterator() {
+        return slices.iterator();
     }
 
     public Slices as(String description) {
@@ -97,7 +97,7 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
 
         @Override
         @SuppressWarnings("unchecked")
-        public Slices transform(JavaClasses classes) {
+        public Slices doTransform(JavaClasses classes) {
             Slices slices = new ClosedCreator(classes).matching(packageIdentifier);
             if (namingPattern.isPresent()) {
                 slices.namingSlices(namingPattern.get());
@@ -106,11 +106,11 @@ public class Slices extends ForwardingSet<Slice> implements HasDescription {
         }
 
         public Slices of(JavaClasses classes) {
-            return transform(classes);
+            return new Slices(transform(classes));
         }
 
         public Slices transform(Iterable<Dependency> dependencies) {
-            return transform(toTargetClasses(dependencies));
+            return new Slices(transform(toTargetClasses(dependencies)));
         }
     }
 

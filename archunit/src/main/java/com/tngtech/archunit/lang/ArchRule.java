@@ -80,7 +80,7 @@ public abstract class ArchRule<T> {
     public static InputTransformer<JavaClass> classes() {
         return new InputTransformer<JavaClass>("classes") {
             @Override
-            public JavaClasses transform(JavaClasses collection) {
+            public Iterable<JavaClass> doTransform(JavaClasses collection) {
                 return collection;
             }
         };

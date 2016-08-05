@@ -7,12 +7,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.tngtech.archunit.lang.DescribedIterable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.GuavaConversion.toGuava;
 
-public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass, JavaClasses>, HasDescription {
+public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<JavaClass, JavaClasses> {
     private final ImmutableMap<Class<?>, JavaClass> classes;
     private final String description;
 
@@ -27,7 +26,7 @@ public class JavaClasses implements Iterable<JavaClass>, Restrictable<JavaClass,
 
     @Override
     public JavaClasses that(DescribedPredicate<JavaClass> predicate) {
-        Map<Class<?>, JavaClass> matchingElements = Maps.filterValues(classes, toGuava(predicate));
+        Map<Class<?>, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
         String newDescription = String.format("%s that %s", description, predicate.getDescription());
         return new JavaClasses(matchingElements, newDescription);
     }
