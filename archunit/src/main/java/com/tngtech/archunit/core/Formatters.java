@@ -15,7 +15,7 @@ public class Formatters {
         return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameters(parameters));
     }
 
-    private static String formatMethodParameters(List<Class<?>> parameters) {
+    public static String formatMethodParameters(List<Class<?>> parameters) {
         List<String> formatted = new ArrayList<>();
         for (Class<?> type : parameters) {
             formatted.add(String.format("%s.class", type.getSimpleName()));

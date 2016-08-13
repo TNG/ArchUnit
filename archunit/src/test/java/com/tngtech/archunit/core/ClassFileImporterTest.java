@@ -455,6 +455,7 @@ public class ClassFileImporterTest {
         JavaClass someCollection = classes.get(SomeCollection.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
         JavaClass collection = classes.get(Collection.class);
+        JavaClass iterable = classes.get(Iterable.class);
 
         assertThat(baseClass.getInterfaces()).containsOnly(otherInterface);
         assertThat(baseClass.getAllInterfaces()).containsOnly(otherInterface, grandParentInterface);
@@ -465,7 +466,8 @@ public class ClassFileImporterTest {
         assertThat(otherSubClass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
         assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subInterface);
         assertThat(someCollection.getAllInterfaces()).containsOnly(
-                collectionInterface, otherInterface, subInterface, parentInterface, grandParentInterface, collection);
+                collectionInterface, otherInterface, subInterface, parentInterface, grandParentInterface,
+                collection, iterable);
     }
 
     @Test

@@ -14,7 +14,7 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -167,7 +167,7 @@ public class MethodCallConditionTest {
         }
 
         private MethodCallCondition build() {
-            return new MethodCallCondition(targetIs(targetClass, methodName, paramTypes));
+            return new MethodCallCondition(callTarget().is(targetClass, methodName, paramTypes));
         }
     }
 }

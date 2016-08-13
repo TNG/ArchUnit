@@ -1,12 +1,18 @@
 package com.tngtech.archunit.core;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,10 +24,14 @@ public class TestUtils {
 
     public static JavaMethod javaMethod(JavaClass clazz, String name, Class<?>... args) {
         try {
-            return new JavaMethod.Builder().withMethod(clazz.reflect().getDeclaredMethod(name, args)).build(clazz);
+            return javaMethod(clazz, clazz.reflect().getDeclaredMethod(name, args));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static JavaMethod javaMethod(JavaClass clazz, Method method) {
+        return new JavaMethod.Builder().withMethod(method).build(clazz);
     }
 
     public static JavaClass javaClass(Class<?> owner) {
@@ -34,16 +44,21 @@ public class TestUtils {
             }
         });
         javaClass.completeClassHierarchyFrom(context);
+        javaClass.completeFrom(context);
         for (JavaCodeUnit<?, ?> unit : javaClass.getCodeUnits()) {
             unit.completeFrom(context);
         }
         return javaClass;
     }
 
-    public static JavaField javaField(String name, Class<?> ownerClass) throws NoSuchFieldException {
-        return new JavaField.Builder()
-                .withField(ownerClass.getDeclaredField(name))
-                .build(javaClass(ownerClass));
+    public static JavaField javaField(String name, Class<?> ownerClass) {
+        try {
+            return new JavaField.Builder()
+                    .withField(ownerClass.getDeclaredField(name))
+                    .build(javaClass(ownerClass));
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static JavaClasses javaClasses(Class<?>... classes) {
@@ -54,30 +69,74 @@ public class TestUtils {
         return new JavaClasses(result);
     }
 
-    public static AccessSimulator simulateCallFrom(JavaMethod method, int lineNumber) {
-        return new AccessSimulator(method, lineNumber);
+    public static AccessesSimulator simulateCall() {
+        return new AccessesSimulator();
+    }
+
+    public static class AccessesSimulator {
+        private final Set<AccessRecord<JavaMethod>> targets = new HashSet<>();
+
+        public AccessSimulator from(JavaMethod method, int lineNumber) {
+            return new AccessSimulator(targets, method, lineNumber);
+        }
     }
 
     public static class AccessSimulator {
+        private final Set<AccessRecord<JavaMethod>> targets;
         private final JavaMethod method;
         private final int lineNumber;
 
-        private AccessSimulator(JavaMethod method, int lineNumber) {
+        private AccessSimulator(Set<AccessRecord<JavaMethod>> targets, JavaMethod method, int lineNumber) {
+            this.targets = targets;
             this.method = method;
             this.lineNumber = lineNumber;
         }
 
-        public void to(JavaMethod target) {
+        public JavaMethodCall to(JavaMethod target) {
+            targets.add(new TestAccessRecord<>(target));
             ClassFileImportContext context = mock(ClassFileImportContext.class);
-            when(context.getMethodCallRecordsFor(method))
-                    .thenReturn(Collections.<AccessRecord<JavaMethod>>singleton(new TestAccessRecord(target)));
+            when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
+            method.completeFrom(context);
+            return getCallToTarget(target);
+        }
+
+        private JavaMethodCall getCallToTarget(JavaMethod target) {
+            Set<JavaMethodCall> matchingCalls = new HashSet<>();
+            for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
+                if (call.getTarget().equals(target)) {
+                    matchingCalls.add(call);
+                }
+            }
+            return getOnlyElement(matchingCalls);
+        }
+
+        public void to(JavaField target, AccessType accessType) {
+            ClassFileImportContext context = mock(ClassFileImportContext.class);
+            when(context.getFieldAccessRecordsFor(method))
+                    .thenReturn(Collections.<FieldAccessRecord>singleton(new TestFieldAccessRecord(target, accessType)));
             method.completeFrom(context);
         }
 
-        private class TestAccessRecord implements AccessRecord<JavaMethod> {
-            private final JavaMethod target;
+        private class TestFieldAccessRecord extends TestAccessRecord<JavaField> implements FieldAccessRecord {
+            private final JavaField target;
+            private final AccessType accessType;
 
-            public TestAccessRecord(JavaMethod target) {
+            private TestFieldAccessRecord(JavaField target, AccessType accessType) {
+                super(target);
+                this.target = target;
+                this.accessType = accessType;
+            }
+
+            @Override
+            public AccessType getAccessType() {
+                return accessType;
+            }
+        }
+
+        private class TestAccessRecord<T> implements AccessRecord<T> {
+            private final T target;
+
+            public TestAccessRecord(T target) {
                 this.target = target;
             }
 
@@ -87,7 +146,7 @@ public class TestUtils {
             }
 
             @Override
-            public JavaMethod getTarget() {
+            public T getTarget() {
                 return target;
             }
 

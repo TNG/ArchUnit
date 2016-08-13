@@ -181,6 +181,14 @@ public class JavaClass implements HasName {
         return methods;
     }
 
+    public Set<JavaMethod> getAllMethods() {
+        ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
+        for (JavaClass javaClass : getClassHierarchy()) {
+            result.addAll(javaClass.getMethods());
+        }
+        return result.build();
+    }
+
     public JavaConstructor getConstructor(Class<?>... parameters) {
         return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, parameters);
     }
@@ -291,11 +299,9 @@ public class JavaClass implements HasName {
         return type;
     }
 
-    CompletionProcess completeClassHierarchyFrom(ClassFileImportContext context) {
+    void completeClassHierarchyFrom(ClassFileImportContext context) {
         completeSuperClassFrom(context);
         completeInterfacesFrom(context);
-        enclosingClass = findClass(type.getEnclosingClass(), context);
-        return new CompletionProcess();
     }
 
     private void completeSuperClassFrom(ClassFileImportContext context) {
@@ -316,6 +322,11 @@ public class JavaClass implements HasName {
 
     private static Optional<JavaClass> findClass(Class<?> clazz, ClassFileImportContext context) {
         return clazz != null ? context.tryGetJavaClassWithType(clazz) : Optional.<JavaClass>absent();
+    }
+
+    CompletionProcess completeFrom(ClassFileImportContext context) {
+        enclosingClass = findClass(type.getEnclosingClass(), context);
+        return new CompletionProcess();
     }
 
     @Override

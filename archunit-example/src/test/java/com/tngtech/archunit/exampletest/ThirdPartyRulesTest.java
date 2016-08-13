@@ -12,15 +12,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.DescribedPredicate.not;
-import static com.tngtech.archunit.core.JavaClass.assignableTo;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.originClassIs;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.originClassIsNot;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 
 public class ThirdPartyRulesTest {
     protected static final String THIRD_PARTY_CLASS_RULE_TEXT =
@@ -44,13 +40,15 @@ public class ThirdPartyRulesTest {
 
     private ArchCondition<JavaClass> notCreateProblematicClassesOutsideOfWorkaroundFactory() {
         DescribedPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
-                targetIs(assignableTo(ThirdPartyClassWithProblem.class), CONSTRUCTOR_NAME);
+                callTarget()
+                        .isAssignableTo(ThirdPartyClassWithProblem.class)
+                        .isConstructor();
 
         DescribedPredicate<JavaCall<?>> notFromWithinThirdPartyClass =
-                originClassIs(not(assignableTo(ThirdPartyClassWithProblem.class)));
+                callOrigin().isNotAssignableTo(ThirdPartyClassWithProblem.class);
 
         DescribedPredicate<JavaCall<?>> notFromWorkaroundFactory =
-                originClassIsNot(ThirdPartyClassWorkaroundFactory.class);
+                callOrigin().isNotDeclaredIn(ThirdPartyClassWorkaroundFactory.class);
 
         DescribedPredicate<JavaCall<?>> targetIsIllegalConstructorOfThirdPartyClass =
                 constructorCallOfThirdPartyClass.

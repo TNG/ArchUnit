@@ -11,6 +11,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 public class ContainsOnlyConditionTest {
     static final List<SerializableObject> TWO_SERIALIZABLE_OBJECTS = asList(new SerializableObject(), new SerializableObject());
@@ -50,6 +51,13 @@ public class ContainsOnlyConditionTest {
         assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);
 
         assertThat(getInverted(events)).containViolations(messageForTwoTimes(isSerializableMessageFor(SerializableObject.class)));
+    }
+
+    @Test
+    public void if_there_are_no_input_events_no_ContainsOnlyEvent_is_added() {
+        ConditionEvents events = new ConditionEvents();
+        containOnlyElementsThat(IS_SERIALIZABLE).check(emptyList(), events);
+        assertThat(events.isEmpty()).as("events are empty").isTrue();
     }
 
     static ConditionEvents getInverted(ConditionEvents events) {

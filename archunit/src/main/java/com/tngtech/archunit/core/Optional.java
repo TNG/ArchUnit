@@ -39,6 +39,8 @@ public abstract class Optional<T> {
 
     public abstract T or(T value);
 
+    public abstract Optional<T> or(Optional<T> value);
+
     public abstract Set<T> asSet();
 
     private static class Absent<T> extends Optional<T> {
@@ -59,6 +61,11 @@ public abstract class Optional<T> {
 
         @Override
         public T or(T value) {
+            return value;
+        }
+
+        @Override
+        public Optional<T> or(Optional<T> value) {
             return value;
         }
 
@@ -113,6 +120,11 @@ public abstract class Optional<T> {
         @Override
         public T or(T value) {
             return object;
+        }
+
+        @Override
+        public Optional<T> or(Optional<T> value) {
+            return this;
         }
 
         @Override

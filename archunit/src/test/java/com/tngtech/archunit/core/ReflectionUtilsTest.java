@@ -140,7 +140,7 @@ public class ReflectionUtilsTest {
     @Test
     public void getAllSupertypes() {
         assertThat(ReflectionUtils.getAllSuperTypes(Child.class)).containsOnly(
-                Child.class, UpperMiddle.class, LowerMiddle.class, Parent.class,
+                Child.class, ChildInterface.class, UpperMiddle.class, LowerMiddle.class, Parent.class,
                 SomeInterface.class, OtherInterface.class, Object.class
         );
     }
@@ -254,7 +254,7 @@ public class ReflectionUtilsTest {
         }
     }
 
-    private static class Child extends UpperMiddle {
+    private static class Child extends UpperMiddle implements ChildInterface {
         private int field;
         private String another;
 
@@ -264,6 +264,14 @@ public class ReflectionUtilsTest {
         @Override
         public void overrideMe() {
         }
+
+        @Override
+        public void child() {
+        }
+    }
+
+    private interface ChildInterface {
+        void child();
     }
 
     private interface SomeInterface {

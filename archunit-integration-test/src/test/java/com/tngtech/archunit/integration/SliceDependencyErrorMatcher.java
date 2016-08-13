@@ -1,14 +1,16 @@
 package com.tngtech.archunit.integration;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.junit.ExpectedViolation.ExpectedAccess;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
+import com.tngtech.archunit.junit.MessageAssertionChain;
 
-class SliceDependencyErrorMatcher extends TypeSafeDiagnosingMatcher<AssertionError> {
+class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
     private String dependencyDescription;
     private final Set<ExpectedAccess> expectedAccesses = new HashSet<>();
 
@@ -19,34 +21,6 @@ class SliceDependencyErrorMatcher extends TypeSafeDiagnosingMatcher<AssertionErr
     private SliceDependencyErrorMatcher() {
     }
 
-    @Override
-    protected boolean matchesSafely(AssertionError item, Description mismatchDescription) {
-        boolean matches = item.getMessage().contains(dependencyDescription);
-        if (!matches) {
-            mismatchDescription.appendText("Description ").appendText(dependencyDescription)
-                    .appendText(" was missing").appendText(System.lineSeparator());
-        }
-        for (ExpectedAccess expectedAccess : expectedAccesses) {
-            if (!item.getMessage().contains(expectedAccess.toString())) {
-                mismatchDescription.appendText("Expected Access ").appendText(expectedAccess.toString())
-                        .appendText(" was missing").appendText(System.lineSeparator());
-                matches = false;
-            }
-        }
-        if (!matches) {
-            mismatchDescription.appendText("##### Complete Error Message").appendText(System.lineSeparator())
-                    .appendText(item.getMessage()).appendText(System.lineSeparator()).appendText("#####");
-        }
-        return matches;
-    }
-
-    @Override
-    public void describeTo(Description description) {
-        description.appendText("Description: ").appendText(dependencyDescription).appendText(System.lineSeparator())
-                .appendText("And all Accesses:").appendText(System.lineSeparator())
-                .appendText(Joiner.on(System.lineSeparator()).join(expectedAccesses));
-    }
-
     public SliceDependencyErrorMatcher described(String description) {
         dependencyDescription = description;
         return this;
@@ -55,5 +29,34 @@ class SliceDependencyErrorMatcher extends TypeSafeDiagnosingMatcher<AssertionErr
     public SliceDependencyErrorMatcher byAccess(ExpectedAccess expectedAccess) {
         expectedAccesses.add(expectedAccess);
         return this;
+    }
+
+    @Override
+    public Result filterMatching(List<String> lines) {
+        List<String> mismatches = new ArrayList<>();
+        List<String> remainingLines = new ArrayList<>(lines);
+        boolean matches = remainingLines.remove(dependencyDescription + ":");
+        if (!matches) {
+            mismatches.add("Description " + dependencyDescription + " was missing");
+        }
+        for (ExpectedAccess expectedAccess : expectedAccesses) {
+            if (!remainingLines.remove(expectedAccess.toString())) {
+                mismatches.add("Expected Access " + expectedAccess.toString() + " was missing");
+                matches = false;
+            }
+        }
+        if (!matches) {
+            return new Result(false, lines, Joiner.on(System.lineSeparator()).join(mismatches));
+        }
+        return new Result(true, remainingLines);
+    }
+
+    @Override
+    public String getDescription() {
+        return Joiner.on(System.lineSeparator()).join(ImmutableList.builder()
+                .add("Description: " + dependencyDescription)
+                .add("And all Accesses:")
+                .addAll(expectedAccesses)
+                .build());
     }
 }

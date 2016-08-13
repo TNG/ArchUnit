@@ -1,5 +1,9 @@
 package com.tngtech.archunit.integration;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
@@ -7,11 +11,12 @@ import com.tngtech.archunit.example.SecondBeanImplementingSomeBusinessInterface;
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.exampletest.SessionBeanRulesTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
+import com.tngtech.archunit.junit.MessageAssertionChain;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.google.common.base.Predicates.containsPattern;
+import static com.google.common.collect.Collections2.filter;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
@@ -33,33 +38,49 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Override
     public void business_interface_implementations_should_be_unique() {
         expectedViolation.ofRule("Business Interfaces should have an unique implementation")
-                .byViolation(SOME_BUSINESS_INTERFACE_IS_IMPLEMENTED_BY_TWO_BEANS);
+                .by(SOME_BUSINESS_INTERFACE_IS_IMPLEMENTED_BY_TWO_BEANS);
 
         super.business_interface_implementations_should_be_unique();
     }
 
-    private static final TypeSafeMatcher<String> SOME_BUSINESS_INTERFACE_IS_IMPLEMENTED_BY_TWO_BEANS = new TypeSafeMatcher<String>() {
-        @Override
-        public void describeTo(Description description) {
-            String violatingImplementations = Joiner.on(", ").join(
-                    ClassViolatingSessionBeanRules.class.getSimpleName(),
-                    SecondBeanImplementingSomeBusinessInterface.class.getSimpleName());
+    private static final MessageAssertionChain.Link SOME_BUSINESS_INTERFACE_IS_IMPLEMENTED_BY_TWO_BEANS =
+            new MessageAssertionChain.Link() {
+                @Override
+                public Result filterMatching(List<String> lines) {
+                    Collection<String> interesting = filter(lines, containsPattern(" is implemented by "));
+                    if (interesting.size() != 1) {
+                        return new Result(false, lines);
+                    }
+                    String[] parts = interesting.iterator().next().split(" is implemented by ");
+                    if (parts.length != 2) {
+                        return new Result(false, lines);
+                    }
 
-            description.appendText(String.format("%s is implemented by {%s}",
-                    SomeBusinessInterface.class.getSimpleName(), violatingImplementations));
-        }
+                    if (partsMatchExpectedViolation(parts)) {
+                        List<String> resultLines = new ArrayList<>(lines);
+                        resultLines.removeAll(interesting);
+                        return new Result(true, resultLines);
+                    } else {
+                        return new Result(false, lines);
+                    }
+                }
 
-        @Override
-        protected boolean matchesSafely(String item) {
-            String[] parts = item.replaceAll(String.format(".*%n"), "").split(" is implemented by ");
-            if (parts.length != 2) {
-                return false;
-            }
-            ImmutableSet<String> violations = ImmutableSet.copyOf(parts[1].split(", "));
-            return parts[0].equals(SomeBusinessInterface.class.getSimpleName()) &&
-                    violations.equals(ImmutableSet.of(
+                private boolean partsMatchExpectedViolation(String[] parts) {
+                    ImmutableSet<String> violations = ImmutableSet.copyOf(parts[1].split(", "));
+                    return parts[0].equals(SomeBusinessInterface.class.getSimpleName()) &&
+                            violations.equals(ImmutableSet.of(
+                                    ClassViolatingSessionBeanRules.class.getSimpleName(),
+                                    SecondBeanImplementingSomeBusinessInterface.class.getSimpleName()));
+                }
+
+                @Override
+                public String getDescription() {
+                    String violatingImplementations = Joiner.on(", ").join(
                             ClassViolatingSessionBeanRules.class.getSimpleName(),
-                            SecondBeanImplementingSomeBusinessInterface.class.getSimpleName()));
-        }
-    };
+                            SecondBeanImplementingSomeBusinessInterface.class.getSimpleName());
+
+                    return String.format("Message contains: %s is implemented by {%s}",
+                            SomeBusinessInterface.class.getSimpleName(), violatingImplementations);
+                }
+            };
 }

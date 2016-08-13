@@ -14,7 +14,7 @@ import org.junit.Test;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.TestUtils.javaClasses;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
-import static com.tngtech.archunit.core.TestUtils.simulateCallFrom;
+import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SlicesTest {
@@ -57,8 +57,8 @@ public class SlicesTest {
     public void slices_of_dependencies() {
         JavaMethod methodThatCallsJavaUtil = javaMethod(Object.class, "toString");
         JavaMethod methodThatCallsJavaLang = javaMethod(Map.class, "put", Object.class, Object.class);
-        simulateCallFrom(methodThatCallsJavaUtil, 5).to(methodThatCallsJavaLang);
-        simulateCallFrom(methodThatCallsJavaLang, 1).to(methodThatCallsJavaUtil);
+        simulateCall().from(methodThatCallsJavaUtil, 5).to(methodThatCallsJavaLang);
+        simulateCall().from(methodThatCallsJavaLang, 1).to(methodThatCallsJavaUtil);
 
         Dependency first = Dependency.from(getOnlyElement(methodThatCallsJavaUtil.getMethodCallsFromSelf()));
         Dependency second = Dependency.from(getOnlyElement(methodThatCallsJavaLang.getMethodCallsFromSelf()));

@@ -50,6 +50,8 @@ public class OptionalTest {
     public void or_works() {
         assertThat(Optional.of("test").or("other")).isEqualTo("test");
         assertThat(Optional.absent().or("other")).isEqualTo("other");
+        assertThat(Optional.of("test").or(Optional.of("other"))).isEqualTo(Optional.of("test"));
+        assertThat(Optional.absent().or(Optional.of("other"))).isEqualTo(Optional.of("other"));
     }
 
     @Test

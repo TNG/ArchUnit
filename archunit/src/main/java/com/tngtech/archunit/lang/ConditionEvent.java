@@ -5,6 +5,7 @@ import java.util.Collection;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.transform;
 
 public class ConditionEvent {
@@ -14,6 +15,7 @@ public class ConditionEvent {
     public ConditionEvent(boolean conditionSatisfied, String messageTemplate, Object... args) {
         this.conditionSatisfied = conditionSatisfied;
         this.message = String.format(messageTemplate, args);
+        checkArgument(conditionSatisfied || !message.trim().isEmpty(), "Message may not be empty for violation");
     }
 
     public boolean isViolation() {

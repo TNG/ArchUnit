@@ -26,6 +26,10 @@ public class ConditionEvents implements Iterable<ConditionEvent> {
         return !getViolating().isEmpty();
     }
 
+    public boolean isEmpty() {
+        return getAllowed().isEmpty() && getViolating().isEmpty();
+    }
+
     public void describeFailuresTo(FailureMessages messages) {
         for (ConditionEvent event : getViolating()) {
             event.describeTo(messages);

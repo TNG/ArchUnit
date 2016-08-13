@@ -55,7 +55,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         public void evaluate() throws Throwable {
             FailureSniffer sniffer = new FailureSniffer();
             ArchUnitIntegrationTestRunner.super.runChild(child, sniffer);
-            sniffer.rethrow();
+            sniffer.rethrowIfFailure();
         }
     }
 
@@ -67,8 +67,10 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
             exception = failure.getException();
         }
 
-        void rethrow() throws Throwable {
-            throw exception;
+        void rethrowIfFailure() throws Throwable {
+            if (exception != null) {
+                throw exception;
+            }
         }
     }
 

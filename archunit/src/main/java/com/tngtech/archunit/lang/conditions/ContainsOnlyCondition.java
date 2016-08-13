@@ -20,7 +20,9 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         for (T item : collection) {
             condition.check(item, subEvents);
         }
-        events.add(new OnlyConditionEvent(subEvents));
+        if (!subEvents.isEmpty()) {
+            events.add(new OnlyConditionEvent(subEvents));
+        }
     }
 
     @Override

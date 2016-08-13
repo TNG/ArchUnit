@@ -85,7 +85,7 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
         }
 
         void completeClass(JavaClass clazz) {
-            classCompletionProcesses.add(clazz.completeClassHierarchyFrom(context));
+            classCompletionProcesses.add(clazz.completeFrom(context));
         }
 
         public void finish() {

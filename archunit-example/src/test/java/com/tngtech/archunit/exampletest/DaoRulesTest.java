@@ -18,9 +18,9 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetOwnerIs;
 
 public class DaoRulesTest {
     private JavaClasses classes;
@@ -43,7 +43,7 @@ public class DaoRulesTest {
         JavaClasses classesThatAreNoDaos = classes.that(not(resideIn("..dao.."))).as("classes that are no DAOs");
 
         all(classesThatAreNoDaos)
-                .should(never(callMethodWhere(targetOwnerIs(EntityManager.class)))
+                .should(never(callMethodWhere(callTarget().isDeclaredIn(EntityManager.class)))
                         .as("not access the " + EntityManager.class.getSimpleName()));
     }
 

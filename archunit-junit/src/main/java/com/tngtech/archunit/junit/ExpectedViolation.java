@@ -2,7 +2,6 @@ package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,21 +10,19 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.StringContains;
-import org.junit.internal.matchers.ThrowableMessageMatcher;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
+import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
 import static java.util.Collections.singleton;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static java.util.regex.Pattern.quote;
 
 public class ExpectedViolation implements TestRule {
-    private final Set<Matcher<AssertionError>> errorMatchers = new HashSet<>();
+    private final MessageAssertionChain assertionChain = new MessageAssertionChain();
 
     private ExpectedViolation() {
     }
@@ -39,61 +36,40 @@ public class ExpectedViolation implements TestRule {
         return new ExpectedViolation();
     }
 
-    public ExpectedViolation ofRule(String ruleTest) {
-        errorMatchers.add(new ThrowableMessageMatcher<AssertionError>(
-                containsString(String.format("Rule '%s' was violated", ruleTest))));
+    public ExpectedViolation ofRule(String ruleText) {
+        assertionChain.add(matchesLine(String.format(
+                "Architecture Violation .* Rule '%s' was violated.*", quote(ruleText))));
         return this;
     }
 
     public ExpectedViolation byAccess(ExpectedFieldAccess access) {
-        errorMatchers.add(new ThrowableMessageMatcher<AssertionError>(
-                containsString(access.expectedMessage())));
+        assertionChain.add(containsLine(access.expectedMessage()));
         return this;
     }
 
     public ExpectedViolation byCall(ExpectedMethodCall call) {
-        errorMatchers.add(new ThrowableMessageMatcher<AssertionError>(
-                containsString(call.expectedMessage())));
+        assertionChain.add(containsLine(call.expectedMessage()));
         return this;
     }
 
-    public ExpectedViolation by(Matcher<AssertionError> matcher) {
-        errorMatchers.add(matcher);
+    public ExpectedViolation by(MessageAssertionChain.Link assertion) {
+        assertionChain.add(assertion);
         return this;
     }
 
-    public ExpectedViolation byViolation(final Matcher<String> matcher) {
-        errorMatchers.add(new TypeSafeMatcher<AssertionError>() {
-            @Override
-            protected boolean matchesSafely(AssertionError item) {
-                return matcher.matches(item.getMessage());
-            }
-
-            @Override
-            public void describeTo(org.hamcrest.Description description) {
-                description.appendDescriptionOf(matcher);
-            }
-        });
-        return this;
+    public static PackageAssertionCreator javaPackageOf(Class<?> clazz) {
+        return new PackageAssertionCreator(clazz);
     }
 
-    public static ThrowablePackageMessageCreator javaPackageOf(Class<?> clazz) {
-        return new ThrowablePackageMessageCreator(clazz);
-    }
-
-    public static class ThrowablePackageMessageCreator {
+    public static class PackageAssertionCreator {
         private final Class<?> clazz;
 
-        public ThrowablePackageMessageCreator(Class<?> clazz) {
+        public PackageAssertionCreator(Class<?> clazz) {
             this.clazz = clazz;
         }
 
-        public ThrowableMessageMatcher<AssertionError> notMatching(String packageIdentifier) {
-            return new ThrowableMessageMatcher<>(allOf(
-                    containsString(clazz.getName()),
-                    containsString("package"),
-                    containsString("matches"),
-                    containsString(packageIdentifier)));
+        public MessageAssertionChain.Link notMatching(String packageIdentifier) {
+            return containsLine("Class %s does not reside in a package that matches '%s'", clazz.getName(), packageIdentifier);
         }
     }
 
@@ -108,18 +84,16 @@ public class ExpectedViolation implements TestRule {
         public void evaluate() throws Throwable {
             try {
                 base.evaluate();
-                throw new NoExpectedViolationException(errorMatchers);
+                throw new NoExpectedViolationException(assertionChain);
             } catch (AssertionError assertionError) {
-                for (Matcher<AssertionError> matcher : errorMatchers) {
-                    assertThat(assertionError, matcher);
-                }
+                assertionChain.evaluate(assertionError);
             }
         }
     }
 
     public static class NoExpectedViolationException extends RuntimeException {
-        public NoExpectedViolationException(Set<Matcher<AssertionError>> errorMatchers) {
-            super("Rule was not violated in the expected way: Expected " + errorMatchers);
+        public NoExpectedViolationException(MessageAssertionChain assertionChain) {
+            super("Rule was not violated in the expected way: Expected " + assertionChain);
         }
     }
 

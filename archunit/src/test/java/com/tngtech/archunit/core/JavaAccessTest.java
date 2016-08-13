@@ -41,11 +41,11 @@ public class JavaAccessTest {
             return "";
         }
 
-        private static class Creator {
+        public static class Creator {
             private final JavaMethod origin;
             private JavaMethod target;
 
-            public Creator(JavaClass owner, String name) {
+            private Creator(JavaClass owner, String name) {
                 this.origin = javaMethod(owner, name);
             }
 

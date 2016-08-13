@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
@@ -32,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
 import static java.util.Collections.singleton;
 
 class ClassFileImportContext {
@@ -59,7 +59,7 @@ class ClassFileImportContext {
     }
 
     JavaClasses complete() {
-        ensureClassesOfHierarchyInContext();
+        ensureClassHierarchies();
         for (RawFieldAccessRecord fieldAccessRecord : rawFieldAccessRecords) {
             tryProcess(fieldAccessRecord, processedFieldAccessRecords);
         }
@@ -72,36 +72,24 @@ class ClassFileImportContext {
         return JavaClasses.of(classes, this);
     }
 
+    private void ensureClassHierarchies() {
+        ensureClassesOfHierarchyInContext();
+        for (JavaClass javaClass : classes.values()) {
+            javaClass.completeClassHierarchyFrom(this);
+        }
+    }
+
     private void ensureClassesOfHierarchyInContext() {
         Map<Class<?>, JavaClass> missingTypes = new HashMap<>();
         for (Class<?> clazz : classes.keySet()) {
-            tryAddSuperClass(missingTypes, clazz);
-            tryAddInterfaces(missingTypes, clazz);
+            tryAddSuperTypes(missingTypes, clazz);
         }
         classes.putAll(missingTypes);
     }
 
-    private void tryAddInterfaces(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
-        tryAddRelatedClasses(missingTypes, clazz, new Function<Class<?>, Set<Class<?>>>() {
-            @Override
-            public Set<Class<?>> apply(Class<?> input) {
-                return ImmutableSet.copyOf(input.getInterfaces());
-            }
-        });
-    }
-
-    private void tryAddSuperClass(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
-        tryAddRelatedClasses(missingTypes, clazz, new Function<Class<?>, Set<Class<?>>>() {
-            @Override
-            public Set<Class<?>> apply(Class<?> input) {
-                return Optional.<Class<?>>fromNullable(input.getSuperclass()).asSet();
-            }
-        });
-    }
-
-    private void tryAddRelatedClasses(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz, Function<Class<?>, Set<Class<?>>> extractRelatedClasses) {
+    private void tryAddSuperTypes(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
         try {
-            for (Class<?> toAdd : extractRelatedClasses.apply(clazz)) {
+            for (Class<?> toAdd : getAllSuperTypes(clazz)) {
                 if (!classes.containsKey(toAdd)) {
                     missingTypes.put(toAdd, new JavaClass.Builder().withType(toAdd).build());
                 }
@@ -286,7 +274,7 @@ class ClassFileImportContext {
 
             Processed(Map<Class<?>, JavaClass> classes) {
                 super(classes);
-                methods = getTargetOwnerClass().getMethods();
+                methods = getTargetOwnerClass().getAllMethods();
             }
 
             @Override

@@ -1,17 +1,14 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
-import static com.tngtech.archunit.core.DescribedPredicate.not;
-import static com.tngtech.archunit.core.Formatters.formatMethod;
+import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 
 public class ArchPredicates {
@@ -61,6 +58,10 @@ public class ArchPredicates {
                 return pattern.matcher(input.getSimpleName()).matches();
             }
         };
+    }
+
+    public static DescribedPredicate<JavaClass> theHierarchyOf(Class<?> type) {
+        return inTheHierarchyOfAClassThat(equalTo((Class) type).onResultOf(REFLECT));
     }
 
     public static DescribedPredicate<JavaClass> inTheHierarchyOfAClassThat(final DescribedPredicate<JavaClass> predicate) {
@@ -122,65 +123,17 @@ public class ArchPredicates {
             public boolean apply(JavaFieldAccess input) {
                 Class<?> fieldType = input.getTarget().reflect().getType();
 
-                return !fieldType.isPrimitive() &&
+                return fieldType.getPackage() != null &&
                         packageMatcher.matches(fieldType.getPackage().getName());
             }
         };
     }
 
-    public static DescribedPredicate<JavaCall<?>> targetIs(
-            final Class<?> targetClass, final String methodName, final List<Class<?>> paramTypes) {
-        return new DescribedPredicate<JavaCall<?>>("target is %s", formatMethod(targetClass.getName(), methodName, paramTypes)) {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return targetHasName(targetClass, methodName).apply(input)
-                        && input.getTarget().getParameters().equals(paramTypes);
-            }
-        };
+    public static CallPredicate callTarget() {
+        return CallPredicate.target();
     }
 
-    public static DescribedPredicate<JavaCall<?>> targetHasName(final Class<?> targetClass, final String methodName) {
-        return targetIs(DescribedPredicate.<Class<?>>equalTo(targetClass).onResultOf(REFLECT), methodName);
-    }
-
-    public static DescribedPredicate<JavaCall<?>> targetIs(final DescribedPredicate<JavaClass> targetSelector, final String methodName) {
-        return new DescribedPredicate<JavaCall<?>>("target is %s and has name '%s'", targetSelector.getDescription(), methodName) {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return targetOwnerIs(targetSelector).apply(input)
-                        && input.getTarget().getName().equals(methodName);
-            }
-        };
-    }
-
-    public static DescribedPredicate<JavaCall<?>> targetOwnerIs(final Class<?> targetClass) {
-        return targetOwnerIs(DescribedPredicate.<Class<?>>equalTo(targetClass).onResultOf(REFLECT));
-    }
-
-    public static DescribedPredicate<JavaCall<?>> targetOwnerIs(final DescribedPredicate<JavaClass> selector) {
-        return new DescribedPredicate<JavaCall<?>>("target is " + selector) {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return selector.apply(input.getTarget().getOwner());
-            }
-        };
-    }
-
-    public static DescribedPredicate<JavaCall<?>> originClassIs(Class<?> originClass) {
-        return originClassIs(DescribedPredicate.<Class<?>>equalTo(originClass).onResultOf(REFLECT)
-                .as("equal to %s.class", originClass.getSimpleName()));
-    }
-
-    public static DescribedPredicate<JavaCall<?>> originClassIsNot(Class<?> originClass) {
-        return not(originClassIs(originClass)).as("origin class is not %s.class", originClass.getSimpleName());
-    }
-
-    public static DescribedPredicate<JavaCall<?>> originClassIs(final DescribedPredicate<JavaClass> selector) {
-        return new DescribedPredicate<JavaCall<?>>("origin class is " + selector.getDescription()) {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return selector.apply(input.getOriginOwner());
-            }
-        };
+    public static CallPredicate callOrigin() {
+        return CallPredicate.origin();
     }
 }

@@ -128,6 +128,22 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         return getClass().getSimpleName() + "{member=" + memberDescription + ", owner=" + getOwner() + '}';
     }
 
+    public static DescribedPredicate<JavaMember<?, ?>> hasName(final String name) {
+        return new DescribedPredicate<JavaMember<?, ?>>("has name '%s'", name) {
+            @Override
+            public boolean apply(JavaMember<?, ?> input) {
+                return name.equals(input.getName());
+            }
+        };
+    }
+
+    public static final Function<JavaMember<?, ?>, JavaClass> GET_OWNER = new Function<JavaMember<?, ?>, JavaClass>() {
+        @Override
+        public JavaClass apply(JavaMember<?, ?> input) {
+            return input.getOwner();
+        }
+    };
+
     static abstract class Builder<RAW extends MemberDescription<?>, OUTPUT> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         RAW member;
         JavaClass owner;

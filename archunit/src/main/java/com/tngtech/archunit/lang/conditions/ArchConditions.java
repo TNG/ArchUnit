@@ -1,6 +1,7 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
@@ -10,8 +11,9 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
 import static java.util.Arrays.asList;
 
 public final class ArchConditions {
@@ -67,8 +69,8 @@ public final class ArchConditions {
         return new ClassAccessesFieldCondition(predicate);
     }
 
-    public static ArchCondition<JavaClass> callMethod(final Class<?> clazz, final String methodName, Class<?>... paramTypes) {
-        return callMethodWhere(targetIs(clazz, methodName, asList(paramTypes)));
+    public static MethodCallConditionCreator callMethod(final String methodName, Class<?>... paramTypes) {
+        return new MethodCallConditionCreator(methodName, asList(paramTypes));
     }
 
     public static ArchCondition<JavaClass> callMethodWhere(DescribedPredicate<JavaCall<?>> predicate) {
@@ -89,5 +91,26 @@ public final class ArchConditions {
 
     public static <T> ArchCondition<Collection<? extends T>> containOnlyElementsThat(ArchCondition<T> condition) {
         return new ContainsOnlyCondition<>(condition);
+    }
+
+    public static class MethodCallConditionCreator {
+        private final String methodName;
+        private final List<Class<?>> params;
+
+        private MethodCallConditionCreator(String methodName, List<Class<?>> params) {
+            this.methodName = methodName;
+            this.params = params;
+        }
+
+        public ArchCondition<JavaClass> in(Class<?> clazz) {
+            return callMethodWhere(callTarget().is(clazz, methodName, params));
+        }
+
+        public ArchCondition<JavaClass> inHierarchyOf(Class<?> type) {
+            return callMethodWhere(callTarget()
+                    .isDeclaredIn(theHierarchyOf(type))
+                    .hasName(methodName)
+                    .hasParameters(params));
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
+import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -45,6 +46,15 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
     }
 
     public abstract List<Class<?>> getParameters();
+
+    public static DescribedPredicate<JavaCodeUnit<?, ?>> hasParameters(final List<Class<?>> paramTypes) {
+        return new DescribedPredicate<JavaCodeUnit<?, ?>>("has parameters [%s]", formatMethodParameters(paramTypes)) {
+            @Override
+            public boolean apply(JavaCodeUnit<?, ?> input) {
+                return paramTypes.equals(input.getParameters());
+            }
+        };
+    }
 
     public abstract Class<?> getReturnType();
 

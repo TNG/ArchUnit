@@ -15,7 +15,7 @@ public abstract class DescribedPredicate<T> {
     public abstract boolean apply(T input);
 
     public DescribedPredicate(String description, Object... params) {
-        checkArgument(description != null && !description.trim().isEmpty(), "Description must not be empty");
+        checkArgument(description != null, "Description must be set");
         this.description = String.format(description, params);
     }
 
@@ -32,7 +32,7 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
-    public DescribedPredicate<T> and(final DescribedPredicate<T> other) {
+    public DescribedPredicate<T> and(final DescribedPredicate<? super T> other) {
         return new DescribedPredicate<T>(description + " and " + other.getDescription()) {
             @Override
             public boolean apply(T input) {
@@ -41,7 +41,7 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
-    public DescribedPredicate<T> or(final DescribedPredicate<T> other) {
+    public DescribedPredicate<T> or(final DescribedPredicate<? super T> other) {
         return new DescribedPredicate<T>(description + " or " + other.getDescription()) {
             @Override
             public boolean apply(T input) {
@@ -82,23 +82,29 @@ public abstract class DescribedPredicate<T> {
         return predicate.as("are " + predicate.getDescription());
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysTrue() {
-        return new DescribedPredicate<T>("always true") {
-            @Override
-            public boolean apply(T input) {
-                return true;
-            }
-        };
+        return (DescribedPredicate<T>) ALWAYS_TRUE;
     }
 
+    private static DescribedPredicate<Object> ALWAYS_TRUE = new DescribedPredicate<Object>("always true") {
+        @Override
+        public boolean apply(Object input) {
+            return true;
+        }
+    };
+
+    @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysFalse() {
-        return new DescribedPredicate<T>("always false") {
-            @Override
-            public boolean apply(T input) {
-                return false;
-            }
-        };
+        return (DescribedPredicate<T>) ALWAYS_FALSE;
     }
+
+    private static final DescribedPredicate<Object> ALWAYS_FALSE = new DescribedPredicate<Object>("always false") {
+        @Override
+        public boolean apply(Object input) {
+            return false;
+        }
+    };
 
     public static <T> DescribedPredicate<T> equalTo(final T object) {
         checkNotNull(object);

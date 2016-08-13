@@ -8,7 +8,7 @@ public class ClassViolatingCodingRules {
     public void printToStandardStream() {
         System.out.println("I'm gonna print to the command line"); // Violates rule not to write to standard streams
         System.err.println("I'm gonna print to the command line"); // Violates rule not to write to standard streams
-        new Throwable().printStackTrace(); // Violates rule not to write to standard streams
+        new SomeCustomException().printStackTrace(); // Violates rule not to write to standard streams
     }
 
     public void throwGenericExceptions() throws Throwable {
@@ -19,5 +19,9 @@ public class ClassViolatingCodingRules {
         } else {
             throw new RuntimeException("I have some cause", new Exception("I'm the cause")); // Violates rule not to throw generic exceptions
         }
+    }
+
+    public void thisIsOkay() {
+        throw new SomeCustomException();
     }
 }

@@ -17,7 +17,7 @@ import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
-import static com.tngtech.archunit.core.TestUtils.simulateCallFrom;
+import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -124,8 +124,8 @@ public class JavaClassTest {
     public void allAccesses_contains_accesses_from_superclass() {
         JavaClass javaClass = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
         JavaClass anotherClass = javaClass(Object.class);
-        simulateCallFrom(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
-        simulateCallFrom(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
+        simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
+        simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")

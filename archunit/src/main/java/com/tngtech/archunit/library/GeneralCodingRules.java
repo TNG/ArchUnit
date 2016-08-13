@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.OpenArchRule;
 
+import static com.tngtech.archunit.core.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
@@ -11,7 +12,8 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetHasName;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetTypeResidesIn;
 
 public class GeneralCodingRules {
@@ -20,7 +22,7 @@ public class GeneralCodingRules {
     private static ArchCondition<JavaClass> notAccessStandardStreams() {
         ArchCondition<JavaClass> noAccessToSystemOut = never(accessField(System.class, "out"));
         ArchCondition<JavaClass> noAccessToSystemErr = never(accessField(System.class, "err"));
-        ArchCondition<JavaClass> noCallOfPrintStackTrace = never(callMethod(Throwable.class, "printStackTrace"));
+        ArchCondition<JavaClass> noCallOfPrintStackTrace = never(callMethod("printStackTrace").inHierarchyOf(Throwable.class));
 
         return noAccessToSystemOut.and(noAccessToSystemErr).and(noCallOfPrintStackTrace).as("not access standard streams");
     }
@@ -38,9 +40,14 @@ public class GeneralCodingRules {
     public static final ArchCondition<JavaClass> NOT_THROW_GENERIC_EXCEPTIONS = noGenericExceptions();
 
     private static ArchCondition<JavaClass> noGenericExceptions() {
-        ArchCondition<JavaClass> noCreationOfThrowable = never(callMethodWhere(targetHasName(Throwable.class, "<init>")));
-        ArchCondition<JavaClass> noCreationOfException = never(callMethodWhere(targetHasName(Exception.class, "<init>")));
-        ArchCondition<JavaClass> noCreationOfRuntimeException = never(callMethodWhere(targetHasName(RuntimeException.class, "<init>")));
+        ArchCondition<JavaClass> noCreationOfThrowable =
+                never(callMethodWhere(callTarget().isDeclaredIn(Throwable.class).hasName("<init>")));
+        ArchCondition<JavaClass> noCreationOfException =
+                never(callMethodWhere(callTarget().isDeclaredIn(Exception.class).hasName("<init>")
+                        .and(not(callOrigin().isAssignableTo(Exception.class)))));
+        ArchCondition<JavaClass> noCreationOfRuntimeException =
+                never(callMethodWhere(callTarget().isDeclaredIn(RuntimeException.class).hasName("<init>")
+                        .and(not(callOrigin().isAssignableTo(RuntimeException.class)))));
 
         return noCreationOfThrowable.and(noCreationOfException).and(noCreationOfRuntimeException).as("not throw generic exceptions");
     }
