@@ -132,7 +132,11 @@ public class MessageAssertionChain {
             }
 
             public static Result failure(List<String> lines) {
-                return new Result(false, lines);
+                return failure(lines, "Lines were " + Joiner.on(System.lineSeparator()).join(lines));
+            }
+
+            public static Result failure(List<String> lines, String mismatchDescription, Object... args) {
+                return new Result(false, lines, String.format(mismatchDescription, args));
             }
 
             public Result(boolean matches, List<String> remainingLines) {

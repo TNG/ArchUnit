@@ -69,23 +69,24 @@ public class SessionBeanRulesTest {
     private static final ArchCondition<JavaClass> NOT_SET_FIELDS_AFTER_CONSTRUCTION =
             never(setFieldWhere(ACCESS_ORIGIN_IS_OUTSIDE_OF_CONSTRUCTION));
 
-    private static final DescribedPredicate<JavaClass> BUSINESS_INTERFACES = INTERFACES.
-            and(new DescribedPredicate<JavaClass>("has subclass that is local bean") {
-                @Override
-                public boolean apply(JavaClass input) {
-                    for (JavaClass subClass : input.getAllSubClasses()) {
-                        if (isLocalBeanImplementation(subClass, input)) {
-                            return true;
-                        }
-                    }
-                    return false;
+    private static final DescribedPredicate<JavaClass> HAVE_LOCAL_BEAN_SUBCLASS = new DescribedPredicate<JavaClass>("have subclass that is a local bean") {
+        @Override
+        public boolean apply(JavaClass input) {
+            for (JavaClass subClass : input.getAllSubClasses()) {
+                if (isLocalBeanImplementation(subClass, input)) {
+                    return true;
                 }
+            }
+            return false;
+        }
 
-                private boolean isLocalBeanImplementation(JavaClass bean, JavaClass businessInterfaceType) {
-                    return bean.isAnnotationPresent(Local.class)
-                            && (bean.reflect().getAnnotation(Local.class).value()[0] == businessInterfaceType.reflect());
-                }
-            });
+        private boolean isLocalBeanImplementation(JavaClass bean, JavaClass businessInterfaceType) {
+            return bean.isAnnotationPresent(Local.class)
+                    && (bean.reflect().getAnnotation(Local.class).value()[0] == businessInterfaceType.reflect());
+        }
+    };
+
+    private static final DescribedPredicate<JavaClass> BUSINESS_INTERFACES = INTERFACES.and(HAVE_LOCAL_BEAN_SUBCLASS);
 
     private static final ArchCondition<JavaClass> HAVE_AN_UNIQUE_IMPLEMENTATION =
             new ArchCondition<JavaClass>("have an unique implementation") {
