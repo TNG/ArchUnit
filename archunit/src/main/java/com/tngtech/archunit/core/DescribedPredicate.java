@@ -125,4 +125,9 @@ public abstract class DescribedPredicate<T> {
             }
         };
     }
+
+    @SuppressWarnings("unchecked") // DescribedPredicate is contra variant
+    public <U extends T> DescribedPredicate<U> forSubType() {
+        return (DescribedPredicate<U>) this;
+    }
 }

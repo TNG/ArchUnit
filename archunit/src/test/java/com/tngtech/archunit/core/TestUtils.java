@@ -79,6 +79,10 @@ public class TestUtils {
         public AccessSimulator from(JavaMethod method, int lineNumber) {
             return new AccessSimulator(targets, method, lineNumber);
         }
+
+        public AccessSimulator from(Class<?> clazz, String methodName, Class<?>... params) {
+            return new AccessSimulator(targets, javaMethod(clazz, methodName, params), 0);
+        }
     }
 
     public static class AccessSimulator {
@@ -98,6 +102,10 @@ public class TestUtils {
             when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
             method.completeFrom(context);
             return getCallToTarget(target);
+        }
+
+        public JavaCall<?> to(Class<?> clazz, String methodName, Class<?>... params) {
+            return to(javaMethod(clazz, methodName, params));
         }
 
         private JavaMethodCall getCallToTarget(JavaMethod target) {

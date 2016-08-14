@@ -8,6 +8,7 @@ import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
+import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.Optional;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
@@ -75,9 +76,17 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return modification.modify(this.predicate, predicate.onResultOf(GET_OWNER));
     }
 
+    public CallPredicate is(Class<?> clazz, String methodName, Class<?>... paramTypes) {
+        return is(clazz, methodName, ImmutableList.copyOf(paramTypes));
+    }
+
     public CallPredicate is(Class<?> clazz, String methodName, List<Class<?>> paramTypes) {
-        return isDeclaredIn(clazz).hasName(methodName).hasParameters(paramTypes)
-                .as("is %s", formatMethod(clazz.getName(), methodName, paramTypes));
+        DescribedPredicate<JavaCodeUnit<?, ?>> isDeclaredIn = declaredInPredicateFor(clazz).onResultOf(GET_OWNER).forSubType();
+        DescribedPredicate<JavaCodeUnit<?, ?>> hasName = JavaMember.hasName(methodName).forSubType();
+        DescribedPredicate<JavaCodeUnit<?, ?>> isPredicate = isDeclaredIn.and(hasName).and(JavaCodeUnit.hasParameters(paramTypes))
+                .as(formatMethod(clazz.getName(), methodName, paramTypes));
+
+        return new CallPredicate(modification.modify(predicate, isPredicate), modification);
     }
 
     @Override
@@ -125,19 +134,19 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         private final Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> targetPredicate;
         private final DescribedPredicate<JavaCall<?>> combined;
 
-        public CombinedCallPredicate() {
+        private CombinedCallPredicate() {
             this(Optional.<DescribedPredicate<JavaCodeUnit<?, ?>>>absent(),
                     Optional.<DescribedPredicate<JavaCodeUnit<?, ?>>>absent());
         }
 
-        public CombinedCallPredicate(Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
-                                     Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> targetPredicate) {
+        private CombinedCallPredicate(Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> targetPredicate) {
             this(combine(originPredicate, targetPredicate), originPredicate, targetPredicate);
         }
 
-        public CombinedCallPredicate(String description,
-                                     Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
-                                     Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> targetPredicate) {
+        private CombinedCallPredicate(String description,
+                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> targetPredicate) {
             this(description, combine(originPredicate, targetPredicate), originPredicate, targetPredicate);
         }
 
@@ -186,12 +195,16 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
             return Joiner.on(" and ").skipNulls().join(originDescription, targetDescription);
         }
 
-        public CombinedCallPredicate andTarget(DescribedPredicate<? super JavaCodeUnit<?, ?>> predicate) {
-            return new CombinedCallPredicate(originPredicate, Optional.of(predicateFrom(targetPredicate).and(predicate)));
+        private CombinedCallPredicate andTarget(DescribedPredicate<? super JavaCodeUnit<?, ?>> predicate) {
+            return new CombinedCallPredicate(originPredicate, Optional.of(and(targetPredicate, predicate)));
         }
 
-        public CombinedCallPredicate andOrigin(DescribedPredicate<? super JavaCodeUnit<?, ?>> predicate) {
-            return new CombinedCallPredicate(Optional.of(predicateFrom(originPredicate).and(predicate)), targetPredicate);
+        private CombinedCallPredicate andOrigin(DescribedPredicate<? super JavaCodeUnit<?, ?>> predicate) {
+            return new CombinedCallPredicate(Optional.of(and(originPredicate, predicate)), targetPredicate);
+        }
+
+        private DescribedPredicate<JavaCodeUnit<?, ?>> and(Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> first, DescribedPredicate<? super JavaCodeUnit<?, ?>> second) {
+            return first.isPresent() ? first.get().and(second) : second.<JavaCodeUnit<?, ?>>forSubType();
         }
     }
 }
