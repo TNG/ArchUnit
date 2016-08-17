@@ -52,9 +52,9 @@ public class ClassFileImporter {
         return importLocations(Locations.of(urls));
     }
 
-    public JavaClasses importLocations(Collection<Location> urls) {
+    public JavaClasses importLocations(Collection<Location> locations) {
         List<ClassFileSource> sources = new ArrayList<>();
-        for (Location location : urls) {
+        for (Location location : locations) {
             sources.add(classFileSourceFor(location));
         }
         return new ClassFileProcessor().process(unify(sources));

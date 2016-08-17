@@ -36,8 +36,8 @@ public abstract class ArchCondition<T> {
         return description;
     }
 
-    public ArchCondition<T> as(String description) {
-        return new ArchCondition<T>(objectsToTest, description) {
+    public ArchCondition<T> as(String description, Object... args) {
+        return new ArchCondition<T>(objectsToTest, String.format(description, args)) {
             @Override
             public void check(T item, ConditionEvents events) {
                 ArchCondition.this.check(item, events);

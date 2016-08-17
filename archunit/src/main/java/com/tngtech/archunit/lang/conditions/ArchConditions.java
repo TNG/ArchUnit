@@ -60,7 +60,8 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> accessField(final Class<?> clazz, final String fieldName) {
-        return accessFieldWhere(ownerAndNameAre(clazz, fieldName));
+        return accessFieldWhere(ownerAndNameAre(clazz, fieldName))
+                .as("access field %s.%s", clazz.getSimpleName(), fieldName);
     }
 
     public static ArchCondition<JavaClass> accessFieldWhere(DescribedPredicate<JavaFieldAccess> predicate) {
