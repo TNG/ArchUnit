@@ -7,11 +7,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaCallTest {
     @Test
-    public void to_target() {
+    public void get_target() {
         JavaMethodCall call = TestUtils.simulateCall().from(javaMethod(getClass(), "toString"), 5)
                 .to(javaMethod(getClass(), "hashCode"));
 
-        assertThat(JavaCall.TO_TARGET.apply(call)).isEqualTo(call.getTarget());
+        assertThat(JavaCall.GET_TARGET.apply(call)).isEqualTo(call.getTarget());
     }
 
     @Override

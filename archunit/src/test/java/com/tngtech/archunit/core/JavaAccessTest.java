@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
+import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaAccessTest {
@@ -25,6 +26,24 @@ public class JavaAccessTest {
                 .inLineNumber(7);
 
         assertThat(access.getDescription()).contains("(SomeClass.java:7)");
+    }
+
+    @Test
+    public void get_target() {
+        JavaAccess<?> access = simulateCall().from(javaMethod(getClass(), "toString"), 5)
+                .to(javaMethod(getClass(), "hashCode"));
+
+        assertThat(JavaAccess.GET_TARGET.apply(access)).isEqualTo(access.getTarget());
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
     }
 
     private static TestJavaAccess.Creator javaAccessFrom(JavaClass owner, String name) {

@@ -1,6 +1,7 @@
 package com.tngtech.archunit.integration;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import com.tngtech.archunit.junit.ArchRuleExecution;
 import com.tngtech.archunit.junit.ArchTest;
@@ -85,7 +86,9 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
 
         public void configure(ExpectedViolation expectedViolation) {
             try {
-                location.getDeclaredMethod(method, ExpectedViolation.class).invoke(null, expectedViolation);
+                Method expectViolation = location.getDeclaredMethod(method, ExpectedViolation.class);
+                expectViolation.setAccessible(true);
+                expectViolation.invoke(null, expectedViolation);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException("Cannot find method '" + method + "' on " + location.getSimpleName());
             } catch (InvocationTargetException | IllegalAccessException e) {

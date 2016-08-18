@@ -106,4 +106,12 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
     }
 
     protected abstract String descriptionTemplate();
+
+    public static final ChainableFunction<JavaAccess<?>, JavaMember<?, ?>> GET_TARGET =
+            new ChainableFunction<JavaAccess<?>, JavaMember<?, ?>>() {
+                @Override
+                public JavaMember<?, ?> apply(JavaAccess<?> input) {
+                    return input.getTarget();
+                }
+            };
 }

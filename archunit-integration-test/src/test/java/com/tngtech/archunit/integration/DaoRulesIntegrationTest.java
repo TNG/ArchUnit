@@ -1,22 +1,15 @@
 package com.tngtech.archunit.integration;
 
-import javax.persistence.EntityManager;
-
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
-import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.exampletest.DaoRulesTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
 import static com.tngtech.archunit.junit.ExpectedViolation.javaPackageOf;
 
 public class DaoRulesIntegrationTest extends DaoRulesTest {
-    public static final String ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT =
-            "classes that are no DAOs should not access the " + EntityManager.class.getSimpleName();
-
     @Rule
     public final ExpectedViolation expectedViolation = ExpectedViolation.none();
 
@@ -27,17 +20,6 @@ public class DaoRulesIntegrationTest extends DaoRulesTest {
                 .by(javaPackageOf(InWrongPackageDao.class).notMatching("..dao.."));
 
         super.DAOs_must_reside_in_a_dao_package();
-    }
-
-    @Test
-    @Override
-    public void only_DAOs_may_use_the_EntityManager() {
-        expectedViolation.ofRule(ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT)
-                .byCall(from(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
-                        .toMethod(EntityManager.class, "persist", Object.class)
-                        .inLine(20));
-
-        super.only_DAOs_may_use_the_EntityManager();
     }
 
     @Test

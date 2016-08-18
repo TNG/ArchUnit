@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
@@ -10,6 +11,8 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
+import static com.tngtech.archunit.core.JavaAccess.GET_TARGET;
+import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
@@ -76,6 +79,10 @@ public final class ArchConditions {
         return new ClassCallsMethodCondition(predicate);
     }
 
+    public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<JavaClass> predicate) {
+        return new ClassAccessesCondition(predicate);
+    }
+
     public static ArchCondition<JavaClass> resideInAPackage(String packageIdentifier) {
         return new ClassResidesInCondition(packageIdentifier);
     }
@@ -110,6 +117,18 @@ public final class ArchConditions {
                     .isDeclaredIn(theHierarchyOf(type))
                     .hasName(methodName)
                     .hasParameters(params));
+        }
+    }
+
+    private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
+        public ClassAccessesCondition(final DescribedPredicate<JavaClass> predicate) {
+            super(new JavaAccessCondition(predicate.onResultOf(GET_OWNER.after(GET_TARGET))
+                    .as("access target with owner " + predicate.getDescription())));
+        }
+
+        @Override
+        Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
+            return item.getAccessesFromSelf();
         }
     }
 }

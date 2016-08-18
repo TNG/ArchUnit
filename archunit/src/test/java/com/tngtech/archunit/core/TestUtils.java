@@ -83,6 +83,10 @@ public class TestUtils {
         public AccessSimulator from(Class<?> clazz, String methodName, Class<?>... params) {
             return new AccessSimulator(targets, javaMethod(clazz, methodName, params), 0);
         }
+
+        public AccessSimulator from(JavaClass clazz, String methodName, Class<?>... params) {
+            return from(clazz.getMethod(methodName, params), 0);
+        }
     }
 
     public static class AccessSimulator {

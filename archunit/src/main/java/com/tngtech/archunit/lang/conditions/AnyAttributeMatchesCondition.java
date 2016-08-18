@@ -21,7 +21,7 @@ abstract class AnyAttributeMatchesCondition<T> extends ArchCondition<JavaClass> 
     }
 
     @Override
-    public void check(JavaClass item, ConditionEvents events) {
+    public final void check(JavaClass item, ConditionEvents events) {
         containAnyElementThat(condition).check(relevantAttributes(item), events);
     }
 

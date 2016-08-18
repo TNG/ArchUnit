@@ -137,12 +137,13 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         };
     }
 
-    public static final Function<JavaMember<?, ?>, JavaClass> GET_OWNER = new Function<JavaMember<?, ?>, JavaClass>() {
-        @Override
-        public JavaClass apply(JavaMember<?, ?> input) {
-            return input.getOwner();
-        }
-    };
+    public static final ChainableFunction<JavaMember<?, ?>, JavaClass> GET_OWNER =
+            new ChainableFunction<JavaMember<?, ?>, JavaClass>() {
+                @Override
+                public JavaClass apply(JavaMember<?, ?> input) {
+                    return input.getOwner();
+                }
+            };
 
     static abstract class Builder<RAW extends MemberDescription<?>, OUTPUT> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         RAW member;

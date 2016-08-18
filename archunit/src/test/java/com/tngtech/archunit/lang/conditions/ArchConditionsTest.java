@@ -3,10 +3,12 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.TestUtils.AccessesSimulator;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.FailureMessages;
@@ -18,8 +20,10 @@ import static com.google.common.collect.Sets.newTreeSet;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
@@ -32,8 +36,9 @@ public class ArchConditionsTest {
         JavaMethod callMe = javaMethod(javaClass(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("callMe"));
         JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
-        ConditionEvents events = new ConditionEvents();
-        never(callMethod("dontCallMe").inHierarchyOf(SomeSuperClass.class)).check(callingClass, events);
+        ConditionEvents events =
+                check(never(callMethod("dontCallMe").inHierarchyOf(SomeSuperClass.class)), callingClass);
+
         assertThat(events).containViolations(callToDontCallMe.getDescription());
 
         events = new ConditionEvents();
@@ -41,6 +46,26 @@ public class ArchConditionsTest {
         assertThat(events).containNoViolation();
         assertThat(getOnlyElement(events.getAllowed())).extracting("allowed").extracting(TO_STRING_LEXICOGRAPHICALLY)
                 .containsOnly(callToCallMe.getDescription() + callToDontCallMe.getDescription());
+    }
+
+    @Test
+    public void access_class() {
+        JavaClass clazz = javaClass(CallingClass.class);
+        JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
+
+        ConditionEvents events = check(never(accessClass(named("Some.*"))), clazz);
+
+        assertThat(events).containViolations(call.getDescription());
+
+        events = check(never(accessClass(named("Wong.*"))), clazz);
+
+        assertThat(events).containNoViolation();
+    }
+
+    private ConditionEvents check(ArchCondition<JavaClass> condition, JavaClass javaClass) {
+        ConditionEvents events = new ConditionEvents();
+        condition.check(javaClass, events);
+        return events;
     }
 
     private static final Extractor<Object, String> TO_STRING_LEXICOGRAPHICALLY = new Extractor<Object, String>() {
