@@ -7,7 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesIn;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
@@ -24,14 +24,14 @@ public class LayerDependencyRulesTest {
     @Test
     public void services_should_not_access_controllers() {
         all(classes.that(resideIn("..service..")))
-                .should(never(accessClassesIn("..controller..")));
+                .should(never(accessClassesThatResideIn("..controller..")));
     }
 
     @Ignore
     @Test
     public void persistence_should_not_access_services() {
         all(classes.that(resideIn("..persistence..")))
-                .should(never(accessClassesIn("..service..")));
+                .should(never(accessClassesThatResideIn("..service..")));
     }
 
     @Ignore

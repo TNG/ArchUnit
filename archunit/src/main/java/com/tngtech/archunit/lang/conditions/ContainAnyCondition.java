@@ -6,11 +6,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-class ContainsAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
+class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
 
-    ContainsAnyCondition(ArchCondition<T> condition) {
-        super("contains any element that " + condition.getDescription());
+    ContainAnyCondition(ArchCondition<T> condition) {
+        super("contain any element that " + condition.getDescription());
         this.condition = condition;
     }
 

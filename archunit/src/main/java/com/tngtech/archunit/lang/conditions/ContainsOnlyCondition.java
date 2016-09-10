@@ -10,7 +10,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
 
     ContainsOnlyCondition(ArchCondition<T> condition) {
-        super("contains only elements that " + condition.getDescription());
+        super("contain only elements that " + condition.getDescription());
         this.condition = condition;
     }
 

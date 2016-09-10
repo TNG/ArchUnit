@@ -7,9 +7,9 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
 class MethodCallCondition extends ArchCondition<JavaCall<?>> {
-    private final DescribedPredicate<JavaCall<?>> callIdentifier;
+    private final DescribedPredicate<? super JavaCall<?>> callIdentifier;
 
-    MethodCallCondition(DescribedPredicate<JavaCall<?>> callIdentifier) {
+    MethodCallCondition(DescribedPredicate<? super JavaCall<?>> callIdentifier) {
         super("call method where " + callIdentifier.getDescription());
         this.callIdentifier = callIdentifier;
     }

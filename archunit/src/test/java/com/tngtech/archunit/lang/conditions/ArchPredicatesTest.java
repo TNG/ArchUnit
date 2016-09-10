@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Retention;
 
+import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,11 +10,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.inTheHierarchyOfAClassThat;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetTypeResidesIn;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOfAClassThat;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -69,20 +76,54 @@ public class ArchPredicatesTest {
 
     @Test
     public void inTheHierarchyOfAClass_matches_class_itself() {
-        assertThat(inTheHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
                 .as("class itself matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_subclass() {
-        assertThat(inTheHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(SubClass.class)))
+        assertThat(theHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(SubClass.class)))
                 .as("subclass matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_does_not_match_superclass() {
-        assertThat(inTheHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(Object.class)))
+        assertThat(theHierarchyOfAClassThat(named("Annotated.*")).apply(javaClass(Object.class)))
                 .as("superclass matches the predicate").isFalse();
+    }
+
+    @Test
+    public void descriptions() {
+        assertThat(resideIn("..any..").getDescription())
+                .isEqualTo("reside in '..any..'");
+
+        assertThat(annotatedWith(Rule.class).getDescription())
+                .isEqualTo("annotated with @Rule");
+
+        assertThat(named("any").getDescription())
+                .isEqualTo("named 'any'");
+
+        assertThat(theHierarchyOf(Object.class).getDescription())
+                .isEqualTo("the hierarchy of Object.class");
+
+        assertThat(theHierarchyOfAClassThat(predicateWithDescription("something")).getDescription())
+                .isEqualTo("the hierarchy of a class that something");
+
+        assertThat(ownerAndNameAre(System.class, "out").getDescription())
+                .isEqualTo("owner is java.lang.System and name is 'out'");
+
+        assertThat(ownerIs(System.class).getDescription())
+                .isEqualTo("owner is java.lang.System");
+
+        assertThat(accessType(SET).getDescription())
+                .isEqualTo("access type " + SET);
+
+        assertThat(targetTypeResidesIn("..any..").getDescription())
+                .isEqualTo("target type resides in '..any..'");
+    }
+
+    static DescribedPredicate<Object> predicateWithDescription(String description) {
+        return DescribedPredicate.alwaysTrue().as(description);
     }
 
     @Retention(RUNTIME)

@@ -70,7 +70,7 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
 
     static void expectViolationByIllegalAccessToService(ExpectedViolation expectViolation) {
         expectViolation.ofRule("classes that reside in '..service..' should " +
-                "only be accessed by classes that reside in any package ['..controller..', '..service..']")
+                "only be accessed by any package ['..controller..', '..service..']")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(13))

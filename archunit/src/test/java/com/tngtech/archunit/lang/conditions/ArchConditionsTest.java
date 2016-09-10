@@ -21,9 +21,23 @@ import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.getFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicatesTest.predicateWithDescription;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
@@ -60,6 +74,62 @@ public class ArchConditionsTest {
         events = check(never(accessClass(named("Wong.*"))), clazz);
 
         assertThat(events).containNoViolation();
+    }
+
+    @Test
+    public void descriptions() {
+        assertThat(accessClassesThatResideIn("..any..").getDescription())
+                .isEqualTo("access classes that reside in '..any..'");
+
+        assertThat(accessClassesThatResideInAnyPackage("..one..", "..two..").getDescription())
+                .isEqualTo("access classes that reside in any package ['..one..', '..two..']");
+
+        assertThat(onlyBeAccessedByAnyPackage("..one..", "..two..").getDescription())
+                .isEqualTo("only be accessed by any package ['..one..', '..two..']");
+
+        assertThat(getField(System.class, "out").getDescription())
+                .isEqualTo("get field System.out");
+
+        assertThat(getFieldWhere(predicateWithDescription("something")).getDescription())
+                .isEqualTo("get field where something");
+
+        assertThat(setField(System.class, "out").getDescription())
+                .isEqualTo("set field System.out");
+
+        assertThat(setFieldWhere(predicateWithDescription("something")).getDescription())
+                .isEqualTo("set field where something");
+
+        assertThat(accessField(System.class, "out").getDescription())
+                .isEqualTo("access field System.out");
+
+        assertThat(accessFieldWhere(predicateWithDescription("something")).getDescription())
+                .isEqualTo("access field where something");
+
+        assertThat(callMethodWhere(predicateWithDescription("something")).getDescription())
+                .isEqualTo("call method where something");
+
+        assertThat(accessClass(predicateWithDescription("something")).getDescription())
+                .isEqualTo("access class something");
+
+        assertThat(resideInAPackage("..any..").getDescription())
+                .isEqualTo("reside in a package '..any..'");
+
+        assertThat(never(conditionWithDescription("something")).getDescription())
+                .isEqualTo("never something");
+
+        assertThat(containAnyElementThat(conditionWithDescription("something")).getDescription())
+                .isEqualTo("contain any element that something");
+
+        assertThat(containOnlyElementsThat(conditionWithDescription("something")).getDescription())
+                .isEqualTo("contain only elements that something");
+    }
+
+    private ArchCondition<Object> conditionWithDescription(String description) {
+        return new ArchCondition<Object>(description) {
+            @Override
+            public void check(Object item, ConditionEvents events) {
+            }
+        };
     }
 
     private ConditionEvents check(ArchCondition<JavaClass> condition, JavaClass javaClass) {

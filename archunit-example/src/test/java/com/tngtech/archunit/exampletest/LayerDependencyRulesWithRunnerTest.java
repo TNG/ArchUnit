@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesIn;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
@@ -22,12 +22,12 @@ public class LayerDependencyRulesWithRunnerTest {
     @ArchTest
     public static final ArchRule<?> services_should_not_access_controllers =
             all(classes().that(resideIn("..service..")))
-                    .should(never(accessClassesIn("..controller..")));
+                    .should(never(accessClassesThatResideIn("..controller..")));
 
     @ArchTest
     public static final ArchRule<?> persistence_should_not_access_services =
             all(classes().that(resideIn("..persistence..")))
-                    .should(never(accessClassesIn("..service..")));
+                    .should(never(accessClassesThatResideIn("..service..")));
 
     @ArchTest
     public static final ArchRule<?> services_should_only_be_accessed_by_controllers_or_other_services =

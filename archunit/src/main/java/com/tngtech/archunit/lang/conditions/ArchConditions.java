@@ -25,16 +25,16 @@ public final class ArchConditions {
      * @param packageIdentifier A String identifying a package according to {@link PackageMatcher}
      * @return A condition matching accesses to packages matching the identifier
      */
-    public static ArchCondition<JavaClass> accessClassesIn(String packageIdentifier) {
-        return accessClassesInAnyPackage(packageIdentifier).
-                as(String.format("access classes that reside in '%s'", packageIdentifier));
+    public static ArchCondition<JavaClass> accessClassesThatResideIn(String packageIdentifier) {
+        return accessClassesThatResideInAnyPackage(packageIdentifier).
+                as("access classes that reside in '%s'", packageIdentifier);
     }
 
     /**
      * @param packageIdentifiers Strings identifying a package according to {@link PackageMatcher}
      * @return A condition matching accesses to packages matching any of the identifiers
      */
-    public static ArchCondition<JavaClass> accessClassesInAnyPackage(String... packageIdentifiers) {
+    public static ArchCondition<JavaClass> accessClassesThatResideInAnyPackage(String... packageIdentifiers) {
         return new ClassAccessesAnyPackageCondition(packageIdentifiers);
     }
 
@@ -47,19 +47,23 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> getField(final Class<?> clazz, final String fieldName) {
-        return getFieldWhere(ownerAndNameAre(clazz, fieldName));
+        return getFieldWhere(ownerAndNameAre(clazz, fieldName))
+                .as("get field %s.%s", clazz.getSimpleName(), fieldName);
     }
 
-    public static ArchCondition<JavaClass> getFieldWhere(DescribedPredicate<JavaFieldAccess> predicate) {
-        return new ClassGetsFieldCondition(predicate);
+    public static ArchCondition<JavaClass> getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return new ClassGetsFieldCondition(predicate)
+                .as("get field where " + predicate.getDescription());
     }
 
     public static ArchCondition<JavaClass> setField(final Class<?> clazz, final String fieldName) {
-        return setFieldWhere(ownerAndNameAre(clazz, fieldName));
+        return setFieldWhere(ownerAndNameAre(clazz, fieldName))
+                .as("set field %s.%s", clazz.getSimpleName(), fieldName);
     }
 
-    public static ArchCondition<JavaClass> setFieldWhere(DescribedPredicate<JavaFieldAccess> predicate) {
-        return new ClassSetsFieldCondition(predicate);
+    public static ArchCondition<JavaClass> setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return new ClassSetsFieldCondition(predicate)
+                .as("set field where " + predicate.getDescription());
     }
 
     public static ArchCondition<JavaClass> accessField(final Class<?> clazz, final String fieldName) {
@@ -67,19 +71,20 @@ public final class ArchConditions {
                 .as("access field %s.%s", clazz.getSimpleName(), fieldName);
     }
 
-    public static ArchCondition<JavaClass> accessFieldWhere(DescribedPredicate<JavaFieldAccess> predicate) {
-        return new ClassAccessesFieldCondition(predicate);
+    public static ArchCondition<JavaClass> accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return new ClassAccessesFieldCondition(predicate)
+                .as("access field where " + predicate.getDescription());
     }
 
     public static MethodCallConditionCreator callMethod(final String methodName, Class<?>... paramTypes) {
         return new MethodCallConditionCreator(methodName, paramTypes);
     }
 
-    public static ArchCondition<JavaClass> callMethodWhere(DescribedPredicate<JavaCall<?>> predicate) {
+    public static ArchCondition<JavaClass> callMethodWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
         return new ClassCallsMethodCondition(predicate);
     }
 
-    public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<JavaClass> predicate) {
+    public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<? super JavaClass> predicate) {
         return new ClassAccessesCondition(predicate);
     }
 
@@ -92,7 +97,7 @@ public final class ArchConditions {
     }
 
     public static <T> ArchCondition<Collection<? extends T>> containAnyElementThat(ArchCondition<T> condition) {
-        return new ContainsAnyCondition<>(condition);
+        return new ContainAnyCondition<>(condition);
     }
 
     public static <T> ArchCondition<Collection<? extends T>> containOnlyElementsThat(ArchCondition<T> condition) {
@@ -121,9 +126,9 @@ public final class ArchConditions {
     }
 
     private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
-        public ClassAccessesCondition(final DescribedPredicate<JavaClass> predicate) {
+        public ClassAccessesCondition(final DescribedPredicate<? super JavaClass> predicate) {
             super(new JavaAccessCondition(predicate.onResultOf(GET_OWNER.after(GET_TARGET))
-                    .as("access target with owner " + predicate.getDescription())));
+                    .as("access class " + predicate.getDescription())));
         }
 
         @Override

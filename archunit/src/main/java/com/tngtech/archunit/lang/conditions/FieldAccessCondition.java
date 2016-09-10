@@ -17,14 +17,14 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static java.util.Collections.singleton;
 
 class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
-    private final DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier;
+    private final DescribedPredicate<? super JavaFieldAccess> fieldAccessIdentifier;
     private final String descriptionTemplate;
 
-    FieldAccessCondition(DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier) {
+    FieldAccessCondition(DescribedPredicate<? super JavaFieldAccess> fieldAccessIdentifier) {
         this(fieldAccessIdentifier, EnumSet.allOf(AccessType.class));
     }
 
-    FieldAccessCondition(DescribedPredicate<JavaFieldAccess> fieldAccessIdentifier, Set<AccessType> accessTypes) {
+    FieldAccessCondition(DescribedPredicate<? super JavaFieldAccess> fieldAccessIdentifier, Set<AccessType> accessTypes) {
         super(String.format("access field where %s and access type is one of %s",
                 fieldAccessIdentifier.getDescription(), accessTypes));
 
@@ -39,14 +39,14 @@ class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
     }
 
     static class FieldGetAccessCondition extends FieldAccessCondition {
-        FieldGetAccessCondition(DescribedPredicate<JavaFieldAccess> predicate) {
-            super(predicate.and(accessType(GET)), singleton(GET));
+        FieldGetAccessCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
+            super(predicate.<JavaFieldAccess>forSubType().and(accessType(GET)), singleton(GET));
         }
     }
 
     static class FieldSetAccessCondition extends FieldAccessCondition {
-        FieldSetAccessCondition(DescribedPredicate<JavaFieldAccess> predicate) {
-            super(predicate.and(accessType(SET)), singleton(SET));
+        FieldSetAccessCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
+            super(predicate.<JavaFieldAccess>forSubType().and(accessType(SET)), singleton(SET));
         }
     }
 }

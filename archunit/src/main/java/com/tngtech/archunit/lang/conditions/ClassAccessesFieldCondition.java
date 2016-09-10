@@ -9,7 +9,7 @@ import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldGetAccessC
 import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldSetAccessCondition;
 
 class ClassAccessesFieldCondition extends AnyAttributeMatchesCondition<JavaFieldAccess> {
-    ClassAccessesFieldCondition(DescribedPredicate<JavaFieldAccess> predicate) {
+    ClassAccessesFieldCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
         this(new FieldAccessCondition(predicate));
     }
 
@@ -23,13 +23,13 @@ class ClassAccessesFieldCondition extends AnyAttributeMatchesCondition<JavaField
     }
 
     static class ClassGetsFieldCondition extends ClassAccessesFieldCondition {
-        ClassGetsFieldCondition(DescribedPredicate<JavaFieldAccess> predicate) {
+        ClassGetsFieldCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
             super(new FieldGetAccessCondition(predicate));
         }
     }
 
     static class ClassSetsFieldCondition extends ClassAccessesFieldCondition {
-        ClassSetsFieldCondition(DescribedPredicate<JavaFieldAccess> predicate) {
+        ClassSetsFieldCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
             super(new FieldSetAccessCondition(predicate));
         }
     }

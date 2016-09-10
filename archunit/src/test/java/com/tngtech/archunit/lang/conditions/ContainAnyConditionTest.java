@@ -17,7 +17,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
-public class ContainsAnyConditionTest {
+public class ContainAnyConditionTest {
     static final List<Object> TWO_NONSERIALIZABLE_OBJECTS = asList(new Object(), new Object());
 
     @Test

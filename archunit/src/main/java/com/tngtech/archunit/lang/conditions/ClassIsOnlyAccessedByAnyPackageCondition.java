@@ -11,7 +11,7 @@ class ClassIsOnlyAccessedByAnyPackageCondition extends ArchCondition<JavaClass> 
     private final AccessPackageCondition condition;
 
     ClassIsOnlyAccessedByAnyPackageCondition(String[] packageIdentifiers) {
-        super(String.format("only be accessed by classes that reside in any package ['%s']",
+        super(String.format("only be accessed by any package ['%s']",
                 Joiner.on("', '").join(packageIdentifiers)));
         condition = AccessPackageCondition.forAccessOrigin().matching(packageIdentifiers);
     }

@@ -36,7 +36,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaClass> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<JavaClass>("annotated with @") {
+        return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getSimpleName()) {
             @Override
             public boolean apply(JavaClass input) {
                 return input.reflect().getAnnotation(annotationType) != null;
@@ -61,11 +61,12 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaClass> theHierarchyOf(Class<?> type) {
-        return inTheHierarchyOfAClassThat(equalTo((Class) type).onResultOf(REFLECT));
+        return theHierarchyOfAClassThat(equalTo((Class) type).onResultOf(REFLECT))
+                .as("the hierarchy of %s.class", type.getSimpleName());
     }
 
-    public static DescribedPredicate<JavaClass> inTheHierarchyOfAClassThat(final DescribedPredicate<JavaClass> predicate) {
-        return new DescribedPredicate<JavaClass>("in the hierarchy of a class that " + predicate.getDescription()) {
+    public static DescribedPredicate<JavaClass> theHierarchyOfAClassThat(final DescribedPredicate<? super JavaClass> predicate) {
+        return new DescribedPredicate<JavaClass>("the hierarchy of a class that " + predicate.getDescription()) {
             @Override
             public boolean apply(JavaClass input) {
                 JavaClass current = input;
@@ -79,17 +80,17 @@ public class ArchPredicates {
 
     public static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
         return new DescribedPredicate<JavaFieldAccess>(
-                String.format("owner is %s and name is %s", target.getName(), fieldName)) {
+                String.format("owner is %s and name is '%s'", target.getName(), fieldName)) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                return owner(target).apply(input) &&
+                return ownerIs(target).apply(input) &&
                         fieldName.equals(input.getTarget().getName());
             }
         };
     }
 
-    public static DescribedPredicate<JavaFieldAccess> owner(final Class<?> target) {
-        return new DescribedPredicate<JavaFieldAccess>("owner " + target.getName()) {
+    public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
+        return new DescribedPredicate<JavaFieldAccess>("owner is " + target.getName()) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return input.getTarget().getOwner().reflect() == target;

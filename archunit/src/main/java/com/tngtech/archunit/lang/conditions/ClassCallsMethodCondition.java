@@ -7,7 +7,7 @@ import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 
 class ClassCallsMethodCondition extends AnyAttributeMatchesCondition<JavaCall<?>> {
-    public ClassCallsMethodCondition(DescribedPredicate<JavaCall<?>> predicate) {
+    public ClassCallsMethodCondition(DescribedPredicate<? super JavaCall<?>> predicate) {
         super(new MethodCallCondition(predicate));
     }
 
