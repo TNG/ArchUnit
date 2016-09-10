@@ -360,12 +360,12 @@ public class JavaClass implements HasName {
     }
 
     public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
-        return DescribedPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT).as("with type " + type.getSimpleName());
+        return DescribedPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT).as("with type " + type.getName());
     }
 
     public static DescribedPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
         checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable to " + type.getSimpleName()) {
+        return new DescribedPredicate<Class<?>>("assignable to " + type.getName()) {
             @Override
             public boolean apply(Class<?> input) {
                 return type.isAssignableFrom(input);
@@ -375,7 +375,7 @@ public class JavaClass implements HasName {
 
     public static DescribedPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
         checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable from " + type.getSimpleName()) {
+        return new DescribedPredicate<Class<?>>("assignable from " + type.getName()) {
             @Override
             public boolean apply(Class<?> input) {
                 return input.isAssignableFrom(type);
@@ -391,7 +391,7 @@ public class JavaClass implements HasName {
         return reflectionAssignableFrom(type).onResultOf(REFLECT);
     }
 
-    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("Interfaces") {
+    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
         @Override
         public boolean apply(JavaClass input) {
             return input.isInterface();

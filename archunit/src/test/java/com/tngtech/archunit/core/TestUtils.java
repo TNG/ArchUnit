@@ -51,7 +51,7 @@ public class TestUtils {
         return javaClass;
     }
 
-    public static JavaField javaField(String name, Class<?> ownerClass) {
+    public static JavaField javaField(Class<?> ownerClass, String name) {
         try {
             return new JavaField.Builder()
                     .withField(ownerClass.getDeclaredField(name))
@@ -71,6 +71,10 @@ public class TestUtils {
 
     public static AccessesSimulator simulateCall() {
         return new AccessesSimulator();
+    }
+
+    public static DescribedPredicate<Object> predicateWithDescription(String description) {
+        return DescribedPredicate.alwaysTrue().as(description);
     }
 
     public static class AccessesSimulator {

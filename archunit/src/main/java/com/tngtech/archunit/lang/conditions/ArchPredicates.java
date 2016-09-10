@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.core.HasName;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -45,17 +46,14 @@ public class ArchPredicates {
     }
 
     /**
-     * Predicate for matching of simple class names against a regular expression.
-     *
-     * @param classNameRegex A regex to match against class names
-     * @return A predicate for classes with matching name
+     * Predicate for matching names against a regular expression.
      */
-    public static DescribedPredicate<JavaClass> named(final String classNameRegex) {
-        final Pattern pattern = Pattern.compile(classNameRegex);
-        return new DescribedPredicate<JavaClass>(String.format("named '%s'", classNameRegex)) {
+    public static DescribedPredicate<HasName> named(final String regex) {
+        final Pattern pattern = Pattern.compile(regex);
+        return new DescribedPredicate<HasName>(String.format("named '%s'", regex)) {
             @Override
-            public boolean apply(JavaClass input) {
-                return pattern.matcher(input.getSimpleName()).matches();
+            public boolean apply(HasName input) {
+                return pattern.matcher(input.getName()).matches();
             }
         };
     }

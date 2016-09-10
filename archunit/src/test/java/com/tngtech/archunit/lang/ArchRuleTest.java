@@ -74,7 +74,7 @@ public class ArchRuleTest {
         }
 
         @Override
-        public DummyCollection that(DescribedPredicate<JavaClass> predicate) {
+        public DummyCollection that(DescribedPredicate<? super JavaClass> predicate) {
             return this;
         }
     }

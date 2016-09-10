@@ -15,5 +15,5 @@ public interface Restrictable<TYPE, SELF extends Iterable<TYPE>> extends Iterabl
      * @return A iterable of the same type holding only elements satisfying the predicate, and optionally with
      * a description set by the predicate
      */
-    SELF that(DescribedPredicate<TYPE> predicate);
+    SELF that(DescribedPredicate<? super TYPE> predicate);
 }

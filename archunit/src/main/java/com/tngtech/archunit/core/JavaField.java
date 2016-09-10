@@ -32,6 +32,18 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
         this.accesses = ImmutableSet.copyOf(accesses);
     }
 
+    public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super Class<?>> predicate) {
+        return predicate.onResultOf(GET_TYPE)
+                .as("has type " + predicate.getDescription());
+    }
+
+    public static final Function<JavaField, Class<?>> GET_TYPE = new Function<JavaField, Class<?>>() {
+        @Override
+        public Class<?> apply(JavaField input) {
+            return input.getType();
+        }
+    };
+
     static final class Builder extends JavaMember.Builder<MemberDescription.ForField, JavaField> {
         @Override
         public JavaField build(JavaClass owner) {

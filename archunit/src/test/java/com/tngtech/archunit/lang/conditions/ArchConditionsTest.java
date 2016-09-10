@@ -19,6 +19,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newTreeSet;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
+import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
@@ -37,7 +38,6 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPacka
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
-import static com.tngtech.archunit.lang.conditions.ArchPredicatesTest.predicateWithDescription;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
@@ -67,11 +67,11 @@ public class ArchConditionsTest {
         JavaClass clazz = javaClass(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
-        ConditionEvents events = check(never(accessClass(named("Some.*"))), clazz);
+        ConditionEvents events = check(never(accessClass(named(".*Some.*"))), clazz);
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(named("Wong.*"))), clazz);
+        events = check(never(accessClass(named(".*Wong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }

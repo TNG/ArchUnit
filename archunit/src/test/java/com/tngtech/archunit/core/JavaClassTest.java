@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
+import static com.tngtech.archunit.core.JavaClass.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaClass.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
@@ -176,6 +177,16 @@ public class JavaClassTest {
         assertThatAssignable().to(Parent.class)
                 .from(SuperClassWithFieldAndMethod.class)
                 .isTrue();
+    }
+
+    @Test
+    public void descriptions() {
+        assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
+        assertThat(reflectionAssignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
+        assertThat(reflectionAssignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
+        assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
+        assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
+        assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
     }
 
     private static AssignableAssert assertThatAssignable() {

@@ -25,7 +25,7 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
     }
 
     @Override
-    public JavaClasses that(DescribedPredicate<JavaClass> predicate) {
+    public JavaClasses that(DescribedPredicate<? super JavaClass> predicate) {
         Map<Class<?>, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
         String newDescription = String.format("%s that %s", description, predicate.getDescription());
         return new JavaClasses(matchingElements, newDescription);

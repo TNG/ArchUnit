@@ -67,10 +67,6 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         return tryGetAnnotationOfType(type).get();
     }
 
-    public boolean isAnnotationPresent(Class<? extends Annotation> type) {
-        return tryGetAnnotationOfType(type).isPresent();
-    }
-
     @SuppressWarnings("unchecked") // Type parameter always matches the type of the reflection annotation inside
     public <A extends Annotation> Optional<JavaAnnotation<A>> tryGetAnnotationOfType(Class<A> type) {
         for (JavaAnnotation<?> annotation : annotations) {
@@ -128,11 +124,11 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         return getClass().getSimpleName() + "{member=" + memberDescription + ", owner=" + getOwner() + '}';
     }
 
-    public static DescribedPredicate<JavaMember<?, ?>> hasName(final String name) {
-        return new DescribedPredicate<JavaMember<?, ?>>("has name '%s'", name) {
+    public static DescribedPredicate<JavaMember<?, ?>> modifier(final JavaModifier modifier) {
+        return new DescribedPredicate<JavaMember<?, ?>>("modifier " + modifier) {
             @Override
             public boolean apply(JavaMember<?, ?> input) {
-                return name.equals(input.getName());
+                return input.getModifiers().contains(modifier);
             }
         };
     }

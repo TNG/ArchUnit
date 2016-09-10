@@ -18,7 +18,7 @@ public abstract class InputTransformer<T> implements HasDescription {
 
     public abstract Iterable<T> doTransform(JavaClasses collection);
 
-    public InputTransformer<T> that(final DescribedPredicate<T> predicate) {
+    public InputTransformer<T> that(final DescribedPredicate<? super T> predicate) {
         return new InputTransformer<T>(description + " that " + predicate.getDescription()) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {

@@ -20,13 +20,13 @@ public class Guava {
     }
 
     public static class Maps {
-        public static <K, V> Map<K, V> filterValues(Map<K, V> map, DescribedPredicate<V> predicate) {
+        public static <K, V> Map<K, V> filterValues(Map<K, V> map, DescribedPredicate<? super V> predicate) {
             return com.google.common.collect.Maps.filterValues(map, toGuava(predicate));
         }
     }
 
     public static class Iterables {
-        public static <T> Iterable<T> filter(Iterable<T> iterable, DescribedPredicate<T> predicate) {
+        public static <T> Iterable<T> filter(Iterable<T> iterable, DescribedPredicate<? super T> predicate) {
             return com.google.common.collect.Iterables.filter(iterable, toGuava(predicate));
         }
     }
