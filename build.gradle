@@ -38,6 +38,7 @@ ext {
             log4j_api           : 'org.apache.logging.log4j:log4j-api:2.11.1',
             log4j_core          : 'org.apache.logging.log4j:log4j-core:2.11.1',
             log4j_slf4j         : 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.1',
+            gson                : 'com.google.code.gson:gson:2.7',
 
             junit4              : 'junit:junit:4.13',
             junit5VintageEngine : 'org.junit.vintage:junit-vintage-engine:5.5.2',
