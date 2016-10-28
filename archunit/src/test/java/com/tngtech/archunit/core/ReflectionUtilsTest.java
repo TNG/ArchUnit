@@ -132,12 +132,6 @@ public class ReflectionUtilsTest {
     }
 
     @Test
-    public void classForName_if_Exception_occurs_on_loading() {
-        thrown.expect(ReflectionException.class);
-        ReflectionUtils.classForName(EvilClass.class.getName());
-    }
-
-    @Test
     public void getAllSupertypes() {
         assertThat(ReflectionUtils.getAllSuperTypes(Child.class)).containsOnly(
                 Child.class, ChildInterface.class, UpperMiddle.class, LowerMiddle.class, Parent.class,
@@ -287,13 +281,5 @@ public class ReflectionUtilsTest {
     }
 
     private interface SubInterface extends SomeInterface, OtherInterface {
-    }
-
-    private static class EvilClass {
-        static {
-            if (1 == 1) {
-                throw new RuntimeException("Muarrharrharr");
-            }
-        }
     }
 }

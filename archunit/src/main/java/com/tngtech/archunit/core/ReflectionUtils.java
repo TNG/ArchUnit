@@ -39,7 +39,7 @@ public class ReflectionUtils {
         }
         name = ensureCorrectArrayTypeName(name);
         try {
-            return Class.forName(name);
+            return Class.forName(name, false, ReflectionUtils.class.getClassLoader());
         } catch (Throwable e) {
             throw new ReflectionException(e);
         }
