@@ -17,12 +17,12 @@ class ImportWorkaround {
     static Set<JavaClass> getAllSuperClasses(String typeName) {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
         for (Class<?> type : getAllSuperTypes(classForName(typeName))) {
-            result.add(new JavaClass.Builder().withType(type).build());
+            result.add(new JavaClass.Builder().withType(new TypeDetails(type)).build());
         }
         return result.build();
     }
 
     static JavaClass resolveClass(String typeName) {
-        return new JavaClass.Builder().withType(classForName(typeName)).build();
+        return new JavaClass.Builder().withType(new TypeDetails(classForName(typeName))).build();
     }
 }

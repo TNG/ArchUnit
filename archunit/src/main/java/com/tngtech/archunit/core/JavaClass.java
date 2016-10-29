@@ -20,7 +20,7 @@ import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class JavaClass implements HasName {
-    private final Class<?> type;
+    private final TypeDetails typeDetails;
     private final Set<JavaField> fields;
     private final Set<JavaCodeUnit<?, ?>> codeUnits;
     private final Set<JavaMethod> methods;
@@ -32,7 +32,7 @@ public class JavaClass implements HasName {
     private Optional<JavaClass> enclosingClass = Optional.absent();
 
     private JavaClass(Builder builder) {
-        type = checkNotNull(builder.type);
+        typeDetails = checkNotNull(builder.typeDetails);
         fields = build(builder.fieldBuilders, this);
         methods = build(builder.methodBuilders, this);
         constructors = build(builder.constructorBuilders, this);
@@ -44,19 +44,19 @@ public class JavaClass implements HasName {
 
     @Override
     public String getName() {
-        return type.getName();
+        return typeDetails.getName();
     }
 
     public String getSimpleName() {
-        return type.getSimpleName();
+        return typeDetails.getSimpleName();
     }
 
     public String getPackage() {
-        return type.getPackage() != null ? type.getPackage().getName() : "";
+        return typeDetails.getPackage();
     }
 
     public boolean isInterface() {
-        return type.isInterface();
+        return typeDetails.isInterface();
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
@@ -306,14 +306,14 @@ public class JavaClass implements HasName {
     }
 
     private void completeSuperClassFrom(ClassFileImportContext context) {
-        superClass = findClass(type.getSuperclass(), context);
+        superClass = findClass(typeDetails.getSuperclass(), context);
         if (superClass.isPresent()) {
             superClass.get().subClasses.add(this);
         }
     }
 
     private void completeInterfacesFrom(ClassFileImportContext context) {
-        for (Class<?> i : type.getInterfaces()) {
+        for (Class<?> i : typeDetails.getInterfaces()) {
             interfaces.addAll(findClass(i, context).asSet());
         }
         for (JavaClass i : interfaces) {
@@ -326,13 +326,13 @@ public class JavaClass implements HasName {
     }
 
     CompletionProcess completeFrom(ClassFileImportContext context) {
-        enclosingClass = findClass(type.getEnclosingClass(), context);
+        enclosingClass = findClass(typeDetails.getEnclosingClass(), context);
         return new CompletionProcess();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type);
+        return Objects.hash(typeDetails);
     }
 
     @Override
@@ -344,12 +344,12 @@ public class JavaClass implements HasName {
             return false;
         }
         final JavaClass other = (JavaClass) obj;
-        return Objects.equals(this.type, other.type);
+        return Objects.equals(this.typeDetails, other.typeDetails);
     }
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + type.getName() + "\'}";
+        return "JavaClass{name='" + typeDetails.getName() + "\'}";
     }
 
     public Set<JavaFieldAccess> getFieldAccessesToSelf() {
@@ -417,7 +417,7 @@ public class JavaClass implements HasName {
     }
 
     static final class Builder {
-        private Class<?> type;
+        private TypeDetails typeDetails;
         private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
@@ -432,16 +432,16 @@ public class JavaClass implements HasName {
         }
 
         @SuppressWarnings("unchecked")
-        Builder withType(Class<?> type) {
-            this.type = type;
-            for (Field field : type.getDeclaredFields()) {
+        Builder withType(TypeDetails typeDetails) {
+            this.typeDetails = typeDetails;
+            for (Field field : typeDetails.getDeclaredFields()) {
                 fieldBuilders.add(new JavaField.Builder().withField(field));
             }
-            for (Method method : type.getDeclaredMethods()) {
+            for (Method method : typeDetails.getDeclaredMethods()) {
                 analysisListener.onMethodFound(method);
                 methodBuilders.add(new JavaMethod.Builder().withMethod(method));
             }
-            for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+            for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
                 analysisListener.onConstructorFound(constructor);
                 constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
             }

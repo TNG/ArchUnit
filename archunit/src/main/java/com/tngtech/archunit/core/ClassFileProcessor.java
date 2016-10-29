@@ -119,7 +119,7 @@ class ClassFileProcessor extends ClassVisitor {
         private void tryInit(String classDescriptor) {
             currentClass = classForDescriptor(classDescriptor);
             codeUnitRecorder = new CodeUnitRecorder(currentClass);
-            currentClassBuilder = new JavaClass.Builder(codeUnitRecorder).withType(currentClass);
+            currentClassBuilder = new JavaClass.Builder(codeUnitRecorder).withType(new TypeDetails(currentClass));
         }
 
         private Class<?> classForDescriptor(String descriptor) {

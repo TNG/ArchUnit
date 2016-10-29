@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JavaFieldAccessTest {
     @Test
     public void equals_should_work() throws Exception {
-        JavaClass clazz = new JavaClass.Builder().withType(SomeClass.class).build();
+        JavaClass clazz = new JavaClass.Builder().withType(new TypeDetails(SomeClass.class)).build();
         JavaFieldAccess access = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
                 .withCaller(accessFieldMethod(clazz))
                 .build());
@@ -48,7 +48,7 @@ public class JavaFieldAccessTest {
     @Test
     public void fieldAccess_should_have_same_name_as_target() throws Exception {
 
-        JavaClass clazz = new JavaClass.Builder().withType(SomeClass.class).build();
+        JavaClass clazz = new JavaClass.Builder().withType(new TypeDetails(SomeClass.class)).build();
 
         JavaFieldAccess access = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
                 .withCaller(accessFieldMethod(clazz))
@@ -135,9 +135,6 @@ public class JavaFieldAccessTest {
             private JavaCodeUnit<?, ?> caller;
             private JavaField field;
             private int lineNumber;
-
-            public Builder() {
-            }
 
             public Builder withAccessType(AccessType accessType) {
                 this.accessType = accessType;

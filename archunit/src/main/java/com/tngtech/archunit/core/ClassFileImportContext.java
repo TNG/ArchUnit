@@ -170,7 +170,7 @@ class ClassFileImportContext {
             }
 
             private JavaField createFieldFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(targetInfo.owner.asClass()).build();
+                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
                 return createField(targetInfo, owner);
             }
 
@@ -231,7 +231,7 @@ class ClassFileImportContext {
             }
 
             private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(targetInfo.owner.asClass()).build();
+                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
                 return createConstructor(targetInfo, owner);
             }
 
@@ -284,7 +284,7 @@ class ClassFileImportContext {
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(targetInfo.owner.asClass()).build();
+                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
                 return createMethod(targetInfo, owner);
             }
 

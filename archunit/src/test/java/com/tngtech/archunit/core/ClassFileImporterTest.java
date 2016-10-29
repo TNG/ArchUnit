@@ -1134,7 +1134,7 @@ public class ClassFileImporterTest {
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls);
         FluentIterable<JavaClass> classesFoundAtUrls = FluentIterable.from(classes)
-                .filter(not(equalTo(new JavaClass.Builder().withType(Object.class).build())));
+                .filter(not(equalTo(new JavaClass.Builder().withType(new TypeDetails(Object.class)).build())));
 
         assertThat(classesFoundAtUrls).as("Number of classes at the given URLs").hasSize(2);
     }
