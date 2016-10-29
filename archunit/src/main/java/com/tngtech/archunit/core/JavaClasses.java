@@ -12,21 +12,21 @@ import com.tngtech.archunit.lang.DescribedIterable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<JavaClass, JavaClasses> {
-    private final ImmutableMap<Class<?>, JavaClass> classes;
+    private final ImmutableMap<String, JavaClass> classes;
     private final String description;
 
-    JavaClasses(Map<Class<?>, JavaClass> classes) {
+    JavaClasses(Map<String, JavaClass> classes) {
         this(classes, "classes");
     }
 
-    JavaClasses(Map<Class<?>, JavaClass> classes, String description) {
+    JavaClasses(Map<String, JavaClass> classes, String description) {
         this.classes = ImmutableMap.copyOf(classes);
         this.description = description;
     }
 
     @Override
     public JavaClasses that(DescribedPredicate<? super JavaClass> predicate) {
-        Map<Class<?>, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
+        Map<String, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
         String newDescription = String.format("%s that %s", description, predicate.getDescription());
         return new JavaClasses(matchingElements, newDescription);
     }
@@ -51,23 +51,23 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
     }
 
     public boolean contain(Class<?> reflectedType) {
-        return classes.containsKey(reflectedType);
+        return classes.containsKey(reflectedType.getName());
     }
 
     public JavaClass get(Class<?> reflectedType) {
-        return checkNotNull(classes.get(reflectedType), "%s don't contain %s of type %s",
+        return checkNotNull(classes.get(reflectedType.getName()), "%s don't contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), reflectedType.getName());
     }
 
     public static JavaClasses of(Iterable<JavaClass> classes) {
-        Map<Class<?>, JavaClass> mapping = new HashMap<>();
+        Map<String, JavaClass> mapping = new HashMap<>();
         for (JavaClass clazz : classes) {
-            mapping.put(clazz.reflect(), clazz);
+            mapping.put(clazz.getName(), clazz);
         }
         return new JavaClasses(mapping);
     }
 
-    static JavaClasses of(Map<Class<?>, JavaClass> classes, ClassFileImportContext importContext) {
+    static JavaClasses of(Map<String, JavaClass> classes, ClassFileImportContext importContext) {
         CompletionProcess completionProcess = new CompletionProcess(importContext);
         for (JavaClass clazz : new JavaClasses(classes)) {
             completionProcess.completeClass(clazz);

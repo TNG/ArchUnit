@@ -39,9 +39,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnit.staticInitializerOf;
 import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnitIdentifier.staticInitializerIdentifier;
+import static com.tngtech.archunit.core.ImportWorkaround.getAllSuperClasses;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor extends ClassVisitor {
@@ -231,8 +231,8 @@ class ClassFileProcessor extends ClassVisitor {
 
         @SuppressWarnings("unchecked")
         public CodeUnitRecorder(Class<?> type) {
-            for (Class<?> clazzInHierarchy : getAllSuperTypes(type)) {
-                put(staticInitializerIdentifier(clazzInHierarchy), staticInitializerOf(clazzInHierarchy));
+            for (JavaClass clazzInHierarchy : getAllSuperClasses(type.getName())) {
+                put(staticInitializerIdentifier(clazzInHierarchy.reflect()), staticInitializerOf(clazzInHierarchy.reflect()));
             }
         }
 
