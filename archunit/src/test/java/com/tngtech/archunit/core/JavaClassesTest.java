@@ -8,8 +8,8 @@ import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
-    public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(SomeClass.class).build();
-    public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(SomeOtherClass.class).build();
+    public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(new TypeDetails(SomeClass.class)).build();
+    public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(new TypeDetails(SomeOtherClass.class)).build();
     private static final ImmutableMap<String, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
             SomeClass.class.getName(), SOME_CLASS,
             SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
