@@ -17,6 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
+import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class JavaClass implements HasName {
     private final Class<?> type;
@@ -296,7 +297,7 @@ public class JavaClass implements HasName {
     }
 
     public Class<?> reflect() {
-        return type;
+        return classForName(getName());
     }
 
     void completeClassHierarchyFrom(ClassFileImportContext context) {
@@ -321,7 +322,7 @@ public class JavaClass implements HasName {
     }
 
     private static Optional<JavaClass> findClass(Class<?> clazz, ClassFileImportContext context) {
-        return clazz != null ? context.tryGetJavaClassWithType(clazz) : Optional.<JavaClass>absent();
+        return clazz != null ? context.tryGetJavaClassWithType(clazz.getName()) : Optional.<JavaClass>absent();
     }
 
     CompletionProcess completeFrom(ClassFileImportContext context) {

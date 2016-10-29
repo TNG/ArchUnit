@@ -31,13 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
 import static java.util.Collections.singleton;
 
 class ClassFileImportContext {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportContext.class);
 
-    private final Map<Class<?>, JavaClass> classes = new ConcurrentHashMap<>();
+    private final Map<String, JavaClass> classes = new ConcurrentHashMap<>();
 
     private final Set<RawFieldAccessRecord> rawFieldAccessRecords = new HashSet<>();
     private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
@@ -80,26 +79,26 @@ class ClassFileImportContext {
     }
 
     private void ensureClassesOfHierarchyInContext() {
-        Map<Class<?>, JavaClass> missingTypes = new HashMap<>();
-        for (Class<?> clazz : classes.keySet()) {
-            tryAddSuperTypes(missingTypes, clazz);
+        Map<String, JavaClass> missingTypes = new HashMap<>();
+        for (String name : classes.keySet()) {
+            tryAddSuperTypes(missingTypes, name);
         }
         classes.putAll(missingTypes);
     }
 
-    private void tryAddSuperTypes(Map<Class<?>, JavaClass> missingTypes, Class<?> clazz) {
+    private void tryAddSuperTypes(Map<String, JavaClass> missingTypes, String className) {
         try {
-            for (Class<?> toAdd : getAllSuperTypes(clazz)) {
-                if (!classes.containsKey(toAdd)) {
-                    missingTypes.put(toAdd, new JavaClass.Builder().withType(toAdd).build());
+            for (JavaClass toAdd : ImportWorkaround.getAllSuperClasses(className)) {
+                if (!classes.containsKey(toAdd.getName())) {
+                    missingTypes.put(toAdd.getName(), toAdd);
                 }
             }
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse related type of '{}' because of missing dependency '{}'",
-                    clazz.getName(), e.getMessage());
+                    className, e.getMessage());
         } catch (ReflectionException e) {
             LOG.warn("Can't analyse related type of '{}' because of missing dependency. Error was: '{}'",
-                    clazz.getName(), e.getMessage());
+                    className, e.getMessage());
         }
     }
 
@@ -130,11 +129,11 @@ class ClassFileImportContext {
     }
 
     void add(JavaClass javaClass) {
-        classes.put(javaClass.reflect(), javaClass);
+        classes.put(javaClass.getName(), javaClass);
     }
 
-    Optional<JavaClass> tryGetJavaClassWithType(Class<?> type) {
-        return Optional.fromNullable(classes.get(type));
+    Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
+        return Optional.fromNullable(classes.get(typeName));
     }
 
     static class RawFieldAccessRecord extends BaseRawAccessRecord<FieldAccessRecord> {
@@ -146,14 +145,14 @@ class ClassFileImportContext {
         }
 
         @Override
-        FieldAccessRecord process(Map<Class<?>, JavaClass> classes) {
+        FieldAccessRecord process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
         class Processed extends BaseRawAccessRecord<FieldAccessRecord>.Processed implements FieldAccessRecord {
             private final Set<JavaField> fields;
 
-            Processed(Map<Class<?>, JavaClass> classes) {
+            Processed(Map<String, JavaClass> classes) {
                 super(classes);
                 fields = getTargetOwnerClass().getFields();
             }
@@ -212,14 +211,14 @@ class ClassFileImportContext {
         }
 
         @Override
-        public AccessRecord<JavaConstructor> process(Map<Class<?>, JavaClass> classes) {
+        public AccessRecord<JavaConstructor> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
         class Processed extends BaseRawAccessRecord<AccessRecord<JavaConstructor>>.Processed implements AccessRecord<JavaConstructor> {
             private final Set<JavaConstructor> constructors;
 
-            Processed(Map<Class<?>, JavaClass> classes) {
+            Processed(Map<String, JavaClass> classes) {
                 super(classes);
                 constructors = getTargetOwnerClass().getConstructors();
             }
@@ -265,14 +264,14 @@ class ClassFileImportContext {
         }
 
         @Override
-        public AccessRecord<JavaMethod> process(Map<Class<?>, JavaClass> classes) {
+        public AccessRecord<JavaMethod> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
         class Processed extends BaseRawAccessRecord<AccessRecord<JavaMethod>>.Processed implements AccessRecord<JavaMethod> {
             private final Set<JavaMethod> methods;
 
-            Processed(Map<Class<?>, JavaClass> classes) {
+            Processed(Map<String, JavaClass> classes) {
                 super(classes);
                 methods = getTargetOwnerClass().getAllMethods();
             }
@@ -322,12 +321,12 @@ class ClassFileImportContext {
             super(builder.caller, builder.target, builder.lineNumber);
         }
 
-        abstract PROCESSED_RECORD process(Map<Class<?>, JavaClass> classes);
+        abstract PROCESSED_RECORD process(Map<String, JavaClass> classes);
 
         abstract class Processed {
-            private final Map<Class<?>, JavaClass> classes;
+            private final Map<String, JavaClass> classes;
 
-            Processed(Map<Class<?>, JavaClass> classes) {
+            Processed(Map<String, JavaClass> classes) {
                 this.classes = classes;
             }
 
@@ -336,7 +335,7 @@ class ClassFileImportContext {
             }
 
             public JavaCodeUnit<?, ?> getCaller() {
-                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClass()).getCodeUnits()) {
+                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClass().getName()).getCodeUnits()) {
                     if (caller.is(method)) {
                         return method;
                     }
@@ -346,14 +345,14 @@ class ClassFileImportContext {
             }
 
             JavaClass getTargetOwnerClass() {
-                return getJavaClass(target.owner.asClass());
+                return getJavaClass(target.owner.getName());
             }
 
-            JavaClass getJavaClass(Class<?> type) {
-                if (!classes.containsKey(type)) {
-                    classes.put(type, new JavaClass.Builder().withType(type).build());
+            JavaClass getJavaClass(String typeName) {
+                if (!classes.containsKey(typeName)) {
+                    classes.put(typeName, ImportWorkaround.resolveClass(typeName));
                 }
-                return classes.get(type);
+                return classes.get(typeName);
             }
 
             <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T> tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {

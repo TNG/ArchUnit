@@ -10,9 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JavaClassesTest {
     public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(SomeClass.class).build();
     public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(SomeOtherClass.class).build();
-    private static final ImmutableMap<Class<?>, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
-            SomeClass.class, SOME_CLASS,
-            SomeOtherClass.class, SOME_OTHER_CLASS);
+    private static final ImmutableMap<String, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
+            SomeClass.class.getName(), SOME_CLASS,
+            SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
     public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_RAW_CLASS, "classes");
 
     @Test

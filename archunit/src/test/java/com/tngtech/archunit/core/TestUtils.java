@@ -13,7 +13,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static org.mockito.Matchers.any;
+import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,10 +38,10 @@ public class TestUtils {
     public static JavaClass javaClass(Class<?> owner) {
         JavaClass javaClass = new JavaClass.Builder().withType(owner).build();
         ClassFileImportContext context = mock(ClassFileImportContext.class);
-        when(context.tryGetJavaClassWithType(any(Class.class))).thenAnswer(new Answer<Optional<JavaClass>>() {
+        when(context.tryGetJavaClassWithType(anyString())).thenAnswer(new Answer<Optional<JavaClass>>() {
             @Override
             public Optional<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
-                return Optional.of(javaClass((Class<?>) invocation.getArguments()[0]));
+                return Optional.of(javaClass(classForName((String) invocation.getArguments()[0])));
             }
         });
         javaClass.completeClassHierarchyFrom(context);
@@ -62,9 +63,9 @@ public class TestUtils {
     }
 
     public static JavaClasses javaClasses(Class<?>... classes) {
-        Map<Class<?>, JavaClass> result = new HashMap<>();
+        Map<String, JavaClass> result = new HashMap<>();
         for (Class<?> c : classes) {
-            result.put(c, javaClass(c));
+            result.put(c.getName(), javaClass(c));
         }
         return new JavaClasses(result);
     }
