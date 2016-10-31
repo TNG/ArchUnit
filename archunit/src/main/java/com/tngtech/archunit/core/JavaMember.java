@@ -2,9 +2,10 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -14,7 +15,7 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     private final Set<JavaAnnotation<?>> annotations;
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
-    private int hashCode;
+    private final int hashCode;
 
     JavaMember(T memberDescription, JavaClass owner) {
         this.memberDescription = checkNotNull(memberDescription);
@@ -27,11 +28,11 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     }
 
     private Set<JavaAnnotation<?>> convert(Annotation[] reflectionAnnotations) {
-        Set<JavaAnnotation<?>> result = new HashSet<>();
+        ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
             result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(this));
         }
-        return result;
+        return result.build();
     }
 
     public Set<JavaAnnotation<?>> getAnnotations() {

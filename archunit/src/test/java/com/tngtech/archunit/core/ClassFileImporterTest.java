@@ -63,6 +63,7 @@ import com.tngtech.archunit.core.testexamples.fieldaccessimport.MultipleFieldAcc
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnFieldAccess;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnStaticFieldAccess;
 import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithIntAndObjectFields;
+import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithStringField;
 import com.tngtech.archunit.core.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubClassField;
 import com.tngtech.archunit.core.testexamples.hierarchicalfieldaccess.SubClassWithAccessedField;
 import com.tngtech.archunit.core.testexamples.hierarchicalfieldaccess.SuperClassWithAccessedField;
@@ -139,9 +140,12 @@ public class ClassFileImporterTest {
         Set<JavaField> fields = fieldsOf(classesIn("testexamples/fieldimport"));
 
         assertThat(namesOf(fields)).containsOnly("stringField", "serializableField", "objectField");
-        assertThat(findAnyByName(fields, "stringField").getType()).isEqualTo(String.class);
-        assertThat(findAnyByName(fields, "serializableField").getType()).isEqualTo(Serializable.class);
-        assertThat(findAnyByName(fields, "objectField").getType()).isEqualTo(Object.class);
+        assertThat(findAnyByName(fields, "stringField"))
+                .isEquivalentTo(field(ClassWithStringField.class, "stringField"));
+        assertThat(findAnyByName(fields, "serializableField"))
+                .isEquivalentTo(field(ClassWithIntAndObjectFields.class, "serializableField"));
+        assertThat(findAnyByName(fields, "objectField"))
+                .isEquivalentTo(field(ClassWithIntAndObjectFields.class, "objectField"));
     }
 
     @Test
@@ -742,9 +746,7 @@ public class ClassFileImporterTest {
                 .isFrom(classWithExternalFieldAccess.getCodeUnit("access"))
                 .inLineNumber(7);
 
-        JavaField target = access.getTarget();
-        assertThat(target.getOwner().reflect()).isEqualTo(ClassWithIntAndObjectFields.class);
-        assertThat(target.getFullName()).isEqualTo(ClassWithIntAndObjectFields.class.getName() + ".objectField");
+        assertThat(access.getTarget()).isEquivalentTo(field(ClassWithIntAndObjectFields.class, "objectField"));
     }
 
     @Test
@@ -757,10 +759,7 @@ public class ClassFileImporterTest {
                 .isFrom(classWithExternalFieldAccess.getCodeUnit("accessField"))
                 .inLineNumber(7);
 
-        JavaField target = access.getTarget();
-        assertThat(target.getOwner().reflect()).isEqualTo(ChildClass.class);
-        assertThat(target.reflect()).isEqualTo(field(ChildClass.class, "someField"));
-        assertThat(target.getFullName()).isEqualTo(ChildClass.class.getName() + ".someField");
+        assertThat(access.getTarget()).isEquivalentTo(field(ChildClass.class, "someField"));
     }
 
     @Test
