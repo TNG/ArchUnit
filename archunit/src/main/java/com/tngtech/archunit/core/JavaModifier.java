@@ -23,7 +23,7 @@ public enum JavaModifier {
         this.asmAccessFlag = asmAccessFlag;
     }
 
-    static Set<JavaModifier> getModifiersFor(int asmAccess) {
+    public static Set<JavaModifier> getModifiersFor(int asmAccess) {
         Set<JavaModifier> result = new HashSet<>();
         for (JavaModifier modifier : JavaModifier.values()) {
             if ((modifier.asmAccessFlag & asmAccess) != 0) {

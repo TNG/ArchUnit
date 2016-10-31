@@ -120,7 +120,7 @@ public class ArchPredicates {
         return new DescribedPredicate<JavaFieldAccess>("target type resides in '%s'", packageIdentifier) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                Class<?> fieldType = input.getTarget().reflect().getType();
+                Class<?> fieldType = input.getTarget().getType();
 
                 return fieldType.getPackage() != null &&
                         packageMatcher.matches(fieldType.getPackage().getName());

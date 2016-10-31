@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.mockito.invocation.InvocationOnMock;
@@ -52,11 +55,15 @@ public class TestUtils {
         return javaClass;
     }
 
+    public static JavaField javaField(Field field) {
+        return new JavaField.Builder()
+                .withField(field)
+                .build(javaClass(field.getDeclaringClass()));
+    }
+
     public static JavaField javaField(Class<?> ownerClass, String name) {
         try {
-            return new JavaField.Builder()
-                    .withField(ownerClass.getDeclaredField(name))
-                    .build(javaClass(ownerClass));
+            return javaField(ownerClass.getDeclaredField(name));
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
@@ -76,6 +83,14 @@ public class TestUtils {
 
     public static DescribedPredicate<Object> predicateWithDescription(String description) {
         return DescribedPredicate.alwaysTrue().as(description);
+    }
+
+    public static Set<JavaAnnotation<?>> javaAnnotations(JavaField field, Annotation[] annotations) {
+        ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
+        for (Annotation annotation : annotations) {
+            result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(field));
+        }
+        return result.build();
     }
 
     public static class AccessesSimulator {

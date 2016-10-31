@@ -1,11 +1,13 @@
 package com.tngtech.archunit.testutil;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -15,6 +17,8 @@ import org.assertj.core.api.AbstractIterableAssert;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
+import static com.tngtech.archunit.core.TestUtils.javaAnnotations;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -23,6 +27,27 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
         return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    public static JavaFieldAssertion assertThat(JavaField field) {
+        return new JavaFieldAssertion(field);
+    }
+
+    public static class JavaFieldAssertion {
+        private final JavaField javaField;
+
+        private JavaFieldAssertion(JavaField javaField) {
+            this.javaField = javaField;
+        }
+
+        public void isEquivalentTo(Field field) {
+            assertThat(javaField.getName()).isEqualTo(field.getName());
+            assertThat(javaField.getFullName()).isEqualTo(field.getDeclaringClass().getName() + "." + field.getName());
+            assertThat(javaField.getOwner().reflect()).isEqualTo(field.getDeclaringClass());
+            assertThat(javaField.getType()).isEqualTo(field.getType());
+            assertThat(javaField.getModifiers()).isEqualTo(getModifiersFor(field.getModifiers()));
+            assertThat(javaField.getAnnotations()).isEqualTo(javaAnnotations(javaField, field.getAnnotations()));
+        }
     }
 
     public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {

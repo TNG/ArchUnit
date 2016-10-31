@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember<?, ?>> {
     private final T annotation;
@@ -25,7 +26,25 @@ public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember
         return annotation;
     }
 
-    static final class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation<?>> {
+    @Override
+    public int hashCode() {
+        return Objects.hash(annotation, owner);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JavaAnnotation other = (JavaAnnotation) obj;
+        return Objects.equals(this.annotation, other.annotation)
+                && Objects.equals(this.owner, other.owner);
+    }
+
+    static class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation<?>> {
         private Annotation annotation;
         private JavaMember<?, ?> owner;
 
