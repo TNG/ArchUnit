@@ -311,26 +311,23 @@ class ClassFileProcessor extends ClassVisitor {
     }
 
     static class CodeUnit {
-        private final Member member;
         private final String name;
         private final List<Class<?>> parameters;
         private final String declaringClassName;
         private final int hashCode;
 
         private CodeUnit(Member member) {
-            this(member,
-                    nameOf(member),
+            this(nameOf(member),
                     parametersOf(member),
                     member.getDeclaringClass(),
                     Objects.hash(member));
         }
 
-        private CodeUnit(Member object, String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
-            this(object, name, parameters, declaringClass.getName(), hashCode);
+        private CodeUnit(String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
+            this(name, parameters, declaringClass.getName(), hashCode);
         }
 
-        private CodeUnit(Member object, String name, List<Class<?>> parameters, String declaringClassName, int hashCode) {
-            this.member = object;
+        private CodeUnit(String name, List<Class<?>> parameters, String declaringClassName, int hashCode) {
             this.name = name;
             this.parameters = parameters;
             this.declaringClassName = declaringClassName;
@@ -368,20 +365,22 @@ class ClassFileProcessor extends ClassVisitor {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final CodeUnit other = (CodeUnit) obj;
-            return Objects.equals(this.member, other.member);
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CodeUnit codeUnit = (CodeUnit) o;
+            return Objects.equals(name, codeUnit.name) &&
+                    Objects.equals(parameters, codeUnit.parameters) &&
+                    Objects.equals(declaringClassName, codeUnit.declaringClassName);
         }
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{member=" + member.getName() + '}';
+            return "CodeUnit{" +
+                    "name='" + name + '\'' +
+                    ", parameters=" + parameters +
+                    ", declaringClassName='" + declaringClassName + '\'' +
+                    '}';
         }
 
         static CodeUnit of(Object o) {
@@ -401,7 +400,7 @@ class ClassFileProcessor extends ClassVisitor {
 
         private static class StaticInitializer extends CodeUnit {
             private StaticInitializer(String className) {
-                super(null, STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
+                super(STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
             }
 
             @Override
