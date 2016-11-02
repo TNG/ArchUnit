@@ -131,7 +131,7 @@ class ClassFileProcessor extends ClassVisitor {
         }
 
         CodeUnit getCodeUnit(String name, String desc) {
-            return codeUnitRecorder.get(CodeUnitIdentifier.of(currentClass, name, desc));
+            return codeUnitRecorder.get(CodeUnitIdentifier.of(name, desc, currentClass.getName()));
         }
 
         public JavaClass finish() {
@@ -232,7 +232,7 @@ class ClassFileProcessor extends ClassVisitor {
         @SuppressWarnings("unchecked")
         public CodeUnitRecorder(Class<?> type) {
             for (JavaClass clazzInHierarchy : getAllSuperClasses(type.getName())) {
-                put(staticInitializerIdentifier(clazzInHierarchy.reflect()), staticInitializerOf(clazzInHierarchy.reflect()));
+                put(staticInitializerIdentifier(clazzInHierarchy.reflect().getName()), staticInitializerOf(clazzInHierarchy.reflect()));
             }
         }
 
@@ -259,19 +259,19 @@ class ClassFileProcessor extends ClassVisitor {
     }
 
     static class CodeUnitIdentifier {
-        private final Class<?> declaringClass;
+        private final String declaringClassName;
         private final String name;
         private final Type type;
 
-        public CodeUnitIdentifier(Class<?> declaringClass, String name, Type type) {
-            this.declaringClass = declaringClass;
+        public CodeUnitIdentifier(String declaringClassName, String name, Type type) {
+            this.declaringClassName = declaringClassName;
             this.name = name;
             this.type = type;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(declaringClass, name, type);
+            return Objects.hash(declaringClassName, name, type);
         }
 
         @Override
@@ -283,30 +283,30 @@ class ClassFileProcessor extends ClassVisitor {
                 return false;
             }
             final CodeUnitIdentifier other = (CodeUnitIdentifier) obj;
-            return Objects.equals(this.declaringClass, other.declaringClass) &&
+            return Objects.equals(this.declaringClassName, other.declaringClassName) &&
                     Objects.equals(this.name, other.name) &&
                     Objects.equals(this.type, other.type);
         }
 
         @Override
         public String toString() {
-            return "{declaringClass=" + declaringClass + ", name='" + name + "', type=" + type + '}';
+            return "{declaringClassName=" + declaringClassName + ", name='" + name + "', type=" + type + '}';
         }
 
         static CodeUnitIdentifier of(Method method) {
-            return new CodeUnitIdentifier(method.getDeclaringClass(), method.getName(), Type.getType(method));
+            return new CodeUnitIdentifier(method.getDeclaringClass().getName(), method.getName(), Type.getType(method));
         }
 
         public static CodeUnitIdentifier of(Constructor<?> constructor) {
-            return new CodeUnitIdentifier(constructor.getDeclaringClass(), CONSTRUCTOR_NAME, Type.getType(constructor));
+            return new CodeUnitIdentifier(constructor.getDeclaringClass().getName(), CONSTRUCTOR_NAME, Type.getType(constructor));
         }
 
-        public static CodeUnitIdentifier of(Class<?> declaringClass, String name, String desc) {
-            return new CodeUnitIdentifier(declaringClass, name, Type.getMethodType(desc));
+        public static CodeUnitIdentifier of(String name, String desc, String declaringClassName) {
+            return new CodeUnitIdentifier(declaringClassName, name, Type.getMethodType(desc));
         }
 
-        public static CodeUnitIdentifier staticInitializerIdentifier(Class<?> declaringClass) {
-            return new CodeUnitIdentifier(declaringClass, STATIC_INITIALIZER_NAME, Type.getMethodType("()V"));
+        public static CodeUnitIdentifier staticInitializerIdentifier(String declaringClassName) {
+            return of(STATIC_INITIALIZER_NAME, "()V", declaringClassName);
         }
     }
 
