@@ -335,7 +335,7 @@ class ClassFileImportContext {
             }
 
             public JavaCodeUnit<?, ?> getCaller() {
-                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClass().getName()).getCodeUnits()) {
+                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName()).getCodeUnits()) {
                     if (caller.is(method)) {
                         return method;
                     }

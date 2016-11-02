@@ -314,7 +314,7 @@ class ClassFileProcessor extends ClassVisitor {
         private final Member member;
         private final String name;
         private final List<Class<?>> parameters;
-        private final Class<?> declaringClass;
+        private final String declaringClassName;
         private final int hashCode;
 
         private CodeUnit(Member member) {
@@ -326,10 +326,14 @@ class ClassFileProcessor extends ClassVisitor {
         }
 
         private CodeUnit(Member object, String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
+            this(object, name, parameters, declaringClass.getName(), hashCode);
+        }
+
+        private CodeUnit(Member object, String name, List<Class<?>> parameters, String declaringClassName, int hashCode) {
             this.member = object;
             this.name = name;
             this.parameters = parameters;
-            this.declaringClass = declaringClass;
+            this.declaringClassName = declaringClassName;
             this.hashCode = hashCode;
         }
 
@@ -354,8 +358,8 @@ class ClassFileProcessor extends ClassVisitor {
             return parameters;
         }
 
-        public Class<?> getDeclaringClass() {
-            return declaringClass;
+        public String getDeclaringClassName() {
+            return declaringClassName;
         }
 
         @Override
@@ -386,18 +390,18 @@ class ClassFileProcessor extends ClassVisitor {
         }
 
         static CodeUnit staticInitializerOf(final Class<?> clazz) {
-            return new StaticInitializer(clazz);
+            return new StaticInitializer(clazz.getName());
         }
 
         public boolean is(JavaCodeUnit<?, ?> method) {
             return getName().equals(method.getName())
                     && getParameters().equals(method.getParameters())
-                    && getDeclaringClass() == method.getOwner().reflect();
+                    && getDeclaringClassName().equals(method.getOwner().getName());
         }
 
         private static class StaticInitializer extends CodeUnit {
-            private StaticInitializer(Class<?> clazz) {
-                super(null, STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), clazz, Objects.hash(STATIC_INITIALIZER_NAME, clazz));
+            private StaticInitializer(String className) {
+                super(null, STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
             }
 
             @Override
@@ -413,13 +417,13 @@ class ClassFileProcessor extends ClassVisitor {
                 }
                 final StaticInitializer other = (StaticInitializer) obj;
                 return Objects.equals(getName(), other.getName()) &&
-                        Objects.equals(getDeclaringClass(), other.getDeclaringClass()) &&
+                        Objects.equals(getDeclaringClassName(), other.getDeclaringClassName()) &&
                         Objects.equals(getParameters(), other.getParameters());
             }
 
             @Override
             public String toString() {
-                return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getDeclaringClass().getName(), getName());
+                return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getDeclaringClassName(), getName());
             }
         }
     }
