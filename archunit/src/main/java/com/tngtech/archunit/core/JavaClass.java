@@ -14,7 +14,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
@@ -152,20 +151,20 @@ public class JavaClass implements HasName {
      * @param parameters The parameter signature of the method
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
-    public JavaCodeUnit<?, ?> getCodeUnit(String name, Class<?>... parameters) {
+    public JavaCodeUnit<?, ?> getCodeUnit(String name, TypeDetails... parameters) {
+        return getCodeUnit(name, ImmutableList.copyOf(parameters));
+    }
+
+    public JavaCodeUnit<?, ?> getCodeUnit(String name, List<TypeDetails> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> methods, String name, Class<?>[] parameters) {
-        return findMatchingCodeUnit(methods, name, newArrayList(parameters));
-    }
-
-    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
         return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
                 " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
-    private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+    private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
         for (T codeUnit : codeUnits) {
             if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters())) {
                 return Optional.of(codeUnit);
@@ -175,7 +174,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return findMatchingCodeUnit(methods, name, parameters);
+        return findMatchingCodeUnit(methods, name, TypeDetails.allOf(parameters));
     }
 
     public Set<JavaMethod> getMethods() {
@@ -191,7 +190,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, parameters);
+        return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, TypeDetails.allOf(parameters));
     }
 
     public Set<JavaConstructor> getConstructors() {

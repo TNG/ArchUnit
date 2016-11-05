@@ -3,9 +3,9 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.TypeDetails;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.assertj.core.api.Condition;
@@ -143,7 +143,7 @@ public class MethodCallConditionTest {
     private static class MethodCallConditionBuilder {
         private Class<?> targetClass;
         private String methodName;
-        private List<Class<?>> paramTypes;
+        private List<TypeDetails> paramTypes;
 
         private MethodCallConditionBuilder(MethodCallToAnalyse callToAnalyse) {
             targetClass = callToAnalyse.call.getTarget().getOwner().reflect();
@@ -162,7 +162,7 @@ public class MethodCallConditionTest {
         }
 
         public MethodCallConditionBuilder withParameters(Class<?> paramTypes) {
-            this.paramTypes = Lists.<Class<?>>newArrayList(paramTypes);
+            this.paramTypes = TypeDetails.allOf(paramTypes);
             return this;
         }
 

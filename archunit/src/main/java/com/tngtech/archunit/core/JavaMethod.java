@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
@@ -17,12 +16,12 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
     }
 
     @Override
-    public List<Class<?>> getParameters() {
-        return ImmutableList.copyOf(memberDescription.getParameterTypes());
+    public List<TypeDetails> getParameters() {
+        return memberDescription.getParameterTypes();
     }
 
     @Override
-    public Class<?> getReturnType() {
+    public TypeDetails getReturnType() {
         return memberDescription.getReturnType();
     }
 

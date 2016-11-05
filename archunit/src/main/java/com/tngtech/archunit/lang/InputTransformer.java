@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang;
 
+import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.Guava;
 import com.tngtech.archunit.core.HasDescription;

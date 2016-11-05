@@ -170,21 +170,29 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/specialtargets");
         Set<JavaMethodCall> calls = classes.get(ClassCallingSpecialTarget.class).getMethodCallsFromSelf();
 
-        assertThat(targetParametersOf(calls, "primitiveArgs")).containsExactly(byte.class, long.class);
-        assertThat(returnTypeOf(calls, "primitiveReturnType")).isEqualTo(byte.class);
-        assertThat(targetParametersOf(calls, "arrayArgs")).containsExactly(byte[].class, Object[].class);
-        assertThat(returnTypeOf(calls, "primitiveArrayReturnType")).isEqualTo(short[].class);
-        assertThat(returnTypeOf(calls, "objectArrayReturnType")).isEqualTo(String[].class);
-        assertThat(targetParametersOf(calls, "twoDimArrayArgs")).containsExactly(float[][].class, Object[][].class);
-        assertThat(returnTypeOf(calls, "primitiveTwoDimArrayReturnType")).isEqualTo(double[][].class);
-        assertThat(returnTypeOf(calls, "objectTwoDimArrayReturnType")).isEqualTo(String[][].class);
+        assertThat(targetParametersOf(calls, "primitiveArgs"))
+                .containsExactly(TypeDetails.of(byte.class), TypeDetails.of(long.class));
+        assertThat(returnTypeOf(calls, "primitiveReturnType"))
+                .isEqualTo(TypeDetails.of(byte.class));
+        assertThat(targetParametersOf(calls, "arrayArgs"))
+                .containsExactly(TypeDetails.of(byte[].class), TypeDetails.of(Object[].class));
+        assertThat(returnTypeOf(calls, "primitiveArrayReturnType"))
+                .isEqualTo(TypeDetails.of(short[].class));
+        assertThat(returnTypeOf(calls, "objectArrayReturnType"))
+                .isEqualTo(TypeDetails.of(String[].class));
+        assertThat(targetParametersOf(calls, "twoDimArrayArgs"))
+                .containsExactly(TypeDetails.of(float[][].class), TypeDetails.of(Object[][].class));
+        assertThat(returnTypeOf(calls, "primitiveTwoDimArrayReturnType"))
+                .isEqualTo(TypeDetails.of(double[][].class));
+        assertThat(returnTypeOf(calls, "objectTwoDimArrayReturnType"))
+                .isEqualTo(TypeDetails.of(String[][].class));
     }
 
-    private List<Class<?>> targetParametersOf(Set<JavaMethodCall> calls, String name) {
+    private List<TypeDetails> targetParametersOf(Set<JavaMethodCall> calls, String name) {
         return findAnyByName(calls, name).getTarget().getParameters();
     }
 
-    private Class<?> returnTypeOf(Set<JavaMethodCall> calls, String name) {
+    private TypeDetails returnTypeOf(Set<JavaMethodCall> calls, String name) {
         return findAnyByName(calls, name).getTarget().getReturnType();
     }
 
@@ -285,13 +293,13 @@ public class ClassFileImporterTest {
 
         assertThat(findAnyByName(methods, "createString").getParameters())
                 .as("Parameters of method 'createString'")
-                .containsExactly(String.class);
+                .containsExactly(TypeDetails.of(String.class));
         assertThat(findAnyByName(methods, "consume").getParameters())
                 .as("Parameters of method 'consume'")
-                .containsExactly(Object.class);
+                .containsExactly(TypeDetails.of(Object.class));
         assertThat(findAnyByName(methods, "createSerializable").getParameters())
                 .as("Parameters of method 'createSerializable'")
-                .containsExactly(int.class, int.class);
+                .containsExactly(TypeDetails.of(int.class), TypeDetails.of(int.class));
     }
 
     @Test
@@ -301,11 +309,11 @@ public class ClassFileImporterTest {
         assertThat(findAnyByName(methods, "complex").getParameters())
                 .as("Parameters of method 'complex'")
                 .containsExactly(
-                        String.class,
-                        long.class,
-                        long.class,
-                        Serializable.class,
-                        Serializable.class);
+                        TypeDetails.of(String.class),
+                        TypeDetails.of(long.class),
+                        TypeDetails.of(long.class),
+                        TypeDetails.of(Serializable.class),
+                        TypeDetails.of(Serializable.class));
     }
 
     @Test
@@ -314,13 +322,13 @@ public class ClassFileImporterTest {
 
         assertThat(findAnyByName(methods, "createString").getReturnType())
                 .as("Parameters of method 'createString'")
-                .isEqualTo(String.class);
+                .isEqualTo(TypeDetails.of(String.class));
         assertThat(findAnyByName(methods, "consume").getReturnType())
                 .as("Parameters of method 'consume'")
-                .isEqualTo(void.class);
+                .isEqualTo(TypeDetails.of(void.class));
         assertThat(findAnyByName(methods, "createSerializable").getReturnType())
                 .as("Parameters of method 'createSerializable'")
-                .isEqualTo(Serializable.class);
+                .isEqualTo(TypeDetails.of(Serializable.class));
     }
 
     @Test
@@ -976,7 +984,7 @@ public class ClassFileImporterTest {
                 .containsOnly(SomeEnum.class.getName());
         assertThat(classThatCallsMethodReturningArray.getMethodCallsFromSelf())
                 .extracting("target").extracting("returnType")
-                .containsOnly(SomeEnum[].class);
+                .containsOnly(TypeDetails.of(SomeEnum[].class));
     }
 
     @Test
@@ -1133,7 +1141,7 @@ public class ClassFileImporterTest {
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls);
         FluentIterable<JavaClass> classesFoundAtUrls = FluentIterable.from(classes)
-                .filter(not(equalTo(new JavaClass.Builder().withType(new TypeDetails(Object.class)).build())));
+                .filter(not(equalTo(new JavaClass.Builder().withType(TypeDetails.of(Object.class)).build())));
 
         assertThat(classesFoundAtUrls).as("Number of classes at the given URLs").hasSize(2);
     }
@@ -1308,7 +1316,7 @@ public class ClassFileImporterTest {
         }
 
         protected SELF isFrom(String name, Class<?>... parameterTypes) {
-            return isFrom(access.getOrigin().getOwner().getCodeUnit(name, parameterTypes));
+            return isFrom(access.getOrigin().getOwner().getCodeUnit(name, TypeDetails.allOf(parameterTypes)));
         }
 
         protected SELF isFrom(JavaCodeUnit<?, ?> codeUnit) {

@@ -11,13 +11,13 @@ public class Formatters {
     private Formatters() {
     }
 
-    public static String formatMethod(String ownerName, String methodName, List<Class<?>> parameters) {
+    public static String formatMethod(String ownerName, String methodName, List<TypeDetails> parameters) {
         return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameters(parameters));
     }
 
-    public static String formatMethodParameters(List<Class<?>> parameters) {
+    public static String formatMethodParameters(List<TypeDetails> parameters) {
         List<String> formatted = new ArrayList<>();
-        for (Class<?> type : parameters) {
+        for (TypeDetails type : parameters) {
             formatted.add(String.format("%s.class", type.getSimpleName()));
         }
         return Joiner.on(", ").join(formatted);

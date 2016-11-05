@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.common.collect.ImmutableList;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -91,8 +90,8 @@ public interface MemberDescription<T extends Member> {
             super(constructor);
         }
 
-        public List<? extends Class<?>> getParameterTypes() {
-            return ImmutableList.copyOf(member.getParameterTypes());
+        public List<TypeDetails> getParameterTypes() {
+            return TypeDetails.allOf(member.getParameterTypes());
         }
 
         @Override
@@ -107,9 +106,9 @@ public interface MemberDescription<T extends Member> {
     }
 
     interface ForMethod extends MemberDescription<Method> {
-        List<Class<?>> getParameterTypes();
+        List<TypeDetails> getParameterTypes();
 
-        Class<?> getReturnType();
+        TypeDetails getReturnType();
     }
 
     class ForDeterminedMethod extends ForDeterminedMember<Method> implements ForMethod {
@@ -123,13 +122,13 @@ public interface MemberDescription<T extends Member> {
         }
 
         @Override
-        public List<Class<?>> getParameterTypes() {
-            return ImmutableList.copyOf(member.getParameterTypes());
+        public List<TypeDetails> getParameterTypes() {
+            return TypeDetails.allOf(member.getParameterTypes());
         }
 
         @Override
-        public Class<?> getReturnType() {
-            return member.getReturnType();
+        public TypeDetails getReturnType() {
+            return TypeDetails.of(member.getReturnType());
         }
     }
 

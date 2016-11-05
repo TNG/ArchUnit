@@ -19,13 +19,13 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     }
 
     @Override
-    public List<Class<?>> getParameters() {
+    public List<TypeDetails> getParameters() {
         return Lists.newArrayList(memberDescription.getParameterTypes());
     }
 
     @Override
-    public Class<?> getReturnType() {
-        return void.class;
+    public TypeDetails getReturnType() {
+        return TypeDetails.of(void.class);
     }
 
     @Override
