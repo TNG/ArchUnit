@@ -1,6 +1,7 @@
 package com.tngtech.archunit.lang.conditions;
 
 import com.tngtech.archunit.core.JavaCall;
+import com.tngtech.archunit.core.TypeDetails;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
@@ -25,7 +26,7 @@ public class CallPredicateTest {
 
     @Test
     public void descriptions() {
-        CallPredicate predicate = target().is(SomeClass.class, "someMethod", String.class);
+        CallPredicate predicate = target().is(SomeClass.class, "someMethod", TypeDetails.allOf(String.class));
         assertThat(predicate.getDescription())
                 .isEqualTo(String.format("target is %s.someMethod(String.class)", SomeClass.class.getName()));
 

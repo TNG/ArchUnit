@@ -170,7 +170,7 @@ class ClassFileImportContext {
             }
 
             private JavaField createFieldFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
+                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
                 return createField(targetInfo, owner);
             }
 
@@ -231,7 +231,7 @@ class ClassFileImportContext {
             }
 
             private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
+                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
                 return createConstructor(targetInfo, owner);
             }
 
@@ -284,7 +284,7 @@ class ClassFileImportContext {
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(new TypeDetails(targetInfo.owner.asClass())).build();
+                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
                 return createMethod(targetInfo, owner);
             }
 
@@ -618,18 +618,18 @@ class ClassFileImportContext {
         }
 
         @Override
-        public List<Class<?>> getParameterTypes() {
+        public List<TypeDetails> getParameterTypes() {
             Type[] argumentTypes = Type.getArgumentTypes(targetInfo.desc);
-            ImmutableList.Builder<Class<?>> result = ImmutableList.builder();
+            ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
             for (Type type : argumentTypes) {
-                result.add(classForName(type.getClassName()));
+                result.add(TypeDetails.of(classForName(type.getClassName())));
             }
             return result.build();
         }
 
         @Override
-        public Class<?> getReturnType() {
-            return classForName(Type.getReturnType(targetInfo.desc).getClassName());
+        public TypeDetails getReturnType() {
+            return TypeDetails.of(classForName(Type.getReturnType(targetInfo.desc).getClassName()));
         }
 
         @Override

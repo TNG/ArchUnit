@@ -14,13 +14,13 @@ public class JavaCodeUnitTest {
         JavaMethod method = javaMethod(SomeClass.class, "withArgs", Object.class, String.class);
 
         DescribedPredicate<JavaCodeUnit<?, ?>> predicate =
-                JavaCodeUnit.hasParameters(Collections.<Class<?>>singletonList(Object.class));
+                JavaCodeUnit.hasParameters(TypeDetails.allOf(Collections.<Class<?>>singletonList(Object.class)));
 
         assertThat(predicate.apply(method)).as("Predicate matches").isFalse();
         assertThat(predicate.getDescription()).isEqualTo("has parameters [Object.class]");
 
         predicate =
-                JavaCodeUnit.hasParameters(Arrays.asList(Object.class, String.class));
+                JavaCodeUnit.hasParameters(TypeDetails.allOf(Arrays.asList(Object.class, String.class)));
 
         assertThat(predicate.apply(method)).as("Predicate matches").isTrue();
         assertThat(predicate.getDescription()).isEqualTo("has parameters [Object.class, String.class]");

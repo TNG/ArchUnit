@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +15,6 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.Lists;
 import com.tngtech.archunit.core.ClassFileImportContext.BaseRawAccessRecord;
 import com.tngtech.archunit.core.ClassFileImportContext.ConstructorTargetInfo;
 import com.tngtech.archunit.core.ClassFileImportContext.FieldTargetInfo;
@@ -119,7 +117,7 @@ class ClassFileProcessor extends ClassVisitor {
         private void tryInit(String classDescriptor) {
             currentClass = classForDescriptor(classDescriptor);
             codeUnitRecorder = new CodeUnitRecorder(currentClass);
-            currentClassBuilder = new JavaClass.Builder(codeUnitRecorder).withType(new TypeDetails(currentClass));
+            currentClassBuilder = new JavaClass.Builder(codeUnitRecorder).withType(TypeDetails.of(currentClass));
         }
 
         private Class<?> classForDescriptor(String descriptor) {
@@ -312,7 +310,7 @@ class ClassFileProcessor extends ClassVisitor {
 
     static class CodeUnit {
         private final String name;
-        private final List<Class<?>> parameters;
+        private final List<TypeDetails> parameters;
         private final String declaringClassName;
         private final int hashCode;
 
@@ -323,21 +321,21 @@ class ClassFileProcessor extends ClassVisitor {
                     Objects.hash(member));
         }
 
-        private CodeUnit(String name, List<Class<?>> parameters, Class<?> declaringClass, int hashCode) {
+        private CodeUnit(String name, List<TypeDetails> parameters, Class<?> declaringClass, int hashCode) {
             this(name, parameters, declaringClass.getName(), hashCode);
         }
 
-        private CodeUnit(String name, List<Class<?>> parameters, String declaringClassName, int hashCode) {
+        private CodeUnit(String name, List<TypeDetails> parameters, String declaringClassName, int hashCode) {
             this.name = name;
             this.parameters = parameters;
             this.declaringClassName = declaringClassName;
             this.hashCode = hashCode;
         }
 
-        private static ArrayList<Class<?>> parametersOf(Member member) {
+        private static List<TypeDetails> parametersOf(Member member) {
             return member instanceof Constructor ?
-                    Lists.newArrayList(((Constructor<?>) member).getParameterTypes()) :
-                    Lists.newArrayList(((Method) member).getParameterTypes());
+                    TypeDetails.allOf(((Constructor<?>) member).getParameterTypes()) :
+                    TypeDetails.allOf(((Method) member).getParameterTypes());
         }
 
         private static String nameOf(Member member) {
@@ -351,7 +349,7 @@ class ClassFileProcessor extends ClassVisitor {
         }
 
         @SuppressWarnings("unchecked")
-        public List<Class<?>> getParameters() {
+        public List<TypeDetails> getParameters() {
             return parameters;
         }
 
@@ -400,7 +398,7 @@ class ClassFileProcessor extends ClassVisitor {
 
         private static class StaticInitializer extends CodeUnit {
             private StaticInitializer(String className) {
-                super(STATIC_INITIALIZER_NAME, Collections.<Class<?>>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
+                super(STATIC_INITIALIZER_NAME, Collections.<TypeDetails>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
             }
 
             @Override

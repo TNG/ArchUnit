@@ -39,7 +39,7 @@ public class TestUtils {
     }
 
     public static JavaClass javaClass(Class<?> owner) {
-        JavaClass javaClass = new JavaClass.Builder().withType(new TypeDetails(owner)).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
         ClassFileImportContext context = mock(ClassFileImportContext.class);
         when(context.tryGetJavaClassWithType(anyString())).thenAnswer(new Answer<Optional<JavaClass>>() {
             @Override

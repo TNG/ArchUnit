@@ -1,8 +1,6 @@
-package com.tngtech.archunit.lang;
+package com.tngtech.archunit.core;
 
 import java.util.Iterator;
-
-import com.tngtech.archunit.core.HasDescription;
 
 public interface DescribedIterable<T> extends Iterable<T>, HasDescription {
     class From {

@@ -28,7 +28,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_fields_and_methods() {
-        JavaClass javaClass = new JavaClass.Builder().withType(new TypeDetails(ClassWithTwoFieldsAndTwoMethods.class)).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
@@ -44,7 +44,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = new JavaClass.Builder().withType(new TypeDetails(ClassWithSeveralConstructors.class)).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithSeveralConstructors.class)).build();
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -54,7 +54,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_static_Initializer() {
-        JavaClass javaClass = new JavaClass.Builder().withType(new TypeDetails(Object.class)).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(Object.class)).build();
 
         assertThat(javaClass.getStaticInitializer()).isNotNull();
         assertThat(javaClass.getStaticInitializer().getName()).isEqualTo(STATIC_INITIALIZER_NAME);
@@ -62,9 +62,9 @@ public class JavaClassTest {
 
     @Test
     public void equals_works() {
-        JavaClass javaClass = new JavaClass.Builder().withType(new TypeDetails(ClassWithTwoFieldsAndTwoMethods.class)).build();
-        JavaClass equalClass = new JavaClass.Builder().withType(new TypeDetails(ClassWithTwoFieldsAndTwoMethods.class)).build();
-        JavaClass differentClass = new JavaClass.Builder().withType(new TypeDetails(SuperClassWithFieldAndMethod.class)).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
+        JavaClass equalClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
+        JavaClass differentClass = new JavaClass.Builder().withType(TypeDetails.of(SuperClassWithFieldAndMethod.class)).build();
 
         assertThat(javaClass).isEqualTo(javaClass);
         assertThat(javaClass).isEqualTo(equalClass);
@@ -73,7 +73,7 @@ public class JavaClassTest {
 
     @Test
     public void anonymous_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder().withType(new TypeDetails(new Serializable() {
+        JavaClass anonymous = new JavaClass.Builder().withType(TypeDetails.of(new Serializable() {
         }.getClass()))
                 .build();
 
@@ -82,7 +82,7 @@ public class JavaClassTest {
 
     @Test
     public void inner_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder().withType(new TypeDetails(ClassWithInnerClass.Inner.class))
+        JavaClass anonymous = new JavaClass.Builder().withType(TypeDetails.of(ClassWithInnerClass.Inner.class))
                 .build();
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
@@ -90,7 +90,7 @@ public class JavaClassTest {
 
     @Test
     public void Array_class_has_default_package() {
-        JavaClass arrayType = new JavaClass.Builder().withType(new TypeDetails(JavaClassTest[].class)).build();
+        JavaClass arrayType = new JavaClass.Builder().withType(TypeDetails.of(JavaClassTest[].class)).build();
 
         assertThat(arrayType.getPackage()).isEmpty();
     }

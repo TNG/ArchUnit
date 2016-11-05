@@ -45,9 +45,9 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return fullName;
     }
 
-    public abstract List<Class<?>> getParameters();
+    public abstract List<TypeDetails> getParameters();
 
-    public static DescribedPredicate<JavaCodeUnit<?, ?>> hasParameters(final List<Class<?>> paramTypes) {
+    public static DescribedPredicate<JavaCodeUnit<?, ?>> hasParameters(final List<TypeDetails> paramTypes) {
         return new DescribedPredicate<JavaCodeUnit<?, ?>>("has parameters [%s]", formatMethodParameters(paramTypes)) {
             @Override
             public boolean apply(JavaCodeUnit<?, ?> input) {
@@ -56,7 +56,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         };
     }
 
-    public abstract Class<?> getReturnType();
+    public abstract TypeDetails getReturnType();
 
     public Set<JavaFieldAccess> getFieldAccesses() {
         return fieldAccesses;

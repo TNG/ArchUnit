@@ -20,12 +20,12 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     }
 
     @Override
-    public List<Class<?>> getParameters() {
+    public List<TypeDetails> getParameters() {
         return memberDescription.getParameterTypes();
     }
 
     @Override
-    public Class<?> getReturnType() {
+    public TypeDetails getReturnType() {
         return memberDescription.getReturnType();
     }
 
@@ -66,13 +66,13 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     private static class StaticInitializerDescription implements MemberDescription.ForMethod {
 
         @Override
-        public List<Class<?>> getParameterTypes() {
+        public List<TypeDetails> getParameterTypes() {
             return emptyList();
         }
 
         @Override
-        public Class<?> getReturnType() {
-            return void.class;
+        public TypeDetails getReturnType() {
+            return TypeDetails.of(void.class);
         }
 
         @Override
