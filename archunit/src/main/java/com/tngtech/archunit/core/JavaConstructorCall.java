@@ -1,7 +1,9 @@
 package com.tngtech.archunit.core;
 
-public class JavaConstructorCall extends JavaCall<JavaConstructor> {
-    JavaConstructorCall(AccessRecord<JavaConstructor> record) {
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+
+public class JavaConstructorCall extends JavaCall<ConstructorCallTarget> {
+    JavaConstructorCall(AccessRecord<ConstructorCallTarget> record) {
         super(record);
     }
 

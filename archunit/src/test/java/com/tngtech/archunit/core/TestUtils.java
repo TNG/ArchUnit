@@ -11,6 +11,8 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -94,7 +96,7 @@ public class TestUtils {
     }
 
     public static class AccessesSimulator {
-        private final Set<AccessRecord<JavaMethod>> targets = new HashSet<>();
+        private final Set<AccessRecord<MethodCallTarget>> targets = new HashSet<>();
 
         public AccessSimulator from(JavaMethod method, int lineNumber) {
             return new AccessSimulator(targets, method, lineNumber);
@@ -110,18 +112,18 @@ public class TestUtils {
     }
 
     public static class AccessSimulator {
-        private final Set<AccessRecord<JavaMethod>> targets;
+        private final Set<AccessRecord<MethodCallTarget>> targets;
         private final JavaMethod method;
         private final int lineNumber;
 
-        private AccessSimulator(Set<AccessRecord<JavaMethod>> targets, JavaMethod method, int lineNumber) {
+        private AccessSimulator(Set<AccessRecord<MethodCallTarget>> targets, JavaMethod method, int lineNumber) {
             this.targets = targets;
             this.method = method;
             this.lineNumber = lineNumber;
         }
 
         public JavaMethodCall to(JavaMethod target) {
-            targets.add(new TestAccessRecord<>(target));
+            targets.add(new TestAccessRecord<>(new MethodCallTarget(target)));
             ClassFileImportContext context = mock(ClassFileImportContext.class);
             when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
             method.completeFrom(context);
@@ -135,7 +137,7 @@ public class TestUtils {
         private JavaMethodCall getCallToTarget(JavaMethod target) {
             Set<JavaMethodCall> matchingCalls = new HashSet<>();
             for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
-                if (call.getTarget().equals(target)) {
+                if (call.getTarget().equals(new MethodCallTarget(target))) {
                     matchingCalls.add(call);
                 }
             }
@@ -149,12 +151,12 @@ public class TestUtils {
             method.completeFrom(context);
         }
 
-        private class TestFieldAccessRecord extends TestAccessRecord<JavaField> implements FieldAccessRecord {
+        private class TestFieldAccessRecord extends TestAccessRecord<FieldAccessTarget> implements FieldAccessRecord {
             private final JavaField target;
             private final AccessType accessType;
 
             private TestFieldAccessRecord(JavaField target, AccessType accessType) {
-                super(target);
+                super(new FieldAccessTarget(target));
                 this.target = target;
                 this.accessType = accessType;
             }
@@ -165,7 +167,7 @@ public class TestUtils {
             }
         }
 
-        private class TestAccessRecord<T> implements AccessRecord<T> {
+        private class TestAccessRecord<T extends AccessTarget> implements AccessRecord<T> {
             private final T target;
 
             public TestAccessRecord(T target) {

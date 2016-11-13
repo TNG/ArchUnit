@@ -134,10 +134,10 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         };
     }
 
-    public static final ChainableFunction<JavaMember<?, ?>, JavaClass> GET_OWNER =
-            new ChainableFunction<JavaMember<?, ?>, JavaClass>() {
+    public static final ChainableFunction<HasOwner<JavaClass>, JavaClass> GET_OWNER =
+            new ChainableFunction<HasOwner<JavaClass>, JavaClass>() {
                 @Override
-                public JavaClass apply(JavaMember<?, ?> input) {
+                public JavaClass apply(HasOwner<JavaClass> input) {
                     return input.getOwner();
                 }
             };

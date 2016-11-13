@@ -1,15 +1,19 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.HasName;
+import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.TypeDetails;
 
 import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 
 public class ArchPredicates {
@@ -120,10 +124,19 @@ public class ArchPredicates {
         return new DescribedPredicate<JavaFieldAccess>("target type resides in '%s'", packageIdentifier) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                Class<?> fieldType = input.getTarget().getType();
+                TypeDetails fieldType = input.getTarget().getType();
 
                 return fieldType.getPackage() != null &&
-                        packageMatcher.matches(fieldType.getPackage().getName());
+                        packageMatcher.matches(fieldType.getPackage());
+            }
+        };
+    }
+
+    public static DescribedPredicate<HasParameters> hasParameters(final List<TypeDetails> paramTypes) {
+        return new DescribedPredicate<HasParameters>("has parameters [%s]", formatMethodParameters(paramTypes)) {
+            @Override
+            public boolean apply(HasParameters input) {
+                return paramTypes.equals(input.getParameters());
             }
         };
     }
