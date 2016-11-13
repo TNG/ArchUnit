@@ -6,7 +6,7 @@ import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
+public abstract class JavaAccess<TARGET extends AccessTarget>
         implements HasName, IsOwnedByCodeUnit, HasDescription {
 
     private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
@@ -107,10 +107,10 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
 
     protected abstract String descriptionTemplate();
 
-    public static final ChainableFunction<JavaAccess<?>, JavaMember<?, ?>> GET_TARGET =
-            new ChainableFunction<JavaAccess<?>, JavaMember<?, ?>>() {
+    public static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET =
+            new ChainableFunction<JavaAccess<?>, AccessTarget>() {
                 @Override
-                public JavaMember<?, ?> apply(JavaAccess<?> input) {
+                public AccessTarget apply(JavaAccess<?> input) {
                     return input.getTarget();
                 }
             };

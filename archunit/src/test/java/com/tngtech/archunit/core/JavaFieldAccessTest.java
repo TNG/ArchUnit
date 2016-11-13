@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.junit.Test;
 
@@ -121,8 +122,8 @@ public class JavaFieldAccessTest {
         }
 
         @Override
-        public JavaField getTarget() {
-            return field;
+        public FieldAccessTarget getTarget() {
+            return new FieldAccessTarget(field);
         }
 
         @Override

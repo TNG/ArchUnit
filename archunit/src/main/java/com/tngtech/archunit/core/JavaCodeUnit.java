@@ -1,14 +1,14 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Member;
-import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
-import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -24,7 +24,7 @@ import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
  * @param <T> The type of the description for this member; the description is an abstraction in case there are problems
  *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
-public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> {
+public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> implements HasParameters {
 
     private Set<JavaFieldAccess> fieldAccesses;
     private Set<JavaMethodCall> methodCalls;
@@ -43,17 +43,6 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
     @Override
     public String getFullName() {
         return fullName;
-    }
-
-    public abstract List<TypeDetails> getParameters();
-
-    public static DescribedPredicate<JavaCodeUnit<?, ?>> hasParameters(final List<TypeDetails> paramTypes) {
-        return new DescribedPredicate<JavaCodeUnit<?, ?>>("has parameters [%s]", formatMethodParameters(paramTypes)) {
-            @Override
-            public boolean apply(JavaCodeUnit<?, ?> input) {
-                return paramTypes.equals(input.getParameters());
-            }
-        };
     }
 
     public abstract TypeDetails getReturnType();
@@ -82,13 +71,13 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         fieldAccesses = fieldAccessesBuilder.build();
 
         ImmutableSet.Builder<JavaMethodCall> methodCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<JavaMethod> record : context.getMethodCallRecordsFor(this)) {
+        for (AccessRecord<MethodCallTarget> record : context.getMethodCallRecordsFor(this)) {
             methodCallsBuilder.add(new JavaMethodCall(record));
         }
         methodCalls = methodCallsBuilder.build();
 
         ImmutableSet.Builder<JavaConstructorCall> constructorCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<JavaConstructor> record : context.getConstructorCallRecordsFor(this)) {
+        for (AccessRecord<ConstructorCallTarget> record : context.getConstructorCallRecordsFor(this)) {
             constructorCallsBuilder.add(new JavaConstructorCall(record));
         }
         constructorCalls = constructorCallsBuilder.build();

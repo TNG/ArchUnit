@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -27,6 +28,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
         return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    public static JavaFieldAssertion assertThat(FieldAccessTarget target) {
+        return assertThat(target.getJavaField());
     }
 
     public static JavaFieldAssertion assertThat(JavaField field) {

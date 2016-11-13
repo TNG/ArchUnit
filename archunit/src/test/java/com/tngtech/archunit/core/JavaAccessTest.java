@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.testexamples.SomeClass;
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 import org.junit.Test;
@@ -50,9 +51,9 @@ public class JavaAccessTest {
         return new TestJavaAccess.Creator(owner, name);
     }
 
-    private static class TestJavaAccess extends JavaAccess<JavaMethod> {
+    private static class TestJavaAccess extends JavaAccess<MethodCallTarget> {
         public TestJavaAccess(JavaMethod origin, JavaMethod target, int lineNumber) {
-            super(origin, target, lineNumber);
+            super(origin, new MethodCallTarget(target), lineNumber);
         }
 
         @Override

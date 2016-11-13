@@ -20,6 +20,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.ReflectionUtils.Predicate;
@@ -41,9 +44,9 @@ class ClassFileImportContext {
     private final Set<RawFieldAccessRecord> rawFieldAccessRecords = new HashSet<>();
     private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final Set<RawMethodCallRecord> rawMethodCallRecords = new HashSet<>();
-    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<JavaMethod>> processedMethodCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final Set<RawConstructorCallRecord> rawConstructorCallRecords = new HashSet<>();
-    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<JavaConstructor>> processedConstructorCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
 
     void registerFieldAccess(RawFieldAccessRecord record) {
         rawFieldAccessRecords.add(record);
@@ -120,11 +123,11 @@ class ClassFileImportContext {
         return processedFieldAccessRecords.get(method);
     }
 
-    Set<AccessRecord<JavaMethod>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedMethodCallRecords.get(method);
     }
 
-    Set<AccessRecord<JavaConstructor>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedConstructorCallRecords.get(method);
     }
 
@@ -163,10 +166,11 @@ class ClassFileImportContext {
             }
 
             @Override
-            public JavaField getTarget() {
+            public FieldAccessTarget getTarget() {
                 Optional<JavaField> matchingField = tryFindMatchingTarget(fields, target);
 
-                return matchingField.isPresent() ? matchingField.get() : createFieldFor(target);
+                JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(target);
+                return new FieldAccessTarget(field);
             }
 
             private JavaField createFieldFor(TargetInfo targetInfo) {
@@ -205,17 +209,17 @@ class ClassFileImportContext {
         }
     }
 
-    static class RawConstructorCallRecord extends BaseRawAccessRecord<AccessRecord<JavaConstructor>> {
+    static class RawConstructorCallRecord extends BaseRawAccessRecord<AccessRecord<ConstructorCallTarget>> {
         private RawConstructorCallRecord(Builder builder) {
             super(builder);
         }
 
         @Override
-        public AccessRecord<JavaConstructor> process(Map<String, JavaClass> classes) {
+        public AccessRecord<ConstructorCallTarget> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
-        class Processed extends BaseRawAccessRecord<AccessRecord<JavaConstructor>>.Processed implements AccessRecord<JavaConstructor> {
+        class Processed extends BaseRawAccessRecord<AccessRecord<ConstructorCallTarget>>.Processed implements AccessRecord<ConstructorCallTarget> {
             private final Set<JavaConstructor> constructors;
 
             Processed(Map<String, JavaClass> classes) {
@@ -224,10 +228,11 @@ class ClassFileImportContext {
             }
 
             @Override
-            public JavaConstructor getTarget() {
+            public ConstructorCallTarget getTarget() {
                 Optional<JavaConstructor> matchingMethod = tryFindMatchingTarget(constructors, target);
 
-                return matchingMethod.isPresent() ? matchingMethod.get() : createConstructorFor(target);
+                JavaConstructor constructor = matchingMethod.isPresent() ? matchingMethod.get() : createConstructorFor(target);
+                return new ConstructorCallTarget(constructor);
             }
 
             private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
@@ -258,17 +263,17 @@ class ClassFileImportContext {
         }
     }
 
-    static class RawMethodCallRecord extends BaseRawAccessRecord<AccessRecord<JavaMethod>> {
+    static class RawMethodCallRecord extends BaseRawAccessRecord<AccessRecord<MethodCallTarget>> {
         private RawMethodCallRecord(Builder builder) {
             super(builder);
         }
 
         @Override
-        public AccessRecord<JavaMethod> process(Map<String, JavaClass> classes) {
+        public AccessRecord<MethodCallTarget> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
-        class Processed extends BaseRawAccessRecord<AccessRecord<JavaMethod>>.Processed implements AccessRecord<JavaMethod> {
+        class Processed extends BaseRawAccessRecord<AccessRecord<MethodCallTarget>>.Processed implements AccessRecord<MethodCallTarget> {
             private final Set<JavaMethod> methods;
 
             Processed(Map<String, JavaClass> classes) {
@@ -277,10 +282,11 @@ class ClassFileImportContext {
             }
 
             @Override
-            public JavaMethod getTarget() {
+            public MethodCallTarget getTarget() {
                 Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, target);
 
-                return matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(target);
+                JavaMethod method = matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(target);
+                return new MethodCallTarget(method);
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {

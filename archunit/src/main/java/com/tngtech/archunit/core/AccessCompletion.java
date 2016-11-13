@@ -5,11 +5,14 @@ import java.util.Map;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 
 class AccessCompletion {
-    final Multimap<JavaField, JavaFieldAccess> accessesToFields = HashMultimap.create();
-    final Multimap<JavaMethod, JavaMethodCall> accessesToMethods = HashMultimap.create();
-    final Multimap<JavaConstructor, JavaConstructorCall> accessesToConstructors = HashMultimap.create();
+    final Multimap<FieldAccessTarget, JavaFieldAccess> accessesToFields = HashMultimap.create();
+    final Multimap<MethodCallTarget, JavaMethodCall> accessesToMethods = HashMultimap.create();
+    final Multimap<ConstructorCallTarget, JavaConstructorCall> accessesToConstructors = HashMultimap.create();
 
     private AccessCompletion() {
     }
@@ -39,14 +42,14 @@ class AccessCompletion {
 
     static class TopProcess extends AccessCompletion {
         void finish() {
-            for (Map.Entry<JavaField, Collection<JavaFieldAccess>> entry : accessesToFields.asMap().entrySet()) {
-                entry.getKey().registerAccesses(entry.getValue());
+            for (Map.Entry<FieldAccessTarget, Collection<JavaFieldAccess>> entry : accessesToFields.asMap().entrySet()) {
+                entry.getKey().getJavaField().registerAccesses(entry.getValue());
             }
-            for (Map.Entry<JavaMethod, Collection<JavaMethodCall>> entry : accessesToMethods.asMap().entrySet()) {
-                entry.getKey().registerCalls(entry.getValue());
+            for (Map.Entry<MethodCallTarget, Collection<JavaMethodCall>> entry : accessesToMethods.asMap().entrySet()) {
+                entry.getKey().getMethod().registerCalls(entry.getValue());
             }
-            for (Map.Entry<JavaConstructor, Collection<JavaConstructorCall>> entry : accessesToConstructors.asMap().entrySet()) {
-                entry.getKey().registerCalls(entry.getValue());
+            for (Map.Entry<ConstructorCallTarget, Collection<JavaConstructorCall>> entry : accessesToConstructors.asMap().entrySet()) {
+                entry.getKey().getConstructor().registerCalls(entry.getValue());
             }
         }
     }
