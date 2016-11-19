@@ -35,23 +35,6 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     }
 
     @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaStaticInitializer other = (JavaStaticInitializer) obj;
-        return Objects.equals(getFullName(), other.getFullName());
-    }
-
-    @Override
     public String toString() {
         return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
     }

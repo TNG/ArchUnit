@@ -157,7 +157,7 @@ class ClassFileImportContext {
 
             Processed(Map<String, JavaClass> classes) {
                 super(classes);
-                fields = getTargetOwnerClass().getFields();
+                fields = getTargetOwnerClass().getAllFields();
             }
 
             @Override
@@ -224,7 +224,7 @@ class ClassFileImportContext {
 
             Processed(Map<String, JavaClass> classes) {
                 super(classes);
-                constructors = getTargetOwnerClass().getConstructors();
+                constructors = getTargetOwnerClass().getAllConstructors();
             }
 
             @Override
@@ -290,7 +290,7 @@ class ClassFileImportContext {
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
+                JavaClass owner = getJavaClass(targetInfo.owner.getName());
                 return createMethod(targetInfo, owner);
             }
 
@@ -497,7 +497,8 @@ class ClassFileImportContext {
             if (!name.equals(member.getName()) || !desc.equals(member.getDescriptor())) {
                 return false;
             }
-            return owner.asClass() == member.getOwner().reflect() || classHierarchyFrom(member).hasExactlyOneMatchFor(this);
+            return owner.getName().equals(member.getOwner().getName()) ||
+                    classHierarchyFrom(member).hasExactlyOneMatchFor(this);
         }
 
         private <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> ClassHierarchyPath classHierarchyFrom(T member) {

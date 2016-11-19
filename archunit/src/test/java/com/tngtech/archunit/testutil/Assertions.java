@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,7 +8,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -19,7 +22,6 @@ import org.assertj.core.api.AbstractIterableAssert;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
-import static com.tngtech.archunit.core.TestUtils.javaAnnotations;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -51,7 +53,15 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(javaField.getOwner().reflect()).isEqualTo(field.getDeclaringClass());
             assertThat(javaField.getType()).isEqualTo(field.getType());
             assertThat(javaField.getModifiers()).isEqualTo(getModifiersFor(field.getModifiers()));
-            assertThat(javaField.getAnnotations()).isEqualTo(javaAnnotations(javaField, field.getAnnotations()));
+            assertThat(reflect(javaField.getAnnotations())).isEqualTo(ImmutableSet.copyOf(field.getAnnotations()));
+        }
+
+        private Set<Annotation> reflect(Set<JavaAnnotation<?>> annotations) {
+            ImmutableSet.Builder<Annotation> result = ImmutableSet.builder();
+            for (JavaAnnotation<?> annotation : annotations) {
+                result.add(annotation.reflect());
+            }
+            return result.build();
         }
     }
 

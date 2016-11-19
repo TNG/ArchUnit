@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -14,16 +15,35 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static org.assertj.core.util.Files.temporaryFolderPath;
+import static org.assertj.core.util.Strings.concat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
+    /**
+     * NOTE: The resolution of {@link Files#newTemporaryFolder()}, using {@link System#currentTimeMillis()}
+     * is not good enough and makes tests flaky.
+     */
+    public static File newTemporaryFolder() {
+        String folderName = "archtmp" + System.currentTimeMillis();
+        File folder = new File(concat(temporaryFolderPath(), folderName));
+        if (folder.exists()) {
+            Files.delete(folder);
+        }
+        checkArgument(folder.mkdirs(), "Folder %s already exists", folder.getAbsolutePath());
+        folder.deleteOnExit();
+        return folder;
+    }
+
     public static JavaMethod javaMethod(Class<?> owner, String name, Class<?>... args) {
         return javaMethod(javaClass(owner), name, args);
     }

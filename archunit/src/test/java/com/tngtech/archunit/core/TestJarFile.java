@@ -9,8 +9,6 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import org.assertj.core.util.Files;
-
 import static com.google.common.io.ByteStreams.toByteArray;
 
 class TestJarFile {
@@ -22,7 +20,7 @@ class TestJarFile {
     }
 
     JarFile create() {
-        File folder = Files.newTemporaryFolder();
+        File folder = TestUtils.newTemporaryFolder();
         File file = new File(folder, "test.jar");
 
         try (JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(file))) {

@@ -24,7 +24,9 @@ import static com.tngtech.archunit.core.Formatters.formatMethod;
  * @param <T> The type of the description for this member; the description is an abstraction in case there are problems
  *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
-public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> implements HasParameters {
+public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>>
+        extends JavaMember<M, T>
+        implements HasParameters {
 
     private Set<JavaFieldAccess> fieldAccesses;
     private Set<JavaMethodCall> methodCalls;

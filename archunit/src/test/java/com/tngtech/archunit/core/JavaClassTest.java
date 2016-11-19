@@ -61,17 +61,6 @@ public class JavaClassTest {
     }
 
     @Test
-    public void equals_works() {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
-        JavaClass equalClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
-        JavaClass differentClass = new JavaClass.Builder().withType(TypeDetails.of(SuperClassWithFieldAndMethod.class)).build();
-
-        assertThat(javaClass).isEqualTo(javaClass);
-        assertThat(javaClass).isEqualTo(equalClass);
-        assertThat(javaClass).isNotEqualTo(differentClass);
-    }
-
-    @Test
     public void anonymous_class_has_package_of_declaring_class() {
         JavaClass anonymous = new JavaClass.Builder().withType(TypeDetails.of(new Serializable() {
         }.getClass()))
@@ -99,16 +88,21 @@ public class JavaClassTest {
     public void superclasses_are_found() {
         JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getAllSuperClasses()).containsExactly(
-                javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+        assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
+                SuperClassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
     }
 
     @Test
     public void hierarchy_is_found() {
         JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getClassHierarchy()).containsExactly(
-                clazz, javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+        assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
+                clazz.getName(),
+                SuperClassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
     }
 
     @Test
