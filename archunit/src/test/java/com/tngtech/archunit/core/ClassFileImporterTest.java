@@ -88,8 +88,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
@@ -951,9 +949,10 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_non_unique_targets_for_diamond_scenarios() throws Exception {
-        JavaClass classCallingDiamond = classesIn("testexamples/diamond").get(ClassCallingDiamond.class);
-        JavaClass diamondPeakInterface = classesIn("testexamples/diamond").get(InterfaceD.class);
-        JavaClass diamondPeakClass = classesIn("testexamples/diamond").get(ClassImplementingD.class);
+        ImportedClasses diamondScenario = classesIn("testexamples/diamond");
+        JavaClass classCallingDiamond = diamondScenario.get(ClassCallingDiamond.class);
+        JavaClass diamondPeakInterface = diamondScenario.get(InterfaceD.class);
+        JavaClass diamondPeakClass = diamondScenario.get(ClassImplementingD.class);
 
         Set<JavaMethodCall> calls = classCallingDiamond.getMethodCallsFromSelf();
 
@@ -1142,10 +1141,12 @@ public class ClassFileImporterTest {
     public void imports_urls_of_files() {
         Set<URL> urls = newHashSet(urlOf(ClassToImportOne.class), urlOf(ClassWithNestedClass.class));
 
-        JavaClasses classes = new ClassFileImporter().importUrls(urls);
-        FluentIterable<JavaClass> classesFoundAtUrls = FluentIterable.from(classes)
-                .filter(not(equalTo(new JavaClass.Builder().withType(TypeDetails.of(Object.class)).build())));
-
+        Set<JavaClass> classesFoundAtUrls = new HashSet<>();
+        for (JavaClass javaClass : new ClassFileImporter().importUrls(urls)) {
+            if (!Object.class.getName().equals(javaClass.getName())) {
+                classesFoundAtUrls.add(javaClass);
+            }
+        }
         assertThat(classesFoundAtUrls).as("Number of classes at the given URLs").hasSize(2);
     }
 

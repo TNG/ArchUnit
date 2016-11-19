@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -127,6 +126,14 @@ public class JavaClass implements HasName {
         return fields;
     }
 
+    public Set<JavaField> getAllFields() {
+        ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
+        for (JavaClass javaClass : getClassHierarchy()) {
+            result.addAll(javaClass.getFields());
+        }
+        return result.build();
+    }
+
     public JavaField getField(String name) {
         return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
     }
@@ -197,6 +204,14 @@ public class JavaClass implements HasName {
         return constructors;
     }
 
+    public Set<JavaConstructor> getAllConstructors() {
+        ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
+        for (JavaClass javaClass : getClassHierarchy()) {
+            result.addAll(javaClass.getConstructors());
+        }
+        return result.build();
+    }
+
     public JavaStaticInitializer getStaticInitializer() {
         return staticInitializer;
     }
@@ -231,7 +246,7 @@ public class JavaClass implements HasName {
      * @see #getConstructorCallsFromSelf()
      */
     public Set<JavaCall<?>> getCallsFromSelf() {
-        return Sets.<JavaCall<?>>union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
+        return Sets.union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
@@ -327,23 +342,6 @@ public class JavaClass implements HasName {
     CompletionProcess completeFrom(ClassFileImportContext context) {
         enclosingClass = findClass(typeDetails.getEnclosingClass(), context);
         return new CompletionProcess();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(typeDetails);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaClass other = (JavaClass) obj;
-        return Objects.equals(this.typeDetails, other.typeDetails);
     }
 
     @Override

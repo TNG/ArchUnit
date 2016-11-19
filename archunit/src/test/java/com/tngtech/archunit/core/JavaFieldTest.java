@@ -16,21 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaFieldTest {
 
-    @Test
-    public void equals_works() throws Exception {
-        JavaField field = javaField(ClassWithFieldNamedValue.class, "value");
-        JavaField equalField = javaField(ClassWithFieldNamedValue.class, "value");
-        JavaField differentField = javaField(AnotherClassWithFieldNamedValue.class, "value");
-
-        assertThat(field).isEqualTo(field);
-        assertThat(field).isEqualTo(equalField);
-        assertThat(field.getOwner()).isEqualTo(equalField.getOwner());
-
-        assertThat(field.getName()).isEqualTo(differentField.getName());
-        assertThat(field.getType()).isEqualTo(differentField.getType());
-        assertThat(field).isNotEqualTo(differentField);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void incompatible_owner_is_rejected() throws Exception {
         new JavaField.Builder()

@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
         implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
+
     final T memberDescription;
     private final Set<JavaAnnotation<?>> annotations;
     private final JavaClass owner;
@@ -101,23 +102,6 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
 
     public M reflect() {
         return memberDescription.reflect();
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaMember<?, ?> other = (JavaMember<?, ?>) obj;
-        return Objects.equals(this.memberDescription, other.memberDescription);
     }
 
     @Override
