@@ -6,6 +6,7 @@ import java.lang.annotation.Target;
 
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 
+import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -39,6 +40,8 @@ public class ClassWithAnnotatedFields {
     @Retention(RUNTIME)
     public @interface FieldAnnotationWithEnumClassAndArrayValue {
         SomeEnum value() default SOME_VALUE;
+
+        SomeEnum[] enumArray() default {SOME_VALUE, OTHER_VALUE};
 
         Class clazz() default String.class;
 

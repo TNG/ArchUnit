@@ -97,7 +97,18 @@ public class Assertions extends org.assertj.core.api.Assertions {
             if (value instanceof Enum) {
                 return enumConstant((Enum<?>) value);
             }
+            if (value instanceof Enum[]) {
+                return enumConstants((Enum[]) value);
+            }
             return value;
+        }
+
+        private Object enumConstants(Enum[] enums) {
+            List<Object> result = new ArrayList<>();
+            for (Enum e : enums) {
+                result.add(enumConstant(e));
+            }
+            return result;
         }
 
         private Object invoke(Method method, Object owner) {

@@ -15,6 +15,7 @@ import java.util.Set;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
@@ -107,6 +108,7 @@ import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
+import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
@@ -286,6 +288,8 @@ public class ClassFileImporterTest {
 
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("enumArray")).isEqualTo(ImmutableList.of(enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)));
+        assertThat(annotation.get("clazz")).isEqualTo(TypeDetails.of(String.class));
         assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
