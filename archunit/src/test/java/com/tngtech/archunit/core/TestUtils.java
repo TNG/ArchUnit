@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -10,7 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -107,12 +105,8 @@ public class TestUtils {
         return DescribedPredicate.alwaysTrue().as(description);
     }
 
-    public static Set<JavaAnnotation<?>> javaAnnotations(JavaField field, Annotation[] annotations) {
-        ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
-        for (Annotation annotation : annotations) {
-            result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(field));
-        }
-        return result.build();
+    public static <E extends Enum<?>> JavaEnumConstant enumConstant(E value) {
+        return new JavaEnumConstant(TypeDetails.of(value.getDeclaringClass()), value.name());
     }
 
     public static class AccessesSimulator {
