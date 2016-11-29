@@ -18,7 +18,7 @@ public class ClassWithAnnotatedFields {
     @FieldAnnotationWithIntValue(otherValue = "overridden")
     public Object stringAndIntAnnotatedField;
 
-    @FieldAnnotationWithEnumAndArrayValue(classes = {Object.class, Serializable.class})
+    @FieldAnnotationWithEnumClassAndArrayValue(classes = {Object.class, Serializable.class})
     public Object enumAndArrayAnnotatedField;
 
     @Target(FIELD)
@@ -37,8 +37,10 @@ public class ClassWithAnnotatedFields {
 
     @Target(FIELD)
     @Retention(RUNTIME)
-    public @interface FieldAnnotationWithEnumAndArrayValue {
+    public @interface FieldAnnotationWithEnumClassAndArrayValue {
         SomeEnum value() default SOME_VALUE;
+
+        Class clazz() default String.class;
 
         Class[] classes();
     }

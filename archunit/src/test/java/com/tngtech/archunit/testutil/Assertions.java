@@ -2,17 +2,22 @@ package com.tngtech.archunit.testutil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.core.TypeDetails;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.FailureMessages;
@@ -22,6 +27,7 @@ import org.assertj.core.api.AbstractIterableAssert;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
+import static com.tngtech.archunit.core.TestUtils.enumConstant;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -53,15 +59,53 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(javaField.getOwner().reflect()).isEqualTo(field.getDeclaringClass());
             assertThat(javaField.getType()).isEqualTo(field.getType());
             assertThat(javaField.getModifiers()).isEqualTo(getModifiersFor(field.getModifiers()));
-            assertThat(reflect(javaField.getAnnotations())).isEqualTo(ImmutableSet.copyOf(field.getAnnotations()));
+            assertThat(propertiesOf(javaField.getAnnotations())).isEqualTo(propertiesOf(field.getAnnotations()));
         }
 
-        private Set<Annotation> reflect(Set<JavaAnnotation<?>> annotations) {
-            ImmutableSet.Builder<Annotation> result = ImmutableSet.builder();
+        private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation<?>> annotations) {
+            Set<Map<String, Object>> result = new HashSet<>();
             for (JavaAnnotation<?> annotation : annotations) {
-                result.add(annotation.reflect());
+                result.add(annotation.getProperties());
             }
-            return result.build();
+            return result;
+        }
+
+        private Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
+            Set<Map<String, Object>> result = new HashSet<>();
+            for (Annotation annotation : annotations) {
+                result.add(propertiesOf(annotation));
+            }
+            return result;
+        }
+
+        private Map<String, Object> propertiesOf(Annotation annotation) {
+            Map<String, Object> props = new HashMap<>();
+            for (Method method : annotation.annotationType().getDeclaredMethods()) {
+                Object returnValue = invoke(method, annotation);
+                props.put(method.getName(), valueOf(returnValue));
+            }
+            return props;
+        }
+
+        private Object valueOf(Object value) {
+            if (value instanceof Class) {
+                return TypeDetails.of((Class<?>) value);
+            }
+            if (value instanceof Class[]) {
+                return TypeDetails.allOf((Class<?>[]) value);
+            }
+            if (value instanceof Enum) {
+                return enumConstant((Enum<?>) value);
+            }
+            return value;
+        }
+
+        private Object invoke(Method method, Object owner) {
+            try {
+                return method.invoke(owner);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

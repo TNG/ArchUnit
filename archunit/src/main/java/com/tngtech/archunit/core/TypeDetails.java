@@ -73,6 +73,11 @@ public class TypeDetails {
         return Objects.equals(this.type, other.type);
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" + type.getName() + "}";
+    }
+
     public static List<TypeDetails> allOf(Class<?>... types) {
         return allOf(ImmutableList.copyOf(types));
     }

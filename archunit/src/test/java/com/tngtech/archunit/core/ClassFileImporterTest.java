@@ -22,7 +22,7 @@ import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumAndArrayValue;
+import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithIntValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithStringValue;
 import com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
@@ -106,6 +106,7 @@ import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER
 import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
+import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
@@ -233,9 +234,9 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(fields, "stringAnnotatedField");
         JavaAnnotation<?> annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(FieldAnnotationWithStringValue.class);
+        assertThat(annotation.get("value")).isEqualTo("something");
 
-        FieldAnnotationWithStringValue rawAnnotation = field.getReflectionAnnotationOfType(FieldAnnotationWithStringValue.class);
-        assertThat(rawAnnotation.value()).isEqualTo("something");
+        assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAnnotatedField"));
     }
 
     @Test
@@ -244,9 +245,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(fields, "stringAnnotatedField");
         assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithStringValue.class)).isPresent();
-        assertThat(field.tryGetReflectionAnnotationOfType(FieldAnnotationWithStringValue.class)).isPresent();
-        assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithEnumAndArrayValue.class)).isAbsent();
-        assertThat(field.tryGetReflectionAnnotationOfType(FieldAnnotationWithEnumAndArrayValue.class)).isAbsent();
+        assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class)).isAbsent();
     }
 
     @Test
@@ -256,12 +255,14 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(fields, "stringAndIntAnnotatedField");
         assertThat(field.getAnnotations()).hasSize(2);
 
-        FieldAnnotationWithStringValue annotationWithString = field.getReflectionAnnotationOfType(FieldAnnotationWithStringValue.class);
-        assertThat(annotationWithString.value()).isEqualTo("otherThing");
+        JavaAnnotation<?> annotationWithString = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
+        assertThat(annotationWithString.get("value")).isEqualTo("otherThing");
 
-        FieldAnnotationWithIntValue annotationWithInt = field.getReflectionAnnotationOfType(FieldAnnotationWithIntValue.class);
-        assertThat(annotationWithInt.intValue()).isEqualTo(0);
-        assertThat(annotationWithInt.otherValue()).isEqualTo("overridden");
+        JavaAnnotation<?> annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class);
+        assertThat(annotationWithInt.get("intValue")).isEqualTo(0);
+        assertThat(annotationWithInt.get("otherValue")).isEqualTo("overridden");
+
+        assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAndIntAnnotatedField"));
     }
 
     @Test
@@ -283,9 +284,11 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(fields, "enumAndArrayAnnotatedField");
 
-        FieldAnnotationWithEnumAndArrayValue annotation = field.getReflectionAnnotationOfType(FieldAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.value()).isEqualTo(SOME_VALUE);
-        assertThat(annotation.classes()).containsExactly(Object.class, Serializable.class);
+        JavaAnnotation<?> annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
+        assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
+
+        assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
     }
 
     @Test
@@ -340,8 +343,8 @@ public class ClassFileImporterTest {
         JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(MethodAnnotationWithStringValue.class);
 
-        MethodAnnotationWithStringValue rawAnnotation = method.getReflectionAnnotationOfType(MethodAnnotationWithStringValue.class);
-        assertThat(rawAnnotation.value()).isEqualTo("something");
+        JavaAnnotation<?> rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
+        assertThat(rawAnnotation.get("value")).isEqualTo("something");
     }
 
     @Test
@@ -350,9 +353,7 @@ public class ClassFileImporterTest {
 
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "stringAnnotatedMethod");
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
-        assertThat(method.tryGetReflectionAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class)).isAbsent();
-        assertThat(method.tryGetReflectionAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class)).isAbsent();
     }
 
     @Test
@@ -364,12 +365,12 @@ public class ClassFileImporterTest {
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "stringAndIntAnnotatedMethod");
         assertThat(method.getAnnotations()).hasSize(2);
 
-        MethodAnnotationWithStringValue annotationWithString = method.getReflectionAnnotationOfType(MethodAnnotationWithStringValue.class);
-        assertThat(annotationWithString.value()).isEqualTo("otherThing");
+        JavaAnnotation<?> annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
+        assertThat(annotationWithString.get("value")).isEqualTo("otherThing");
 
-        MethodAnnotationWithIntValue annotationWithInt = method.getReflectionAnnotationOfType(MethodAnnotationWithIntValue.class);
-        assertThat(annotationWithInt.intValue()).isEqualTo(0);
-        assertThat(annotationWithInt.otherValue()).isEqualTo("overridden");
+        JavaAnnotation<?> annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class);
+        assertThat(annotationWithInt.get("intValue")).isEqualTo(0);
+        assertThat(annotationWithInt.get("otherValue")).isEqualTo("overridden");
     }
 
     @Test
@@ -393,9 +394,9 @@ public class ClassFileImporterTest {
 
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "enumAndArrayAnnotatedMethod");
 
-        MethodAnnotationWithEnumAndArrayValue annotation = method.getReflectionAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.value()).isEqualTo(SOME_VALUE);
-        assertThat(annotation.classes()).containsExactly(Object.class, Serializable.class);
+        JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
+        assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
     }
 
     @Test
@@ -403,9 +404,9 @@ public class ClassFileImporterTest {
         JavaConstructor constructor = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class)
                 .getConstructor();
 
-        MethodAnnotationWithEnumAndArrayValue annotation = constructor.getReflectionAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.value()).isEqualTo(SOME_VALUE);
-        assertThat(annotation.classes()).containsExactly(Object.class, Serializable.class);
+        JavaAnnotation<?> annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
+        assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
     }
 
     @Test

@@ -41,25 +41,6 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     }
 
     /**
-     * Returns the reflection value (compare {@link java.lang.annotation.Annotation}) of the respective
-     * {@link JavaAnnotation} of this field.
-     *
-     * @throws IllegalArgumentException if there is no annotation of the respective reflection type
-     */
-    public <A extends Annotation> A getReflectionAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type).get().reflect();
-    }
-
-    public <A extends Annotation> Optional<A> tryGetReflectionAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type).transform(new Function<JavaAnnotation<A>, A>() {
-            @Override
-            public A apply(JavaAnnotation<A> input) {
-                return input.reflect();
-            }
-        });
-    }
-
-    /**
      * Returns the {@link JavaAnnotation} for the given reflection type
      * (compare {@link java.lang.annotation.Annotation}) of this field.
      *
