@@ -232,7 +232,7 @@ public class ClassFileImporterTest {
         Set<JavaField> fields = fieldsOf(classesIn("testexamples/annotationfieldimport"));
 
         JavaField field = findAnyByName(fields, "stringAnnotatedField");
-        JavaAnnotation<?> annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
+        JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(FieldAnnotationWithStringValue.class);
         assertThat(annotation.get("value")).isEqualTo("something");
 
@@ -255,10 +255,10 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(fields, "stringAndIntAnnotatedField");
         assertThat(field.getAnnotations()).hasSize(2);
 
-        JavaAnnotation<?> annotationWithString = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
+        JavaAnnotation annotationWithString = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
         assertThat(annotationWithString.get("value")).isEqualTo("otherThing");
 
-        JavaAnnotation<?> annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class);
+        JavaAnnotation annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class);
         assertThat(annotationWithInt.get("intValue")).isEqualTo(0);
         assertThat(annotationWithInt.get("otherValue")).isEqualTo("overridden");
 
@@ -271,7 +271,7 @@ public class ClassFileImporterTest {
 
         for (JavaClass clazz : classes) {
             for (JavaField field : clazz.getFields()) {
-                for (JavaAnnotation<?> annotation : field.getAnnotations()) {
+                for (JavaAnnotation annotation : field.getAnnotations()) {
                     assertThat(annotation.getOwner()).isSameAs(field);
                 }
             }
@@ -284,7 +284,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(fields, "enumAndArrayAnnotatedField");
 
-        JavaAnnotation<?> annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
+        JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
         assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
 
@@ -340,10 +340,10 @@ public class ClassFileImporterTest {
         Set<JavaCodeUnit<?, ?>> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
 
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "stringAnnotatedMethod");
-        JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
+        JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(MethodAnnotationWithStringValue.class);
 
-        JavaAnnotation<?> rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
+        JavaAnnotation rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(rawAnnotation.get("value")).isEqualTo("something");
     }
 
@@ -365,10 +365,10 @@ public class ClassFileImporterTest {
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "stringAndIntAnnotatedMethod");
         assertThat(method.getAnnotations()).hasSize(2);
 
-        JavaAnnotation<?> annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
+        JavaAnnotation annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotationWithString.get("value")).isEqualTo("otherThing");
 
-        JavaAnnotation<?> annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class);
+        JavaAnnotation annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class);
         assertThat(annotationWithInt.get("intValue")).isEqualTo(0);
         assertThat(annotationWithInt.get("otherValue")).isEqualTo("overridden");
     }
@@ -379,7 +379,7 @@ public class ClassFileImporterTest {
 
         for (JavaClass clazz : classes) {
             for (JavaCodeUnit<?, ?> method : clazz.getCodeUnits()) {
-                for (JavaAnnotation<?> annotation : method.getAnnotations()) {
+                for (JavaAnnotation annotation : method.getAnnotations()) {
                     assertThat(annotation.getOwner()).isSameAs(method);
                 }
             }
@@ -394,7 +394,7 @@ public class ClassFileImporterTest {
 
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "enumAndArrayAnnotatedMethod");
 
-        JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
+        JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
         assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
     }
@@ -404,7 +404,7 @@ public class ClassFileImporterTest {
         JavaConstructor constructor = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class)
                 .getConstructor();
 
-        JavaAnnotation<?> annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
+        JavaAnnotation annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
         assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
     }

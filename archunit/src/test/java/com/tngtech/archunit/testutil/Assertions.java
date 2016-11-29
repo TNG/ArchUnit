@@ -62,9 +62,9 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(propertiesOf(javaField.getAnnotations())).isEqualTo(propertiesOf(field.getAnnotations()));
         }
 
-        private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation<?>> annotations) {
+        private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
             Set<Map<String, Object>> result = new HashSet<>();
-            for (JavaAnnotation<?> annotation : annotations) {
+            for (JavaAnnotation annotation : annotations) {
                 result.add(annotation.getProperties());
             }
             return result;

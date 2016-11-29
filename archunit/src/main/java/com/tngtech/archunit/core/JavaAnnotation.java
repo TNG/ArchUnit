@@ -6,13 +6,13 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember<?, ?>> {
-    private final T annotation;
+public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
+    private final Annotation annotation;
     private final JavaMember<?, ?> owner;
 
     @SuppressWarnings("unchecked")
     private JavaAnnotation(Builder builder) {
-        annotation = (T) builder.annotation;
+        annotation = builder.annotation;
         owner = builder.owner;
     }
 
@@ -23,10 +23,6 @@ public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember
     @Override
     public JavaMember<?, ?> getOwner() {
         return owner;
-    }
-
-    public T reflect() {
-        return annotation;
     }
 
     public Object get(String annotationMethodName) {
@@ -55,7 +51,7 @@ public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember
         return result.build();
     }
 
-    static class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation<?>> {
+    static class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation> {
         private Annotation annotation;
         private JavaMember<?, ?> owner;
 
@@ -65,7 +61,7 @@ public class JavaAnnotation<T extends Annotation> implements HasOwner<JavaMember
         }
 
         @Override
-        public JavaAnnotation<?> build(JavaMember<?, ?> owner) {
+        public JavaAnnotation build(JavaMember<?, ?> owner) {
             this.owner = owner;
             return new JavaAnnotation(this);
         }

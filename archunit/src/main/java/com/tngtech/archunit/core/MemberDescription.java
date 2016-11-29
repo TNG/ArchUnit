@@ -20,7 +20,7 @@ public interface MemberDescription<T extends Member> {
 
     int getModifiers();
 
-    Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner);
+    Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner);
 
     String getDescriptor();
 
@@ -48,12 +48,12 @@ public interface MemberDescription<T extends Member> {
         }
 
         @Override
-        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+        public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
             return convert(owner, member.getAnnotations());
         }
 
-        private static Set<JavaAnnotation<?>> convert(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
-            ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
+        private static Set<JavaAnnotation> convert(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
+            ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
             for (Annotation annotation : reflectionAnnotations) {
                 result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(owner));
             }
