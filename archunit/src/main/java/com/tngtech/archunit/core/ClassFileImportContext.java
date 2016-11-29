@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 class ClassFileImportContext {
@@ -606,8 +606,8 @@ class ClassFileImportContext {
         }
 
         @Override
-        public Annotation[] getAnnotations() {
-            return new Annotation[0];
+        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+            return emptySet();
         }
 
         @Override

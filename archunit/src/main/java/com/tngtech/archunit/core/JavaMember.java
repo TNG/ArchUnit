@@ -5,8 +5,6 @@ import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
@@ -20,20 +18,12 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
 
     JavaMember(T memberDescription, JavaClass owner) {
         this.memberDescription = checkNotNull(memberDescription);
-        annotations = convert(memberDescription.getAnnotations());
+        annotations = memberDescription.getAnnotationsFor(this);
         this.owner = checkNotNull(owner);
         modifiers = JavaModifier.getModifiersFor(memberDescription.getModifiers());
 
         memberDescription.checkCompatibility(owner);
         hashCode = Objects.hash(memberDescription);
-    }
-
-    private Set<JavaAnnotation<?>> convert(Annotation[] reflectionAnnotations) {
-        ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
-        for (Annotation annotation : reflectionAnnotations) {
-            result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(this));
-        }
-        return result.build();
     }
 
     public Set<JavaAnnotation<?>> getAnnotations() {

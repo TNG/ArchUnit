@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
@@ -69,8 +68,8 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
         }
 
         @Override
-        public Annotation[] getAnnotations() {
-            return new Annotation[0];
+        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+            return emptySet();
         }
 
         @Override

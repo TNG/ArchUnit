@@ -8,7 +8,9 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -18,7 +20,7 @@ public interface MemberDescription<T extends Member> {
 
     int getModifiers();
 
-    Annotation[] getAnnotations();
+    Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner);
 
     String getDescriptor();
 
@@ -46,8 +48,16 @@ public interface MemberDescription<T extends Member> {
         }
 
         @Override
-        public Annotation[] getAnnotations() {
-            return member.getAnnotations();
+        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+            return convert(owner, member.getAnnotations());
+        }
+
+        private static Set<JavaAnnotation<?>> convert(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
+            ImmutableSet.Builder<JavaAnnotation<?>> result = ImmutableSet.builder();
+            for (Annotation annotation : reflectionAnnotations) {
+                result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(owner));
+            }
+            return result.build();
         }
 
         @Override
