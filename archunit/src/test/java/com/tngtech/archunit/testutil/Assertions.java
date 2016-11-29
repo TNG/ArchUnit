@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaField;
@@ -65,7 +66,18 @@ public class Assertions extends org.assertj.core.api.Assertions {
         private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
             Set<Map<String, Object>> result = new HashSet<>();
             for (JavaAnnotation annotation : annotations) {
-                result.add(annotation.getProperties());
+                result.add(convertArraysToLists(annotation.getProperties()));
+            }
+            return result;
+        }
+
+        private Map<String, Object> convertArraysToLists(Map<String, Object> properties) {
+            Map<String, Object> result = new HashMap<>();
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                Object value = entry.getValue() instanceof Object[] ?
+                        ImmutableList.copyOf((Object[]) entry.getValue()) :
+                        entry.getValue();
+                result.put(entry.getKey(), value);
             }
             return result;
         }

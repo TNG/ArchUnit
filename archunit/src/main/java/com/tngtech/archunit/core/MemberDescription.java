@@ -6,12 +6,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.Type;
@@ -81,7 +81,8 @@ public interface MemberDescription<T extends Member> {
                     return TypeDetails.of((Class<?>) result);
                 }
                 if (result instanceof Class[]) {
-                    return TypeDetails.allOf((Class<?>[]) result);
+                    List<TypeDetails> typeDetails = TypeDetails.allOf((Class<?>[]) result);
+                    return typeDetails.toArray(new TypeDetails[typeDetails.size()]);
                 }
                 if (result instanceof Enum<?>) {
                     return enumConstant((Enum) result);
@@ -95,12 +96,12 @@ public interface MemberDescription<T extends Member> {
             }
         }
 
-        private static List<JavaEnumConstant> enumConstants(Enum[] enums) {
-            ImmutableList.Builder<JavaEnumConstant> result = ImmutableList.builder();
+        private static JavaEnumConstant[] enumConstants(Enum[] enums) {
+            List<JavaEnumConstant> result = new ArrayList<>();
             for (Enum e : enums) {
                 result.add(enumConstant(e));
             }
-            return result.build();
+            return result.toArray(new JavaEnumConstant[result.size()]);
         }
 
         private static JavaEnumConstant enumConstant(Enum result) {

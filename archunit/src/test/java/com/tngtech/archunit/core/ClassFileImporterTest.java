@@ -15,7 +15,6 @@ import java.util.Set;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
@@ -288,9 +287,11 @@ public class ClassFileImporterTest {
 
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
-        assertThat(annotation.get("enumArray")).isEqualTo(ImmutableList.of(enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)));
+        assertThat(annotation.get("enumArray")).isEqualTo(new JavaEnumConstant[]{
+                enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)});
         assertThat(annotation.get("clazz")).isEqualTo(TypeDetails.of(String.class));
-        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
+        assertThat(annotation.get("classes")).isEqualTo(new TypeDetails[]{
+                TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
     }
@@ -400,7 +401,8 @@ public class ClassFileImporterTest {
 
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
-        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
+        assertThat(annotation.get("classes")).isEqualTo(new TypeDetails[]{
+                TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
     }
 
     @Test
@@ -410,7 +412,7 @@ public class ClassFileImporterTest {
 
         JavaAnnotation annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.get("value")).isEqualTo(enumConstant(SOME_VALUE));
-        assertThat(annotation.get("classes")).isEqualTo(TypeDetails.allOf(Object.class, Serializable.class));
+        assertThat(annotation.get("classes")).isEqualTo(new TypeDetails[]{TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
     }
 
     @Test
