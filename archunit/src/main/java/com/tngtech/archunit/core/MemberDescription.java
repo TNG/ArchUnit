@@ -7,9 +7,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.Type;
 
@@ -55,9 +58,53 @@ public interface MemberDescription<T extends Member> {
         private static Set<JavaAnnotation> convert(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
             ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
             for (Annotation annotation : reflectionAnnotations) {
-                result.add(new JavaAnnotation.Builder().withAnnotation(annotation).build(owner));
+                result.add(new JavaAnnotation.Builder()
+                        .withType(TypeDetails.of(annotation.annotationType()))
+                        .withValues(mapOf(annotation))
+                        .build(owner));
             }
             return result.build();
+        }
+
+        private static Map<String, Object> mapOf(Annotation annotation) {
+            ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
+            for (Method method : annotation.annotationType().getDeclaredMethods()) {
+                result.put(method.getName(), get(annotation, method.getName()));
+            }
+            return result.build();
+        }
+
+        private static Object get(Annotation annotation, String methodName) {
+            try {
+                Object result = annotation.annotationType().getMethod(methodName).invoke(annotation);
+                if (result instanceof Class) {
+                    return TypeDetails.of((Class<?>) result);
+                }
+                if (result instanceof Class[]) {
+                    return TypeDetails.allOf((Class<?>[]) result);
+                }
+                if (result instanceof Enum<?>) {
+                    return enumConstant((Enum) result);
+                }
+                if (result instanceof Enum[]) {
+                    return enumConstants((Enum[]) result);
+                }
+                return result;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private static List<JavaEnumConstant> enumConstants(Enum[] enums) {
+            ImmutableList.Builder<JavaEnumConstant> result = ImmutableList.builder();
+            for (Enum e : enums) {
+                result.add(enumConstant(e));
+            }
+            return result.build();
+        }
+
+        private static JavaEnumConstant enumConstant(Enum result) {
+            return new JavaEnumConstant(TypeDetails.of(result.getDeclaringClass()), result.name());
         }
 
         @Override

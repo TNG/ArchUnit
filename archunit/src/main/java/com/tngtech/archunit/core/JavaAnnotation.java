@@ -1,23 +1,20 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
-
 public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
-    private final Annotation annotation;
+    private final TypeDetails type;
+    private final Map<String, Object> values;
     private final JavaMember<?, ?> owner;
 
-    @SuppressWarnings("unchecked")
     private JavaAnnotation(Builder builder) {
-        annotation = builder.annotation;
+        type = builder.type;
+        values = builder.values;
         owner = builder.owner;
     }
 
     public TypeDetails getType() {
-        return TypeDetails.of(annotation.annotationType());
+        return type;
     }
 
     @Override
@@ -25,38 +22,50 @@ public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
         return owner;
     }
 
-    public Object get(String annotationMethodName) {
-        try {
-            Object result = annotation.annotationType().getMethod(annotationMethodName).invoke(annotation);
-            if (result instanceof Class) {
-                return TypeDetails.of((Class<?>) result);
-            }
-            if (result instanceof Class[]) {
-                return TypeDetails.allOf((Class<?>[]) result);
-            }
-            if (result instanceof Enum<?>) {
-                return new JavaEnumConstant(TypeDetails.of(((Enum) result).getDeclaringClass()), ((Enum) result).name());
-            }
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * Returns the value of the property with the given name, i.e. the result of the method with the property name
+     * of the represented {@link java.lang.annotation.Annotation}. E.g. for
+     * <pre><code>      {@literal @}SomeAnnotation(value = "someString", types = {SomeType.class, AnotherType.class})
+     * class SomeAnnotatedClass {}
+     * </code></pre>
+     * the results will be
+     * <pre><code>       someAnnotation.get("value") -> "someString"
+     * someAnnotation.get("types") -> [TypeDetails{SomeType}, TypeDetails{AnotherType}]
+     * </code></pre>
+     *
+     * @param property The name of the annotation property, i.e. the declared method name
+     * @return the value of the given property, where the result type is more precisely
+     * <ul>
+     * <li>Class&lt;?&gt; -> TypeDetails{clazz}</li>
+     * <li>Class&lt;?&gt;[] -> [TypeDetails{clazz},...]</li>
+     * <li>Enum -> JavaEnumConstant</li>
+     * <li>Enum[] -> [JavaEnumConstant,...]</li>
+     * <li>anyOtherType -> anyOtherType</li>
+     * </ul>
+     */
+    public Object get(String property) {
+        return values.get(property);
     }
 
+    /**
+     * @return a map containing all [property -> value], where each value is derived via {@link #get(String property)}
+     */
     public Map<String, Object> getProperties() {
-        ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
-        for (Method method : getType().getDeclaredMethods()) {
-            result.put(method.getName(), get(method.getName()));
-        }
-        return result.build();
+        return values;
     }
 
     static class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation> {
-        private Annotation annotation;
+        private TypeDetails type;
+        private Map<String, Object> values;
         private JavaMember<?, ?> owner;
 
-        Builder withAnnotation(Annotation annotation) {
-            this.annotation = annotation;
+        Builder withType(TypeDetails type) {
+            this.type = type;
+            return this;
+        }
+
+        Builder withValues(Map<String, Object> values) {
+            this.values = values;
             return this;
         }
 
