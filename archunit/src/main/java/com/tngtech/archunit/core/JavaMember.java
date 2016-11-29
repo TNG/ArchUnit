@@ -2,7 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
-import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -11,10 +10,9 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
 
     final T memberDescription;
-    private final Set<JavaAnnotation<?>> annotations;
+    private final Set<JavaAnnotation> annotations;
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
-    private final int hashCode;
 
     JavaMember(T memberDescription, JavaClass owner) {
         this.memberDescription = checkNotNull(memberDescription);
@@ -23,10 +21,9 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         modifiers = JavaModifier.getModifiersFor(memberDescription.getModifiers());
 
         memberDescription.checkCompatibility(owner);
-        hashCode = Objects.hash(memberDescription);
     }
 
-    public Set<JavaAnnotation<?>> getAnnotations() {
+    public Set<JavaAnnotation> getAnnotations() {
         return annotations;
     }
 
@@ -36,15 +33,15 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
      *
      * @throws IllegalArgumentException if there is no annotation of the respective reflection type
      */
-    public <A extends Annotation> JavaAnnotation<A> getAnnotationOfType(Class<A> type) {
+    public <A extends Annotation> JavaAnnotation getAnnotationOfType(Class<A> type) {
         return tryGetAnnotationOfType(type).get();
     }
 
     @SuppressWarnings("unchecked") // Type parameter always matches the type of the reflection annotation inside
-    public <A extends Annotation> Optional<JavaAnnotation<A>> tryGetAnnotationOfType(Class<A> type) {
-        for (JavaAnnotation<?> annotation : annotations) {
+    public <A extends Annotation> Optional<JavaAnnotation> tryGetAnnotationOfType(Class<A> type) {
+        for (JavaAnnotation annotation : annotations) {
             if (type == annotation.getType()) {
-                return Optional.of((JavaAnnotation<A>) annotation);
+                return Optional.of(annotation);
             }
         }
         return Optional.absent();

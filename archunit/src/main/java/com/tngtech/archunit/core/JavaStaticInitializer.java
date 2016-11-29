@@ -68,7 +68,7 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
         }
 
         @Override
-        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+        public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
             return emptySet();
         }
 

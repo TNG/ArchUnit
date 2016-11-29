@@ -606,7 +606,7 @@ class ClassFileImportContext {
         }
 
         @Override
-        public Set<JavaAnnotation<?>> getAnnotationsFor(JavaMember<?, ?> owner) {
+        public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
             return emptySet();
         }
 
