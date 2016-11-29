@@ -233,7 +233,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(fields, "stringAnnotatedField");
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class);
-        assertThat(annotation.getType()).isEqualTo(FieldAnnotationWithStringValue.class);
+        assertThat(annotation.getType()).isEqualTo(TypeDetails.of(FieldAnnotationWithStringValue.class));
         assertThat(annotation.get("value")).isEqualTo("something");
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAnnotatedField"));
@@ -341,7 +341,7 @@ public class ClassFileImporterTest {
 
         JavaCodeUnit<?, ?> method = findAnyByName(methods, "stringAnnotatedMethod");
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
-        assertThat(annotation.getType()).isEqualTo(MethodAnnotationWithStringValue.class);
+        assertThat(annotation.getType()).isEqualTo(TypeDetails.of(MethodAnnotationWithStringValue.class));
 
         JavaAnnotation rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(rawAnnotation.get("value")).isEqualTo("something");
@@ -1318,27 +1318,27 @@ public class ClassFileImporterTest {
             ACCESS extends JavaAccess<TARGET>,
             TARGET extends AccessTarget> {
 
-        protected ACCESS access;
+        ACCESS access;
 
-        protected BaseAccessAssertion(ACCESS access) {
+        BaseAccessAssertion(ACCESS access) {
             this.access = access;
         }
 
-        protected SELF isFrom(String name, Class<?>... parameterTypes) {
+        SELF isFrom(String name, Class<?>... parameterTypes) {
             return isFrom(access.getOrigin().getOwner().getCodeUnit(name, TypeDetails.allOf(parameterTypes)));
         }
 
-        protected SELF isFrom(JavaCodeUnit<?, ?> codeUnit) {
+        SELF isFrom(JavaCodeUnit<?, ?> codeUnit) {
             assertThat(access.getOrigin()).as("Origin of field access").isEqualTo(codeUnit);
             return newAssertion(access);
         }
 
-        protected SELF isTo(TARGET target) {
+        SELF isTo(TARGET target) {
             assertThat(access.getTarget()).as("Target of " + access.getName()).isEqualTo(target);
             return newAssertion(access);
         }
 
-        protected void inLineNumber(int number) {
+        void inLineNumber(int number) {
             assertThat(access.getLineNumber())
                     .as("Line number of access to " + access.getName())
                     .isEqualTo(number);
@@ -1376,7 +1376,7 @@ public class ClassFileImporterTest {
             super(call);
         }
 
-        protected MethodCallAssertion isTo(JavaMethod target) {
+        MethodCallAssertion isTo(JavaMethod target) {
             return isTo(new MethodCallTarget(target));
         }
 
@@ -1391,7 +1391,7 @@ public class ClassFileImporterTest {
             super(call);
         }
 
-        protected ConstructorCallAssertion isTo(JavaConstructor target) {
+        ConstructorCallAssertion isTo(JavaConstructor target) {
             return isTo(new ConstructorCallTarget(target));
         }
 

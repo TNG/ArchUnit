@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.util.Set;
 
@@ -28,19 +27,19 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     }
 
     /**
-     * Returns the {@link JavaAnnotation} for the given reflection type
-     * (compare {@link java.lang.annotation.Annotation}) of this field.
+     * Returns the {@link JavaAnnotation} of this field for the given {@link java.lang.annotation.Annotation} type.
      *
      * @throws IllegalArgumentException if there is no annotation of the respective reflection type
      */
-    public <A extends Annotation> JavaAnnotation getAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type).get();
+    public JavaAnnotation getAnnotationOfType(Class<?> type) {
+        return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(String.format(
+                "Member %s is not annotated with any annotation of type %s",
+                getFullName(), type.getName())));
     }
 
-    @SuppressWarnings("unchecked") // Type parameter always matches the type of the reflection annotation inside
-    public <A extends Annotation> Optional<JavaAnnotation> tryGetAnnotationOfType(Class<A> type) {
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<?> type) {
         for (JavaAnnotation annotation : annotations) {
-            if (type == annotation.getType()) {
+            if (type.getName().equals(annotation.getType().getName())) {
                 return Optional.of(annotation);
             }
         }

@@ -16,8 +16,8 @@ public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
         owner = builder.owner;
     }
 
-    public Class<?> getType() {
-        return annotation.annotationType();
+    public TypeDetails getType() {
+        return TypeDetails.of(annotation.annotationType());
     }
 
     @Override
@@ -27,7 +27,7 @@ public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
 
     public Object get(String annotationMethodName) {
         try {
-            Object result = getType().getMethod(annotationMethodName).invoke(annotation);
+            Object result = annotation.annotationType().getMethod(annotationMethodName).invoke(annotation);
             if (result instanceof Class) {
                 return TypeDetails.of((Class<?>) result);
             }
