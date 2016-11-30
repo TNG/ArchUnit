@@ -10,24 +10,19 @@ import java.util.Set;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class JavaAnnotation {
     private final TypeDetails type;
     private final Map<String, Object> values;
-    private final JavaMember<?, ?> owner;
 
-    private JavaAnnotation(Builder builder) {
-        type = builder.type;
-        values = builder.values;
-        owner = builder.owner;
+    public JavaAnnotation(TypeDetails type, Map<String, Object> values) {
+        this.type = checkNotNull(type);
+        this.values = checkNotNull(values);
     }
 
     public TypeDetails getType() {
         return type;
-    }
-
-    @Override
-    public JavaMember<?, ?> getOwner() {
-        return owner;
     }
 
     /**
@@ -62,36 +57,10 @@ public class JavaAnnotation implements HasOwner<JavaMember<?, ?>> {
         return values;
     }
 
-    static class Builder implements BuilderWithBuildParameter<JavaMember<?, ?>, JavaAnnotation> {
-        private TypeDetails type;
-        private Map<String, Object> values;
-        private JavaMember<?, ?> owner;
-
-        Builder withType(TypeDetails type) {
-            this.type = type;
-            return this;
-        }
-
-        Builder withValues(Map<String, Object> values) {
-            this.values = values;
-            return this;
-        }
-
-        @Override
-        public JavaAnnotation build(JavaMember<?, ?> owner) {
-            this.owner = owner;
-            return new JavaAnnotation(this);
-        }
-    }
-
-
-    public static Set<JavaAnnotation> of(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
+    public static Set<JavaAnnotation> of(Annotation[] reflectionAnnotations) {
         ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
-            result.add(new JavaAnnotation.Builder()
-                    .withType(TypeDetails.of(annotation.annotationType()))
-                    .withValues(mapOf(annotation))
-                    .build(owner));
+            result.add(new JavaAnnotation(TypeDetails.of(annotation.annotationType()), mapOf(annotation)));
         }
         return result.build();
     }

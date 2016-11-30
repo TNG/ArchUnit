@@ -267,19 +267,6 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void sets_owner_of_field_annotations_correctly() throws Exception {
-        Iterable<JavaClass> classes = classesIn("testexamples/annotationfieldimport");
-
-        for (JavaClass clazz : classes) {
-            for (JavaField field : clazz.getFields()) {
-                for (JavaAnnotation annotation : field.getAnnotations()) {
-                    assertThat(annotation.getOwner()).isSameAs(field);
-                }
-            }
-        }
-    }
-
-    @Test
     public void imports_fields_with_complex_annotations_correctly() throws Exception {
         Set<JavaField> fields = fieldsOf(classesIn("testexamples/annotationfieldimport"));
 
@@ -376,19 +363,6 @@ public class ClassFileImporterTest {
         JavaAnnotation annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class);
         assertThat(annotationWithInt.get("intValue")).isEqualTo(0);
         assertThat(annotationWithInt.get("otherValue")).isEqualTo("overridden");
-    }
-
-    @Test
-    public void sets_owner_of_annotations_correctly() throws Exception {
-        Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
-
-        for (JavaClass clazz : classes) {
-            for (JavaCodeUnit<?, ?> method : clazz.getCodeUnits()) {
-                for (JavaAnnotation annotation : method.getAnnotations()) {
-                    assertThat(annotation.getOwner()).isSameAs(method);
-                }
-            }
-        }
     }
 
     @Test
