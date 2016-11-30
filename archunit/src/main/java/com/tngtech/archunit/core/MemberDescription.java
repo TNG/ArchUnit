@@ -1,24 +1,19 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public interface MemberDescription<T extends Member> {
+interface MemberDescription<T extends Member> {
     String getName();
 
     int getModifiers();
@@ -35,7 +30,7 @@ public interface MemberDescription<T extends Member> {
         final T member;
         private int hashCode;
 
-        public ForDeterminedMember(T member) {
+        ForDeterminedMember(T member) {
             this.member = member;
             hashCode = Objects.hash(member);
         }
@@ -52,60 +47,7 @@ public interface MemberDescription<T extends Member> {
 
         @Override
         public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
-            return convert(owner, member.getAnnotations());
-        }
-
-        private static Set<JavaAnnotation> convert(JavaMember<?, ?> owner, Annotation[] reflectionAnnotations) {
-            ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
-            for (Annotation annotation : reflectionAnnotations) {
-                result.add(new JavaAnnotation.Builder()
-                        .withType(TypeDetails.of(annotation.annotationType()))
-                        .withValues(mapOf(annotation))
-                        .build(owner));
-            }
-            return result.build();
-        }
-
-        private static Map<String, Object> mapOf(Annotation annotation) {
-            ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
-            for (Method method : annotation.annotationType().getDeclaredMethods()) {
-                result.put(method.getName(), get(annotation, method.getName()));
-            }
-            return result.build();
-        }
-
-        private static Object get(Annotation annotation, String methodName) {
-            try {
-                Object result = annotation.annotationType().getMethod(methodName).invoke(annotation);
-                if (result instanceof Class) {
-                    return TypeDetails.of((Class<?>) result);
-                }
-                if (result instanceof Class[]) {
-                    List<TypeDetails> typeDetails = TypeDetails.allOf((Class<?>[]) result);
-                    return typeDetails.toArray(new TypeDetails[typeDetails.size()]);
-                }
-                if (result instanceof Enum<?>) {
-                    return enumConstant((Enum) result);
-                }
-                if (result instanceof Enum[]) {
-                    return enumConstants((Enum[]) result);
-                }
-                return result;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private static JavaEnumConstant[] enumConstants(Enum[] enums) {
-            List<JavaEnumConstant> result = new ArrayList<>();
-            for (Enum e : enums) {
-                result.add(enumConstant(e));
-            }
-            return result.toArray(new JavaEnumConstant[result.size()]);
-        }
-
-        private static JavaEnumConstant enumConstant(Enum result) {
-            return new JavaEnumConstant(TypeDetails.of(result.getDeclaringClass()), result.name());
+            return JavaAnnotation.of(owner, member.getAnnotations());
         }
 
         @Override
@@ -144,11 +86,11 @@ public interface MemberDescription<T extends Member> {
     }
 
     class ForConstructor extends ForDeterminedMember<Constructor<?>> {
-        public ForConstructor(Constructor<?> constructor) {
+        ForConstructor(Constructor<?> constructor) {
             super(constructor);
         }
 
-        public List<TypeDetails> getParameterTypes() {
+        List<TypeDetails> getParameterTypes() {
             return TypeDetails.allOf(member.getParameterTypes());
         }
 
@@ -170,7 +112,7 @@ public interface MemberDescription<T extends Member> {
     }
 
     class ForDeterminedMethod extends ForDeterminedMember<Method> implements ForMethod {
-        public ForDeterminedMethod(Method method) {
+        ForDeterminedMethod(Method method) {
             super(method);
         }
 
@@ -195,7 +137,7 @@ public interface MemberDescription<T extends Member> {
     }
 
     class ForDeterminedField extends ForDeterminedMember<Field> implements ForField {
-        public ForDeterminedField(Field field) {
+        ForDeterminedField(Field field) {
             super(field);
         }
 
