@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -352,6 +353,28 @@ class RawAccessRecord {
 
         RawAccessRecord buildAccessRecord() {
             return new RawAccessRecord(caller, target, lineNumber);
+        }
+    }
+
+    static class ForField extends RawAccessRecord {
+        final AccessType accessType;
+
+        private ForField(RawAccessRecord rawAccessRecord, AccessType accessType) {
+            super(rawAccessRecord.caller, rawAccessRecord.target, rawAccessRecord.lineNumber);
+            this.accessType = accessType;
+        }
+
+        static class Builder extends RawAccessRecord.Builder<Builder> {
+            private AccessType accessType;
+
+            Builder withAccessType(AccessType accessType) {
+                this.accessType = accessType;
+                return this;
+            }
+
+            ForField build() {
+                return new ForField(buildAccessRecord(), accessType);
+            }
         }
     }
 }
