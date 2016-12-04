@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 
@@ -14,6 +15,10 @@ public class TypeDetails {
 
     private TypeDetails(Class<?> type) {
         this.type = type;
+    }
+
+    public Set<JavaAnnotation> getAnnotations() {
+        return JavaAnnotation.allOf(type.getAnnotations());
     }
 
     public Field[] getDeclaredFields() {

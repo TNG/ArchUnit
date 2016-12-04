@@ -6,9 +6,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -28,6 +30,7 @@ public class JavaClass implements HasName {
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
+    private final Map<String, JavaAnnotation> annotations;
 
     private JavaClass(Builder builder) {
         typeDetails = checkNotNull(builder.typeDetails);
@@ -38,6 +41,7 @@ public class JavaClass implements HasName {
         codeUnits = ImmutableSet.<JavaCodeUnit<?, ?>>builder()
                 .addAll(methods).addAll(constructors).add(staticInitializer)
                 .build();
+        annotations = builder.annotations.build();
     }
 
     @Override
@@ -92,8 +96,7 @@ public class JavaClass implements HasName {
      * @see #getAnnotation(Class)
      */
     public Optional<JavaAnnotation> tryGetAnnotation(Class<? extends Annotation> type) {
-        Annotation annotation = reflect().getAnnotation(type);
-        return annotation != null ? Optional.of(JavaAnnotation.of(annotation)) : Optional.<JavaAnnotation>absent();
+        return Optional.fromNullable(annotations.get(type.getName()));
     }
 
     public Optional<JavaClass> getSuperClass() {
@@ -453,6 +456,7 @@ public class JavaClass implements HasName {
         private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
+        private final ImmutableMap.Builder<String, JavaAnnotation> annotations = ImmutableMap.builder();
         private final TypeAnalysisListener analysisListener;
 
         Builder() {
@@ -476,6 +480,9 @@ public class JavaClass implements HasName {
             for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
                 analysisListener.onConstructorFound(constructor);
                 constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
+            }
+            for (JavaAnnotation annotation : typeDetails.getAnnotations()) {
+                annotations.put(annotation.getType().getName(), annotation);
             }
             return this;
         }
