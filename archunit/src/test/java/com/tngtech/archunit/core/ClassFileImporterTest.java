@@ -1,9 +1,12 @@
 package com.tngtech.archunit.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,7 +87,10 @@ import com.tngtech.archunit.core.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecialTarget;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -113,6 +119,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
     public void imports_simple_classes() throws Exception {
@@ -1141,6 +1149,37 @@ public class ClassFileImporterTest {
                 .that(DescribedPredicate.not(withType(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
 
         assertThat(classes).as("Number of classes at the given URLs").hasSize(2);
+    }
+
+    @Test
+    @Ignore("The current goal is to pass this test, however at the moment we get 0 classes due to ClassNotFoundExceptions")
+    public void imports_classes_outside_of_the_classpath() throws IOException {
+        Path targetDir = setupClassesOutsideOfClasspathWithMissingDependencies();
+
+        JavaClasses classes = new ClassFileImporter().importPath(targetDir);
+
+        // FIXME: Make better assertions, once we know the technical limitations
+        assertThat(classes).hasSize(3);
+        JavaClass middleClass =
+                findAnyByName(classes, "com.tngtech.archunit.core.testexamples.outsideofclasspath.MiddleClass");
+        assertThat(middleClass).isNotNull();
+        JavaClass childClass =
+                findAnyByName(classes, "com.tngtech.archunit.core.testexamples.outsideofclasspath.ChildClass");
+        assertThat(childClass).isNotNull();
+    }
+
+    private Path setupClassesOutsideOfClasspathWithMissingDependencies() throws IOException {
+        File sourceDir = new File(getClass().getResource("testexamples/outsideofclasspath").getFile());
+        Path targetDir = temporaryFolder.newFolder().toPath();
+
+        for (File file : sourceDir.listFiles()) {
+            if (!file.getName().startsWith("Missing")) {
+                Files.move(file.toPath(), targetDir.resolve(file.getName()));
+            } else {
+                file.delete();
+            }
+        }
+        return targetDir;
     }
 
     private URL urlOf(Class<?> clazz) {
