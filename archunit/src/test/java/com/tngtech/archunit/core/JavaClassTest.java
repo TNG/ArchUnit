@@ -107,9 +107,9 @@ public class JavaClassTest {
 
     @Test
     public void Annotations_are_reported() {
-        assertThat(javaClass(Parent.class).isAnnotationPresent(SomeAnnotation.class))
+        assertThat(javaClass(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
-        assertThat(javaClass(Parent.class).isAnnotationPresent(Retention.class))
+        assertThat(javaClass(Parent.class).isAnnotatedWith(Retention.class))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
     }
 

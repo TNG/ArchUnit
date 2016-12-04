@@ -80,7 +80,7 @@ class ClassFileProcessor extends ClassVisitor {
         super.visitEnd();
     }
 
-    public JavaClasses process(ClassFileSource source) {
+    JavaClasses process(ClassFileSource source) {
         ClassFileProcessor child = new ClassFileProcessor();
         for (Supplier<InputStream> stream : source) {
             try (InputStream s = stream.get()) {
@@ -132,7 +132,7 @@ class ClassFileProcessor extends ClassVisitor {
             return codeUnitRecorder.get(CodeUnitIdentifier.of(name, desc, currentClass.getName()));
         }
 
-        public JavaClass finish() {
+        JavaClass finish() {
             JavaClass javaClass = currentClassBuilder.build();
             currentClass = null;
             codeUnitRecorder = null;
@@ -228,9 +228,9 @@ class ClassFileProcessor extends ClassVisitor {
         private final Map<CodeUnitIdentifier, CodeUnit> identifierToCodeUnit = new HashMap<>();
 
         @SuppressWarnings("unchecked")
-        public CodeUnitRecorder(Class<?> type) {
+        CodeUnitRecorder(Class<?> type) {
             for (JavaClass clazzInHierarchy : getAllSuperClasses(type.getName())) {
-                put(staticInitializerIdentifier(clazzInHierarchy.reflect().getName()), staticInitializerOf(clazzInHierarchy.reflect()));
+                put(staticInitializerIdentifier(clazzInHierarchy.getName()), staticInitializerOf(clazzInHierarchy.reflect()));
             }
         }
 
@@ -261,7 +261,7 @@ class ClassFileProcessor extends ClassVisitor {
         private final String name;
         private final Type type;
 
-        public CodeUnitIdentifier(String declaringClassName, String name, Type type) {
+        CodeUnitIdentifier(String declaringClassName, String name, Type type) {
             this.declaringClassName = declaringClassName;
             this.name = name;
             this.type = type;
@@ -303,7 +303,7 @@ class ClassFileProcessor extends ClassVisitor {
             return new CodeUnitIdentifier(declaringClassName, name, Type.getMethodType(desc));
         }
 
-        public static CodeUnitIdentifier staticInitializerIdentifier(String declaringClassName) {
+        static CodeUnitIdentifier staticInitializerIdentifier(String declaringClassName) {
             return of(STATIC_INITIALIZER_NAME, "()V", declaringClassName);
         }
     }
@@ -353,7 +353,7 @@ class ClassFileProcessor extends ClassVisitor {
             return parameters;
         }
 
-        public String getDeclaringClassName() {
+        String getDeclaringClassName() {
             return declaringClassName;
         }
 

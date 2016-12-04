@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
     public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(TypeDetails.of(SomeClass.class)).build();
-    public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(TypeDetails.of(SomeOtherClass.class)).build();
+    private static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(TypeDetails.of(SomeOtherClass.class)).build();
     private static final ImmutableMap<String, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
             SomeClass.class.getName(), SOME_CLASS,
             SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
@@ -27,7 +27,7 @@ public class JavaClassesTest {
         JavaClasses onlySomeClass = ALL_CLASSES.that(haveTheNameOf(SomeClass.class));
 
         assertThat(onlySomeClass.getDescription()).
-                isEqualTo("classes that have the name " + SOME_CLASS.reflect().getSimpleName());
+                isEqualTo("classes that have the name " + SOME_CLASS.getSimpleName());
     }
 
     @Test
@@ -64,7 +64,7 @@ public class JavaClassesTest {
         return new DescribedPredicate<JavaClass>("have the name " + clazz.getSimpleName()) {
             @Override
             public boolean apply(JavaClass input) {
-                return input.reflect().getName().equals(clazz.getName());
+                return input.getName().equals(clazz.getName());
             }
         };
     }
