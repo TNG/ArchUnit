@@ -133,7 +133,7 @@ class ClassFileImportContext {
     }
 
     static class RawFieldAccessRecord implements ToProcess<FieldAccessRecord> {
-        private final BaseAccessRecord record;
+        private final RawAccessRecord record;
         private final AccessType accessType;
 
         private RawFieldAccessRecord(RawFieldAccessRecord.Builder builder) {
@@ -178,7 +178,7 @@ class ClassFileImportContext {
     }
 
     static class RawConstructorCallRecord implements ToProcess<AccessRecord<ConstructorCallTarget>> {
-        final BaseAccessRecord record;
+        final RawAccessRecord record;
 
         private RawConstructorCallRecord(Builder builder) {
             this.record = builder.buildAccessRecord();
@@ -214,7 +214,7 @@ class ClassFileImportContext {
     }
 
     static class RawMethodCallRecord implements ToProcess<AccessRecord<MethodCallTarget>> {
-        final BaseAccessRecord record;
+        final RawAccessRecord record;
 
         private RawMethodCallRecord(BaseRawAccessRecordBuilder<?> builder) {
             this.record = builder.buildAccessRecord();
@@ -280,8 +280,8 @@ class ClassFileImportContext {
             return (SELF) this;
         }
 
-        BaseAccessRecord buildAccessRecord() {
-            return new BaseAccessRecord(caller, target, lineNumber);
+        RawAccessRecord buildAccessRecord() {
+            return new RawAccessRecord(caller, target, lineNumber);
         }
     }
 
