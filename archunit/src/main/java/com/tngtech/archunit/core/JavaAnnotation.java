@@ -132,4 +132,11 @@ public class JavaAnnotation {
         }
         return result.toArray(new JavaAnnotation[result.size()]);
     }
+
+    static final Function<JavaAnnotation, String> GET_TYPE_NAME = new Function<JavaAnnotation, String>() {
+        @Override
+        public String apply(JavaAnnotation input) {
+            return input.getType().getName();
+        }
+    };
 }

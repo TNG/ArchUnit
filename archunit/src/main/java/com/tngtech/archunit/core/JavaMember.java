@@ -1,21 +1,28 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Member;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
+
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.Guava.toGuava;
+import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
 
 public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
         implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
 
     final T memberDescription;
-    private final Set<JavaAnnotation> annotations;
+    private final Map<String, JavaAnnotation> annotations;
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
     JavaMember(T memberDescription, JavaClass owner) {
         this.memberDescription = checkNotNull(memberDescription);
-        annotations = memberDescription.getAnnotationsFor(this);
+        annotations = FluentIterable.from(memberDescription.getAnnotationsFor(this))
+                .uniqueIndex(toGuava(GET_TYPE_NAME));
         this.owner = checkNotNull(owner);
         modifiers = JavaModifier.getModifiersFor(memberDescription.getModifiers());
 
@@ -23,7 +30,7 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     }
 
     public Set<JavaAnnotation> getAnnotations() {
-        return annotations;
+        return ImmutableSet.copyOf(annotations.values());
     }
 
     /**
@@ -33,17 +40,12 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
      */
     public JavaAnnotation getAnnotationOfType(Class<?> type) {
         return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(String.format(
-                "Member %s is not annotated with any annotation of type %s",
-                getFullName(), type.getName())));
+                "Member %s is not annotated with @%s",
+                getFullName(), type.getSimpleName())));
     }
 
     public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<?> type) {
-        for (JavaAnnotation annotation : annotations) {
-            if (type.getName().equals(annotation.getType().getName())) {
-                return Optional.of(annotation);
-            }
-        }
-        return Optional.absent();
+        return Optional.fromNullable(annotations.get(type.getName()));
     }
 
     @Override
