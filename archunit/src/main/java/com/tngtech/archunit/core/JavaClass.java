@@ -478,18 +478,33 @@ public class JavaClass implements HasName {
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
             for (Field field : typeDetails.getDeclaredFields()) {
-                fieldBuilders.add(new JavaField.Builder().withField(field));
+                addField(new JavaField.Builder().withField(field));
             }
             for (Method method : typeDetails.getDeclaredMethods()) {
                 analysisListener.onMethodFound(method);
-                methodBuilders.add(new JavaMethod.Builder().withMethod(method));
+                addMethod(new JavaMethod.Builder().withMethod(method));
             }
             for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
                 analysisListener.onConstructorFound(constructor);
-                constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
+                addConstructor(new JavaConstructor.Builder().withConstructor(constructor));
             }
             annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
                     .uniqueIndex(toGuava(GET_TYPE_NAME)));
+            return this;
+        }
+
+        Builder addField(BuilderWithBuildParameter<JavaClass, JavaField> fieldBuilder) {
+            fieldBuilders.add(fieldBuilder);
+            return this;
+        }
+
+        Builder addMethod(BuilderWithBuildParameter<JavaClass, JavaMethod> methodBuilder) {
+            methodBuilders.add(methodBuilder);
+            return this;
+        }
+
+        Builder addConstructor(BuilderWithBuildParameter<JavaClass, JavaConstructor> constructorBuilder) {
+            constructorBuilders.add(constructorBuilder);
             return this;
         }
 
