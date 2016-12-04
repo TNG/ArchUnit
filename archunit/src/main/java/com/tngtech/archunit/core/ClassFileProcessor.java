@@ -38,7 +38,7 @@ import static org.objectweb.asm.Opcodes.ASM5;
 class ClassFileProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
 
-    private final ClassFileImportContext context = new ClassFileImportContext();
+    private final ClassFileImportRecord importRecord = new ClassFileImportRecord();
 
     private final ProcessingContext processingContext = new ProcessingContext();
 
@@ -61,14 +61,14 @@ class ClassFileProcessor extends ClassVisitor {
         }
         LOG.debug("Analysing method {}.{}:{}", processingContext.getCurrentClassName(), name, desc);
         MethodVisitor delegate = super.visitMethod(access, name, desc, signature, exceptions);
-        return new MethodProcessor(processingContext.getCodeUnit(name, desc), context, delegate);
+        return new MethodProcessor(processingContext.getCodeUnit(name, desc), importRecord, delegate);
     }
 
     @Override
     public void visitEnd() {
         if (processingContext.canImportCurrentClass) {
             LOG.debug("Done analysing {}", processingContext.getCurrentClassName());
-            context.add(processingContext.finish());
+            importRecord.add(processingContext.finish());
         }
         super.visitEnd();
     }
@@ -82,7 +82,7 @@ class ClassFileProcessor extends ClassVisitor {
                 throw new RuntimeException(e);
             }
         }
-        return child.context.complete();
+        return new ClassFileImportContext(child.importRecord).complete();
     }
 
     private static class ProcessingContext {
@@ -136,17 +136,17 @@ class ClassFileProcessor extends ClassVisitor {
 
     private static class MethodProcessor extends MethodVisitor {
         private final CodeUnit currentCodeUnit;
-        private final ClassFileImportContext context;
+        private final ClassFileImportRecord importRecord;
 
         private Set<RawAccessRecord.ForField> fieldAccessRecordBuilders = new HashSet<>();
         private Set<RawAccessRecord> methodCallRecordBuilders = new HashSet<>();
         private Set<RawAccessRecord> constructorCallRecordBuilders = new HashSet<>();
         private int actualLineNumber;
 
-        MethodProcessor(CodeUnit currentCodeUnit, ClassFileImportContext context, MethodVisitor mv) {
+        MethodProcessor(CodeUnit currentCodeUnit, ClassFileImportRecord importRecord, MethodVisitor mv) {
             super(ASM5, mv);
             this.currentCodeUnit = currentCodeUnit;
-            this.context = context;
+            this.importRecord = importRecord;
         }
 
         @Override
@@ -199,15 +199,15 @@ class ClassFileProcessor extends ClassVisitor {
         @Override
         public void visitEnd() {
             for (RawAccessRecord.ForField fieldAccessRecord : fieldAccessRecordBuilders) {
-                context.registerFieldAccess(fieldAccessRecord);
+                importRecord.registerFieldAccess(fieldAccessRecord);
             }
             fieldAccessRecordBuilders = new HashSet<>();
             for (RawAccessRecord methodCallRecord : methodCallRecordBuilders) {
-                context.registerMethodCall(methodCallRecord);
+                importRecord.registerMethodCall(methodCallRecord);
             }
             methodCallRecordBuilders = new HashSet<>();
             for (RawAccessRecord constructorCallRecord : constructorCallRecordBuilders) {
-                context.registerConstructorCall(constructorCallRecord);
+                importRecord.registerConstructorCall(constructorCallRecord);
             }
             constructorCallRecordBuilders = new HashSet<>();
 

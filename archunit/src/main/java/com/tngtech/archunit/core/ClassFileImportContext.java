@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,34 +19,28 @@ class ClassFileImportContext {
 
     private final Map<String, JavaClass> classes = new ConcurrentHashMap<>();
 
-    private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
+    private final ClassFileImportRecord importRecord;
+
     private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
-    private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
-    private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
 
-    void registerFieldAccess(RawAccessRecord.ForField record) {
-        rawFieldAccessRecords.add(record);
-    }
-
-    void registerMethodCall(RawAccessRecord record) {
-        rawMethodCallRecords.add(record);
-    }
-
-    void registerConstructorCall(RawAccessRecord record) {
-        rawConstructorCallRecords.add(record);
+    ClassFileImportContext(ClassFileImportRecord importRecord) {
+        this.importRecord = importRecord;
+        for (JavaClass javaClass : importRecord.getClasses()) {
+            classes.put(javaClass.getName(), javaClass);
+        }
     }
 
     JavaClasses complete() {
         ensureClassHierarchies();
-        for (RawAccessRecord.ForField fieldAccessRecord : rawFieldAccessRecords) {
+        for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
         }
-        for (RawAccessRecord methodCallRecord : rawMethodCallRecords) {
+        for (RawAccessRecord methodCallRecord : importRecord.getRawMethodCallRecords()) {
             tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
         }
-        for (RawAccessRecord constructorCallRecord : rawConstructorCallRecords) {
+        for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
             tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
         return JavaClasses.of(classes, this);
@@ -108,10 +101,6 @@ class ClassFileImportContext {
 
     Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedConstructorCallRecords.get(method);
-    }
-
-    void add(JavaClass javaClass) {
-        classes.put(javaClass.getName(), javaClass);
     }
 
     Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
