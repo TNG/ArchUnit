@@ -2,7 +2,6 @@ package com.tngtech.archunit.testutil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +28,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
+import static com.tngtech.archunit.core.TestUtils.invoke;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -123,17 +123,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return result;
         }
 
-        private Object invoke(Method method, Object owner) {
-            try {
-                return method.invoke(owner);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {
-        protected ConditionEventsAssert(ConditionEvents actual) {
+        ConditionEventsAssert(ConditionEvents actual) {
             super(actual, ConditionEventsAssert.class);
         }
 

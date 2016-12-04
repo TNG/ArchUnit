@@ -2,6 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,14 @@ public class TestUtils {
         checkArgument(folder.mkdirs(), "Folder %s already exists", folder.getAbsolutePath());
         folder.deleteOnExit();
         return folder;
+    }
+
+    public static Object invoke(Method method, Object owner) {
+        try {
+            return method.invoke(owner);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static JavaMethod javaMethod(Class<?> owner, String name, Class<?>... args) {

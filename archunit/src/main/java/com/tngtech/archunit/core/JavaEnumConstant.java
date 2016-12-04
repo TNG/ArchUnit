@@ -6,9 +6,17 @@ public class JavaEnumConstant {
     private final TypeDetails type;
     private final String name;
 
-    public JavaEnumConstant(TypeDetails type, String name) {
+    JavaEnumConstant(TypeDetails type, String name) {
         this.type = type;
         this.name = name;
+    }
+
+    public TypeDetails getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override

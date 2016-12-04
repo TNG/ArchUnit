@@ -47,7 +47,7 @@ interface MemberDescription<T extends Member> {
 
         @Override
         public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
-            return JavaAnnotation.of(member.getAnnotations());
+            return JavaAnnotation.allOf(member.getAnnotations());
         }
 
         @Override
