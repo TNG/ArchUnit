@@ -69,7 +69,7 @@ public class TestUtils {
 
     public static JavaClass javaClass(Class<?> owner) {
         JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
-        ClassFileImportContext context = mock(ClassFileImportContext.class);
+        ClassGraphCreator context = mock(ClassGraphCreator.class);
         when(context.tryGetJavaClassWithType(anyString())).thenAnswer(new Answer<Optional<JavaClass>>() {
             @Override
             public Optional<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
@@ -147,7 +147,7 @@ public class TestUtils {
 
         public JavaMethodCall to(JavaMethod target) {
             targets.add(new TestAccessRecord<>(new MethodCallTarget(target)));
-            ClassFileImportContext context = mock(ClassFileImportContext.class);
+            ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
             method.completeFrom(context);
             return getCallToTarget(target);
@@ -168,7 +168,7 @@ public class TestUtils {
         }
 
         public void to(JavaField target, AccessType accessType) {
-            ClassFileImportContext context = mock(ClassFileImportContext.class);
+            ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getFieldAccessRecordsFor(method))
                     .thenReturn(Collections.<FieldAccessRecord>singleton(new TestFieldAccessRecord(target, accessType)));
             method.completeFrom(context);

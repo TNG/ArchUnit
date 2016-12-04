@@ -66,7 +66,7 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
         return new JavaClasses(mapping);
     }
 
-    static JavaClasses of(Map<String, JavaClass> classes, ClassFileImportContext importContext) {
+    static JavaClasses of(Map<String, JavaClass> classes, ImportContext importContext) {
         CompletionProcess completionProcess = new CompletionProcess(importContext);
         for (JavaClass clazz : new JavaClasses(classes)) {
             completionProcess.completeClass(clazz);
@@ -77,9 +77,9 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
 
     private static class CompletionProcess {
         private final Set<JavaClass.CompletionProcess> classCompletionProcesses = new HashSet<>();
-        private final ClassFileImportContext context;
+        private final ImportContext context;
 
-        public CompletionProcess(ClassFileImportContext context) {
+        public CompletionProcess(ImportContext context) {
             this.context = context;
         }
 

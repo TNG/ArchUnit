@@ -82,7 +82,7 @@ class ClassFileProcessor extends ClassVisitor {
                 throw new RuntimeException(e);
             }
         }
-        return new ClassFileImportContext(child.importRecord).complete();
+        return new ClassGraphCreator(child.importRecord).complete();
     }
 
     private static class ProcessingContext {

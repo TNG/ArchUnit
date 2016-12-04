@@ -65,7 +65,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return false;
     }
 
-    AccessCompletion.SubProcess completeFrom(ClassFileImportContext context) {
+    AccessCompletion.SubProcess completeFrom(ImportContext context) {
         ImmutableSet.Builder<JavaFieldAccess> fieldAccessesBuilder = ImmutableSet.builder();
         for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
             fieldAccessesBuilder.add(new JavaFieldAccess(record));

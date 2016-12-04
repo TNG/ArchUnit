@@ -14,8 +14,8 @@ import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ClassFileImportContext {
-    private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportContext.class);
+class ClassGraphCreator implements ImportContext {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassGraphCreator.class);
 
     private final Map<String, JavaClass> classes = new ConcurrentHashMap<>();
 
@@ -25,7 +25,7 @@ class ClassFileImportContext {
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
 
-    ClassFileImportContext(ClassFileImportRecord importRecord) {
+    ClassGraphCreator(ClassFileImportRecord importRecord) {
         this.importRecord = importRecord;
         for (JavaClass javaClass : importRecord.getClasses()) {
             classes.put(javaClass.getName(), javaClass);
@@ -91,19 +91,23 @@ class ClassFileImportContext {
         }
     }
 
-    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit<?, ?> method) {
+    @Override
+    public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedFieldAccessRecords.get(method);
     }
 
-    Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    @Override
+    public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedMethodCallRecords.get(method);
     }
 
-    Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    @Override
+    public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
         return processedConstructorCallRecords.get(method);
     }
 
-    Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
+    @Override
+    public Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
         return Optional.fromNullable(classes.get(typeName));
     }
 }

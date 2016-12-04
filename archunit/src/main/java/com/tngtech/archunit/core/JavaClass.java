@@ -355,19 +355,19 @@ public class JavaClass implements HasName {
         return classForName(getName());
     }
 
-    void completeClassHierarchyFrom(ClassFileImportContext context) {
+    void completeClassHierarchyFrom(ImportContext context) {
         completeSuperClassFrom(context);
         completeInterfacesFrom(context);
     }
 
-    private void completeSuperClassFrom(ClassFileImportContext context) {
+    private void completeSuperClassFrom(ImportContext context) {
         superClass = findClass(typeDetails.getSuperclass(), context);
         if (superClass.isPresent()) {
             superClass.get().subClasses.add(this);
         }
     }
 
-    private void completeInterfacesFrom(ClassFileImportContext context) {
+    private void completeInterfacesFrom(ImportContext context) {
         for (Class<?> i : typeDetails.getInterfaces()) {
             interfaces.addAll(findClass(i, context).asSet());
         }
@@ -376,11 +376,11 @@ public class JavaClass implements HasName {
         }
     }
 
-    private static Optional<JavaClass> findClass(Class<?> clazz, ClassFileImportContext context) {
+    private static Optional<JavaClass> findClass(Class<?> clazz, ImportContext context) {
         return clazz != null ? context.tryGetJavaClassWithType(clazz.getName()) : Optional.<JavaClass>absent();
     }
 
-    CompletionProcess completeFrom(ClassFileImportContext context) {
+    CompletionProcess completeFrom(ImportContext context) {
         enclosingClass = findClass(typeDetails.getEnclosingClass(), context);
         return new CompletionProcess();
     }
@@ -445,7 +445,7 @@ public class JavaClass implements HasName {
     };
 
     class CompletionProcess {
-        AccessCompletion.SubProcess completeCodeUnitsFrom(ClassFileImportContext context) {
+        AccessCompletion.SubProcess completeCodeUnitsFrom(ImportContext context) {
             AccessCompletion.SubProcess accessCompletionProcess = new AccessCompletion.SubProcess();
             for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
                 accessCompletionProcess.mergeWith(codeUnit.completeFrom(context));
