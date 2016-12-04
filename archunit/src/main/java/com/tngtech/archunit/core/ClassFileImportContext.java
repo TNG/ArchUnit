@@ -152,17 +152,23 @@ class ClassFileImportContext {
             return new Processed(classes);
         }
 
-        class Processed extends BaseRawAccessRecord<FieldAccessRecord>.Processed implements FieldAccessRecord {
+        class Processed implements FieldAccessRecord {
+            final Map<String, JavaClass> classes;
             private final Set<JavaField> fields;
 
             Processed(Map<String, JavaClass> classes) {
-                super(classes);
-                fields = getTargetOwnerClass().getAllFields();
+                this.classes = classes;
+                fields = getJavaClass(record.target.owner.getName(), this.classes).getAllFields();
             }
 
             @Override
             public AccessType getAccessType() {
                 return accessType;
+            }
+
+            @Override
+            public JavaCodeUnit<?, ?> getCaller() {
+                return BaseRawAccessRecord.getCaller(record.caller, classes);
             }
 
             @Override
@@ -187,6 +193,10 @@ class ClassFileImportContext {
                     }
                 }).getOrThrow("Could not determine Field %s of type %s", targetInfo.name, targetInfo.desc);
                 return new JavaField.Builder().withField(field).build(owner);
+            }
+
+            public int getLineNumber() {
+                return record.lineNumber;
             }
         }
 
@@ -219,12 +229,18 @@ class ClassFileImportContext {
             return new Processed(classes);
         }
 
-        class Processed extends BaseRawAccessRecord<AccessRecord<ConstructorCallTarget>>.Processed implements AccessRecord<ConstructorCallTarget> {
+        class Processed implements AccessRecord<ConstructorCallTarget> {
+            final Map<String, JavaClass> classes;
             private final Set<JavaConstructor> constructors;
 
             Processed(Map<String, JavaClass> classes) {
-                super(classes);
-                constructors = getTargetOwnerClass().getAllConstructors();
+                this.classes = classes;
+                constructors = getJavaClass(record.target.owner.getName(), this.classes).getAllConstructors();
+            }
+
+            @Override
+            public JavaCodeUnit<?, ?> getCaller() {
+                return BaseRawAccessRecord.getCaller(record.caller, classes);
             }
 
             @Override
@@ -248,6 +264,10 @@ class ClassFileImportContext {
                     }
                 }).getOrThrow("Could not determine Constructor of type %s", targetInfo.desc);
                 return new JavaConstructor.Builder().withConstructor(constructor).build(owner);
+            }
+
+            public int getLineNumber() {
+                return record.lineNumber;
             }
         }
 
@@ -273,12 +293,18 @@ class ClassFileImportContext {
             return new Processed(classes);
         }
 
-        class Processed extends BaseRawAccessRecord<AccessRecord<MethodCallTarget>>.Processed implements AccessRecord<MethodCallTarget> {
+        class Processed implements AccessRecord<MethodCallTarget> {
+            final Map<String, JavaClass> classes;
             private final Set<JavaMethod> methods;
 
             Processed(Map<String, JavaClass> classes) {
-                super(classes);
-                methods = getTargetOwnerClass().getAllMethods();
+                this.classes = classes;
+                methods = getJavaClass(record.target.owner.getName(), this.classes).getAllMethods();
+            }
+
+            @Override
+            public JavaCodeUnit<?, ?> getCaller() {
+                return BaseRawAccessRecord.getCaller(record.caller, classes);
             }
 
             @Override
@@ -290,7 +316,7 @@ class ClassFileImportContext {
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = getJavaClass(targetInfo.owner.getName());
+                JavaClass owner = getJavaClass(targetInfo.owner.getName(), classes);
                 return createMethod(targetInfo, owner);
             }
 
@@ -307,6 +333,10 @@ class ClassFileImportContext {
                     member = new MemberDescription.ForDeterminedMethod(target.get());
                 }
                 return new JavaMethod.Builder().withMember(member).build(owner);
+            }
+
+            public int getLineNumber() {
+                return record.lineNumber;
             }
         }
 
@@ -331,46 +361,30 @@ class ClassFileImportContext {
 
         abstract PROCESSED_RECORD process(Map<String, JavaClass> classes);
 
-        abstract class Processed {
-            private final Map<String, JavaClass> classes;
-
-            Processed(Map<String, JavaClass> classes) {
-                this.classes = classes;
-            }
-
-            public int getLineNumber() {
-                return record.lineNumber;
-            }
-
-            public JavaCodeUnit<?, ?> getCaller() {
-                for (JavaCodeUnit<?, ?> method : getJavaClass(record.caller.getDeclaringClassName()).getCodeUnits()) {
-                    if (record.caller.is(method)) {
-                        return method;
-                    }
+        static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, Map<String, JavaClass> classes) {
+            for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName(), classes).getCodeUnits()) {
+                if (caller.is(method)) {
+                    return method;
                 }
-                throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
-                        " that matches supposed caller " + record.caller);
             }
+            throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
+                    " that matches supposed caller " + caller);
+        }
 
-            JavaClass getTargetOwnerClass() {
-                return getJavaClass(record.target.owner.getName());
+        static JavaClass getJavaClass(String typeName, Map<String, JavaClass> classes) {
+            if (!classes.containsKey(typeName)) {
+                classes.put(typeName, ImportWorkaround.resolveClass(typeName));
             }
+            return classes.get(typeName);
+        }
 
-            JavaClass getJavaClass(String typeName) {
-                if (!classes.containsKey(typeName)) {
-                    classes.put(typeName, ImportWorkaround.resolveClass(typeName));
+        static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T> tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {
+            for (T possibleTarget : possibleTargets) {
+                if (targetInfo.matches(possibleTarget)) {
+                    return Optional.of(possibleTarget);
                 }
-                return classes.get(typeName);
             }
-
-            <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T> tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {
-                for (T possibleTarget : possibleTargets) {
-                    if (targetInfo.matches(possibleTarget)) {
-                        return Optional.of(possibleTarget);
-                    }
-                }
-                return Optional.absent();
-            }
+            return Optional.absent();
         }
 
         static class Builder<SELF extends Builder<SELF>> {
