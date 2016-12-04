@@ -44,7 +44,7 @@ public class ArchPredicates {
         return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getSimpleName()) {
             @Override
             public boolean apply(JavaClass input) {
-                return input.reflect().getAnnotation(annotationType) != null;
+                return input.isAnnotatedWith(annotationType);
             }
         };
     }

@@ -57,13 +57,13 @@ public class ArchPredicatesTest {
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void matches_annotation() {
-        when(mockClass.reflect()).thenReturn((Class) AnnotatedClass.class);
+        when(mockClass.isAnnotatedWith(SomeAnnotation.class)).thenReturn(true);
 
         assertThat(annotatedWith(SomeAnnotation.class).apply(mockClass))
                 .as("annotated class matches")
                 .isTrue();
 
-        when(mockClass.reflect()).thenReturn((Class) NotAnnotatedClass.class);
+        when(mockClass.isAnnotatedWith(SomeAnnotation.class)).thenReturn(false);
 
         assertThat(annotatedWith(SomeAnnotation.class).apply(mockClass))
                 .as("annotated class matches")
@@ -84,19 +84,19 @@ public class ArchPredicatesTest {
 
     @Test
     public void inTheHierarchyOfAClass_matches_class_itself() {
-        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnnotatedClass.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnyClass.class)))
                 .as("class itself matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_subclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Annotated.*")).apply(javaClass(SubClass.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClass(SubClass.class)))
                 .as("subclass matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_does_not_match_superclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Annotated.*")).apply(javaClass(Object.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClass(Object.class)))
                 .as("superclass matches the predicate").isFalse();
     }
 
@@ -156,13 +156,9 @@ public class ArchPredicatesTest {
     @interface SomeAnnotation {
     }
 
-    @SomeAnnotation
-    public static class AnnotatedClass {
+    private static class AnyClass {
     }
 
-    static class SubClass extends AnnotatedClass {
-    }
-
-    public static class NotAnnotatedClass {
+    private static class SubClass extends AnyClass {
     }
 }

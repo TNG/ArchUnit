@@ -57,8 +57,43 @@ public class JavaClass implements HasName {
         return typeDetails.isInterface();
     }
 
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
         return reflect().isAnnotationPresent(annotation);
+    }
+
+    /**
+     * @param type The type of the {@link Annotation} to retrieve
+     * @return The {@link Annotation} representing the given annotation type
+     * @throws IllegalArgumentException if the class is note annotated with the given type
+     * @see #isAnnotatedWith(Class)
+     * @see #getAnnotation(Class)
+     */
+    public <A extends Annotation> A getReflectionAnnotation(Class<A> type) {
+        return getAnnotation(type).as(type);
+    }
+
+    /**
+     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
+     * @return The {@link JavaAnnotation} representing the given annotation type
+     * @throws IllegalArgumentException if the class is note annotated with the given type
+     * @see #isAnnotatedWith(Class)
+     * @see #tryGetAnnotation(Class)
+     */
+    public JavaAnnotation getAnnotation(Class<? extends Annotation> type) {
+        return tryGetAnnotation(type).getOrThrow(new IllegalArgumentException(
+                String.format("Type %s is not annotated with @%s", getSimpleName(), type.getSimpleName())));
+    }
+
+    /**
+     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
+     * @return An {@link Optional} containing a {@link JavaAnnotation} representing the given annotation type,
+     * if this class is annotated with the given type, otherwise Optional.absent()
+     * @see #isAnnotatedWith(Class)
+     * @see #getAnnotation(Class)
+     */
+    public Optional<JavaAnnotation> tryGetAnnotation(Class<? extends Annotation> type) {
+        Annotation annotation = reflect().getAnnotation(type);
+        return annotation != null ? Optional.of(JavaAnnotation.of(annotation)) : Optional.<JavaAnnotation>absent();
     }
 
     public Optional<JavaClass> getSuperClass() {
