@@ -57,7 +57,7 @@ class RawAccessRecord {
         return getClass().getSimpleName() + "{" + fieldsAsString() + '}';
     }
 
-    String fieldsAsString() {
+    private String fieldsAsString() {
         return "caller=" + caller + ", target=" + target + ", lineNumber=" + lineNumber;
     }
 
@@ -326,10 +326,12 @@ class RawAccessRecord {
         }
     }
 
-    static class Builder<SELF extends Builder<SELF>> {
-        private CodeUnit caller;
-        private TargetInfo target;
-        private int lineNumber = -1;
+    static class Builder extends BaseBuilder<Builder> {}
+
+    static class BaseBuilder<SELF extends BaseBuilder<SELF>> {
+        CodeUnit caller;
+        TargetInfo target;
+        int lineNumber = -1;
 
         SELF withCaller(CodeUnit caller) {
             this.caller = caller;
@@ -351,7 +353,7 @@ class RawAccessRecord {
             return (SELF) this;
         }
 
-        RawAccessRecord buildAccessRecord() {
+        RawAccessRecord build() {
             return new RawAccessRecord(caller, target, lineNumber);
         }
     }
@@ -359,12 +361,12 @@ class RawAccessRecord {
     static class ForField extends RawAccessRecord {
         final AccessType accessType;
 
-        private ForField(RawAccessRecord rawAccessRecord, AccessType accessType) {
-            super(rawAccessRecord.caller, rawAccessRecord.target, rawAccessRecord.lineNumber);
+        private ForField(CodeUnit caller, TargetInfo target, int lineNumber, AccessType accessType) {
+            super(caller, target, lineNumber);
             this.accessType = accessType;
         }
 
-        static class Builder extends RawAccessRecord.Builder<Builder> {
+        static class Builder extends BaseBuilder<Builder> {
             private AccessType accessType;
 
             Builder withAccessType(AccessType accessType) {
@@ -372,8 +374,9 @@ class RawAccessRecord {
                 return this;
             }
 
+            @Override
             ForField build() {
-                return new ForField(buildAccessRecord(), accessType);
+                return new ForField(super.caller, super.target, super.lineNumber, accessType);
             }
         }
     }
