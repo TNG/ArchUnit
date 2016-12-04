@@ -35,26 +35,26 @@ interface AccessRecord<TARGET extends AccessTarget> {
     class Factory {
 
         static AccessRecord<ConstructorCallTarget> createConstructorCallRecord(
-                BaseAccessRecord<CodeUnit, TargetInfo> record, Map<String, JavaClass> classes) {
+                BaseAccessRecord record, Map<String, JavaClass> classes) {
             return new RawConstructorCallRecordProcessed(record, classes);
         }
 
         static AccessRecord<MethodCallTarget> createMethodCallRecord(
-                BaseAccessRecord<CodeUnit, TargetInfo> record, Map<String, JavaClass> classes) {
+                BaseAccessRecord record, Map<String, JavaClass> classes) {
             return new RawMethodCallRecordProcessed(record, classes);
         }
 
         static FieldAccessRecord createFieldAccessRecord(
-                BaseAccessRecord<CodeUnit, TargetInfo> record, AccessType accessType, Map<String, JavaClass> classes) {
+                BaseAccessRecord record, AccessType accessType, Map<String, JavaClass> classes) {
             return new RawFieldAccessRecordProcessed(record, accessType, classes);
         }
 
         private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
-            private final BaseAccessRecord<CodeUnit, TargetInfo> record;
+            private final BaseAccessRecord record;
             final Map<String, JavaClass> classes;
             private final Set<JavaConstructor> constructors;
 
-            RawConstructorCallRecordProcessed(BaseAccessRecord<CodeUnit, TargetInfo> record, Map<String, JavaClass> classes) {
+            RawConstructorCallRecordProcessed(BaseAccessRecord record, Map<String, JavaClass> classes) {
                 this.record = record;
                 this.classes = classes;
                 constructors = getJavaClass(record.target.owner.getName(), this.classes).getAllConstructors();
@@ -94,11 +94,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static class RawMethodCallRecordProcessed implements AccessRecord<MethodCallTarget> {
-            private final BaseAccessRecord<CodeUnit, TargetInfo> record;
+            private final BaseAccessRecord record;
             final Map<String, JavaClass> classes;
             private final Set<JavaMethod> methods;
 
-            RawMethodCallRecordProcessed(BaseAccessRecord<CodeUnit, TargetInfo> record, Map<String, JavaClass> classes) {
+            RawMethodCallRecordProcessed(BaseAccessRecord record, Map<String, JavaClass> classes) {
                 this.record = record;
                 this.classes = classes;
                 methods = getJavaClass(record.target.owner.getName(), this.classes).getAllMethods();
@@ -143,12 +143,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
-            private final BaseAccessRecord<CodeUnit, TargetInfo> record;
+            private final BaseAccessRecord record;
             private final AccessType accessType;
             final Map<String, JavaClass> classes;
             private final Set<JavaField> fields;
 
-            RawFieldAccessRecordProcessed(BaseAccessRecord<CodeUnit, TargetInfo> record, AccessType accessType, Map<String, JavaClass> classes) {
+            RawFieldAccessRecordProcessed(BaseAccessRecord record, AccessType accessType, Map<String, JavaClass> classes) {
                 this.record = record;
                 this.accessType = accessType;
                 this.classes = classes;
