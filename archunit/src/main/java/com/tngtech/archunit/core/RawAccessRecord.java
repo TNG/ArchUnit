@@ -7,12 +7,12 @@ import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class BaseAccessRecord {
+class RawAccessRecord {
     final CodeUnit caller;
     final TargetInfo target;
     final int lineNumber;
 
-    BaseAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber) {
+    RawAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber) {
         this.caller = checkNotNull(caller);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
@@ -31,7 +31,7 @@ class BaseAccessRecord {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BaseAccessRecord other = (BaseAccessRecord) obj;
+        final RawAccessRecord other = (RawAccessRecord) obj;
         return Objects.equals(this.caller, other.caller) &&
                 Objects.equals(this.target, other.target) &&
                 Objects.equals(this.lineNumber, other.lineNumber);
