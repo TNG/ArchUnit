@@ -205,8 +205,15 @@ class ClassFileImportContext {
             return getClass().getSimpleName() + "{accessType=" + accessType + "," + record.fieldsAsString() + '}';
         }
 
+        static Builder builder() {
+            return new Builder();
+        }
+
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
             private AccessType accessType;
+
+            private Builder() {
+            }
 
             Builder withAccessType(AccessType accessType) {
                 this.accessType = accessType;
@@ -276,7 +283,14 @@ class ClassFileImportContext {
             return getClass().getSimpleName() + "{" + record.fieldsAsString() + '}';
         }
 
+        static Builder builder() {
+            return new Builder();
+        }
+
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
+            private Builder() {
+            }
+
             RawConstructorCallRecord build() {
                 return new RawConstructorCallRecord(this);
             }
@@ -345,7 +359,14 @@ class ClassFileImportContext {
             return getClass().getSimpleName() + "{" + record.fieldsAsString() + '}';
         }
 
+        static Builder builder() {
+            return new Builder();
+        }
+
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
+            private Builder() {
+            }
+
             RawMethodCallRecord build() {
                 return new RawMethodCallRecord(this);
             }

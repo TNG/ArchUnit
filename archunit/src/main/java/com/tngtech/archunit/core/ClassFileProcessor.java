@@ -175,7 +175,7 @@ class ClassFileProcessor extends ClassVisitor {
             AccessType accessType = AccessType.forOpCode(opcode);
             LOG.debug("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, actualLineNumber);
             TargetInfo target = new FieldTargetInfo(owner, name, desc);
-            fieldAccessRecordBuilders.add(filled(new RawFieldAccessRecord.Builder(), target)
+            fieldAccessRecordBuilders.add(filled(RawFieldAccessRecord.builder(), target)
                     .withAccessType(accessType)
                     .build());
 
@@ -187,10 +187,10 @@ class ClassFileProcessor extends ClassVisitor {
             LOG.debug("Found call of method {}.{}:{} in line {}", owner, name, desc, actualLineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
                 TargetInfo target = new ConstructorTargetInfo(owner, name, desc);
-                constructorCallRecordBuilders.add(filled(new RawConstructorCallRecord.Builder(), target).build());
+                constructorCallRecordBuilders.add(filled(RawConstructorCallRecord.builder(), target).build());
             } else {
                 TargetInfo target = new MethodTargetInfo(owner, name, desc);
-                methodCallRecordBuilders.add(filled(new RawMethodCallRecord.Builder(), target).build());
+                methodCallRecordBuilders.add(filled(RawMethodCallRecord.builder(), target).build());
             }
 
             super.visitMethodInsn(opcode, owner, name, desc, itf);
