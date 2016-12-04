@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -16,6 +17,8 @@ import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
+import static com.tngtech.archunit.core.Guava.toGuava;
+import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
 import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
@@ -481,9 +484,8 @@ public class JavaClass implements HasName {
                 analysisListener.onConstructorFound(constructor);
                 constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
             }
-            for (JavaAnnotation annotation : typeDetails.getAnnotations()) {
-                annotations.put(annotation.getType().getName(), annotation);
-            }
+            annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
+                    .uniqueIndex(toGuava(GET_TYPE_NAME)));
             return this;
         }
 
