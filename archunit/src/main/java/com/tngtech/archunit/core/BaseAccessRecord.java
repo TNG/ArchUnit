@@ -2,14 +2,17 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.core.ClassFileImportContext.TargetInfo;
+import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class BaseAccessRecord<CALLER, TARGET> {
-    final CALLER caller;
-    final TARGET target;
+class BaseAccessRecord {
+    final CodeUnit caller;
+    final TargetInfo target;
     final int lineNumber;
 
-    BaseAccessRecord(CALLER caller, TARGET target, int lineNumber) {
+    BaseAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber) {
         this.caller = checkNotNull(caller);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
@@ -28,7 +31,7 @@ class BaseAccessRecord<CALLER, TARGET> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BaseAccessRecord<?, ?> other = (BaseAccessRecord<?, ?>) obj;
+        final BaseAccessRecord other = (BaseAccessRecord) obj;
         return Objects.equals(this.caller, other.caller) &&
                 Objects.equals(this.target, other.target) &&
                 Objects.equals(this.lineNumber, other.lineNumber);
