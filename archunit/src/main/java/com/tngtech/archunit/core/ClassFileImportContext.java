@@ -112,10 +112,10 @@ class ClassFileImportContext {
             processedAccessRecords.put(processed.getCaller(), processed);
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency '{}'",
-                    fieldAccessRecord.target, e.getMessage());
+                    fieldAccessRecord.record.target, e.getMessage());
         } catch (ReflectionException e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency. Error was: '{}'",
-                    fieldAccessRecord.target, e.getMessage());
+                    fieldAccessRecord.record.target, e.getMessage());
         }
     }
 
@@ -167,9 +167,9 @@ class ClassFileImportContext {
 
             @Override
             public FieldAccessTarget getTarget() {
-                Optional<JavaField> matchingField = tryFindMatchingTarget(fields, target);
+                Optional<JavaField> matchingField = tryFindMatchingTarget(fields, record.target);
 
-                JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(target);
+                JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(record.target);
                 return new FieldAccessTarget(field);
             }
 
@@ -192,7 +192,7 @@ class ClassFileImportContext {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{accessType=" + accessType + "," + fieldsAsString() + '}';
+            return getClass().getSimpleName() + "{accessType=" + accessType + "," + record.fieldsAsString() + '}';
         }
 
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
@@ -229,9 +229,9 @@ class ClassFileImportContext {
 
             @Override
             public ConstructorCallTarget getTarget() {
-                Optional<JavaConstructor> matchingMethod = tryFindMatchingTarget(constructors, target);
+                Optional<JavaConstructor> matchingMethod = tryFindMatchingTarget(constructors, record.target);
 
-                JavaConstructor constructor = matchingMethod.isPresent() ? matchingMethod.get() : createConstructorFor(target);
+                JavaConstructor constructor = matchingMethod.isPresent() ? matchingMethod.get() : createConstructorFor(record.target);
                 return new ConstructorCallTarget(constructor);
             }
 
@@ -253,7 +253,7 @@ class ClassFileImportContext {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{" + fieldsAsString() + '}';
+            return getClass().getSimpleName() + "{" + record.fieldsAsString() + '}';
         }
 
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
@@ -283,9 +283,9 @@ class ClassFileImportContext {
 
             @Override
             public MethodCallTarget getTarget() {
-                Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, target);
+                Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, record.target);
 
-                JavaMethod method = matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(target);
+                JavaMethod method = matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(record.target);
                 return new MethodCallTarget(method);
             }
 
@@ -312,7 +312,7 @@ class ClassFileImportContext {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{" + fieldsAsString() + '}';
+            return getClass().getSimpleName() + "{" + record.fieldsAsString() + '}';
         }
 
         static class Builder extends BaseRawAccessRecord.Builder<Builder> {
@@ -322,9 +322,11 @@ class ClassFileImportContext {
         }
     }
 
-    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> extends BaseAccessRecord<CodeUnit, TargetInfo> {
+    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> {
+        final BaseAccessRecord<CodeUnit, TargetInfo> record;
+
         private BaseRawAccessRecord(Builder<?> builder) {
-            super(builder.caller, builder.target, builder.lineNumber);
+            record = new BaseAccessRecord<>(builder.caller, builder.target, builder.lineNumber);
         }
 
         abstract PROCESSED_RECORD process(Map<String, JavaClass> classes);
@@ -337,21 +339,21 @@ class ClassFileImportContext {
             }
 
             public int getLineNumber() {
-                return lineNumber;
+                return record.lineNumber;
             }
 
             public JavaCodeUnit<?, ?> getCaller() {
-                for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName()).getCodeUnits()) {
-                    if (caller.is(method)) {
+                for (JavaCodeUnit<?, ?> method : getJavaClass(record.caller.getDeclaringClassName()).getCodeUnits()) {
+                    if (record.caller.is(method)) {
                         return method;
                     }
                 }
                 throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
-                        " that matches supposed caller " + caller);
+                        " that matches supposed caller " + record.caller);
             }
 
             JavaClass getTargetOwnerClass() {
-                return getJavaClass(target.owner.getName());
+                return getJavaClass(record.target.owner.getName());
             }
 
             JavaClass getJavaClass(String typeName) {
@@ -517,7 +519,7 @@ class ClassFileImportContext {
                     Type.getConstructorDescriptor(constructor).equals(desc);
         }
 
-        public boolean hasMatchingSignatureTo(Field field) {
+        boolean hasMatchingSignatureTo(Field field) {
             return field.getName().equals(name) &&
                     Type.getDescriptor(field.getType()).equals(desc);
         }
@@ -575,7 +577,7 @@ class ClassFileImportContext {
             }
         }
 
-        public boolean hasExactlyOneMatchFor(final TargetInfo target) {
+        boolean hasExactlyOneMatchFor(final TargetInfo target) {
             Set<JavaClass> matching = new HashSet<>();
             for (JavaClass javaClass : path) {
                 if (target.signatureExistsIn(javaClass)) {
