@@ -12,9 +12,6 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ForwardingMap;
-import com.tngtech.archunit.core.ClassFileImportContext.RawConstructorCallRecord;
-import com.tngtech.archunit.core.ClassFileImportContext.RawFieldAccessRecord;
-import com.tngtech.archunit.core.ClassFileImportContext.RawMethodCallRecord;
 import com.tngtech.archunit.core.JavaClass.TypeAnalysisListener;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
@@ -141,9 +138,9 @@ class ClassFileProcessor extends ClassVisitor {
         private final CodeUnit currentCodeUnit;
         private final ClassFileImportContext context;
 
-        private Set<RawFieldAccessRecord> fieldAccessRecordBuilders = new HashSet<>();
-        private Set<RawMethodCallRecord> methodCallRecordBuilders = new HashSet<>();
-        private Set<RawConstructorCallRecord> constructorCallRecordBuilders = new HashSet<>();
+        private Set<RawAccessRecord.ForField> fieldAccessRecordBuilders = new HashSet<>();
+        private Set<RawAccessRecord> methodCallRecordBuilders = new HashSet<>();
+        private Set<RawAccessRecord> constructorCallRecordBuilders = new HashSet<>();
         private int actualLineNumber;
 
         MethodProcessor(CodeUnit currentCodeUnit, ClassFileImportContext context, MethodVisitor mv) {
@@ -171,7 +168,7 @@ class ClassFileProcessor extends ClassVisitor {
             AccessType accessType = AccessType.forOpCode(opcode);
             LOG.debug("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, actualLineNumber);
             TargetInfo target = new FieldTargetInfo(owner, name, desc);
-            fieldAccessRecordBuilders.add(filled(RawFieldAccessRecord.builder(), target)
+            fieldAccessRecordBuilders.add(filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
                     .build());
 
@@ -183,16 +180,16 @@ class ClassFileProcessor extends ClassVisitor {
             LOG.debug("Found call of method {}.{}:{} in line {}", owner, name, desc, actualLineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
                 TargetInfo target = new ConstructorTargetInfo(owner, name, desc);
-                constructorCallRecordBuilders.add(filled(RawConstructorCallRecord.builder(), target).build());
+                constructorCallRecordBuilders.add(filled(new RawAccessRecord.Builder(), target).build());
             } else {
                 TargetInfo target = new MethodTargetInfo(owner, name, desc);
-                methodCallRecordBuilders.add(filled(RawMethodCallRecord.builder(), target).build());
+                methodCallRecordBuilders.add(filled(new RawAccessRecord.Builder(), target).build());
             }
 
             super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
 
-        private <BUILDER extends RawAccessRecord.Builder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
+        private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
                     .withCaller(currentCodeUnit)
                     .withTarget(target)
@@ -201,15 +198,15 @@ class ClassFileProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            for (RawFieldAccessRecord fieldAccessRecord : fieldAccessRecordBuilders) {
+            for (RawAccessRecord.ForField fieldAccessRecord : fieldAccessRecordBuilders) {
                 context.registerFieldAccess(fieldAccessRecord);
             }
             fieldAccessRecordBuilders = new HashSet<>();
-            for (RawMethodCallRecord methodCallRecord : methodCallRecordBuilders) {
+            for (RawAccessRecord methodCallRecord : methodCallRecordBuilders) {
                 context.registerMethodCall(methodCallRecord);
             }
             methodCallRecordBuilders = new HashSet<>();
-            for (RawConstructorCallRecord constructorCallRecord : constructorCallRecordBuilders) {
+            for (RawAccessRecord constructorCallRecord : constructorCallRecordBuilders) {
                 context.registerConstructorCall(constructorCallRecord);
             }
             constructorCallRecordBuilders = new HashSet<>();
