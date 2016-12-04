@@ -17,19 +17,19 @@ public class TypeDetails {
         this.type = type;
     }
 
-    public Set<JavaAnnotation> getAnnotations() {
+    Set<JavaAnnotation> getAnnotations() {
         return JavaAnnotation.allOf(type.getAnnotations());
     }
 
-    public Field[] getDeclaredFields() {
+    Field[] getDeclaredFields() {
         return type.getDeclaredFields();
     }
 
-    public Method[] getDeclaredMethods() {
+    Method[] getDeclaredMethods() {
         return type.getDeclaredMethods();
     }
 
-    public Constructor<?>[] getDeclaredConstructors() {
+    Constructor<?>[] getDeclaredConstructors() {
         return type.getDeclaredConstructors();
     }
 
@@ -37,16 +37,20 @@ public class TypeDetails {
         return type.getName();
     }
 
-    public Class<?> getEnclosingClass() {
-        return type.getEnclosingClass();
+    Optional<TypeDetails> getEnclosingClass() {
+        return type.getEnclosingClass() != null ?
+                Optional.of(TypeDetails.of(type.getEnclosingClass())) :
+                Optional.<TypeDetails>absent();
     }
 
-    public Class<?>[] getInterfaces() {
-        return type.getInterfaces();
+    List<TypeDetails> getInterfaces() {
+        return TypeDetails.allOf(type.getInterfaces());
     }
 
-    public Class<?> getSuperclass() {
-        return type.getSuperclass();
+    Optional<TypeDetails> getSuperclass() {
+        return type.getSuperclass() != null ?
+                Optional.of(TypeDetails.of(type.getSuperclass())) :
+                Optional.<TypeDetails>absent();
     }
 
     public String getSimpleName() {

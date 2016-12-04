@@ -368,7 +368,7 @@ public class JavaClass implements HasName {
     }
 
     private void completeInterfacesFrom(ImportContext context) {
-        for (Class<?> i : typeDetails.getInterfaces()) {
+        for (TypeDetails i : typeDetails.getInterfaces()) {
             interfaces.addAll(findClass(i, context).asSet());
         }
         for (JavaClass i : interfaces) {
@@ -376,8 +376,12 @@ public class JavaClass implements HasName {
         }
     }
 
-    private static Optional<JavaClass> findClass(Class<?> clazz, ImportContext context) {
-        return clazz != null ? context.tryGetJavaClassWithType(clazz.getName()) : Optional.<JavaClass>absent();
+    private static Optional<JavaClass> findClass(TypeDetails type, ImportContext context) {
+        return context.tryGetJavaClassWithType(type.getName());
+    }
+
+    private static Optional<JavaClass> findClass(Optional<TypeDetails> type, ImportContext context) {
+        return type.isPresent() ? findClass(type.get(), context) : Optional.<JavaClass>absent();
     }
 
     CompletionProcess completeFrom(ImportContext context) {
