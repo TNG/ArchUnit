@@ -3,28 +3,25 @@ package com.tngtech.archunit.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ForwardingMap;
-import com.tngtech.archunit.core.ClassFileImportContext.BaseRawAccessRecordBuilder;
-import com.tngtech.archunit.core.ClassFileImportContext.ConstructorTargetInfo;
-import com.tngtech.archunit.core.ClassFileImportContext.FieldTargetInfo;
-import com.tngtech.archunit.core.ClassFileImportContext.MethodTargetInfo;
 import com.tngtech.archunit.core.ClassFileImportContext.RawConstructorCallRecord;
 import com.tngtech.archunit.core.ClassFileImportContext.RawFieldAccessRecord;
 import com.tngtech.archunit.core.ClassFileImportContext.RawMethodCallRecord;
-import com.tngtech.archunit.core.ClassFileImportContext.TargetInfo;
 import com.tngtech.archunit.core.JavaClass.TypeAnalysisListener;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
+import com.tngtech.archunit.core.RawAccessRecord.ConstructorTargetInfo;
+import com.tngtech.archunit.core.RawAccessRecord.FieldTargetInfo;
+import com.tngtech.archunit.core.RawAccessRecord.MethodTargetInfo;
+import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -33,13 +30,12 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnit.staticInitializerOf;
 import static com.tngtech.archunit.core.ClassFileProcessor.CodeUnitIdentifier.staticInitializerIdentifier;
 import static com.tngtech.archunit.core.ImportWorkaround.getAllSuperClasses;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.RawAccessRecord.CodeUnit.staticInitializerOf;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor extends ClassVisitor {
@@ -196,7 +192,7 @@ class ClassFileProcessor extends ClassVisitor {
             super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
 
-        private <BUILDER extends BaseRawAccessRecordBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
+        private <BUILDER extends RawAccessRecord.Builder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
                     .withCaller(currentCodeUnit)
                     .withTarget(target)
@@ -308,120 +304,4 @@ class ClassFileProcessor extends ClassVisitor {
         }
     }
 
-    static class CodeUnit {
-        private final String name;
-        private final List<TypeDetails> parameters;
-        private final String declaringClassName;
-        private final int hashCode;
-
-        private CodeUnit(Member member) {
-            this(nameOf(member),
-                    parametersOf(member),
-                    member.getDeclaringClass(),
-                    Objects.hash(member));
-        }
-
-        private CodeUnit(String name, List<TypeDetails> parameters, Class<?> declaringClass, int hashCode) {
-            this(name, parameters, declaringClass.getName(), hashCode);
-        }
-
-        private CodeUnit(String name, List<TypeDetails> parameters, String declaringClassName, int hashCode) {
-            this.name = name;
-            this.parameters = parameters;
-            this.declaringClassName = declaringClassName;
-            this.hashCode = hashCode;
-        }
-
-        private static List<TypeDetails> parametersOf(Member member) {
-            return member instanceof Constructor ?
-                    TypeDetails.allOf(((Constructor<?>) member).getParameterTypes()) :
-                    TypeDetails.allOf(((Method) member).getParameterTypes());
-        }
-
-        private static String nameOf(Member member) {
-            return member instanceof Constructor ?
-                    CONSTRUCTOR_NAME :
-                    member.getName();
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        @SuppressWarnings("unchecked")
-        public List<TypeDetails> getParameters() {
-            return parameters;
-        }
-
-        String getDeclaringClassName() {
-            return declaringClassName;
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            CodeUnit codeUnit = (CodeUnit) o;
-            return Objects.equals(name, codeUnit.name) &&
-                    Objects.equals(parameters, codeUnit.parameters) &&
-                    Objects.equals(declaringClassName, codeUnit.declaringClassName);
-        }
-
-        @Override
-        public String toString() {
-            return "CodeUnit{" +
-                    "name='" + name + '\'' +
-                    ", parameters=" + parameters +
-                    ", declaringClassName='" + declaringClassName + '\'' +
-                    '}';
-        }
-
-        static CodeUnit of(Object o) {
-            checkArgument(o instanceof Constructor || o instanceof Method);
-            return new CodeUnit((Member) o);
-        }
-
-        static CodeUnit staticInitializerOf(final Class<?> clazz) {
-            return new StaticInitializer(clazz.getName());
-        }
-
-        public boolean is(JavaCodeUnit<?, ?> method) {
-            return getName().equals(method.getName())
-                    && getParameters().equals(method.getParameters())
-                    && getDeclaringClassName().equals(method.getOwner().getName());
-        }
-
-        private static class StaticInitializer extends CodeUnit {
-            private StaticInitializer(String className) {
-                super(STATIC_INITIALIZER_NAME, Collections.<TypeDetails>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj) {
-                    return true;
-                }
-                if (obj == null || getClass() != obj.getClass()) {
-                    return false;
-                }
-                if (!super.equals(obj)) {
-                    return false;
-                }
-                final StaticInitializer other = (StaticInitializer) obj;
-                return Objects.equals(getName(), other.getName()) &&
-                        Objects.equals(getDeclaringClassName(), other.getDeclaringClassName()) &&
-                        Objects.equals(getParameters(), other.getParameters());
-            }
-
-            @Override
-            public String toString() {
-                return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getDeclaringClassName(), getName());
-            }
-        }
-    }
 }
