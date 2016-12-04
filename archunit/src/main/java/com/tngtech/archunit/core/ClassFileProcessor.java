@@ -15,7 +15,7 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ForwardingMap;
-import com.tngtech.archunit.core.ClassFileImportContext.BaseRawAccessRecord;
+import com.tngtech.archunit.core.ClassFileImportContext.BaseRawAccessRecordBuilder;
 import com.tngtech.archunit.core.ClassFileImportContext.ConstructorTargetInfo;
 import com.tngtech.archunit.core.ClassFileImportContext.FieldTargetInfo;
 import com.tngtech.archunit.core.ClassFileImportContext.MethodTargetInfo;
@@ -196,7 +196,7 @@ class ClassFileProcessor extends ClassVisitor {
             super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
 
-        private <BUILDER extends BaseRawAccessRecord.Builder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
+        private <BUILDER extends BaseRawAccessRecordBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
                     .withCaller(currentCodeUnit)
                     .withTarget(target)

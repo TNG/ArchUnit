@@ -139,17 +139,23 @@ class ClassFileImportContext {
         return Optional.fromNullable(classes.get(typeName));
     }
 
-    static class RawFieldAccessRecord extends BaseRawAccessRecord<FieldAccessRecord> {
+    static class RawFieldAccessRecord implements ToProcess<FieldAccessRecord> {
+        private final BaseAccessRecord<CodeUnit, TargetInfo> record;
         private final AccessType accessType;
 
         private RawFieldAccessRecord(RawFieldAccessRecord.Builder builder) {
-            super(builder);
+            this.record = builder.buildAccessRecord();
             accessType = builder.accessType;
         }
 
         @Override
         public FieldAccessRecord process(Map<String, JavaClass> classes) {
             return new Processed(classes);
+        }
+
+        @Override
+        public String getTarget() {
+            return "" + record.target;
         }
 
         class Processed implements FieldAccessRecord {
@@ -209,7 +215,7 @@ class ClassFileImportContext {
             return new Builder();
         }
 
-        static class Builder extends BaseRawAccessRecord.Builder<Builder> {
+        static class Builder extends BaseRawAccessRecordBuilder<Builder> {
             private AccessType accessType;
 
             private Builder() {
@@ -226,14 +232,21 @@ class ClassFileImportContext {
         }
     }
 
-    static class RawConstructorCallRecord extends BaseRawAccessRecord<AccessRecord<ConstructorCallTarget>> {
+    static class RawConstructorCallRecord implements ToProcess<AccessRecord<ConstructorCallTarget>> {
+        final BaseAccessRecord<CodeUnit, TargetInfo> record;
+
         private RawConstructorCallRecord(Builder builder) {
-            super(builder);
+            this.record = builder.buildAccessRecord();
         }
 
         @Override
         public AccessRecord<ConstructorCallTarget> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
+        }
+
+        @Override
+        public String getTarget() {
+            return "" + record.target;
         }
 
         class Processed implements AccessRecord<ConstructorCallTarget> {
@@ -287,7 +300,7 @@ class ClassFileImportContext {
             return new Builder();
         }
 
-        static class Builder extends BaseRawAccessRecord.Builder<Builder> {
+        static class Builder extends BaseRawAccessRecordBuilder<Builder> {
             private Builder() {
             }
 
@@ -297,14 +310,21 @@ class ClassFileImportContext {
         }
     }
 
-    static class RawMethodCallRecord extends BaseRawAccessRecord<AccessRecord<MethodCallTarget>> {
-        private RawMethodCallRecord(Builder builder) {
-            super(builder);
+    static class RawMethodCallRecord implements ToProcess<AccessRecord<MethodCallTarget>> {
+        final BaseAccessRecord<CodeUnit, TargetInfo> record;
+
+        private RawMethodCallRecord(BaseRawAccessRecordBuilder<?> builder) {
+            this.record = builder.buildAccessRecord();
         }
 
         @Override
         public AccessRecord<MethodCallTarget> process(Map<String, JavaClass> classes) {
             return new Processed(classes);
+        }
+
+        @Override
+        public String getTarget() {
+            return "" + record.target;
         }
 
         class Processed implements AccessRecord<MethodCallTarget> {
@@ -363,7 +383,7 @@ class ClassFileImportContext {
             return new Builder();
         }
 
-        static class Builder extends BaseRawAccessRecord.Builder<Builder> {
+        static class Builder extends BaseRawAccessRecordBuilder<Builder> {
             private Builder() {
             }
 
@@ -379,42 +399,33 @@ class ClassFileImportContext {
         String getTarget();
     }
 
-    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> implements ToProcess<PROCESSED_RECORD> {
-        final BaseAccessRecord<CodeUnit, TargetInfo> record;
+    static class BaseRawAccessRecordBuilder<SELF extends BaseRawAccessRecordBuilder<SELF>> {
+        private CodeUnit caller;
+        private TargetInfo target;
+        private int lineNumber = -1;
 
-        private BaseRawAccessRecord(Builder<?> builder) {
-            record = new BaseAccessRecord<>(builder.caller, builder.target, builder.lineNumber);
+        SELF withCaller(CodeUnit caller) {
+            this.caller = caller;
+            return self();
         }
 
-        @Override
-        public String getTarget() {
-            return "" + record.target;
+        SELF withTarget(TargetInfo target) {
+            this.target = target;
+            return self();
         }
 
-        static class Builder<SELF extends Builder<SELF>> {
-            private CodeUnit caller;
-            private TargetInfo target;
-            private int lineNumber = -1;
+        SELF withLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return self();
+        }
 
-            SELF withCaller(CodeUnit caller) {
-                this.caller = caller;
-                return self();
-            }
+        @SuppressWarnings("unchecked")
+        SELF self() {
+            return (SELF) this;
+        }
 
-            SELF withTarget(TargetInfo target) {
-                this.target = target;
-                return self();
-            }
-
-            SELF withLineNumber(int lineNumber) {
-                this.lineNumber = lineNumber;
-                return self();
-            }
-
-            @SuppressWarnings("unchecked")
-            SELF self() {
-                return (SELF) this;
-            }
+        BaseAccessRecord<CodeUnit, TargetInfo> buildAccessRecord() {
+            return new BaseAccessRecord<>(caller, target, lineNumber);
         }
     }
 
