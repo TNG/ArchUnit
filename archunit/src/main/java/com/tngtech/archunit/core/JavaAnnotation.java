@@ -16,7 +16,7 @@ public class JavaAnnotation {
     private final TypeDetails type;
     private final Map<String, Object> values;
 
-    public JavaAnnotation(TypeDetails type, Map<String, Object> values) {
+    private JavaAnnotation(TypeDetails type, Map<String, Object> values) {
         this.type = checkNotNull(type);
         this.values = checkNotNull(values);
     }
@@ -46,21 +46,29 @@ public class JavaAnnotation {
      * <li>anyOtherType -> anyOtherType</li>
      * </ul>
      */
-    public Object get(String property) {
-        return values.get(property);
+    public Optional<Object> get(String property) {
+        return Optional.fromNullable(values.get(property));
     }
 
     /**
-     * @return a map containing all [property -> value], where each value is derived via {@link #get(String property)}
+     * @return a map containing all [property -> value], where each value correlates to {@link #get(String property)}
      */
     public Map<String, Object> getProperties() {
         return values;
     }
 
-    public static Set<JavaAnnotation> of(Annotation[] reflectionAnnotations) {
+    public <A extends Annotation> A as(Class<A> annotationType) {
+        return AnnotationProxy.of(annotationType, this);
+    }
+
+    public static JavaAnnotation of(Annotation reflectionAnnotation) {
+        return new JavaAnnotation(TypeDetails.of(reflectionAnnotation.annotationType()), mapOf(reflectionAnnotation));
+    }
+
+    public static Set<JavaAnnotation> allOf(Annotation[] reflectionAnnotations) {
         ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
-            result.add(new JavaAnnotation(TypeDetails.of(annotation.annotationType()), mapOf(annotation)));
+            result.add(JavaAnnotation.of(annotation));
         }
         return result.build();
     }
@@ -89,10 +97,20 @@ public class JavaAnnotation {
             if (result instanceof Enum[]) {
                 return enumConstants((Enum[]) result);
             }
+            if (result instanceof Annotation) {
+                return annotation((Annotation) result);
+            }
+            if (result instanceof Annotation[]) {
+                return annotations((Annotation[]) result);
+            }
             return result;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static JavaEnumConstant enumConstant(Enum result) {
+        return new JavaEnumConstant(TypeDetails.of(result.getDeclaringClass()), result.name());
     }
 
     private static JavaEnumConstant[] enumConstants(Enum[] enums) {
@@ -103,7 +121,15 @@ public class JavaAnnotation {
         return result.toArray(new JavaEnumConstant[result.size()]);
     }
 
-    private static JavaEnumConstant enumConstant(Enum result) {
-        return new JavaEnumConstant(TypeDetails.of(result.getDeclaringClass()), result.name());
+    private static JavaAnnotation annotation(Annotation annotation) {
+        return new JavaAnnotation(TypeDetails.of(annotation.annotationType()), mapOf(annotation));
+    }
+
+    private static JavaAnnotation[] annotations(Annotation[] annotations) {
+        List<JavaAnnotation> result = new ArrayList<>();
+        for (Annotation a : annotations) {
+            result.add(annotation(a));
+        }
+        return result.toArray(new JavaAnnotation[result.size()]);
     }
 }

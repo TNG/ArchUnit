@@ -34,12 +34,16 @@ public class ReflectionUtils {
     }
 
     static Class<?> classForName(String name) {
+        return classForName(name, ReflectionUtils.class.getClassLoader());
+    }
+
+    static Class<?> classForName(String name, ClassLoader classLoader) {
         if (primitiveClassesByName.containsKey(name)) {
             return primitiveClassesByName.get(name);
         }
         name = ensureCorrectArrayTypeName(name);
         try {
-            return Class.forName(name, false, ReflectionUtils.class.getClassLoader());
+            return Class.forName(name, false, classLoader);
         } catch (Throwable e) {
             throw new ReflectionException(e);
         }
