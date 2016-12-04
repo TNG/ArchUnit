@@ -32,21 +32,35 @@ interface AccessRecord<TARGET extends AccessTarget> {
         AccessType getAccessType();
     }
 
-    class Factory {
+    abstract class Factory<RAW_RECORD, PROCESSED_RECORD> {
 
-        static AccessRecord<ConstructorCallTarget> createConstructorCallRecord(
-                RawAccessRecord record, Map<String, JavaClass> classes) {
-            return new RawConstructorCallRecordProcessed(record, classes);
+        abstract PROCESSED_RECORD create(RAW_RECORD record, Map<String, JavaClass> classes);
+
+        static Factory<RawAccessRecord, AccessRecord<ConstructorCallTarget>> forConstructorCallRecord() {
+            return new Factory<RawAccessRecord, AccessRecord<ConstructorCallTarget>>() {
+                @Override
+                AccessRecord<ConstructorCallTarget> create(RawAccessRecord record, Map<String, JavaClass> classes) {
+                    return new RawConstructorCallRecordProcessed(record, classes);
+                }
+            };
         }
 
-        static AccessRecord<MethodCallTarget> createMethodCallRecord(
-                RawAccessRecord record, Map<String, JavaClass> classes) {
-            return new RawMethodCallRecordProcessed(record, classes);
+        static Factory<RawAccessRecord, AccessRecord<MethodCallTarget>> forMethodCallRecord() {
+            return new Factory<RawAccessRecord, AccessRecord<MethodCallTarget>>() {
+                @Override
+                AccessRecord<MethodCallTarget> create(RawAccessRecord record, Map<String, JavaClass> classes) {
+                    return new RawMethodCallRecordProcessed(record, classes);
+                }
+            };
         }
 
-        static FieldAccessRecord createFieldAccessRecord(
-                RawAccessRecord record, AccessType accessType, Map<String, JavaClass> classes) {
-            return new RawFieldAccessRecordProcessed(record, accessType, classes);
+        static Factory<RawAccessRecord.ForField, FieldAccessRecord> forFieldAccessRecord() {
+            return new Factory<RawAccessRecord.ForField, FieldAccessRecord>() {
+                @Override
+                FieldAccessRecord create(RawAccessRecord.ForField record, Map<String, JavaClass> classes) {
+                    return new RawFieldAccessRecordProcessed(record, classes);
+                }
+            };
         }
 
         private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
@@ -143,21 +157,19 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
-            private final RawAccessRecord record;
-            private final AccessType accessType;
+            private final RawAccessRecord.ForField record;
             final Map<String, JavaClass> classes;
             private final Set<JavaField> fields;
 
-            RawFieldAccessRecordProcessed(RawAccessRecord record, AccessType accessType, Map<String, JavaClass> classes) {
+            RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, Map<String, JavaClass> classes) {
                 this.record = record;
-                this.accessType = accessType;
                 this.classes = classes;
                 fields = getJavaClass(record.target.owner.getName(), this.classes).getAllFields();
             }
 
             @Override
             public AccessType getAccessType() {
-                return accessType;
+                return record.accessType;
             }
 
             @Override

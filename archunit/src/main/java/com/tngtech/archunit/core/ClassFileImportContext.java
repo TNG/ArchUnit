@@ -43,13 +43,13 @@ class ClassFileImportContext {
     JavaClasses complete() {
         ensureClassHierarchies();
         for (RawFieldAccessRecord fieldAccessRecord : rawFieldAccessRecords) {
-            tryProcess(fieldAccessRecord, processedFieldAccessRecords);
+            tryProcess(fieldAccessRecord.raw(), AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
         }
         for (RawMethodCallRecord methodCallRecord : rawMethodCallRecords) {
-            tryProcess(methodCallRecord, processedMethodCallRecords);
+            tryProcess(methodCallRecord.raw(), AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
         }
-        for (RawConstructorCallRecord methodCallRecord : rawConstructorCallRecords) {
-            tryProcess(methodCallRecord, processedConstructorCallRecords);
+        for (RawConstructorCallRecord constructorCallRecord : rawConstructorCallRecords) {
+            tryProcess(constructorCallRecord.raw(), AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
         return JavaClasses.of(classes, this);
     }
@@ -85,17 +85,17 @@ class ClassFileImportContext {
         }
     }
 
-    private <T extends AccessRecord<?>> void tryProcess(
-            ToProcess<T> fieldAccessRecord, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
+    private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
+            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
         try {
-            T processed = fieldAccessRecord.process(classes);
+            T processed = factory.create(rawRecord, classes);
             processedAccessRecords.put(processed.getCaller(), processed);
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency '{}'",
-                    fieldAccessRecord.getTarget(), e.getMessage());
+                    rawRecord.target, e.getMessage());
         } catch (ReflectionException e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency. Error was: '{}'",
-                    fieldAccessRecord.getTarget(), e.getMessage());
+                    rawRecord.target, e.getMessage());
         }
     }
 
@@ -119,28 +119,25 @@ class ClassFileImportContext {
         return Optional.fromNullable(classes.get(typeName));
     }
 
-    static class RawFieldAccessRecord implements ToProcess<FieldAccessRecord> {
-        private final RawAccessRecord record;
-        private final AccessType accessType;
+    static class RawFieldAccessRecord {
+        final RawAccessRecord.ForField record;
 
-        private RawFieldAccessRecord(Builder builder) {
-            this.record = builder.buildAccessRecord();
-            accessType = builder.accessType;
-        }
-
-        @Override
-        public FieldAccessRecord process(Map<String, JavaClass> classes) {
-            return AccessRecord.Factory.createFieldAccessRecord(record, accessType, classes);
-        }
-
-        @Override
-        public String getTarget() {
-            return "" + record.target;
+        private RawFieldAccessRecord(RawAccessRecord.ForField.Builder builder) {
+            this.record = builder.build();
         }
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{accessType=" + accessType + "," + record.fieldsAsString() + '}';
+            return getClass().getSimpleName() + "{accessType=" + record.accessType + "," + record.fieldsAsString() + '}';
+        }
+
+        public RawAccessRecord.ForField raw() {
+            return new RawAccessRecord.ForField.Builder()
+                    .withCaller(record.caller)
+                    .withTarget(record.target)
+                    .withLineNumber(record.lineNumber)
+                    .withAccessType(record.accessType)
+                    .build();
         }
 
         static Builder builder() {
@@ -159,7 +156,12 @@ class ClassFileImportContext {
             }
 
             RawFieldAccessRecord build() {
-                return new RawFieldAccessRecord(this);
+                RawAccessRecord record = buildAccessRecord();
+                return new RawFieldAccessRecord(new RawAccessRecord.ForField.Builder()
+                        .withCaller(record.caller)
+                        .withTarget(record.target)
+                        .withLineNumber(record.lineNumber)
+                        .withAccessType(accessType));
             }
         }
     }
@@ -173,7 +175,7 @@ class ClassFileImportContext {
 
         @Override
         public AccessRecord<ConstructorCallTarget> process(Map<String, JavaClass> classes) {
-            return AccessRecord.Factory.createConstructorCallRecord(record, classes);
+            return AccessRecord.Factory.forConstructorCallRecord().create(record, classes);
         }
 
         @Override
@@ -188,6 +190,14 @@ class ClassFileImportContext {
 
         static Builder builder() {
             return new Builder();
+        }
+
+        public RawAccessRecord raw() {
+            return new RawAccessRecord.Builder<>()
+                    .withCaller(record.caller)
+                    .withTarget(record.target)
+                    .withLineNumber(record.lineNumber)
+                    .buildAccessRecord();
         }
 
         static class Builder extends RawAccessRecord.Builder<Builder> {
@@ -209,7 +219,7 @@ class ClassFileImportContext {
 
         @Override
         public AccessRecord<MethodCallTarget> process(Map<String, JavaClass> classes) {
-            return AccessRecord.Factory.createMethodCallRecord(record, classes);
+            return AccessRecord.Factory.forMethodCallRecord().create(record, classes);
         }
 
         @Override
@@ -224,6 +234,14 @@ class ClassFileImportContext {
 
         static Builder builder() {
             return new Builder();
+        }
+
+        public RawAccessRecord raw() {
+            return new RawAccessRecord.Builder<>()
+                    .withCaller(record.caller)
+                    .withTarget(record.target)
+                    .withLineNumber(record.lineNumber)
+                    .buildAccessRecord();
         }
 
         static class Builder extends RawAccessRecord.Builder<Builder> {
