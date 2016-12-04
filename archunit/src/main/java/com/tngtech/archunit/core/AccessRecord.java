@@ -13,9 +13,9 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.ClassFileImportContext.TargetInfo;
-import com.tngtech.archunit.core.ClassFileProcessor.CodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
+import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
