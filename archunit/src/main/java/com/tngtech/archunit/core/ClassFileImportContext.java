@@ -106,16 +106,16 @@ class ClassFileImportContext {
     }
 
     private <T extends AccessRecord<?>> void tryProcess(
-            BaseRawAccessRecord<T> fieldAccessRecord, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
+            ToProcess<T> fieldAccessRecord, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
         try {
             T processed = fieldAccessRecord.process(classes);
             processedAccessRecords.put(processed.getCaller(), processed);
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency '{}'",
-                    fieldAccessRecord.record.target, e.getMessage());
+                    fieldAccessRecord.getTarget(), e.getMessage());
         } catch (ReflectionException e) {
             LOG.warn("Can't analyse access to '{}' because of missing dependency. Error was: '{}'",
-                    fieldAccessRecord.record.target, e.getMessage());
+                    fieldAccessRecord.getTarget(), e.getMessage());
         }
     }
 
@@ -148,7 +148,7 @@ class ClassFileImportContext {
         }
 
         @Override
-        FieldAccessRecord process(Map<String, JavaClass> classes) {
+        public FieldAccessRecord process(Map<String, JavaClass> classes) {
             return new Processed(classes);
         }
 
@@ -168,7 +168,7 @@ class ClassFileImportContext {
 
             @Override
             public JavaCodeUnit<?, ?> getCaller() {
-                return BaseRawAccessRecord.getCaller(record.caller, classes);
+                return ClassFileImportContext.getCaller(record.caller, classes);
             }
 
             @Override
@@ -240,7 +240,7 @@ class ClassFileImportContext {
 
             @Override
             public JavaCodeUnit<?, ?> getCaller() {
-                return BaseRawAccessRecord.getCaller(record.caller, classes);
+                return ClassFileImportContext.getCaller(record.caller, classes);
             }
 
             @Override
@@ -304,7 +304,7 @@ class ClassFileImportContext {
 
             @Override
             public JavaCodeUnit<?, ?> getCaller() {
-                return BaseRawAccessRecord.getCaller(record.caller, classes);
+                return ClassFileImportContext.getCaller(record.caller, classes);
             }
 
             @Override
@@ -352,39 +352,22 @@ class ClassFileImportContext {
         }
     }
 
-    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> {
+    private interface ToProcess<PROCESSED_RECORD> {
+        PROCESSED_RECORD process(Map<String, JavaClass> classes);
+
+        String getTarget();
+    }
+
+    abstract static class BaseRawAccessRecord<PROCESSED_RECORD extends AccessRecord<?>> implements ToProcess<PROCESSED_RECORD> {
         final BaseAccessRecord<CodeUnit, TargetInfo> record;
 
         private BaseRawAccessRecord(Builder<?> builder) {
             record = new BaseAccessRecord<>(builder.caller, builder.target, builder.lineNumber);
         }
 
-        abstract PROCESSED_RECORD process(Map<String, JavaClass> classes);
-
-        static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, Map<String, JavaClass> classes) {
-            for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName(), classes).getCodeUnits()) {
-                if (caller.is(method)) {
-                    return method;
-                }
-            }
-            throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
-                    " that matches supposed caller " + caller);
-        }
-
-        static JavaClass getJavaClass(String typeName, Map<String, JavaClass> classes) {
-            if (!classes.containsKey(typeName)) {
-                classes.put(typeName, ImportWorkaround.resolveClass(typeName));
-            }
-            return classes.get(typeName);
-        }
-
-        static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T> tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {
-            for (T possibleTarget : possibleTargets) {
-                if (targetInfo.matches(possibleTarget)) {
-                    return Optional.of(possibleTarget);
-                }
-            }
-            return Optional.absent();
+        @Override
+        public String getTarget() {
+            return "" + record.target;
         }
 
         static class Builder<SELF extends Builder<SELF>> {
@@ -412,6 +395,33 @@ class ClassFileImportContext {
                 return (SELF) this;
             }
         }
+    }
+
+    private static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, Map<String, JavaClass> classes) {
+        for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName(), classes).getCodeUnits()) {
+            if (caller.is(method)) {
+                return method;
+            }
+        }
+        throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
+                " that matches supposed caller " + caller);
+    }
+
+    private static JavaClass getJavaClass(String typeName, Map<String, JavaClass> classes) {
+        if (!classes.containsKey(typeName)) {
+            classes.put(typeName, ImportWorkaround.resolveClass(typeName));
+        }
+        return classes.get(typeName);
+    }
+
+    private static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T>
+    tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {
+        for (T possibleTarget : possibleTargets) {
+            if (targetInfo.matches(possibleTarget)) {
+                return Optional.of(possibleTarget);
+            }
+        }
+        return Optional.absent();
     }
 
     private static class BaseAccessRecord<CALLER, TARGET> {
