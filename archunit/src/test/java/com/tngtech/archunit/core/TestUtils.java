@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Suppliers;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -118,6 +120,30 @@ public class TestUtils {
         return new JavaEnumConstant(TypeDetails.of(value.getDeclaringClass()), value.name());
     }
 
+    static FieldAccessTarget targetFrom(JavaField field) {
+        return new FieldAccessTarget(
+                field.getOwner(),
+                field.getName(),
+                TypeDetails.of(field.getType()),
+                Suppliers.ofInstance(Optional.of(field)));
+    }
+
+    static ConstructorCallTarget targetFrom(JavaConstructor target) {
+        return new ConstructorCallTarget(
+                target.getOwner(),
+                target.getParameters(),
+                Suppliers.ofInstance(Optional.of(target)));
+    }
+
+    static MethodCallTarget targetFrom(JavaMethod target) {
+        return new MethodCallTarget(
+                target.getOwner(),
+                target.getName(),
+                target.getParameters(),
+                target.getReturnType(),
+                Suppliers.ofInstance(Collections.singleton(target)));
+    }
+
     public static class AccessesSimulator {
         private final Set<AccessRecord<MethodCallTarget>> targets = new HashSet<>();
 
@@ -146,7 +172,7 @@ public class TestUtils {
         }
 
         public JavaMethodCall to(JavaMethod target) {
-            targets.add(new TestAccessRecord<>(new MethodCallTarget(target)));
+            targets.add(new TestAccessRecord<>(targetFrom(target)));
             ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
             method.completeFrom(context);
@@ -160,7 +186,7 @@ public class TestUtils {
         private JavaMethodCall getCallToTarget(JavaMethod target) {
             Set<JavaMethodCall> matchingCalls = new HashSet<>();
             for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
-                if (call.getTarget().equals(new MethodCallTarget(target))) {
+                if (call.getTarget().equals(targetFrom(target))) {
                     matchingCalls.add(call);
                 }
             }
@@ -179,7 +205,7 @@ public class TestUtils {
             private final AccessType accessType;
 
             private TestFieldAccessRecord(JavaField target, AccessType accessType) {
-                super(new FieldAccessTarget(target));
+                super(targetFrom(target));
                 this.target = target;
                 this.accessType = accessType;
             }

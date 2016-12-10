@@ -4,11 +4,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -81,10 +85,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public ConstructorCallTarget getTarget() {
-                Optional<JavaConstructor> matchingMethod = tryFindMatchingTarget(constructors, record.target);
+                Optional<JavaConstructor> matchingConstructor = tryFindMatchingTarget(constructors, record.target);
 
-                JavaConstructor constructor = matchingMethod.isPresent() ? matchingMethod.get() : createConstructorFor(record.target);
-                return new ConstructorCallTarget(constructor);
+                final JavaConstructor constructor = matchingConstructor.isPresent() ?
+                        matchingConstructor.get() :
+                        createConstructorFor(record.target);
+                Supplier<Optional<JavaConstructor>> constructorSupplier = Suppliers.ofInstance(Optional.of(constructor));
+                List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
+                JavaClass owner = classes.get(record.target.owner.getName());
+                return new ConstructorCallTarget(owner, paramTypes, constructorSupplier);
             }
 
             private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
@@ -128,7 +137,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, record.target);
 
                 JavaMethod method = matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(record.target);
-                return new MethodCallTarget(method);
+                Supplier<Set<JavaMethod>> methodsSupplier = Suppliers.ofInstance(Collections.singleton(method));
+                List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
+                TypeDetails returnType = TypeDetails.of(Type.getReturnType(record.target.desc));
+                JavaClass owner = classes.get(record.target.owner.getName());
+                return new MethodCallTarget(owner, record.target.name, parameters, returnType, methodsSupplier);
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
@@ -182,7 +195,10 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Optional<JavaField> matchingField = tryFindMatchingTarget(fields, record.target);
 
                 JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(record.target);
-                return new FieldAccessTarget(field);
+                Supplier<Optional<JavaField>> fieldSupplier = Suppliers.ofInstance(Optional.of(field));
+                TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
+                JavaClass owner = classes.get(record.target.owner.getName());
+                return new FieldAccessTarget(owner, record.target.name, fieldType, fieldSupplier);
             }
 
             private JavaField createFieldFor(TargetInfo targetInfo) {
@@ -307,6 +323,14 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public String toString() {
                 return getClass().getSimpleName() + "{targetInfo=" + targetInfo + '}';
             }
+        }
+
+        private static List<TypeDetails> getArgumentTypesFrom(String descriptor) {
+            List<TypeDetails> paramTypes = new ArrayList<>();
+            for (Type type : Type.getArgumentTypes(descriptor)) {
+                paramTypes.add(TypeDetails.of(type));
+            }
+            return paramTypes;
         }
     }
 }

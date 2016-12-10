@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
-    private Set<JavaConstructorCall> calls = Collections.emptySet();
+    private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
     public static final String CONSTRUCTOR_NAME = "<init>";
 
@@ -39,11 +39,11 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
 
     @Override
     public Set<JavaConstructorCall> getAccessesToSelf() {
-        return calls;
+        return callsToSelf;
     }
 
-    public void registerCalls(Collection<JavaConstructorCall> calls) {
-        this.calls = ImmutableSet.copyOf(calls);
+    void registerCallsToConstructor(Collection<JavaConstructorCall> calls) {
+        this.callsToSelf = ImmutableSet.copyOf(calls);
     }
 
     static final class Builder extends JavaMember.Builder<MemberDescription.ForConstructor, JavaConstructor> {
@@ -53,7 +53,7 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
             return new JavaConstructor(this);
         }
 
-        public BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
+        BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
             return withMember(new MemberDescription.ForConstructor(constructor));
         }
     }

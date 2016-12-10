@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -67,7 +68,7 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
     }
 
     static JavaClasses of(Map<String, JavaClass> classes, ImportContext importContext) {
-        CompletionProcess completionProcess = new CompletionProcess(importContext);
+        CompletionProcess completionProcess = new CompletionProcess(classes.values(), importContext);
         for (JavaClass clazz : new JavaClasses(classes)) {
             completionProcess.completeClass(clazz);
         }
@@ -77,9 +78,11 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
 
     private static class CompletionProcess {
         private final Set<JavaClass.CompletionProcess> classCompletionProcesses = new HashSet<>();
+        private final Collection<JavaClass> classes;
         private final ImportContext context;
 
-        public CompletionProcess(ImportContext context) {
+        CompletionProcess(Collection<JavaClass> classes, ImportContext context) {
+            this.classes = classes;
             this.context = context;
         }
 
@@ -87,8 +90,8 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
             classCompletionProcesses.add(clazz.completeFrom(context));
         }
 
-        public void finish() {
-            AccessCompletion.TopProcess accessCompletionProcess = new AccessCompletion.TopProcess();
+        void finish() {
+            AccessContext.TopProcess accessCompletionProcess = new AccessContext.TopProcess(classes);
             for (JavaClass.CompletionProcess process : classCompletionProcesses) {
                 accessCompletionProcess.mergeWith(process.completeCodeUnitsFrom(context));
             }

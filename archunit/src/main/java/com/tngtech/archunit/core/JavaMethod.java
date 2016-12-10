@@ -9,7 +9,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
-    private Set<JavaMethodCall> calls = Collections.emptySet();
+    private Set<JavaMethodCall> callsToSelf = Collections.emptySet();
 
     private JavaMethod(Builder builder) {
         super(builder);
@@ -31,11 +31,11 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
 
     @Override
     public Set<JavaMethodCall> getAccessesToSelf() {
-        return calls;
+        return callsToSelf;
     }
 
-    public void registerCalls(Collection<JavaMethodCall> calls) {
-        this.calls = ImmutableSet.copyOf(calls);
+    void registerCallsToMethod(Collection<JavaMethodCall> calls) {
+        this.callsToSelf = ImmutableSet.copyOf(calls);
     }
 
     static class Builder extends JavaMember.Builder<MemberDescription.ForMethod, JavaMethod> {
@@ -45,7 +45,7 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
             return new JavaMethod(this);
         }
 
-        public BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
+        BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
             return withMember(new MemberDescription.ForDeterminedMethod(method));
         }
     }

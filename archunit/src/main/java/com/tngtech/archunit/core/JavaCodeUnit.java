@@ -65,7 +65,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return false;
     }
 
-    AccessCompletion.SubProcess completeFrom(ImportContext context) {
+    AccessContext.Part completeFrom(ImportContext context) {
         ImmutableSet.Builder<JavaFieldAccess> fieldAccessesBuilder = ImmutableSet.builder();
         for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
             fieldAccessesBuilder.add(new JavaFieldAccess(record));
@@ -84,6 +84,6 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         }
         constructorCalls = constructorCallsBuilder.build();
 
-        return new AccessCompletion.SubProcess(this);
+        return new AccessContext.Part(this);
     }
 }

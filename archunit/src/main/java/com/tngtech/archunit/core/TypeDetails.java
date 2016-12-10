@@ -9,6 +9,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import org.objectweb.asm.Type;
+
+import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
     private Class<?> type;
@@ -101,5 +104,9 @@ public class TypeDetails {
 
     public static TypeDetails of(Class<?> type) {
         return new TypeDetails(type);
+    }
+
+    public static TypeDetails of(Type type) {
+        return new TypeDetails(classForName(type.getClassName()));
     }
 }
