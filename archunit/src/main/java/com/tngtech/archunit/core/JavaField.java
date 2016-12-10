@@ -4,10 +4,13 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
-    private Set<JavaFieldAccess> accessesToSelf = Collections.emptySet();
+    private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     private JavaField(Builder builder) {
         super(builder.member, builder.owner);
@@ -24,11 +27,11 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
 
     @Override
     public Set<JavaFieldAccess> getAccessesToSelf() {
-        return accessesToSelf;
+        return accessesToSelf.get();
     }
 
-    void registerAccessesToField(Set<JavaFieldAccess> accesses) {
-        this.accessesToSelf = ImmutableSet.copyOf(accesses);
+    void registerAccessesToField(Supplier<Set<JavaFieldAccess>> accesses) {
+        this.accessesToSelf = checkNotNull(accesses);
     }
 
     public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super Class<?>> predicate) {

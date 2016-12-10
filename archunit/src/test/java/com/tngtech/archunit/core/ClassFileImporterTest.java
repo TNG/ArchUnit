@@ -57,9 +57,12 @@ import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubClass;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubInterface;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubSubClass;
 import com.tngtech.archunit.core.testexamples.complexexternal.ChildClass;
-import com.tngtech.archunit.core.testexamples.dependents.ClassWithDependents;
+import com.tngtech.archunit.core.testexamples.dependents.ClassDependingOnParentThroughChild;
+import com.tngtech.archunit.core.testexamples.dependents.ClassHoldingDependencies;
 import com.tngtech.archunit.core.testexamples.dependents.FirstClassWithDependency;
+import com.tngtech.archunit.core.testexamples.dependents.ParentClassHoldingDependencies;
 import com.tngtech.archunit.core.testexamples.dependents.SecondClassWithDependency;
+import com.tngtech.archunit.core.testexamples.dependents.SubClassHoldingDependencies;
 import com.tngtech.archunit.core.testexamples.diamond.ClassCallingDiamond;
 import com.tngtech.archunit.core.testexamples.diamond.ClassImplementingD;
 import com.tngtech.archunit.core.testexamples.diamond.InterfaceD;
@@ -98,6 +101,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
@@ -1035,13 +1039,13 @@ public class ClassFileImporterTest {
     @Test
     public void fields_know_their_accesses() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaFieldAccess> accesses = classWithDependents.getField("someInt").getAccessesToSelf();
+        Set<JavaFieldAccess> accesses = classHoldingDependencies.getField("someInt").getAccessesToSelf();
         Set<JavaFieldAccess> expected = ImmutableSet.<JavaFieldAccess>builder()
-                .addAll(getByName(classWithDependents.getFieldAccessesFromSelf(), "someInt"))
+                .addAll(getByName(classHoldingDependencies.getFieldAccessesFromSelf(), "someInt"))
                 .addAll(getByName(firstClassWithDependency.getFieldAccessesFromSelf(), "someInt"))
                 .addAll(getByName(secondClassWithDependency.getFieldAccessesFromSelf(), "someInt"))
                 .build();
@@ -1051,13 +1055,13 @@ public class ClassFileImporterTest {
     @Test
     public void classes_know_the_field_accesses_to_them() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaFieldAccess> accesses = classWithDependents.getFieldAccessesToSelf();
+        Set<JavaFieldAccess> accesses = classHoldingDependencies.getFieldAccessesToSelf();
         Set<JavaFieldAccess> expected = ImmutableSet.<JavaFieldAccess>builder()
-                .addAll(classWithDependents.getFieldAccessesFromSelf())
+                .addAll(classHoldingDependencies.getFieldAccessesFromSelf())
                 .addAll(firstClassWithDependency.getFieldAccessesFromSelf())
                 .addAll(secondClassWithDependency.getFieldAccessesFromSelf())
                 .build();
@@ -1067,13 +1071,13 @@ public class ClassFileImporterTest {
     @Test
     public void methods_know_callers() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaMethodCall> calls = classWithDependents.getMethod("setSomeInt", int.class).getCallsOfSelf();
+        Set<JavaMethodCall> calls = classHoldingDependencies.getMethod("setSomeInt", int.class).getCallsOfSelf();
         Set<JavaMethodCall> expected = ImmutableSet.<JavaMethodCall>builder()
-                .addAll(getByName(classWithDependents.getMethodCallsFromSelf(), "setSomeInt"))
+                .addAll(getByName(classHoldingDependencies.getMethodCallsFromSelf(), "setSomeInt"))
                 .addAll(getByName(firstClassWithDependency.getMethodCallsFromSelf(), "setSomeInt"))
                 .addAll(getByName(secondClassWithDependency.getMethodCallsFromSelf(), "setSomeInt"))
                 .build();
@@ -1083,15 +1087,15 @@ public class ClassFileImporterTest {
     @Test
     public void classes_know_method_calls_to_themselves() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaMethodCall> calls = classWithDependents.getMethodCallsToSelf();
+        Set<JavaMethodCall> calls = classHoldingDependencies.getMethodCallsToSelf();
         Set<JavaMethodCall> expected = ImmutableSet.<JavaMethodCall>builder()
-                .addAll(classWithDependents.getMethodCallsFromSelf())
-                .addAll(getByTargetOwner(firstClassWithDependency.getMethodCallsFromSelf(), classWithDependents))
-                .addAll(getByTargetOwner(secondClassWithDependency.getMethodCallsFromSelf(), classWithDependents))
+                .addAll(classHoldingDependencies.getMethodCallsFromSelf())
+                .addAll(getByTargetOwner(firstClassWithDependency.getMethodCallsFromSelf(), classHoldingDependencies))
+                .addAll(getByTargetOwner(secondClassWithDependency.getMethodCallsFromSelf(), classHoldingDependencies))
                 .build();
         assertThat(calls).as("Method calls to class").isEqualTo(expected);
     }
@@ -1099,14 +1103,14 @@ public class ClassFileImporterTest {
     @Test
     public void constructors_know_callers() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        JavaConstructor targetConstructur = classWithDependents.getConstructor();
+        JavaConstructor targetConstructur = classHoldingDependencies.getConstructor();
         Set<JavaConstructorCall> calls = targetConstructur.getCallsOfSelf();
         Set<JavaConstructorCall> expected = ImmutableSet.<JavaConstructorCall>builder()
-                .addAll(getByTarget(classWithDependents.getConstructorCallsFromSelf(), targetConstructur))
+                .addAll(getByTarget(classHoldingDependencies.getConstructorCallsFromSelf(), targetConstructur))
                 .addAll(getByTarget(firstClassWithDependency.getConstructorCallsFromSelf(), targetConstructur))
                 .addAll(getByTarget(secondClassWithDependency.getConstructorCallsFromSelf(), targetConstructur))
                 .build();
@@ -1116,15 +1120,15 @@ public class ClassFileImporterTest {
     @Test
     public void classes_know_constructor_calls_to_themselves() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaConstructorCall> calls = classWithDependents.getConstructorCallsToSelf();
+        Set<JavaConstructorCall> calls = classHoldingDependencies.getConstructorCallsToSelf();
         Set<JavaConstructorCall> expected = ImmutableSet.<JavaConstructorCall>builder()
-                .addAll(getByTargetOwner(classWithDependents.getConstructorCallsFromSelf(), classWithDependents))
-                .addAll(getByTargetOwner(firstClassWithDependency.getConstructorCallsFromSelf(), classWithDependents))
-                .addAll(getByTargetOwner(secondClassWithDependency.getConstructorCallsFromSelf(), classWithDependents))
+                .addAll(getByTargetOwner(classHoldingDependencies.getConstructorCallsFromSelf(), classHoldingDependencies))
+                .addAll(getByTargetOwner(firstClassWithDependency.getConstructorCallsFromSelf(), classHoldingDependencies))
+                .addAll(getByTargetOwner(secondClassWithDependency.getConstructorCallsFromSelf(), classHoldingDependencies))
                 .build();
         assertThat(calls).as("Constructor calls to ClassWithDependents").isEqualTo(expected);
     }
@@ -1132,17 +1136,48 @@ public class ClassFileImporterTest {
     @Test
     public void classes_know_accesses_to_themselves() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classWithDependents = classes.get(ClassWithDependents.class);
+        JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
         JavaClass firstClassWithDependency = classes.get(FirstClassWithDependency.class);
         JavaClass secondClassWithDependency = classes.get(SecondClassWithDependency.class);
 
-        Set<JavaAccess<?>> accesses = classWithDependents.getAccessesToSelf();
+        Set<JavaAccess<?>> accesses = classHoldingDependencies.getAccessesToSelf();
         Set<JavaAccess<?>> expected = ImmutableSet.<JavaAccess<?>>builder()
-                .addAll(getByTargetOwner(classWithDependents.getAccessesFromSelf(), classWithDependents))
-                .addAll(getByTargetOwner(firstClassWithDependency.getAccessesFromSelf(), classWithDependents))
-                .addAll(getByTargetOwner(secondClassWithDependency.getAccessesFromSelf(), classWithDependents))
+                .addAll(getByTargetOwner(classHoldingDependencies.getAccessesFromSelf(), classHoldingDependencies))
+                .addAll(getByTargetOwner(firstClassWithDependency.getAccessesFromSelf(), classHoldingDependencies))
+                .addAll(getByTargetOwner(secondClassWithDependency.getAccessesFromSelf(), classHoldingDependencies))
                 .build();
         assertThat(accesses).as("Accesses to ClassWithDependents").isEqualTo(expected);
+    }
+
+    @Test
+    public void inherited_field_accesses_and_method_calls_are_resolved() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/dependents");
+        JavaClass classHoldingDependencies = classes.get(ParentClassHoldingDependencies.class);
+        JavaClass subClassHoldingDependencies = classes.get(SubClassHoldingDependencies.class);
+        JavaClass dependentClass = classes.get(ClassDependingOnParentThroughChild.class);
+
+        Set<JavaFieldAccess> fieldAccessesToSelf = classHoldingDependencies.getFieldAccessesToSelf();
+        Set<JavaFieldAccess> expectedFieldAccesses =
+                getByTargetNot(dependentClass.getFieldAccessesFromSelf(), dependentClass);
+        assertThat(fieldAccessesToSelf).as("Field accesses to class").isEqualTo(expectedFieldAccesses);
+
+        Set<JavaMethodCall> methodCalls = classHoldingDependencies.getMethodCallsToSelf();
+        Set<JavaMethodCall> expectedMethodCalls =
+                getByTargetNot(dependentClass.getMethodCallsFromSelf(), dependentClass);
+        assertThat(methodCalls).as("Method calls to class").isEqualTo(expectedMethodCalls);
+
+        // NOTE: For constructors it's impossible to be accessed via a subclass,
+        //       since the byte code always holds an explicitly declared constructor
+
+        Set<JavaConstructorCall> constructorCalls = classHoldingDependencies.getConstructorCallsToSelf();
+        Set<JavaConstructorCall> expectedConstructorCalls =
+                getByTarget(subClassHoldingDependencies.getConstructorCallsFromSelf(), classHoldingDependencies.getName());
+        assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
+
+        constructorCalls = subClassHoldingDependencies.getConstructorCallsToSelf();
+        expectedConstructorCalls =
+                getByTarget(dependentClass.getConstructorCallsFromSelf(), subClassHoldingDependencies.getName());
+        assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
     }
 
     @Test
@@ -1231,17 +1266,30 @@ public class ClassFileImporterTest {
         return getOnlyElement(getByCaller(calls, caller));
     }
 
-    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, JavaConstructor target) {
-        return getByTarget(calls, targetFrom(target));
-    }
-
-    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final AccessTarget target) {
-        return getBy(calls, new Predicate<T>() {
+    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final JavaConstructor target) {
+        return getBy(calls, new Predicate<JavaAccess<?>>() {
             @Override
-            public boolean apply(T input) {
-                return target.equals(input.getTarget());
+            public boolean apply(JavaAccess<?> input) {
+                return targetFrom(target).getFullName().equals(input.getTarget().getFullName());
             }
         });
+    }
+
+    private <T extends JavaAccess<?>> Set<T> getByTargetNot(Set<T> accesses, JavaClass target) {
+        return getBy(accesses, not(targetOwnerNameEquals(target.getName())));
+    }
+
+    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final String targetOwnerName) {
+        return getBy(calls, targetOwnerNameEquals(targetOwnerName));
+    }
+
+    private Predicate<JavaAccess<?>> targetOwnerNameEquals(final String targetFqn) {
+        return new Predicate<JavaAccess<?>>() {
+            @Override
+            public boolean apply(JavaAccess<?> input) {
+                return targetFqn.equals(input.getTarget().getOwner().getName());
+            }
+        };
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final JavaClass targetOwner) {
@@ -1262,7 +1310,7 @@ public class ClassFileImporterTest {
         });
     }
 
-    private <T extends IsOwnedByCodeUnit> Set<T> getBy(Set<T> calls, Predicate<T> predicate) {
+    private <T extends IsOwnedByCodeUnit> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
         return FluentIterable.from(calls).filter(predicate).toSet();
     }
 

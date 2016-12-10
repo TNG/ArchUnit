@@ -1,15 +1,17 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
-    private Set<JavaMethodCall> callsToSelf = Collections.emptySet();
+    private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
 
     private JavaMethod(Builder builder) {
         super(builder);
@@ -31,11 +33,11 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
 
     @Override
     public Set<JavaMethodCall> getAccessesToSelf() {
-        return callsToSelf;
+        return callsToSelf.get();
     }
 
-    void registerCallsToMethod(Collection<JavaMethodCall> calls) {
-        this.callsToSelf = ImmutableSet.copyOf(calls);
+    void registerCallsToMethod(Supplier<Set<JavaMethodCall>> calls) {
+        this.callsToSelf = checkNotNull(calls);
     }
 
     static class Builder extends JavaMember.Builder<MemberDescription.ForMethod, JavaMethod> {
