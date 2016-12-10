@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -113,6 +117,7 @@ import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
+import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -676,7 +681,7 @@ public class ClassFileImporterTest {
 
         Set<JavaFieldAccess> setStringValues = getByNameAndAccessType(accesses, "stringValue", SET);
         assertThat(setStringValues).hasSize(2);
-        assertThat(targetsOf(setStringValues)).containsOnly(new FieldAccessTarget(classWithOwnFieldAccess.getField("stringValue")));
+        assertThat(targetsOf(setStringValues)).containsOnly(targetFrom(classWithOwnFieldAccess.getField("stringValue")));
         assertThat(lineNumbersOf(setStringValues)).containsOnly(6, 8);
 
         assertThatAccess(getOnly(accesses, "stringValue", GET))
@@ -770,9 +775,15 @@ public class ClassFileImporterTest {
         Set<JavaFieldAccess> accesses = classThatAccessesFieldOfSuperClass.getFieldAccessesFromSelf();
 
         assertThat(accesses).hasSize(2);
+        JavaField field = superClassWithAccessedField.getField("field");
+        FieldAccessTarget expectedSuperClassFieldAccess = new FieldAccessTarget(
+                subClassWithAccessedField,
+                field.getName(),
+                TypeDetails.of(field.getType()),
+                Suppliers.ofInstance(Optional.of(field)));
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperClassField")
-                .isTo(superClassWithAccessedField.getField("field"))
+                .isTo(expectedSuperClassFieldAccess)
                 .inLineNumber(5);
         assertThatAccess(getOnly(accesses, "maskedField", GET))
                 .isFrom("accessSubClassField")
@@ -793,9 +804,16 @@ public class ClassFileImporterTest {
 
         JavaCodeUnit<?, ?> callSuperClassMethod = classThatCallsMethodOfSuperClass
                 .getCodeUnit(CallOfSuperAndSubClassMethod.callSuperClassMethod);
+        JavaMethod expectedSuperClassMethod = superClassWithCalledMethod.getMethod(SuperClassWithCalledMethod.method);
+        MethodCallTarget expectedSuperClassCall = new MethodCallTarget(
+                subClassWithCalledMethod,
+                expectedSuperClassMethod.getName(),
+                expectedSuperClassMethod.getParameters(),
+                expectedSuperClassMethod.getReturnType(),
+                Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)));
         assertThatCall(getOnlyByCaller(calls, callSuperClassMethod))
                 .isFrom(callSuperClassMethod)
-                .isTo(superClassWithCalledMethod.getMethod(SuperClassWithCalledMethod.method))
+                .isTo(expectedSuperClassCall)
                 .inLineNumber(CallOfSuperAndSubClassMethod.callSuperClassLineNumber);
 
         JavaCodeUnit<?, ?> callSubClassMethod = classThatCallsMethodOfSuperClass
@@ -873,7 +891,7 @@ public class ClassFileImporterTest {
 
         ConstructorCallTarget target = objectInitCall.getTarget();
         assertThat(target.getFullName()).isEqualTo(Object.class.getName() + ".<init>()");
-        assertThat(target.getConstructor().reflect()).isEqualTo(Object.class.getConstructor());
+        assertThat(reflect(target)).isEqualTo(Object.class.getConstructor());
     }
 
     @Test
@@ -889,7 +907,7 @@ public class ClassFileImporterTest {
 
         ConstructorCallTarget target = callToExternalClass.getTarget();
         assertThat(target.getFullName()).isEqualTo(ChildClass.class.getName() + ".<init>()");
-        assertThat(target.getConstructor().reflect()).isEqualTo(constructor(ChildClass.class));
+        assertThat(reflect(target)).isEqualTo(constructor(ChildClass.class));
     }
 
     @Test
@@ -904,7 +922,7 @@ public class ClassFileImporterTest {
 
         MethodCallTarget target = call.getTarget();
         assertThat(target.getOwner().reflect()).isEqualTo(ArrayList.class);
-        assertThat(target.getMethod().getFullName()).isEqualTo(ArrayList.class.getName() + ".toString()");
+        assertThat(target.getFullName()).isEqualTo(ArrayList.class.getName() + ".toString()");
     }
 
     @Test
@@ -919,7 +937,8 @@ public class ClassFileImporterTest {
 
         MethodCallTarget target = call.getTarget();
         assertThat(target.getFullName()).isEqualTo(ChildClass.class.getName() + ".overrideMe()");
-        assertThat(target.getMethod().reflect()).isEqualTo(method(ChildClass.class, "overrideMe"));
+        assertThat(getOnlyElement(target.resolve()).getFullName()).isEqualTo(ChildClass.class.getName() + ".overrideMe()");
+        assertThat(reflect(target)).isEqualTo(method(ChildClass.class, "overrideMe"));
     }
 
     @Test
@@ -933,7 +952,7 @@ public class ClassFileImporterTest {
                 .inLineNumber(9);
 
         MethodCallTarget target = call.getTarget();
-        assertThat(target.getMethod().reflect()).isEqualTo(method(Map.class, "put", Object.class, Object.class));
+        assertThat(reflect(target)).isEqualTo(method(Map.class, "put", Object.class, Object.class));
     }
 
     @Test
@@ -1186,6 +1205,14 @@ public class ClassFileImporterTest {
         return getClass().getResource("/" + clazz.getName().replace('.', '/') + ".class");
     }
 
+    private Constructor<?> reflect(ConstructorCallTarget target) {
+        return target.resolve().get().reflect();
+    }
+
+    private Method reflect(MethodCallTarget target) {
+        return getOnlyElement(target.resolve()).reflect();
+    }
+
     private JavaFieldAccess getOnly(Set<JavaFieldAccess> fieldAccesses, String name, AccessType accessType) {
         return getOnlyElement(getByNameAndAccessType(fieldAccesses, name, accessType));
     }
@@ -1205,7 +1232,7 @@ public class ClassFileImporterTest {
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, JavaConstructor target) {
-        return getByTarget(calls, new ConstructorCallTarget(target));
+        return getByTarget(calls, targetFrom(target));
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final AccessTarget target) {
@@ -1381,7 +1408,7 @@ public class ClassFileImporterTest {
         }
 
         private AccessToFieldAssertion isTo(JavaField field) {
-            return isTo(new FieldAccessTarget(field));
+            return isTo(targetFrom(field));
         }
 
         private AccessToFieldAssertion isOfType(AccessType type) {
@@ -1396,7 +1423,7 @@ public class ClassFileImporterTest {
         }
 
         MethodCallAssertion isTo(JavaMethod target) {
-            return isTo(new MethodCallTarget(target));
+            return isTo(targetFrom(target));
         }
 
         @Override
@@ -1411,7 +1438,7 @@ public class ClassFileImporterTest {
         }
 
         ConstructorCallAssertion isTo(JavaConstructor target) {
-            return isTo(new ConstructorCallTarget(target));
+            return isTo(targetFrom(target));
         }
 
         @Override

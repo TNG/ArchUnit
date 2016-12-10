@@ -8,6 +8,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.javaMethod;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaAccessTest {
@@ -52,8 +53,8 @@ public class JavaAccessTest {
     }
 
     private static class TestJavaAccess extends JavaAccess<MethodCallTarget> {
-        public TestJavaAccess(JavaMethod origin, JavaMethod target, int lineNumber) {
-            super(origin, new MethodCallTarget(target), lineNumber);
+        TestJavaAccess(JavaMethod origin, JavaMethod target, int lineNumber) {
+            super(origin, targetFrom(target), lineNumber);
         }
 
         @Override
@@ -74,7 +75,7 @@ public class JavaAccessTest {
                 return this;
             }
 
-            public TestJavaAccess inLineNumber(int lineNumber) {
+            TestJavaAccess inLineNumber(int lineNumber) {
                 return new TestJavaAccess(origin, target, lineNumber);
             }
         }

@@ -449,12 +449,12 @@ public class JavaClass implements HasName {
     };
 
     class CompletionProcess {
-        AccessCompletion.SubProcess completeCodeUnitsFrom(ImportContext context) {
-            AccessCompletion.SubProcess accessCompletionProcess = new AccessCompletion.SubProcess();
+        AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
+            AccessContext.Part part = new AccessContext.Part();
             for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
-                accessCompletionProcess.mergeWith(codeUnit.completeFrom(context));
+                part.mergeWith(codeUnit.completeFrom(context));
             }
-            return accessCompletionProcess;
+            return part;
         }
     }
 

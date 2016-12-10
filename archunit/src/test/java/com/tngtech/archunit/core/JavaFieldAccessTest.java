@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaFieldAccessTest {
@@ -123,7 +124,7 @@ public class JavaFieldAccessTest {
 
         @Override
         public FieldAccessTarget getTarget() {
-            return new FieldAccessTarget(field);
+            return targetFrom(field);
         }
 
         @Override
@@ -131,33 +132,33 @@ public class JavaFieldAccessTest {
             return lineNumber;
         }
 
-        public static final class Builder {
+        static final class Builder {
             private AccessType accessType;
             private JavaCodeUnit<?, ?> caller;
             private JavaField field;
             private int lineNumber;
 
-            public Builder withAccessType(AccessType accessType) {
+            Builder withAccessType(AccessType accessType) {
                 this.accessType = accessType;
                 return this;
             }
 
-            public Builder withCaller(JavaCodeUnit<?, ?> caller) {
+            Builder withCaller(JavaCodeUnit<?, ?> caller) {
                 this.caller = caller;
                 return this;
             }
 
-            public Builder withField(JavaField field) {
+            Builder withField(JavaField field) {
                 this.field = field;
                 return this;
             }
 
-            public Builder withLineNumber(int lineNumber) {
+            Builder withLineNumber(int lineNumber) {
                 this.lineNumber = lineNumber;
                 return this;
             }
 
-            public TestFieldAccessRecord build() {
+            TestFieldAccessRecord build() {
                 return new TestFieldAccessRecord(this);
             }
         }
