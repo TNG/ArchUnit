@@ -3,7 +3,6 @@ package com.tngtech.archunit.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -17,19 +16,19 @@ import org.slf4j.LoggerFactory;
 class ClassGraphCreator implements ImportContext {
     private static final Logger LOG = LoggerFactory.getLogger(ClassGraphCreator.class);
 
-    private final Map<String, JavaClass> classes = new ConcurrentHashMap<>();
+    private final ImportedClasses classes;
 
     private final ClassFileImportRecord importRecord;
 
     private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
+    private final ClassResolver classResolver;
 
     ClassGraphCreator(ClassFileImportRecord importRecord) {
         this.importRecord = importRecord;
-        for (JavaClass javaClass : importRecord.getClasses()) {
-            classes.put(javaClass.getName(), javaClass);
-        }
+        classResolver = getClassResolver();
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver);
     }
 
     JavaClasses complete() {
@@ -43,28 +42,28 @@ class ClassGraphCreator implements ImportContext {
         for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
             tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
-        return JavaClasses.of(classes, this);
+        return JavaClasses.of(classes.getDirectlyImported(), this);
     }
 
     private void ensureClassHierarchies() {
         ensureClassesOfHierarchyInContext();
-        for (JavaClass javaClass : classes.values()) {
+        for (JavaClass javaClass : classes.getAll().values()) {
             javaClass.completeClassHierarchyFrom(this);
         }
     }
 
     private void ensureClassesOfHierarchyInContext() {
         Map<String, JavaClass> missingTypes = new HashMap<>();
-        for (String name : classes.keySet()) {
+        for (String name : classes.getAll().keySet()) {
             tryAddSuperTypes(missingTypes, name);
         }
-        classes.putAll(missingTypes);
+        classes.add(missingTypes);
     }
 
     private void tryAddSuperTypes(Map<String, JavaClass> missingTypes, String className) {
         try {
-            for (JavaClass toAdd : ImportWorkaround.getAllSuperClasses(className)) {
-                if (!classes.containsKey(toAdd.getName())) {
+            for (JavaClass toAdd : classResolver.getAllSuperClasses(className)) {
+                if (!classes.contain(toAdd.getName())) {
                     missingTypes.put(toAdd.getName(), toAdd);
                 }
             }
@@ -108,6 +107,22 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
-        return Optional.fromNullable(classes.get(typeName));
+        return Optional.of(classes.get(typeName));
+    }
+
+    private ClassResolver getClassResolver() {
+        return new ClassResolverFromClassPath();
+    }
+
+    private static class ClassResolverFromClassPath implements ClassResolver {
+        @Override
+        public JavaClass resolve(String typeName) {
+            return ImportWorkaround.resolveClass(typeName);
+        }
+
+        @Override
+        public Set<JavaClass> getAllSuperClasses(String className) {
+            return ImportWorkaround.getAllSuperClasses(className);
+        }
     }
 }

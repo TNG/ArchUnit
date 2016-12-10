@@ -134,7 +134,7 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_classes() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
-                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), Object.class.getName());
+                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName());
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
@@ -147,8 +147,7 @@ public class ClassFileImporterTest {
                 ClassWithNestedClass.class.getName(),
                 ClassWithNestedClass.NestedClass.class.getName(),
                 ClassWithNestedClass.StaticNestedClass.class.getName(),
-                ClassWithNestedClass.class.getName() + "$PrivateNestedClass",
-                Object.class.getName());
+                ClassWithNestedClass.class.getName() + "$PrivateNestedClass");
 
         Iterable<JavaClass> classes = classesIn("testexamples/nestedimport");
 
@@ -206,14 +205,6 @@ public class ClassFileImporterTest {
                 .isEqualTo(TypeDetails.of(double[][].class));
         assertThat(returnTypeOf(calls, "objectTwoDimArrayReturnType"))
                 .isEqualTo(TypeDetails.of(String[][].class));
-    }
-
-    private List<TypeDetails> targetParametersOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getParameters();
-    }
-
-    private TypeDetails returnTypeOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getReturnType();
     }
 
     @Test
@@ -443,9 +434,8 @@ public class ClassFileImporterTest {
         JavaClass subClass = classes.get(SubClass.class);
         JavaClass otherSubClass = classes.get(OtherSubClass.class);
         JavaClass subSubClass = classes.get(SubSubClass.class);
-        JavaClass object = classes.get(Object.class);
 
-        assertThat(baseClass.getSuperClass()).contains(object);
+        assertThat(baseClass.getSuperClass().get().reflect()).isEqualTo(Object.class);
         assertThat(baseClass.getSubClasses()).containsOnly(subClass, otherSubClass);
         assertThat(baseClass.getAllSubClasses()).containsOnly(subClass, otherSubClass, subSubClass);
         assertThat(subClass.getSuperClass()).contains(baseClass);
@@ -465,8 +455,6 @@ public class ClassFileImporterTest {
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass someCollection = classes.get(SomeCollection.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
-        JavaClass collection = classes.get(Collection.class);
-        JavaClass iterable = classes.get(Iterable.class);
 
         assertThat(baseClass.getInterfaces()).containsOnly(otherInterface);
         assertThat(baseClass.getAllInterfaces()).containsOnly(otherInterface, grandParentInterface);
@@ -476,9 +464,9 @@ public class ClassFileImporterTest {
         assertThat(otherSubClass.getInterfaces()).containsOnly(parentInterface);
         assertThat(otherSubClass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
         assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subInterface);
-        assertThat(someCollection.getAllInterfaces()).containsOnly(
-                collectionInterface, otherInterface, subInterface, parentInterface, grandParentInterface,
-                collection, iterable);
+        assertThat(someCollection.getAllInterfaces()).extractingResultOf("reflect").containsOnly(
+                CollectionInterface.class, OtherInterface.class, SubInterface.class, ParentInterface.class,
+                GrandParentInterface.class, Collection.class, Iterable.class);
     }
 
     @Test
@@ -488,14 +476,13 @@ public class ClassFileImporterTest {
         JavaClass parentInterface = classes.get(ParentInterface.class);
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
-        JavaClass collection = classes.get(Collection.class);
 
         assertThat(grandParentInterface.getAllInterfaces()).isEmpty();
         assertThat(parentInterface.getInterfaces()).containsOnly(grandParentInterface);
         assertThat(parentInterface.getAllInterfaces()).containsOnly(grandParentInterface);
         assertThat(subInterface.getInterfaces()).containsOnly(parentInterface);
         assertThat(subInterface.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface);
-        assertThat(collectionInterface.getInterfaces()).containsOnly(collection);
+        assertThat(collectionInterface.getInterfaces()).extractingResultOf("reflect").containsOnly(Collection.class);
     }
 
     @Test
@@ -511,7 +498,6 @@ public class ClassFileImporterTest {
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass someCollection = classes.get(SomeCollection.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
-        JavaClass collection = classes.get(Collection.class);
 
         assertThat(grandParentInterface.getSubClasses()).containsOnly(parentInterface, otherInterface);
         assertThat(grandParentInterface.getAllSubClasses()).containsOnly(
@@ -521,6 +507,7 @@ public class ClassFileImporterTest {
         assertThat(parentInterface.getSubClasses()).containsOnly(subInterface, otherSubClass);
         assertThat(parentInterface.getAllSubClasses()).containsOnly(
                 subInterface, subClass, subSubClass, someCollection, otherSubClass);
+        JavaClass collection = getOnlyElement(collectionInterface.getInterfaces());
         assertThat(collection.getAllSubClasses()).containsOnly(collectionInterface, someCollection);
     }
 
@@ -1246,6 +1233,14 @@ public class ClassFileImporterTest {
 
     private Method reflect(MethodCallTarget target) {
         return getOnlyElement(target.resolve()).reflect();
+    }
+
+    private List<TypeDetails> targetParametersOf(Set<JavaMethodCall> calls, String name) {
+        return findAnyByName(calls, name).getTarget().getParameters();
+    }
+
+    private TypeDetails returnTypeOf(Set<JavaMethodCall> calls, String name) {
+        return findAnyByName(calls, name).getTarget().getReturnType();
     }
 
     private JavaFieldAccess getOnly(Set<JavaFieldAccess> fieldAccesses, String name, AccessType accessType) {
