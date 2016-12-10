@@ -7,7 +7,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,12 +37,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
     abstract class Factory<RAW_RECORD, PROCESSED_RECORD> {
 
-        abstract PROCESSED_RECORD create(RAW_RECORD record, Map<String, JavaClass> classes);
+        abstract PROCESSED_RECORD create(RAW_RECORD record, ImportedClasses classes);
 
         static Factory<RawAccessRecord, AccessRecord<ConstructorCallTarget>> forConstructorCallRecord() {
             return new Factory<RawAccessRecord, AccessRecord<ConstructorCallTarget>>() {
                 @Override
-                AccessRecord<ConstructorCallTarget> create(RawAccessRecord record, Map<String, JavaClass> classes) {
+                AccessRecord<ConstructorCallTarget> create(RawAccessRecord record, ImportedClasses classes) {
                     return new RawConstructorCallRecordProcessed(record, classes);
                 }
             };
@@ -52,7 +51,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         static Factory<RawAccessRecord, AccessRecord<MethodCallTarget>> forMethodCallRecord() {
             return new Factory<RawAccessRecord, AccessRecord<MethodCallTarget>>() {
                 @Override
-                AccessRecord<MethodCallTarget> create(RawAccessRecord record, Map<String, JavaClass> classes) {
+                AccessRecord<MethodCallTarget> create(RawAccessRecord record, ImportedClasses classes) {
                     return new RawMethodCallRecordProcessed(record, classes);
                 }
             };
@@ -61,7 +60,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         static Factory<RawAccessRecord.ForField, FieldAccessRecord> forFieldAccessRecord() {
             return new Factory<RawAccessRecord.ForField, FieldAccessRecord>() {
                 @Override
-                FieldAccessRecord create(RawAccessRecord.ForField record, Map<String, JavaClass> classes) {
+                FieldAccessRecord create(RawAccessRecord.ForField record, ImportedClasses classes) {
                     return new RawFieldAccessRecordProcessed(record, classes);
                 }
             };
@@ -69,13 +68,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
         private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
             private final RawAccessRecord record;
-            final Map<String, JavaClass> classes;
+            final ImportedClasses classes;
             private final Set<JavaConstructor> constructors;
+            private final JavaClass targetOwner;
 
-            RawConstructorCallRecordProcessed(RawAccessRecord record, Map<String, JavaClass> classes) {
+            RawConstructorCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                constructors = getJavaClass(record.target.owner.getName(), this.classes).getAllConstructors();
+                targetOwner = this.classes.get(record.target.owner.getName());
+                constructors = targetOwner.getAllConstructors();
             }
 
             @Override
@@ -92,8 +93,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         createConstructorFor(record.target);
                 Supplier<Optional<JavaConstructor>> constructorSupplier = Suppliers.ofInstance(Optional.of(constructor));
                 List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
-                JavaClass owner = classes.get(record.target.owner.getName());
-                return new ConstructorCallTarget(owner, paramTypes, constructorSupplier);
+                return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
             }
 
             private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
@@ -118,13 +118,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
         private static class RawMethodCallRecordProcessed implements AccessRecord<MethodCallTarget> {
             private final RawAccessRecord record;
-            final Map<String, JavaClass> classes;
+            final ImportedClasses classes;
             private final Set<JavaMethod> methods;
+            private final JavaClass targetOwner;
 
-            RawMethodCallRecordProcessed(RawAccessRecord record, Map<String, JavaClass> classes) {
+            RawMethodCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                methods = getJavaClass(record.target.owner.getName(), this.classes).getAllMethods();
+                targetOwner = this.classes.get(record.target.owner.getName());
+                methods = targetOwner.getAllMethods();
             }
 
             @Override
@@ -140,12 +142,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Set<JavaMethod>> methodsSupplier = Suppliers.ofInstance(Collections.singleton(method));
                 List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
                 TypeDetails returnType = TypeDetails.of(Type.getReturnType(record.target.desc));
-                JavaClass owner = classes.get(record.target.owner.getName());
-                return new MethodCallTarget(owner, record.target.name, parameters, returnType, methodsSupplier);
+                return new MethodCallTarget(targetOwner, record.target.name, parameters, returnType, methodsSupplier);
             }
 
             private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = getJavaClass(targetInfo.owner.getName(), classes);
+                JavaClass owner = classes.get(targetInfo.owner.getName());
                 return createMethod(targetInfo, owner);
             }
 
@@ -171,13 +172,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
         private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
             private final RawAccessRecord.ForField record;
-            final Map<String, JavaClass> classes;
+            final ImportedClasses classes;
             private final Set<JavaField> fields;
+            private final JavaClass targetOwner;
 
-            RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, Map<String, JavaClass> classes) {
+            RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                fields = getJavaClass(record.target.owner.getName(), this.classes).getAllFields();
+                targetOwner = this.classes.get(record.target.owner.getName());
+                fields = targetOwner.getAllFields();
             }
 
             @Override
@@ -197,8 +200,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(record.target);
                 Supplier<Optional<JavaField>> fieldSupplier = Suppliers.ofInstance(Optional.of(field));
                 TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
-                JavaClass owner = classes.get(record.target.owner.getName());
-                return new FieldAccessTarget(owner, record.target.name, fieldType, fieldSupplier);
+                return new FieldAccessTarget(targetOwner, record.target.name, fieldType, fieldSupplier);
             }
 
             private JavaField createFieldFor(TargetInfo targetInfo) {
@@ -222,21 +224,14 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, Map<String, JavaClass> classes) {
-            for (JavaCodeUnit<?, ?> method : getJavaClass(caller.getDeclaringClassName(), classes).getCodeUnits()) {
+        private static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, ImportedClasses classes) {
+            for (JavaCodeUnit<?, ?> method : classes.get(caller.getDeclaringClassName()).getCodeUnits()) {
                 if (caller.is(method)) {
                     return method;
                 }
             }
             throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
                     " that matches supposed caller " + caller);
-        }
-
-        private static JavaClass getJavaClass(String typeName, Map<String, JavaClass> classes) {
-            if (!classes.containsKey(typeName)) {
-                classes.put(typeName, ImportWorkaround.resolveClass(typeName));
-            }
-            return classes.get(typeName);
         }
 
         private static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T>
