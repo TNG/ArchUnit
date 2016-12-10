@@ -1,13 +1,13 @@
 package com.tngtech.archunit.core.testexamples.dependents;
 
-public class ClassWithDependents {
+public class ClassHoldingDependencies {
     int someInt;
     String someString;
 
-    public ClassWithDependents() {
+    public ClassHoldingDependencies() {
     }
 
-    public ClassWithDependents(int someInt) {
+    public ClassHoldingDependencies(int someInt) {
         this();
         this.someInt = someInt;
     }
