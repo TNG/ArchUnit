@@ -3,11 +3,9 @@ package com.tngtech.archunit.core;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
     private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
@@ -15,17 +13,7 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     public static final String CONSTRUCTOR_NAME = "<init>";
 
     private JavaConstructor(Builder builder) {
-        super(builder);
-    }
-
-    @Override
-    public List<TypeDetails> getParameters() {
-        return Lists.newArrayList(memberDescription.getParameterTypes());
-    }
-
-    @Override
-    public TypeDetails getReturnType() {
-        return TypeDetails.of(void.class);
+        super(builder, TypeDetails.of(void.class), builder.member.getParameterTypes());
     }
 
     @Override

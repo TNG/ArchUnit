@@ -2,7 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -14,17 +13,7 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
 
     private JavaMethod(Builder builder) {
-        super(builder);
-    }
-
-    @Override
-    public List<TypeDetails> getParameters() {
-        return memberDescription.getParameterTypes();
-    }
-
-    @Override
-    public TypeDetails getReturnType() {
-        return memberDescription.getReturnType();
+        super(builder, builder.member.getReturnType(), builder.member.getParameterTypes());
     }
 
     public Set<JavaMethodCall> getCallsOfSelf() {
