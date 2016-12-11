@@ -14,10 +14,9 @@ class JavaClassVisitor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassVisitor.class);
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
-    private final ProcessingContext processingContext = new ProcessingContext();
-
     private JavaClass.Builder javaClassBuilder;
     private final AccessHandler accessHandler;
+    private boolean canImportCurrentClass;
     private String className;
 
     JavaClassVisitor() {
@@ -36,13 +35,13 @@ class JavaClassVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.info("Analysing class '{}'", name);
-        processingContext.init(name);
+        javaClassBuilder = init(name);
         this.className = name.replace("/", ".");
     }
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!processingContext.canImportCurrentClass) {
+        if (!canImportCurrentClass) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
@@ -53,48 +52,24 @@ class JavaClassVisitor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        if (processingContext.canImportCurrentClass) {
-            LOG.debug("Done analysing {}", className);
-            javaClassBuilder = processingContext.finish();
-        }
+        LOG.debug("Done analysing {}", className);
     }
 
-    private static class ProcessingContext {
-        private Class<?> currentClass;
-        private JavaClass.Builder currentClassBuilder;
-
-        private boolean canImportCurrentClass;
-
-        void init(String classDescriptor) {
-            canImportCurrentClass = true;
-            try {
-                tryInit(classDescriptor);
-            } catch (NoClassDefFoundError e) {
-                LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
-                        classDescriptor, e.getMessage());
-                canImportCurrentClass = false;
-            } catch (ReflectionException e) {
-                LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
-                        classDescriptor, e.getMessage());
-                canImportCurrentClass = false;
-            }
+    JavaClass.Builder init(String classDescriptor) {
+        canImportCurrentClass = true;
+        try {
+            Class<?> currentClass = JavaType.fromDescriptor(classDescriptor).asClass();
+            return new JavaClass.Builder().withType(TypeDetails.of(currentClass));
+        } catch (NoClassDefFoundError e) {
+            LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
+                    classDescriptor, e.getMessage());
+            canImportCurrentClass = false;
+        } catch (ReflectionException e) {
+            LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
+                    classDescriptor, e.getMessage());
+            canImportCurrentClass = false;
         }
-
-        private void tryInit(String classDescriptor) {
-            currentClass = classForDescriptor(classDescriptor);
-            currentClassBuilder = new JavaClass.Builder().withType(TypeDetails.of(currentClass));
-        }
-
-        private Class<?> classForDescriptor(String descriptor) {
-            return JavaType.fromDescriptor(descriptor).asClass();
-        }
-
-        JavaClass.Builder finish() {
-            JavaClass.Builder result = currentClassBuilder;
-            currentClass = null;
-            currentClassBuilder = null;
-            return result;
-        }
+        return null;
     }
 
     private static class MethodProcessor extends MethodVisitor {
