@@ -21,9 +21,9 @@ class ClassGraphCreator implements ImportContext {
 
     private final ClassFileImportRecord importRecord;
 
-    private final SetMultimap<JavaCodeUnit<?, ?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit<?, ?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final ClassResolver classResolver;
 
     ClassGraphCreator(ClassFileImportRecord importRecord) {
@@ -75,7 +75,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
-            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit<?, ?>,
+            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit,
             T> processedAccessRecords) {
         try {
             T processed = factory.create(rawRecord, classes);
@@ -90,17 +90,17 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit<?, ?> method) {
+    public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit method) {
         return processedFieldAccessRecords.get(method);
     }
 
     @Override
-    public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit method) {
         return processedMethodCallRecords.get(method);
     }
 
     @Override
-    public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> method) {
+    public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit method) {
         return processedConstructorCallRecords.get(method);
     }
 

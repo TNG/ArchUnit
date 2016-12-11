@@ -6,11 +6,11 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 
 public interface ImportContext {
-    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit<?, ?> codeUnit);
+    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit);
 
-    Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit<?, ?> codeUnit);
+    Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit);
 
-    Set<AccessRecord<AccessTarget.ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit<?, ?> codeUnit);
+    Set<AccessRecord<AccessTarget.ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit);
 
     Optional<JavaClass> tryGetJavaClassWithType(String name);
 }

@@ -37,7 +37,7 @@ public class JavaClassTest {
         for (JavaField field : javaClass.getFields()) {
             assertThat(field.getOwner()).isSameAs(javaClass);
         }
-        for (JavaCodeUnit<?, ?> method : javaClass.getCodeUnits()) {
+        for (JavaCodeUnit method : javaClass.getCodeUnits()) {
             assertThat(method.getOwner()).isSameAs(javaClass);
         }
     }

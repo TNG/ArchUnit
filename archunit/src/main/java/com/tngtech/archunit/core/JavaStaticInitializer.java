@@ -1,12 +1,11 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
-public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
+public class JavaStaticInitializer extends JavaCodeUnit {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
     private JavaStaticInitializer(Builder builder) {

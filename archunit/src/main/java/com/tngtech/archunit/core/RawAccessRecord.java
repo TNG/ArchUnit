@@ -106,7 +106,7 @@ class RawAccessRecord {
                     '}';
         }
 
-        public boolean is(JavaCodeUnit<?, ?> method) {
+        public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
                     && getParameters().equals(method.getParameters())
                     && getDeclaringClassName().equals(method.getOwner().getName());

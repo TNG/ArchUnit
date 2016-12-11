@@ -90,7 +90,7 @@ public class TestUtils {
         });
         javaClass.completeClassHierarchyFrom(context);
         javaClass.completeFrom(context);
-        for (JavaCodeUnit<?, ?> unit : javaClass.getCodeUnits()) {
+        for (JavaCodeUnit unit : javaClass.getCodeUnits()) {
             unit.completeFrom(context);
         }
         return javaClass;
@@ -251,7 +251,7 @@ public class TestUtils {
             }
 
             @Override
-            public JavaCodeUnit<?, ?> getCaller() {
+            public JavaCodeUnit getCaller() {
                 return method;
             }
 
