@@ -67,6 +67,8 @@ import com.tngtech.archunit.core.testexamples.dependents.SecondClassWithDependen
 import com.tngtech.archunit.core.testexamples.dependents.SubClassHoldingDependencies;
 import com.tngtech.archunit.core.testexamples.diamond.ClassCallingDiamond;
 import com.tngtech.archunit.core.testexamples.diamond.ClassImplementingD;
+import com.tngtech.archunit.core.testexamples.diamond.InterfaceB;
+import com.tngtech.archunit.core.testexamples.diamond.InterfaceC;
 import com.tngtech.archunit.core.testexamples.diamond.InterfaceD;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.ExternalFieldAccess;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.ExternalShadowedFieldAccess;
@@ -965,6 +967,8 @@ public class ClassFileImporterTest {
     public void imports_non_unique_targets_for_diamond_scenarios() throws Exception {
         ImportedClasses diamondScenario = classesIn("testexamples/diamond");
         JavaClass classCallingDiamond = diamondScenario.get(ClassCallingDiamond.class);
+        JavaClass diamondLeftInterface = diamondScenario.get(InterfaceB.class);
+        JavaClass diamondRightInterface = diamondScenario.get(InterfaceC.class);
         JavaClass diamondPeakInterface = diamondScenario.get(InterfaceD.class);
         JavaClass diamondPeakClass = diamondScenario.get(ClassImplementingD.class);
 
@@ -982,6 +986,10 @@ public class ClassFileImporterTest {
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
         assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
         assertThat(callToInterface.getTarget().getParameters()).isEmpty();
+        assertThat(callToInterface.getTarget().resolve()).extracting("fullName")
+                .containsOnly(
+                        diamondLeftInterface.getMethod(InterfaceB.implementMe).getFullName(),
+                        diamondRightInterface.getMethod(InterfaceB.implementMe).getFullName());
 
         JavaCodeUnit<?, ?> callImplementation = classCallingDiamond
                 .getCodeUnit(ClassCallingDiamond.callImplementation);
