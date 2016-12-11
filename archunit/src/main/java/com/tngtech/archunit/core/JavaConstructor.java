@@ -13,7 +13,7 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     public static final String CONSTRUCTOR_NAME = "<init>";
 
     private JavaConstructor(Builder builder) {
-        super(builder, TypeDetails.of(void.class), builder.member.getParameterTypes());
+        super(builder);
     }
 
     @Override
@@ -34,15 +34,16 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
         this.callsToSelf = ImmutableSet.copyOf(calls);
     }
 
-    static final class Builder extends JavaMember.Builder<MemberDescription.ForConstructor, JavaConstructor> {
-        @Override
-        public JavaConstructor build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaConstructor(this);
+    static final class Builder extends JavaCodeUnit.Builder<JavaConstructor, Builder> {
+        BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
+            return withReturnType(TypeDetails.of(void.class))
+                    .withParameters(TypeDetails.allOf(constructor.getParameterTypes()))
+                    .withMember(new MemberDescription.ForConstructor(constructor));
         }
 
-        BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
-            return withMember(new MemberDescription.ForConstructor(constructor));
+        @Override
+        JavaConstructor construct(Builder builder) {
+            return new JavaConstructor(builder);
         }
     }
 }

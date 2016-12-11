@@ -10,6 +10,7 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 
 /**
@@ -38,14 +39,10 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
     private Set<JavaMethodCall> methodCalls;
     private Set<JavaConstructorCall> constructorCalls;
 
-    JavaCodeUnit(Builder<T, ?> builder, TypeDetails returnType, List<TypeDetails> parameters) {
-        this(builder.member, builder.owner, returnType, parameters);
-    }
-
-    JavaCodeUnit(T memberDescription, JavaClass owner, TypeDetails returnType, List<TypeDetails> parameters) {
-        super(owner, memberDescription.getAnnotations(), memberDescription.getName(), memberDescription.getDescriptor(), JavaModifier.getModifiersFor(memberDescription.getModifiers()));
-        this.returnType = returnType;
-        this.parameters = ImmutableList.copyOf(parameters);
+    JavaCodeUnit(Builder<?, ?> builder) {
+        super(builder);
+        this.returnType = checkNotNull(builder.returnType);
+        this.parameters = ImmutableList.copyOf(builder.parameters);
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -99,5 +96,20 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         constructorCalls = constructorCallsBuilder.build();
 
         return new AccessContext.Part(this);
+    }
+
+    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
+        private TypeDetails returnType;
+        private List<TypeDetails> parameters;
+
+        SELF withReturnType(TypeDetails type) {
+            returnType = type;
+            return self();
+        }
+
+        SELF withParameters(List<TypeDetails> parameters) {
+            this.parameters = parameters;
+            return self();
+        }
     }
 }

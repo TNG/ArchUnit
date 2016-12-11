@@ -14,8 +14,8 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     private JavaField(Builder builder) {
-        super(builder.owner, builder.member.getAnnotations(), builder.member.getName(), builder.member.getDescriptor(), JavaModifier.getModifiersFor(builder.member.getModifiers()));
-        type = builder.member.getType();
+        super(builder);
+        type = builder.type;
     }
 
     @Override
@@ -48,15 +48,17 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
         }
     };
 
-    static final class Builder extends JavaMember.Builder<MemberDescription.ForField, JavaField> {
-        @Override
-        public JavaField build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaField(this);
-        }
+    static final class Builder extends JavaMember.Builder<JavaField, Builder> {
+        private TypeDetails type;
 
         BuilderWithBuildParameter<JavaClass, JavaField> withField(Field field) {
+            type = TypeDetails.of(field.getType());
             return withMember(new MemberDescription.ForDeterminedField(field));
+        }
+
+        @Override
+        JavaField construct(Builder builder) {
+            return new JavaField(builder);
         }
     }
 }

@@ -20,12 +20,12 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
-    JavaMember(JavaClass owner, Set<JavaAnnotation> annotations, String name, String descriptor, Set<JavaModifier> modifiers) {
-        this.name = checkNotNull(name);
-        this.descriptor = checkNotNull(descriptor);
-        this.annotations = FluentIterable.from(annotations).uniqueIndex(toGuava(GET_TYPE_NAME));
-        this.owner = checkNotNull(owner);
-        this.modifiers = checkNotNull(modifiers);
+    JavaMember(Builder<?, ?> builder) {
+        this.name = checkNotNull(builder.name);
+        this.descriptor = checkNotNull(builder.descriptor);
+        this.annotations = FluentIterable.from(builder.annotations).uniqueIndex(toGuava(GET_TYPE_NAME));
+        this.owner = checkNotNull(builder.owner);
+        this.modifiers = checkNotNull(builder.modifiers);
     }
 
     public Set<JavaAnnotation> getAnnotations() {
@@ -90,13 +90,32 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
                 }
             };
 
-    static abstract class Builder<RAW extends MemberDescription<?>, OUTPUT> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
-        RAW member;
-        JavaClass owner;
+    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
+        private String name;
+        private String descriptor;
+        private Set<JavaAnnotation> annotations;
+        private Set<JavaModifier> modifiers;
+        private JavaClass owner;
 
-        Builder<RAW, OUTPUT> withMember(RAW member) {
-            this.member = member;
-            return this;
+        SELF withMember(MemberDescription<?> member) {
+            name = member.getName();
+            descriptor = member.getDescriptor();
+            annotations = member.getAnnotations();
+            modifiers = JavaModifier.getModifiersFor(member.getModifiers());
+            return self();
         }
+
+        @SuppressWarnings("unchecked")
+        SELF self() {
+            return (SELF) this;
+        }
+
+        @Override
+        public final OUTPUT build(JavaClass owner) {
+            this.owner = owner;
+            return construct(self());
+        }
+
+        abstract OUTPUT construct(SELF self);
     }
 }

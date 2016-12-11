@@ -13,7 +13,7 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
 
     private JavaMethod(Builder builder) {
-        super(builder, builder.member.getReturnType(), builder.member.getParameterTypes());
+        super(builder);
     }
 
     public Set<JavaMethodCall> getCallsOfSelf() {
@@ -29,15 +29,16 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
         this.callsToSelf = checkNotNull(calls);
     }
 
-    static class Builder extends JavaMember.Builder<MemberDescription.ForMethod, JavaMethod> {
-        @Override
-        public JavaMethod build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaMethod(this);
+    static class Builder extends JavaCodeUnit.Builder<JavaMethod, Builder> {
+        BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
+            return withReturnType(TypeDetails.of(method.getReturnType()))
+                    .withParameters(TypeDetails.allOf(method.getParameterTypes()))
+                    .withMember(new MemberDescription.ForDeterminedMethod(method));
         }
 
-        BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
-            return withMember(new MemberDescription.ForDeterminedMethod(method));
+        @Override
+        JavaMethod construct(Builder builder) {
+            return new JavaMethod(builder);
         }
     }
 }
