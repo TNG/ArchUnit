@@ -18,7 +18,7 @@ import org.objectweb.asm.Type;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
 interface AccessRecord<TARGET extends AccessTarget> {
-    JavaCodeUnit<?, ?> getCaller();
+    JavaCodeUnit getCaller();
 
     TARGET getTarget();
 
@@ -73,7 +73,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             @Override
-            public JavaCodeUnit<?, ?> getCaller() {
+            public JavaCodeUnit getCaller() {
                 return Factory.getCaller(record.caller, classes);
             }
 
@@ -108,7 +108,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             @Override
-            public JavaCodeUnit<?, ?> getCaller() {
+            public JavaCodeUnit getCaller() {
                 return Factory.getCaller(record.caller, classes);
             }
 
@@ -149,7 +149,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             @Override
-            public JavaCodeUnit<?, ?> getCaller() {
+            public JavaCodeUnit getCaller() {
                 return Factory.getCaller(record.caller, classes);
             }
 
@@ -170,8 +170,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static JavaCodeUnit<?, ?> getCaller(CodeUnit caller, ImportedClasses classes) {
-            for (JavaCodeUnit<?, ?> method : classes.get(caller.getDeclaringClassName()).getCodeUnits()) {
+        private static JavaCodeUnit getCaller(CodeUnit caller, ImportedClasses classes) {
+            for (JavaCodeUnit method : classes.get(caller.getDeclaringClassName()).getCodeUnits()) {
                 if (caller.is(method)) {
                     return method;
                 }

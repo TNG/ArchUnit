@@ -1,13 +1,12 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
-public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
+public class JavaConstructor extends JavaCodeUnit {
     private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
     public static final String CONSTRUCTOR_NAME = "<init>";

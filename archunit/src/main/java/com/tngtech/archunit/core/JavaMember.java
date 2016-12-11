@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,9 +10,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Guava.toGuava;
 import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
 
-public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
-        implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
-
+public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
     private final String name;
     private final String descriptor;
     private final Map<String, JavaAnnotation> annotations;
@@ -73,10 +70,10 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         return getClass().getSimpleName() + "{member=" + name + ", owner=" + getOwner() + '}';
     }
 
-    public static DescribedPredicate<JavaMember<?, ?>> modifier(final JavaModifier modifier) {
-        return new DescribedPredicate<JavaMember<?, ?>>("modifier " + modifier) {
+    public static DescribedPredicate<JavaMember> modifier(final JavaModifier modifier) {
+        return new DescribedPredicate<JavaMember>("modifier " + modifier) {
             @Override
-            public boolean apply(JavaMember<?, ?> input) {
+            public boolean apply(JavaMember input) {
                 return input.getModifiers().contains(modifier);
             }
         };

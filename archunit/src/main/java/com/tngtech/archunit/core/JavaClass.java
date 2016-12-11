@@ -27,7 +27,7 @@ import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 public class JavaClass implements HasName {
     private final TypeDetails typeDetails;
     private final Set<JavaField> fields;
-    private final Set<JavaCodeUnit<?, ?>> codeUnits;
+    private final Set<JavaCodeUnit> codeUnits;
     private final Set<JavaMethod> methods;
     private final Set<JavaConstructor> constructors;
     private final JavaStaticInitializer staticInitializer;
@@ -43,7 +43,7 @@ public class JavaClass implements HasName {
         methods = build(builder.methodBuilders, this);
         constructors = build(builder.constructorBuilders, this);
         staticInitializer = new JavaStaticInitializer.Builder().build(this);
-        codeUnits = ImmutableSet.<JavaCodeUnit<?, ?>>builder()
+        codeUnits = ImmutableSet.<JavaCodeUnit>builder()
                 .addAll(methods).addAll(constructors).add(staticInitializer)
                 .build();
         annotations = builder.annotations.build();
@@ -190,7 +190,7 @@ public class JavaClass implements HasName {
         return Optional.absent();
     }
 
-    public Set<JavaCodeUnit<?, ?>> getCodeUnits() {
+    public Set<JavaCodeUnit> getCodeUnits() {
         return codeUnits;
     }
 
@@ -201,20 +201,20 @@ public class JavaClass implements HasName {
      * @param parameters The parameter signature of the method
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
-    public JavaCodeUnit<?, ?> getCodeUnit(String name, TypeDetails... parameters) {
+    public JavaCodeUnit getCodeUnit(String name, TypeDetails... parameters) {
         return getCodeUnit(name, ImmutableList.copyOf(parameters));
     }
 
-    public JavaCodeUnit<?, ?> getCodeUnit(String name, List<TypeDetails> parameters) {
+    public JavaCodeUnit getCodeUnit(String name, List<TypeDetails> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
+    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
         return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
                 " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
-    private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
+    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
         for (T codeUnit : codeUnits) {
             if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters())) {
                 return Optional.of(codeUnit);
@@ -276,7 +276,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaFieldAccess> getFieldAccessesFromSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getFieldAccesses());
         }
         return result.build();
@@ -294,7 +294,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getMethodCallsFromSelf());
         }
         return result.build();
@@ -302,7 +302,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getConstructorCallsFromSelf());
         }
         return result.build();
@@ -453,7 +453,7 @@ public class JavaClass implements HasName {
     class CompletionProcess {
         AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
             AccessContext.Part part = new AccessContext.Part();
-            for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+            for (JavaCodeUnit codeUnit : codeUnits) {
                 part.mergeWith(codeUnit.completeFrom(context));
             }
             return part;

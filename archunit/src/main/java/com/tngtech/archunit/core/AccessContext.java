@@ -28,7 +28,7 @@ class AccessContext {
         Part() {
         }
 
-        Part(JavaCodeUnit<?, ?> codeUnit) {
+        Part(JavaCodeUnit codeUnit) {
             for (JavaFieldAccess access : codeUnit.getFieldAccesses()) {
                 fieldAccessesByTarget.put(access.getTarget().getOwner(), access);
             }

@@ -126,10 +126,10 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
             };
         }
 
-        public static Modification<JavaCodeUnit<?, ?>> origin() {
-            return new Modification<JavaCodeUnit<?, ?>>() {
+        public static Modification<JavaCodeUnit> origin() {
+            return new Modification<JavaCodeUnit>() {
                 @Override
-                CombinedCallPredicate modify(CombinedCallPredicate predicate, DescribedPredicate<? super JavaCodeUnit<?, ?>> addition) {
+                CombinedCallPredicate modify(CombinedCallPredicate predicate, DescribedPredicate<? super JavaCodeUnit> addition) {
                     return predicate.andOrigin(addition);
                 }
             };
@@ -137,34 +137,34 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     private static class CombinedCallPredicate extends DescribedPredicate<JavaCall<?>> {
-        private final Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate;
+        private final Optional<DescribedPredicate<JavaCodeUnit>> originPredicate;
         private final Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate;
         private final DescribedPredicate<JavaCall<?>> combined;
 
         private CombinedCallPredicate() {
-            this(Optional.<DescribedPredicate<JavaCodeUnit<?, ?>>>absent(),
+            this(Optional.<DescribedPredicate<JavaCodeUnit>>absent(),
                     Optional.<DescribedPredicate<CodeUnitCallTarget>>absent());
         }
 
-        private CombinedCallPredicate(Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+        private CombinedCallPredicate(Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                       Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             this(combine(originPredicate, targetPredicate), originPredicate, targetPredicate);
         }
 
         private CombinedCallPredicate(String description,
-                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+                                      Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                       Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             this(description, combine(originPredicate, targetPredicate), originPredicate, targetPredicate);
         }
 
         private CombinedCallPredicate(DescribedPredicate<JavaCall<?>> combined,
-                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+                                      Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                       Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             this(combined.getDescription(), combined, originPredicate, targetPredicate);
         }
 
         private CombinedCallPredicate(String description, DescribedPredicate<JavaCall<?>> combined,
-                                      Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+                                      Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                       Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             super(description);
             this.originPredicate = originPredicate;
@@ -182,7 +182,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
             return new CombinedCallPredicate(String.format(description, params), originPredicate, targetPredicate);
         }
 
-        private static DescribedPredicate<JavaCall<?>> combine(final Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+        private static DescribedPredicate<JavaCall<?>> combine(final Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                                                final Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             return new DescribedPredicate<JavaCall<?>>(describe(originPredicate, targetPredicate)) {
                 @Override
@@ -193,7 +193,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
             };
         }
 
-        private static String describe(Optional<DescribedPredicate<JavaCodeUnit<?, ?>>> originPredicate,
+        private static String describe(Optional<DescribedPredicate<JavaCodeUnit>> originPredicate,
                                        Optional<DescribedPredicate<CodeUnitCallTarget>> targetPredicate) {
             String originDescription = originPredicate.isPresent() ?
                     "origin is " + originPredicate.get().getDescription() : null;
@@ -206,7 +206,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
             return new CombinedCallPredicate(originPredicate, Optional.of(and(targetPredicate, predicate)));
         }
 
-        private CombinedCallPredicate andOrigin(DescribedPredicate<? super JavaCodeUnit<?, ?>> predicate) {
+        private CombinedCallPredicate andOrigin(DescribedPredicate<? super JavaCodeUnit> predicate) {
             return new CombinedCallPredicate(Optional.of(and(originPredicate, predicate)), targetPredicate);
         }
 

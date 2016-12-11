@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Member;
 import java.util.List;
 import java.util.Set;
 
@@ -22,15 +21,8 @@ import static com.tngtech.archunit.core.Formatters.formatMethod;
  * </ul>
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
- *
- * @param <M> The type of the {@link Member java.lang.reflect.Member} associated with this code unit
- * @param <T> The type of the description for this member; the description is an abstraction in case there are problems
- *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
-public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>>
-        extends JavaMember<M, T>
-        implements HasParameters {
-
+public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
     private final TypeDetails returnType;
     private final List<TypeDetails> parameters;
     private final String fullName;

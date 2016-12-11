@@ -6,6 +6,6 @@ public interface HasOwner<T> {
     interface IsOwnedByClass extends HasOwner<JavaClass> {
     }
 
-    interface IsOwnedByCodeUnit extends HasOwner<JavaCodeUnit<?, ?>> {
+    interface IsOwnedByCodeUnit extends HasOwner<JavaCodeUnit> {
     }
 }

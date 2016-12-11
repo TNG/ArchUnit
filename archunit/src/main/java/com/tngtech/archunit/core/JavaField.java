@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
 
@@ -9,7 +8,7 @@ import com.google.common.base.Suppliers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
+public class JavaField extends JavaMember {
     private final TypeDetails type;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 

@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 
@@ -9,7 +8,7 @@ import com.google.common.base.Suppliers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
+public class JavaMethod extends JavaCodeUnit {
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
 
     private JavaMethod(Builder builder) {
