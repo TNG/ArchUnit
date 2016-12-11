@@ -97,11 +97,23 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
 
-        SELF withMember(MemberDescription<?> member) {
-            name = member.getName();
-            descriptor = member.getDescriptor();
-            annotations = member.getAnnotations();
-            modifiers = JavaModifier.getModifiersFor(member.getModifiers());
+        SELF withName(String name) {
+            this.name = name;
+            return self();
+        }
+
+        SELF withDescriptor(String descriptor) {
+            this.descriptor = descriptor;
+            return self();
+        }
+
+        SELF withAnnotations(Set<JavaAnnotation> annotations) {
+            this.annotations = annotations;
+            return self();
+        }
+
+        SELF withModifiers(Set<JavaModifier> modifiers) {
+            this.modifiers = modifiers;
             return self();
         }
 

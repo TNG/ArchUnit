@@ -30,12 +30,6 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
     }
 
     static class Builder extends JavaCodeUnit.Builder<JavaMethod, Builder> {
-        BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
-            return withReturnType(TypeDetails.of(method.getReturnType()))
-                    .withParameters(TypeDetails.allOf(method.getParameterTypes()))
-                    .withMember(new MemberDescription.ForDeterminedMethod(method));
-        }
-
         @Override
         JavaMethod construct(Builder builder) {
             return new JavaMethod(builder);

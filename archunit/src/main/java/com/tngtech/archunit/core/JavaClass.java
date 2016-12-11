@@ -14,12 +14,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.Guava.toGuava;
 import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class JavaClass implements HasName {
@@ -238,7 +240,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, TypeDetails.allOf(parameters));
+        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, TypeDetails.allOf(parameters));
     }
 
     public Set<JavaConstructor> getConstructors() {
@@ -469,13 +471,30 @@ public class JavaClass implements HasName {
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
             for (Field field : typeDetails.getDeclaredFields()) {
-                addField(new JavaField.Builder().withField(field));
+                addField(new JavaField.Builder()
+                        .withName(field.getName())
+                        .withDescriptor(Type.getDescriptor(field.getType()))
+                        .withAnnotations(JavaAnnotation.allOf(field.getAnnotations()))
+                        .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
+                        .withType(TypeDetails.of(field.getType())));
             }
             for (Method method : typeDetails.getDeclaredMethods()) {
-                addMethod(new JavaMethod.Builder().withMethod(method));
+                addMethod(new JavaMethod.Builder()
+                        .withReturnType(TypeDetails.of(method.getReturnType()))
+                        .withParameters(TypeDetails.allOf(method.getParameterTypes()))
+                        .withName(method.getName())
+                        .withDescriptor(Type.getMethodDescriptor(method))
+                        .withAnnotations(JavaAnnotation.allOf(method.getAnnotations()))
+                        .withModifiers(JavaModifier.getModifiersFor(method.getModifiers())));
             }
             for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
-                addConstructor(new JavaConstructor.Builder().withConstructor(constructor));
+                addConstructor(new JavaConstructor.Builder()
+                        .withReturnType(TypeDetails.of(void.class))
+                        .withParameters(TypeDetails.allOf(constructor.getParameterTypes()))
+                        .withName(CONSTRUCTOR_NAME)
+                        .withDescriptor(Type.getConstructorDescriptor(constructor))
+                        .withAnnotations(JavaAnnotation.allOf(constructor.getAnnotations()))
+                        .withModifiers(JavaModifier.getModifiersFor(constructor.getModifiers())));
             }
             annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
                     .uniqueIndex(toGuava(GET_TYPE_NAME)));

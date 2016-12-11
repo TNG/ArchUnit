@@ -51,9 +51,9 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
     static final class Builder extends JavaMember.Builder<JavaField, Builder> {
         private TypeDetails type;
 
-        BuilderWithBuildParameter<JavaClass, JavaField> withField(Field field) {
-            type = TypeDetails.of(field.getType());
-            return withMember(new MemberDescription.ForDeterminedField(field));
+        Builder withType(TypeDetails type) {
+            this.type = type;
+            return self();
         }
 
         @Override
