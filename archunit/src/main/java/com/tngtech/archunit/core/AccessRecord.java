@@ -1,10 +1,12 @@
 package com.tngtech.archunit.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -12,6 +14,8 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
 import org.objectweb.asm.Type;
+
+import static com.google.common.collect.Iterables.getOnlyElement;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit<?, ?> getCaller();
@@ -78,7 +82,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaConstructor>> constructorSupplier = new Supplier<Optional<JavaConstructor>>() {
                     @Override
                     public Optional<JavaConstructor> get() {
-                        return tryFindMatchingTarget(constructors, record.target);
+                        return uniqueTargetIn(tryFindMatchingTargets(constructors, record.target));
                     }
                 };
                 List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
@@ -113,7 +117,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Set<JavaMethod>> methodsSupplier = new Supplier<Set<JavaMethod>>() {
                     @Override
                     public Set<JavaMethod> get() {
-                        return tryFindMatchingTarget(methods, record.target).asSet();
+                        return tryFindMatchingTargets(methods, record.target);
                     }
                 };
                 List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
@@ -154,7 +158,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaField>> fieldSupplier = new Supplier<Optional<JavaField>>() {
                     @Override
                     public Optional<JavaField> get() {
-                        return tryFindMatchingTarget(fields, record.target);
+                        return uniqueTargetIn(tryFindMatchingTargets(fields, record.target));
                     }
                 };
                 TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
@@ -176,14 +180,19 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     " that matches supposed caller " + caller);
         }
 
-        private static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Optional<T>
-        tryFindMatchingTarget(Set<T> possibleTargets, TargetInfo targetInfo) {
+        private static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Set<T>
+        tryFindMatchingTargets(Set<T> possibleTargets, TargetInfo targetInfo) {
+            ImmutableSet.Builder<T> result = ImmutableSet.builder();
             for (T possibleTarget : possibleTargets) {
                 if (targetInfo.matches(possibleTarget)) {
-                    return Optional.of(possibleTarget);
+                    result.add(possibleTarget);
                 }
             }
-            return Optional.absent();
+            return result.build();
+        }
+
+        private static <T> Optional<T> uniqueTargetIn(Collection<T> collection) {
+            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>absent();
         }
 
         private static List<TypeDetails> getArgumentTypesFrom(String descriptor) {

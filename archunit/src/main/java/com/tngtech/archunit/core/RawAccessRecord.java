@@ -1,14 +1,13 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -23,6 +22,7 @@ import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 
 class RawAccessRecord {
     final CodeUnit caller;
@@ -215,11 +215,6 @@ class RawAccessRecord {
                     Type.getConstructorDescriptor(constructor).equals(desc);
         }
 
-        boolean hasMatchingSignatureTo(Field field) {
-            return field.getName().equals(name) &&
-                    Type.getDescriptor(field.getType()).equals(desc);
-        }
-
         @Override
         public int hashCode() {
             return Objects.hash(owner, name, desc);
@@ -317,7 +312,7 @@ class RawAccessRecord {
 
                 @Override
                 public boolean hasNext() {
-                    return current != parent && current.getSuperClass().isPresent();
+                    return !current.equals(parent) && current.getSuperClass().isPresent();
                 }
 
                 @Override
@@ -327,44 +322,73 @@ class RawAccessRecord {
                 }
             }
 
-            /**
-             * We'll do a breadth first search, if we hit the same method several times on the way, we'll give
-             * up for now, until a more sophisticated approach will actually be requested by someone.
-             */
             private static class InterfaceHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
                 private final Iterator<JavaClass> interfaces;
                 private final JavaClass parent;
                 private JavaClass current;
 
                 private InterfaceHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
-                    interfaces = breadthFirstInterfacesOf(child);
+                    interfaces = interfacesBetween(child, parent);
                     this.parent = parent;
+                    current = child;
                 }
 
-                private Iterator<JavaClass> breadthFirstInterfacesOf(JavaClass clazz) {
+                private Iterator<JavaClass> interfacesBetween(JavaClass from, JavaClass target) {
+                    Node node = new Node(from);
                     List<JavaClass> result = new ArrayList<>();
-                    result.addAll(interfacesOf(clazz));
-                    return result.iterator();
-                }
-
-                private Collection<JavaClass> interfacesOf(JavaClass clazz) {
-                    List<JavaClass> result = new ArrayList<>();
-                    result.addAll(clazz.getInterfaces());
-                    for (JavaClass i : clazz.getInterfaces()) {
-                        result.addAll(interfacesOf(i));
+                    for (Node parent : node.parents) {
+                        result.addAll(parent.to(target));
                     }
-                    return result;
+                    return result.iterator();
                 }
 
                 @Override
                 public boolean hasNext() {
-                    return current != parent && interfaces.hasNext();
+                    return !current.equals(parent) && interfaces.hasNext();
                 }
 
                 @Override
                 public JavaClass next() {
                     current = interfaces.next();
                     return current;
+                }
+            }
+
+            private static class Node {
+                private final JavaClass child;
+                private final Set<Node> parents = new HashSet<>();
+
+                private Node(JavaClass child) {
+                    this.child = child;
+                    for (JavaClass i : child.getInterfaces()) {
+                        parents.add(new Node(i));
+                    }
+                }
+
+                public List<JavaClass> to(JavaClass target) {
+                    if (child.equals(target)) {
+                        return singletonList(child);
+                    }
+                    Set<JavaClass> result = new LinkedHashSet<>();
+                    for (Node parent : parents) {
+                        if (parent.contains(target)) {
+                            result.add(child);
+                            result.addAll(parent.to(target));
+                        }
+                    }
+                    return new ArrayList<>(result);
+                }
+
+                public boolean contains(JavaClass target) {
+                    if (child.equals(target)) {
+                        return true;
+                    }
+                    for (Node parent : parents) {
+                        if (parent.contains(target)) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             }
         }
