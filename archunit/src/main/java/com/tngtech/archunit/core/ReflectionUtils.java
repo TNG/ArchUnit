@@ -49,7 +49,7 @@ public class ReflectionUtils {
         }
     }
 
-    private static String ensureCorrectArrayTypeName(String name) {
+    static String ensureCorrectArrayTypeName(String name) {
         return name.endsWith("[]") ? fixArrayTypeName(name) : name;
     }
 

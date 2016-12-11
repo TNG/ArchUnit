@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -57,6 +58,7 @@ import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubClass;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubInterface;
 import com.tngtech.archunit.core.testexamples.classhierarchyimport.SubSubClass;
 import com.tngtech.archunit.core.testexamples.complexexternal.ChildClass;
+import com.tngtech.archunit.core.testexamples.complexexternal.ParentClass;
 import com.tngtech.archunit.core.testexamples.dependents.ClassDependingOnParentThroughChild;
 import com.tngtech.archunit.core.testexamples.dependents.ClassHoldingDependencies;
 import com.tngtech.archunit.core.testexamples.dependents.FirstClassWithDependency;
@@ -734,13 +736,21 @@ public class ClassFileImporterTest {
     public void imports_external_field_access() throws Exception {
         JavaClass classWithExternalFieldAccess = classesIn("testexamples/fieldaccessimport").get(ExternalFieldAccess.class);
 
-        JavaFieldAccess access = getOnlyElement(classWithExternalFieldAccess.getFieldAccessesFromSelf());
+        JavaFieldAccess access = getOnlyElement(classWithExternalFieldAccess.getMethod("access").getFieldAccesses());
 
         assertThatAccess(access)
                 .isFrom(classWithExternalFieldAccess.getCodeUnit("access"))
-                .inLineNumber(7);
+                .inLineNumber(8);
 
         assertThat(access.getTarget()).isEquivalentTo(field(ClassWithIntAndObjectFields.class, "objectField"));
+
+        access = getOnlyElement(classWithExternalFieldAccess.getMethod("accessInheritedExternalField").getFieldAccesses());
+
+        assertThatAccess(access)
+                .isFrom(classWithExternalFieldAccess.getCodeUnit("accessInheritedExternalField"))
+                .inLineNumber(12);
+
+        assertThat(access.getTarget()).isEquivalentTo(field(ParentClass.class, "someParentField"));
     }
 
     @Test
@@ -888,17 +898,22 @@ public class ClassFileImporterTest {
     @Test
     public void imports_constructor_calls_to_sub_type_constructor_on_external_class() throws Exception {
         JavaClass classWithExternalConstructorCall = classesIn("testexamples/callimport").get(ExternalSubTypeConstructorCall.class);
-        JavaCodeUnit<?, ?> call = classWithExternalConstructorCall.getCodeUnit("call");
 
-        JavaConstructorCall callToExternalClass = getOnlyElement(call.getConstructorCallsFromSelf());
+        assertConstructorCall(classWithExternalConstructorCall.getCodeUnit("call"), ChildClass.class, 9);
+        assertConstructorCall(classWithExternalConstructorCall.getCodeUnit("newHashMap"), HashMap.class, 13);
+    }
+
+    private void assertConstructorCall(JavaCodeUnit<?, ?> call, Class<?> constructorOwner, int lineNumber) {
+        JavaConstructorCall callToExternalClass =
+                getOnlyElement(getByTargetOwner(call.getConstructorCallsFromSelf(), constructorOwner));
 
         assertThatCall(callToExternalClass)
                 .isFrom(call)
-                .inLineNumber(7);
+                .inLineNumber(lineNumber);
 
         ConstructorCallTarget target = callToExternalClass.getTarget();
-        assertThat(target.getFullName()).isEqualTo(ChildClass.class.getName() + ".<init>()");
-        assertThat(reflect(target)).isEqualTo(constructor(ChildClass.class));
+        assertThat(target.getFullName()).isEqualTo(constructorOwner.getName() + ".<init>()");
+        assertThat(reflect(target)).isEqualTo(constructor(constructorOwner));
     }
 
     @Test
@@ -1158,12 +1173,12 @@ public class ClassFileImporterTest {
 
         Set<JavaConstructorCall> constructorCalls = classHoldingDependencies.getConstructorCallsToSelf();
         Set<JavaConstructorCall> expectedConstructorCalls =
-                getByTarget(subClassHoldingDependencies.getConstructorCallsFromSelf(), classHoldingDependencies.getName());
+                getByTargetOwner(subClassHoldingDependencies.getConstructorCallsFromSelf(), classHoldingDependencies.getName());
         assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
 
         constructorCalls = subClassHoldingDependencies.getConstructorCallsToSelf();
         expectedConstructorCalls =
-                getByTarget(dependentClass.getConstructorCallsFromSelf(), subClassHoldingDependencies.getName());
+                getByTargetOwner(dependentClass.getConstructorCallsFromSelf(), subClassHoldingDependencies.getName());
         assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
     }
 
@@ -1274,7 +1289,11 @@ public class ClassFileImporterTest {
         return getBy(accesses, not(targetOwnerNameEquals(target.getName())));
     }
 
-    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final String targetOwnerName) {
+    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, Class<?> targetOwner) {
+        return getByTargetOwner(calls, targetOwner.getName());
+    }
+
+    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final String targetOwnerName) {
         return getBy(calls, targetOwnerNameEquals(targetOwnerName));
     }
 

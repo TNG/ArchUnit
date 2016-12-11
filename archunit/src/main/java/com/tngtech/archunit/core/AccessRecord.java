@@ -1,18 +1,11 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -20,9 +13,6 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
 import org.objectweb.asm.Type;
-
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
-import static java.util.Collections.emptySet;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit<?, ?> getCaller();
@@ -68,7 +58,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
         private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
             private final RawAccessRecord record;
-            final ImportedClasses classes;
+            private final ImportedClasses classes;
             private final Set<JavaConstructor> constructors;
             private final JavaClass targetOwner;
 
@@ -87,28 +77,9 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public ConstructorCallTarget getTarget() {
                 Optional<JavaConstructor> matchingConstructor = tryFindMatchingTarget(constructors, record.target);
-
-                final JavaConstructor constructor = matchingConstructor.isPresent() ?
-                        matchingConstructor.get() :
-                        createConstructorFor(record.target);
-                Supplier<Optional<JavaConstructor>> constructorSupplier = Suppliers.ofInstance(Optional.of(constructor));
+                Supplier<Optional<JavaConstructor>> constructorSupplier = Suppliers.ofInstance(matchingConstructor);
                 List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
                 return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
-            }
-
-            private JavaConstructor createConstructorFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
-                return createConstructor(targetInfo, owner);
-            }
-
-            private JavaConstructor createConstructor(final TargetInfo targetInfo, JavaClass owner) {
-                Constructor<?> constructor = IdentifiedTarget.ofConstructor(owner.reflect(), new ReflectionUtils.Predicate<Constructor<?>>() {
-                    @Override
-                    public boolean apply(Constructor<?> input) {
-                        return targetInfo.hasMatchingSignatureTo(input);
-                    }
-                }).getOrThrow("Could not determine Constructor of type %s", targetInfo.desc);
-                return new JavaConstructor.Builder().withConstructor(constructor).build(owner);
             }
 
             public int getLineNumber() {
@@ -137,32 +108,10 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public MethodCallTarget getTarget() {
                 Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, record.target);
-
-                JavaMethod method = matchingMethod.isPresent() ? matchingMethod.get() : createMethodFor(record.target);
-                Supplier<Set<JavaMethod>> methodsSupplier = Suppliers.ofInstance(Collections.singleton(method));
+                Supplier<Set<JavaMethod>> methodsSupplier = Suppliers.ofInstance(matchingMethod.asSet());
                 List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
                 TypeDetails returnType = TypeDetails.of(Type.getReturnType(record.target.desc));
                 return new MethodCallTarget(targetOwner, record.target.name, parameters, returnType, methodsSupplier);
-            }
-
-            private JavaMethod createMethodFor(TargetInfo targetInfo) {
-                JavaClass owner = classes.get(targetInfo.owner.getName());
-                return createMethod(targetInfo, owner);
-            }
-
-            @SuppressWarnings("unchecked")
-            private JavaMethod createMethod(final TargetInfo targetInfo, JavaClass owner) {
-                MemberDescription.ForMethod member = new MethodTargetDescription(targetInfo);
-                IdentifiedTarget<Method> target = IdentifiedTarget.ofMethod(owner.reflect(), new ReflectionUtils.Predicate<Method>() {
-                    @Override
-                    public boolean apply(Method input) {
-                        return targetInfo.hasMatchingSignatureTo(input);
-                    }
-                });
-                if (target.wasIdentified()) {
-                    member = new MemberDescription.ForDeterminedMethod(target.get());
-                }
-                return new JavaMethod.Builder().withMember(member).build(owner);
             }
 
             public int getLineNumber() {
@@ -196,27 +145,9 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public FieldAccessTarget getTarget() {
                 Optional<JavaField> matchingField = tryFindMatchingTarget(fields, record.target);
-
-                JavaField field = matchingField.isPresent() ? matchingField.get() : createFieldFor(record.target);
-                Supplier<Optional<JavaField>> fieldSupplier = Suppliers.ofInstance(Optional.of(field));
+                Supplier<Optional<JavaField>> fieldSupplier = Suppliers.ofInstance(matchingField);
                 TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
                 return new FieldAccessTarget(targetOwner, record.target.name, fieldType, fieldSupplier);
-            }
-
-            private JavaField createFieldFor(TargetInfo targetInfo) {
-                JavaClass owner = new JavaClass.Builder().withType(TypeDetails.of(targetInfo.owner.asClass())).build();
-                return createField(targetInfo, owner);
-            }
-
-            @SuppressWarnings("unchecked")
-            private JavaField createField(final TargetInfo targetInfo, JavaClass owner) {
-                Field field = IdentifiedTarget.ofField(owner.reflect(), new ReflectionUtils.Predicate<Field>() {
-                    @Override
-                    public boolean apply(Field input) {
-                        return targetInfo.hasMatchingSignatureTo(input);
-                    }
-                }).getOrThrow("Could not determine Field %s of type %s", targetInfo.name, targetInfo.desc);
-                return new JavaField.Builder().withField(field).build(owner);
             }
 
             public int getLineNumber() {
@@ -242,82 +173,6 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 }
             }
             return Optional.absent();
-        }
-
-        private static class MethodTargetDescription implements MemberDescription.ForMethod {
-            private final TargetInfo targetInfo;
-
-            private MethodTargetDescription(TargetInfo targetInfo) {
-                this.targetInfo = targetInfo;
-            }
-
-            @Override
-            public String getName() {
-                return targetInfo.name;
-            }
-
-            // NOTE: If we can't determine the method, it must be some sort of diamond scenario, where the called target
-            //       is an interface. Any interface method, by the JLS, is exactly 'public' and 'abstract',
-            @Override
-            public int getModifiers() {
-                return Modifier.PUBLIC + Modifier.ABSTRACT;
-            }
-
-            @Override
-            public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
-                return emptySet();
-            }
-
-            @Override
-            public String getDescriptor() {
-                return targetInfo.desc;
-            }
-
-            @Override
-            public Method reflect() {
-                throw new ReflectionNotPossibleException(targetInfo.owner.getName(), targetInfo.name, targetInfo.desc);
-            }
-
-            @Override
-            public void checkCompatibility(JavaClass owner) {
-            }
-
-            @Override
-            public List<TypeDetails> getParameterTypes() {
-                Type[] argumentTypes = Type.getArgumentTypes(targetInfo.desc);
-                ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
-                for (Type type : argumentTypes) {
-                    result.add(TypeDetails.of(classForName(type.getClassName())));
-                }
-                return result.build();
-            }
-
-            @Override
-            public TypeDetails getReturnType() {
-                return TypeDetails.of(classForName(Type.getReturnType(targetInfo.desc).getClassName()));
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(targetInfo);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj) {
-                    return true;
-                }
-                if (obj == null || getClass() != obj.getClass()) {
-                    return false;
-                }
-                final MethodTargetDescription other = (MethodTargetDescription) obj;
-                return Objects.equals(this.targetInfo, other.targetInfo);
-            }
-
-            @Override
-            public String toString() {
-                return getClass().getSimpleName() + "{targetInfo=" + targetInfo + '}';
-            }
         }
 
         private static List<TypeDetails> getArgumentTypesFrom(String descriptor) {
