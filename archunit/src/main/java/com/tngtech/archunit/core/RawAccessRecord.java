@@ -1,10 +1,8 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -16,11 +14,9 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.objectweb.asm.Type;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
@@ -69,34 +65,11 @@ class RawAccessRecord {
         private final String declaringClassName;
         private final int hashCode;
 
-        private CodeUnit(Member member) {
-            this(nameOf(member),
-                    parametersOf(member),
-                    member.getDeclaringClass(),
-                    Objects.hash(member));
-        }
-
-        private CodeUnit(String name, List<TypeDetails> parameters, Class<?> declaringClass, int hashCode) {
-            this(name, parameters, declaringClass.getName(), hashCode);
-        }
-
-        private CodeUnit(String name, List<TypeDetails> parameters, String declaringClassName, int hashCode) {
+        CodeUnit(String name, List<TypeDetails> parameters, String declaringClassName) {
             this.name = name;
             this.parameters = parameters;
             this.declaringClassName = declaringClassName;
-            this.hashCode = hashCode;
-        }
-
-        private static List<TypeDetails> parametersOf(Member member) {
-            return member instanceof Constructor ?
-                    TypeDetails.allOf(((Constructor<?>) member).getParameterTypes()) :
-                    TypeDetails.allOf(((Method) member).getParameterTypes());
-        }
-
-        private static String nameOf(Member member) {
-            return member instanceof Constructor ?
-                    CONSTRUCTOR_NAME :
-                    member.getName();
+            this.hashCode = Objects.hash(name, parameters, declaringClassName);
         }
 
         public String getName() {
@@ -136,47 +109,10 @@ class RawAccessRecord {
                     '}';
         }
 
-        static CodeUnit of(Object o) {
-            checkArgument(o instanceof Constructor || o instanceof Method);
-            return new CodeUnit((Member) o);
-        }
-
-        static CodeUnit staticInitializerOf(final Class<?> clazz) {
-            return new StaticInitializer(clazz.getName());
-        }
-
         public boolean is(JavaCodeUnit<?, ?> method) {
             return getName().equals(method.getName())
                     && getParameters().equals(method.getParameters())
                     && getDeclaringClassName().equals(method.getOwner().getName());
-        }
-
-        private static class StaticInitializer extends CodeUnit {
-            private StaticInitializer(String className) {
-                super(STATIC_INITIALIZER_NAME, Collections.<TypeDetails>emptyList(), className, Objects.hash(STATIC_INITIALIZER_NAME, className));
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj) {
-                    return true;
-                }
-                if (obj == null || getClass() != obj.getClass()) {
-                    return false;
-                }
-                if (!super.equals(obj)) {
-                    return false;
-                }
-                final StaticInitializer other = (StaticInitializer) obj;
-                return Objects.equals(getName(), other.getName()) &&
-                        Objects.equals(getDeclaringClassName(), other.getDeclaringClassName()) &&
-                        Objects.equals(getParameters(), other.getParameters());
-            }
-
-            @Override
-            public String toString() {
-                return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getDeclaringClassName(), getName());
-            }
         }
     }
 

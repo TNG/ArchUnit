@@ -20,7 +20,6 @@ import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.Guava.toGuava;
 import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
-import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class JavaClass implements HasName {
@@ -465,15 +464,6 @@ public class JavaClass implements HasName {
         private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         private final ImmutableMap.Builder<String, JavaAnnotation> annotations = ImmutableMap.builder();
-        private final TypeAnalysisListener analysisListener;
-
-        Builder() {
-            this(NO_OP);
-        }
-
-        Builder(TypeAnalysisListener analysisListener) {
-            this.analysisListener = analysisListener;
-        }
 
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
@@ -482,11 +472,9 @@ public class JavaClass implements HasName {
                 addField(new JavaField.Builder().withField(field));
             }
             for (Method method : typeDetails.getDeclaredMethods()) {
-                analysisListener.onMethodFound(method);
                 addMethod(new JavaMethod.Builder().withMethod(method));
             }
             for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
-                analysisListener.onConstructorFound(constructor);
                 addConstructor(new JavaConstructor.Builder().withConstructor(constructor));
             }
             annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
@@ -512,21 +500,5 @@ public class JavaClass implements HasName {
         public JavaClass build() {
             return new JavaClass(this);
         }
-    }
-
-    interface TypeAnalysisListener {
-        void onMethodFound(Method method);
-
-        void onConstructorFound(Constructor<?> constructor);
-
-        TypeAnalysisListener NO_OP = new TypeAnalysisListener() {
-            @Override
-            public void onMethodFound(Method method) {
-            }
-
-            @Override
-            public void onConstructorFound(Constructor<?> constructor) {
-            }
-        };
     }
 }
