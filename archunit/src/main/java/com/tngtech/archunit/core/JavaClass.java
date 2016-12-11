@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.Guava.toGuava;
 import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
@@ -231,7 +232,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaMethod> getAllMethods() {
         ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getClassHierarchy()) {
+        for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
             result.addAll(javaClass.getMethods());
         }
         return result.build();

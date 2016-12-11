@@ -5,8 +5,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -263,10 +265,10 @@ class RawAccessRecord {
             }
 
             private void createPath(JavaClass child, JavaClass parent) {
+                HierarchyResolutionStrategy hierarchyResolutionStrategy = hierarchyResolutionStrategyFrom(child).to(parent);
                 path.add(child);
-                while (child != parent) {
-                    child = child.getSuperClass().get();
-                    path.add(child);
+                while (hierarchyResolutionStrategy.hasNext()) {
+                    path.add(hierarchyResolutionStrategy.next());
                 }
             }
 
@@ -278,6 +280,92 @@ class RawAccessRecord {
                     }
                 }
                 return matching.size() == 1;
+            }
+
+            private HierarchyResolutionStrategyCreator hierarchyResolutionStrategyFrom(JavaClass child) {
+                return new HierarchyResolutionStrategyCreator(child);
+            }
+
+            private interface HierarchyResolutionStrategy {
+                boolean hasNext();
+
+                JavaClass next();
+            }
+
+            private static class HierarchyResolutionStrategyCreator {
+                private final JavaClass child;
+
+                private HierarchyResolutionStrategyCreator(JavaClass child) {
+                    this.child = child;
+                }
+
+                public HierarchyResolutionStrategy to(JavaClass parent) {
+                    return parent.isInterface() ?
+                            new InterfaceHierarchyResolutionStrategy(child, parent) :
+                            new ClassHierarchyResolutionStrategy(child, parent);
+                }
+            }
+
+            private static class ClassHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
+                private final JavaClass parent;
+                private JavaClass current;
+
+                private ClassHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
+                    this.current = child;
+                    this.parent = parent;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return current != parent && current.getSuperClass().isPresent();
+                }
+
+                @Override
+                public JavaClass next() {
+                    current = current.getSuperClass().get();
+                    return current;
+                }
+            }
+
+            /**
+             * We'll do a breadth first search, if we hit the same method several times on the way, we'll give
+             * up for now, until a more sophisticated approach will actually be requested by someone.
+             */
+            private static class InterfaceHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
+                private final Iterator<JavaClass> interfaces;
+                private final JavaClass parent;
+                private JavaClass current;
+
+                private InterfaceHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
+                    interfaces = breadthFirstInterfacesOf(child);
+                    this.parent = parent;
+                }
+
+                private Iterator<JavaClass> breadthFirstInterfacesOf(JavaClass clazz) {
+                    List<JavaClass> result = new ArrayList<>();
+                    result.addAll(interfacesOf(clazz));
+                    return result.iterator();
+                }
+
+                private Collection<JavaClass> interfacesOf(JavaClass clazz) {
+                    List<JavaClass> result = new ArrayList<>();
+                    result.addAll(clazz.getInterfaces());
+                    for (JavaClass i : clazz.getInterfaces()) {
+                        result.addAll(interfacesOf(i));
+                    }
+                    return result;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return current != parent && interfaces.hasNext();
+                }
+
+                @Override
+                public JavaClass next() {
+                    current = interfaces.next();
+                    return current;
+                }
             }
         }
     }

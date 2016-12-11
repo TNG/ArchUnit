@@ -24,22 +24,29 @@ class ImportedClasses {
         return directlyImported;
     }
 
-    void add(Map<String, JavaClass> additionalClasses) {
-        this.additionalClasses.putAll(additionalClasses);
-    }
-
     boolean contain(String name) {
         return directlyImported.containsKey(name) || additionalClasses.containsKey(name);
     }
 
-    JavaClass get(String typeName) {
-        if (directlyImported.containsKey(typeName)) {
-            return directlyImported.get(typeName);
-        }
-        if (!additionalClasses.containsKey(typeName)) {
+    void ensurePresent(String typeName) {
+        if (!contain(typeName)) {
             additionalClasses.put(typeName, resolver.resolve(typeName));
         }
-        return additionalClasses.get(typeName);
+    }
+
+    void add(JavaClass clazz) {
+        additionalClasses.put(clazz.getName(), clazz);
+    }
+
+    void add(Map<String, JavaClass> additionalClasses) {
+        this.additionalClasses.putAll(additionalClasses);
+    }
+
+    JavaClass get(String typeName) {
+        ensurePresent(typeName);
+        return directlyImported.containsKey(typeName) ?
+                directlyImported.get(typeName) :
+                additionalClasses.get(typeName);
     }
 
     Map<String, JavaClass> getAll() {

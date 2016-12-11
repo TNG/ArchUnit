@@ -1,10 +1,9 @@
 package com.tngtech.archunit.core;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
@@ -12,6 +11,8 @@ import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
 class ClassGraphCreator implements ImportContext {
     private static final Logger LOG = LoggerFactory.getLogger(ClassGraphCreator.class);
@@ -32,6 +33,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     JavaClasses complete() {
+        ensureCallTargetsArePresent();
         ensureClassHierarchies();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
@@ -45,6 +47,12 @@ class ClassGraphCreator implements ImportContext {
         return JavaClasses.of(classes.getDirectlyImported(), this);
     }
 
+    private void ensureCallTargetsArePresent() {
+        for (RawAccessRecord record : importRecord.getAccessRecords()) {
+            classes.ensurePresent(ensureCorrectArrayTypeName(record.target.owner.getName()));
+        }
+    }
+
     private void ensureClassHierarchies() {
         ensureClassesOfHierarchyInContext();
         for (JavaClass javaClass : classes.getAll().values()) {
@@ -53,31 +61,22 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void ensureClassesOfHierarchyInContext() {
-        Map<String, JavaClass> missingTypes = new HashMap<>();
-        for (String name : classes.getAll().keySet()) {
-            tryAddSuperTypes(missingTypes, name);
+        for (String name : ImmutableSet.copyOf(classes.getAll().keySet())) {
+            resolveSuperTypesOf(name);
         }
-        classes.add(missingTypes);
     }
 
-    private void tryAddSuperTypes(Map<String, JavaClass> missingTypes, String className) {
-        try {
-            for (JavaClass toAdd : classResolver.getAllSuperClasses(className)) {
-                if (!classes.contain(toAdd.getName())) {
-                    missingTypes.put(toAdd.getName(), toAdd);
-                }
+    private void resolveSuperTypesOf(String className) {
+        for (JavaClass toAdd : classResolver.getAllSuperClasses(className)) {
+            if (!classes.contain(toAdd.getName())) {
+                classes.add(toAdd);
             }
-        } catch (NoClassDefFoundError e) {
-            LOG.warn("Can't analyse related type of '{}' because of missing dependency '{}'",
-                    className, e.getMessage());
-        } catch (ReflectionException e) {
-            LOG.warn("Can't analyse related type of '{}' because of missing dependency. Error was: '{}'",
-                    className, e.getMessage());
         }
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
-            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit<?, ?>, T> processedAccessRecords) {
+            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit<?, ?>,
+            T> processedAccessRecords) {
         try {
             T processed = factory.create(rawRecord, classes);
             processedAccessRecords.put(processed.getCaller(), processed);

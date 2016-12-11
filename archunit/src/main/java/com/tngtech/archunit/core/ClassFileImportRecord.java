@@ -42,4 +42,12 @@ class ClassFileImportRecord {
     public Set<JavaClass> getClasses() {
         return classes;
     }
+
+    Set<RawAccessRecord> getAccessRecords() {
+        return ImmutableSet.<RawAccessRecord>builder()
+                .addAll(rawFieldAccessRecords)
+                .addAll(rawMethodCallRecords)
+                .addAll(rawConstructorCallRecords)
+                .build();
+    }
 }
