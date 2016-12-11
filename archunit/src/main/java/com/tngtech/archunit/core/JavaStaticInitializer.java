@@ -2,7 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
@@ -11,11 +10,8 @@ import static java.util.Collections.emptySet;
 public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
-    private int hashCode;
-
     private JavaStaticInitializer(JavaClass clazz) {
         super(new StaticInitializerDescription(), clazz);
-        hashCode = Objects.hash(getFullName());
     }
 
     @Override
@@ -68,7 +64,7 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
         }
 
         @Override
-        public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
+        public Set<JavaAnnotation> getAnnotations() {
             return emptySet();
         }
 

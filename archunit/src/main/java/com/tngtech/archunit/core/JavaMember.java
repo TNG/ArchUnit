@@ -14,19 +14,18 @@ import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
 public abstract class JavaMember<M extends Member, T extends MemberDescription<M>>
         implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
 
-    final T memberDescription;
+    private final String name;
+    private final String descriptor;
     private final Map<String, JavaAnnotation> annotations;
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
-    JavaMember(T memberDescription, JavaClass owner) {
-        this.memberDescription = checkNotNull(memberDescription);
-        annotations = FluentIterable.from(memberDescription.getAnnotationsFor(this))
-                .uniqueIndex(toGuava(GET_TYPE_NAME));
+    JavaMember(JavaClass owner, Set<JavaAnnotation> annotations, String name, String descriptor, Set<JavaModifier> modifiers) {
+        this.name = checkNotNull(name);
+        this.descriptor = checkNotNull(descriptor);
+        this.annotations = FluentIterable.from(annotations).uniqueIndex(toGuava(GET_TYPE_NAME));
         this.owner = checkNotNull(owner);
-        modifiers = JavaModifier.getModifiersFor(memberDescription.getModifiers());
-
-        memberDescription.checkCompatibility(owner);
+        this.modifiers = checkNotNull(modifiers);
     }
 
     public Set<JavaAnnotation> getAnnotations() {
@@ -59,23 +58,19 @@ public abstract class JavaMember<M extends Member, T extends MemberDescription<M
 
     @Override
     public String getName() {
-        return memberDescription.getName();
+        return name;
     }
 
     @Override
     public String getDescriptor() {
-        return memberDescription.getDescriptor();
+        return descriptor;
     }
 
     public abstract Set<? extends JavaAccess<?>> getAccessesToSelf();
 
-    public M reflect() {
-        return memberDescription.reflect();
-    }
-
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{member=" + memberDescription + ", owner=" + getOwner() + '}';
+        return getClass().getSimpleName() + "{member=" + name + ", owner=" + getOwner() + '}';
     }
 
     public static DescribedPredicate<JavaMember<?, ?>> modifier(final JavaModifier modifier) {

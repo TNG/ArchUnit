@@ -1,7 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,7 +10,6 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaClass.withType;
@@ -141,14 +138,12 @@ class RawAccessRecord {
 
         protected abstract boolean signatureExistsIn(JavaClass javaClass);
 
-        boolean hasMatchingSignatureTo(Method method) {
-            return method.getName().equals(name) &&
-                    Type.getMethodDescriptor(method).equals(desc);
+        boolean hasMatchingSignatureTo(JavaMethod method) {
+            return method.getName().equals(name) && method.getDescriptor().equals(desc);
         }
 
-        boolean hasMatchingSignatureTo(Constructor<?> constructor) {
-            return CONSTRUCTOR_NAME.equals(name) &&
-                    Type.getConstructorDescriptor(constructor).equals(desc);
+        boolean hasMatchingSignatureTo(JavaConstructor constructor) {
+            return CONSTRUCTOR_NAME.equals(name) && constructor.getDescriptor().equals(desc);
         }
 
         @Override
@@ -350,7 +345,7 @@ class RawAccessRecord {
         @Override
         protected boolean signatureExistsIn(JavaClass javaClass) {
             for (JavaConstructor constructor : javaClass.getConstructors()) {
-                if (hasMatchingSignatureTo(constructor.reflect())) {
+                if (hasMatchingSignatureTo(constructor)) {
                     return true;
                 }
             }
@@ -366,7 +361,7 @@ class RawAccessRecord {
         @Override
         protected boolean signatureExistsIn(JavaClass javaClass) {
             for (JavaMethod method : javaClass.getMethods()) {
-                if (hasMatchingSignatureTo(method.reflect())) {
+                if (hasMatchingSignatureTo(method)) {
                     return true;
                 }
             }

@@ -25,9 +25,9 @@ public class JavaFieldTest {
 
     @Test
     public void hasType_works() {
-        assertThat(JavaField.hasType(DescribedPredicate.<Class<?>>equalTo(SomeEnum.class))
+        assertThat(JavaField.hasType(DescribedPredicate.equalTo(TypeDetails.of(SomeEnum.class)))
                 .apply(fieldWithType(SomeEnum.class))).as("Predicate matches").isTrue();
-        assertThat(JavaField.hasType(DescribedPredicate.<Class<?>>equalTo(Serializable.class))
+        assertThat(JavaField.hasType(DescribedPredicate.equalTo(TypeDetails.of(Serializable.class)))
                 .apply(fieldWithType(SomeEnum.class))).as("Predicate matches").isFalse();
 
         assertThat(JavaField.hasType(predicateWithDescription("something")).getDescription())
@@ -36,7 +36,7 @@ public class JavaFieldTest {
 
     private JavaField fieldWithType(Class<?> type) {
         JavaField result = javaField(SomeClass.class, "other");
-        checkState(result.getType() == type, "field doesn't have the type the test expects anymore");
+        checkState(result.getType().equals(TypeDetails.of(type)), "field doesn't have the type the test expects anymore");
         return result;
     }
 }

@@ -10,10 +10,12 @@ import com.google.common.base.Suppliers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
+    private final TypeDetails type;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     private JavaField(Builder builder) {
-        super(builder.member, builder.owner);
+        super(builder.owner, builder.member.getAnnotations(), builder.member.getName(), builder.member.getDescriptor(), JavaModifier.getModifiersFor(builder.member.getModifiers()));
+        type = builder.member.getType();
     }
 
     @Override
@@ -21,8 +23,8 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
         return getOwner().getName() + "." + getName();
     }
 
-    public Class<?> getType() {
-        return memberDescription.getType();
+    public TypeDetails getType() {
+        return type;
     }
 
     @Override
@@ -34,14 +36,14 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
         this.accessesToSelf = checkNotNull(accesses);
     }
 
-    public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super Class<?>> predicate) {
+    public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super TypeDetails> predicate) {
         return predicate.onResultOf(GET_TYPE)
                 .as("has type " + predicate.getDescription());
     }
 
-    public static final Function<JavaField, Class<?>> GET_TYPE = new Function<JavaField, Class<?>>() {
+    public static final Function<JavaField, TypeDetails> GET_TYPE = new Function<JavaField, TypeDetails>() {
         @Override
-        public Class<?> apply(JavaField input) {
+        public TypeDetails apply(JavaField input) {
             return input.getType();
         }
     };

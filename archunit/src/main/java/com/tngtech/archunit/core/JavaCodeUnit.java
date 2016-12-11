@@ -28,6 +28,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         extends JavaMember<M, T>
         implements HasParameters {
 
+    final T memberDescription;
     private Set<JavaFieldAccess> fieldAccesses;
     private Set<JavaMethodCall> methodCalls;
     private Set<JavaConstructorCall> constructorCalls;
@@ -38,7 +39,8 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
     }
 
     JavaCodeUnit(T memberDescription, JavaClass owner) {
-        super(memberDescription, owner);
+        super(owner, memberDescription.getAnnotations(), memberDescription.getName(), memberDescription.getDescriptor(), JavaModifier.getModifiersFor(memberDescription.getModifiers()));
+        this.memberDescription = memberDescription;
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
