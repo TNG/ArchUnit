@@ -1,8 +1,10 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Member;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
@@ -28,19 +30,22 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         extends JavaMember<M, T>
         implements HasParameters {
 
-    final T memberDescription;
+    private final TypeDetails returnType;
+    private final List<TypeDetails> parameters;
+    private final String fullName;
+
     private Set<JavaFieldAccess> fieldAccesses;
     private Set<JavaMethodCall> methodCalls;
     private Set<JavaConstructorCall> constructorCalls;
-    private String fullName;
 
-    JavaCodeUnit(Builder<T, ?> builder) {
-        this(builder.member, builder.owner);
+    JavaCodeUnit(Builder<T, ?> builder, TypeDetails returnType, List<TypeDetails> parameters) {
+        this(builder.member, builder.owner, returnType, parameters);
     }
 
-    JavaCodeUnit(T memberDescription, JavaClass owner) {
+    JavaCodeUnit(T memberDescription, JavaClass owner, TypeDetails returnType, List<TypeDetails> parameters) {
         super(owner, memberDescription.getAnnotations(), memberDescription.getName(), memberDescription.getDescriptor(), JavaModifier.getModifiersFor(memberDescription.getModifiers()));
-        this.memberDescription = memberDescription;
+        this.returnType = returnType;
+        this.parameters = ImmutableList.copyOf(parameters);
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -49,7 +54,14 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return fullName;
     }
 
-    public abstract TypeDetails getReturnType();
+    @Override
+    public List<TypeDetails> getParameters() {
+        return parameters;
+    }
+
+    public TypeDetails getReturnType() {
+        return returnType;
+    }
 
     public Set<JavaFieldAccess> getFieldAccesses() {
         return fieldAccesses;

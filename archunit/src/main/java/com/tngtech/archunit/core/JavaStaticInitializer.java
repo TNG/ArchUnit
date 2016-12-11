@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -11,17 +12,7 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
     private JavaStaticInitializer(JavaClass clazz) {
-        super(new StaticInitializerDescription(), clazz);
-    }
-
-    @Override
-    public List<TypeDetails> getParameters() {
-        return memberDescription.getParameterTypes();
-    }
-
-    @Override
-    public TypeDetails getReturnType() {
-        return memberDescription.getReturnType();
+        super(new StaticInitializerDescription(), clazz, TypeDetails.of(void.class), Collections.<TypeDetails>emptyList());
     }
 
     @Override
