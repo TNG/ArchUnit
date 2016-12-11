@@ -11,8 +11,8 @@ import static java.util.Collections.emptySet;
 public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
-    private JavaStaticInitializer(JavaClass clazz) {
-        super(new StaticInitializerDescription(), clazz, TypeDetails.of(void.class), Collections.<TypeDetails>emptyList());
+    private JavaStaticInitializer(Builder builder) {
+        super(builder);
     }
 
     @Override
@@ -25,10 +25,16 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
         return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
     }
 
-    static class Builder implements BuilderWithBuildParameter<JavaClass, JavaStaticInitializer> {
+    static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
+        public Builder() {
+            withReturnType(TypeDetails.of(void.class));
+            withParameters(Collections.<TypeDetails>emptyList());
+            withMember(new StaticInitializerDescription());
+        }
+
         @Override
-        public JavaStaticInitializer build(JavaClass owner) {
-            return new JavaStaticInitializer(owner);
+        JavaStaticInitializer construct(Builder builder) {
+            return new JavaStaticInitializer(builder);
         }
     }
 
