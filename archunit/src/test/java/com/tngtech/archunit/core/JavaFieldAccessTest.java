@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.TestUtils.javaField;
+import static com.tngtech.archunit.core.TestUtils.javaMethod;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,10 +37,10 @@ public class JavaFieldAccessTest {
                 .build());
         JavaFieldAccess otherTarget = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
                 .withCaller(accessFieldMethod(clazz))
-                .withField(field(clazz, "intField"))
+                .withField(javaField(clazz, "intField"))
                 .build());
         JavaFieldAccess otherCaller = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(method(clazz, "accessInt"))
+                .withCaller(javaMethod(clazz, "accessInt"))
                 .build());
 
         assertThat(access).isNotEqualTo(otherAccessType);
@@ -65,25 +67,13 @@ public class JavaFieldAccessTest {
 
     private TestFieldAccessRecord.Builder stringFieldAccess(JavaClass clazz, String name) throws NoSuchFieldException {
         return new TestFieldAccessRecord.Builder()
-                .withField(field(clazz, name))
+                .withField(javaField(clazz, name))
                 .withAccessType(GET)
                 .withLineNumber(31);
     }
 
-    private JavaField field(JavaClass clazz, String name) throws NoSuchFieldException {
-        return new JavaField.Builder()
-                .withField(SomeClass.class.getDeclaredField(name))
-                .build(clazz);
-    }
-
     private JavaMethod accessFieldMethod(JavaClass clazz) throws NoSuchMethodException {
-        return method(clazz, "accessStringField");
-    }
-
-    private JavaMethod method(JavaClass clazz, String name) throws NoSuchMethodException {
-        return new JavaMethod.Builder()
-                .withMethod(SomeClass.class.getDeclaredMethod(name))
-                .build(clazz);
+        return javaMethod(clazz, "accessStringField");
     }
 
     private static class SomeClass {

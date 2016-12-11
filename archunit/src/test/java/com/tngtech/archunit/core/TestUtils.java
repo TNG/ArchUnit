@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -68,7 +69,14 @@ public class TestUtils {
     }
 
     public static JavaMethod javaMethod(JavaClass clazz, Method method) {
-        return new JavaMethod.Builder().withMethod(method).build(clazz);
+        return new JavaMethod.Builder()
+                .withReturnType(TypeDetails.of(method.getReturnType()))
+                .withParameters(TypeDetails.allOf(method.getParameterTypes()))
+                .withName(method.getName())
+                .withDescriptor(Type.getMethodDescriptor(method))
+                .withAnnotations(JavaAnnotation.allOf(method.getAnnotations()))
+                .withModifiers(JavaModifier.getModifiersFor(method.getModifiers()))
+                .build(clazz);
     }
 
     public static JavaClass javaClass(Class<?> owner) {
@@ -88,15 +96,24 @@ public class TestUtils {
         return javaClass;
     }
 
-    public static JavaField javaField(Field field) {
+    public static JavaField javaField(Field field, JavaClass owner) {
         return new JavaField.Builder()
-                .withField(field)
-                .build(javaClass(field.getDeclaringClass()));
+                .withName(field.getName())
+                .withDescriptor(Type.getDescriptor(field.getType()))
+                .withAnnotations(JavaAnnotation.allOf(field.getAnnotations()))
+                .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
+                .withType(TypeDetails.of(field.getType()))
+                .build(owner);
     }
 
     public static JavaField javaField(Class<?> ownerClass, String name) {
+        return javaField(javaClass(ownerClass), name);
+    }
+
+    public static JavaField javaField(JavaClass owner, String name) {
         try {
-            return javaField(ownerClass.getDeclaredField(name));
+            Field field = owner.reflect().getDeclaredField(name);
+            return javaField(field, owner);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }

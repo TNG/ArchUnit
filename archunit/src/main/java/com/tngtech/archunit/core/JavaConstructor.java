@@ -35,12 +35,6 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
     }
 
     static final class Builder extends JavaCodeUnit.Builder<JavaConstructor, Builder> {
-        BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
-            return withReturnType(TypeDetails.of(void.class))
-                    .withParameters(TypeDetails.allOf(constructor.getParameterTypes()))
-                    .withMember(new MemberDescription.ForConstructor(constructor));
-        }
-
         @Override
         JavaConstructor construct(Builder builder) {
             return new JavaConstructor(builder);
