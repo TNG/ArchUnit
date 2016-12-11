@@ -58,7 +58,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(javaField.getName()).isEqualTo(field.getName());
             assertThat(javaField.getFullName()).isEqualTo(field.getDeclaringClass().getName() + "." + field.getName());
             assertThat(javaField.getOwner().reflect()).isEqualTo(field.getDeclaringClass());
-            assertThat(javaField.getType()).isEqualTo(field.getType());
+            assertThat(javaField.getType()).isEqualTo(TypeDetails.of(field.getType()));
             assertThat(javaField.getModifiers()).isEqualTo(getModifiersFor(field.getModifiers()));
             assertThat(propertiesOf(javaField.getAnnotations())).isEqualTo(propertiesOf(field.getAnnotations()));
         }

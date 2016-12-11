@@ -124,6 +124,7 @@ import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER
 import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
+import static com.tngtech.archunit.core.TestUtils.asClasses;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
@@ -175,14 +176,14 @@ public class ClassFileImporterTest {
     public void imports_primitive_fields() throws Exception {
         Set<JavaField> fields = fieldsOf(classesIn("testexamples/primitivefieldimport"));
 
-        assertThat(findAnyByName(fields, "aBoolean").getType()).isEqualTo(boolean.class);
-        assertThat(findAnyByName(fields, "anInt").getType()).isEqualTo(int.class);
-        assertThat(findAnyByName(fields, "aByte").getType()).isEqualTo(byte.class);
-        assertThat(findAnyByName(fields, "aChar").getType()).isEqualTo(char.class);
-        assertThat(findAnyByName(fields, "aShort").getType()).isEqualTo(short.class);
-        assertThat(findAnyByName(fields, "aLong").getType()).isEqualTo(long.class);
-        assertThat(findAnyByName(fields, "aFloat").getType()).isEqualTo(float.class);
-        assertThat(findAnyByName(fields, "aDouble").getType()).isEqualTo(double.class);
+        assertThat(findAnyByName(fields, "aBoolean").getType()).isEqualTo(TypeDetails.of(boolean.class));
+        assertThat(findAnyByName(fields, "anInt").getType()).isEqualTo(TypeDetails.of(int.class));
+        assertThat(findAnyByName(fields, "aByte").getType()).isEqualTo(TypeDetails.of(byte.class));
+        assertThat(findAnyByName(fields, "aChar").getType()).isEqualTo(TypeDetails.of(char.class));
+        assertThat(findAnyByName(fields, "aShort").getType()).isEqualTo(TypeDetails.of(short.class));
+        assertThat(findAnyByName(fields, "aLong").getType()).isEqualTo(TypeDetails.of(long.class));
+        assertThat(findAnyByName(fields, "aFloat").getType()).isEqualTo(TypeDetails.of(float.class));
+        assertThat(findAnyByName(fields, "aDouble").getType()).isEqualTo(TypeDetails.of(double.class));
     }
 
     // NOTE: This provokes the scenario where the target type can't be determined uniquely due to a diamond
@@ -782,7 +783,7 @@ public class ClassFileImporterTest {
         FieldAccessTarget expectedSuperClassFieldAccess = new FieldAccessTarget(
                 subClassWithAccessedField,
                 field.getName(),
-                TypeDetails.of(field.getType()),
+                field.getType(),
                 Suppliers.ofInstance(Optional.of(field)));
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperClassField")
@@ -1251,11 +1252,27 @@ public class ClassFileImporterTest {
     }
 
     private Constructor<?> reflect(ConstructorCallTarget target) {
-        return target.resolve().get().reflect();
+        return reflect(target.resolve().get());
+    }
+
+    private Constructor<?> reflect(JavaConstructor javaConstructor) {
+        try {
+            return javaConstructor.getOwner().reflect().getConstructor(asClasses(javaConstructor.getParameters()));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Method reflect(MethodCallTarget target) {
-        return getOnlyElement(target.resolve()).reflect();
+        return reflect(getOnlyElement(target.resolve()));
+    }
+
+    private Method reflect(JavaMethod javaMethod) {
+        try {
+            return javaMethod.getOwner().reflect().getMethod(javaMethod.getName(), asClasses(javaMethod.getParameters()));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private List<TypeDetails> targetParametersOf(Set<JavaMethodCall> calls, String name) {

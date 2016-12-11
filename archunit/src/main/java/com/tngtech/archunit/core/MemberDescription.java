@@ -18,7 +18,7 @@ interface MemberDescription<T extends Member> {
 
     int getModifiers();
 
-    Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner);
+    Set<JavaAnnotation> getAnnotations();
 
     String getDescriptor();
 
@@ -46,7 +46,7 @@ interface MemberDescription<T extends Member> {
         }
 
         @Override
-        public Set<JavaAnnotation> getAnnotationsFor(JavaMember<?, ?> owner) {
+        public Set<JavaAnnotation> getAnnotations() {
             return JavaAnnotation.allOf(member.getAnnotations());
         }
 
@@ -133,7 +133,7 @@ interface MemberDescription<T extends Member> {
     }
 
     interface ForField extends MemberDescription<Field> {
-        Class<?> getType();
+        TypeDetails getType();
     }
 
     class ForDeterminedField extends ForDeterminedMember<Field> implements ForField {
@@ -147,8 +147,8 @@ interface MemberDescription<T extends Member> {
         }
 
         @Override
-        public Class<?> getType() {
-            return member.getType();
+        public TypeDetails getType() {
+            return TypeDetails.of(member.getType());
         }
     }
 }
