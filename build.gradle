@@ -35,6 +35,20 @@ subprojects {
     repositories {
         mavenCentral()
     }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                // tngNexusUsername & tngNexusPassword can be defined in ~/.gradle/gradle.properties
+                repository(url: 'https://nexus.int.tngtech.com/content/repositories/releases') {
+                    authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                }
+                snapshotRepository(url: 'https://nexus.int.tngtech.com/content/repositories/snapshots') {
+                    authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                }
+            }
+        }
+    }
 }
 
 [':archunit', ':archunit-junit'].each {
