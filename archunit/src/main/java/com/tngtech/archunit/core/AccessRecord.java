@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -76,8 +75,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public ConstructorCallTarget getTarget() {
-                Optional<JavaConstructor> matchingConstructor = tryFindMatchingTarget(constructors, record.target);
-                Supplier<Optional<JavaConstructor>> constructorSupplier = Suppliers.ofInstance(matchingConstructor);
+                Supplier<Optional<JavaConstructor>> constructorSupplier = new Supplier<Optional<JavaConstructor>>() {
+                    @Override
+                    public Optional<JavaConstructor> get() {
+                        return tryFindMatchingTarget(constructors, record.target);
+                    }
+                };
                 List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
                 return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
             }
@@ -107,8 +110,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public MethodCallTarget getTarget() {
-                Optional<JavaMethod> matchingMethod = tryFindMatchingTarget(methods, record.target);
-                Supplier<Set<JavaMethod>> methodsSupplier = Suppliers.ofInstance(matchingMethod.asSet());
+                Supplier<Set<JavaMethod>> methodsSupplier = new Supplier<Set<JavaMethod>>() {
+                    @Override
+                    public Set<JavaMethod> get() {
+                        return tryFindMatchingTarget(methods, record.target).asSet();
+                    }
+                };
                 List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
                 TypeDetails returnType = TypeDetails.of(Type.getReturnType(record.target.desc));
                 return new MethodCallTarget(targetOwner, record.target.name, parameters, returnType, methodsSupplier);
@@ -144,8 +151,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public FieldAccessTarget getTarget() {
-                Optional<JavaField> matchingField = tryFindMatchingTarget(fields, record.target);
-                Supplier<Optional<JavaField>> fieldSupplier = Suppliers.ofInstance(matchingField);
+                Supplier<Optional<JavaField>> fieldSupplier = new Supplier<Optional<JavaField>>() {
+                    @Override
+                    public Optional<JavaField> get() {
+                        return tryFindMatchingTarget(fields, record.target);
+                    }
+                };
                 TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
                 return new FieldAccessTarget(targetOwner, record.target.name, fieldType, fieldSupplier);
             }
