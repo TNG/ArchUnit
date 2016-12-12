@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,8 +36,8 @@ class ClassFileImportRecord {
         return ImmutableSet.copyOf(rawConstructorCallRecords);
     }
 
-    void add(JavaClass javaClass) {
-        classes.add(javaClass);
+    void addAll(Collection<JavaClass> javaClasses) {
+        classes.addAll(javaClasses);
     }
 
     public Set<JavaClass> getClasses() {

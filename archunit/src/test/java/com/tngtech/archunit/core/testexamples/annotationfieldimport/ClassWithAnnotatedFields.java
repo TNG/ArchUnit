@@ -19,7 +19,13 @@ public class ClassWithAnnotatedFields {
     @FieldAnnotationWithIntValue(otherValue = "overridden")
     public Object stringAndIntAnnotatedField;
 
-    @FieldAnnotationWithEnumClassAndArrayValue(classes = {Object.class, Serializable.class})
+    @FieldAnnotationWithEnumClassAndArrayValue(
+            value = OTHER_VALUE,
+            enumArray = {SOME_VALUE, OTHER_VALUE},
+            clazz = Serializable.class,
+            classes = {Object.class, Serializable.class},
+            additional = @SomeValueAnnotation(value = OTHER_VALUE),
+            additionals = {@SomeValueAnnotation(value = SOME_VALUE), @SomeValueAnnotation(value = OTHER_VALUE)})
     public Object enumAndArrayAnnotatedField;
 
     @Target(FIELD)
@@ -41,11 +47,18 @@ public class ClassWithAnnotatedFields {
     public @interface FieldAnnotationWithEnumClassAndArrayValue {
         SomeEnum value() default SOME_VALUE;
 
-        SomeEnum[] enumArray() default {SOME_VALUE, OTHER_VALUE};
+        SomeEnum[] enumArray() default {SOME_VALUE};
 
         Class clazz() default String.class;
 
         Class[] classes();
+
+        SomeValueAnnotation additional();
+
+        SomeValueAnnotation[] additionals();
     }
 
+    public @interface SomeValueAnnotation {
+        SomeEnum value();
+    }
 }

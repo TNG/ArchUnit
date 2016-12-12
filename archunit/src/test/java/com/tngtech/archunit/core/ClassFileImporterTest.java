@@ -273,7 +273,7 @@ public class ClassFileImporterTest {
         assertThat(annotationWithString.get("value").get()).isEqualTo("otherThing");
 
         JavaAnnotation annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class);
-        assertThat(annotationWithInt.get("intValue").get()).isEqualTo(0);
+        assertThat(annotationWithInt.get("intValue")).as("Annotation value with default").isAbsent();
         assertThat(annotationWithInt.get("otherValue").get()).isEqualTo("overridden");
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAndIntAnnotatedField"));
@@ -286,10 +286,10 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(fields, "enumAndArrayAnnotatedField");
 
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
-        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
         assertThat(annotation.get("enumArray").get()).isEqualTo(new JavaEnumConstant[]{
                 enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)});
-        assertThat(annotation.get("clazz").get()).isEqualTo(TypeDetails.of(String.class));
+        assertThat(annotation.get("clazz").get()).isEqualTo(TypeDetails.of(Serializable.class));
         assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{
                 TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
 

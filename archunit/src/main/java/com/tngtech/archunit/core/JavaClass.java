@@ -2,7 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
@@ -371,19 +370,19 @@ public class JavaClass implements HasName {
 
     private void completeInterfacesFrom(ImportContext context) {
         for (TypeDetails i : typeDetails.getInterfaces()) {
-            interfaces.addAll(findClass(i, context).asSet());
+            interfaces.add(findClass(i, context));
         }
         for (JavaClass i : interfaces) {
             i.subClasses.add(this);
         }
     }
 
-    private static Optional<JavaClass> findClass(TypeDetails type, ImportContext context) {
-        return context.tryGetJavaClassWithType(type.getName());
+    private static JavaClass findClass(TypeDetails type, ImportContext context) {
+        return context.getJavaClassWithType(type.getName());
     }
 
     private static Optional<JavaClass> findClass(Optional<TypeDetails> type, ImportContext context) {
-        return type.isPresent() ? findClass(type.get(), context) : Optional.<JavaClass>absent();
+        return type.isPresent() ? Optional.of(findClass(type.get(), context)) : Optional.<JavaClass>absent();
     }
 
     CompletionProcess completeFrom(ImportContext context) {
@@ -470,14 +469,6 @@ public class JavaClass implements HasName {
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
-            for (Field field : typeDetails.getDeclaredFields()) {
-                addField(new JavaField.Builder()
-                        .withName(field.getName())
-                        .withDescriptor(Type.getDescriptor(field.getType()))
-                        .withAnnotations(JavaAnnotation.allOf(field.getAnnotations()))
-                        .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
-                        .withType(TypeDetails.of(field.getType())));
-            }
             for (Method method : typeDetails.getDeclaredMethods()) {
                 addMethod(new JavaMethod.Builder()
                         .withReturnType(TypeDetails.of(method.getReturnType()))

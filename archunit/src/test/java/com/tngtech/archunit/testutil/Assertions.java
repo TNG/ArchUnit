@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaField;
@@ -27,6 +26,7 @@ import org.assertj.core.api.AbstractIterableAssert;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
+import static com.tngtech.archunit.core.TestUtils.classForName;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.TestUtils.invoke;
 
@@ -64,22 +64,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
-            Set<Map<String, Object>> result = new HashSet<>();
+            List<Annotation> converted = new ArrayList<>();
             for (JavaAnnotation annotation : annotations) {
-                result.add(convertArraysToLists(annotation.getProperties()));
+                converted.add(annotation.as((Class) classForName(annotation.getType().getName())));
             }
-            return result;
-        }
-
-        private Map<String, Object> convertArraysToLists(Map<String, Object> properties) {
-            Map<String, Object> result = new HashMap<>();
-            for (Map.Entry<String, Object> entry : properties.entrySet()) {
-                Object value = entry.getValue() instanceof Object[] ?
-                        ImmutableList.copyOf((Object[]) entry.getValue()) :
-                        entry.getValue();
-                result.put(entry.getKey(), value);
-            }
-            return result;
+            return propertiesOf(converted.toArray(new Annotation[converted.size()]));
         }
 
         private Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
@@ -111,6 +100,12 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
             if (value instanceof Enum[]) {
                 return enumConstants((Enum[]) value);
+            }
+            if (value instanceof Annotation) {
+                return propertiesOf((Annotation) value);
+            }
+            if (value instanceof Annotation[]) {
+                return propertiesOf((Annotation[]) value);
             }
             return value;
         }
