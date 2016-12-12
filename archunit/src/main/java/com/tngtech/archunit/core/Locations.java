@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.ArchUnitException.LocationException;
 
 public class Locations {
     public static Collection<Location> of(Collection<URL> urls) {

@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;

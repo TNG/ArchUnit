@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.ClassFileProcessor.ClassResolverFromClassPath;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
@@ -25,7 +26,6 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
 import static org.mockito.Matchers.anyString;
@@ -82,10 +82,10 @@ public class TestUtils {
     public static JavaClass javaClass(Class<?> owner) {
         JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
         ClassGraphCreator context = mock(ClassGraphCreator.class);
-        when(context.tryGetJavaClassWithType(anyString())).thenAnswer(new Answer<Optional<JavaClass>>() {
+        when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
             @Override
-            public Optional<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
-                return Optional.of(javaClass(classForName((String) invocation.getArguments()[0])));
+            public JavaClass answer(InvocationOnMock invocation) throws Throwable {
+                return javaClass(classForName((String) invocation.getArguments()[0]));
             }
         });
         javaClass.completeClassHierarchyFrom(context);
@@ -169,6 +169,14 @@ public class TestUtils {
             result.add(classForName(type.getName()));
         }
         return result.toArray(new Class[result.size()]);
+    }
+
+    public static Class<?> classForName(String name) {
+        return ReflectionUtils.classForName(name);
+    }
+
+    public static JavaClass importSingle(Class<?> clazz) {
+        return new ClassResolverFromClassPath().resolve(clazz.getName());
     }
 
     public static class AccessesSimulator {

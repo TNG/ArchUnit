@@ -13,6 +13,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.ArchUnitException.UnidentifiableTargetException;
 import com.tngtech.archunit.core.ReflectionUtils.Predicate;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -23,7 +24,7 @@ import static com.tngtech.archunit.core.ReflectionUtils.getAllMethods;
 class IdentifiedTarget<T extends Member> {
     private Optional<T> target;
 
-    IdentifiedTarget(Optional<T> target) {
+    private IdentifiedTarget(Optional<T> target) {
         this.target = target;
     }
 

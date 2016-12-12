@@ -9,6 +9,7 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +27,10 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final ClassResolver classResolver;
 
-    ClassGraphCreator(ClassFileImportRecord importRecord) {
+    ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
-        classResolver = getClassResolver();
-        classes = new ImportedClasses(importRecord.getClasses(), classResolver);
+        this.classResolver = classResolver;
+        classes = new ImportedClasses(importRecord.getClasses(), this.classResolver);
     }
 
     JavaClasses complete() {
@@ -105,23 +106,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Optional<JavaClass> tryGetJavaClassWithType(String typeName) {
-        return Optional.of(classes.get(typeName));
-    }
-
-    private ClassResolver getClassResolver() {
-        return new ClassResolverFromClassPath();
-    }
-
-    private static class ClassResolverFromClassPath implements ClassResolver {
-        @Override
-        public JavaClass resolve(String typeName) {
-            return ImportWorkaround.resolveClass(typeName);
-        }
-
-        @Override
-        public Set<JavaClass> getAllSuperClasses(String className) {
-            return ImportWorkaround.getAllSuperClasses(className);
-        }
+    public JavaClass getJavaClassWithType(String typeName) {
+        return classes.get(typeName);
     }
 }

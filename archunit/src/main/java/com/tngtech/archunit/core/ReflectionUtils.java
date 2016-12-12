@@ -16,6 +16,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Collections2.filter;

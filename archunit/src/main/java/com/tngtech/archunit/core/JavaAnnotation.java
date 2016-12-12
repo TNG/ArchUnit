@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,4 +140,23 @@ public class JavaAnnotation {
             return input.getType().getName();
         }
     };
+
+    static class Builder {
+        private TypeDetails type;
+        private Map<String, Object> values = new HashMap<>();
+
+        Builder withType(TypeDetails type) {
+            this.type = type;
+            return this;
+        }
+
+        Builder addProperty(String key, Object value) {
+            values.put(key, value);
+            return this;
+        }
+
+        JavaAnnotation build() {
+            return new JavaAnnotation(type, values);
+        }
+    }
 }

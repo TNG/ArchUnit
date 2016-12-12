@@ -5,11 +5,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;
 import com.tngtech.archunit.core.Locations;
-import com.tngtech.archunit.core.ReflectionException;
 
 class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
@@ -17,7 +17,7 @@ class ClassCache {
 
     private ClassFileImporter classFileImporter = new ClassFileImporter();
 
-    public JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
+    JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
         checkArgument(testClass);
 
         if (cachedByTest.containsKey(testClass)) {

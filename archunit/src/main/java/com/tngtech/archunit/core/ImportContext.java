@@ -12,5 +12,5 @@ public interface ImportContext {
 
     Set<AccessRecord<AccessTarget.ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit);
 
-    Optional<JavaClass> tryGetJavaClassWithType(String name);
+    JavaClass getJavaClassWithType(String name);
 }

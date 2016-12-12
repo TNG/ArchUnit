@@ -10,6 +10,9 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.jar.JarFile;
 
+import com.tngtech.archunit.core.ArchUnitException.LocationException;
+import com.tngtech.archunit.core.ArchUnitException.UnsupportedUrlProtocolException;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 public abstract class Location {

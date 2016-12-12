@@ -1,76 +1,100 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
-    private Class<?> type;
+    private Optional<TypeDetails> enclosingClass = Optional.absent();
+    private Optional<TypeDetails> superClass = Optional.absent();
+    private List<TypeDetails> interfaces = Collections.emptyList();
+    private Method[] declaredMethods = new Method[0];
+    private Constructor<?>[] declaredConstructors = new Constructor[0];
+    private String name;
+    private String simpleName;
+    private String javaPackage;
+    private boolean isInterface;
+    private final Class<?> type;
 
+    @Deprecated // FIXME: Get rid of this constructor as soon as reflection is gone
     private TypeDetails(Class<?> type) {
         this.type = type;
+        enclosingClass = type.getEnclosingClass() != null ?
+                Optional.of(TypeDetails.of(type.getEnclosingClass())) :
+                Optional.<TypeDetails>absent();
+        superClass = type.getSuperclass() != null ?
+                Optional.of(TypeDetails.of(type.getSuperclass())) :
+                Optional.<TypeDetails>absent();
+        interfaces = TypeDetails.allOf(type.getInterfaces());
+        declaredMethods = type.getDeclaredMethods();
+        declaredConstructors = type.getDeclaredConstructors();
+        name = type.getName();
+        simpleName = type.getSimpleName();
+        javaPackage = type.getPackage() != null ? type.getPackage().getName() : "";
+        isInterface = type.isInterface();
+    }
+
+    private TypeDetails(Type type) {
+        this.type = null;
+        name = type.getClassName();
+        simpleName = name.replaceAll("^.*(\\.|\\$)", "");
+        javaPackage = name.replaceAll("(\\.|\\$).*$", "");
+        isInterface = false;
     }
 
     Set<JavaAnnotation> getAnnotations() {
-        return JavaAnnotation.allOf(type.getAnnotations());
-    }
-
-    Field[] getDeclaredFields() {
-        return type.getDeclaredFields();
+        return type != null ? JavaAnnotation.allOf(type.getAnnotations()) : Collections.<JavaAnnotation>emptySet();
     }
 
     Method[] getDeclaredMethods() {
-        return type.getDeclaredMethods();
+        return declaredMethods;
     }
 
     Constructor<?>[] getDeclaredConstructors() {
-        return type.getDeclaredConstructors();
+        return declaredConstructors;
     }
 
     public String getName() {
-        return type.getName();
+        return name;
     }
 
     Optional<TypeDetails> getEnclosingClass() {
-        return type.getEnclosingClass() != null ?
-                Optional.of(TypeDetails.of(type.getEnclosingClass())) :
-                Optional.<TypeDetails>absent();
+        return enclosingClass;
     }
 
     List<TypeDetails> getInterfaces() {
-        return TypeDetails.allOf(type.getInterfaces());
+        return interfaces;
     }
 
     Optional<TypeDetails> getSuperclass() {
-        return type.getSuperclass() != null ?
-                Optional.of(TypeDetails.of(type.getSuperclass())) :
-                Optional.<TypeDetails>absent();
+        return superClass;
     }
 
     public String getSimpleName() {
-        return type.getSimpleName();
+        return simpleName;
     }
 
     public String getPackage() {
-        return type.getPackage() != null ? type.getPackage().getName() : "";
+        return javaPackage;
     }
 
     public boolean isInterface() {
-        return type.isInterface();
+        return isInterface;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type);
+        return Objects.hash(name);
     }
 
     @Override
@@ -82,12 +106,12 @@ public class TypeDetails {
             return false;
         }
         final TypeDetails other = (TypeDetails) obj;
-        return Objects.equals(this.type, other.type);
+        return Objects.equals(this.name, other.name);
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" + type.getName() + "}";
+        return getClass().getSimpleName() + "{" + name + "}";
     }
 
     public static List<TypeDetails> allOf(Class<?>... types) {
@@ -115,6 +139,10 @@ public class TypeDetails {
     }
 
     public static TypeDetails of(Type type) {
-        return new TypeDetails(classForName(type.getClassName()));
+        try {
+            return new TypeDetails(classForName(type.getClassName()));
+        } catch (ReflectionException e) {
+            return new TypeDetails(type);
+        }
     }
 }

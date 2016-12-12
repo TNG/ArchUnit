@@ -17,6 +17,7 @@ import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.TestUtils.importSingle;
 import static com.tngtech.archunit.core.TestUtils.javaClass;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
@@ -28,7 +29,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_fields_and_methods() {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithTwoFieldsAndTwoMethods.class)).build();
+        JavaClass javaClass = importSingle(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
