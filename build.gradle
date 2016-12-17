@@ -35,6 +35,9 @@ subprojects {
     repositories {
         mavenCentral()
     }
+
+    install.dependsOn(build)
+    uploadArchives.dependsOn(build)
 }
 
 [':archunit', ':archunit-junit'].each {
