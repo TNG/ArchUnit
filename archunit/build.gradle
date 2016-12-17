@@ -30,11 +30,13 @@ artifacts {
 }
 
 /* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/
-install.repositories.mavenInstaller.pom.whenConfigured { pom ->
+def configureDependenciesAfterShadow = { pom ->
     pom.dependencies.removeAll {
         it.artifactId != 'slf4j-api' || it.scope != 'compile'
     }
 }
+install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfterShadow
+uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
 
 shadowJar {
     dependencies {

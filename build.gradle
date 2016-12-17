@@ -64,11 +64,6 @@ subprojects {
                             authentication(userName: tngNexusUsername, password: tngNexusPassword)
                         }
                     }
-                    pom.whenConfigured {
-                        p -> p.dependencies = p.dependencies.findAll {
-                            it.scope == "compile" && ! (it.groupId in ['com.google.guava', 'org.ow2.asm', 'junit'])
-                        }
-                    }
                 }
             }
         }
