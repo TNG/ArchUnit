@@ -23,11 +23,13 @@ test {
 }
 
 /* We only depend on archunit core and nothing else */
-install.repositories.mavenInstaller.pom.whenConfigured { pom ->
+def configureDependenciesAfterShadow =  { pom ->
     pom.dependencies.removeAll {
         it.artifactId != 'archunit' || it.scope != 'compile'
     }
 }
+install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfterShadow
+uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
 
 configurations {
     /* Exclude archunit from the shadow jar */

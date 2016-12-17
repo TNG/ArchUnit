@@ -51,5 +51,21 @@ subprojects {
             relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
             relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
         }
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    // the following properties can be defined in ~/.gradle/gradle.properties:
+                    if (project.hasProperty('tngNexusUsername') && project.hasProperty('tngNexusPassword')) {
+                        repository(url: 'https://nexus.int.tngtech.com/content/repositories/releases') {
+                            authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                        }
+                        snapshotRepository(url: 'https://nexus.int.tngtech.com/content/repositories/snapshots') {
+                            authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
