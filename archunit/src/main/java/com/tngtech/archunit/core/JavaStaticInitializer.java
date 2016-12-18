@@ -3,6 +3,8 @@ package com.tngtech.archunit.core;
 import java.util.Collections;
 import java.util.Set;
 
+import org.objectweb.asm.Type;
+
 import static java.util.Collections.emptySet;
 
 public class JavaStaticInitializer extends JavaCodeUnit {
@@ -24,11 +26,11 @@ public class JavaStaticInitializer extends JavaCodeUnit {
 
     static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
         public Builder() {
-            withReturnType(TypeDetails.of(void.class));
-            withParameters(Collections.<TypeDetails>emptyList());
+            withReturnType(Type.getType(void.class));
+            withParameters(new Type[0]);
             withName(STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
-            withAnnotations(Collections.<JavaAnnotation>emptySet());
+            withAnnotations(Collections.<JavaAnnotation.Builder>emptySet());
             withModifiers(Collections.<JavaModifier>emptySet());
         }
 

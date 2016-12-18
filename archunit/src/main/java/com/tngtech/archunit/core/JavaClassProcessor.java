@@ -30,7 +30,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
     private JavaClass.Builder javaClassBuilder;
-    private final Set<JavaAnnotation> annotations = new HashSet<>();
+    private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
     private final AccessHandler accessHandler;
     private boolean canImportCurrentClass;
     private String className;
@@ -63,7 +63,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         return new FieldProcessor(javaClassBuilder, new JavaField.Builder()
                 .withName(name)
-                .withType(TypeDetails.of(Type.getType(desc)))
+                .withType(Type.getType(desc))
                 .withModifiers(JavaModifier.getModifiersFor(access))
                 .withDescriptor(desc));
     }
@@ -82,8 +82,8 @@ class JavaClassProcessor extends ClassVisitor {
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersFor(access))
-                .withParameters(TypeDetails.allOf(methodType.getArgumentTypes()))
-                .withReturnType(TypeDetails.of(methodType.getReturnType()))
+                .withParameters(methodType.getArgumentTypes())
+                .withReturnType(methodType.getReturnType())
                 .withDescriptor(desc);
 
         return new MethodProcessor(accessHandler, codeUnitBuilder);
@@ -136,7 +136,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static class MethodProcessor extends MethodVisitor {
         private final AccessHandler accessHandler;
         private final JavaCodeUnit.Builder<?, ?> codeUnitBuilder;
-        private final Set<JavaAnnotation> annotations = new HashSet<>();
+        private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
         private int actualLineNumber;
 
         MethodProcessor(AccessHandler accessHandler, JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
@@ -210,7 +210,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static class FieldProcessor extends FieldVisitor {
         private final JavaClass.Builder javaClassBuilder;
         private final JavaField.Builder fieldBuilder;
-        private final Set<JavaAnnotation> annotations = new HashSet<>();
+        private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
 
         private FieldProcessor(JavaClass.Builder javaClassBuilder, JavaField.Builder fieldBuilder) {
             super(ASM_API_VERSION);
@@ -233,16 +233,16 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static JavaAnnotation.Builder annotationBuilderFor(String desc) {
         return new JavaAnnotation.Builder()
-                .withType(TypeDetails.of(Type.getType(desc)));
+                .withType(Type.getType(desc));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
-        private final TakesAnnotation takesAnnotation;
+        private final TakesAnnotationBuilder takesAnnotationBuilder;
         private final JavaAnnotation.Builder annotationBuilder;
 
-        private AnnotationProcessor(TakesAnnotation takesAnnotation, JavaAnnotation.Builder annotationBuilder) {
+        private AnnotationProcessor(TakesAnnotationBuilder takesAnnotationBuilder, JavaAnnotation.Builder annotationBuilder) {
             super(ASM_API_VERSION);
-            this.takesAnnotation = takesAnnotation;
+            this.takesAnnotationBuilder = takesAnnotationBuilder;
             this.annotationBuilder = annotationBuilder;
         }
 
@@ -253,7 +253,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnum(String name, String desc, String value) {
-            annotationBuilder.addProperty(name, new JavaEnumConstant(TypeDetails.of(Type.getType(desc)), value));
+            annotationBuilder.addProperty(name, javaEnumBuilder(desc, value));
         }
 
         @Override
@@ -268,37 +268,37 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            takesAnnotation.add(annotationBuilder.build());
+            takesAnnotationBuilder.add(annotationBuilder);
         }
     }
 
-    private static TakesAnnotation addAnnotationTo(final Collection<? super JavaAnnotation> collection) {
-        return new TakesAnnotation() {
+    private static TakesAnnotationBuilder addAnnotationTo(final Collection<? super JavaAnnotation.Builder> collection) {
+        return new TakesAnnotationBuilder() {
             @Override
-            public void add(JavaAnnotation annotation) {
+            public void add(JavaAnnotation.Builder annotation) {
                 collection.add(annotation);
             }
         };
     }
 
-    private static TakesAnnotation addAnnotationAsProperty(final String name, final JavaAnnotation.Builder annotationBuilder) {
-        return new TakesAnnotation() {
+    private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotation.Builder annotationBuilder) {
+        return new TakesAnnotationBuilder() {
             @Override
-            public void add(JavaAnnotation annotation) {
-                annotationBuilder.addProperty(name, annotation);
+            public void add(JavaAnnotation.Builder builder) {
+                annotationBuilder.addProperty(name, JavaAnnotation.ValueBuilder.from(builder));
             }
         };
     }
 
-    private interface TakesAnnotation {
-        void add(JavaAnnotation annotation);
+    private interface TakesAnnotationBuilder {
+        void add(JavaAnnotation.Builder annotation);
     }
 
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
         private final String name;
         private final JavaAnnotation.Builder annotationBuilder;
         private Class<?> componentType;
-        private final List<Object> values = new ArrayList<>();
+        private final List<JavaAnnotation.ValueBuilder> values = new ArrayList<>();
 
         private AnnotationArrayProcessor(String name, JavaAnnotation.Builder annotationBuilder) {
             super(ASM_API_VERSION);
@@ -315,13 +315,18 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public AnnotationVisitor visitAnnotation(String name, String desc) {
             setComponentType(JavaAnnotation.class);
-            return new AnnotationProcessor(addAnnotationTo(values), annotationBuilderFor(desc));
+            return new AnnotationProcessor(new TakesAnnotationBuilder() {
+                @Override
+                public void add(JavaAnnotation.Builder annotationBuilder) {
+                    values.add(JavaAnnotation.ValueBuilder.from(annotationBuilder));
+                }
+            }, annotationBuilderFor(desc));
         }
 
         @Override
-        public void visitEnum(String name, String desc, String value) {
+        public void visitEnum(String name, final String desc, final String value) {
             setComponentType(JavaEnumConstant.class);
-            values.add(new JavaEnumConstant(TypeDetails.of(Type.getType(desc)), value));
+            values.add(javaEnumBuilder(desc, value));
         }
 
         private void setComponentType(Object value) {
@@ -338,25 +343,42 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            annotationBuilder.addProperty(name, createArray());
+            annotationBuilder.addProperty(name, valueArrayBuilder());
         }
 
-        private Object createArray() {
-            Object[] array = (Object[]) Array.newInstance(componentType, values.size());
-            return values.toArray(array);
+        private JavaAnnotation.ValueBuilder valueArrayBuilder() {
+            return new JavaAnnotation.ValueBuilder() {
+                @Override
+                Object build() {
+                    Object[] array = (Object[]) Array.newInstance(componentType, values.size());
+                    for (int i = 0; i < values.size(); i++) {
+                        array[i] = values.get(i).build();
+                    }
+                    return array;
+                }
+            };
         }
+    }
+
+    private static JavaAnnotation.ValueBuilder javaEnumBuilder(final String desc, final String value) {
+        return new JavaAnnotation.ValueBuilder() {
+            @Override
+            Object build() {
+                return new JavaEnumConstant(TypeDetails.of(Type.getType(desc)), value);
+            }
+        };
     }
 
     private static class AnnotationTypeConversion {
         private static final Map<Class<?>, Class<?>> importedTypeToInternalType = ImmutableMap.<Class<?>, Class<?>>of(
                 Type.class, TypeDetails.class
         );
-        private static final Map<Class<?>, Function<Object, Object>> importedValueToInternalValue =
-                ImmutableMap.<Class<?>, Function<Object, Object>>of(
-                        Type.class, new Function<Object, Object>() {
+        private static final Map<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>> importedValueToInternalValue =
+                ImmutableMap.<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>>of(
+                        Type.class, new Function<Object, JavaAnnotation.ValueBuilder>() {
                             @Override
-                            public Object apply(Object input) {
-                                return TypeDetails.of((Type) input);
+                            public JavaAnnotation.ValueBuilder apply(Object input) {
+                                return JavaAnnotation.ValueBuilder.ofFinished(TypeDetails.of((Type) input));
                             }
                         }
                 );
@@ -367,10 +389,10 @@ class JavaClassProcessor extends ClassVisitor {
                     type;
         }
 
-        static Object convert(Object value) {
+        static JavaAnnotation.ValueBuilder convert(Object value) {
             return importedValueToInternalValue.containsKey(value.getClass()) ?
                     importedValueToInternalValue.get(value.getClass()).apply(value) :
-                    value;
+                    JavaAnnotation.ValueBuilder.ofFinished(value);
         }
     }
 }

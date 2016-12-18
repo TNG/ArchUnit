@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -16,8 +14,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.Guava.toGuava;
-import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
+import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
@@ -45,7 +42,7 @@ public class JavaClass implements HasName {
         codeUnits = ImmutableSet.<JavaCodeUnit>builder()
                 .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
                 .build();
-        annotations = builder.annotations.build();
+        this.annotations = buildAnnotations(builder.annotations);
     }
 
     @Override
@@ -465,7 +462,7 @@ public class JavaClass implements HasName {
         private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         private Optional<JavaStaticInitializer.Builder> staticInitializerBuilder = Optional.absent();
-        private final ImmutableMap.Builder<String, JavaAnnotation> annotations = ImmutableMap.builder();
+        private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
 
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
@@ -496,9 +493,8 @@ public class JavaClass implements HasName {
             return this;
         }
 
-        Builder withAnnotations(Set<JavaAnnotation> annotations) {
-            this.annotations.putAll(FluentIterable.from(annotations)
-                    .uniqueIndex(toGuava(GET_TYPE_NAME)));
+        Builder withAnnotations(Set<JavaAnnotation.Builder> annotations) {
+            this.annotations.addAll(annotations);
             return this;
         }
 

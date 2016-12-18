@@ -3,6 +3,10 @@ package com.tngtech.archunit.core;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableMap;
+import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -10,9 +14,13 @@ public class JavaAnnotation {
     private final TypeDetails type;
     private final Map<String, Object> values;
 
-    private JavaAnnotation(TypeDetails type, Map<String, Object> values) {
-        this.type = checkNotNull(type);
-        this.values = checkNotNull(values);
+    public JavaAnnotation(Builder builder) {
+        this.type = checkNotNull(builder.getType());
+        ImmutableMap.Builder<String, Object> values = ImmutableMap.builder();
+        for (Map.Entry<String, ValueBuilder> entry : builder.values.entrySet()) {
+            values.put(entry.getKey(), entry.getValue().build());
+        }
+        this.values = values.build();
     }
 
     public TypeDetails getType() {
@@ -55,29 +63,57 @@ public class JavaAnnotation {
         return AnnotationProxy.of(annotationType, this);
     }
 
-    static final Function<JavaAnnotation, String> GET_TYPE_NAME = new Function<JavaAnnotation, String>() {
-        @Override
-        public String apply(JavaAnnotation input) {
-            return input.getType().getName();
+    static ImmutableMap<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations) {
+        ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
+        for (Builder annotationBuilder : annotations) {
+            JavaAnnotation javaAnnotation = annotationBuilder.build();
+            result.put(javaAnnotation.getType().getName(), javaAnnotation);
         }
-    };
+        return result.build();
+    }
 
     static class Builder {
-        private TypeDetails type;
-        private Map<String, Object> values = new HashMap<>();
+        private Type type;
+        private Map<String, ValueBuilder> values = new HashMap<>();
 
-        Builder withType(TypeDetails type) {
+        Builder withType(Type type) {
             this.type = type;
             return this;
         }
 
-        Builder addProperty(String key, Object value) {
-            values.put(key, value);
+        Builder addProperty(String key, ValueBuilder valueBuilder) {
+            values.put(key, valueBuilder);
             return this;
         }
 
         JavaAnnotation build() {
-            return new JavaAnnotation(type, values);
+            return new JavaAnnotation(this);
+        }
+
+        public TypeDetails getType() {
+            return TypeDetails.of(type);
+        }
+    }
+
+    static abstract class ValueBuilder {
+        abstract Object build();
+
+        static ValueBuilder ofFinished(final Object value) {
+            return new ValueBuilder() {
+                @Override
+                Object build() {
+                    return value;
+                }
+            };
+        }
+
+        static ValueBuilder from(final JavaAnnotation.Builder builder) {
+            return new ValueBuilder() {
+                @Override
+                Object build() {
+                    return builder.build();
+                }
+            };
         }
     }
 }
