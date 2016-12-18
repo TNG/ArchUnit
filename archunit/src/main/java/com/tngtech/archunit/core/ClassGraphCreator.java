@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
@@ -13,6 +14,8 @@ import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
+import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
 class ClassGraphCreator implements ImportContext {
@@ -30,12 +33,13 @@ class ClassGraphCreator implements ImportContext {
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
         this.classResolver = classResolver;
-        classes = new ImportedClasses(importRecord.getClasses(), this.classResolver);
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver);
     }
 
     JavaClasses complete() {
         ensureCallTargetsArePresent();
         ensureClassHierarchies();
+        completeMembers();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
         }
@@ -75,9 +79,16 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
+    private void completeMembers() {
+        for (JavaClass javaClass : classes.getAll().values()) {
+            javaClass.completeMembers(this);
+        }
+    }
+
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
-            B rawRecord, AccessRecord.Factory<B, T> factory, Multimap<JavaCodeUnit,
-            T> processedAccessRecords) {
+            B rawRecord,
+            AccessRecord.Factory<B, T> factory,
+            Multimap<JavaCodeUnit, T> processedAccessRecords) {
         try {
             T processed = factory.create(rawRecord, classes);
             processedAccessRecords.put(processed.getCaller(), processed);
@@ -108,5 +119,33 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public JavaClass getJavaClassWithType(String typeName) {
         return classes.get(typeName);
+    }
+
+    @Override
+    public Set<JavaField> createFields(JavaClass owner) {
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner);
+    }
+
+    @Override
+    public Set<JavaMethod> createMethods(JavaClass owner) {
+        return build(importRecord.getMethodBuildersFor(owner.getName()), owner);
+    }
+
+    @Override
+    public Set<JavaConstructor> createConstructors(JavaClass owner) {
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner);
+    }
+
+    @Override
+    public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
+        Optional<JavaStaticInitializer.Builder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
+        return builder.isPresent() ?
+                Optional.of(builder.get().build(owner)) :
+                Optional.<JavaStaticInitializer>absent();
+    }
+
+    @Override
+    public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
+        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()));
     }
 }

@@ -31,16 +31,18 @@ class JavaClassProcessor extends ClassVisitor {
 
     private JavaClass.Builder javaClassBuilder;
     private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
+    private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
     private boolean canImportCurrentClass;
     private String className;
 
-    JavaClassProcessor() {
-        this(NO_OP);
+    JavaClassProcessor(DeclarationHandler declarationHandler) {
+        this(declarationHandler, NO_OP);
     }
 
-    JavaClassProcessor(AccessHandler accessHandler) {
+    JavaClassProcessor(DeclarationHandler declarationHandler, AccessHandler accessHandler) {
         super(ASM_API_VERSION);
+        this.declarationHandler = declarationHandler;
         this.accessHandler = accessHandler;
     }
 
@@ -52,7 +54,8 @@ class JavaClassProcessor extends ClassVisitor {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.info("Analysing class '{}'", name);
         javaClassBuilder = init(name);
-        this.className = name.replace("/", ".");
+        className = name.replace("/", ".");
+        declarationHandler.onNewClass(className);
     }
 
     @Override
@@ -61,11 +64,13 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitField(access, name, desc, signature, value);
         }
 
-        return new FieldProcessor(javaClassBuilder, new JavaField.Builder()
+        JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
                 .withType(Type.getType(desc))
                 .withModifiers(JavaModifier.getModifiersFor(access))
-                .withDescriptor(desc));
+                .withDescriptor(desc);
+        declarationHandler.onDeclaredField(fieldBuilder);
+        return new FieldProcessor(fieldBuilder);
     }
 
     @Override
@@ -77,7 +82,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.debug("Analysing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, TypeDetails.allOf(Type.getArgumentTypes(desc)), className));
 
-        JavaCodeUnit.Builder<?, ?> codeUnitBuilder = addCodeUnitBuilder(javaClassBuilder, name);
+        JavaCodeUnit.Builder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
         Type methodType = Type.getMethodType(desc);
         codeUnitBuilder
                 .withName(name)
@@ -89,18 +94,18 @@ class JavaClassProcessor extends ClassVisitor {
         return new MethodProcessor(accessHandler, codeUnitBuilder);
     }
 
-    private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(JavaClass.Builder javaClassBuilder, String name) {
+    private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(String name) {
         if (CONSTRUCTOR_NAME.equals(name)) {
             JavaConstructor.Builder builder = new JavaConstructor.Builder();
-            javaClassBuilder.addConstructor(builder);
+            declarationHandler.onDeclaredConstructor(builder);
             return builder;
         } else if (STATIC_INITIALIZER_NAME.equals(name)) {
             JavaStaticInitializer.Builder builder = new JavaStaticInitializer.Builder();
-            javaClassBuilder.withStaticInitializer(builder);
+            declarationHandler.onDeclaredStaticInitializer(builder);
             return builder;
         } else {
             JavaMethod.Builder builder = new JavaMethod.Builder();
-            javaClassBuilder.addMethod(builder);
+            declarationHandler.onDeclaredMethod(builder);
             return builder;
         }
     }
@@ -112,7 +117,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        javaClassBuilder.withAnnotations(annotations);
+        declarationHandler.onDeclaredAnnotations(annotations);
         LOG.debug("Done analysing {}", className);
     }
 
@@ -179,6 +184,20 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
+    interface DeclarationHandler {
+        void onNewClass(String className);
+
+        void onDeclaredField(JavaField.Builder fieldBuilder);
+
+        void onDeclaredConstructor(JavaConstructor.Builder builder);
+
+        void onDeclaredMethod(JavaMethod.Builder builder);
+
+        void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder);
+
+        void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations);
+    }
+
     interface AccessHandler {
         void handleFieldInstruction(int opcode, String owner, String name, String desc);
 
@@ -208,14 +227,12 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static class FieldProcessor extends FieldVisitor {
-        private final JavaClass.Builder javaClassBuilder;
         private final JavaField.Builder fieldBuilder;
         private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
 
-        private FieldProcessor(JavaClass.Builder javaClassBuilder, JavaField.Builder fieldBuilder) {
+        private FieldProcessor(JavaField.Builder fieldBuilder) {
             super(ASM_API_VERSION);
 
-            this.javaClassBuilder = javaClassBuilder;
             this.fieldBuilder = fieldBuilder;
         }
 
@@ -227,7 +244,6 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitEnd() {
             fieldBuilder.withAnnotations(annotations);
-            javaClassBuilder.addField(fieldBuilder);
         }
     }
 

@@ -9,6 +9,7 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
+import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.MethodTargetInfo;
@@ -23,23 +24,61 @@ import static com.tngtech.archunit.core.ReflectionUtils.tryGetClassForName;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
-
     static final int ASM_API_VERSION = ASM5;
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
         RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
+        MembersRecorder membersRecorder = new MembersRecorder(importRecord);
         for (Supplier<InputStream> stream : source) {
             try (InputStream s = stream.get()) {
-                JavaClassProcessor javaClassProcessor = new JavaClassProcessor(accessHandler);
+                JavaClassProcessor javaClassProcessor = new JavaClassProcessor(membersRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
                 importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return new ClassGraphCreator(importRecord, getClassResolver()).complete();
+        return new ClassGraphCreator(importRecord, getClassResolver(membersRecorder)).complete();
+    }
+
+    private static class MembersRecorder implements DeclarationHandler {
+        private final ClassFileImportRecord importRecord;
+        private String ownerName;
+
+        private MembersRecorder(ClassFileImportRecord importRecord) {
+            this.importRecord = importRecord;
+        }
+
+        @Override
+        public void onNewClass(String className) {
+            ownerName = className;
+        }
+
+        @Override
+        public void onDeclaredField(JavaField.Builder fieldBuilder) {
+            importRecord.addField(ownerName, fieldBuilder);
+        }
+
+        @Override
+        public void onDeclaredConstructor(JavaConstructor.Builder builder) {
+            importRecord.addConstructor(ownerName, builder);
+        }
+
+        @Override
+        public void onDeclaredMethod(JavaMethod.Builder builder) {
+            importRecord.addMethod(ownerName, builder);
+        }
+
+        @Override
+        public void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder) {
+            importRecord.setStaticInitializer(ownerName, builder);
+        }
+
+        @Override
+        public void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations) {
+            importRecord.addAnnotations(ownerName, annotations);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {
@@ -93,11 +132,17 @@ class ClassFileProcessor {
         }
     }
 
-    private ClassResolver getClassResolver() {
-        return new ClassResolverFromClassPath();
+    private ClassResolverFromClassPath getClassResolver(MembersRecorder membersRecorder) {
+        return new ClassResolverFromClassPath(membersRecorder);
     }
 
     static class ClassResolverFromClassPath implements ClassResolver {
+        private final DeclarationHandler declarationHandler;
+
+        ClassResolverFromClassPath(DeclarationHandler declarationHandler) {
+            this.declarationHandler = declarationHandler;
+        }
+
         @Override
         public JavaClass resolve(String typeName) {
             Optional<Class<?>> type = tryGetClassForName(typeName);
@@ -110,7 +155,7 @@ class ClassFileProcessor {
             String typeFile = "/" + type.getName().replace(".", "/") + ".class";
 
             try (InputStream inputStream = type.getResourceAsStream(typeFile)) {
-                JavaClassProcessor classProcessor = new JavaClassProcessor();
+                JavaClassProcessor classProcessor = new JavaClassProcessor(declarationHandler);
                 new ClassReader(inputStream).accept(classProcessor, 0);
                 return classProcessor.createJavaClass().get();
             } catch (IOException e) {

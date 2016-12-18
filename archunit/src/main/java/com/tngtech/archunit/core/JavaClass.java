@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,38 +12,25 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.concat;
-import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class JavaClass implements HasName {
     private final TypeDetails typeDetails;
-    private final Set<JavaField> fields;
-    private final Set<JavaCodeUnit> codeUnits;
-    private final Set<JavaMethod> methods;
-    private final Set<JavaConstructor> constructors;
-    private final Optional<JavaStaticInitializer> staticInitializer;
+    private Set<JavaField> fields = new HashSet<>();
+    private Set<JavaCodeUnit> codeUnits = new HashSet<>();
+    private Set<JavaMethod> methods = new HashSet<>();
+    private Set<JavaConstructor> constructors = new HashSet<>();
+    private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
-    private final Map<String, JavaAnnotation> annotations;
+    private Map<String, JavaAnnotation> annotations = new HashMap<>();
 
     private JavaClass(Builder builder) {
         typeDetails = checkNotNull(builder.typeDetails);
-        fields = build(builder.fieldBuilders, this);
-        methods = build(builder.methodBuilders, this);
-        constructors = build(builder.constructorBuilders, this);
-        staticInitializer = builder.staticInitializerBuilder.isPresent() ?
-                Optional.of(builder.staticInitializerBuilder.get().build(this)) :
-                Optional.<JavaStaticInitializer>absent();
-        codeUnits = ImmutableSet.<JavaCodeUnit>builder()
-                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
-                .build();
-        this.annotations = buildAnnotations(builder.annotations);
     }
 
     @Override
@@ -382,6 +370,17 @@ public class JavaClass implements HasName {
         return type.isPresent() ? Optional.of(findClass(type.get(), context)) : Optional.<JavaClass>absent();
     }
 
+    void completeMembers(ImportContext context) {
+        fields = context.createFields(this);
+        methods = context.createMethods(this);
+        constructors = context.createConstructors(this);
+        staticInitializer = context.createStaticInitializer(this);
+        codeUnits = ImmutableSet.<JavaCodeUnit>builder()
+                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
+                .build();
+        this.annotations = context.createAnnotations(this);
+    }
+
     CompletionProcess completeFrom(ImportContext context) {
         enclosingClass = findClass(typeDetails.getEnclosingClass(), context);
         return new CompletionProcess();
@@ -458,43 +457,10 @@ public class JavaClass implements HasName {
 
     static final class Builder {
         private TypeDetails typeDetails;
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
-        private Optional<JavaStaticInitializer.Builder> staticInitializerBuilder = Optional.absent();
-        private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
 
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
-            return this;
-        }
-
-        Builder addField(BuilderWithBuildParameter<JavaClass, JavaField> fieldBuilder) {
-            fieldBuilders.add(fieldBuilder);
-            return this;
-        }
-
-        Builder addMethod(BuilderWithBuildParameter<JavaClass, JavaMethod> methodBuilder) {
-            methodBuilders.add(methodBuilder);
-            return this;
-        }
-
-        Builder addConstructor(BuilderWithBuildParameter<JavaClass, JavaConstructor> constructorBuilder) {
-            constructorBuilders.add(constructorBuilder);
-            return this;
-        }
-
-        Builder withStaticInitializer(JavaStaticInitializer.Builder builder) {
-            checkState(!staticInitializerBuilder.isPresent(),
-                    "Tried to add a second static initializer to %s, this is most likely a bug",
-                    typeDetails.getName());
-            staticInitializerBuilder = Optional.of(builder);
-            return this;
-        }
-
-        Builder withAnnotations(Set<JavaAnnotation.Builder> annotations) {
-            this.annotations.addAll(annotations);
             return this;
         }
 
