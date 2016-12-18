@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -74,7 +77,7 @@ public class TestUtils {
                 .withParameters(TypeDetails.allOf(method.getParameterTypes()))
                 .withName(method.getName())
                 .withDescriptor(Type.getMethodDescriptor(method))
-                .withAnnotations(JavaAnnotation.allOf(method.getAnnotations()))
+                .withAnnotations(javaAnnotationsOf(method.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(method.getModifiers()))
                 .build(clazz);
     }
@@ -100,7 +103,7 @@ public class TestUtils {
         return new JavaField.Builder()
                 .withName(field.getName())
                 .withDescriptor(Type.getDescriptor(field.getType()))
-                .withAnnotations(JavaAnnotation.allOf(field.getAnnotations()))
+                .withAnnotations(javaAnnotationsOf(field.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
                 .withType(TypeDetails.of(field.getType()))
                 .build(owner);
@@ -177,6 +180,82 @@ public class TestUtils {
 
     public static JavaClass importSingle(Class<?> clazz) {
         return new ClassResolverFromClassPath().resolve(clazz.getName());
+    }
+
+    public static JavaAnnotation javaAnnotationOf(Annotation reflectionAnnotation) {
+        return javaAnnotationFrom(reflectionAnnotation);
+    }
+
+    public static Set<JavaAnnotation> javaAnnotationsOf(Annotation[] reflectionAnnotations) {
+        ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
+        for (Annotation annotation : reflectionAnnotations) {
+            result.add(javaAnnotationOf(annotation));
+        }
+        return result.build();
+    }
+
+    private static Map<String, Object> mapOf(Annotation annotation) {
+        ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
+        for (Method method : annotation.annotationType().getDeclaredMethods()) {
+            result.put(method.getName(), get(annotation, method.getName()));
+        }
+        return result.build();
+    }
+
+    private static Object get(Annotation annotation, String methodName) {
+        try {
+            Object result = annotation.annotationType().getMethod(methodName).invoke(annotation);
+            if (result instanceof Class) {
+                return TypeDetails.of((Class<?>) result);
+            }
+            if (result instanceof Class[]) {
+                List<TypeDetails> typeDetails = TypeDetails.allOf((Class<?>[]) result);
+                return typeDetails.toArray(new TypeDetails[typeDetails.size()]);
+            }
+            if (result instanceof Enum<?>) {
+                return enumConstant((Enum) result);
+            }
+            if (result instanceof Enum[]) {
+                return enumConstants((Enum[]) result);
+            }
+            if (result instanceof Annotation) {
+                return annotation((Annotation) result);
+            }
+            if (result instanceof Annotation[]) {
+                return annotations((Annotation[]) result);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static JavaEnumConstant[] enumConstants(Enum[] enums) {
+        List<JavaEnumConstant> result = new ArrayList<>();
+        for (Enum e : enums) {
+            result.add(enumConstant(e));
+        }
+        return result.toArray(new JavaEnumConstant[result.size()]);
+    }
+
+    private static JavaAnnotation annotation(Annotation annotation) {
+        return javaAnnotationFrom(annotation);
+    }
+
+    private static JavaAnnotation javaAnnotationFrom(Annotation annotation) {
+        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(TypeDetails.of(annotation.annotationType()));
+        for (Map.Entry<String, Object> entry : mapOf(annotation).entrySet()) {
+            builder.addProperty(entry.getKey(), entry.getValue());
+        }
+        return builder.build();
+    }
+
+    private static JavaAnnotation[] annotations(Annotation[] annotations) {
+        List<JavaAnnotation> result = new ArrayList<>();
+        for (Annotation a : annotations) {
+            result.add(annotation(a));
+        }
+        return result.toArray(new JavaAnnotation[result.size()]);
     }
 
     public static class AccessesSimulator {

@@ -30,6 +30,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
     private JavaClass.Builder javaClassBuilder;
+    private final Set<JavaAnnotation> annotations = new HashSet<>();
     private final AccessHandler accessHandler;
     private boolean canImportCurrentClass;
     private String className;
@@ -105,7 +106,13 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     @Override
+    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
+    }
+
+    @Override
     public void visitEnd() {
+        javaClassBuilder.withAnnotations(annotations);
         LOG.debug("Done analysing {}", className);
     }
 
