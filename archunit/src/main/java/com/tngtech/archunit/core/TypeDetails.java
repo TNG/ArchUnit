@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
@@ -20,11 +19,9 @@ public class TypeDetails {
     private String simpleName;
     private String javaPackage;
     private boolean isInterface;
-    private final Class<?> type;
 
     @Deprecated // FIXME: Get rid of this constructor as soon as reflection is gone
     private TypeDetails(Class<?> type) {
-        this.type = type;
         enclosingClass = type.getEnclosingClass() != null ?
                 Optional.of(TypeDetails.of(type.getEnclosingClass())) :
                 Optional.<TypeDetails>absent();
@@ -43,15 +40,10 @@ public class TypeDetails {
     }
 
     private TypeDetails(String fullName) {
-        this.type = null;
         this.name = fullName;
         this.simpleName = fullName.replaceAll("^.*(\\.|\\$)", "");
         this.javaPackage = fullName.replaceAll("(\\.|\\$).*$", "");
         isInterface = false;
-    }
-
-    Set<JavaAnnotation> getAnnotations() {
-        return type != null ? JavaAnnotation.allOf(type.getAnnotations()) : Collections.<JavaAnnotation>emptySet();
     }
 
     public String getName() {

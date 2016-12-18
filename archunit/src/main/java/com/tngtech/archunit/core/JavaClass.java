@@ -470,8 +470,6 @@ public class JavaClass implements HasName {
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
-            annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
-                    .uniqueIndex(toGuava(GET_TYPE_NAME)));
             return this;
         }
 
@@ -495,6 +493,12 @@ public class JavaClass implements HasName {
                     "Tried to add a second static initializer to %s, this is most likely a bug",
                     typeDetails.getName());
             staticInitializerBuilder = Optional.of(builder);
+            return this;
+        }
+
+        Builder withAnnotations(Set<JavaAnnotation> annotations) {
+            this.annotations.putAll(FluentIterable.from(annotations)
+                    .uniqueIndex(toGuava(GET_TYPE_NAME)));
             return this;
         }
 
