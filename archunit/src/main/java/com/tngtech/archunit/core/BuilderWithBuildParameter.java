@@ -10,7 +10,7 @@ interface BuilderWithBuildParameter<PARAMETER, VALUE> {
     VALUE build(PARAMETER clazz);
 
     class BuildFinisher {
-        public static <PARAMETER, VALUE> Set<VALUE> build(Set<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders, PARAMETER parameter) {
+        static <PARAMETER, VALUE> Set<VALUE> build(Set<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders, PARAMETER parameter) {
             checkNotNull(builders);
             checkNotNull(parameter);
 

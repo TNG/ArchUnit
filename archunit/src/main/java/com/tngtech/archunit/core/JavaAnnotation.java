@@ -63,7 +63,7 @@ public class JavaAnnotation {
         return AnnotationProxy.of(annotationType, this);
     }
 
-    static ImmutableMap<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations) {
+    static Map<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (Builder annotationBuilder : annotations) {
             JavaAnnotation javaAnnotation = annotationBuilder.build();

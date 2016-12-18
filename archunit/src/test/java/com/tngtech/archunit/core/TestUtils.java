@@ -29,6 +29,8 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
+import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
 import static org.mockito.Matchers.anyString;
@@ -187,7 +189,12 @@ public class TestUtils {
     }
 
     public static JavaClass importSingle(Class<?> clazz) {
-        return new ClassResolverFromClassPath().resolve(clazz.getName());
+        TestDeclarationHandler declarationHandler = new TestDeclarationHandler();
+        JavaClass javaClass = new ClassResolverFromClassPath(declarationHandler).resolve(clazz.getName());
+        javaClass.completeClassHierarchyFrom(declarationHandler);
+        javaClass.completeMembers(declarationHandler);
+        javaClass.completeFrom(declarationHandler);
+        return javaClass;
     }
 
     public static JavaAnnotation javaAnnotationOf(Annotation reflectionAnnotation) {
@@ -296,7 +303,7 @@ public class TestUtils {
         public JavaMethodCall to(JavaMethod target) {
             targets.add(new TestAccessRecord<>(targetFrom(target)));
             ClassGraphCreator context = mock(ClassGraphCreator.class);
-            when(context.getMethodCallRecordsFor(method)).thenReturn(targets);
+            when(context.getMethodCallRecordsFor(method)).thenReturn(ImmutableSet.copyOf(targets));
             method.completeFrom(context);
             return getCallToTarget(target);
         }
@@ -318,7 +325,7 @@ public class TestUtils {
         public void to(JavaField target, AccessType accessType) {
             ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getFieldAccessRecordsFor(method))
-                    .thenReturn(Collections.<FieldAccessRecord>singleton(new TestFieldAccessRecord(target, accessType)));
+                    .thenReturn(ImmutableSet.<FieldAccessRecord>of(new TestFieldAccessRecord(target, accessType)));
             method.completeFrom(context);
         }
 
@@ -357,6 +364,91 @@ public class TestUtils {
             public int getLineNumber() {
                 return lineNumber;
             }
+        }
+    }
+
+    public static class TestDeclarationHandler implements JavaClassProcessor.DeclarationHandler, ImportContext {
+        private Set<JavaField.Builder> fieldBuilders = new HashSet<>();
+        private Set<JavaMethod.Builder> methodBuilders = new HashSet<>();
+        private Set<JavaConstructor.Builder> constructorBuilders = new HashSet<>();
+        private Optional<JavaStaticInitializer.Builder> staticInitializerBuilder = Optional.absent();
+        private Set<JavaAnnotation.Builder> annotations = new HashSet<>();
+
+        @Override
+        public void onNewClass(String className) {
+
+        }
+
+        @Override
+        public void onDeclaredField(JavaField.Builder fieldBuilder) {
+            fieldBuilders.add(fieldBuilder);
+        }
+
+        @Override
+        public void onDeclaredConstructor(JavaConstructor.Builder builder) {
+            constructorBuilders.add(builder);
+        }
+
+        @Override
+        public void onDeclaredMethod(JavaMethod.Builder builder) {
+            methodBuilders.add(builder);
+        }
+
+        @Override
+        public void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder) {
+            staticInitializerBuilder = Optional.of(builder);
+        }
+
+        @Override
+        public void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations) {
+            this.annotations = annotations;
+        }
+
+        @Override
+        public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit) {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit) {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public JavaClass getJavaClassWithType(String name) {
+            return importSingle(classForName(name));
+        }
+
+        @Override
+        public Set<JavaField> createFields(JavaClass owner) {
+            return build(fieldBuilders, owner);
+        }
+
+        @Override
+        public Set<JavaMethod> createMethods(JavaClass owner) {
+            return build(methodBuilders, owner);
+        }
+
+        @Override
+        public Set<JavaConstructor> createConstructors(JavaClass owner) {
+            return build(constructorBuilders, owner);
+        }
+
+        @Override
+        public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
+            return staticInitializerBuilder.isPresent() ?
+                    Optional.of(staticInitializerBuilder.get().build(owner)) :
+                    Optional.<JavaStaticInitializer>absent();
+        }
+
+        @Override
+        public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
+            return buildAnnotations(annotations);
         }
     }
 }
