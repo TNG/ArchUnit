@@ -45,7 +45,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(ClassWithSeveralConstructors.class)).build();
+        JavaClass javaClass = importSingle(ClassWithSeveralConstructors.class);
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -55,10 +55,9 @@ public class JavaClassTest {
 
     @Test
     public void finds_static_Initializer() {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(Object.class)).build();
+        JavaClass javaClass = importSingle(Object.class);
 
-        assertThat(javaClass.getStaticInitializer()).isNotNull();
-        assertThat(javaClass.getStaticInitializer().getName()).isEqualTo(STATIC_INITIALIZER_NAME);
+        assertThat(javaClass.getStaticInitializer().get().getName()).isEqualTo(STATIC_INITIALIZER_NAME);
     }
 
     @Test

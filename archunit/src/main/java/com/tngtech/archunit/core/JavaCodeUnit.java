@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -27,9 +28,9 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
     private final List<TypeDetails> parameters;
     private final String fullName;
 
-    private Set<JavaFieldAccess> fieldAccesses;
-    private Set<JavaMethodCall> methodCalls;
-    private Set<JavaConstructorCall> constructorCalls;
+    private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
+    private Set<JavaMethodCall> methodCalls = Collections.emptySet();
+    private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
 
     JavaCodeUnit(Builder<?, ?> builder) {
         super(builder);

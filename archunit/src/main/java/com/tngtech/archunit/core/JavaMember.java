@@ -67,7 +67,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{member=" + name + ", owner=" + getOwner() + '}';
+        return getClass().getSimpleName() + '{' + getFullName() + '}';
     }
 
     public static DescribedPredicate<JavaMember> modifier(final JavaModifier modifier) {

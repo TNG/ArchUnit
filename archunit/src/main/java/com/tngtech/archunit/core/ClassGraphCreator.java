@@ -68,7 +68,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void resolveSuperTypesOf(String className) {
-        for (JavaClass toAdd : classResolver.getAllSuperClasses(className)) {
+        for (JavaClass toAdd : classResolver.getAllSuperClasses(className, classes.getAll())) {
             if (!classes.contain(toAdd.getName())) {
                 classes.add(toAdd);
             }

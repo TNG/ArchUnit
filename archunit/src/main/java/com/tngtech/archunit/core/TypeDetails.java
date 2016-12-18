@@ -1,7 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +16,6 @@ public class TypeDetails {
     private Optional<TypeDetails> enclosingClass = Optional.absent();
     private Optional<TypeDetails> superClass = Optional.absent();
     private List<TypeDetails> interfaces = Collections.emptyList();
-    private Method[] declaredMethods = new Method[0];
-    private Constructor<?>[] declaredConstructors = new Constructor[0];
     private String name;
     private String simpleName;
     private String javaPackage;
@@ -36,8 +32,6 @@ public class TypeDetails {
                 Optional.of(TypeDetails.of(type.getSuperclass())) :
                 Optional.<TypeDetails>absent();
         interfaces = TypeDetails.allOf(type.getInterfaces());
-        declaredMethods = type.getDeclaredMethods();
-        declaredConstructors = type.getDeclaredConstructors();
         name = type.getName();
         simpleName = type.getSimpleName();
         javaPackage = type.getPackage() != null ? type.getPackage().getName() : "";
@@ -45,23 +39,19 @@ public class TypeDetails {
     }
 
     private TypeDetails(Type type) {
+        this(type.getClassName());
+    }
+
+    private TypeDetails(String fullName) {
         this.type = null;
-        name = type.getClassName();
-        simpleName = name.replaceAll("^.*(\\.|\\$)", "");
-        javaPackage = name.replaceAll("(\\.|\\$).*$", "");
+        this.name = fullName;
+        this.simpleName = fullName.replaceAll("^.*(\\.|\\$)", "");
+        this.javaPackage = fullName.replaceAll("(\\.|\\$).*$", "");
         isInterface = false;
     }
 
     Set<JavaAnnotation> getAnnotations() {
         return type != null ? JavaAnnotation.allOf(type.getAnnotations()) : Collections.<JavaAnnotation>emptySet();
-    }
-
-    Method[] getDeclaredMethods() {
-        return declaredMethods;
-    }
-
-    Constructor<?>[] getDeclaredConstructors() {
-        return declaredConstructors;
     }
 
     public String getName() {
@@ -144,5 +134,9 @@ public class TypeDetails {
         } catch (ReflectionException e) {
             return new TypeDetails(type);
         }
+    }
+
+    public static TypeDetails of(String typeName) {
+        return new TypeDetails(typeName);
     }
 }

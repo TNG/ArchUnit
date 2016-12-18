@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.ClassFileProcessor.ASM_API_VERSION;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -73,7 +75,33 @@ class JavaClassProcessor extends ClassVisitor {
 
         LOG.debug("Analysing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, TypeDetails.allOf(Type.getArgumentTypes(desc)), className));
-        return new MethodProcessor(accessHandler);
+
+        JavaCodeUnit.Builder<?, ?> codeUnitBuilder = addCodeUnitBuilder(javaClassBuilder, name);
+        Type methodType = Type.getMethodType(desc);
+        codeUnitBuilder
+                .withName(name)
+                .withModifiers(JavaModifier.getModifiersFor(access))
+                .withParameters(TypeDetails.allOf(methodType.getArgumentTypes()))
+                .withReturnType(TypeDetails.of(methodType.getReturnType()))
+                .withDescriptor(desc);
+
+        return new MethodProcessor(accessHandler, codeUnitBuilder);
+    }
+
+    private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(JavaClass.Builder javaClassBuilder, String name) {
+        if (CONSTRUCTOR_NAME.equals(name)) {
+            JavaConstructor.Builder builder = new JavaConstructor.Builder();
+            javaClassBuilder.addConstructor(builder);
+            return builder;
+        } else if (STATIC_INITIALIZER_NAME.equals(name)) {
+            JavaStaticInitializer.Builder builder = new JavaStaticInitializer.Builder();
+            javaClassBuilder.withStaticInitializer(builder);
+            return builder;
+        } else {
+            JavaMethod.Builder builder = new JavaMethod.Builder();
+            javaClassBuilder.addMethod(builder);
+            return builder;
+        }
     }
 
     @Override
@@ -100,11 +128,14 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static class MethodProcessor extends MethodVisitor {
         private final AccessHandler accessHandler;
+        private final JavaCodeUnit.Builder<?, ?> codeUnitBuilder;
+        private final Set<JavaAnnotation> annotations = new HashSet<>();
         private int actualLineNumber;
 
-        MethodProcessor(AccessHandler accessHandler) {
+        MethodProcessor(AccessHandler accessHandler, JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
             super(ASM_API_VERSION);
             this.accessHandler = accessHandler;
+            this.codeUnitBuilder = codeUnitBuilder;
         }
 
         @Override
@@ -128,6 +159,16 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             accessHandler.handleMethodInstruction(opcode, owner, name, desc);
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
+        }
+
+        @Override
+        public void visitEnd() {
+            codeUnitBuilder.withAnnotations(annotations);
         }
     }
 

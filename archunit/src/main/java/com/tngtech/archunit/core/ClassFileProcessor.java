@@ -3,11 +3,11 @@ package com.tngtech.archunit.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
+import static com.tngtech.archunit.core.ReflectionUtils.tryGetClassForName;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor {
@@ -100,7 +100,13 @@ class ClassFileProcessor {
     static class ClassResolverFromClassPath implements ClassResolver {
         @Override
         public JavaClass resolve(String typeName) {
-            Class<?> type = classForName(typeName);
+            Optional<Class<?>> type = tryGetClassForName(typeName);
+            return type.isPresent() ?
+                    resolve(type.get()) :
+                    new JavaClass.Builder().withType(TypeDetails.of(typeName)).build();
+        }
+
+        private JavaClass resolve(Class<?> type) {
             String typeFile = "/" + type.getName().replace(".", "/") + ".class";
 
             try (InputStream inputStream = type.getResourceAsStream(typeFile)) {
@@ -113,23 +119,19 @@ class ClassFileProcessor {
         }
 
         @Override
-        public Set<JavaClass> getAllSuperClasses(String className) {
-            try {
-                return tryGetAllSuperClasses(className);
-            } catch (NoClassDefFoundError e) {
-                LOG.warn("Can't analyse related type of '{}' because of missing dependency '{}'",
-                        className, e.getMessage());
-            } catch (ReflectionException e) {
-                LOG.warn("Can't analyse related type of '{}' because of missing dependency. Error was: '{}'",
-                        className, e.getMessage());
-            }
-            return Collections.emptySet();
+        public Set<JavaClass> getAllSuperClasses(String className, Map<String, JavaClass> importedClasses) {
+            Optional<Class<?>> type = tryGetClassForName(className);
+            return type.isPresent() ?
+                    tryGetAllSuperClasses(type.get(), importedClasses) :
+                    Collections.<JavaClass>emptySet();
         }
 
-        private Set<JavaClass> tryGetAllSuperClasses(String typeName) {
+        private Set<JavaClass> tryGetAllSuperClasses(Class<?> type, Map<String, JavaClass> importedClasses) {
             ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-            for (Class<?> type : getAllSuperTypes(classForName(typeName))) {
-                result.add(resolve(type.getName()));
+            for (Class<?> superClass : getAllSuperTypes(type)) {
+                result.add(importedClasses.containsKey(superClass.getName()) ?
+                        importedClasses.get(superClass.getName()) :
+                        resolve(superClass));
             }
             return result.build();
         }

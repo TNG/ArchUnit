@@ -18,11 +18,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 
 public class ReflectionUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(ReflectionUtils.class);
+
     private static final Map<String, Class<?>> primitiveClassesByName =
             Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
                 @Override
@@ -36,6 +40,19 @@ public class ReflectionUtils {
 
     static Class<?> classForName(String name) {
         return classForName(name, ReflectionUtils.class.getClassLoader());
+    }
+
+    static Optional<Class<?>> tryGetClassForName(String name) {
+        try {
+            return Optional.<Class<?>>of(classForName(name));
+        } catch (NoClassDefFoundError e) {
+            LOG.warn("Can't analyse related type of '{}' because of missing dependency '{}'",
+                    name, e.getMessage());
+        } catch (ReflectionException e) {
+            LOG.warn("Can't analyse related type of '{}' because of missing dependency. Error was: '{}'",
+                    name, e.getMessage());
+        }
+        return Optional.absent();
     }
 
     static Class<?> classForName(String name, ClassLoader classLoader) {
