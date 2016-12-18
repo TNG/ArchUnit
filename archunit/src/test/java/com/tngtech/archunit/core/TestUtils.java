@@ -73,13 +73,21 @@ public class TestUtils {
 
     public static JavaMethod javaMethod(JavaClass clazz, Method method) {
         return new JavaMethod.Builder()
-                .withReturnType(TypeDetails.of(method.getReturnType()))
-                .withParameters(TypeDetails.allOf(method.getParameterTypes()))
+                .withReturnType(Type.getType(method.getReturnType()))
+                .withParameters(allTypesIn(method.getParameterTypes()))
                 .withName(method.getName())
                 .withDescriptor(Type.getMethodDescriptor(method))
-                .withAnnotations(javaAnnotationsOf(method.getAnnotations()))
+                .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(method.getModifiers()))
                 .build(clazz);
+    }
+
+    private static Type[] allTypesIn(Class<?>[] types) {
+        Type[] result = new Type[types.length];
+        for (int i = 0; i < types.length; i++) {
+            result[i] = Type.getType(types[i]);
+        }
+        return result;
     }
 
     public static JavaClass javaClass(Class<?> owner) {
@@ -103,9 +111,9 @@ public class TestUtils {
         return new JavaField.Builder()
                 .withName(field.getName())
                 .withDescriptor(Type.getDescriptor(field.getType()))
-                .withAnnotations(javaAnnotationsOf(field.getAnnotations()))
+                .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
-                .withType(TypeDetails.of(field.getType()))
+                .withType(Type.getType(field.getType()))
                 .build(owner);
     }
 
@@ -183,13 +191,13 @@ public class TestUtils {
     }
 
     public static JavaAnnotation javaAnnotationOf(Annotation reflectionAnnotation) {
-        return javaAnnotationFrom(reflectionAnnotation);
+        return javaAnnotationBuilderFrom(reflectionAnnotation).build();
     }
 
-    public static Set<JavaAnnotation> javaAnnotationsOf(Annotation[] reflectionAnnotations) {
-        ImmutableSet.Builder<JavaAnnotation> result = ImmutableSet.builder();
+    public static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
+        ImmutableSet.Builder<JavaAnnotation.Builder> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
-            result.add(javaAnnotationOf(annotation));
+            result.add(javaAnnotationBuilderFrom(annotation));
         }
         return result.build();
     }
@@ -239,15 +247,15 @@ public class TestUtils {
     }
 
     private static JavaAnnotation annotation(Annotation annotation) {
-        return javaAnnotationFrom(annotation);
+        return javaAnnotationBuilderFrom(annotation).build();
     }
 
-    private static JavaAnnotation javaAnnotationFrom(Annotation annotation) {
-        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(TypeDetails.of(annotation.annotationType()));
+    private static JavaAnnotation.Builder javaAnnotationBuilderFrom(Annotation annotation) {
+        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(Type.getType(annotation.annotationType()));
         for (Map.Entry<String, Object> entry : mapOf(annotation).entrySet()) {
-            builder.addProperty(entry.getKey(), entry.getValue());
+            builder.addProperty(entry.getKey(), JavaAnnotation.ValueBuilder.ofFinished(entry.getValue()));
         }
-        return builder.build();
+        return builder;
     }
 
     private static JavaAnnotation[] annotations(Annotation[] annotations) {
@@ -315,12 +323,10 @@ public class TestUtils {
         }
 
         private class TestFieldAccessRecord extends TestAccessRecord<FieldAccessTarget> implements FieldAccessRecord {
-            private final JavaField target;
             private final AccessType accessType;
 
             private TestFieldAccessRecord(JavaField target, AccessType accessType) {
                 super(targetFrom(target));
-                this.target = target;
                 this.accessType = accessType;
             }
 
@@ -333,7 +339,7 @@ public class TestUtils {
         private class TestAccessRecord<T extends AccessTarget> implements AccessRecord<T> {
             private final T target;
 
-            public TestAccessRecord(T target) {
+            TestAccessRecord(T target) {
                 this.target = target;
             }
 
@@ -352,25 +358,5 @@ public class TestUtils {
                 return lineNumber;
             }
         }
-    }
-
-    static class ClassWithMethodNamedMethod {
-        String method() {
-            return null;
-        }
-    }
-
-    static class AnotherClassWithMethodNamedMethod {
-        String method() {
-            return null;
-        }
-    }
-
-    static class ClassWithFieldNamedValue {
-        String value;
-    }
-
-    static class AnotherClassWithFieldNamedValue {
-        String value;
     }
 }

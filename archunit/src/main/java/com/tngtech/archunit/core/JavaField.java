@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -14,7 +15,7 @@ public class JavaField extends JavaMember {
 
     private JavaField(Builder builder) {
         super(builder);
-        type = builder.type;
+        type = builder.getType();
     }
 
     @Override
@@ -48,11 +49,15 @@ public class JavaField extends JavaMember {
     };
 
     static final class Builder extends JavaMember.Builder<JavaField, Builder> {
-        private TypeDetails type;
+        private Type type;
 
-        Builder withType(TypeDetails type) {
+        Builder withType(Type type) {
             this.type = type;
             return self();
+        }
+
+        public TypeDetails getType() {
+            return TypeDetails.of(type);
         }
 
         @Override

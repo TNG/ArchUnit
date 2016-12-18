@@ -50,6 +50,24 @@ public class AnnotationProxyTest {
     }
 
     @Test
+    public void primitives_are_returned() {
+        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+
+        assertThat(annotation.primitives())
+                .as(annotation.annotationType().getSimpleName() + ".primitives()")
+                .containsExactly(77, 88);
+    }
+
+    @Test
+    public void primitives_defaults_are_returned() {
+        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+
+        assertThat(annotation.primitivesWithDefault())
+                .as(annotation.annotationType().getSimpleName() + ".primitivesWithDefault()")
+                .containsExactly(1, 2);
+    }
+
+    @Test
     public void string_is_returned() {
         TestAnnotation annotation = getProxyFor(TestAnnotation.class);
 

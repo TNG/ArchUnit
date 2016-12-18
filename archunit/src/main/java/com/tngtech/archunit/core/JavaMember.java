@@ -3,12 +3,10 @@ package com.tngtech.archunit.core;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.Guava.toGuava;
-import static com.tngtech.archunit.core.JavaAnnotation.GET_TYPE_NAME;
+import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
 public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
     private final String name;
@@ -20,7 +18,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
     JavaMember(Builder<?, ?> builder) {
         this.name = checkNotNull(builder.name);
         this.descriptor = checkNotNull(builder.descriptor);
-        this.annotations = FluentIterable.from(builder.annotations).uniqueIndex(toGuava(GET_TYPE_NAME));
+        this.annotations = buildAnnotations(builder.annotations);
         this.owner = checkNotNull(builder.owner);
         this.modifiers = checkNotNull(builder.modifiers);
     }
@@ -90,7 +88,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         private String name;
         private String descriptor;
-        private Set<JavaAnnotation> annotations;
+        private Set<JavaAnnotation.Builder> annotations;
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
 
@@ -104,7 +102,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
             return self();
         }
 
-        SELF withAnnotations(Set<JavaAnnotation> annotations) {
+        SELF withAnnotations(Set<JavaAnnotation.Builder> annotations) {
             this.annotations = annotations;
             return self();
         }

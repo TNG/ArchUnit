@@ -4,11 +4,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Formatters.formatMethod;
@@ -34,8 +34,8 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
 
     JavaCodeUnit(Builder<?, ?> builder) {
         super(builder);
-        this.returnType = checkNotNull(builder.returnType);
-        this.parameters = ImmutableList.copyOf(builder.parameters);
+        this.returnType = builder.getReturnType();
+        this.parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -92,17 +92,25 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
     }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
-        private TypeDetails returnType;
-        private List<TypeDetails> parameters;
+        private Type returnType;
+        private Type[] parameters;
 
-        SELF withReturnType(TypeDetails type) {
+        SELF withReturnType(Type type) {
             returnType = type;
             return self();
         }
 
-        SELF withParameters(List<TypeDetails> parameters) {
+        SELF withParameters(Type[] parameters) {
             this.parameters = parameters;
             return self();
+        }
+
+        TypeDetails getReturnType() {
+            return TypeDetails.of(checkNotNull(returnType));
+        }
+
+        public List<TypeDetails> getParameters() {
+            return TypeDetails.allOf(parameters);
         }
     }
 }
