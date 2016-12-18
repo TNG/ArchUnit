@@ -80,7 +80,7 @@ public class TestUtils {
     }
 
     public static JavaClass javaClass(Class<?> owner) {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
+        JavaClass javaClass = importSingle(owner);
         ClassGraphCreator context = mock(ClassGraphCreator.class);
         when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
             @Override

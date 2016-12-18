@@ -3,16 +3,30 @@ package com.tngtech.archunit.core.testexamples.annotationmethodimport;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 
+import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static java.lang.annotation.ElementType.CONSTRUCTOR;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class ClassWithAnnotatedMethods {
-    @MethodAnnotationWithEnumAndArrayValue(classes = {Object.class, Serializable.class})
+    public static final String stringAnnotatedMethod = "stringAnnotatedMethod";
+    public static final String stringAndIntAnnotatedMethod = "stringAndIntAnnotatedMethod";
+    public static final String enumAndArrayAnnotatedMethod = "enumAndArrayAnnotatedMethod";
+
+    @MethodAnnotationWithEnumAndArrayValue(
+            value = OTHER_VALUE,
+            enumArray = {SOME_VALUE, OTHER_VALUE},
+            subAnnotation = @SubAnnotation("changed"),
+            subAnnotationArray = {@SubAnnotation("another"), @SubAnnotation("one")},
+            clazz = Map.class,
+            classes = {Object.class, Serializable.class})
     public ClassWithAnnotatedMethods() {
 
     }
@@ -23,12 +37,18 @@ public class ClassWithAnnotatedMethods {
     }
 
     @MethodAnnotationWithStringValue("otherThing")
-    @MethodAnnotationWithIntValue(otherValue = "overridden")
+    @MethodAnnotationWithIntValue(intValue = 8, otherValue = "overridden")
     public Object stringAndIntAnnotatedMethod() {
         return null;
     }
 
-    @MethodAnnotationWithEnumAndArrayValue(classes = {Object.class, Serializable.class})
+    @MethodAnnotationWithEnumAndArrayValue(
+            value = OTHER_VALUE,
+            enumArray = {SOME_VALUE},
+            subAnnotation = @SubAnnotation("changed"),
+            subAnnotationArray = {@SubAnnotation("another"), @SubAnnotation("one")},
+            clazz = Set.class,
+            classes = {Object.class, Serializable.class})
     public Object enumAndArrayAnnotatedMethod() {
         return null;
     }
@@ -42,16 +62,44 @@ public class ClassWithAnnotatedMethods {
     @Target(METHOD)
     @Retention(RUNTIME)
     public @interface MethodAnnotationWithIntValue {
-        int intValue() default 0;
+        int intValue();
 
-        String otherValue() default "Nothing";
+        int intValueWithDefault() default 0;
+
+        String otherValue();
+
+        String otherValueWithDefault() default "Nothing";
     }
 
     @Target({METHOD, CONSTRUCTOR})
     @Retention(RUNTIME)
     public @interface MethodAnnotationWithEnumAndArrayValue {
-        SomeEnum value() default SOME_VALUE;
+        SomeEnum value();
+
+        SomeEnum valueWithDefault() default SOME_VALUE;
+
+        SomeEnum[] enumArray();
+
+        SomeEnum[] enumArrayWithDefault() default {OTHER_VALUE};
+
+        SubAnnotation subAnnotation();
+
+        SubAnnotation subAnnotationWithDefault() default @SubAnnotation("default");
+
+        SubAnnotation[] subAnnotationArray();
+
+        SubAnnotation[] subAnnotationArrayWithDefault() default {@SubAnnotation("first"), @SubAnnotation("second")};
+
+        Class clazz();
+
+        Class clazzWithDefault() default String.class;
 
         Class[] classes();
+
+        Class[] classesWithDefault() default {Serializable.class, List.class};
+    }
+
+    public @interface SubAnnotation {
+        String value();
     }
 }

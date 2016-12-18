@@ -1,7 +1,10 @@
 package com.tngtech.archunit.testutil;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +17,10 @@ import java.util.Set;
 
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
+import com.tngtech.archunit.core.JavaConstructor;
 import com.tngtech.archunit.core.JavaField;
+import com.tngtech.archunit.core.JavaMember;
+import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.core.TypeDetails;
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -25,6 +31,8 @@ import org.assertj.core.api.AbstractIterableAssert;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaModifier.getModifiersFor;
 import static com.tngtech.archunit.core.TestUtils.classForName;
 import static com.tngtech.archunit.core.TestUtils.enumConstant;
@@ -47,6 +55,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaFieldAssertion(field);
     }
 
+    public static JavaMethodAssertion assertThat(JavaMethod method) {
+        return new JavaMethodAssertion(method);
+    }
+
+    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
+        return new JavaConstructorAssertion(constructor);
+    }
+
     public static class JavaFieldAssertion {
         private final JavaField javaField;
 
@@ -55,69 +71,118 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void isEquivalentTo(Field field) {
-            assertThat(javaField.getName()).isEqualTo(field.getName());
-            assertThat(javaField.getFullName()).isEqualTo(field.getDeclaringClass().getName() + "." + field.getName());
-            assertThat(javaField.getOwner().reflect()).isEqualTo(field.getDeclaringClass());
+            assertEquivalent(javaField, field);
+            assertThat(javaField.getName()).isEqualTo(javaField.getName());
+            assertThat(javaField.getFullName()).isEqualTo(getExpectedNameOf(field, field.getName()));
             assertThat(javaField.getType()).isEqualTo(TypeDetails.of(field.getType()));
-            assertThat(javaField.getModifiers()).isEqualTo(getModifiersFor(field.getModifiers()));
-            assertThat(propertiesOf(javaField.getAnnotations())).isEqualTo(propertiesOf(field.getAnnotations()));
+        }
+    }
+
+    public static class JavaMethodAssertion {
+        private final JavaMethod javaMethod;
+
+        private JavaMethodAssertion(JavaMethod javaMethod) {
+            this.javaMethod = javaMethod;
         }
 
-        private Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
-            List<Annotation> converted = new ArrayList<>();
-            for (JavaAnnotation annotation : annotations) {
-                converted.add(annotation.as((Class) classForName(annotation.getType().getName())));
-            }
-            return propertiesOf(converted.toArray(new Annotation[converted.size()]));
+        public void isEquivalentTo(Method method) {
+            assertEquivalent(javaMethod, method);
+            assertThat(javaMethod.getName()).isEqualTo(method.getName());
+            assertThat(javaMethod.getFullName()).isEqualTo(getExpectedNameOf(method, method.getName()));
+            assertThat(javaMethod.getParameters()).isEqualTo(TypeDetails.allOf(method.getParameterTypes()));
+            assertThat(javaMethod.getReturnType()).isEqualTo(TypeDetails.of(method.getReturnType()));
+        }
+    }
+
+    public static class JavaConstructorAssertion {
+        private final JavaConstructor javaConstructor;
+
+        private JavaConstructorAssertion(JavaConstructor javaConstructor) {
+            this.javaConstructor = javaConstructor;
         }
 
-        private Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
-            Set<Map<String, Object>> result = new HashSet<>();
-            for (Annotation annotation : annotations) {
-                result.add(propertiesOf(annotation));
-            }
-            return result;
+        public void isEquivalentTo(Constructor<?> constructor) {
+            assertEquivalent(javaConstructor, constructor);
+            assertThat(javaConstructor.getName()).isEqualTo(CONSTRUCTOR_NAME);
+            assertThat(javaConstructor.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
+            assertThat(javaConstructor.getParameters()).isEqualTo(TypeDetails.allOf(constructor.getParameterTypes()));
         }
+    }
 
-        private Map<String, Object> propertiesOf(Annotation annotation) {
-            Map<String, Object> props = new HashMap<>();
-            for (Method method : annotation.annotationType().getDeclaredMethods()) {
-                Object returnValue = invoke(method, annotation);
-                props.put(method.getName(), valueOf(returnValue));
-            }
-            return props;
+    private static <T extends Member & AnnotatedElement> void assertEquivalent(JavaMember javaMember, T member) {
+        assertThat(javaMember.getOwner().reflect()).isEqualTo(member.getDeclaringClass());
+        assertThat(javaMember.getModifiers()).isEqualTo(getModifiersFor(member.getModifiers()));
+        assertThat(propertiesOf(javaMember.getAnnotations())).isEqualTo(propertiesOf(member.getAnnotations()));
+    }
+
+    private static <T extends Member & AnnotatedElement> String getExpectedNameOf(T member, String name) {
+        String base = member.getDeclaringClass().getName() + "." + name;
+        if (member instanceof Method) {
+            return base + expectedParametersOf(((Method) member).getParameterTypes());
         }
-
-        private Object valueOf(Object value) {
-            if (value instanceof Class) {
-                return TypeDetails.of((Class<?>) value);
-            }
-            if (value instanceof Class[]) {
-                return TypeDetails.allOf((Class<?>[]) value);
-            }
-            if (value instanceof Enum) {
-                return enumConstant((Enum<?>) value);
-            }
-            if (value instanceof Enum[]) {
-                return enumConstants((Enum[]) value);
-            }
-            if (value instanceof Annotation) {
-                return propertiesOf((Annotation) value);
-            }
-            if (value instanceof Annotation[]) {
-                return propertiesOf((Annotation[]) value);
-            }
-            return value;
+        if (member instanceof Constructor<?>) {
+            return base + expectedParametersOf(((Constructor<?>) member).getParameterTypes());
         }
+        return base;
+    }
 
-        private Object enumConstants(Enum[] enums) {
-            List<Object> result = new ArrayList<>();
-            for (Enum e : enums) {
-                result.add(enumConstant(e));
-            }
-            return result;
+    private static String expectedParametersOf(Class<?>[] parameterTypes) {
+        return String.format("(%s)", formatMethodParameters(TypeDetails.allOf(parameterTypes)));
+    }
+
+    private static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
+        List<Annotation> converted = new ArrayList<>();
+        for (JavaAnnotation annotation : annotations) {
+            converted.add(annotation.as((Class) classForName(annotation.getType().getName())));
         }
+        return propertiesOf(converted.toArray(new Annotation[converted.size()]));
+    }
 
+    private static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
+        Set<Map<String, Object>> result = new HashSet<>();
+        for (Annotation annotation : annotations) {
+            result.add(propertiesOf(annotation));
+        }
+        return result;
+    }
+
+    private static Map<String, Object> propertiesOf(Annotation annotation) {
+        Map<String, Object> props = new HashMap<>();
+        for (Method method : annotation.annotationType().getDeclaredMethods()) {
+            Object returnValue = invoke(method, annotation);
+            props.put(method.getName(), valueOf(returnValue));
+        }
+        return props;
+    }
+
+    private static Object valueOf(Object value) {
+        if (value instanceof Class) {
+            return TypeDetails.of((Class<?>) value);
+        }
+        if (value instanceof Class[]) {
+            return TypeDetails.allOf((Class<?>[]) value);
+        }
+        if (value instanceof Enum) {
+            return enumConstant((Enum<?>) value);
+        }
+        if (value instanceof Enum[]) {
+            return enumConstants((Enum[]) value);
+        }
+        if (value instanceof Annotation) {
+            return propertiesOf((Annotation) value);
+        }
+        if (value instanceof Annotation[]) {
+            return propertiesOf((Annotation[]) value);
+        }
+        return value;
+    }
+
+    private static Object enumConstants(Enum[] enums) {
+        List<Object> result = new ArrayList<>();
+        for (Enum e : enums) {
+            result.add(enumConstant(e));
+        }
+        return result;
     }
 
     public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {

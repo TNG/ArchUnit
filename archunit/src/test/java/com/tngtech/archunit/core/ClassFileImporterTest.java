@@ -129,6 +129,9 @@ import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
+import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.enumAndArrayAnnotatedMethod;
+import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
+import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -298,7 +301,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_correct_parameters() throws Exception {
-        Set<JavaCodeUnit> methods = methodsOf(classesIn("testexamples/methodimport"));
+        Set<JavaCodeUnit> methods = codeUnitsOf(classesIn("testexamples/methodimport"));
 
         assertThat(findAnyByName(methods, "createString").getParameters())
                 .as("Parameters of method 'createString'")
@@ -313,7 +316,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_complex_method_with_correct_parameters() throws Exception {
-        Set<JavaCodeUnit> methods = methodsOf(classesIn("testexamples/complexmethodimport"));
+        Set<JavaCodeUnit> methods = codeUnitsOf(classesIn("testexamples/complexmethodimport"));
 
         assertThat(findAnyByName(methods, "complex").getParameters())
                 .as("Parameters of method 'complex'")
@@ -327,7 +330,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_correct_return_types() throws Exception {
-        Set<JavaCodeUnit> methods = methodsOf(classesIn("testexamples/methodimport"));
+        Set<JavaCodeUnit> methods = codeUnitsOf(classesIn("testexamples/methodimport"));
 
         assertThat(findAnyByName(methods, "createString").getReturnType())
                 .as("Parameters of method 'createString'")
@@ -342,19 +345,21 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_one_annotation_correctly() throws Exception {
-        Set<JavaCodeUnit> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
+        JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
-        JavaCodeUnit method = findAnyByName(methods, "stringAnnotatedMethod");
+        JavaMethod method = findAnyByName(clazz.getMethods(), stringAnnotatedMethod);
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotation.getType()).isEqualTo(TypeDetails.of(MethodAnnotationWithStringValue.class));
 
         JavaAnnotation rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(rawAnnotation.get("value").get()).isEqualTo("something");
+
+        assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(stringAnnotatedMethod));
     }
 
     @Test
     public void methods_handle_optional_annotation_correctly() throws Exception {
-        Set<JavaCodeUnit> methods = methodsOf(classesIn("testexamples/annotationmethodimport"));
+        Set<JavaCodeUnit> methods = codeUnitsOf(classesIn("testexamples/annotationmethodimport"));
 
         JavaCodeUnit method = findAnyByName(methods, "stringAnnotatedMethod");
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
@@ -363,33 +368,32 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_two_annotations_correctly() throws Exception {
-        Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
+        JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
-        Set<JavaCodeUnit> methods = methodsOf(classes);
-
-        JavaCodeUnit method = findAnyByName(methods, "stringAndIntAnnotatedMethod");
+        JavaMethod method = findAnyByName(clazz.getMethods(), stringAndIntAnnotatedMethod);
         assertThat(method.getAnnotations()).hasSize(2);
 
         JavaAnnotation annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class);
         assertThat(annotationWithString.get("value").get()).isEqualTo("otherThing");
 
         JavaAnnotation annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class);
-        assertThat(annotationWithInt.get("intValue").get()).isEqualTo(0);
         assertThat(annotationWithInt.get("otherValue").get()).isEqualTo("overridden");
+
+        assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(stringAndIntAnnotatedMethod));
     }
 
     @Test
     public void imports_methods_with_complex_annotations_correctly() throws Exception {
-        Iterable<JavaClass> classes = classesIn("testexamples/annotationmethodimport");
+        JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
-        Set<JavaCodeUnit> methods = methodsOf(classes);
-
-        JavaCodeUnit method = findAnyByName(methods, "enumAndArrayAnnotatedMethod");
+        JavaMethod method = findAnyByName(clazz.getMethods(), enumAndArrayAnnotatedMethod);
 
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(SOME_VALUE));
+        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
         assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{
                 TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
+
+        assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(enumAndArrayAnnotatedMethod));
     }
 
     @Test
@@ -398,8 +402,9 @@ public class ClassFileImporterTest {
                 .getConstructor();
 
         JavaAnnotation annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(SOME_VALUE));
         assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
+
+        assertThat(constructor).isEquivalentTo(ClassWithAnnotatedMethods.class.getConstructor());
     }
 
     @Test
@@ -416,10 +421,11 @@ public class ClassFileImporterTest {
     public void imports_base_class_in_class_hierarchy_correctly() throws Exception {
         JavaClass baseClass = classesIn("testexamples/classhierarchyimport").get(BaseClass.class);
 
-        assertThat(baseClass.getConstructors()).hasSize(2);
-        assertThat(baseClass.getFields()).hasSize(1);
-        assertThat(baseClass.getMethods()).hasSize(2);
-        assertThat(baseClass.getStaticInitializer().getMethodCallsFromSelf().size()).isGreaterThan(0);
+        assertThat(baseClass.getConstructors()).as("Constructors of " + BaseClass.class.getSimpleName()).hasSize(2);
+        assertThat(baseClass.getFields()).as("Fields of " + BaseClass.class.getSimpleName()).hasSize(1);
+        assertThat(baseClass.getMethods()).as("Methods of " + BaseClass.class.getSimpleName()).hasSize(2);
+        assertThat(baseClass.getStaticInitializer().get().getMethodCallsFromSelf().size())
+                .as("Calls from %s.<clinit>()", BaseClass.class.getSimpleName()).isGreaterThan(0);
     }
 
     @Test
@@ -429,7 +435,7 @@ public class ClassFileImporterTest {
         assertThat(subClass.getConstructors()).hasSize(3);
         assertThat(subClass.getFields()).hasSize(1);
         assertThat(subClass.getMethods()).hasSize(3);
-        assertThat(subClass.getStaticInitializer().getMethodCallsFromSelf().size()).isGreaterThan(0);
+        assertThat(subClass.getStaticInitializer().get().getMethodCallsFromSelf().size()).isGreaterThan(0);
     }
 
     @Test
@@ -1377,7 +1383,7 @@ public class ClassFileImporterTest {
         return fields;
     }
 
-    private Set<JavaCodeUnit> methodsOf(Iterable<JavaClass> classes) {
+    private Set<JavaCodeUnit> codeUnitsOf(Iterable<JavaClass> classes) {
         Set<JavaCodeUnit> methods = new HashSet<>();
         for (JavaClass clazz : classes) {
             methods.addAll(clazz.getCodeUnits());

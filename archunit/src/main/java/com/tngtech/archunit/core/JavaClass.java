@@ -1,8 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +11,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.Guava.toGuava;
@@ -29,7 +27,7 @@ public class JavaClass implements HasName {
     private final Set<JavaCodeUnit> codeUnits;
     private final Set<JavaMethod> methods;
     private final Set<JavaConstructor> constructors;
-    private final JavaStaticInitializer staticInitializer;
+    private final Optional<JavaStaticInitializer> staticInitializer;
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
@@ -41,9 +39,11 @@ public class JavaClass implements HasName {
         fields = build(builder.fieldBuilders, this);
         methods = build(builder.methodBuilders, this);
         constructors = build(builder.constructorBuilders, this);
-        staticInitializer = new JavaStaticInitializer.Builder().build(this);
+        staticInitializer = builder.staticInitializerBuilder.isPresent() ?
+                Optional.of(builder.staticInitializerBuilder.get().build(this)) :
+                Optional.<JavaStaticInitializer>absent();
         codeUnits = ImmutableSet.<JavaCodeUnit>builder()
-                .addAll(methods).addAll(constructors).add(staticInitializer)
+                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
                 .build();
         annotations = builder.annotations.build();
     }
@@ -254,7 +254,7 @@ public class JavaClass implements HasName {
         return result.build();
     }
 
-    public JavaStaticInitializer getStaticInitializer() {
+    public Optional<JavaStaticInitializer> getStaticInitializer() {
         return staticInitializer;
     }
 
@@ -464,29 +464,12 @@ public class JavaClass implements HasName {
         private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
+        private Optional<JavaStaticInitializer.Builder> staticInitializerBuilder = Optional.absent();
         private final ImmutableMap.Builder<String, JavaAnnotation> annotations = ImmutableMap.builder();
 
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
             this.typeDetails = typeDetails;
-            for (Method method : typeDetails.getDeclaredMethods()) {
-                addMethod(new JavaMethod.Builder()
-                        .withReturnType(TypeDetails.of(method.getReturnType()))
-                        .withParameters(TypeDetails.allOf(method.getParameterTypes()))
-                        .withName(method.getName())
-                        .withDescriptor(Type.getMethodDescriptor(method))
-                        .withAnnotations(JavaAnnotation.allOf(method.getAnnotations()))
-                        .withModifiers(JavaModifier.getModifiersFor(method.getModifiers())));
-            }
-            for (Constructor<?> constructor : typeDetails.getDeclaredConstructors()) {
-                addConstructor(new JavaConstructor.Builder()
-                        .withReturnType(TypeDetails.of(void.class))
-                        .withParameters(TypeDetails.allOf(constructor.getParameterTypes()))
-                        .withName(CONSTRUCTOR_NAME)
-                        .withDescriptor(Type.getConstructorDescriptor(constructor))
-                        .withAnnotations(JavaAnnotation.allOf(constructor.getAnnotations()))
-                        .withModifiers(JavaModifier.getModifiersFor(constructor.getModifiers())));
-            }
             annotations.putAll(FluentIterable.from(typeDetails.getAnnotations())
                     .uniqueIndex(toGuava(GET_TYPE_NAME)));
             return this;
@@ -504,6 +487,14 @@ public class JavaClass implements HasName {
 
         Builder addConstructor(BuilderWithBuildParameter<JavaClass, JavaConstructor> constructorBuilder) {
             constructorBuilders.add(constructorBuilder);
+            return this;
+        }
+
+        Builder withStaticInitializer(JavaStaticInitializer.Builder builder) {
+            checkState(!staticInitializerBuilder.isPresent(),
+                    "Tried to add a second static initializer to %s, this is most likely a bug",
+                    typeDetails.getName());
+            staticInitializerBuilder = Optional.of(builder);
             return this;
         }
 
