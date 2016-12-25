@@ -58,11 +58,11 @@ class RawAccessRecord {
 
     static class CodeUnit {
         private final String name;
-        private final List<TypeDetails> parameters;
+        private final List<String> parameters;
         private final String declaringClassName;
         private final int hashCode;
 
-        CodeUnit(String name, List<TypeDetails> parameters, String declaringClassName) {
+        CodeUnit(String name, List<String> parameters, String declaringClassName) {
             this.name = name;
             this.parameters = parameters;
             this.declaringClassName = declaringClassName;
@@ -74,7 +74,7 @@ class RawAccessRecord {
         }
 
         @SuppressWarnings("unchecked")
-        public List<TypeDetails> getParameters() {
+        public List<String> getParameters() {
             return parameters;
         }
 
@@ -108,7 +108,7 @@ class RawAccessRecord {
 
         public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
-                    && getParameters().equals(method.getParameters())
+                    && getParameters().equals(method.getParameters().getNames())
                     && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }

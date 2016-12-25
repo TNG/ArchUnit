@@ -8,7 +8,6 @@ import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaMethod;
-import com.tngtech.archunit.core.TypeDetails;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -16,12 +15,12 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.core.TestUtils.javaClass;
-import static com.tngtech.archunit.core.TestUtils.javaMethod;
+import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameters;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
@@ -84,19 +83,19 @@ public class ArchPredicatesTest {
 
     @Test
     public void inTheHierarchyOfAClass_matches_class_itself() {
-        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClass(AnyClass.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClassViaReflection(AnyClass.class)))
                 .as("class itself matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_subclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClass(SubClass.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClassViaReflection(SubClass.class)))
                 .as("subclass matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_does_not_match_superclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClass(Object.class)))
+        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClassViaReflection(Object.class)))
                 .as("superclass matches the predicate").isFalse();
     }
 
@@ -132,16 +131,16 @@ public class ArchPredicatesTest {
 
     @Test
     public void hasParameters_works() {
-        JavaMethod method = javaMethod(SomeClass.class, "withArgs", Object.class, String.class);
+        JavaMethod method = javaMethodViaReflection(SomeClass.class, "withArgs", Object.class, String.class);
 
         DescribedPredicate<HasParameters> predicate =
-                hasParameters(TypeDetails.allOf(Collections.<Class<?>>singletonList(Object.class)));
+                hasParameterTypes(Collections.<Class<?>>singletonList(Object.class));
 
         assertThat(predicate.apply(method)).as("Predicate matches").isFalse();
         assertThat(predicate.getDescription()).isEqualTo("has parameters [Object.class]");
 
         predicate =
-                hasParameters(TypeDetails.allOf(Arrays.asList(Object.class, String.class)));
+                hasParameterTypes(Arrays.asList(Object.class, String.class));
 
         assertThat(predicate.apply(method)).as("Predicate matches").isTrue();
         assertThat(predicate.getDescription()).isEqualTo("has parameters [Object.class, String.class]");

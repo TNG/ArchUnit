@@ -85,7 +85,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return uniqueTargetIn(tryFindMatchingTargets(constructors, record.target));
                     }
                 };
-                List<TypeDetails> paramTypes = getArgumentTypesFrom(record.target.desc);
+                JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
                 return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
             }
 
@@ -120,8 +120,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return tryFindMatchingTargets(methods, record.target);
                     }
                 };
-                List<TypeDetails> parameters = getArgumentTypesFrom(record.target.desc);
-                TypeDetails returnType = TypeDetails.of(Type.getReturnType(record.target.desc));
+                JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
+                JavaClass returnType = classes.get(Type.getReturnType(record.target.desc).getClassName());
                 return new MethodCallTarget(targetOwner, record.target.name, parameters, returnType, methodsSupplier);
             }
 
@@ -161,7 +161,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return uniqueTargetIn(tryFindMatchingTargets(fields, record.target));
                     }
                 };
-                TypeDetails fieldType = TypeDetails.of(Type.getType(record.target.desc));
+                JavaClass fieldType = classes.get(Type.getType(record.target.desc).getClassName());
                 return new FieldAccessTarget(targetOwner, record.target.name, fieldType, fieldSupplier);
             }
 
@@ -195,12 +195,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
             return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>absent();
         }
 
-        private static List<TypeDetails> getArgumentTypesFrom(String descriptor) {
-            List<TypeDetails> paramTypes = new ArrayList<>();
+        private static JavaClassList getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
+            List<JavaClass> paramTypes = new ArrayList<>();
             for (Type type : Type.getArgumentTypes(descriptor)) {
-                paramTypes.add(TypeDetails.of(type));
+                paramTypes.add(classes.get(type.getClassName()));
             }
-            return paramTypes;
+            return new JavaClassList(paramTypes);
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
 
 import com.tngtech.archunit.core.ClassFileProcessor.ClassResolverFromClassPath;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
@@ -13,23 +12,16 @@ import static org.mockito.Mockito.mock;
 public class ClassFileProcessorTest {
     @Test
     public void ClassResolverFromClassPath_resolves_robustly() {
-        JavaClass resolved = new ClassResolverFromClassPath(mock(DeclarationHandler.class)).resolve("not.There");
+        Optional<JavaClass> resolved = new ClassResolverFromClassPath(mock(DeclarationHandler.class))
+                .resolve("not.There", mock(ImportedClasses.ByTypeName.class));
 
-        assertThat(resolved.getName()).isEqualTo("not.There");
-        assertThat(resolved.getMethods()).isEmpty();
-        assertThat(resolved.getConstructors()).isEmpty();
-        assertThat(resolved.getFields()).isEmpty();
-        assertThat(resolved.getStaticInitializer()).isAbsent();
-        assertThat(resolved.getAccessesFromSelf()).isEmpty();
-        assertThat(resolved.getSuperClass()).isAbsent();
-        assertThat(resolved.getSubClasses()).isEmpty();
-        assertThat(resolved.isInterface()).isFalse(); // NOTE: We can't determine this, so by default a non determinable type is no interface
+        assertThat(resolved).isAbsent();
     }
 
     @Test
     public void ClassResolverFromClassPath_gets_superclasses_robustly() {
-        Set<JavaClass> resolved = new ClassResolverFromClassPath(mock(DeclarationHandler.class))
-                .getAllSuperClasses("not.There", Collections.<String, JavaClass>emptyMap());
+        Map<String, Optional<JavaClass>> resolved = new ClassResolverFromClassPath(mock(DeclarationHandler.class))
+                .getAllSuperClasses("not.There", mock(ImportedClasses.ByTypeName.class));
 
         assertThat(resolved).as("Superclasses").isEmpty();
     }

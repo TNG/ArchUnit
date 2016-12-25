@@ -16,9 +16,8 @@ import static com.tngtech.archunit.core.JavaClass.reflectionAssignableFrom;
 import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.TestUtils.importSingle;
-import static com.tngtech.archunit.core.TestUtils.javaClass;
+import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
@@ -29,7 +28,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_fields_and_methods() {
-        JavaClass javaClass = importSingle(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass javaClass = javaClassViaReflection(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
@@ -45,7 +44,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = importSingle(ClassWithSeveralConstructors.class);
+        JavaClass javaClass = javaClassViaReflection(ClassWithSeveralConstructors.class);
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -54,39 +53,30 @@ public class JavaClassTest {
     }
 
     @Test
-    public void finds_static_Initializer() {
-        JavaClass javaClass = importSingle(Object.class);
-
-        assertThat(javaClass.getStaticInitializer().get().getName()).isEqualTo(STATIC_INITIALIZER_NAME);
-    }
-
-    @Test
     public void anonymous_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder().withType(TypeDetails.of(new Serializable() {
-        }.getClass()))
-                .build();
+        JavaClass anonymous = javaClassViaReflection(new Serializable() {}.getClass());
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void inner_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder().withType(TypeDetails.of(ClassWithInnerClass.Inner.class))
-                .build();
+        JavaClass anonymous = javaClassViaReflection(ClassWithInnerClass.Inner.class);
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void Array_class_has_default_package() {
-        JavaClass arrayType = new JavaClass.Builder().withType(TypeDetails.of(JavaClassTest[].class)).build();
+        JavaClass arrayType = javaClassViaReflection(JavaClassTest[].class);
 
         assertThat(arrayType.getPackage()).isEmpty();
     }
 
     @Test
     public void superclasses_are_found() {
-        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
                 SuperClassWithFieldAndMethod.class.getName(),
@@ -96,7 +86,8 @@ public class JavaClassTest {
 
     @Test
     public void hierarchy_is_found() {
-        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
                 clazz.getName(),
@@ -107,16 +98,17 @@ public class JavaClassTest {
 
     @Test
     public void Annotations_are_reported() {
-        assertThat(javaClass(Parent.class).isAnnotatedWith(SomeAnnotation.class))
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
-        assertThat(javaClass(Parent.class).isAnnotatedWith(Retention.class))
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
     }
 
     @Test
     public void allAccesses_contains_accesses_from_superclass() {
-        JavaClass javaClass = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
-        JavaClass anotherClass = javaClass(Object.class);
+        JavaClass javaClass = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass anotherClass = javaClassViaReflection(Object.class);
         simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
         simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
@@ -127,9 +119,9 @@ public class JavaClassTest {
 
     @Test
     public void withType_works() {
-        assertThat(withType(Parent.class).apply(javaClass(Parent.class)))
+        assertThat(withType(Parent.class).apply(javaClassViaReflection(Parent.class)))
                 .as("withType(Parent) matches JavaClass Parent").isTrue();
-        assertThat(withType(Parent.class).apply(javaClass(SuperClassWithFieldAndMethod.class)))
+        assertThat(withType(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
                 .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
     }
 
@@ -223,7 +215,7 @@ public class JavaClassTest {
             Evaluation evaluationToType(Class<?> toType) {
                 reflectionAssignableAssertion = assertThat(reflectionAssignable.apply(toType))
                         .as(LOWER_UNDERSCORE.to(LOWER_CAMEL, "reflection_" + message) + toType.getSimpleName());
-                assignableAssertion = assertThat(assignable.apply(javaClass(toType)))
+                assignableAssertion = assertThat(assignable.apply(javaClassViaReflection(toType)))
                         .as(message + toType.getSimpleName());
                 return this;
             }
@@ -242,7 +234,7 @@ public class JavaClassTest {
 
     @Test
     public void REFLECT_works() {
-        assertThat(REFLECT.apply(javaClass(Parent.class))).isEqualTo(Parent.class);
+        assertThat(REFLECT.apply(javaClassViaReflection(Parent.class))).isEqualTo(Parent.class);
     }
 
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {

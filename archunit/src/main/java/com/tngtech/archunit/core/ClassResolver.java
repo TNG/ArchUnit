@@ -1,10 +1,9 @@
 package com.tngtech.archunit.core;
 
 import java.util.Map;
-import java.util.Set;
 
 interface ClassResolver {
-    JavaClass resolve(String typeName);
+    Optional<JavaClass> resolve(String typeName, ImportedClasses.ByTypeName importedClasses);
 
-    Set<JavaClass> getAllSuperClasses(String className, Map<String, JavaClass> importedClasses);
+    Map<String, Optional<JavaClass>> getAllSuperClasses(String className, ImportedClasses.ByTypeName importedClasses);
 }

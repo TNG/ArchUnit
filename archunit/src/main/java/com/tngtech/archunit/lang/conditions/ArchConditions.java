@@ -7,7 +7,6 @@ import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.TypeDetails;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
@@ -115,7 +114,7 @@ public final class ArchConditions {
         }
 
         public ArchCondition<JavaClass> in(Class<?> clazz) {
-            return callMethodWhere(callTarget().is(clazz, methodName, TypeDetails.allOf(params)));
+            return callMethodWhere(callTarget().is(clazz, methodName, params));
         }
 
         public ArchCondition<JavaClass> inHierarchyOf(Class<?> type) {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
@@ -80,7 +81,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         LOG.debug("Analysing method {}.{}:{}", className, name, desc);
-        accessHandler.setContext(new CodeUnit(name, TypeDetails.allOf(Type.getArgumentTypes(desc)), className));
+        accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
         JavaCodeUnit.Builder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
         Type methodType = Type.getMethodType(desc);
@@ -136,6 +137,14 @@ class JavaClassProcessor extends ClassVisitor {
             canImportCurrentClass = false;
         }
         return null;
+    }
+
+    private static List<String> namesOf(Type[] types) {
+        ImmutableList.Builder<String> result = ImmutableList.builder();
+        for (Type type : types) {
+            result.add(type.getClassName());
+        }
+        return result.build();
     }
 
     private static class MethodProcessor extends MethodVisitor {
@@ -365,10 +374,10 @@ class JavaClassProcessor extends ClassVisitor {
         private JavaAnnotation.ValueBuilder valueArrayBuilder() {
             return new JavaAnnotation.ValueBuilder() {
                 @Override
-                Object build() {
+                Object build(ImportedClasses.ByTypeName importedClasses) {
                     Object[] array = (Object[]) Array.newInstance(componentType, values.size());
                     for (int i = 0; i < values.size(); i++) {
-                        array[i] = values.get(i).build();
+                        array[i] = values.get(i).build(importedClasses);
                     }
                     return array;
                 }
@@ -379,7 +388,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static JavaAnnotation.ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new JavaAnnotation.ValueBuilder() {
             @Override
-            Object build() {
+            Object build(ImportedClasses.ByTypeName importedClasses) {
                 return new JavaEnumConstant(TypeDetails.of(Type.getType(desc)), value);
             }
         };

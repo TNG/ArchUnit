@@ -11,15 +11,31 @@ public class Formatters {
     private Formatters() {
     }
 
-    public static String formatMethod(String ownerName, String methodName, List<TypeDetails> parameters) {
+    public static String formatMethod(String ownerName, String methodName, JavaClassList parameters) {
         return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameters(parameters));
     }
 
-    public static String formatMethodParameters(List<TypeDetails> parameters) {
+    public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
+        return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameterTypeNames(parameters));
+    }
+
+    private static String formatMethodParameters(List<? extends HasName> parameters) {
+        List<String> simpleNames = new ArrayList<>();
+        for (HasName type : parameters) {
+            simpleNames.add(type.getName());
+        }
+        return formatMethodParameterTypeNames(simpleNames);
+    }
+
+    public static String formatMethodParameterTypeNames(List<String> typeNames) {
         List<String> formatted = new ArrayList<>();
-        for (TypeDetails type : parameters) {
-            formatted.add(String.format("%s.class", type.getSimpleName()));
+        for (String name : typeNames) {
+            formatted.add(String.format("%s.class", ensureSimpleName(name)));
         }
         return Joiner.on(", ").join(formatted);
+    }
+
+    static String ensureSimpleName(String name) {
+        return name.replaceAll("^.*(\\.|\\$)", "");
     }
 }

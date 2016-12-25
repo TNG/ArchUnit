@@ -13,19 +13,19 @@ import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.Optional;
-import com.tngtech.archunit.core.TypeDetails;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
+import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     private final CombinedCallPredicate predicate;
     private Modification<?> modification;
 
-    CallPredicate(CombinedCallPredicate predicate, Modification modification) {
+    private CallPredicate(CombinedCallPredicate predicate, Modification modification) {
         super(predicate.getDescription());
         this.predicate = predicate;
         this.modification = modification;
@@ -45,7 +45,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate hasParameters(final List<Class<?>> paramTypes) {
-        return new CallPredicate(modification.modify(predicate, ArchPredicates.hasParameters(TypeDetails.allOf(paramTypes))), modification);
+        return new CallPredicate(modification.modify(predicate, ArchPredicates.hasParameterTypes(paramTypes)), modification);
     }
 
     public CallPredicate isConstructor() {
@@ -81,15 +81,19 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return modification.modify(this.predicate, predicate.onResultOf(GET_OWNER));
     }
 
-    public CallPredicate is(Class<?> clazz, String methodName, TypeDetails... paramTypes) {
+    public CallPredicate is(Class<?> clazz, String methodName, Class<?>... paramTypes) {
         return is(clazz, methodName, ImmutableList.copyOf(paramTypes));
     }
 
-    public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate is(Class<?> clazz, String methodName, List<TypeDetails> paramTypes) {
-        DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(clazz).onResultOf(GET_OWNER).forSubType();
+    public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate is(Class<?> owner, String methodName, List<Class<?>> paramTypes) {
+        return matches(owner, methodName, namesOf(paramTypes));
+    }
+
+    public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
+        DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(GET_OWNER).forSubType();
         DescribedPredicate<T> hasName = named(methodName).forSubType();
-        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(ArchPredicates.hasParameters(paramTypes))
-                .as(formatMethod(clazz.getName(), methodName, paramTypes));
+        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(ArchPredicates.hasParameterTypeNames(paramTypeNames))
+                .as(formatMethod(owner.getName(), methodName, paramTypeNames));
 
         // FIXME: It was a bad design decision to combine origin and target inside of this predicate,
         // will be changed when field access predicate is incorporated

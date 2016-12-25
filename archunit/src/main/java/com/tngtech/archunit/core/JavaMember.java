@@ -18,7 +18,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
     JavaMember(Builder<?, ?> builder) {
         this.name = checkNotNull(builder.name);
         this.descriptor = checkNotNull(builder.descriptor);
-        this.annotations = buildAnnotations(builder.annotations);
+        this.annotations = builder.getAnnotations();
         this.owner = checkNotNull(builder.owner);
         this.modifiers = checkNotNull(builder.modifiers);
     }
@@ -91,6 +91,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
         private Set<JavaAnnotation.Builder> annotations;
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
+        private ImportedClasses.ByTypeName importedClasses;
 
         SELF withName(String name) {
             this.name = name;
@@ -118,11 +119,20 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
         }
 
         @Override
-        public final OUTPUT build(JavaClass owner) {
+        public final OUTPUT build(JavaClass owner, ImportedClasses.ByTypeName importedClasses) {
             this.owner = owner;
+            this.importedClasses = importedClasses;
             return construct(self());
         }
 
+        JavaClass get(String typeName) {
+            return importedClasses.get(typeName);
+        }
+
         abstract OUTPUT construct(SELF self);
+
+        Map<String, JavaAnnotation> getAnnotations() {
+            return buildAnnotations(annotations, importedClasses);
+        }
     }
 }

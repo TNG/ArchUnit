@@ -10,7 +10,7 @@ import org.objectweb.asm.Type;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaField extends JavaMember {
-    private final TypeDetails type;
+    private final JavaClass type;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     private JavaField(Builder builder) {
@@ -23,7 +23,7 @@ public class JavaField extends JavaMember {
         return getOwner().getName() + "." + getName();
     }
 
-    public TypeDetails getType() {
+    public JavaClass getType() {
         return type;
     }
 
@@ -36,18 +36,6 @@ public class JavaField extends JavaMember {
         this.accessesToSelf = checkNotNull(accesses);
     }
 
-    public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super TypeDetails> predicate) {
-        return predicate.onResultOf(GET_TYPE)
-                .as("has type " + predicate.getDescription());
-    }
-
-    public static final Function<JavaField, TypeDetails> GET_TYPE = new Function<JavaField, TypeDetails>() {
-        @Override
-        public TypeDetails apply(JavaField input) {
-            return input.getType();
-        }
-    };
-
     static final class Builder extends JavaMember.Builder<JavaField, Builder> {
         private Type type;
 
@@ -56,8 +44,8 @@ public class JavaField extends JavaMember {
             return self();
         }
 
-        public TypeDetails getType() {
-            return TypeDetails.of(type);
+        public JavaClass getType() {
+            return get(type.getClassName());
         }
 
         @Override
