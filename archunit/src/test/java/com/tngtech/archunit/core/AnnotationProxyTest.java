@@ -17,7 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.tngtech.archunit.core.TestUtils.javaAnnotationOf;
+import static com.tngtech.archunit.core.TestUtils.javaAnnotationFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationProxyTest {
@@ -223,7 +223,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void wrong_annotation_type_is_rejected() {
-        JavaAnnotation mismatch = javaAnnotationOf(TestAnnotation.class.getAnnotation(Retention.class));
+        JavaAnnotation mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class));
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Retention.class.getSimpleName());
@@ -377,7 +377,7 @@ public class AnnotationProxyTest {
     }
 
     private <A extends Annotation> A getProxyFor(Class<A> annotationType) {
-        JavaAnnotation toProxy = javaAnnotationOf(Irrelevant.class.getAnnotation(annotationType));
+        JavaAnnotation toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType));
         return AnnotationProxy.of(annotationType, toProxy);
     }
 }

@@ -10,11 +10,11 @@ import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.TypeDetails;
 
 import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
+import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
+import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -124,19 +124,21 @@ public class ArchPredicates {
         return new DescribedPredicate<JavaFieldAccess>("target type resides in '%s'", packageIdentifier) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                TypeDetails fieldType = input.getTarget().getType();
-
-                return fieldType.getPackage() != null &&
-                        packageMatcher.matches(fieldType.getPackage());
+                JavaClass fieldType = input.getTarget().getType();
+                return packageMatcher.matches(fieldType.getPackage());
             }
         };
     }
 
-    public static DescribedPredicate<HasParameters> hasParameters(final List<TypeDetails> paramTypes) {
-        return new DescribedPredicate<HasParameters>("has parameters [%s]", formatMethodParameters(paramTypes)) {
+    public static DescribedPredicate<HasParameters> hasParameterTypes(final List<Class<?>> paramTypes) {
+        return hasParameterTypeNames(namesOf(paramTypes));
+    }
+
+    public static DescribedPredicate<HasParameters> hasParameterTypeNames(final List<String> paramTypeNames) {
+        return new DescribedPredicate<HasParameters>("has parameters [%s]", formatMethodParameterTypeNames(paramTypeNames)) {
             @Override
             public boolean apply(HasParameters input) {
-                return paramTypes.equals(input.getParameters());
+                return paramTypeNames.equals(input.getParameters().getNames());
             }
         };
     }

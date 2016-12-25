@@ -1,10 +1,9 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.List;
-
 import com.tngtech.archunit.core.JavaCodeUnit;
-import com.tngtech.archunit.core.TypeDetails;
 import org.assertj.core.api.Condition;
+
+import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public final class Conditions {
     private Conditions() {}
@@ -23,12 +22,11 @@ public final class Conditions {
     }
 
     public static Condition<JavaCodeUnit> codeUnitWithSignature(final String name, final Class<?>... parameters) {
-        final List<TypeDetails> paramList = TypeDetails.allOf(parameters);
         return new Condition<JavaCodeUnit>() {
             @Override
             public boolean matches(JavaCodeUnit value) {
-                return name.equals(value.getName()) && paramList.equals(value.getParameters());
+                return name.equals(value.getName()) && namesOf(parameters).equals(value.getParameters().getNames());
             }
-        }.as("matches signature <" + name + ", " + paramList + ">");
+        }.as("matches signature <" + name + ", " + namesOf(parameters) + ">");
     }
 }

@@ -30,8 +30,14 @@ class ImportedClasses {
 
     void ensurePresent(String typeName) {
         if (!contain(typeName)) {
-            additionalClasses.put(typeName, resolver.resolve(typeName));
+            Optional<JavaClass> resolved = resolver.resolve(typeName, byType());
+            JavaClass newClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
+            additionalClasses.put(typeName, newClass);
         }
+    }
+
+    static JavaClass simpleClassOf(String typeName) {
+        return new JavaClass.Builder().withType(TypeDetails.of(typeName)).build();
     }
 
     void add(JavaClass clazz) {
@@ -54,5 +60,25 @@ class ImportedClasses {
                 .putAll(directlyImported)
                 .putAll(additionalClasses)
                 .build();
+    }
+
+    ByTypeName byType() {
+        return new ByTypeName() {
+            @Override
+            public boolean contain(String typeName) {
+                return ImportedClasses.this.contain(typeName);
+            }
+
+            @Override
+            public JavaClass get(String typeName) {
+                return ImportedClasses.this.get(typeName);
+            }
+        };
+    }
+
+    interface ByTypeName {
+        boolean contain(String typeName);
+
+        JavaClass get(String typeName);
     }
 }

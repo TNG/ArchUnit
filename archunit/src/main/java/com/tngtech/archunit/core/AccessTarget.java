@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -59,16 +58,16 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
     }
 
     public static class FieldAccessTarget extends AccessTarget {
-        private final TypeDetails type;
+        private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
-        FieldAccessTarget(JavaClass owner, String name, TypeDetails type, Supplier<Optional<JavaField>> field) {
+        FieldAccessTarget(JavaClass owner, String name, JavaClass type, Supplier<Optional<JavaField>> field) {
             super(owner, name, owner.getName() + "." + name);
             this.type = type;
             this.field = Suppliers.memoize(field);
         }
 
-        public TypeDetails getType() {
+        public JavaClass getType() {
             return type;
         }
 
@@ -81,23 +80,23 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
     }
 
     public static class CodeUnitCallTarget extends AccessTarget implements HasParameters {
-        private final ImmutableList<TypeDetails> parameters;
+        private final ImmutableList<JavaClass> parameters;
 
-        CodeUnitCallTarget(JavaClass owner, String name, List<TypeDetails> parameters) {
+        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters) {
             super(owner, name, Formatters.formatMethod(owner.getName(), name, parameters));
             this.parameters = ImmutableList.copyOf(parameters);
         }
 
         @Override
-        public List<TypeDetails> getParameters() {
-            return parameters;
+        public JavaClassList getParameters() {
+            return new JavaClassList(parameters);
         }
     }
 
     public static class ConstructorCallTarget extends CodeUnitCallTarget {
         private final Supplier<Optional<JavaConstructor>> constructor;
 
-        ConstructorCallTarget(JavaClass owner, List<TypeDetails> parameters, Supplier<Optional<JavaConstructor>> constructor) {
+        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, Supplier<Optional<JavaConstructor>> constructor) {
             super(owner, CONSTRUCTOR_NAME, parameters);
             this.constructor = Suppliers.memoize(constructor);
         }
@@ -112,11 +111,11 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
     }
 
     public static class MethodCallTarget extends CodeUnitCallTarget {
-        private final TypeDetails returnType;
+        private final JavaClass returnType;
         private final Supplier<Set<JavaMethod>> methods;
 
-        MethodCallTarget(JavaClass owner, String name, List<TypeDetails> parameters,
-                         TypeDetails returnType, Supplier<Set<JavaMethod>> methods) {
+        MethodCallTarget(JavaClass owner, String name, JavaClassList parameters,
+                         JavaClass returnType, Supplier<Set<JavaMethod>> methods) {
             super(owner, name, parameters);
             this.returnType = returnType;
             this.methods = Suppliers.memoize(methods);
@@ -160,7 +159,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
             return methods.get();
         }
 
-        public TypeDetails getReturnType() {
+        public JavaClass getReturnType() {
             return returnType;
         }
     }

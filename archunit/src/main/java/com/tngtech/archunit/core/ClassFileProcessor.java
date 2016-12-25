@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -144,39 +144,45 @@ class ClassFileProcessor {
         }
 
         @Override
-        public JavaClass resolve(String typeName) {
+        public Optional<JavaClass> resolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
+            if (importedClasses.contain(typeName)) {
+                return Optional.of(importedClasses.get(typeName));
+            }
+
             Optional<Class<?>> type = tryGetClassForName(typeName);
-            return type.isPresent() ?
-                    resolve(type.get()) :
-                    new JavaClass.Builder().withType(TypeDetails.of(typeName)).build();
+            if (!type.isPresent()) {
+                return Optional.absent();
+            }
+            return tryResolve(type.get());
         }
 
-        private JavaClass resolve(Class<?> type) {
+        private Optional<JavaClass> tryResolve(Class<?> type) {
             String typeFile = "/" + type.getName().replace(".", "/") + ".class";
 
             try (InputStream inputStream = type.getResourceAsStream(typeFile)) {
                 JavaClassProcessor classProcessor = new JavaClassProcessor(declarationHandler);
                 new ClassReader(inputStream).accept(classProcessor, 0);
-                return classProcessor.createJavaClass().get();
-            } catch (IOException e) {
-                return new JavaClass.Builder().withType(TypeDetails.of(type)).build();
+                return classProcessor.createJavaClass();
+            } catch (Exception e) {
+                return Optional.absent();
             }
         }
 
         @Override
-        public Set<JavaClass> getAllSuperClasses(String className, Map<String, JavaClass> importedClasses) {
+        public Map<String, Optional<JavaClass>> getAllSuperClasses(String className, ImportedClasses.ByTypeName importedClasses) {
             Optional<Class<?>> type = tryGetClassForName(className);
             return type.isPresent() ?
                     tryGetAllSuperClasses(type.get(), importedClasses) :
-                    Collections.<JavaClass>emptySet();
+                    Collections.<String, Optional<JavaClass>>emptyMap();
         }
 
-        private Set<JavaClass> tryGetAllSuperClasses(Class<?> type, Map<String, JavaClass> importedClasses) {
-            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        private Map<String, Optional<JavaClass>> tryGetAllSuperClasses(Class<?> type, ImportedClasses.ByTypeName importedClasses) {
+            ImmutableMap.Builder<String, Optional<JavaClass>> result = ImmutableMap.builder();
             for (Class<?> superClass : getAllSuperTypes(type)) {
-                result.add(importedClasses.containsKey(superClass.getName()) ?
-                        importedClasses.get(superClass.getName()) :
-                        resolve(superClass));
+                Optional<JavaClass> javaClass = importedClasses.contain(superClass.getName()) ?
+                        Optional.of(importedClasses.get(superClass.getName())) :
+                        tryResolve(superClass);
+                result.put(superClass.getName(), javaClass);
             }
             return result.build();
         }

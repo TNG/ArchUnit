@@ -15,7 +15,9 @@ public enum JavaModifier {
     FINAL(Opcodes.ACC_FINAL),
     VOLATILE(Opcodes.ACC_VOLATILE),
     TRANSIENT(Opcodes.ACC_TRANSIENT),
-    ABSTRACT(Opcodes.ACC_ABSTRACT);
+    ABSTRACT(Opcodes.ACC_ABSTRACT),
+    SYNCHRONIZED(Opcodes.ACC_SYNCHRONIZED),
+    NATIVE(Opcodes.ACC_NATIVE);
 
     private final int asmAccessFlag;
 

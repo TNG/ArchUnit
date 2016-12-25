@@ -33,7 +33,7 @@ class JavaType {
 
     private final String typeName;
 
-    JavaType(String typeName) {
+    private JavaType(String typeName) {
         this.typeName = typeName;
     }
 
@@ -48,7 +48,7 @@ class JavaType {
         return new JavaType(type.getClassName());
     }
 
-    public Class<?> asClass() {
+    Class<?> asClass() {
         return classForName(typeName);
     }
 

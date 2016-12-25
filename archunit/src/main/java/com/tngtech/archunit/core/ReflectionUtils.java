@@ -131,6 +131,18 @@ public class ReflectionUtils {
         return collector.collected;
     }
 
+    public static List<String> namesOf(Class<?>... paramTypes) {
+        return namesOf(ImmutableList.copyOf(paramTypes));
+    }
+
+    public static List<String> namesOf(List<Class<?>> paramTypes) {
+        ArrayList<String> result = new ArrayList<>();
+        for (Class<?> paramType : paramTypes) {
+            result.add(paramType.getName());
+        }
+        return result;
+    }
+
     private static abstract class Collector<T> {
         private final List<T> collected = new ArrayList<>();
 

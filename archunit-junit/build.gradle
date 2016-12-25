@@ -10,6 +10,7 @@ dependencies {
     testCompile dependency.assertj
     testCompile(dependency.assertj_guava) {
         exclude module: 'assertj-core'
+        exclude module: 'guava'
     }
     testCompile project(path: ':archunit', configuration: 'tests')
 }

@@ -12,15 +12,15 @@ import com.tngtech.archunit.core.JavaMethod;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.TestUtils.javaClasses;
-import static com.tngtech.archunit.core.TestUtils.javaMethod;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SlicesTest {
     @Test
     public void matches_slices() {
-        JavaClasses classes = javaClasses(Object.class, String.class, List.class, Set.class, Pattern.class);
+        JavaClasses classes = javaClassesViaReflection(Object.class, String.class, List.class, Set.class, Pattern.class);
 
         assertThat(Slices.of(classes).matching("java.(*)..")).hasSize(2);
         assertThat(Slices.of(classes).matching("(**)")).hasSize(3);
@@ -30,7 +30,7 @@ public class SlicesTest {
 
     @Test
     public void default_naming_slices() {
-        JavaClasses classes = javaClasses(Object.class, String.class, Pattern.class);
+        JavaClasses classes = javaClassesViaReflection(Object.class, String.class, Pattern.class);
         Slices slices = Slices.of(classes).matching("java.(*)..");
 
         assertThat(slices).extractingResultOf("getDescription").containsOnly("Slice lang", "Slice util");
@@ -38,7 +38,7 @@ public class SlicesTest {
 
     @Test
     public void renaming_slices() {
-        JavaClasses classes = javaClasses(Object.class, String.class, Pattern.class);
+        JavaClasses classes = javaClassesViaReflection(Object.class, String.class, Pattern.class);
         Slices slices = Slices.of(classes).matching("java.(*)..").namingSlices("Hallo $1");
 
         assertThat(slices).extractingResultOf("getDescription").containsOnly("Hallo lang", "Hallo util");
@@ -46,7 +46,7 @@ public class SlicesTest {
 
     @Test
     public void name_parts_are_resolved_correctly() {
-        JavaClasses classes = javaClasses(Object.class);
+        JavaClasses classes = javaClassesViaReflection(Object.class);
         Slices slices = Slices.of(classes).matching("(*).(*)..");
 
         assertThat(getOnlyElement(slices).getNamePart(1)).isEqualTo("java");
@@ -55,8 +55,8 @@ public class SlicesTest {
 
     @Test
     public void slices_of_dependencies() {
-        JavaMethod methodThatCallsJavaUtil = javaMethod(Object.class, "toString");
-        JavaMethod methodThatCallsJavaLang = javaMethod(Map.class, "put", Object.class, Object.class);
+        JavaMethod methodThatCallsJavaUtil = javaMethodViaReflection(Object.class, "toString");
+        JavaMethod methodThatCallsJavaLang = javaMethodViaReflection(Map.class, "put", Object.class, Object.class);
         simulateCall().from(methodThatCallsJavaUtil, 5).to(methodThatCallsJavaLang);
         simulateCall().from(methodThatCallsJavaLang, 1).to(methodThatCallsJavaUtil);
 

@@ -15,6 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class JavaClass implements HasName {
     private final TypeDetails typeDetails;
@@ -28,6 +29,7 @@ public class JavaClass implements HasName {
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Map<String, JavaAnnotation> annotations = new HashMap<>();
+    // FIXME: JavaClass should have modifiers
 
     private JavaClass(Builder builder) {
         typeDetails = checkNotNull(builder.typeDetails);
@@ -75,6 +77,10 @@ public class JavaClass implements HasName {
     public JavaAnnotation getAnnotation(Class<? extends Annotation> type) {
         return tryGetAnnotation(type).getOrThrow(new IllegalArgumentException(
                 String.format("Type %s is not annotated with @%s", getSimpleName(), type.getSimpleName())));
+    }
+
+    public Set<JavaAnnotation> getAnnotations() {
+        return ImmutableSet.copyOf(annotations.values());
     }
 
     /**
@@ -182,25 +188,36 @@ public class JavaClass implements HasName {
      * @param name       The name of the code unit, can be a method name, but also
      *                   {@link JavaConstructor#CONSTRUCTOR_NAME CONSTRUCTOR_NAME}
      *                   or {@link JavaStaticInitializer#STATIC_INITIALIZER_NAME STATIC_INITIALIZER_NAME}
-     * @param parameters The parameter signature of the method
+     * @param parameters The parameter signature of the method specified as {@link Class Class} Objects
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
-    public JavaCodeUnit getCodeUnit(String name, TypeDetails... parameters) {
-        return getCodeUnit(name, ImmutableList.copyOf(parameters));
+    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, Class<?>... parameters) {
+        return getCodeUnitWithParameterTypes(name, ImmutableList.copyOf(parameters));
     }
 
-    public JavaCodeUnit getCodeUnit(String name, List<TypeDetails> parameters) {
+    /**
+     * Same as {@link #getCodeUnitWithParameterTypes(String, Class[])}, but with parameter signature specified as full class names
+     */
+    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, String... parameters) {
+        return getCodeUnitWithParameterTypeNames(name, ImmutableList.copyOf(parameters));
+    }
+
+    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
+        return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+    }
+
+    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
+    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
                 " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
-    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<TypeDetails> parameters) {
+    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters())) {
+            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters().getNames())) {
                 return Optional.of(codeUnit);
             }
         }
@@ -208,7 +225,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return findMatchingCodeUnit(methods, name, TypeDetails.allOf(parameters));
+        return findMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
     public Set<JavaMethod> getMethods() {
@@ -224,7 +241,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, TypeDetails.allOf(parameters));
+        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
     }
 
     public Set<JavaConstructor> getConstructors() {

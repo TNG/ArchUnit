@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
+import static com.tngtech.archunit.core.ImportedClasses.simpleClassOf;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
@@ -72,9 +73,9 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void resolveSuperTypesOf(String className) {
-        for (JavaClass toAdd : classResolver.getAllSuperClasses(className, classes.getAll())) {
-            if (!classes.contain(toAdd.getName())) {
-                classes.add(toAdd);
+        for (Map.Entry<String, Optional<JavaClass>> toAdd : classResolver.getAllSuperClasses(className, classes.byType()).entrySet()) {
+            if (!classes.contain(toAdd.getKey())) {
+                classes.add(toAdd.getValue().or(simpleClassOf(toAdd.getKey())));
             }
         }
     }
@@ -123,29 +124,29 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        return build(importRecord.getFieldBuildersFor(owner.getName()), owner);
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byType());
     }
 
     @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
-        return build(importRecord.getMethodBuildersFor(owner.getName()), owner);
+        return build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byType());
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner);
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byType());
     }
 
     @Override
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
         Optional<JavaStaticInitializer.Builder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
         return builder.isPresent() ?
-                Optional.of(builder.get().build(owner)) :
+                Optional.of(builder.get().build(owner, classes.byType())) :
                 Optional.<JavaStaticInitializer>absent();
     }
 
     @Override
     public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
-        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()));
+        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byType());
     }
 }

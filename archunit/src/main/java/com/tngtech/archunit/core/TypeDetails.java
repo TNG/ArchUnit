@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.objectweb.asm.Type;
 
+import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
@@ -41,7 +42,7 @@ public class TypeDetails {
 
     private TypeDetails(String fullName) {
         this.name = fullName;
-        this.simpleName = fullName.replaceAll("^.*(\\.|\\$)", "");
+        this.simpleName = ensureSimpleName(fullName);
         this.javaPackage = fullName.replaceAll("(\\.|\\$).*$", "");
         isInterface = false;
     }
@@ -100,7 +101,7 @@ public class TypeDetails {
         return allOf(ImmutableList.copyOf(types));
     }
 
-    public static List<TypeDetails> allOf(Collection<Class<?>> types) {
+    private static List<TypeDetails> allOf(Collection<Class<?>> types) {
         ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
         for (Class<?> type : types) {
             result.add(TypeDetails.of(type));

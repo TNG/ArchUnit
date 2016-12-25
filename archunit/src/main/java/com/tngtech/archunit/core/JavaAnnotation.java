@@ -11,19 +11,15 @@ import org.objectweb.asm.Type;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class JavaAnnotation {
-    private final TypeDetails type;
+    private final JavaClass type;
     private final Map<String, Object> values;
 
-    public JavaAnnotation(Builder builder) {
-        this.type = checkNotNull(builder.getType());
-        ImmutableMap.Builder<String, Object> values = ImmutableMap.builder();
-        for (Map.Entry<String, ValueBuilder> entry : builder.values.entrySet()) {
-            values.put(entry.getKey(), entry.getValue().build());
-        }
-        this.values = values.build();
+    private JavaAnnotation(JavaClass type, Map<String, Object> values) {
+        this.type = checkNotNull(type);
+        this.values = checkNotNull(values);
     }
 
-    public TypeDetails getType() {
+    public JavaClass getType() {
         return type;
     }
 
@@ -63,10 +59,10 @@ public class JavaAnnotation {
         return AnnotationProxy.of(annotationType, this);
     }
 
-    static Map<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations) {
+    static Map<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations, ImportedClasses.ByTypeName importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (Builder annotationBuilder : annotations) {
-            JavaAnnotation javaAnnotation = annotationBuilder.build();
+            JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
             result.put(javaAnnotation.getType().getName(), javaAnnotation);
         }
         return result.build();
@@ -75,6 +71,7 @@ public class JavaAnnotation {
     static class Builder {
         private Type type;
         private Map<String, ValueBuilder> values = new HashMap<>();
+        private ImportedClasses.ByTypeName importedClasses;
 
         Builder withType(Type type) {
             this.type = type;
@@ -86,22 +83,31 @@ public class JavaAnnotation {
             return this;
         }
 
-        JavaAnnotation build() {
-            return new JavaAnnotation(this);
+        JavaAnnotation build(ImportedClasses.ByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
+            return new JavaAnnotation(getType(), getValues(importedClasses));
         }
 
-        public TypeDetails getType() {
-            return TypeDetails.of(type);
+        private JavaClass getType() {
+            return importedClasses.get(type.getClassName());
+        }
+
+        private Map<String, Object> getValues(ImportedClasses.ByTypeName importedClasses) {
+            ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
+            for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
+                result.put(entry.getKey(), entry.getValue().build(importedClasses));
+            }
+            return result.build();
         }
     }
 
     static abstract class ValueBuilder {
-        abstract Object build();
+        abstract Object build(ImportedClasses.ByTypeName importedClasses);
 
         static ValueBuilder ofFinished(final Object value) {
             return new ValueBuilder() {
                 @Override
-                Object build() {
+                Object build(ImportedClasses.ByTypeName importedClasses) {
                     return value;
                 }
             };
@@ -110,8 +116,8 @@ public class JavaAnnotation {
         static ValueBuilder from(final JavaAnnotation.Builder builder) {
             return new ValueBuilder() {
                 @Override
-                Object build() {
-                    return builder.build();
+                Object build(ImportedClasses.ByTypeName importedClasses) {
+                    return builder.build(importedClasses);
                 }
             };
         }

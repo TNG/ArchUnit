@@ -4,13 +4,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import org.objectweb.asm.Type;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 
 /**
@@ -24,8 +24,8 @@ import static com.tngtech.archunit.core.Formatters.formatMethod;
  * be defined.
  */
 public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
-    private final TypeDetails returnType;
-    private final List<TypeDetails> parameters;
+    private final JavaClass returnType;
+    private final List<JavaClass> parameters;
     private final String fullName;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
@@ -45,11 +45,11 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
     }
 
     @Override
-    public List<TypeDetails> getParameters() {
-        return parameters;
+    public JavaClassList getParameters() {
+        return new JavaClassList(parameters);
     }
 
-    public TypeDetails getReturnType() {
+    public JavaClass getReturnType() {
         return returnType;
     }
 
@@ -105,12 +105,16 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
             return self();
         }
 
-        TypeDetails getReturnType() {
-            return TypeDetails.of(checkNotNull(returnType));
+        JavaClass getReturnType() {
+            return get(returnType.getClassName());
         }
 
-        public List<TypeDetails> getParameters() {
-            return TypeDetails.allOf(parameters);
+        public List<JavaClass> getParameters() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            for (Type parameter : parameters) {
+                result.add(get(parameter.getClassName()));
+            }
+            return result.build();
         }
     }
 }

@@ -2,6 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,14 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Function;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.ClassFileProcessor.ClassResolverFromClassPath;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
@@ -29,8 +31,7 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
 import static org.mockito.Matchers.anyString;
@@ -61,19 +62,19 @@ public class TestUtils {
         }
     }
 
-    public static JavaMethod javaMethod(Class<?> owner, String name, Class<?>... args) {
-        return javaMethod(javaClass(owner), name, args);
+    public static JavaMethod javaMethodViaReflection(Class<?> owner, String name, Class<?>... args) {
+        return javaMethodViaReflection(javaClassViaReflection(owner), name, args);
     }
 
-    public static JavaMethod javaMethod(JavaClass clazz, String name, Class<?>... args) {
+    public static JavaMethod javaMethodViaReflection(JavaClass clazz, String name, Class<?>... args) {
         try {
-            return javaMethod(clazz, clazz.reflect().getDeclaredMethod(name, args));
+            return javaMethodViaReflection(clazz, clazz.reflect().getDeclaredMethod(name, args));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static JavaMethod javaMethod(JavaClass clazz, Method method) {
+    public static JavaMethod javaMethodViaReflection(JavaClass clazz, Method method) {
         return new JavaMethod.Builder()
                 .withReturnType(Type.getType(method.getReturnType()))
                 .withParameters(allTypesIn(method.getParameterTypes()))
@@ -81,7 +82,39 @@ public class TestUtils {
                 .withDescriptor(Type.getMethodDescriptor(method))
                 .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(method.getModifiers()))
-                .build(clazz);
+                .build(clazz, simpleImportedClasses());
+    }
+
+    private static ImportedTestClasses simpleImportedClasses() {
+        return new ImportedTestClasses();
+    }
+
+    private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
+        private final Map<String, JavaClass> imported = new HashMap<>();
+
+        void register(JavaClass clazz) {
+            imported.put(clazz.getName(), clazz);
+        }
+
+        Set<JavaClass> getAll() {
+            return ImmutableSet.copyOf(imported.values());
+        }
+
+        @Override
+        public boolean contain(String typeName) {
+            return imported.containsKey(typeName);
+        }
+
+        @Override
+        public JavaClass get(String typeName) {
+            return contain(typeName) ? imported.get(typeName) : importNew(classForName(typeName));
+        }
+
+        private JavaClass importNew(Class<?> owner) {
+            JavaClass result = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
+            imported.put(result.getName(), result);
+            return result;
+        }
     }
 
     private static Type[] allTypesIn(Class<?>[] types) {
@@ -92,52 +125,149 @@ public class TestUtils {
         return result;
     }
 
-    public static JavaClass javaClass(Class<?> owner) {
-        JavaClass javaClass = importSingle(owner);
-        ClassGraphCreator context = mock(ClassGraphCreator.class);
-        when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
-            @Override
-            public JavaClass answer(InvocationOnMock invocation) throws Throwable {
-                return javaClass(classForName((String) invocation.getArguments()[0]));
-            }
-        });
-        javaClass.completeClassHierarchyFrom(context);
-        javaClass.completeFrom(context);
-        for (JavaCodeUnit unit : javaClass.getCodeUnits()) {
-            unit.completeFrom(context);
-        }
-        return javaClass;
+    public static JavaClass javaClassViaReflection(Class<?> owner) {
+        return getOnlyElement(javaClassesViaReflection(owner));
     }
 
-    public static JavaField javaField(Field field, JavaClass owner) {
+    public static JavaField javaFieldViaReflection(Field field, JavaClass owner) {
         return new JavaField.Builder()
                 .withName(field.getName())
                 .withDescriptor(Type.getDescriptor(field.getType()))
                 .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
                 .withType(Type.getType(field.getType()))
-                .build(owner);
+                .build(owner, simpleImportedClasses());
     }
 
-    public static JavaField javaField(Class<?> ownerClass, String name) {
-        return javaField(javaClass(ownerClass), name);
-    }
-
-    public static JavaField javaField(JavaClass owner, String name) {
+    public static JavaField javaFieldViaReflection(JavaClass owner, String name) {
         try {
             Field field = owner.reflect().getDeclaredField(name);
-            return javaField(field, owner);
+            return javaFieldViaReflection(field, owner);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static JavaClasses javaClasses(Class<?>... classes) {
-        Map<String, JavaClass> result = new HashMap<>();
-        for (Class<?> c : classes) {
-            result.put(c.getName(), javaClass(c));
+    public static JavaClasses javaClassesViaReflection(Class<?>... classes) {
+        final ImportedTestClasses importedClasses = simpleImportedClasses();
+        final Map<String, JavaClass> result = new HashMap<>();
+        for (Class<?> aClass : classes) {
+            JavaClass newClass = simulateImport(aClass, importedClasses);
+            result.put(newClass.getName(), newClass);
+        }
+
+        ImportContext context = mock(ImportContext.class);
+        when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
+            @Override
+            public JavaClass answer(InvocationOnMock invocation) throws Throwable {
+                String typeName = (String) invocation.getArguments()[0];
+                return importedClasses.get(typeName);
+            }
+        });
+        for (JavaClass javaClass : result.values()) {
+            javaClass.completeClassHierarchyFrom(context);
+            javaClass.completeFrom(context).completeCodeUnitsFrom(context);
         }
         return new JavaClasses(result);
+    }
+
+    private static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
+        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner)).build();
+        importedClasses.register(javaClass);
+        ImportContext context = simulateImportContext(owner, importedClasses);
+        javaClass.completeMembers(context);
+        return javaClass;
+    }
+
+    private static ImportContext simulateImportContext(final Class<?> inputClass, final ImportedClasses.ByTypeName importedClasses) {
+        return new ImportContextStub() {
+            @Override
+            public Set<JavaField> createFields(JavaClass owner) {
+                return finish(fieldBuildersFor(inputClass), owner, importedClasses);
+            }
+
+            @Override
+            public Set<JavaMethod> createMethods(JavaClass owner) {
+                return finish(methodBuildersFor(inputClass), owner, importedClasses);
+            }
+
+            @Override
+            public Set<JavaConstructor> createConstructors(JavaClass owner) {
+                return finish(constructorBuildersFor(inputClass), owner, importedClasses);
+            }
+
+            @Override
+            public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
+                return annotationsFor(inputClass, importedClasses);
+            }
+        };
+    }
+
+    private static ImmutableMap<String, JavaAnnotation> annotationsFor(Class<?> inputClass, ImportedClasses.ByTypeName importedClasses) {
+        return FluentIterable.of(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses))
+                .uniqueIndex(new Function<JavaAnnotation, String>() {
+                    @Override
+                    public String apply(JavaAnnotation input) {
+                        return input.getType().getName();
+                    }
+                });
+    }
+
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass) {
+        final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
+        for (Field field : inputClass.getDeclaredFields()) {
+            fieldBuilders.add(new JavaField.Builder()
+                    .withName(field.getName())
+                    .withDescriptor(Type.getDescriptor(field.getType()))
+                    .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
+                    .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
+                    .withType(Type.getType(field.getType())));
+        }
+        return fieldBuilders;
+    }
+
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass) {
+        final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
+        for (Method method : inputClass.getDeclaredMethods()) {
+            methodBuilders.add(new JavaMethod.Builder()
+                    .withReturnType(Type.getType(method.getReturnType()))
+                    .withParameters(typesFrom(method.getParameterTypes()))
+                    .withName(method.getName())
+                    .withDescriptor(Type.getMethodDescriptor(method))
+                    .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
+                    .withModifiers(JavaModifier.getModifiersFor(method.getModifiers())));
+        }
+        return methodBuilders;
+    }
+
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass) {
+        final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
+        for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
+            constructorBuilders.add(new JavaConstructor.Builder()
+                    .withReturnType(Type.getType(void.class))
+                    .withParameters(typesFrom(constructor.getParameterTypes()))
+                    .withName(CONSTRUCTOR_NAME)
+                    .withDescriptor(Type.getConstructorDescriptor(constructor))
+                    .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations()))
+                    .withModifiers(JavaModifier.getModifiersFor(constructor.getModifiers())));
+        }
+        return constructorBuilders;
+    }
+
+    private static <T> Set<T> finish(Set<BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner, ImportedClasses.ByTypeName importedClasses) {
+        ImmutableSet.Builder<T> result = ImmutableSet.builder();
+        for (BuilderWithBuildParameter<JavaClass, T> builder : builders) {
+            result.add(builder.build(owner, importedClasses));
+        }
+        return result.build();
+    }
+
+    private static Type[] typesFrom(Class<?>[] classes) {
+        ArrayList<Type> result = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            result.add(Type.getType(clazz));
+        }
+        return result.toArray(new Type[classes.length]);
     }
 
     public static AccessesSimulator simulateCall() {
@@ -176,10 +306,10 @@ public class TestUtils {
                 Suppliers.ofInstance(Collections.singleton(target)));
     }
 
-    static Class[] asClasses(List<TypeDetails> parameters) {
+    static Class[] asClasses(List<JavaClass> parameters) {
         List<Class> result = new ArrayList<>();
-        for (TypeDetails type : parameters) {
-            result.add(classForName(type.getName()));
+        for (JavaClass javaClass : parameters) {
+            result.add(javaClass.reflect());
         }
         return result.toArray(new Class[result.size()]);
     }
@@ -188,20 +318,7 @@ public class TestUtils {
         return ReflectionUtils.classForName(name);
     }
 
-    public static JavaClass importSingle(Class<?> clazz) {
-        TestDeclarationHandler declarationHandler = new TestDeclarationHandler();
-        JavaClass javaClass = new ClassResolverFromClassPath(declarationHandler).resolve(clazz.getName());
-        javaClass.completeClassHierarchyFrom(declarationHandler);
-        javaClass.completeMembers(declarationHandler);
-        javaClass.completeFrom(declarationHandler);
-        return javaClass;
-    }
-
-    public static JavaAnnotation javaAnnotationOf(Annotation reflectionAnnotation) {
-        return javaAnnotationBuilderFrom(reflectionAnnotation).build();
-    }
-
-    public static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
+    private static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
         ImmutableSet.Builder<JavaAnnotation.Builder> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
             result.add(javaAnnotationBuilderFrom(annotation));
@@ -234,10 +351,10 @@ public class TestUtils {
                 return enumConstants((Enum[]) result);
             }
             if (result instanceof Annotation) {
-                return annotation((Annotation) result);
+                return javaAnnotationFrom((Annotation) result);
             }
             if (result instanceof Annotation[]) {
-                return annotations((Annotation[]) result);
+                return javaAnnotationsFrom((Annotation[]) result);
             }
             return result;
         } catch (Exception e) {
@@ -253,8 +370,12 @@ public class TestUtils {
         return result.toArray(new JavaEnumConstant[result.size()]);
     }
 
-    private static JavaAnnotation annotation(Annotation annotation) {
-        return javaAnnotationBuilderFrom(annotation).build();
+    static JavaAnnotation javaAnnotationFrom(Annotation annotation) {
+        return javaAnnotationFrom(annotation, simpleImportedClasses());
+    }
+
+    private static JavaAnnotation javaAnnotationFrom(Annotation annotation, ImportedClasses.ByTypeName importedClasses) {
+        return javaAnnotationBuilderFrom(annotation).build(importedClasses);
     }
 
     private static JavaAnnotation.Builder javaAnnotationBuilderFrom(Annotation annotation) {
@@ -265,10 +386,14 @@ public class TestUtils {
         return builder;
     }
 
-    private static JavaAnnotation[] annotations(Annotation[] annotations) {
+    private static JavaAnnotation[] javaAnnotationsFrom(Annotation[] annotations) {
+        return javaAnnotationsFrom(annotations, simpleImportedClasses());
+    }
+
+    private static JavaAnnotation[] javaAnnotationsFrom(Annotation[] annotations, ImportedClasses.ByTypeName importedClasses) {
         List<JavaAnnotation> result = new ArrayList<>();
         for (Annotation a : annotations) {
-            result.add(annotation(a));
+            result.add(javaAnnotationFrom(a, importedClasses));
         }
         return result.toArray(new JavaAnnotation[result.size()]);
     }
@@ -281,7 +406,7 @@ public class TestUtils {
         }
 
         public AccessSimulator from(Class<?> clazz, String methodName, Class<?>... params) {
-            return new AccessSimulator(targets, javaMethod(clazz, methodName, params), 0);
+            return new AccessSimulator(targets, javaMethodViaReflection(clazz, methodName, params), 0);
         }
 
         public AccessSimulator from(JavaClass clazz, String methodName, Class<?>... params) {
@@ -309,7 +434,7 @@ public class TestUtils {
         }
 
         public JavaCall<?> to(Class<?> clazz, String methodName, Class<?>... params) {
-            return to(javaMethod(clazz, methodName, params));
+            return to(javaMethodViaReflection(clazz, methodName, params));
         }
 
         private JavaMethodCall getCallToTarget(JavaMethod target) {
@@ -367,88 +492,50 @@ public class TestUtils {
         }
     }
 
-    public static class TestDeclarationHandler implements JavaClassProcessor.DeclarationHandler, ImportContext {
-        private Set<JavaField.Builder> fieldBuilders = new HashSet<>();
-        private Set<JavaMethod.Builder> methodBuilders = new HashSet<>();
-        private Set<JavaConstructor.Builder> constructorBuilders = new HashSet<>();
-        private Optional<JavaStaticInitializer.Builder> staticInitializerBuilder = Optional.absent();
-        private Set<JavaAnnotation.Builder> annotations = new HashSet<>();
-
-        @Override
-        public void onNewClass(String className) {
-
-        }
-
-        @Override
-        public void onDeclaredField(JavaField.Builder fieldBuilder) {
-            fieldBuilders.add(fieldBuilder);
-        }
-
-        @Override
-        public void onDeclaredConstructor(JavaConstructor.Builder builder) {
-            constructorBuilders.add(builder);
-        }
-
-        @Override
-        public void onDeclaredMethod(JavaMethod.Builder builder) {
-            methodBuilders.add(builder);
-        }
-
-        @Override
-        public void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder) {
-            staticInitializerBuilder = Optional.of(builder);
-        }
-
-        @Override
-        public void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations) {
-            this.annotations = annotations;
-        }
-
-        @Override
-        public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit) {
-            return ImmutableSet.of();
-        }
-
-        @Override
-        public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit) {
-            return ImmutableSet.of();
-        }
-
-        @Override
-        public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
-            return ImmutableSet.of();
-        }
-
+    private static class ImportContextStub implements ImportContext {
         @Override
         public JavaClass getJavaClassWithType(String name) {
-            return importSingle(classForName(name));
+            throw new UnsupportedOperationException("Stub can't resolve type name " + name);
         }
 
         @Override
         public Set<JavaField> createFields(JavaClass owner) {
-            return build(fieldBuilders, owner);
+            return Collections.emptySet();
         }
 
         @Override
         public Set<JavaMethod> createMethods(JavaClass owner) {
-            return build(methodBuilders, owner);
+            return Collections.emptySet();
         }
 
         @Override
         public Set<JavaConstructor> createConstructors(JavaClass owner) {
-            return build(constructorBuilders, owner);
+            return Collections.emptySet();
         }
 
         @Override
         public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
-            return staticInitializerBuilder.isPresent() ?
-                    Optional.of(staticInitializerBuilder.get().build(owner)) :
-                    Optional.<JavaStaticInitializer>absent();
+            return Optional.absent();
         }
 
         @Override
         public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
-            return buildAnnotations(annotations);
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
         }
     }
 }
