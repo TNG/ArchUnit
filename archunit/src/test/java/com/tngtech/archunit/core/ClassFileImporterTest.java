@@ -288,9 +288,10 @@ public class ClassFileImporterTest {
         assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
         assertThat(annotation.get("enumArray").get()).isEqualTo(new JavaEnumConstant[]{
                 enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)});
-        assertThat(annotation.get("clazz").get()).isEqualTo(TypeDetails.of(Serializable.class));
-        assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{
-                TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
+        assertThat(annotation.get("clazz").get()).extracting("name")
+                .containsExactly(Serializable.class.getName());
+        assertThat((Object[]) annotation.get("classes").get()).extracting("name")
+                .containsExactly(Object.class.getName(), Serializable.class.getName());
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
     }
@@ -377,8 +378,8 @@ public class ClassFileImporterTest {
 
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
         assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
-        assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{
-                TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
+        assertThat((Object[]) annotation.get("classes").get()).extracting("name")
+                .containsExactly(Object.class.getName(), Serializable.class.getName());
 
         assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(enumAndArrayAnnotatedMethod));
     }
@@ -411,7 +412,8 @@ public class ClassFileImporterTest {
                 .getConstructor();
 
         JavaAnnotation annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.get("classes").get()).isEqualTo(new TypeDetails[]{TypeDetails.of(Object.class), TypeDetails.of(Serializable.class)});
+        assertThat((Object[]) annotation.get("classes").get()).extracting("name")
+                .containsExactly(Object.class.getName(), Serializable.class.getName());
 
         assertThat(constructor).isEquivalentTo(ClassWithAnnotatedMethods.class.getConstructor());
     }
