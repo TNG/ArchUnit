@@ -109,14 +109,6 @@ public class TypeDetails {
         return result.build();
     }
 
-    public static List<TypeDetails> allOf(Type[] types) {
-        ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
-        for (Type type : types) {
-            result.add(TypeDetails.of(type));
-        }
-        return result.build();
-    }
-
     public static TypeDetails of(Class<?> type) {
         return new TypeDetails(type);
     }
