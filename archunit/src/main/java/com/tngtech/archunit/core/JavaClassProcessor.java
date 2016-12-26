@@ -396,14 +396,19 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static class AnnotationTypeConversion {
         private static final Map<Class<?>, Class<?>> importedTypeToInternalType = ImmutableMap.<Class<?>, Class<?>>of(
-                Type.class, TypeDetails.class
+                Type.class, JavaClass.class
         );
         private static final Map<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>> importedValueToInternalValue =
                 ImmutableMap.<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>>of(
                         Type.class, new Function<Object, JavaAnnotation.ValueBuilder>() {
                             @Override
-                            public JavaAnnotation.ValueBuilder apply(Object input) {
-                                return JavaAnnotation.ValueBuilder.ofFinished(TypeDetails.of((Type) input));
+                            public JavaAnnotation.ValueBuilder apply(final Object input) {
+                                return new JavaAnnotation.ValueBuilder() {
+                                    @Override
+                                    Object build(ImportedClasses.ByTypeName importedClasses) {
+                                        return importedClasses.get(((Type) input).getClassName());
+                                    }
+                                };
                             }
                         }
                 );

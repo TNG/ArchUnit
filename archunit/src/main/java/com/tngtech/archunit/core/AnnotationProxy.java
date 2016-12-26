@@ -49,12 +49,12 @@ class AnnotationProxy {
         }
 
         private Conversions initConversions(Class<?> annotationType) {
-            TypeDetailsConversion typeDetailsConversion = new TypeDetailsConversion(annotationType.getClassLoader());
+            JavaClassConversion javaClassConversion = new JavaClassConversion(annotationType.getClassLoader());
             JavaEnumConstantConversion enumConversion = new JavaEnumConstantConversion();
             JavaAnnotationConversion annotationConversion = new JavaAnnotationConversion(annotationType.getClassLoader());
             return new Conversions(
-                    typeDetailsConversion,
-                    new TypeDetailsArrayConversion(typeDetailsConversion),
+                    javaClassConversion,
+                    new JavaClassArrayConversion(javaClassConversion),
                     enumConversion,
                     new JavaEnumConstantArrayConversion(enumConversion),
                     annotationConversion,
@@ -89,39 +89,39 @@ class AnnotationProxy {
         boolean canHandle(Object input);
     }
 
-    private static class TypeDetailsConversion implements Conversion<TypeDetails> {
+    private static class JavaClassConversion implements Conversion<JavaClass> {
         private final ClassLoader classLoader;
 
-        private TypeDetailsConversion(ClassLoader classLoader) {
+        private JavaClassConversion(ClassLoader classLoader) {
             this.classLoader = classLoader;
         }
 
         @Override
-        public Class<?> convert(TypeDetails input, Class<?> returnType) {
+        public Class<?> convert(JavaClass input, Class<?> returnType) {
             return classForName(input.getName(), classLoader);
         }
 
         @Override
         public boolean canHandle(Object input) {
-            return TypeDetails.class.isInstance(input);
+            return JavaClass.class.isInstance(input);
         }
     }
 
-    private static class TypeDetailsArrayConversion implements Conversion<TypeDetails[]> {
-        private final TypeDetailsConversion typeDetailsConversion;
+    private static class JavaClassArrayConversion implements Conversion<JavaClass[]> {
+        private final JavaClassConversion javaClassConversion;
 
-        private TypeDetailsArrayConversion(TypeDetailsConversion typeDetailsConversion) {
-            this.typeDetailsConversion = typeDetailsConversion;
+        private JavaClassArrayConversion(JavaClassConversion javaClassConversion) {
+            this.javaClassConversion = javaClassConversion;
         }
 
         @Override
-        public Object convert(TypeDetails[] input, Class<?> returnType) {
-            return convertArray(input, typeDetailsConversion, returnType.getComponentType());
+        public Object convert(JavaClass[] input, Class<?> returnType) {
+            return convertArray(input, javaClassConversion, returnType.getComponentType());
         }
 
         @Override
         public boolean canHandle(Object input) {
-            return TypeDetails[].class.isInstance(input);
+            return JavaClass[].class.isInstance(input);
         }
     }
 
