@@ -12,10 +12,11 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.regex.Pattern.quote;
 
 class RawAccessRecord {
     final CodeUnit caller;
@@ -175,13 +176,13 @@ class RawAccessRecord {
 
             private ClassHierarchyPath(JavaType childType, JavaClass parent) {
                 Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
-                Optional<JavaClass> child = tryFind(classesToSearchForChild, withType(childType.asClass()));
+                Optional<JavaClass> child = tryFind(classesToSearchForChild, named(quote(childType.getName())));
                 if (child.isPresent()) {
                     createPath(child.get(), parent);
                 }
             }
 
-            private static <T> Optional<T> tryFind(Iterable<T> collection, DescribedPredicate<T> predicate) {
+            private static <T> Optional<T> tryFind(Iterable<T> collection, DescribedPredicate<? super T> predicate) {
                 for (T elem : collection) {
                     if (predicate.apply(elem)) {
                         return Optional.of(elem);
