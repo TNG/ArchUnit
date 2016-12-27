@@ -383,20 +383,20 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     private void completeInterfacesFrom(ImportContext context) {
-        for (TypeDetails i : typeDetails.getInterfaces()) {
-            interfaces.add(findClass(i, context));
+        for (String interfaceName : typeDetails.getInterfaces()) {
+            interfaces.add(findClass(interfaceName, context));
         }
         for (JavaClass i : interfaces) {
             i.subClasses.add(this);
         }
     }
 
-    private static JavaClass findClass(TypeDetails type, ImportContext context) {
-        return context.getJavaClassWithType(type.getName());
+    private static JavaClass findClass(String name, ImportContext context) {
+        return context.getJavaClassWithType(name);
     }
 
     private static Optional<JavaClass> findClass(Optional<TypeDetails> type, ImportContext context) {
-        return type.isPresent() ? Optional.of(findClass(type.get(), context)) : Optional.<JavaClass>absent();
+        return type.isPresent() ? Optional.of(findClass(type.get().getName(), context)) : Optional.<JavaClass>absent();
     }
 
     void completeMembers(ImportContext context) {

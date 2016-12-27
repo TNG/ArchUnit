@@ -11,11 +11,12 @@ import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
+import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class TypeDetails {
     private Optional<TypeDetails> enclosingClass = Optional.absent();
     private Optional<TypeDetails> superClass = Optional.absent();
-    private List<TypeDetails> interfaces = Collections.emptyList();
+    private List<String> interfaces = Collections.emptyList();
     private String name;
     private String simpleName;
     private String javaPackage;
@@ -29,7 +30,7 @@ public class TypeDetails {
         superClass = type.getSuperclass() != null ?
                 Optional.of(TypeDetails.of(type.getSuperclass())) :
                 Optional.<TypeDetails>absent();
-        interfaces = TypeDetails.allOf(type.getInterfaces());
+        interfaces = namesOf(type.getInterfaces());
         name = type.getName();
         simpleName = type.getSimpleName();
         javaPackage = type.getPackage() != null ? type.getPackage().getName() : "";
@@ -55,7 +56,7 @@ public class TypeDetails {
         return enclosingClass;
     }
 
-    List<TypeDetails> getInterfaces() {
+    List<String> getInterfaces() {
         return interfaces;
     }
 
