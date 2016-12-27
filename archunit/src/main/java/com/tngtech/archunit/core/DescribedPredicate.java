@@ -60,28 +60,6 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
-    /**
-     * This method is just syntactic sugar, e.g. to write aClass.that(is(special))
-     *
-     * @param predicate The original predicate
-     * @param <T>       The type of the object to decide on
-     * @return The original predicate
-     */
-    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
-        return predicate.as("is " + predicate.getDescription());
-    }
-
-    /**
-     * This method is just syntactic sugar, e.g. to write classes.that(are(special))
-     *
-     * @param predicate The original predicate
-     * @param <T>       The type of the object to decide on
-     * @return The original predicate
-     */
-    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
-        return predicate.as("are " + predicate.getDescription());
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysTrue() {
         return (DescribedPredicate<T>) ALWAYS_TRUE;

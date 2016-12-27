@@ -21,6 +21,13 @@ public class Locations {
         return result;
     }
 
+    /**
+     * All locations in the classpath that match the supplied package.<br/>
+     * NOTE: Only works, if the used ClassLoader extends {@link URLClassLoader} (which is true for normal settings)
+     *
+     * @param pkg the package to look for within the classpath
+     * @return Locations of all paths that match the supplied package
+     */
     public static Set<Location> ofPackage(String pkg) {
         ImmutableSet.Builder<Location> result = ImmutableSet.builder();
         for (Location location : getLocationsOf(asResourceName(pkg))) {

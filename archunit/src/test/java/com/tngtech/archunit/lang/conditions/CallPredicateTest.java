@@ -1,6 +1,8 @@
 package com.tngtech.archunit.lang.conditions;
 
+import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
+import com.tngtech.archunit.core.JavaCodeUnit;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
@@ -18,6 +20,12 @@ public class CallPredicateTest {
         assertThat(declaredIn.hasName("wrong").apply(call)).as("predicate matches").isFalse();
         assertThat(declaredIn.hasParameters(String.class).apply(call)).as("predicate matches").isTrue();
         assertThat(declaredIn.hasParameters().apply(call)).as("predicate matches").isFalse();
+        assertThat(declaredIn.hasName("someMethod").is(DescribedPredicate.<JavaCodeUnit>alwaysTrue()).apply(call))
+                .as("predicate matches").isTrue();
+        assertThat(declaredIn.hasName("wrong").is(DescribedPredicate.<JavaCodeUnit>alwaysTrue()).apply(call))
+                .as("predicate matches").isFalse();
+        assertThat(declaredIn.hasName("someMethod").is(DescribedPredicate.<JavaCodeUnit>alwaysFalse()).apply(call))
+                .as("predicate matches").isFalse();
 
         assertThat(declaredIn.hasName("someMethod").hasParameters(String.class).apply(call))
                 .as("predicate matches").isTrue();

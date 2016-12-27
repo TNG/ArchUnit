@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -12,17 +13,44 @@ import java.util.Set;
 import java.util.jar.JarFile;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singletonList;
 
 public class ClassFileImporter {
+    private final ImportOptions importOptions;
+
+    public ClassFileImporter() {
+        this(new ImportOptions());
+    }
+
+    public ClassFileImporter(ImportOptions importOptions) {
+        this.importOptions = importOptions;
+    }
+
+    public ClassFileImporter withImportOption(ImportOption option) {
+        return new ClassFileImporter(importOptions.with(option));
+    }
+
     public JavaClasses importPath(Path path) {
         return new ClassFileProcessor().process(new ClassFileSource.FromFilePath(path));
     }
 
     public JavaClasses importJar(JarFile jar) {
         return new ClassFileProcessor().process(Location.of(jar).asClassFileSource());
+    }
+
+    /**
+     * Imports packages via {@link Locations#ofPackage(String)}
+     */
+    public JavaClasses importPackages(String... packages) {
+        Set<Location> locations = new HashSet<>();
+        for (String pkg : packages) {
+            locations.addAll(Locations.ofPackage(pkg));
+        }
+        return importLocations(locations);
     }
 
     /**
@@ -37,11 +65,9 @@ public class ClassFileImporter {
     public JavaClasses importClasspath(ImportOptions options) {
         Set<Location> locations = new HashSet<>();
         for (Location location : Locations.inClassPath()) {
-            if (options.include(location)) {
-                locations.add(location);
-            }
+            locations.add(location);
         }
-        return importLocations(locations);
+        return new ClassFileImporter(importOptions).importLocations(locations);
     }
 
     public JavaClasses importUrl(URL url) {
@@ -55,7 +81,9 @@ public class ClassFileImporter {
     public JavaClasses importLocations(Collection<Location> locations) {
         List<ClassFileSource> sources = new ArrayList<>();
         for (Location location : locations) {
-            sources.add(classFileSourceFor(location));
+            if (importOptions.include(location)) {
+                sources.add(classFileSourceFor(location));
+            }
         }
         return new ClassFileProcessor().process(unify(sources));
     }
@@ -75,14 +103,21 @@ public class ClassFileImporter {
     }
 
     public static class ImportOptions {
-        private final Set<ImportOption> options = new HashSet<>();
+        private final Set<ImportOption> options;
 
-        public ImportOptions with(ImportOption option) {
-            options.add(option);
-            return this;
+        public ImportOptions() {
+            this(Collections.<ImportOption>emptySet());
         }
 
-        public boolean include(Location url) {
+        public ImportOptions(Set<ImportOption> options) {
+            this.options = checkNotNull(options);
+        }
+
+        public ImportOptions with(ImportOption option) {
+            return new ImportOptions(ImmutableSet.<ImportOption>builder().addAll(options).add(option).build());
+        }
+
+        boolean include(Location url) {
             for (ImportOption option : options) {
                 if (!option.includes(url)) {
                     return false;

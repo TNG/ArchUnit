@@ -136,6 +136,7 @@ class ClassFileProcessor {
         return new ClassResolverFromClassPath(membersRecorder);
     }
 
+    @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
     static class ClassResolverFromClassPath implements ClassResolver {
         private final DeclarationHandler declarationHandler;
 

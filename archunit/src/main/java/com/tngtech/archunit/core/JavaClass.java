@@ -17,7 +17,7 @@ import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
-public class JavaClass implements HasName {
+public class JavaClass implements HasName, HasAnnotations {
     private final TypeDetails typeDetails;
     private Set<JavaField> fields = new HashSet<>();
     private Set<JavaCodeUnit> codeUnits = new HashSet<>();
@@ -52,8 +52,9 @@ public class JavaClass implements HasName {
         return typeDetails.isInterface();
     }
 
+    @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-        return reflect().isAnnotationPresent(annotation);
+        return annotations.containsKey(annotation.getName());
     }
 
     /**
@@ -61,10 +62,10 @@ public class JavaClass implements HasName {
      * @return The {@link Annotation} representing the given annotation type
      * @throws IllegalArgumentException if the class is note annotated with the given type
      * @see #isAnnotatedWith(Class)
-     * @see #getAnnotation(Class)
+     * @see #getAnnotationOfType(Class)
      */
     public <A extends Annotation> A getReflectionAnnotation(Class<A> type) {
-        return getAnnotation(type).as(type);
+        return getAnnotationOfType(type).as(type);
     }
 
     /**
@@ -72,13 +73,15 @@ public class JavaClass implements HasName {
      * @return The {@link JavaAnnotation} representing the given annotation type
      * @throws IllegalArgumentException if the class is note annotated with the given type
      * @see #isAnnotatedWith(Class)
-     * @see #tryGetAnnotation(Class)
+     * @see #tryGetAnnotationOfType(Class)
      */
-    public JavaAnnotation getAnnotation(Class<? extends Annotation> type) {
-        return tryGetAnnotation(type).getOrThrow(new IllegalArgumentException(
+    @Override
+    public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
+        return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(
                 String.format("Type %s is not annotated with @%s", getSimpleName(), type.getSimpleName())));
     }
 
+    @Override
     public Set<JavaAnnotation> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
     }
@@ -88,9 +91,10 @@ public class JavaClass implements HasName {
      * @return An {@link Optional} containing a {@link JavaAnnotation} representing the given annotation type,
      * if this class is annotated with the given type, otherwise Optional.absent()
      * @see #isAnnotatedWith(Class)
-     * @see #getAnnotation(Class)
+     * @see #getAnnotationOfType(Class)
      */
-    public Optional<JavaAnnotation> tryGetAnnotation(Class<? extends Annotation> type) {
+    @Override
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
         return Optional.fromNullable(annotations.get(type.getName()));
     }
 
@@ -354,6 +358,14 @@ public class JavaClass implements HasName {
                 .build();
     }
 
+    /**
+     * Resolves the respective {@link Class} from the classpath.<br/>
+     * NOTE: This method will throw an exception, if the respective {@link Class} or any of its dependencies
+     * can not be found on the classpath.
+     *
+     * @return The {@link Class} equivalent to this {@link JavaClass}
+     */
+    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
     public Class<?> reflect() {
         return classForName(getName());
     }
@@ -457,6 +469,7 @@ public class JavaClass implements HasName {
 
     public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
         @Override
+        @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
         public Class<?> apply(JavaClass input) {
             return input.reflect();
         }

@@ -127,6 +127,7 @@ class AnnotationProxy {
 
     private static class JavaEnumConstantConversion implements Conversion<JavaEnumConstant> {
         @Override
+        @MayResolveTypesViaReflection(reason = "We already depend on the classpath, if we proxy an annotation type")
         public Enum<?> convert(JavaEnumConstant input, Class<?> returnType) {
             for (Object constant : classForName(input.getType().getName()).getEnumConstants()) {
                 Enum<?> anEnum = (Enum<?>) constant;
