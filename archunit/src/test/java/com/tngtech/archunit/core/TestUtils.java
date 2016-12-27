@@ -512,6 +512,11 @@ public class TestUtils {
         }
 
         @Override
+        public Set<JavaClass> createInterfaces(JavaClass owner) {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<JavaField> createFields(JavaClass owner) {
             return Collections.emptySet();
         }
