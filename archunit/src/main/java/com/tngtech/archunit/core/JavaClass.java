@@ -376,7 +376,7 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     private void completeSuperClassFrom(ImportContext context) {
-        superClass = findClass(typeDetails.getSuperclass(), context);
+        superClass = context.createSuperClass(this);
         if (superClass.isPresent()) {
             superClass.get().subClasses.add(this);
         }

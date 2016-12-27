@@ -57,10 +57,14 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.info("Analysing class '{}'", name);
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
+        Optional<String> superClassName = superName != null ?
+                Optional.of(createTypeName(superName)) :
+                Optional.<String>absent();
+        LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
         javaClassBuilder = init(name);
         className = createTypeName(name);
-        declarationHandler.onNewClass(className, interfaceNames);
+        declarationHandler.onNewClass(className, superClassName, interfaceNames);
     }
 
     private ImmutableSet<String> createInterfaceNames(String[] interfaces) {
@@ -210,7 +214,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     interface DeclarationHandler {
-        void onNewClass(String className, Set<String> interfaceNames);
+        void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames);
 
         void onDeclaredField(JavaField.Builder fieldBuilder);
 

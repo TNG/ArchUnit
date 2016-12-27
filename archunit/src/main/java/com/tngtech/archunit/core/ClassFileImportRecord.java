@@ -15,6 +15,7 @@ import static com.google.common.base.Preconditions.checkState;
 class ClassFileImportRecord {
     private final Set<JavaClass> classes = new HashSet<>();
 
+    private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaField.Builder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaMethod.Builder> methodBuildersByOwner = HashMultimap.create();
@@ -26,40 +27,45 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
 
-    ClassFileImportRecord addInterfaces(String ownerName, Set<String> interfaceNames) {
+    void setSuperClass(String ownerName, String superClassName) {
+        checkState(!superClassNamesByOwner.containsKey(ownerName),
+                "Attempted to add %s as a second superclass to %s, this is most likely a bug",
+                superClassName, ownerName);
+        superClassNamesByOwner.put(ownerName, superClassName);
+    }
+
+    void addInterfaces(String ownerName, Set<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
-        return this;
     }
 
-    ClassFileImportRecord addField(String ownerName, JavaField.Builder fieldBuilder) {
+    void addField(String ownerName, JavaField.Builder fieldBuilder) {
         fieldBuildersByOwner.put(ownerName, fieldBuilder);
-        return this;
     }
 
-    ClassFileImportRecord addMethod(String ownerName, JavaMethod.Builder methodBuilder) {
+    void addMethod(String ownerName, JavaMethod.Builder methodBuilder) {
         methodBuildersByOwner.put(ownerName, methodBuilder);
-        return this;
     }
 
-    ClassFileImportRecord addConstructor(String ownerName, JavaConstructor.Builder constructorBuilder) {
+    void addConstructor(String ownerName, JavaConstructor.Builder constructorBuilder) {
         constructorBuildersByOwner.put(ownerName, constructorBuilder);
-        return this;
     }
 
-    ClassFileImportRecord setStaticInitializer(String ownerName, JavaStaticInitializer.Builder builder) {
+    void setStaticInitializer(String ownerName, JavaStaticInitializer.Builder builder) {
         checkState(!staticInitializerBuildersByOwner.containsKey(ownerName),
                 "Tried to add a second static initializer to %s, this is most likely a bug",
                 ownerName);
         staticInitializerBuildersByOwner.put(ownerName, builder);
-        return this;
     }
 
-    ClassFileImportRecord addAnnotations(String ownerName, Set<JavaAnnotation.Builder> annotations) {
+    void addAnnotations(String ownerName, Set<JavaAnnotation.Builder> annotations) {
         this.annotationsByOwner.putAll(ownerName, annotations);
-        return this;
     }
 
-    public Set<String> getInterfaceNamesFor(String ownerName) {
+    Optional<String> getSuperClassFor(String name) {
+        return Optional.fromNullable(superClassNamesByOwner.get(name));
+    }
+
+    Set<String> getInterfaceNamesFor(String ownerName) {
         return interfaceNamesByOwner.get(ownerName);
     }
 
