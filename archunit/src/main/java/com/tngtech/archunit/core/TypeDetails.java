@@ -13,7 +13,6 @@ import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
     private Optional<TypeDetails> enclosingClass = Optional.absent();
-    private Optional<TypeDetails> superClass = Optional.absent();
     private String name;
     private String simpleName;
     private String javaPackage;
@@ -23,9 +22,6 @@ public class TypeDetails {
     private TypeDetails(Class<?> type) {
         enclosingClass = type.getEnclosingClass() != null ?
                 Optional.of(TypeDetails.of(type.getEnclosingClass())) :
-                Optional.<TypeDetails>absent();
-        superClass = type.getSuperclass() != null ?
-                Optional.of(TypeDetails.of(type.getSuperclass())) :
                 Optional.<TypeDetails>absent();
         name = type.getName();
         simpleName = type.getSimpleName();
@@ -50,10 +46,6 @@ public class TypeDetails {
 
     Optional<TypeDetails> getEnclosingClass() {
         return enclosingClass;
-    }
-
-    Optional<TypeDetails> getSuperclass() {
-        return superClass;
     }
 
     public String getSimpleName() {

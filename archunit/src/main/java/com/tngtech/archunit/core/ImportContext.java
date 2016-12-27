@@ -9,6 +9,8 @@ import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 interface ImportContext {
     JavaClass getJavaClassWithType(String name);
 
+    Optional<JavaClass> createSuperClass(JavaClass owner);
+
     Set<JavaClass> createInterfaces(JavaClass owner);
 
     Set<JavaField> createFields(JavaClass owner);

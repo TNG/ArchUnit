@@ -123,6 +123,14 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Optional<JavaClass> createSuperClass(JavaClass owner) {
+        Optional<String> superClassName = importRecord.getSuperClassFor(owner.getName());
+        return superClassName.isPresent() ?
+                Optional.of(classes.get(superClassName.get())) :
+                Optional.<JavaClass>absent();
+    }
+
+    @Override
     public Set<JavaClass> createInterfaces(JavaClass owner) {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
         for (String interfaceName : importRecord.getInterfaceNamesFor(owner.getName())) {

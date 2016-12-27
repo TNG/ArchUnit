@@ -35,6 +35,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -157,7 +158,25 @@ public class TestUtils {
             result.put(newClass.getName(), newClass);
         }
 
+        ImportContext context = simulateContextForCompletion(importedClasses);
+        for (JavaClass javaClass : result.values()) {
+            javaClass.completeClassHierarchyFrom(context);
+            javaClass.completeFrom(context).completeCodeUnitsFrom(context);
+        }
+        return new JavaClasses(result);
+    }
+
+    private static ImportContext simulateContextForCompletion(final ImportedTestClasses importedClasses) {
         ImportContext context = mock(ImportContext.class);
+        when(context.createSuperClass(any(JavaClass.class))).thenAnswer(new Answer<Optional<JavaClass>>() {
+            @Override
+            public Optional<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
+                Class<?> clazz = classForName(((JavaClass) invocation.getArguments()[0]).getName());
+                return clazz.getSuperclass() != null ?
+                        Optional.of(importedClasses.get(clazz.getSuperclass().getName())) :
+                        Optional.<JavaClass>absent();
+            }
+        });
         when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
             @Override
             public JavaClass answer(InvocationOnMock invocation) throws Throwable {
@@ -165,11 +184,7 @@ public class TestUtils {
                 return importedClasses.get(typeName);
             }
         });
-        for (JavaClass javaClass : result.values()) {
-            javaClass.completeClassHierarchyFrom(context);
-            javaClass.completeFrom(context).completeCodeUnitsFrom(context);
-        }
-        return new JavaClasses(result);
+        return context;
     }
 
     private static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
@@ -509,6 +524,11 @@ public class TestUtils {
         @Override
         public JavaClass getJavaClassWithType(String name) {
             throw new UnsupportedOperationException("Stub can't resolve type name " + name);
+        }
+
+        @Override
+        public Optional<JavaClass> createSuperClass(JavaClass owner) {
+            return Optional.absent();
         }
 
         @Override

@@ -51,8 +51,11 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onNewClass(String className, Set<String> interfaceNames) {
+        public void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames) {
             ownerName = className;
+            if (superClassName.isPresent()) {
+                importRecord.setSuperClass(ownerName, superClassName.get());
+            }
             importRecord.addInterfaces(ownerName, interfaceNames);
         }
 
