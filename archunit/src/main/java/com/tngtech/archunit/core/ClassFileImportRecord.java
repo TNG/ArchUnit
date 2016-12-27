@@ -9,10 +9,14 @@ import java.util.Set;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkState;
 
 class ClassFileImportRecord {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
+
     private final Set<JavaClass> classes = new HashSet<>();
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
@@ -22,6 +26,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaConstructor.Builder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializer.Builder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaAnnotation.Builder> annotationsByOwner = HashMultimap.create();
+    private final EnclosingClassesByInnerClasses enclosingClassNamesByOwner = new EnclosingClassesByInnerClasses();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
@@ -61,6 +66,10 @@ class ClassFileImportRecord {
         this.annotationsByOwner.putAll(ownerName, annotations);
     }
 
+    void setEnclosingClass(String ownerName, String enclosingClassName) {
+        enclosingClassNamesByOwner.register(ownerName, enclosingClassName);
+    }
+
     Optional<String> getSuperClassFor(String name) {
         return Optional.fromNullable(superClassNamesByOwner.get(name));
     }
@@ -87,6 +96,10 @@ class ClassFileImportRecord {
 
     Set<JavaAnnotation.Builder> getAnnotationsFor(String ownerName) {
         return annotationsByOwner.get(ownerName);
+    }
+
+    Optional<String> getEnclosingClassFor(String ownerName) {
+        return enclosingClassNamesByOwner.get(ownerName);
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {
@@ -127,5 +140,34 @@ class ClassFileImportRecord {
                 .addAll(rawMethodCallRecords)
                 .addAll(rawConstructorCallRecords)
                 .build();
+    }
+
+    // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported
+    //       and sometimes again when the inner class is imported. To make it easier, we'll just deal with duplicate
+    //       registrations, as there is no harm, as long as no conflicting information is recorded.
+    private static class EnclosingClassesByInnerClasses {
+        private final Map<String, String> innerToOuter = new HashMap<>();
+
+        void register(String innerName, String outerName) {
+            if (registeringAllowed(innerName, outerName)) {
+                innerToOuter.put(innerName, outerName);
+            }
+        }
+
+        private boolean registeringAllowed(String innerName, String outerName) {
+            boolean registeringAllowed = !innerToOuter.containsKey(innerName) ||
+                    innerToOuter.get(innerName).equals(outerName);
+
+            if (!registeringAllowed) {
+                LOG.warn("Skipping registering outer class {} for inner class {}, since already outer class {} was registered",
+                        outerName, innerName, innerToOuter.get(innerName));
+            }
+
+            return registeringAllowed;
+        }
+
+        public Optional<String> get(String ownerName) {
+            return Optional.fromNullable(innerToOuter.get(ownerName));
+        }
     }
 }

@@ -23,6 +23,8 @@ interface ImportContext {
 
     Map<String, JavaAnnotation> createAnnotations(JavaClass owner);
 
+    Optional<JavaClass> createEnclosingClass(JavaClass owner);
+
     Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit);
 
     Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit);

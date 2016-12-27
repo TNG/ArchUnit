@@ -409,7 +409,7 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     CompletionProcess completeFrom(ImportContext context) {
-        enclosingClass = findClass(typeDetails.getEnclosingClass(), context);
+        enclosingClass = context.createEnclosingClass(this);
         return new CompletionProcess();
     }
 

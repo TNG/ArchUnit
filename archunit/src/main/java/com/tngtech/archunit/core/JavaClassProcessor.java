@@ -29,6 +29,7 @@ import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
+
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
     private JavaClass.Builder javaClassBuilder;
@@ -65,6 +66,18 @@ class JavaClassProcessor extends ClassVisitor {
         javaClassBuilder = init(name);
         className = createTypeName(name);
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
+    }
+
+    @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (name != null && outerName != null) {
+            declarationHandler.registerEnclosingClass(createTypeName(name), createTypeName(outerName));
+        }
+    }
+
+    @Override
+    public void visitOuterClass(String owner, String name, String desc) {
+        declarationHandler.registerEnclosingClass(className, createTypeName(owner));
     }
 
     private ImmutableSet<String> createInterfaceNames(String[] interfaces) {
@@ -225,6 +238,8 @@ class JavaClassProcessor extends ClassVisitor {
         void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder);
 
         void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations);
+
+        void registerEnclosingClass(String ownerName, String enclosingClassName);
     }
 
     interface AccessHandler {

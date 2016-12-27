@@ -83,6 +83,11 @@ class ClassFileProcessor {
         public void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations) {
             importRecord.addAnnotations(ownerName, annotations);
         }
+
+        @Override
+        public void registerEnclosingClass(String ownerName, String enclosingClassName) {
+            importRecord.setEnclosingClass(ownerName, enclosingClassName);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

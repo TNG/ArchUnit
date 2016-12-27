@@ -166,4 +166,12 @@ class ClassGraphCreator implements ImportContext {
     public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
         return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byType());
     }
+
+    @Override
+    public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
+        Optional<String> enclosingClassName = importRecord.getEnclosingClassFor(owner.getName());
+        return enclosingClassName.isPresent() ?
+                Optional.of(classes.get(enclosingClassName.get())) :
+                Optional.<JavaClass>absent();
+    }
 }

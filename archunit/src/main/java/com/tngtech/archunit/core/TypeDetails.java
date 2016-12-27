@@ -12,7 +12,6 @@ import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
-    private Optional<TypeDetails> enclosingClass = Optional.absent();
     private String name;
     private String simpleName;
     private String javaPackage;
@@ -20,9 +19,6 @@ public class TypeDetails {
 
     @Deprecated // FIXME: Get rid of this constructor as soon as reflection is gone
     private TypeDetails(Class<?> type) {
-        enclosingClass = type.getEnclosingClass() != null ?
-                Optional.of(TypeDetails.of(type.getEnclosingClass())) :
-                Optional.<TypeDetails>absent();
         name = type.getName();
         simpleName = type.getSimpleName();
         javaPackage = type.getPackage() != null ? type.getPackage().getName() : "";
@@ -42,10 +38,6 @@ public class TypeDetails {
 
     public String getName() {
         return name;
-    }
-
-    Optional<TypeDetails> getEnclosingClass() {
-        return enclosingClass;
     }
 
     public String getSimpleName() {

@@ -184,6 +184,15 @@ public class TestUtils {
                 return importedClasses.get(typeName);
             }
         });
+        when(context.createEnclosingClass(any(JavaClass.class))).thenAnswer(new Answer<Optional<JavaClass>>() {
+            @Override
+            public Optional<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
+                Class<?> clazz = classForName(((JavaClass) invocation.getArguments()[0]).getName());
+                return clazz.getEnclosingClass() != null ?
+                        Optional.of(importedClasses.get(clazz.getEnclosingClass().getName())) :
+                        Optional.<JavaClass>absent();
+            }
+        });
         return context;
     }
 
@@ -559,6 +568,11 @@ public class TestUtils {
         @Override
         public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
             return Collections.emptyMap();
+        }
+
+        @Override
+        public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
+            return Optional.absent();
         }
 
         @Override
