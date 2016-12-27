@@ -42,6 +42,7 @@ public class ReflectionUtils {
         return classForName(name, ReflectionUtils.class.getClassLoader());
     }
 
+    @MayResolveTypesViaReflection(reason = "This method is one of the known sources for resolving via reflection")
     static Optional<Class<?>> tryGetClassForName(String name) {
         try {
             return Optional.<Class<?>>of(classForName(name));

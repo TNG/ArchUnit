@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,7 +9,7 @@ import com.google.common.collect.ImmutableSet;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
-public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor {
+public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor, HasAnnotations {
     private final String name;
     private final String descriptor;
     private final Map<String, JavaAnnotation> annotations;
@@ -23,6 +24,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
         this.modifiers = checkNotNull(builder.modifiers);
     }
 
+    @Override
     public Set<JavaAnnotation> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
     }
@@ -32,14 +34,21 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
      *
      * @throws IllegalArgumentException if there is no annotation of the respective reflection type
      */
-    public JavaAnnotation getAnnotationOfType(Class<?> type) {
+    @Override
+    public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
         return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(String.format(
                 "Member %s is not annotated with @%s",
                 getFullName(), type.getSimpleName())));
     }
 
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<?> type) {
+    @Override
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
         return Optional.fromNullable(annotations.get(type.getName()));
+    }
+
+    @Override
+    public boolean isAnnotatedWith(Class<? extends Annotation> type) {
+        return annotations.containsKey(type.getName());
     }
 
     @Override

@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.core.HasAnnotations;
 import com.tngtech.archunit.core.HasName;
 import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
@@ -40,10 +42,10 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<JavaClass> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getSimpleName()) {
+    public static DescribedPredicate<HasAnnotations> annotatedWith(final Class<? extends Annotation> annotationType) {
+        return new DescribedPredicate<HasAnnotations>("annotated with @" + annotationType.getSimpleName()) {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean apply(HasAnnotations input) {
                 return input.isAnnotatedWith(annotationType);
             }
         };
@@ -149,5 +151,45 @@ public class ArchPredicates {
 
     public static CallPredicate callOrigin() {
         return CallPredicate.origin();
+    }
+
+    /**
+     * This method is just syntactic sugar, e.g. to write aClass.that(is(special))
+     *
+     * @param predicate The original predicate
+     * @param <T>       The type of the object to decide on
+     * @return The original predicate
+     */
+    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
+        return predicate.as("is " + predicate.getDescription());
+    }
+
+    /**
+     * This method is just syntactic sugar, e.g. to write classes.that(are(special))
+     *
+     * @param predicate The original predicate
+     * @param <T>       The type of the object to decide on
+     * @return The original predicate
+     */
+    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
+        return predicate.as("are " + predicate.getDescription());
+    }
+
+    public static DescribedPredicate<JavaFieldAccess> accessOrigin(final DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return new DescribedPredicate<JavaFieldAccess>("origin is " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaFieldAccess input) {
+                return predicate.apply(input.getOrigin());
+            }
+        };
+    }
+
+    public static DescribedPredicate<JavaCodeUnit> declaredIn(final DescribedPredicate<? super JavaClass> predicate) {
+        return new DescribedPredicate<JavaCodeUnit>("declared in " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaCodeUnit input) {
+                return predicate.apply(input.getOwner());
+            }
+        };
     }
 }

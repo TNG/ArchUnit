@@ -19,6 +19,7 @@ import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
@@ -45,14 +46,14 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate hasParameters(final List<Class<?>> paramTypes) {
-        return new CallPredicate(modification.modify(predicate, ArchPredicates.hasParameterTypes(paramTypes)), modification);
+        return new CallPredicate(modification.modify(predicate, hasParameterTypes(paramTypes)), modification);
     }
 
     public CallPredicate isConstructor() {
         return hasName(CONSTRUCTOR_NAME);
     }
 
-    public CallPredicate isDeclaredIn(final DescribedPredicate<JavaClass> classIdentifier) {
+    public CallPredicate isDeclaredIn(final DescribedPredicate<? super JavaClass> classIdentifier) {
         return new CallPredicate(ownerIs(classIdentifier), modification);
     }
 
@@ -77,7 +78,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return new CallPredicate(ownerIs(JavaClass.assignableTo(type)), modification);
     }
 
-    private CombinedCallPredicate ownerIs(DescribedPredicate<JavaClass> predicate) {
+    private CombinedCallPredicate ownerIs(DescribedPredicate<? super JavaClass> predicate) {
         return modification.modify(this.predicate, predicate.onResultOf(GET_OWNER));
     }
 
@@ -98,6 +99,10 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         // FIXME: It was a bad design decision to combine origin and target inside of this predicate,
         // will be changed when field access predicate is incorporated
         return new CallPredicate(modification.modify(predicate, (DescribedPredicate) isPredicate), modification);
+    }
+
+    public CallPredicate is(DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return new CallPredicate(modification.modify(this.predicate, (DescribedPredicate) predicate), modification);
     }
 
     @Override
