@@ -123,6 +123,15 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Set<JavaClass> createInterfaces(JavaClass owner) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (String interfaceName : importRecord.getInterfaceNamesFor(owner.getName())) {
+            result.add(classes.get(interfaceName));
+        }
+        return result.build();
+    }
+
+    @Override
     public Set<JavaField> createFields(JavaClass owner) {
         return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byType());
     }

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
@@ -54,9 +55,24 @@ class JavaClassProcessor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.info("Analysing class '{}'", name);
+        ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
+        LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
+
         javaClassBuilder = init(name);
-        className = name.replace("/", ".");
-        declarationHandler.onNewClass(className);
+        className = createTypeName(name);
+        declarationHandler.onNewClass(className, interfaceNames);
+    }
+
+    private ImmutableSet<String> createInterfaceNames(String[] interfaces) {
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (String i : interfaces) {
+            result.add(createTypeName(i));
+        }
+        return result.build();
+    }
+
+    private String createTypeName(String name) {
+        return name.replace("/", ".");
     }
 
     @Override
@@ -194,7 +210,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     interface DeclarationHandler {
-        void onNewClass(String className);
+        void onNewClass(String className, Set<String> interfaceNames);
 
         void onDeclaredField(JavaField.Builder fieldBuilder);
 

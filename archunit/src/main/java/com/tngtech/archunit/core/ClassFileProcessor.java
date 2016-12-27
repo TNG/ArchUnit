@@ -29,30 +29,31 @@ class ClassFileProcessor {
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
         RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
-        MembersRecorder membersRecorder = new MembersRecorder(importRecord);
+        ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord);
         for (Supplier<InputStream> stream : source) {
             try (InputStream s = stream.get()) {
-                JavaClassProcessor javaClassProcessor = new JavaClassProcessor(membersRecorder, accessHandler);
+                JavaClassProcessor javaClassProcessor = new JavaClassProcessor(classDetailsRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
                 importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return new ClassGraphCreator(importRecord, getClassResolver(membersRecorder)).complete();
+        return new ClassGraphCreator(importRecord, getClassResolver(classDetailsRecorder)).complete();
     }
 
-    private static class MembersRecorder implements DeclarationHandler {
+    private static class ClassDetailsRecorder implements DeclarationHandler {
         private final ClassFileImportRecord importRecord;
         private String ownerName;
 
-        private MembersRecorder(ClassFileImportRecord importRecord) {
+        private ClassDetailsRecorder(ClassFileImportRecord importRecord) {
             this.importRecord = importRecord;
         }
 
         @Override
-        public void onNewClass(String className) {
+        public void onNewClass(String className, Set<String> interfaceNames) {
             ownerName = className;
+            importRecord.addInterfaces(ownerName, interfaceNames);
         }
 
         @Override
@@ -132,8 +133,8 @@ class ClassFileProcessor {
         }
     }
 
-    private ClassResolverFromClassPath getClassResolver(MembersRecorder membersRecorder) {
-        return new ClassResolverFromClassPath(membersRecorder);
+    private ClassResolverFromClassPath getClassResolver(ClassDetailsRecorder classDetailsRecorder) {
+        return new ClassResolverFromClassPath(classDetailsRecorder);
     }
 
     @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")

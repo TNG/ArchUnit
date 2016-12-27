@@ -15,6 +15,7 @@ import static com.google.common.base.Preconditions.checkState;
 class ClassFileImportRecord {
     private final Set<JavaClass> classes = new HashSet<>();
 
+    private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaField.Builder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaMethod.Builder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaConstructor.Builder> constructorBuildersByOwner = HashMultimap.create();
@@ -24,6 +25,11 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
+
+    ClassFileImportRecord addInterfaces(String ownerName, Set<String> interfaceNames) {
+        interfaceNamesByOwner.putAll(ownerName, interfaceNames);
+        return this;
+    }
 
     ClassFileImportRecord addField(String ownerName, JavaField.Builder fieldBuilder) {
         fieldBuildersByOwner.put(ownerName, fieldBuilder);
@@ -51,6 +57,10 @@ class ClassFileImportRecord {
     ClassFileImportRecord addAnnotations(String ownerName, Set<JavaAnnotation.Builder> annotations) {
         this.annotationsByOwner.putAll(ownerName, annotations);
         return this;
+    }
+
+    public Set<String> getInterfaceNamesFor(String ownerName) {
+        return interfaceNamesByOwner.get(ownerName);
     }
 
     Set<JavaField.Builder> getFieldBuildersFor(String ownerName) {

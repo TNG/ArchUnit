@@ -383,9 +383,7 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     private void completeInterfacesFrom(ImportContext context) {
-        for (String interfaceName : typeDetails.getInterfaces()) {
-            interfaces.add(findClass(interfaceName, context));
-        }
+        interfaces.addAll(context.createInterfaces(this));
         for (JavaClass i : interfaces) {
             i.subClasses.add(this);
         }
