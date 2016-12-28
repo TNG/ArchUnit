@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,15 +31,6 @@ public class ReflectionUtils {
         return result.build();
     }
 
-    static Collection<Constructor<?>> getAllConstructors(Class<?> owner, Predicate<? super Constructor<?>> predicate) {
-        return filter(getAll(owner, new Collector<Constructor<?>>() {
-            @Override
-            protected Collection<? extends Constructor<?>> extractFrom(Class<?> type) {
-                return ImmutableList.copyOf(type.getDeclaredConstructors());
-            }
-        }), toGuava(predicate));
-    }
-
     public static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
         return filter(getAll(owner, new Collector<Field>() {
             @Override
@@ -59,13 +49,6 @@ public class ReflectionUtils {
         }), toGuava(predicate));
     }
 
-    private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {
-        for (Class<?> t : getAllSuperTypes(type)) {
-            collector.collectFrom(t);
-        }
-        return collector.collected;
-    }
-
     public static List<String> namesOf(Class<?>... paramTypes) {
         return namesOf(ImmutableList.copyOf(paramTypes));
     }
@@ -76,6 +59,13 @@ public class ReflectionUtils {
             result.add(paramType.getName());
         }
         return result;
+    }
+
+    private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {
+        for (Class<?> t : getAllSuperTypes(type)) {
+            collector.collectFrom(t);
+        }
+        return collector.collected;
     }
 
     private static abstract class Collector<T> {

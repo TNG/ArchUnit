@@ -28,21 +28,6 @@ public class ReflectionUtilsTest {
     }
 
     @Test
-    public void getAllConstructors() {
-        Collection<Constructor<?>> constructors = ReflectionUtils.getAllConstructors(Child.class, new Predicate<Constructor<?>>() {
-            @Override
-            public boolean apply(Constructor<?> input) {
-                return input.getDeclaringClass() == Child.class || input.getDeclaringClass() == LowerMiddle.class;
-            }
-        });
-
-        assertThat(constructors).containsOnly(
-                constructor(Child.class),
-                constructor(LowerMiddle.class)
-        );
-    }
-
-    @Test
     public void getAllMethods() {
         Collection<Method> methods = ReflectionUtils.getAllMethods(Child.class, named("overrideMe"));
 
