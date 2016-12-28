@@ -11,7 +11,6 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -64,7 +63,7 @@ class JavaClassProcessor extends ClassVisitor {
                 Optional.<String>absent();
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
-        javaClassBuilder = init(name);
+        javaClassBuilder = new JavaClass.Builder().withType(TypeDetails.of(JavaType.fromClassName(name).getName()));
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         javaClassBuilder.withInterface(opCodeForInterfaceIsPresent);
         className = createTypeName(name);
@@ -148,21 +147,6 @@ class JavaClassProcessor extends ClassVisitor {
     public void visitEnd() {
         declarationHandler.onDeclaredAnnotations(annotations);
         LOG.debug("Done analysing {}", className);
-    }
-
-    private JavaClass.Builder init(String classDescriptor) {
-        String typeName = createTypeName(classDescriptor);
-        try {
-            Class<?> currentClass = JavaType.fromClassName(typeName).asClass();
-            return new JavaClass.Builder().withType(TypeDetails.of(currentClass.getName()));
-        } catch (NoClassDefFoundError e) {
-            LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
-                    classDescriptor, e.getMessage());
-        } catch (ReflectionException e) {
-            LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
-                    classDescriptor, e.getMessage());
-        }
-        return new JavaClass.Builder().withType(TypeDetails.of(typeName));
     }
 
     private static List<String> namesOf(Type[] types) {

@@ -2,8 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
-
 class JavaType {
     private final String typeName;
 
@@ -13,10 +11,6 @@ class JavaType {
 
     static JavaType fromClassName(String name) {
         return new JavaType(name.replace("/", "."));
-    }
-
-    Class<?> asClass() {
-        return classForName(typeName);
     }
 
     public String getName() {
