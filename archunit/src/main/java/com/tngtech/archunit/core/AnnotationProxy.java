@@ -129,14 +129,14 @@ class AnnotationProxy {
         @Override
         @MayResolveTypesViaReflection(reason = "We already depend on the classpath, if we proxy an annotation type")
         public Enum<?> convert(JavaEnumConstant input, Class<?> returnType) {
-            for (Object constant : classForName(input.getType().getName()).getEnumConstants()) {
+            for (Object constant : classForName(input.getDeclaringClass().getName()).getEnumConstants()) {
                 Enum<?> anEnum = (Enum<?>) constant;
-                if (anEnum.name().equals(input.getName())) {
+                if (anEnum.name().equals(input.name())) {
                     return anEnum;
                 }
             }
             throw new IllegalStateException(String.format(
-                    "Couldn't find Enum Constant %s.%s", input.getType().getSimpleName(), input.getName()));
+                    "Couldn't find Enum Constant %s.%s", input.getDeclaringClass().getSimpleName(), input.name()));
         }
 
         @Override

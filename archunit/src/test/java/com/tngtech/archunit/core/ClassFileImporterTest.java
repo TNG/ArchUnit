@@ -129,7 +129,6 @@ import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
 import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
-import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
@@ -285,9 +284,8 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(classes.getFields(), "enumAndArrayAnnotatedField");
 
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class);
-        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
-        assertThat(annotation.get("enumArray").get()).isEqualTo(new JavaEnumConstant[]{
-                enumConstant(SOME_VALUE), enumConstant(OTHER_VALUE)});
+        assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
+        assertThat((JavaEnumConstant[]) annotation.get("enumArray").get()).matches(SOME_VALUE, OTHER_VALUE);
         assertThat(annotation.get("clazz").get()).extracting("name")
                 .containsExactly(Serializable.class.getName());
         assertThat((Object[]) annotation.get("classes").get()).extracting("name")
@@ -377,7 +375,7 @@ public class ClassFileImporterTest {
         JavaMethod method = findAnyByName(clazz.getMethods(), enumAndArrayAnnotatedMethod);
 
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class);
-        assertThat(annotation.get("value").get()).isEqualTo(enumConstant(OTHER_VALUE));
+        assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
         assertThat((Object[]) annotation.get("classes").get()).extracting("name")
                 .containsExactly(Object.class.getName(), Serializable.class.getName());
 

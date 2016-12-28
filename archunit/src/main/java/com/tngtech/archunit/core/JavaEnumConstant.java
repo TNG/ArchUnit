@@ -3,25 +3,25 @@ package com.tngtech.archunit.core;
 import java.util.Objects;
 
 public class JavaEnumConstant {
-    private final TypeDetails type;
+    private final JavaClass declaringClass;
     private final String name;
 
-    JavaEnumConstant(TypeDetails type, String name) {
-        this.type = type;
+    JavaEnumConstant(JavaClass declaringClass, String name) {
+        this.declaringClass = declaringClass;
         this.name = name;
     }
 
-    public TypeDetails getType() {
-        return type;
+    public JavaClass getDeclaringClass() {
+        return declaringClass;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, name);
+        return Objects.hash(declaringClass, name);
     }
 
     @Override
@@ -33,12 +33,12 @@ public class JavaEnumConstant {
             return false;
         }
         final JavaEnumConstant other = (JavaEnumConstant) obj;
-        return Objects.equals(this.type, other.type)
+        return Objects.equals(this.declaringClass, other.declaringClass)
                 && Objects.equals(this.name, other.name);
     }
 
     @Override
     public String toString() {
-        return type.getSimpleName() + "." + name;
+        return declaringClass.getSimpleName() + "." + name;
     }
 }

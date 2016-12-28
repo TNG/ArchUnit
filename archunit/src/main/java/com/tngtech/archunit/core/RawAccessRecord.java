@@ -120,7 +120,7 @@ class RawAccessRecord {
         final String desc;
 
         TargetInfo(String owner, String name, String desc) {
-            this.owner = JavaType.fromDescriptor(owner);
+            this.owner = JavaType.fromClassName(owner);
             this.name = name;
             this.desc = desc;
         }

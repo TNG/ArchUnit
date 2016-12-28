@@ -1,11 +1,10 @@
 package com.tngtech.archunit.core;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
-import com.google.common.collect.ImmutableList;
+import org.objectweb.asm.Type;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 
 public class TypeDetails {
@@ -13,10 +12,22 @@ public class TypeDetails {
     private String simpleName;
     private String javaPackage;
 
+    // FIXME: TypeDetails and JavaType seems somehow similar and meanwhile pretty much just handle some naming details. Anyway, this regex mess must be cleaned one way or another
     private TypeDetails(String fullName) {
+        checkArgument(fullName.matches("(\\[+L)?(\\w+\\.)*(\\w|\\$)+;?$") || fullName.matches("\\[+\\w"), "Full name %s is invalid", fullName);
+
         this.name = fullName;
-        this.simpleName = ensureSimpleName(fullName);
-        this.javaPackage = fullName.replaceAll("[^.]*$", "");
+        this.simpleName = createSimpleName(fullName);
+        this.javaPackage = isArray(fullName) ? "" : fullName.replaceAll("\\.?[^.]*$", "");
+    }
+
+    private String createSimpleName(String fullName) {
+        fullName = !fullName.startsWith("L") && !isArray(fullName) ? "L" + fullName + ";" : fullName;
+        return ensureSimpleName(Type.getType(fullName).getClassName());
+    }
+
+    private boolean isArray(String fullName) {
+        return fullName.startsWith("[");
     }
 
     public String getName() {
@@ -51,18 +62,6 @@ public class TypeDetails {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" + name + "}";
-    }
-
-    public static List<TypeDetails> allOf(Class<?>... types) {
-        return allOf(ImmutableList.copyOf(types));
-    }
-
-    private static List<TypeDetails> allOf(Collection<Class<?>> types) {
-        ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
-        for (Class<?> type : types) {
-            result.add(new TypeDetails(type.getName()));
-        }
-        return result.build();
     }
 
     public static TypeDetails of(String typeName) {

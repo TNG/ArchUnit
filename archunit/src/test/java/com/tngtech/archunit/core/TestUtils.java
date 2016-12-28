@@ -304,7 +304,7 @@ public class TestUtils {
     }
 
     public static <E extends Enum<?>> JavaEnumConstant enumConstant(E value) {
-        return new JavaEnumConstant(TypeDetails.of(value.getDeclaringClass().getName()), value.name());
+        return new JavaEnumConstant(simulateImport(value.getDeclaringClass(), simpleImportedClasses()), value.name());
     }
 
     static FieldAccessTarget targetFrom(JavaField field) {

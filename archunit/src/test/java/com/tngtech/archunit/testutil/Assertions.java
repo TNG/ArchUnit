@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClassList;
 import com.tngtech.archunit.core.JavaConstructor;
+import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
@@ -55,7 +56,6 @@ import static com.tngtech.archunit.core.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 import static com.tngtech.archunit.core.TestUtils.classForName;
-import static com.tngtech.archunit.core.TestUtils.enumConstant;
 import static com.tngtech.archunit.core.TestUtils.invoke;
 
 public class Assertions extends org.assertj.core.api.Assertions {
@@ -91,6 +91,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaConstructorAssertion(constructor);
     }
 
+    public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
+        return new JavaEnumConstantAssertion(enumConstant);
+    }
+
+    public static JavaEnumConstantsAssertion assertThat(JavaEnumConstant[] enumConstants) {
+        return new JavaEnumConstantsAssertion(enumConstants);
+    }
+
     public static class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion, JavaClass> {
         private static final Pattern ARRAY_PATTERN = Pattern.compile("(\\[+)(.*)");
 
@@ -99,7 +107,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getName()).isEqualTo(ensureArrayName(clazz.getName()));
+            assertThat(actual.getName()).isEqualTo(clazz.getName());
             assertThat(actual.getSimpleName()).isEqualTo(ensureArrayName(clazz.getSimpleName()));
             assertThat(propertiesOf(actual.getAnnotations())).isEqualTo(propertiesOf(clazz.getAnnotations()));
         }
@@ -166,6 +174,30 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
             assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
             assertThat(actual.getReturnType()).matches(void.class);
+        }
+    }
+
+    public static class JavaEnumConstantAssertion extends AbstractObjectAssert<JavaEnumConstantAssertion, JavaEnumConstant> {
+        private JavaEnumConstantAssertion(JavaEnumConstant enumConstant) {
+            super(enumConstant, JavaEnumConstantAssertion.class);
+        }
+
+        public void isEquivalentTo(Enum<?> enumConstant) {
+            assertThat(actual.getDeclaringClass().getName()).isEqualTo(enumConstant.getDeclaringClass().getName());
+            assertThat(actual.name()).isEqualTo(enumConstant.name());
+        }
+    }
+
+    public static class JavaEnumConstantsAssertion extends AbstractObjectAssert<JavaEnumConstantsAssertion, JavaEnumConstant[]> {
+        private JavaEnumConstantsAssertion(JavaEnumConstant[] enumConstants) {
+            super(enumConstants, JavaEnumConstantsAssertion.class);
+        }
+
+        public void matches(Enum<?>... enumConstants) {
+            assertThat((Object[]) actual).as("Enum constants").hasSize(enumConstants.length);
+            for (int i = 0; i < actual.length; i++) {
+                assertThat(actual[i]).as("Element %d", i).isEquivalentTo(enumConstants[i]);
+            }
         }
     }
 
@@ -256,10 +288,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return SimpleTypeReference.allOf((Class<?>[]) value);
         }
         if (value instanceof Enum) {
-            return enumConstant((Enum<?>) value);
+            return new SimpleEnumConstantReference((Enum<?>) value);
         }
         if (value instanceof Enum[]) {
-            return enumConstants((Enum[]) value);
+            return SimpleEnumConstantReference.allOf((Enum[]) value);
         }
         if (value instanceof Annotation) {
             return propertiesOf((Annotation) value);
@@ -308,12 +340,45 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    private static Object enumConstants(Enum[] enums) {
-        List<Object> result = new ArrayList<>();
-        for (Enum e : enums) {
-            result.add(enumConstant(e));
+    private static class SimpleEnumConstantReference {
+        private final SimpleTypeReference type;
+        private final String name;
+
+        SimpleEnumConstantReference(Enum<?> value) {
+            this.type = new SimpleTypeReference(value.getDeclaringClass().getName());
+            this.name = value.name();
         }
-        return result;
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, name);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final SimpleEnumConstantReference other = (SimpleEnumConstantReference) obj;
+            return Objects.equals(this.type, other.type)
+                    && Objects.equals(this.name, other.name);
+        }
+
+        @Override
+        public String toString() {
+            return type + "." + name;
+        }
+
+        static List<SimpleEnumConstantReference> allOf(Enum[] values) {
+            ImmutableList.Builder<SimpleEnumConstantReference> result = ImmutableList.builder();
+            for (Enum value : values) {
+                result.add(new SimpleEnumConstantReference(value));
+            }
+            return result.build();
+        }
     }
 
     public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {

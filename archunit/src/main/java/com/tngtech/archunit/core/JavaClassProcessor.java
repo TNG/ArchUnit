@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.ClassFileProcessor.ASM_API_VERSION;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -150,8 +151,9 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private JavaClass.Builder init(String classDescriptor) {
+        String typeName = createTypeName(classDescriptor);
         try {
-            Class<?> currentClass = JavaType.fromDescriptor(classDescriptor).asClass();
+            Class<?> currentClass = JavaType.fromClassName(typeName).asClass();
             return new JavaClass.Builder().withType(TypeDetails.of(currentClass.getName()));
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
@@ -160,13 +162,13 @@ class JavaClassProcessor extends ClassVisitor {
             LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
                     classDescriptor, e.getMessage());
         }
-        return new JavaClass.Builder().withType(TypeDetails.of(createTypeName(classDescriptor)));
+        return new JavaClass.Builder().withType(TypeDetails.of(typeName));
     }
 
     private static List<String> namesOf(Type[] types) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
         for (Type type : types) {
-            result.add(type.getClassName());
+            result.add(ensureCorrectArrayTypeName(type.getClassName())); // FIXME: Centralise the array handling and write test for array parameter, since all tests up to ClassCacheTest passed with wrong handling
         }
         return result.build();
     }
@@ -415,7 +417,7 @@ class JavaClassProcessor extends ClassVisitor {
         return new JavaAnnotation.ValueBuilder() {
             @Override
             Object build(ImportedClasses.ByTypeName importedClasses) {
-                return new JavaEnumConstant(TypeDetails.of(Type.getType(desc).getClassName()), value);
+                return new JavaEnumConstant(importedClasses.get(Type.getType(desc).getClassName()), value);
             }
         };
     }

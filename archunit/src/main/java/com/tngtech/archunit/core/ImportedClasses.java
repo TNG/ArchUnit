@@ -6,6 +6,8 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
+import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
+
 class ImportedClasses {
     private final ImmutableMap<String, JavaClass> directlyImported;
     private final Map<String, JavaClass> additionalClasses = new HashMap<>();
@@ -37,7 +39,7 @@ class ImportedClasses {
     }
 
     static JavaClass simpleClassOf(String typeName) {
-        return new JavaClass.Builder().withType(TypeDetails.of(typeName)).build();
+        return new JavaClass.Builder().withType(TypeDetails.of(ensureCorrectArrayTypeName(typeName))).build();
     }
 
     void add(JavaClass clazz) {
