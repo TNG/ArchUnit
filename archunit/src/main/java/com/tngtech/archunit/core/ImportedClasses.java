@@ -39,7 +39,7 @@ class ImportedClasses {
     }
 
     static JavaClass simpleClassOf(String typeName) {
-        return new JavaClass.Builder().withType(TypeDetails.of(ensureCorrectArrayTypeName(typeName))).build();
+        return new JavaClass.Builder().withType(JavaType.of(ensureCorrectArrayTypeName(typeName))).build();
     }
 
     void add(JavaClass clazz) {

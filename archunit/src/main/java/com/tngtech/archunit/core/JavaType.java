@@ -7,13 +7,12 @@ import org.objectweb.asm.Type;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 
-public class TypeDetails {
+public class JavaType {
     private String name;
     private String simpleName;
     private String javaPackage;
 
-    // FIXME: TypeDetails and JavaType seems somehow similar and meanwhile pretty much just handle some naming details. Anyway, this regex mess must be cleaned one way or another
-    private TypeDetails(String fullName) {
+    private JavaType(String fullName) {
         checkArgument(fullName.matches("(\\[+L)?(\\w+\\.)*(\\w|\\$)+;?$") || fullName.matches("\\[+\\w"), "Full name %s is invalid", fullName);
 
         this.name = fullName;
@@ -55,7 +54,7 @@ public class TypeDetails {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final TypeDetails other = (TypeDetails) obj;
+        final JavaType other = (JavaType) obj;
         return Objects.equals(this.name, other.name);
     }
 
@@ -64,15 +63,15 @@ public class TypeDetails {
         return getClass().getSimpleName() + "{" + name + "}";
     }
 
-    public static TypeDetails of(String typeName) {
-        return new TypeDetails(typeName);
+    public static JavaType of(String typeName) {
+        return new JavaType(typeName);
     }
 
     /**
      * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
      * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
      */
-    static TypeDetails fromAsmObjectType(String objectTypeName) {
-        return new TypeDetails(objectTypeName.replace("/", "."));
+    static JavaType fromAsmObjectType(String objectTypeName) {
+        return new JavaType(objectTypeName.replace("/", "."));
     }
 }

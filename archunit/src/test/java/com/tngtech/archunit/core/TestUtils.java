@@ -113,7 +113,7 @@ public class TestUtils {
         }
 
         private JavaClass importNew(Class<?> owner) {
-            JavaClass result = new JavaClass.Builder().withType(TypeDetails.of(owner.getName())).build();
+            JavaClass result = new JavaClass.Builder().withType(JavaType.of(owner.getName())).build();
             imported.put(result.getName(), result);
             return result;
         }
@@ -197,7 +197,7 @@ public class TestUtils {
     }
 
     private static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
-        JavaClass javaClass = new JavaClass.Builder().withType(TypeDetails.of(owner.getName())).build();
+        JavaClass javaClass = new JavaClass.Builder().withType(JavaType.of(owner.getName())).build();
         importedClasses.register(javaClass);
         ImportContext context = simulateImportContext(owner, importedClasses);
         javaClass.completeMembers(context);

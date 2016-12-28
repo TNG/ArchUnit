@@ -18,7 +18,7 @@ import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class JavaClass implements HasName, HasAnnotations {
-    private final TypeDetails typeDetails;
+    private final JavaType javaType;
     private Set<JavaField> fields = new HashSet<>();
     private Set<JavaCodeUnit> codeUnits = new HashSet<>();
     private Set<JavaMethod> methods = new HashSet<>();
@@ -33,21 +33,21 @@ public class JavaClass implements HasName, HasAnnotations {
     // FIXME: JavaClass should have modifiers
 
     private JavaClass(Builder builder) {
-        typeDetails = checkNotNull(builder.typeDetails);
+        javaType = checkNotNull(builder.javaType);
         isInterface = builder.isInterface;
     }
 
     @Override
     public String getName() {
-        return typeDetails.getName();
+        return javaType.getName();
     }
 
     public String getSimpleName() {
-        return typeDetails.getSimpleName();
+        return javaType.getSimpleName();
     }
 
     public String getPackage() {
-        return typeDetails.getPackage();
+        return javaType.getPackage();
     }
 
     public boolean isInterface() {
@@ -391,14 +391,6 @@ public class JavaClass implements HasName, HasAnnotations {
         }
     }
 
-    private static JavaClass findClass(String name, ImportContext context) {
-        return context.getJavaClassWithType(name);
-    }
-
-    private static Optional<JavaClass> findClass(Optional<TypeDetails> type, ImportContext context) {
-        return type.isPresent() ? Optional.of(findClass(type.get().getName(), context)) : Optional.<JavaClass>absent();
-    }
-
     void completeMembers(ImportContext context) {
         fields = context.createFields(this);
         methods = context.createMethods(this);
@@ -417,7 +409,7 @@ public class JavaClass implements HasName, HasAnnotations {
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + typeDetails.getName() + "\'}";
+        return "JavaClass{name='" + javaType.getName() + "\'}";
     }
 
     public Set<JavaFieldAccess> getFieldAccessesToSelf() {
@@ -486,12 +478,12 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     static final class Builder {
-        private TypeDetails typeDetails;
+        private JavaType javaType;
         private boolean isInterface;
 
         @SuppressWarnings("unchecked")
-        Builder withType(TypeDetails typeDetails) {
-            this.typeDetails = typeDetails;
+        Builder withType(JavaType javaType) {
+            this.javaType = javaType;
             return this;
         }
 

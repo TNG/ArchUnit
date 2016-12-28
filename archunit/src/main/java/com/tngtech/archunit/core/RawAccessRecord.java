@@ -115,12 +115,12 @@ class RawAccessRecord {
     }
 
     static abstract class TargetInfo {
-        final TypeDetails owner;
+        final JavaType owner;
         final String name;
         final String desc;
 
         TargetInfo(String owner, String name, String desc) {
-            this.owner = TypeDetails.fromAsmObjectType(owner);
+            this.owner = JavaType.fromAsmObjectType(owner);
             this.name = name;
             this.desc = desc;
         }
@@ -174,7 +174,7 @@ class RawAccessRecord {
         private static class ClassHierarchyPath {
             private final List<JavaClass> path = new ArrayList<>();
 
-            private ClassHierarchyPath(TypeDetails childType, JavaClass parent) {
+            private ClassHierarchyPath(JavaType childType, JavaClass parent) {
                 Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
                 Optional<JavaClass> child = tryFind(classesToSearchForChild, named(quote(childType.getName())));
                 if (child.isPresent()) {
