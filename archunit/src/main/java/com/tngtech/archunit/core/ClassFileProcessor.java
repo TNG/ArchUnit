@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
-import static com.tngtech.archunit.core.ReflectionUtils.tryGetClassForName;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor {
@@ -159,7 +158,7 @@ class ClassFileProcessor {
                 return Optional.of(importedClasses.get(typeName));
             }
 
-            Optional<Class<?>> type = tryGetClassForName(typeName);
+            Optional<Class<?>> type = JavaType.From.name(typeName).tryResolveClass();
             if (!type.isPresent()) {
                 return Optional.absent();
             }
@@ -180,7 +179,7 @@ class ClassFileProcessor {
 
         @Override
         public Map<String, Optional<JavaClass>> getAllSuperClasses(String className, ImportedClasses.ByTypeName importedClasses) {
-            Optional<Class<?>> type = tryGetClassForName(className);
+            Optional<Class<?>> type = JavaType.From.name(className).tryResolveClass();
             return type.isPresent() ?
                     tryGetAllSuperClasses(type.get(), importedClasses) :
                     Collections.<String, Optional<JavaClass>>emptyMap();

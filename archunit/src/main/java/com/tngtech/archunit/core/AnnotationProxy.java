@@ -18,8 +18,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
+@MayResolveTypesViaReflection(reason = "We depend on the classpath, if we proxy an annotation type")
 class AnnotationProxy {
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation toProxy) {
         checkArgument(annotationType.getName().equals(toProxy.getType().getName()),
@@ -98,7 +98,7 @@ class AnnotationProxy {
 
         @Override
         public Class<?> convert(JavaClass input, Class<?> returnType) {
-            return classForName(input.getName(), classLoader);
+            return JavaType.From.javaClass(input).resolveClass(classLoader);
         }
 
         @Override
@@ -127,9 +127,8 @@ class AnnotationProxy {
 
     private static class JavaEnumConstantConversion implements Conversion<JavaEnumConstant> {
         @Override
-        @MayResolveTypesViaReflection(reason = "We already depend on the classpath, if we proxy an annotation type")
         public Enum<?> convert(JavaEnumConstant input, Class<?> returnType) {
-            for (Object constant : classForName(input.getDeclaringClass().getName()).getEnumConstants()) {
+            for (Object constant : JavaType.From.javaClass(input.getDeclaringClass()).resolveClass().getEnumConstants()) {
                 Enum<?> anEnum = (Enum<?>) constant;
                 if (anEnum.name().equals(input.name())) {
                     return anEnum;
@@ -172,7 +171,8 @@ class AnnotationProxy {
 
         @Override
         public Annotation convert(JavaAnnotation input, Class<?> returnType) {
-            return AnnotationProxy.of((Class) classForName(input.getType().getName(), classLoader), input);
+            Class type = JavaType.From.javaClass(input.getType()).resolveClass(classLoader);
+            return AnnotationProxy.of(type, input);
         }
 
         @Override

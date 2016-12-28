@@ -4,10 +4,14 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.CanBeAnnotated;
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.HasAnnotations;
 import com.tngtech.archunit.core.HasName;
+import com.tngtech.archunit.core.HasOwner;
 import com.tngtech.archunit.core.HasParameters;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
@@ -17,6 +21,7 @@ import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
+import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -42,10 +47,10 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<HasAnnotations> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<HasAnnotations>("annotated with @" + annotationType.getSimpleName()) {
+    public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
+        return new DescribedPredicate<CanBeAnnotated>("annotated with @" + annotationType.getSimpleName()) {
             @Override
-            public boolean apply(HasAnnotations input) {
+            public boolean apply(CanBeAnnotated input) {
                 return input.isAnnotatedWith(annotationType);
             }
         };
@@ -93,11 +98,25 @@ public class ArchPredicates {
         };
     }
 
+    public static DescribedPredicate<HasOwner<JavaClass>> ownerIs(final DescribedPredicate<? super JavaClass> predicate) {
+        return new DescribedPredicate<HasOwner<JavaClass>>("owner " + predicate.getDescription()) {
+            @Override
+            public boolean apply(HasOwner<JavaClass> input) {
+                return predicate.apply(input.getOwner());
+            }
+        };
+    }
+
     public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return new DescribedPredicate<JavaFieldAccess>("owner is " + target.getName()) {
+        return fieldAccessTarget(ownerIs(named(quote(target.getName()))))
+                .as("owner is " + target.getName());
+    }
+
+    private static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(final DescribedPredicate<? super FieldAccessTarget> predicate) {
+        return new DescribedPredicate<JavaFieldAccess>("field access target " + predicate.getDescription()) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                return input.getTarget().getOwner().reflect() == target;
+                return predicate.apply(input.getTarget());
             }
         };
     }
@@ -145,8 +164,26 @@ public class ArchPredicates {
         };
     }
 
+    public static DescribedPredicate<JavaCall<?>> callTarget(final DescribedPredicate<? super CodeUnitCallTarget> predicate) {
+        return new DescribedPredicate<JavaCall<?>>("call target " + predicate) {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return predicate.apply(input.getTarget());
+            }
+        };
+    }
+
     public static CallPredicate callTarget() {
         return CallPredicate.target();
+    }
+
+    public static DescribedPredicate<JavaCall<?>> callOrigin(final DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return new DescribedPredicate<JavaCall<?>>("call origin " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return predicate.apply(input.getOrigin());
+            }
+        };
     }
 
     public static CallPredicate callOrigin() {
@@ -176,7 +213,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaFieldAccess> accessOrigin(final DescribedPredicate<? super JavaCodeUnit> predicate) {
-        return new DescribedPredicate<JavaFieldAccess>("origin is " + predicate.getDescription()) {
+        return new DescribedPredicate<JavaFieldAccess>("access origin " + predicate.getDescription()) {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return predicate.apply(input.getOrigin());

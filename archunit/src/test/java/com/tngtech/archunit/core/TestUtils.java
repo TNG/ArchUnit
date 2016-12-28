@@ -340,7 +340,7 @@ public class TestUtils {
     }
 
     public static Class<?> classForName(String name) {
-        return ReflectionUtils.classForName(name);
+        return JavaType.From.name(name).resolveClass();
     }
 
     private static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {

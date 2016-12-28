@@ -1,5 +1,7 @@
 package com.tngtech.archunit;
 
+import java.lang.annotation.Annotation;
+
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
@@ -8,7 +10,7 @@ import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaStaticInitializer;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.ReflectionUtils;
+import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
@@ -28,6 +30,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.declaredIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
 
 public class ArchUnitArchitectureTest {
     private static final ClassFileImporter importer = new ClassFileImporter()
@@ -55,23 +58,33 @@ public class ArchUnitArchitectureTest {
     private DescribedPredicate<JavaCall<?>> targetResolvesTypesIllegallyViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
                 callOrigin().is(annotatedWith(MayResolveTypesViaReflection.class))
-                        .or(callOrigin().isDeclaredIn(annotatedWith(MayResolveTypesViaReflection.class)));
+                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class));
 
         return classIsResolvedViaReflection().and(not(explicitlyAllowedUsage));
     }
 
-    private DescribedPredicate<JavaCall<?>> classIsResolvedViaReflection() {
-        CallPredicate defaultClassForName = callTarget().is(Class.class, "forName", String.class);
-        DescribedPredicate<JavaCall<?>> reflectionUtilsClassForName =
-                callTarget().is(ReflectionUtils.class, "classForName", String.class);
-        DescribedPredicate<JavaCall<?>> reflectionUtilsTryGetClassForName =
-                callTarget().is(ReflectionUtils.class, "tryGetClassForName", String.class);
-        DescribedPredicate<JavaCall<?>> javaClassReflect = callTarget().is(JavaClass.class, "reflect");
+    private DescribedPredicate<JavaCall<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
+        return callOrigin(ownerIs(new DescribedPredicate<JavaClass>(
+                "annotated with @" + annotationType.getName()) {
 
-        return defaultClassForName
-                .or(reflectionUtilsClassForName)
-                .or(reflectionUtilsTryGetClassForName)
-                .or(javaClassReflect);
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAnnotatedWith(annotationType)
+                        || enclosingClassIsAnnotated(input);
+            }
+
+            private boolean enclosingClassIsAnnotated(JavaClass input) {
+                return input.getEnclosingClass().isPresent() &&
+                        input.getEnclosingClass().get().isAnnotatedWith(annotationType);
+            }
+        }));
+    }
+
+    private DescribedPredicate<JavaCall<?>> classIsResolvedViaReflection() {
+        CallPredicate defaultClassForName = callTarget().isDeclaredIn(Class.class).hasName("forName");
+        DescribedPredicate<JavaCall<?>> targetIsMarked = callTarget(annotatedWith(ResolvesTypesViaReflection.class));
+
+        return defaultClassForName.or(targetIsMarked);
     }
 
     private ArchCondition<JavaClass> illegallyAccessReflectFunction() {

@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.lang.annotation.Annotation;
 import java.util.Objects;
 import java.util.Set;
 
@@ -79,7 +80,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         }
     }
 
-    public static class CodeUnitCallTarget extends AccessTarget implements HasParameters {
+    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters, CanBeAnnotated {
         private final ImmutableList<JavaClass> parameters;
 
         CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters) {
@@ -90,6 +91,24 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         @Override
         public JavaClassList getParameters() {
             return new JavaClassList(parameters);
+        }
+
+        /**
+         * Tries to resolve the targeted method or constructor.
+         *
+         * @see ConstructorCallTarget#tryResolve()
+         * @see MethodCallTarget#resolve()
+         */
+        public abstract Set<? extends JavaCodeUnit> resolve();
+
+        @Override
+        public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
+            for (JavaCodeUnit codeUnit : resolve()) {
+                if (codeUnit.isAnnotatedWith(annotation)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -105,8 +124,13 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          * @return A constructor that matches this target, or {@link Optional#absent()} if no matching constructor
          * was imported.
          */
-        public Optional<JavaConstructor> resolve() {
+        public Optional<JavaConstructor> tryResolve() {
             return constructor.get();
+        }
+
+        @Override
+        public Set<? extends JavaCodeUnit> resolve() {
+            return tryResolve().asSet();
         }
     }
 

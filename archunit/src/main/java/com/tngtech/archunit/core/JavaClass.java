@@ -14,7 +14,6 @@ import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class JavaClass implements HasName, HasAnnotations {
@@ -369,7 +368,7 @@ public class JavaClass implements HasName, HasAnnotations {
      */
     @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
     public Class<?> reflect() {
-        return classForName(getName());
+        return javaType.resolveClass(getClass().getClassLoader());
     }
 
     void completeClassHierarchyFrom(ImportContext context) {
