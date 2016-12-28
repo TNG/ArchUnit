@@ -29,10 +29,12 @@ public class JavaClass implements HasName, HasAnnotations {
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Map<String, JavaAnnotation> annotations = new HashMap<>();
+    private boolean isInterface;
     // FIXME: JavaClass should have modifiers
 
     private JavaClass(Builder builder) {
         typeDetails = checkNotNull(builder.typeDetails);
+        isInterface = builder.isInterface;
     }
 
     @Override
@@ -49,7 +51,7 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public boolean isInterface() {
-        return typeDetails.isInterface();
+        return isInterface;
     }
 
     @Override
@@ -485,6 +487,7 @@ public class JavaClass implements HasName, HasAnnotations {
 
     static final class Builder {
         private TypeDetails typeDetails;
+        private boolean isInterface;
 
         @SuppressWarnings("unchecked")
         Builder withType(TypeDetails typeDetails) {
@@ -492,7 +495,12 @@ public class JavaClass implements HasName, HasAnnotations {
             return this;
         }
 
-        public JavaClass build() {
+        Builder withInterface(boolean isInterface) {
+            this.isInterface = isInterface;
+            return this;
+        }
+
+        JavaClass build() {
             return new JavaClass(this);
         }
     }

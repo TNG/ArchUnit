@@ -5,35 +5,18 @@ import java.util.List;
 import java.util.Objects;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
-import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
 
 public class TypeDetails {
     private String name;
     private String simpleName;
     private String javaPackage;
-    private boolean isInterface;
-
-    @Deprecated // FIXME: Get rid of this constructor as soon as reflection is gone
-    private TypeDetails(Class<?> type) {
-        name = type.getName();
-        simpleName = type.getSimpleName();
-        javaPackage = type.getPackage() != null ? type.getPackage().getName() : "";
-        isInterface = type.isInterface();
-    }
-
-    private TypeDetails(Type type) {
-        this(type.getClassName());
-    }
 
     private TypeDetails(String fullName) {
         this.name = fullName;
         this.simpleName = ensureSimpleName(fullName);
-        this.javaPackage = fullName.replaceAll("(\\.|\\$).*$", "");
-        isInterface = false;
+        this.javaPackage = fullName.replaceAll("[^.]*$", "");
     }
 
     public String getName() {
@@ -46,10 +29,6 @@ public class TypeDetails {
 
     public String getPackage() {
         return javaPackage;
-    }
-
-    public boolean isInterface() {
-        return isInterface;
     }
 
     @Override
@@ -81,21 +60,9 @@ public class TypeDetails {
     private static List<TypeDetails> allOf(Collection<Class<?>> types) {
         ImmutableList.Builder<TypeDetails> result = ImmutableList.builder();
         for (Class<?> type : types) {
-            result.add(TypeDetails.of(type));
+            result.add(new TypeDetails(type.getName()));
         }
         return result.build();
-    }
-
-    public static TypeDetails of(Class<?> type) {
-        return new TypeDetails(type);
-    }
-
-    public static TypeDetails of(Type type) {
-        try {
-            return new TypeDetails(classForName(type.getClassName()));
-        } catch (ReflectionException e) {
-            return new TypeDetails(type);
-        }
     }
 
     public static TypeDetails of(String typeName) {

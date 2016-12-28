@@ -18,6 +18,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ class JavaClassProcessor extends ClassVisitor {
     private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
     private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
-    private boolean canImportCurrentClass;
     private String className;
 
     JavaClassProcessor(DeclarationHandler declarationHandler) {
@@ -50,7 +50,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     Optional<JavaClass> createJavaClass() {
-        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.<JavaClass>absent();
+        return Optional.of(javaClassBuilder.build());
     }
 
     @Override
@@ -64,6 +64,8 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
         javaClassBuilder = init(name);
+        boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
+        javaClassBuilder.withInterface(opCodeForInterfaceIsPresent);
         className = createTypeName(name);
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
     }
@@ -94,10 +96,6 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (!canImportCurrentClass) {
-            return super.visitField(access, name, desc, signature, value);
-        }
-
         JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
                 .withType(Type.getType(desc))
@@ -109,10 +107,6 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!canImportCurrentClass) {
-            return super.visitMethod(access, name, desc, signature, exceptions);
-        }
-
         LOG.debug("Analysing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
@@ -156,20 +150,17 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private JavaClass.Builder init(String classDescriptor) {
-        canImportCurrentClass = true;
         try {
             Class<?> currentClass = JavaType.fromDescriptor(classDescriptor).asClass();
-            return new JavaClass.Builder().withType(TypeDetails.of(currentClass));
+            return new JavaClass.Builder().withType(TypeDetails.of(currentClass.getName()));
         } catch (NoClassDefFoundError e) {
             LOG.warn("Can't analyse class '{}' because of missing dependency '{}'",
                     classDescriptor, e.getMessage());
-            canImportCurrentClass = false;
         } catch (ReflectionException e) {
             LOG.warn("Can't analyse class '{}' because of missing dependency. Error was: '{}'",
                     classDescriptor, e.getMessage());
-            canImportCurrentClass = false;
         }
-        return null;
+        return new JavaClass.Builder().withType(TypeDetails.of(createTypeName(classDescriptor)));
     }
 
     private static List<String> namesOf(Type[] types) {
@@ -424,7 +415,7 @@ class JavaClassProcessor extends ClassVisitor {
         return new JavaAnnotation.ValueBuilder() {
             @Override
             Object build(ImportedClasses.ByTypeName importedClasses) {
-                return new JavaEnumConstant(TypeDetails.of(Type.getType(desc)), value);
+                return new JavaEnumConstant(TypeDetails.of(Type.getType(desc).getClassName()), value);
             }
         };
     }

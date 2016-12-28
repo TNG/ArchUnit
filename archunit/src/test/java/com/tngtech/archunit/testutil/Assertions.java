@@ -14,11 +14,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
@@ -28,7 +30,6 @@ import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.Optional;
-import com.tngtech.archunit.core.TypeDetails;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.FailureMessages;
@@ -249,10 +250,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     private static Object valueOf(Object value) {
         if (value instanceof Class) {
-            return TypeDetails.of((Class<?>) value);
+            return new SimpleTypeReference(((Class<?>) value).getName());
         }
         if (value instanceof Class[]) {
-            return TypeDetails.allOf((Class<?>[]) value);
+            return SimpleTypeReference.allOf((Class<?>[]) value);
         }
         if (value instanceof Enum) {
             return enumConstant((Enum<?>) value);
@@ -267,6 +268,44 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return propertiesOf((Annotation[]) value);
         }
         return value;
+    }
+
+    private static class SimpleTypeReference {
+        private final String typeName;
+
+        private SimpleTypeReference(String typeName) {
+            this.typeName = typeName;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(typeName);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final SimpleTypeReference other = (SimpleTypeReference) obj;
+            return Objects.equals(this.typeName, other.typeName);
+        }
+
+        @Override
+        public String toString() {
+            return typeName;
+        }
+
+        static List<SimpleTypeReference> allOf(Class<?>[] value) {
+            ImmutableList.Builder<SimpleTypeReference> result = ImmutableList.builder();
+            for (Class<?> c : value) {
+                result.add(new SimpleTypeReference(c.getName()));
+            }
+            return result.build();
+        }
     }
 
     private static Object enumConstants(Enum[] enums) {
