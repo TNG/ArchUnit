@@ -63,15 +63,17 @@ public class JavaType {
         return getClass().getSimpleName() + "{" + name + "}";
     }
 
-    public static JavaType of(String typeName) {
-        return new JavaType(typeName);
-    }
+    static class From {
+        static JavaType name(String typeName) {
+            return new JavaType(typeName);
+        }
 
-    /**
-     * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
-     * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
-     */
-    static JavaType fromAsmObjectType(String objectTypeName) {
-        return new JavaType(objectTypeName.replace("/", "."));
+        /**
+         * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
+         * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
+         */
+        static JavaType fromAsmObjectTypeName(String objectTypeName) {
+            return new JavaType(objectTypeName.replace("/", "."));
+        }
     }
 }

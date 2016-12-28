@@ -120,7 +120,7 @@ class RawAccessRecord {
         final String desc;
 
         TargetInfo(String owner, String name, String desc) {
-            this.owner = JavaType.fromAsmObjectType(owner);
+            this.owner = JavaType.From.fromAsmObjectTypeName(owner);
             this.name = name;
             this.desc = desc;
         }
