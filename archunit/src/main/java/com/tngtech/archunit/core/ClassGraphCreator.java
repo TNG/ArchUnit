@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.ImportedClasses.simpleClassOf;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
-import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
 class ClassGraphCreator implements ImportContext {
     private static final Logger LOG = LoggerFactory.getLogger(ClassGraphCreator.class);
@@ -55,7 +54,7 @@ class ClassGraphCreator implements ImportContext {
 
     private void ensureCallTargetsArePresent() {
         for (RawAccessRecord record : importRecord.getAccessRecords()) {
-            classes.ensurePresent(ensureCorrectArrayTypeName(record.target.owner.getName()));
+            classes.ensurePresent(record.target.owner.getName());
         }
     }
 

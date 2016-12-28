@@ -26,7 +26,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.ClassFileProcessor.ASM_API_VERSION;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.ensureCorrectArrayTypeName;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -152,7 +151,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static List<String> namesOf(Type[] types) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
         for (Type type : types) {
-            result.add(ensureCorrectArrayTypeName(type.getClassName())); // FIXME: Centralise the array handling and write test for array parameter, since all tests up to ClassCacheTest passed with wrong handling
+            result.add(JavaType.From.asmType(type).getName());
         }
         return result.build();
     }

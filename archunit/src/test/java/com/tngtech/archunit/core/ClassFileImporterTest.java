@@ -142,6 +142,8 @@ public class ClassFileImporterTest {
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    // FIXME: Assert type details since we don't use reflection anymore and write tests for array parameters
+
     @Test
     public void imports_simple_classes() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
