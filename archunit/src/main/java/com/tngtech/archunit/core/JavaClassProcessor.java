@@ -63,7 +63,7 @@ class JavaClassProcessor extends ClassVisitor {
                 Optional.<String>absent();
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
-        javaClassBuilder = new JavaClass.Builder().withType(TypeDetails.of(JavaType.fromClassName(name).getName()));
+        javaClassBuilder = new JavaClass.Builder().withType(TypeDetails.fromAsmObjectType(name));
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         javaClassBuilder.withInterface(opCodeForInterfaceIsPresent);
         className = createTypeName(name);

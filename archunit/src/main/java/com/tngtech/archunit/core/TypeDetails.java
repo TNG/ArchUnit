@@ -67,4 +67,12 @@ public class TypeDetails {
     public static TypeDetails of(String typeName) {
         return new TypeDetails(typeName);
     }
+
+    /**
+     * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
+     * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
+     */
+    static TypeDetails fromAsmObjectType(String objectTypeName) {
+        return new TypeDetails(objectTypeName.replace("/", "."));
+    }
 }
