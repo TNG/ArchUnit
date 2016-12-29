@@ -193,7 +193,7 @@ interface JavaType {
         }
 
         private static class ObjectType extends AbstractType {
-            static final String CLASS_NAME_REGEX = "(\\w+\\.)*(\\w|\\$)+";
+            static final String CLASS_NAME_REGEX = "([^.]+\\.)*([^.])+";
 
             ObjectType(String fullName) {
                 super(fullName, ensureSimpleName(fullName), createPackage(fullName));

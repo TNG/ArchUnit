@@ -90,6 +90,15 @@ public class JavaTypeTest {
         assertThat(anonymousType.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
+    @Test
+    public void special_chars_type() {
+        JavaType specialChars = JavaType.From.name("s_123_wéirdâ.Weird_αρετη_Type");
+
+        assertThat(specialChars.getName()).isEqualTo("s_123_wéirdâ.Weird_αρετη_Type");
+        assertThat(specialChars.getSimpleName()).isEqualTo("Weird_αρετη_Type");
+        assertThat(specialChars.getPackage()).isEqualTo("s_123_wéirdâ");
+    }
+
     @DataProvider
     public static Object[][] primitives() {
         return ImmutableList.builder()
