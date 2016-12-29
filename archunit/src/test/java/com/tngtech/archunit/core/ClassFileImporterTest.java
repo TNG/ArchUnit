@@ -24,6 +24,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -106,6 +107,8 @@ import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecial
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.assertj.core.api.Condition;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,6 +149,16 @@ public class ClassFileImporterTest {
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
     @Rule
     public final TransientCopyRule copyRule = new TransientCopyRule();
+
+    @Before
+    public void setUp() {
+        ArchConfiguration.get().reset();
+    }
+
+    @After
+    public void tearDown() {
+        ArchConfiguration.get().reset();
+    }
 
     @Test
     public void imports_simple_package() throws Exception {
@@ -1331,6 +1344,19 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName());
 
         assertThat(classes.get(JavaClass.class)).isNotNull();
+    }
+
+    @Test
+    public void resolve_missing_dependencies_from_classpath_can_be_toogled() throws Exception {
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+        JavaClass clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
+
+        assertThat(clazz.getSuperClass().get().getMethods()).isNotEmpty();
+
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+        clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
+
+        assertThat(clazz.getSuperClass().get().getMethods()).isEmpty();
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {

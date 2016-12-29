@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -141,8 +142,20 @@ class ClassFileProcessor {
         }
     }
 
-    private ClassResolverFromClassPath getClassResolver(ClassDetailsRecorder classDetailsRecorder) {
-        return new ClassResolverFromClassPath(classDetailsRecorder);
+    private ClassResolver getClassResolver(ClassDetailsRecorder classDetailsRecorder) {
+        boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
+        return resolveFromClasspath ?
+                new ClassResolverFromClassPath(classDetailsRecorder) :
+                new SimpleClassResolver();
+    }
+
+    static class SimpleClassResolver implements ClassResolver {
+        @Override
+        public Optional<JavaClass> tryResolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
+            return importedClasses.contain(typeName) ?
+                    Optional.of(importedClasses.get(typeName)) :
+                    Optional.<JavaClass>absent();
+        }
     }
 
     @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
