@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
+import com.google.common.primitives.Ints;
 
 public class Formatters {
     private static final String FULL_METHOD_NAME_TEMPLATE = "%s.%s(%s)";
@@ -36,6 +37,13 @@ public class Formatters {
     }
 
     static String ensureSimpleName(String name) {
-        return name.replaceAll("^.*(\\.|\\$)", "");
+        String lastPart = name.replaceAll("^.*(\\.|\\$)", "");
+        return isAnonymousRest(lastPart) ? "" : lastPart;
+    }
+
+    // NOTE: Anonymous classes (e.g. clazz.getName() == some.Type$1) return an empty clazz.getSimpleName(),
+    //       so we mimic this behavior
+    private static boolean isAnonymousRest(String lastPart) {
+        return Ints.tryParse(lastPart) != null;
     }
 }

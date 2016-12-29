@@ -109,6 +109,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void matches(Class<?> clazz) {
             assertThat(actual.getName()).isEqualTo(clazz.getName());
             assertThat(actual.getSimpleName()).isEqualTo(ensureArrayName(clazz.getSimpleName()));
+            assertThat(actual.getPackage()).isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
             assertThat(propertiesOf(actual.getAnnotations())).isEqualTo(propertiesOf(clazz.getAnnotations()));
         }
 

@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -78,6 +79,15 @@ public class JavaTypeTest {
     public void resolving_throws_exception_if_type_doesnt_exist() {
         thrown.expect(ReflectionException.class);
         JavaType.From.name("does.not.exist").resolveClass();
+    }
+
+    @Test
+    public void anonymous_type() {
+        JavaType anonymousType = JavaType.From.name(new Serializable() {}.getClass().getName());
+
+        assertThat(anonymousType.getName()).isEqualTo(getClass().getName() + "$1");
+        assertThat(anonymousType.getSimpleName()).isEmpty();
+        assertThat(anonymousType.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @DataProvider

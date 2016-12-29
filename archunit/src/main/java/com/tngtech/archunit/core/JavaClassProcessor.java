@@ -57,16 +57,22 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.info("Analysing class '{}'", name);
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
-        Optional<String> superClassName = superName != null ?
-                Optional.of(createTypeName(superName)) :
-                Optional.<String>absent();
+        boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
+        Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
         javaClassBuilder = new JavaClass.Builder().withType(JavaType.From.fromAsmObjectTypeName(name));
-        boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         javaClassBuilder.withInterface(opCodeForInterfaceIsPresent);
         className = createTypeName(name);
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
+    }
+
+    // NOTE: For some reason ASM claims superName == java/lang/Object for Interfaces???
+    //       This is inconsistent with the behavior of Class.getSuperClass()
+    private Optional<String> getSuperClassName(String superName, boolean isInterface) {
+        return superName != null && !isInterface ?
+                Optional.of(createTypeName(superName)) :
+                Optional.<String>absent();
     }
 
     @Override

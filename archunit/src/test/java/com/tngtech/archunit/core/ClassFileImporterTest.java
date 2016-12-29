@@ -101,6 +101,7 @@ import com.tngtech.archunit.core.testexamples.methodimport.ClassWithStringString
 import com.tngtech.archunit.core.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportTwo;
+import com.tngtech.archunit.core.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecialTarget;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -142,16 +143,41 @@ public class ClassFileImporterTest {
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    // FIXME: Assert type details since we don't use reflection anymore and write tests for array parameters
+    // FIXME: Write tests for array parameters
 
     @Test
-    public void imports_simple_classes() throws Exception {
+    public void imports_simple_package() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
-                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName());
+                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName());
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
         assertThat(namesOf(classes)).isEqualTo(expectedClassNames);
+    }
+
+    @Test
+    public void imports_simple_class_details() throws Exception {
+        JavaClass javaClass = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
+
+        assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
+        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
+        assertThat(javaClass.getPackage()).as("package").isEqualTo(ClassToImportOne.class.getPackage().getName());
+        assertThat(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
+        assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
+        assertThat(javaClass.isInterface()).as("is interface").isFalse();
+    }
+
+    @Test
+    public void imports_interfaces() throws Exception {
+        JavaClass simpleInterface = classesIn("testexamples/simpleimport").get(InterfaceToImport.class);
+
+
+        assertThat(simpleInterface.getName()).as("full name").isEqualTo(InterfaceToImport.class.getName());
+        assertThat(simpleInterface.getSimpleName()).as("simple name").isEqualTo(InterfaceToImport.class.getSimpleName());
+        assertThat(simpleInterface.getPackage()).as("package").isEqualTo(InterfaceToImport.class.getPackage().getName());
+        assertThat(simpleInterface.getSuperClass()).as("super class").isAbsent();
+        assertThat(simpleInterface.getInterfaces()).as("interfaces").isEmpty();
+        assertThat(simpleInterface.isInterface()).as("is interface").isTrue();
     }
 
     @Test
@@ -542,7 +568,11 @@ public class ClassFileImporterTest {
         JavaMethod calledTarget = getOnlyElement(classes.get(CalledClass.class).getMethods());
 
         assertThat(innerClass.getEnclosingClass()).contains(classWithInnerClass);
+        assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
+        assertThat(anonymousClass.getName()).isEqualTo(ClassWithInnerClass.class.getName() + "$1");
+        assertThat(anonymousClass.getSimpleName()).isEmpty();
+        assertThat(anonymousClass.getPackage()).isEqualTo(ClassWithInnerClass.class.getPackage().getName());
 
         JavaMethodCall call = getOnlyElement(innerClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
 
