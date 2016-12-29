@@ -2,11 +2,9 @@ package com.tngtech.archunit.core;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
@@ -181,12 +179,8 @@ interface JavaType {
         }
 
         private static class ObjectType extends AbstractType {
-            static final String CLASS_NAME_REGEX = "([^.]+\\.)*([^.])+";
-            private static final Pattern CLASS_NAME_PATTERN = Pattern.compile(CLASS_NAME_REGEX);
-
             ObjectType(String fullName) {
                 super(fullName, ensureSimpleName(fullName), createPackage(fullName));
-                checkArgument(CLASS_NAME_PATTERN.matcher(fullName).matches(), "Full name %s is invalid", fullName);
             }
 
             private static String createPackage(String fullName) {
@@ -208,18 +202,11 @@ interface JavaType {
         }
 
         private static class ArrayType extends AbstractType {
-            private static final String PRIMITIVE_COMPONENT_TYPE_REGEX = Joiner.on("|").join(primitiveClassesByDescriptor.keySet());
-            private static final String OBJECT_COMPONENT_TYPE_REGEX = "(L" + ObjectType.CLASS_NAME_REGEX + ";)";
-            private static final String COMPONENT_TYPE_REGEX = PRIMITIVE_COMPONENT_TYPE_REGEX + "|" + OBJECT_COMPONENT_TYPE_REGEX;
-            private static final String ARRAY_REGEX = "\\[+(" + COMPONENT_TYPE_REGEX + ")";
-            private static final Pattern ARRAY_PATTERN = Pattern.compile(ARRAY_REGEX);
-
             ArrayType(String fullName) {
                 super(fullName, createSimpleName(fullName), "");
             }
 
             private static String createSimpleName(String fullName) {
-                checkArgument(ARRAY_PATTERN.matcher(fullName).matches(), "'%s' must be an array name", fullName);
                 // NOTE: ASM type.getClassName() returns the canonical name for any array, e.g. java.lang.Object[]
                 return ensureSimpleName(Type.getType(fullName).getClassName());
             }
