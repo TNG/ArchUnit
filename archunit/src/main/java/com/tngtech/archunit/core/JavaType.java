@@ -3,78 +3,213 @@ package com.tngtech.archunit.core;
 import java.util.Map;
 import java.util.Objects;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.objectweb.asm.Type;
 
-import static com.tngtech.archunit.core.ReflectionUtils.classForName;
-import static org.objectweb.asm.Type.ARRAY;
-import static org.objectweb.asm.Type.BOOLEAN_TYPE;
-import static org.objectweb.asm.Type.BYTE_TYPE;
-import static org.objectweb.asm.Type.CHAR_TYPE;
-import static org.objectweb.asm.Type.DOUBLE_TYPE;
-import static org.objectweb.asm.Type.FLOAT_TYPE;
-import static org.objectweb.asm.Type.INT_TYPE;
-import static org.objectweb.asm.Type.LONG_TYPE;
-import static org.objectweb.asm.Type.SHORT_TYPE;
-import static org.objectweb.asm.Type.VOID_TYPE;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.primitives.Primitives.allPrimitiveTypes;
+import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 
-class JavaType {
-    private static final Map<Type, Class<?>> PRIMITIVE_CLASSES = ImmutableMap.<Type, Class<?>>builder()
-            .put(VOID_TYPE, void.class)
-            .put(BOOLEAN_TYPE, boolean.class)
-            .put(CHAR_TYPE, char.class)
-            .put(BYTE_TYPE, byte.class)
-            .put(SHORT_TYPE, short.class)
-            .put(INT_TYPE, int.class)
-            .put(FLOAT_TYPE, float.class)
-            .put(LONG_TYPE, long.class)
-            .put(DOUBLE_TYPE, double.class)
-            .build();
+interface JavaType {
+    String getName();
 
-    private final String typeName;
+    String getSimpleName();
 
-    JavaType(String typeName) {
-        this.typeName = typeName;
-    }
+    String getPackage();
 
-    static JavaType fromDescriptor(String descriptor) {
-        Type type = Type.getObjectType(descriptor);
-        if (PRIMITIVE_CLASSES.containsKey(type)) {
-            return new JavaType(PRIMITIVE_CLASSES.get(type).getName());
+    @ResolvesTypesViaReflection
+    Class<?> resolveClass();
+
+    @ResolvesTypesViaReflection
+    Class<?> resolveClass(ClassLoader classLoader);
+
+    class From {
+        private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
+                Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
+                    @Override
+                    public String apply(Class<?> input) {
+                        return input.getName();
+                    }
+                });
+        private static final ImmutableBiMap<String, Class<?>> primitiveClassesByDescriptor =
+                ImmutableBiMap.copyOf(Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
+                    @Override
+                    public String apply(Class<?> input) {
+                        return Type.getType(input).getDescriptor();
+                    }
+                }));
+        private static final Map<String, Class<?>> primitiveClassesByNameOrDescriptor =
+                ImmutableMap.<String, Class<?>>builder()
+                        .putAll(primitiveClassesByName)
+                        .putAll(primitiveClassesByDescriptor)
+                        .build();
+
+        static JavaType name(String typeName) {
+            if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
+                return new PrimitiveType(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
+            }
+            if (isArray(typeName)) {
+                // NOTE: ASM uses the canonical name for arrays (i.e. java.lang.Object[]), but we want the class name,
+                //       i.e. [Ljava.lang.Object;
+                return new ArrayType(ensureCorrectArrayTypeName(typeName));
+            }
+            if (typeName.contains("/")) {
+                return new ObjectType(Type.getType(typeName).getClassName());
+            }
+            return new ObjectType(typeName);
         }
-        if (type.getSort() == ARRAY) {
-            return new JavaType(type.getClassName());
+
+        private static boolean isArray(String typeName) {
+            return typeName.startsWith("[") || typeName.endsWith("]"); // We support class name ([Ljava.lang.Object;) and canonical name java.lang.Object[]
         }
-        return new JavaType(type.getClassName());
-    }
 
-    public Class<?> asClass() {
-        return classForName(typeName);
-    }
-
-    public String getName() {
-        return typeName;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(typeName);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+        private static String ensureCorrectArrayTypeName(String name) {
+            return name.endsWith("[]") ? convertCanonicalArrayNameToClassName(name) : name;
         }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaType other = (JavaType) obj;
-        return Objects.equals(this.typeName, other.typeName);
-    }
 
-    @Override
-    public String toString() {
-        return "JavaType{typeName='" + typeName + "'}";
+        private static String convertCanonicalArrayNameToClassName(String name) {
+            String arrayDesignator = Strings.repeat("[", CharMatcher.is('[').countIn(name));
+            return arrayDesignator + createComponentTypeName(name);
+        }
+
+        private static String createComponentTypeName(String name) {
+            String baseName = name.substring(0, name.indexOf("[]"));
+
+            return primitiveClassesByName.containsKey(baseName) ?
+                    createPrimitiveComponentType(baseName) :
+                    createObjectComponentType(baseName);
+        }
+
+        private static String createPrimitiveComponentType(String componentTypeName) {
+            return primitiveClassesByDescriptor.inverse().get(primitiveClassesByName.get(componentTypeName));
+        }
+
+        private static String createObjectComponentType(String componentTypeName) {
+            return "L" + componentTypeName + ";";
+        }
+
+        /**
+         * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
+         * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
+         */
+        static JavaType fromAsmObjectTypeName(String objectTypeName) {
+            return asmType(Type.getObjectType(objectTypeName));
+        }
+
+        static JavaType asmType(Type type) {
+            return name(type.getClassName());
+        }
+
+        static JavaType javaClass(JavaClass javaClass) {
+            return name(javaClass.getName());
+        }
+
+        private static abstract class AbstractType implements JavaType {
+            private final String name;
+            private final String simpleName;
+            private final String javaPackage;
+
+            private AbstractType(String name, String simpleName, String javaPackage) {
+                this.name = name;
+                this.simpleName = simpleName;
+                this.javaPackage = javaPackage;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getSimpleName() {
+                return simpleName;
+            }
+
+            @Override
+            public String getPackage() {
+                return javaPackage;
+            }
+
+            @Override
+            public Class<?> resolveClass() {
+                return resolveClass(getClass().getClassLoader());
+            }
+
+            @Override
+            public Class<?> resolveClass(ClassLoader classLoader) {
+                try {
+                    return classForName(classLoader);
+                } catch (ClassNotFoundException e) {
+                    throw new ReflectionException(e);
+                }
+            }
+
+            @MayResolveTypesViaReflection(reason = "This method is one of the known sources for resolving via reflection")
+            Class<?> classForName(ClassLoader classLoader) throws ClassNotFoundException {
+                return Class.forName(getName(), false, classLoader);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(getName());
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj) {
+                    return true;
+                }
+                if (obj == null || getClass() != obj.getClass()) {
+                    return false;
+                }
+                final JavaType other = (JavaType) obj;
+                return Objects.equals(this.getName(), other.getName());
+            }
+
+            @Override
+            public String toString() {
+                return getClass().getSimpleName() + "{" + getName() + "}";
+            }
+        }
+
+        private static class ObjectType extends AbstractType {
+            ObjectType(String fullName) {
+                super(fullName, ensureSimpleName(fullName), createPackage(fullName));
+            }
+
+            private static String createPackage(String fullName) {
+                int packageEnd = fullName.lastIndexOf('.');
+                return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
+            }
+        }
+
+        private static class PrimitiveType extends AbstractType {
+            PrimitiveType(String fullName) {
+                super(fullName, fullName, "");
+                checkArgument(primitiveClassesByName.containsKey(fullName), "'%s' must be a primitive name", fullName);
+            }
+
+            @Override
+            Class<?> classForName(ClassLoader classLoader) throws ClassNotFoundException {
+                return primitiveClassesByName.get(getName());
+            }
+        }
+
+        private static class ArrayType extends AbstractType {
+            ArrayType(String fullName) {
+                super(fullName, createSimpleName(fullName), "");
+            }
+
+            private static String createSimpleName(String fullName) {
+                // NOTE: ASM type.getClassName() returns the canonical name for any array, e.g. java.lang.Object[]
+                return ensureSimpleName(Type.getType(fullName).getClassName());
+            }
+        }
     }
 }

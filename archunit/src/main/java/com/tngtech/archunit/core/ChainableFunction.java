@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core;
 
 public abstract class ChainableFunction<F, T> implements Function<F, T> {
-    public <E> Function<E, T> after(final Function<E, F> function) {
+    public <E> Function<E, T> after(final Function<E, ? extends F> function) {
         return new Function<E, T>() {
             @Override
             public T apply(E input) {

@@ -2,22 +2,20 @@ package com.tngtech.archunit.core;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.tngtech.archunit.core.JavaClass.INTERFACES;
-import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaClass.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.reflectionAssignableFrom;
-import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.TestUtils.javaClass;
+import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
@@ -28,7 +26,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_fields_and_methods() {
-        JavaClass javaClass = new JavaClass.Builder().withType(ClassWithTwoFieldsAndTwoMethods.class).build();
+        JavaClass javaClass = javaClassViaReflection(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
@@ -37,14 +35,14 @@ public class JavaClassTest {
         for (JavaField field : javaClass.getFields()) {
             assertThat(field.getOwner()).isSameAs(javaClass);
         }
-        for (JavaCodeUnit<?, ?> method : javaClass.getCodeUnits()) {
+        for (JavaCodeUnit method : javaClass.getCodeUnits()) {
             assertThat(method.getOwner()).isSameAs(javaClass);
         }
     }
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = new JavaClass.Builder().withType(ClassWithSeveralConstructors.class).build();
+        JavaClass javaClass = javaClassViaReflection(ClassWithSeveralConstructors.class);
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -53,78 +51,62 @@ public class JavaClassTest {
     }
 
     @Test
-    public void finds_static_Initializer() {
-        JavaClass javaClass = new JavaClass.Builder().withType(Object.class).build();
-
-        assertThat(javaClass.getStaticInitializer()).isNotNull();
-        assertThat(javaClass.getStaticInitializer().getName()).isEqualTo(STATIC_INITIALIZER_NAME);
-    }
-
-    @Test
-    public void equals_works() {
-        JavaClass javaClass = new JavaClass.Builder().withType(ClassWithTwoFieldsAndTwoMethods.class).build();
-        JavaClass equalClass = new JavaClass.Builder().withType(ClassWithTwoFieldsAndTwoMethods.class).build();
-        JavaClass differentClass = new JavaClass.Builder().withType(SuperClassWithFieldAndMethod.class).build();
-
-        assertThat(javaClass).isEqualTo(javaClass);
-        assertThat(javaClass).isEqualTo(equalClass);
-        assertThat(javaClass).isNotEqualTo(differentClass);
-    }
-
-    @Test
     public void anonymous_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder()
-                .withType(new Serializable() {
-                }.getClass())
-                .build();
+        JavaClass anonymous = javaClassViaReflection(new Serializable() {}.getClass());
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void inner_class_has_package_of_declaring_class() {
-        JavaClass anonymous = new JavaClass.Builder()
-                .withType(ClassWithInnerClass.Inner.class)
-                .build();
+        JavaClass anonymous = javaClassViaReflection(ClassWithInnerClass.Inner.class);
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void Array_class_has_default_package() {
-        JavaClass arrayType = new JavaClass.Builder().withType(JavaClassTest[].class).build();
+        JavaClass arrayType = javaClassViaReflection(JavaClassTest[].class);
 
         assertThat(arrayType.getPackage()).isEmpty();
     }
 
     @Test
     public void superclasses_are_found() {
-        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getAllSuperClasses()).containsExactly(
-                javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+        assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
+                SuperClassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
     }
 
     @Test
     public void hierarchy_is_found() {
-        JavaClass clazz = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getClassHierarchy()).containsExactly(
-                clazz, javaClass(SuperClassWithFieldAndMethod.class), javaClass(Parent.class), javaClass(Object.class));
+        assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
+                clazz.getName(),
+                SuperClassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
     }
 
     @Test
     public void Annotations_are_reported() {
-        assertThat(javaClass(Parent.class).isAnnotationPresent(SomeAnnotation.class))
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
-        assertThat(javaClass(Parent.class).isAnnotationPresent(Retention.class))
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
     }
 
     @Test
     public void allAccesses_contains_accesses_from_superclass() {
-        JavaClass javaClass = javaClass(ClassWithTwoFieldsAndTwoMethods.class);
-        JavaClass anotherClass = javaClass(Object.class);
+        JavaClass javaClass = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+                .get(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass anotherClass = javaClassViaReflection(Object.class);
         simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
         simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
@@ -135,9 +117,9 @@ public class JavaClassTest {
 
     @Test
     public void withType_works() {
-        assertThat(withType(Parent.class).apply(javaClass(Parent.class)))
+        assertThat(withType(Parent.class).apply(javaClassViaReflection(Parent.class)))
                 .as("withType(Parent) matches JavaClass Parent").isTrue();
-        assertThat(withType(Parent.class).apply(javaClass(SuperClassWithFieldAndMethod.class)))
+        assertThat(withType(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
                 .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
     }
 
@@ -149,6 +131,19 @@ public class JavaClassTest {
         assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
                 .to(SuperClassWithFieldAndMethod.class)
                 .isTrue();
+        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
+                .via(SuperClassWithFieldAndMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(InterfaceWithMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(Parent.class)
+                .to(InterfaceWithMethod.class)
+                .isFalse();
         assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
                 .to(Parent.class)
                 .isTrue();
@@ -168,6 +163,19 @@ public class JavaClassTest {
         assertThatAssignable().to(ClassWithTwoFieldsAndTwoMethods.class)
                 .from(SuperClassWithFieldAndMethod.class)
                 .isFalse();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .via(SuperClassWithFieldAndMethod.class)
+                .from(ClassWithTwoFieldsAndTwoMethods.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(Parent.class)
+                .isFalse();
         assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
                 .from(Parent.class)
                 .isFalse();
@@ -182,8 +190,6 @@ public class JavaClassTest {
     @Test
     public void descriptions() {
         assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
-        assertThat(reflectionAssignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
-        assertThat(reflectionAssignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
         assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
         assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
         assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
@@ -195,62 +201,65 @@ public class JavaClassTest {
 
     private static class AssignableAssert {
         private String message;
-        private DescribedPredicate<Class<?>> reflectionAssignable;
         private DescribedPredicate<JavaClass> assignable;
+        private Class<?> firstType;
 
         public FromEvaluation from(Class<?> type) {
+            firstType = type;
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
-            reflectionAssignable = reflectionAssignableFrom(type);
             assignable = assignableFrom(type);
             return new FromEvaluation();
         }
 
         public ToEvaluation to(Class<?> type) {
+            firstType = type;
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
-            reflectionAssignable = reflectionAssignableTo(type);
             assignable = assignableTo(type);
             return new ToEvaluation();
         }
 
-        private class FromEvaluation extends Evaluation {
+        private class FromEvaluation extends Evaluation<FromEvaluation> {
             public Evaluation to(Class<?> toType) {
                 return evaluationToType(toType);
             }
         }
 
-        private class ToEvaluation extends Evaluation {
-            public Evaluation from(Class<?> toType) {
-                return evaluationToType(toType);
+        private class ToEvaluation extends Evaluation<ToEvaluation> {
+            public Evaluation from(Class<?> fromType) {
+                return evaluationToType(fromType);
             }
         }
 
-        private class Evaluation {
-            private AbstractBooleanAssert<?> reflectionAssignableAssertion;
+        private class Evaluation<SELF> {
             private AbstractBooleanAssert<?> assignableAssertion;
 
-            Evaluation evaluationToType(Class<?> toType) {
-                reflectionAssignableAssertion = assertThat(reflectionAssignable.apply(toType))
-                        .as(LOWER_UNDERSCORE.to(LOWER_CAMEL, "reflection_" + message) + toType.getSimpleName());
-                assignableAssertion = assertThat(assignable.apply(javaClass(toType)))
-                        .as(message + toType.getSimpleName());
+            private final Set<Class<?>> additionalTypes = new HashSet<>();
+
+            // NOTE: We need all the classes in the context to create realistic hierarchies
+            @SuppressWarnings("unchecked")
+            SELF via(Class<?> type) {
+                additionalTypes.add(type);
+                return (SELF) this;
+            }
+
+            Evaluation evaluationToType(Class<?> secondType) {
+                Class<?>[] types = ImmutableSet.<Class<?>>builder()
+                        .addAll(additionalTypes).add(firstType).add(secondType)
+                        .build().toArray(new Class<?>[0]);
+                JavaClass javaClass = javaClassesViaReflection(types).get(secondType);
+                assignableAssertion = assertThat(assignable.apply(javaClass))
+                        .as(message + secondType.getSimpleName());
                 return this;
             }
 
             public void isTrue() {
-                reflectionAssignableAssertion.isTrue();
                 assignableAssertion.isTrue();
             }
 
             public void isFalse() {
-                reflectionAssignableAssertion.isFalse();
                 assignableAssertion.isFalse();
             }
         }
-    }
-
-    @Test
-    public void REFLECT_works() {
-        assertThat(REFLECT.apply(javaClass(Parent.class))).isEqualTo(Parent.class);
     }
 
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {
@@ -265,12 +274,17 @@ public class JavaClassTest {
         }
     }
 
-    static abstract class SuperClassWithFieldAndMethod extends Parent {
+    static abstract class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
-        private Object objectMethod() {
+        @Override
+        public Object objectMethod() {
             return null;
         }
+    }
+
+    interface InterfaceWithMethod {
+        Object objectMethod();
     }
 
     @SomeAnnotation

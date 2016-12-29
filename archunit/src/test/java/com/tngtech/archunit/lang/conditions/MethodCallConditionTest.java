@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -14,6 +14,7 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
@@ -143,12 +144,12 @@ public class MethodCallConditionTest {
     private static class MethodCallConditionBuilder {
         private Class<?> targetClass;
         private String methodName;
-        private List<Class<?>> paramTypes;
+        private List<String> paramTypes;
 
         private MethodCallConditionBuilder(MethodCallToAnalyse callToAnalyse) {
             targetClass = callToAnalyse.call.getTarget().getOwner().reflect();
             methodName = callToAnalyse.call.getTarget().getName();
-            paramTypes = callToAnalyse.call.getTarget().getParameters();
+            paramTypes = callToAnalyse.call.getTarget().getParameters().getNames();
         }
 
         private MethodCallConditionBuilder withTarget(Class<?> targetClass) {
@@ -161,13 +162,13 @@ public class MethodCallConditionTest {
             return this;
         }
 
-        public MethodCallConditionBuilder withParameters(Class<?> paramTypes) {
-            this.paramTypes = Lists.<Class<?>>newArrayList(paramTypes);
+        public MethodCallConditionBuilder withParameters(Class<?>... paramTypes) {
+            this.paramTypes = namesOf(ImmutableList.copyOf(paramTypes));
             return this;
         }
 
         private MethodCallCondition build() {
-            return new MethodCallCondition(callTarget().is(targetClass, methodName, paramTypes));
+            return new MethodCallCondition(callTarget().matches(targetClass, methodName, paramTypes));
         }
     }
 }

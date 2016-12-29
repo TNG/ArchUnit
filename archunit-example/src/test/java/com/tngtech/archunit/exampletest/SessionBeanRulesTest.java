@@ -21,11 +21,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.DescribedPredicate.are;
 import static com.tngtech.archunit.core.JavaClass.INTERFACES;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 
 public class SessionBeanRulesTest {
     private JavaClasses classes;
@@ -53,7 +53,7 @@ public class SessionBeanRulesTest {
             new DescribedPredicate<JavaClass>("annotated with @" + Stateless.class.getSimpleName()) {
                 @Override
                 public boolean apply(JavaClass input) {
-                    return input.reflect().getAnnotation(Stateless.class) != null;
+                    return input.isAnnotatedWith(Stateless.class);
                 }
             };
 
@@ -80,9 +80,12 @@ public class SessionBeanRulesTest {
             return false;
         }
 
+        // NOTE: We assume that in this project by convention @Local is always used as @Local(type) with exactly
+        //       one type, otherwise this would need to be more sophisticated
         private boolean isLocalBeanImplementation(JavaClass bean, JavaClass businessInterfaceType) {
-            return bean.isAnnotationPresent(Local.class)
-                    && (bean.reflect().getAnnotation(Local.class).value()[0] == businessInterfaceType.reflect());
+            return bean.isAnnotatedWith(Local.class) &&
+                    bean.getReflectionAnnotation(Local.class).value()[0].getName()
+                            .equals(businessInterfaceType.getName());
         }
     };
 

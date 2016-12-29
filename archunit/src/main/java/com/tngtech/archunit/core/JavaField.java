@@ -1,17 +1,25 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
+import org.objectweb.asm.Type;
 
-public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
-    private Set<JavaFieldAccess> accesses = Collections.emptySet();
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class JavaField extends JavaMember {
+    private final JavaClass type;
+    private final Supplier<Field> fieldSupplier;
+    private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     private JavaField(Builder builder) {
-        super(builder.member, builder.owner);
+        super(builder);
+        type = builder.getType();
+        fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
     }
 
     @Override
@@ -19,40 +27,56 @@ public class JavaField extends JavaMember<Field, MemberDescription.ForField> {
         return getOwner().getName() + "." + getName();
     }
 
-    public Class<?> getType() {
-        return memberDescription.getType();
+    public JavaClass getType() {
+        return type;
     }
 
     @Override
     public Set<JavaFieldAccess> getAccessesToSelf() {
-        return accesses;
+        return accessesToSelf.get();
     }
 
-    void registerAccesses(Collection<JavaFieldAccess> accesses) {
-        this.accesses = ImmutableSet.copyOf(accesses);
+    @Override
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
+    public Field reflect() {
+        return fieldSupplier.get();
     }
 
-    public static DescribedPredicate<JavaField> hasType(DescribedPredicate<? super Class<?>> predicate) {
-        return predicate.onResultOf(GET_TYPE)
-                .as("has type " + predicate.getDescription());
+    void registerAccessesToField(Supplier<Set<JavaFieldAccess>> accesses) {
+        this.accessesToSelf = checkNotNull(accesses);
     }
 
-    public static final Function<JavaField, Class<?>> GET_TYPE = new Function<JavaField, Class<?>>() {
-        @Override
-        public Class<?> apply(JavaField input) {
-            return input.getType();
-        }
-    };
+    static final class Builder extends JavaMember.Builder<JavaField, Builder> {
+        private Type type;
 
-    static final class Builder extends JavaMember.Builder<MemberDescription.ForField, JavaField> {
-        @Override
-        public JavaField build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaField(this);
+        Builder withType(Type type) {
+            this.type = type;
+            return self();
         }
 
-        public BuilderWithBuildParameter<JavaClass, JavaField> withField(Field field) {
-            return withMember(new MemberDescription.ForDeterminedField(field));
+        public JavaClass getType() {
+            return get(type.getClassName());
+        }
+
+        @Override
+        JavaField construct(Builder builder) {
+            return new JavaField(builder);
+        }
+    }
+
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    private class ReflectFieldSupplier implements Supplier<Field> {
+        @Override
+        public Field get() {
+            Class<?> reflectedOwner = getOwner().reflect();
+            try {
+                return reflectedOwner.getDeclaredField(getName());
+            } catch (NoSuchFieldException e) {
+                throw new InconsistentClassPathException(
+                        String.format("Can't resolve field %s.%s", reflectedOwner.getName(), getName()), e);
+            }
         }
     }
 }

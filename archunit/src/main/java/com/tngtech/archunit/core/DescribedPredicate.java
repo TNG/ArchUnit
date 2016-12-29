@@ -50,7 +50,7 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
-    public <F> DescribedPredicate<F> onResultOf(final Function<F, ? extends T> function) {
+    public <F> DescribedPredicate<F> onResultOf(final Function<? super F, ? extends T> function) {
         checkNotNull(function);
         return new DescribedPredicate<F>(description) {
             @Override
@@ -58,28 +58,6 @@ public abstract class DescribedPredicate<T> {
                 return DescribedPredicate.this.apply(function.apply(input));
             }
         };
-    }
-
-    /**
-     * This method is just syntactic sugar, e.g. to write aClass.that(is(special))
-     *
-     * @param predicate The original predicate
-     * @param <T>       The type of the object to decide on
-     * @return The original predicate
-     */
-    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
-        return predicate.as("is " + predicate.getDescription());
-    }
-
-    /**
-     * This method is just syntactic sugar, e.g. to write classes.that(are(special))
-     *
-     * @param predicate The original predicate
-     * @param <T>       The type of the object to decide on
-     * @return The original predicate
-     */
-    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
-        return predicate.as("are " + predicate.getDescription());
     }
 
     @SuppressWarnings("unchecked")

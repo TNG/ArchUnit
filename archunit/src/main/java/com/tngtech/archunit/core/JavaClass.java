@@ -1,65 +1,112 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.JavaClass.TypeAnalysisListener.NO_OP;
+import static com.google.common.collect.Iterables.concat;
+import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
-public class JavaClass implements HasName {
-    private final Class<?> type;
-    private final Set<JavaField> fields;
-    private final Set<JavaCodeUnit<?, ?>> codeUnits;
-    private final Set<JavaMethod> methods;
-    private final Set<JavaConstructor> constructors;
-    private final JavaStaticInitializer staticInitializer;
+public class JavaClass implements HasName, HasAnnotations {
+    private final JavaType javaType;
+    private final boolean isInterface;
+    private final Set<JavaModifier> modifiers;
+    private final Supplier<Class<?>> reflectSupplier;
+    private Set<JavaField> fields = new HashSet<>();
+    private Set<JavaCodeUnit> codeUnits = new HashSet<>();
+    private Set<JavaMethod> methods = new HashSet<>();
+    private Set<JavaConstructor> constructors = new HashSet<>();
+    private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
+    private Map<String, JavaAnnotation> annotations = new HashMap<>();
+    private Supplier<Set<JavaMethod>> allMethods;
+    private Supplier<Set<JavaConstructor>> allConstructors;
+    private Supplier<Set<JavaField>> allFields;
 
     private JavaClass(Builder builder) {
-        type = checkNotNull(builder.type);
-        fields = build(builder.fieldBuilders, this);
-        methods = build(builder.methodBuilders, this);
-        constructors = build(builder.constructorBuilders, this);
-        staticInitializer = new JavaStaticInitializer.Builder().build(this);
-        codeUnits = ImmutableSet.<JavaCodeUnit<?, ?>>builder()
-                .addAll(methods).addAll(constructors).add(staticInitializer)
-                .build();
+        javaType = checkNotNull(builder.javaType);
+        isInterface = builder.isInterface;
+        modifiers = builder.modifiers;
+        reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
     @Override
     public String getName() {
-        return type.getName();
+        return javaType.getName();
     }
 
     public String getSimpleName() {
-        return type.getSimpleName();
+        return javaType.getSimpleName();
     }
 
     public String getPackage() {
-        return type.getPackage() != null ? type.getPackage().getName() : "";
+        return javaType.getPackage();
     }
 
     public boolean isInterface() {
-        return type.isInterface();
+        return isInterface;
     }
 
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
-        return reflect().isAnnotationPresent(annotation);
+    @Override
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
+        return annotations.containsKey(annotation.getName());
+    }
+
+    /**
+     * @param type The type of the {@link Annotation} to retrieve
+     * @return The {@link Annotation} representing the given annotation type
+     * @throws IllegalArgumentException if the class is note annotated with the given type
+     * @see #isAnnotatedWith(Class)
+     * @see #getAnnotationOfType(Class)
+     */
+    public <A extends Annotation> A getReflectionAnnotation(Class<A> type) {
+        return getAnnotationOfType(type).as(type);
+    }
+
+    /**
+     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
+     * @return The {@link JavaAnnotation} representing the given annotation type
+     * @throws IllegalArgumentException if the class is note annotated with the given type
+     * @see #isAnnotatedWith(Class)
+     * @see #tryGetAnnotationOfType(Class)
+     */
+    @Override
+    public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
+        return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(
+                String.format("Type %s is not annotated with @%s", getSimpleName(), type.getSimpleName())));
+    }
+
+    @Override
+    public Set<JavaAnnotation> getAnnotations() {
+        return ImmutableSet.copyOf(annotations.values());
+    }
+
+    /**
+     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
+     * @return An {@link Optional} containing a {@link JavaAnnotation} representing the given annotation type,
+     * if this class is annotated with the given type, otherwise Optional.absent()
+     * @see #isAnnotatedWith(Class)
+     * @see #getAnnotationOfType(Class)
+     */
+    @Override
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
+        return Optional.fromNullable(annotations.get(type.getName()));
     }
 
     public Optional<JavaClass> getSuperClass() {
@@ -127,6 +174,11 @@ public class JavaClass implements HasName {
         return fields;
     }
 
+    public Set<JavaField> getAllFields() {
+        checkNotNull(allFields, "Method may not be called before construction of hierarchy is complete");
+        return allFields.get();
+    }
+
     public JavaField getField(String name) {
         return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
     }
@@ -140,7 +192,7 @@ public class JavaClass implements HasName {
         return Optional.absent();
     }
 
-    public Set<JavaCodeUnit<?, ?>> getCodeUnits() {
+    public Set<JavaCodeUnit> getCodeUnits() {
         return codeUnits;
     }
 
@@ -148,25 +200,42 @@ public class JavaClass implements HasName {
      * @param name       The name of the code unit, can be a method name, but also
      *                   {@link JavaConstructor#CONSTRUCTOR_NAME CONSTRUCTOR_NAME}
      *                   or {@link JavaStaticInitializer#STATIC_INITIALIZER_NAME STATIC_INITIALIZER_NAME}
-     * @param parameters The parameter signature of the method
+     * @param parameters The parameter signature of the method specified as {@link Class Class} Objects
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
-    public JavaCodeUnit<?, ?> getCodeUnit(String name, Class<?>... parameters) {
+    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, Class<?>... parameters) {
+        return getCodeUnitWithParameterTypes(name, ImmutableList.copyOf(parameters));
+    }
+
+    /**
+     * Same as {@link #getCodeUnitWithParameterTypes(String, Class[])}, but with parameter signature specified as full class names
+     */
+    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, String... parameters) {
+        return getCodeUnitWithParameterTypeNames(name, ImmutableList.copyOf(parameters));
+    }
+
+    /**
+     * @see #getCodeUnitWithParameterTypes(String, Class[])
+     */
+    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
+        return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+    }
+
+    /**
+     * @see #getCodeUnitWithParameterTypeNames(String, String...)
+     */
+    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> methods, String name, Class<?>[] parameters) {
-        return findMatchingCodeUnit(methods, name, newArrayList(parameters));
-    }
-
-    private <T extends JavaCodeUnit<?, ?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
                 " in codeUnits " + codeUnits + " of class " + getName()));
     }
 
-    private <T extends JavaCodeUnit<?, ?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<Class<?>> parameters) {
+    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters())) {
+            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters().getNames())) {
                 return Optional.of(codeUnit);
             }
         }
@@ -174,7 +243,7 @@ public class JavaClass implements HasName {
     }
 
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return findMatchingCodeUnit(methods, name, parameters);
+        return findMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
     public Set<JavaMethod> getMethods() {
@@ -182,22 +251,24 @@ public class JavaClass implements HasName {
     }
 
     public Set<JavaMethod> getAllMethods() {
-        ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getClassHierarchy()) {
-            result.addAll(javaClass.getMethods());
-        }
-        return result.build();
+        checkNotNull(allMethods, "Method may not be called before construction of hierarchy is complete");
+        return allMethods.get();
     }
 
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingCodeUnit(constructors, JavaConstructor.CONSTRUCTOR_NAME, parameters);
+        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
     }
 
     public Set<JavaConstructor> getConstructors() {
         return constructors;
     }
 
-    public JavaStaticInitializer getStaticInitializer() {
+    public Set<JavaConstructor> getAllConstructors() {
+        checkNotNull(allConstructors, "Method may not be called before construction of hierarchy is complete");
+        return allConstructors.get();
+    }
+
+    public Optional<JavaStaticInitializer> getStaticInitializer() {
         return staticInitializer;
     }
 
@@ -218,7 +289,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaFieldAccess> getFieldAccessesFromSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getFieldAccesses());
         }
         return result.build();
@@ -231,12 +302,12 @@ public class JavaClass implements HasName {
      * @see #getConstructorCallsFromSelf()
      */
     public Set<JavaCall<?>> getCallsFromSelf() {
-        return Sets.<JavaCall<?>>union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
+        return Sets.union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getMethodCallsFromSelf());
         }
         return result.build();
@@ -244,7 +315,7 @@ public class JavaClass implements HasName {
 
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
+        for (JavaCodeUnit codeUnit : codeUnits) {
             result.addAll(codeUnit.getConstructorCallsFromSelf());
         }
         return result.build();
@@ -271,6 +342,14 @@ public class JavaClass implements HasName {
         return result;
     }
 
+    public Set<JavaFieldAccess> getFieldAccessesToSelf() {
+        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
+        for (JavaField field : fields) {
+            result.addAll(field.getAccessesToSelf());
+        }
+        return result.build();
+    }
+
     public Set<JavaMethodCall> getMethodCallsToSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (JavaMethod method : methods) {
@@ -295,100 +374,144 @@ public class JavaClass implements HasName {
                 .build();
     }
 
-    public Class<?> reflect() {
-        return type;
+    public boolean isAssignableFrom(Class<?> type) {
+        List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
+                .add(this).addAll(getAllSubClasses()).build();
+
+        for (JavaClass javaClass : possibleTargets) {
+            if (javaClass.getName().equals(type.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    void completeClassHierarchyFrom(ClassFileImportContext context) {
+    public boolean isAssignableTo(Class<?> type) {
+        List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
+                .addAll(getClassHierarchy()).addAll(getAllInterfaces()).build();
+
+        for (JavaClass javaClass : possibleTargets) {
+            if (javaClass.getName().equals(type.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resolves the respective {@link Class} from the classpath.<br/>
+     * NOTE: This method will throw an exception, if the respective {@link Class} or any of its dependencies
+     * can't be found on the classpath.
+     *
+     * @return The {@link Class} equivalent to this {@link JavaClass}
+     */
+    @ResolvesTypesViaReflection
+    public Class<?> reflect() {
+        return reflectSupplier.get();
+    }
+
+    void completeClassHierarchyFrom(ImportContext context) {
         completeSuperClassFrom(context);
         completeInterfacesFrom(context);
+        allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
+            @Override
+            public Set<JavaField> get() {
+                ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
+                for (JavaClass javaClass : getClassHierarchy()) {
+                    result.addAll(javaClass.getFields());
+                }
+                return result.build();
+            }
+        });
+        allMethods = Suppliers.memoize(new Supplier<Set<JavaMethod>>() {
+            @Override
+            public Set<JavaMethod> get() {
+                ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
+                for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
+                    result.addAll(javaClass.getMethods());
+                }
+                return result.build();
+            }
+        });
+        allConstructors = Suppliers.memoize(new Supplier<Set<JavaConstructor>>() {
+            @Override
+            public Set<JavaConstructor> get() {
+                ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
+                for (JavaClass javaClass : getClassHierarchy()) {
+                    result.addAll(javaClass.getConstructors());
+                }
+                return result.build();
+            }
+        });
     }
 
-    private void completeSuperClassFrom(ClassFileImportContext context) {
-        superClass = findClass(type.getSuperclass(), context);
+    private void completeSuperClassFrom(ImportContext context) {
+        superClass = context.createSuperClass(this);
         if (superClass.isPresent()) {
             superClass.get().subClasses.add(this);
         }
     }
 
-    private void completeInterfacesFrom(ClassFileImportContext context) {
-        for (Class<?> i : type.getInterfaces()) {
-            interfaces.addAll(findClass(i, context).asSet());
-        }
+    private void completeInterfacesFrom(ImportContext context) {
+        interfaces.addAll(context.createInterfaces(this));
         for (JavaClass i : interfaces) {
             i.subClasses.add(this);
         }
     }
 
-    private static Optional<JavaClass> findClass(Class<?> clazz, ClassFileImportContext context) {
-        return clazz != null ? context.tryGetJavaClassWithType(clazz) : Optional.<JavaClass>absent();
+    void completeMembers(ImportContext context) {
+        fields = context.createFields(this);
+        methods = context.createMethods(this);
+        constructors = context.createConstructors(this);
+        staticInitializer = context.createStaticInitializer(this);
+        codeUnits = ImmutableSet.<JavaCodeUnit>builder()
+                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
+                .build();
+        this.annotations = context.createAnnotations(this);
     }
 
-    CompletionProcess completeFrom(ClassFileImportContext context) {
-        enclosingClass = findClass(type.getEnclosingClass(), context);
+    CompletionProcess completeFrom(ImportContext context) {
+        enclosingClass = context.createEnclosingClass(this);
         return new CompletionProcess();
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(type);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaClass other = (JavaClass) obj;
-        return Objects.equals(this.type, other.type);
-    }
-
-    @Override
     public String toString() {
-        return "JavaClass{name='" + type.getName() + "\'}";
+        return "JavaClass{name='" + javaType.getName() + "\'}";
     }
 
-    public Set<JavaFieldAccess> getFieldAccessesToSelf() {
-        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaField field : fields) {
-            result.addAll(field.getAccessesToSelf());
+    public static List<String> namesOf(Class<?>... paramTypes) {
+        return namesOf(ImmutableList.copyOf(paramTypes));
+    }
+
+    public static List<String> namesOf(List<Class<?>> paramTypes) {
+        ArrayList<String> result = new ArrayList<>();
+        for (Class<?> paramType : paramTypes) {
+            result.add(paramType.getName());
         }
-        return result.build();
+        return result;
     }
 
     public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
-        return DescribedPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT).as("with type " + type.getName());
-    }
-
-    public static DescribedPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
-        checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable to " + type.getName()) {
-            @Override
-            public boolean apply(Class<?> input) {
-                return type.isAssignableFrom(input);
-            }
-        };
-    }
-
-    public static DescribedPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
-        checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable from " + type.getName()) {
-            @Override
-            public boolean apply(Class<?> input) {
-                return input.isAssignableFrom(type);
-            }
-        };
+        return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("with type " + type.getName());
     }
 
     public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
-        return reflectionAssignableTo(type).onResultOf(REFLECT);
+        return new DescribedPredicate<JavaClass>("assignable to " + type.getName()) {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableTo(type);
+            }
+        };
     }
 
     public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
-        return reflectionAssignableFrom(type).onResultOf(REFLECT);
+        return new DescribedPredicate<JavaClass>("assignable from " + type.getName()) {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableFrom(type);
+            }
+        };
     }
 
     public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
@@ -398,73 +521,52 @@ public class JavaClass implements HasName {
         }
     };
 
-    public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
-        @Override
-        public Class<?> apply(JavaClass input) {
-            return input.reflect();
-        }
-    };
+    public Set<JavaModifier> getModifiers() {
+        return modifiers;
+    }
 
     class CompletionProcess {
-        AccessCompletion.SubProcess completeCodeUnitsFrom(ClassFileImportContext context) {
-            AccessCompletion.SubProcess accessCompletionProcess = new AccessCompletion.SubProcess();
-            for (JavaCodeUnit<?, ?> codeUnit : codeUnits) {
-                accessCompletionProcess.mergeWith(codeUnit.completeFrom(context));
+        AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
+            AccessContext.Part part = new AccessContext.Part();
+            for (JavaCodeUnit codeUnit : codeUnits) {
+                part.mergeWith(codeUnit.completeFrom(context));
             }
-            return accessCompletionProcess;
+            return part;
         }
     }
 
     static final class Builder {
-        private Class<?> type;
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
-        private final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
-        private final TypeAnalysisListener analysisListener;
-
-        Builder() {
-            this(NO_OP);
-        }
-
-        Builder(TypeAnalysisListener analysisListener) {
-            this.analysisListener = analysisListener;
-        }
+        private JavaType javaType;
+        private boolean isInterface;
+        private Set<JavaModifier> modifiers;
 
         @SuppressWarnings("unchecked")
-        Builder withType(Class<?> type) {
-            this.type = type;
-            for (Field field : type.getDeclaredFields()) {
-                fieldBuilders.add(new JavaField.Builder().withField(field));
-            }
-            for (Method method : type.getDeclaredMethods()) {
-                analysisListener.onMethodFound(method);
-                methodBuilders.add(new JavaMethod.Builder().withMethod(method));
-            }
-            for (Constructor<?> constructor : type.getDeclaredConstructors()) {
-                analysisListener.onConstructorFound(constructor);
-                constructorBuilders.add(new JavaConstructor.Builder().withConstructor(constructor));
-            }
+        Builder withType(JavaType javaType) {
+            this.javaType = javaType;
             return this;
         }
 
-        public JavaClass build() {
+        Builder withInterface(boolean isInterface) {
+            this.isInterface = isInterface;
+            return this;
+        }
+
+        Builder withModifiers(Set<JavaModifier> modifiers) {
+            this.modifiers = modifiers;
+            return this;
+        }
+
+        JavaClass build() {
             return new JavaClass(this);
         }
     }
 
-    interface TypeAnalysisListener {
-        void onMethodFound(Method method);
-
-        void onConstructorFound(Constructor<?> constructor);
-
-        TypeAnalysisListener NO_OP = new TypeAnalysisListener() {
-            @Override
-            public void onMethodFound(Method method) {
-            }
-
-            @Override
-            public void onConstructorFound(Constructor<?> constructor) {
-            }
-        };
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    private class ReflectClassSupplier implements Supplier<Class<?>> {
+        @Override
+        public Class<?> get() {
+            return javaType.resolveClass(getClass().getClassLoader());
+        }
     }
 }

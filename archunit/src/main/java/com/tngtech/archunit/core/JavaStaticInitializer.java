@@ -1,32 +1,18 @@
 package com.tngtech.archunit.core;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
+import java.lang.reflect.Member;
+import java.util.Collections;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
+import org.objectweb.asm.Type;
+
 import static java.util.Collections.emptySet;
 
-public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
+public class JavaStaticInitializer extends JavaCodeUnit {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
-    private int hashCode;
-
-    private JavaStaticInitializer(JavaClass clazz) {
-        super(new StaticInitializerDescription(), clazz);
-        hashCode = Objects.hash(getFullName());
-    }
-
-    @Override
-    public List<Class<?>> getParameters() {
-        return memberDescription.getParameterTypes();
-    }
-
-    @Override
-    public Class<?> getReturnType() {
-        return memberDescription.getReturnType();
+    private JavaStaticInitializer(Builder builder) {
+        super(builder);
     }
 
     @Override
@@ -35,73 +21,23 @@ public class JavaStaticInitializer extends JavaCodeUnit<Method, MemberDescriptio
     }
 
     @Override
-    public int hashCode() {
-        return hashCode;
+    public Member reflect() {
+        throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaStaticInitializer other = (JavaStaticInitializer) obj;
-        return Objects.equals(getFullName(), other.getFullName());
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
-    }
-
-    static class Builder implements BuilderWithBuildParameter<JavaClass, JavaStaticInitializer> {
-        @Override
-        public JavaStaticInitializer build(JavaClass owner) {
-            return new JavaStaticInitializer(owner);
-        }
-    }
-
-    private static class StaticInitializerDescription implements MemberDescription.ForMethod {
-
-        @Override
-        public List<Class<?>> getParameterTypes() {
-            return emptyList();
+    static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
+        public Builder() {
+            withReturnType(Type.getType(void.class));
+            withParameters(new Type[0]);
+            withName(STATIC_INITIALIZER_NAME);
+            withDescriptor("()V");
+            withAnnotations(Collections.<JavaAnnotation.Builder>emptySet());
+            withModifiers(Collections.<JavaModifier>emptySet());
         }
 
         @Override
-        public Class<?> getReturnType() {
-            return void.class;
-        }
-
-        @Override
-        public String getName() {
-            return STATIC_INITIALIZER_NAME;
-        }
-
-        @Override
-        public int getModifiers() {
-            return 0;
-        }
-
-        @Override
-        public Annotation[] getAnnotations() {
-            return new Annotation[0];
-        }
-
-        @Override
-        public String getDescriptor() {
-            return "()V";
-        }
-
-        @Override
-        public Method reflect() {
-            throw new RuntimeException("Can't reflect a static initializer");
-        }
-
-        @Override
-        public void checkCompatibility(JavaClass owner) {
+        JavaStaticInitializer construct(Builder builder) {
+            return new JavaStaticInitializer(builder);
         }
     }
 }

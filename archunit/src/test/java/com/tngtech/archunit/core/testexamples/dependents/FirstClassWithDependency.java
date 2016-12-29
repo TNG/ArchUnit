@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class FirstClassWithDependency {
     void first() {
-        ClassWithDependents instanceOne = new ClassWithDependents();
+        ClassHoldingDependencies instanceOne = new ClassHoldingDependencies();
         Object someOtherObject = new Object();
         Serializable someSerializable = new Serializable() {
         };
@@ -15,7 +15,7 @@ public class FirstClassWithDependency {
     }
 
     void second() {
-        ClassWithDependents instanceTwo = new ClassWithDependents(1);
+        ClassHoldingDependencies instanceTwo = new ClassHoldingDependencies(1);
         instanceTwo.setSomeString("string");
         instanceTwo.someString = "other";
     }

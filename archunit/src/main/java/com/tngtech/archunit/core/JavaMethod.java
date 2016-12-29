@@ -1,29 +1,23 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
 
-public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod> {
-    private Set<JavaMethodCall> calls = Collections.emptySet();
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.Formatters.formatMethod;
+
+public class JavaMethod extends JavaCodeUnit {
+    private final Supplier<Method> methodSupplier;
+    private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
 
     private JavaMethod(Builder builder) {
         super(builder);
-    }
-
-    @Override
-    public List<Class<?>> getParameters() {
-        return ImmutableList.copyOf(memberDescription.getParameterTypes());
-    }
-
-    @Override
-    public Class<?> getReturnType() {
-        return memberDescription.getReturnType();
+        methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
     }
 
     public Set<JavaMethodCall> getCallsOfSelf() {
@@ -32,22 +26,39 @@ public class JavaMethod extends JavaCodeUnit<Method, MemberDescription.ForMethod
 
     @Override
     public Set<JavaMethodCall> getAccessesToSelf() {
-        return calls;
+        return callsToSelf.get();
     }
 
-    public void registerCalls(Collection<JavaMethodCall> calls) {
-        this.calls = ImmutableSet.copyOf(calls);
+    @Override
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
+    public Method reflect() {
+        return methodSupplier.get();
     }
 
-    static class Builder extends JavaMember.Builder<MemberDescription.ForMethod, JavaMethod> {
+    void registerCallsToMethod(Supplier<Set<JavaMethodCall>> calls) {
+        this.callsToSelf = checkNotNull(calls);
+    }
+
+    static class Builder extends JavaCodeUnit.Builder<JavaMethod, Builder> {
         @Override
-        public JavaMethod build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaMethod(this);
+        JavaMethod construct(Builder builder) {
+            return new JavaMethod(builder);
         }
+    }
 
-        public BuilderWithBuildParameter<JavaClass, JavaMethod> withMethod(Method method) {
-            return withMember(new MemberDescription.ForDeterminedMethod(method));
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    private class ReflectMethodSupplier implements Supplier<Method> {
+        @Override
+        public Method get() {
+            Class<?> reflectedOwner = getOwner().reflect();
+            try {
+                return reflectedOwner.getDeclaredMethod(getName(), reflect(getParameters()));
+            } catch (NoSuchMethodException e) {
+                throw new InconsistentClassPathException(
+                        "Can't resolve method " + formatMethod(reflectedOwner.getName(), getName(), getParameters()), e);
+            }
         }
     }
 }

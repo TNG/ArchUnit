@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.TestUtils.javaClasses;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIgnoredMethod.toBeIgnored;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIllegalTestMethods.noParams;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIllegalTestMethods.tooManyParams;
@@ -52,7 +52,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     @InjectMocks
     private ArchUnitRunner runner = newRunnerFor(ArchTestWithTestMethod.class);
 
-    private JavaClasses cachedClasses = javaClasses(ArchUnitRunnerRunsMethodsTest.class);
+    private JavaClasses cachedClasses = javaClassesViaReflection(ArchUnitRunnerRunsMethodsTest.class);
 
     @Before
     public void setUp() {

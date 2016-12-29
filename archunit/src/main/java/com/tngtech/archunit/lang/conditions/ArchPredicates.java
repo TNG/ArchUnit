@@ -1,16 +1,27 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.CanBeAnnotated;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.HasName;
+import com.tngtech.archunit.core.HasOwner;
+import com.tngtech.archunit.core.HasParameters;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
 import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.JavaClass.REFLECT;
+import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
+import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
+import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -36,11 +47,11 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<JavaClass> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getSimpleName()) {
+    public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
+        return new DescribedPredicate<CanBeAnnotated>("annotated with @" + annotationType.getSimpleName()) {
             @Override
-            public boolean apply(JavaClass input) {
-                return input.reflect().getAnnotation(annotationType) != null;
+            public boolean apply(CanBeAnnotated input) {
+                return input.isAnnotatedWith(annotationType);
             }
         };
     }
@@ -59,7 +70,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaClass> theHierarchyOf(Class<?> type) {
-        return theHierarchyOfAClassThat(equalTo((Class) type).onResultOf(REFLECT))
+        return theHierarchyOfAClassThat(equalTo(type.getName()).onResultOf(GET_NAME))
                 .as("the hierarchy of %s.class", type.getSimpleName());
     }
 
@@ -87,11 +98,25 @@ public class ArchPredicates {
         };
     }
 
+    public static DescribedPredicate<HasOwner<JavaClass>> ownerIs(final DescribedPredicate<? super JavaClass> predicate) {
+        return new DescribedPredicate<HasOwner<JavaClass>>("owner " + predicate.getDescription()) {
+            @Override
+            public boolean apply(HasOwner<JavaClass> input) {
+                return predicate.apply(input.getOwner());
+            }
+        };
+    }
+
     public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return new DescribedPredicate<JavaFieldAccess>("owner is " + target.getName()) {
+        return fieldAccessTarget(ownerIs(named(quote(target.getName()))))
+                .as("owner is " + target.getName());
+    }
+
+    private static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(final DescribedPredicate<? super FieldAccessTarget> predicate) {
+        return new DescribedPredicate<JavaFieldAccess>("field access target " + predicate.getDescription()) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                return input.getTarget().getOwner().reflect() == target;
+                return predicate.apply(input.getTarget());
             }
         };
     }
@@ -120,10 +145,30 @@ public class ArchPredicates {
         return new DescribedPredicate<JavaFieldAccess>("target type resides in '%s'", packageIdentifier) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                Class<?> fieldType = input.getTarget().reflect().getType();
+                JavaClass fieldType = input.getTarget().getType();
+                return packageMatcher.matches(fieldType.getPackage());
+            }
+        };
+    }
 
-                return fieldType.getPackage() != null &&
-                        packageMatcher.matches(fieldType.getPackage().getName());
+    public static DescribedPredicate<HasParameters> hasParameterTypes(final List<Class<?>> paramTypes) {
+        return hasParameterTypeNames(namesOf(paramTypes));
+    }
+
+    public static DescribedPredicate<HasParameters> hasParameterTypeNames(final List<String> paramTypeNames) {
+        return new DescribedPredicate<HasParameters>("has parameters [%s]", formatMethodParameterTypeNames(paramTypeNames)) {
+            @Override
+            public boolean apply(HasParameters input) {
+                return paramTypeNames.equals(input.getParameters().getNames());
+            }
+        };
+    }
+
+    public static DescribedPredicate<JavaCall<?>> callTarget(final DescribedPredicate<? super CodeUnitCallTarget> predicate) {
+        return new DescribedPredicate<JavaCall<?>>("call target " + predicate) {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return predicate.apply(input.getTarget());
             }
         };
     }
@@ -132,7 +177,56 @@ public class ArchPredicates {
         return CallPredicate.target();
     }
 
+    public static DescribedPredicate<JavaCall<?>> callOrigin(final DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return new DescribedPredicate<JavaCall<?>>("call origin " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return predicate.apply(input.getOrigin());
+            }
+        };
+    }
+
     public static CallPredicate callOrigin() {
         return CallPredicate.origin();
+    }
+
+    /**
+     * This method is just syntactic sugar, e.g. to write aClass.that(is(special))
+     *
+     * @param predicate The original predicate
+     * @param <T>       The type of the object to decide on
+     * @return The original predicate
+     */
+    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
+        return predicate.as("is " + predicate.getDescription());
+    }
+
+    /**
+     * This method is just syntactic sugar, e.g. to write classes.that(are(special))
+     *
+     * @param predicate The original predicate
+     * @param <T>       The type of the object to decide on
+     * @return The original predicate
+     */
+    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
+        return predicate.as("are " + predicate.getDescription());
+    }
+
+    public static DescribedPredicate<JavaFieldAccess> accessOrigin(final DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return new DescribedPredicate<JavaFieldAccess>("access origin " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaFieldAccess input) {
+                return predicate.apply(input.getOrigin());
+            }
+        };
+    }
+
+    public static DescribedPredicate<JavaCodeUnit> declaredIn(final DescribedPredicate<? super JavaClass> predicate) {
+        return new DescribedPredicate<JavaCodeUnit>("declared in " + predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaCodeUnit input) {
+                return predicate.apply(input.getOwner());
+            }
+        };
     }
 }

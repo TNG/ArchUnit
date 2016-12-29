@@ -5,15 +5,16 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import org.objectweb.asm.Opcodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 
-public class JavaFieldAccess extends JavaAccess<JavaField> {
+public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     private static final Map<AccessType, String> MESSAGE_TEMPLATE = ImmutableMap.of(
             GET, "Method <%s> gets field <%s>",
             SET, "Method <%s> sets field <%s>");
@@ -58,7 +59,7 @@ public class JavaFieldAccess extends JavaAccess<JavaField> {
 
     public static String getDescriptionTemplateFor(Set<AccessType> accessTypes) {
         return accessTypes.size() == 1
-                ? MESSAGE_TEMPLATE.get(Iterables.getOnlyElement(accessTypes))
+                ? MESSAGE_TEMPLATE.get(getOnlyElement(accessTypes))
                 : "Method <%s> accesses field <%s>";
     }
 

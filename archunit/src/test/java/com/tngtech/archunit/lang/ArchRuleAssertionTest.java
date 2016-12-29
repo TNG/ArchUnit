@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.tngtech.archunit.core.TestUtils.javaClasses;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRuleAssertion.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,7 +41,7 @@ public class ArchRuleAssertionTest {
     public void assertion_should_print_all_event_messages() {
         expectAssertionErrorWithMessages("first", "second");
 
-        all(javaClasses(ArchRuleAssertionTest.class))
+        all(javaClassesViaReflection(ArchRuleAssertionTest.class))
                 .should(conditionThatReportsErrors("first", "second"));
     }
 
@@ -51,7 +51,7 @@ public class ArchRuleAssertionTest {
 
         expectAssertionErrorWithMessages("third one more", "fourth");
 
-        all(javaClasses(ArchRuleAssertionTest.class))
+        all(javaClassesViaReflection(ArchRuleAssertionTest.class))
                 .should(conditionThatReportsErrors("first one", "second two", "third one more", "fourth"));
     }
 
@@ -59,7 +59,7 @@ public class ArchRuleAssertionTest {
     public void if_all_messages_are_ignored_the_test_passes() throws IOException {
         writeIgnoreFileWithPatterns(".*");
 
-        all(javaClasses(ArchRuleAssertionTest.class))
+        all(javaClassesViaReflection(ArchRuleAssertionTest.class))
                 .should(conditionThatReportsErrors("first one", "second two"));
     }
 

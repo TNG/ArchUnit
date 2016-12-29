@@ -6,12 +6,12 @@ import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
+public abstract class JavaAccess<TARGET extends AccessTarget>
         implements HasName, IsOwnedByCodeUnit, HasDescription {
 
     private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
 
-    private final JavaCodeUnit<?, ?> origin;
+    private final JavaCodeUnit origin;
     private final TARGET target;
     private final int lineNumber;
     private final int hashCode;
@@ -20,7 +20,7 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
         this(record.getCaller(), record.getTarget(), record.getLineNumber());
     }
 
-    JavaAccess(JavaCodeUnit<?, ?> origin, TARGET target, int lineNumber) {
+    JavaAccess(JavaCodeUnit origin, TARGET target, int lineNumber) {
         this.origin = checkNotNull(origin);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
@@ -32,7 +32,7 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
         return target.getName();
     }
 
-    public JavaCodeUnit<?, ?> getOrigin() {
+    public JavaCodeUnit getOrigin() {
         return origin;
     }
 
@@ -53,7 +53,7 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
     }
 
     @Override
-    public JavaCodeUnit<?, ?> getOwner() {
+    public JavaCodeUnit getOwner() {
         return getOrigin();
     }
 
@@ -107,10 +107,10 @@ public abstract class JavaAccess<TARGET extends JavaMember<?, ?>>
 
     protected abstract String descriptionTemplate();
 
-    public static final ChainableFunction<JavaAccess<?>, JavaMember<?, ?>> GET_TARGET =
-            new ChainableFunction<JavaAccess<?>, JavaMember<?, ?>>() {
+    public static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET =
+            new ChainableFunction<JavaAccess<?>, AccessTarget>() {
                 @Override
-                public JavaMember<?, ?> apply(JavaAccess<?> input) {
+                public AccessTarget apply(JavaAccess<?> input) {
                     return input.getTarget();
                 }
             };

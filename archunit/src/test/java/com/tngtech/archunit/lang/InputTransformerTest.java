@@ -3,12 +3,13 @@ package com.tngtech.archunit.lang;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.TestUtils.javaClasses;
+import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InputTransformerTest {
@@ -16,7 +17,7 @@ public class InputTransformerTest {
     public void transform_javaclasses() {
         InputTransformer<String> transformer = toNameTransformer();
 
-        JavaClasses classes = javaClasses(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed).containsOnly(InputTransformer.class.getName(), InputTransformerTest.class.getName());
@@ -26,7 +27,7 @@ public class InputTransformerTest {
     public void filter_by_predicate() {
         InputTransformer<String> transformer = toNameTransformer().that(endInTest());
 
-        JavaClasses classes = javaClasses(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed).containsOnly(InputTransformerTest.class.getName());
@@ -36,7 +37,7 @@ public class InputTransformerTest {
     public void description_is_applied() {
         InputTransformer<String> transformer = toNameTransformer().as("special description");
 
-        JavaClasses classes = javaClasses(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("special description");
@@ -46,7 +47,7 @@ public class InputTransformerTest {
     public void description_is_extended_by_predicate() {
         InputTransformer<String> transformer = toNameTransformer().as("names").that(endInTest().as("end in Test"));
 
-        JavaClasses classes = javaClasses(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("names that end in Test");
@@ -58,7 +59,7 @@ public class InputTransformerTest {
                 .that(endInTest().as("end in Test"))
                 .as("override");
 
-        JavaClasses classes = javaClasses(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("override");

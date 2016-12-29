@@ -17,8 +17,8 @@ import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newTreeSet;
-import static com.tngtech.archunit.core.TestUtils.javaClass;
-import static com.tngtech.archunit.core.TestUtils.javaMethod;
+import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
@@ -43,11 +43,11 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 public class ArchConditionsTest {
     @Test
     public void never_call_method_in_hierarchy_of() throws NoSuchMethodException {
-        JavaClass callingClass = javaClass(CallingClass.class);
+        JavaClass callingClass = javaClassViaReflection(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
-        JavaMethod dontCallMe = javaMethod(javaClass(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
+        JavaMethod dontCallMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
         JavaMethodCall callToDontCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(dontCallMe);
-        JavaMethod callMe = javaMethod(javaClass(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("callMe"));
+        JavaMethod callMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("callMe"));
         JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
         ConditionEvents events =
@@ -64,7 +64,7 @@ public class ArchConditionsTest {
 
     @Test
     public void access_class() {
-        JavaClass clazz = javaClass(CallingClass.class);
+        JavaClass clazz = javaClassViaReflection(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
         ConditionEvents events = check(never(accessClass(named(".*Some.*"))), clazz);

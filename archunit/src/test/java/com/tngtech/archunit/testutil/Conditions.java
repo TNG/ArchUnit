@@ -1,10 +1,9 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.List;
-
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import org.assertj.core.api.Condition;
+
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 
 public final class Conditions {
     private Conditions() {}
@@ -22,13 +21,12 @@ public final class Conditions {
         }.as("containing an element that " + condition.description());
     }
 
-    public static Condition<JavaCodeUnit<?, ?>> codeUnitWithSignature(final String name, final Class<?>... parameters) {
-        final List<Class<?>> paramList = ImmutableList.copyOf(parameters);
-        return new Condition<JavaCodeUnit<?, ?>>() {
+    public static Condition<JavaCodeUnit> codeUnitWithSignature(final String name, final Class<?>... parameters) {
+        return new Condition<JavaCodeUnit>() {
             @Override
-            public boolean matches(JavaCodeUnit<?, ?> value) {
-                return name.equals(value.getName()) && paramList.equals(value.getParameters());
+            public boolean matches(JavaCodeUnit value) {
+                return name.equals(value.getName()) && namesOf(parameters).equals(value.getParameters().getNames());
             }
-        }.as("matches signature <" + name + ", " + paramList + ">");
+        }.as("matches signature <" + name + ", " + namesOf(parameters) + ">");
     }
 }

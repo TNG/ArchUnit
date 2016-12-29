@@ -6,6 +6,7 @@ import java.lang.annotation.Target;
 
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 
+import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -18,7 +19,13 @@ public class ClassWithAnnotatedFields {
     @FieldAnnotationWithIntValue(otherValue = "overridden")
     public Object stringAndIntAnnotatedField;
 
-    @FieldAnnotationWithEnumAndArrayValue(classes = {Object.class, Serializable.class})
+    @FieldAnnotationWithEnumClassAndArrayValue(
+            value = OTHER_VALUE,
+            enumArray = {SOME_VALUE, OTHER_VALUE},
+            clazz = Serializable.class,
+            classes = {Object.class, Serializable.class},
+            additional = @SomeValueAnnotation(value = OTHER_VALUE),
+            additionals = {@SomeValueAnnotation(value = SOME_VALUE), @SomeValueAnnotation(value = OTHER_VALUE)})
     public Object enumAndArrayAnnotatedField;
 
     @Target(FIELD)
@@ -37,10 +44,21 @@ public class ClassWithAnnotatedFields {
 
     @Target(FIELD)
     @Retention(RUNTIME)
-    public @interface FieldAnnotationWithEnumAndArrayValue {
+    public @interface FieldAnnotationWithEnumClassAndArrayValue {
         SomeEnum value() default SOME_VALUE;
 
+        SomeEnum[] enumArray() default {SOME_VALUE};
+
+        Class clazz() default String.class;
+
         Class[] classes();
+
+        SomeValueAnnotation additional();
+
+        SomeValueAnnotation[] additionals();
     }
 
+    public @interface SomeValueAnnotation {
+        SomeEnum value();
+    }
 }

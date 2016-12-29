@@ -4,16 +4,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.TestUtils.javaClass;
+import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
-    public static final JavaClass SOME_CLASS = new JavaClass.Builder().withType(SomeClass.class).build();
-    public static final JavaClass SOME_OTHER_CLASS = new JavaClass.Builder().withType(SomeOtherClass.class).build();
-    private static final ImmutableMap<Class<?>, JavaClass> BY_RAW_CLASS = ImmutableMap.of(
-            SomeClass.class, SOME_CLASS,
-            SomeOtherClass.class, SOME_OTHER_CLASS);
-    public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_RAW_CLASS, "classes");
+    public static final JavaClass SOME_CLASS = javaClassViaReflection(SomeClass.class);
+    private static final JavaClass SOME_OTHER_CLASS = javaClassViaReflection(SomeOtherClass.class);
+    private static final ImmutableMap<String, JavaClass> BY_TYPE_NAME = ImmutableMap.of(
+            SomeClass.class.getName(), SOME_CLASS,
+            SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
+    public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_TYPE_NAME, "classes");
 
     @Test
     public void restriction_on_classes_should_filter_the_elements() {
@@ -27,7 +27,7 @@ public class JavaClassesTest {
         JavaClasses onlySomeClass = ALL_CLASSES.that(haveTheNameOf(SomeClass.class));
 
         assertThat(onlySomeClass.getDescription()).
-                isEqualTo("classes that have the name " + SOME_CLASS.reflect().getSimpleName());
+                isEqualTo("classes that have the name " + SOME_CLASS.getSimpleName());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class JavaClassesTest {
 
     @Test
     public void javaClasses_of_iterable() {
-        ImmutableSet<JavaClass> iterable = ImmutableSet.of(javaClass(JavaClassesTest.class), javaClass(JavaClass.class));
+        ImmutableSet<JavaClass> iterable = ImmutableSet.of(javaClassViaReflection(JavaClassesTest.class), javaClassViaReflection(JavaClass.class));
         JavaClasses classes = JavaClasses.of(iterable);
 
         assertThat(ImmutableSet.copyOf(classes)).isEqualTo(iterable);
@@ -64,7 +64,7 @@ public class JavaClassesTest {
         return new DescribedPredicate<JavaClass>("have the name " + clazz.getSimpleName()) {
             @Override
             public boolean apply(JavaClass input) {
-                return input.reflect().getName().equals(clazz.getName());
+                return input.getName().equals(clazz.getName());
             }
         };
     }

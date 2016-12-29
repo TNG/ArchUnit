@@ -1,4 +1,4 @@
 package com.tngtech.archunit.core.testexamples.simpleimport;
 
-public class ClassToImportTwo {
+public final class ClassToImportTwo {
 }

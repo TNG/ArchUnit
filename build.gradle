@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
 ext.dependency = [
@@ -30,7 +30,7 @@ subprojects {
     targetCompatibility = '1.7'
 
     group = 'com.tngtech.archunit'
-    version = '0.2.0-SNAPSHOT'
+    version = '0.3.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
@@ -40,20 +40,24 @@ subprojects {
     uploadArchives.dependsOn(build)
 }
 
+ext.shadowConfig = { classifierName ->
+    return {
+        classifier = classifierName
+
+        exclude 'org/apache/**'
+        exclude 'Log4j*'
+        exclude 'META-INF/**'
+
+        relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
+        relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
+    }
+}
+
 [':archunit', ':archunit-junit'].each {
     project(it) {
         assemble.dependsOn(shadowJar)
 
-        shadowJar {
-            classifier = ''
-
-            exclude 'org/apache/**'
-            exclude 'Log4j*'
-            exclude 'META-INF/**'
-
-            relocate 'org.objectweb', 'com.tngtech.archunit.internal.org.objectweb'
-            relocate 'com.google', 'com.tngtech.archunit.internal.com.google'
-        }
+        shadowJar shadowConfig('')
 
         uploadArchives {
             repositories {

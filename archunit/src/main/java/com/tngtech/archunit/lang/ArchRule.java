@@ -35,7 +35,7 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
  * @see OpenArchRule
  */
 public abstract class ArchRule<T> {
-    final String text;
+    private final String text;
     final ArchCondition<T> condition;
 
     ArchRule(String text, ArchCondition<T> condition) {

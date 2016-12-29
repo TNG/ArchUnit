@@ -1,6 +1,7 @@
 package com.tngtech.archunit.integration;
 
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.SomeCustomException;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.CodingRulesTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -38,7 +39,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
                         .accessing().field(System.class, "err")
                         .inLine(10))
                 .byCall(from(ClassViolatingCodingRules.class, "printToStandardStream")
-                        .toMethod(Throwable.class, "printStackTrace")
+                        .toMethod(SomeCustomException.class, "printStackTrace")
                         .inLine(11))
                 .byAccess(from(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .accessing().field(System.class, "out")

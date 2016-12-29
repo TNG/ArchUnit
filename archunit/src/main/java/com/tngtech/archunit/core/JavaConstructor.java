@@ -3,29 +3,24 @@ package com.tngtech.archunit.core;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
 
-public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescription.ForConstructor> {
-    private Set<JavaConstructorCall> calls = Collections.emptySet();
+import static com.tngtech.archunit.core.Formatters.formatMethod;
+
+public class JavaConstructor extends JavaCodeUnit {
+    private final Supplier<Constructor<?>> constructorSupplier;
+    private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
     public static final String CONSTRUCTOR_NAME = "<init>";
 
     private JavaConstructor(Builder builder) {
         super(builder);
-    }
-
-    @Override
-    public List<Class<?>> getParameters() {
-        return Lists.newArrayList(memberDescription.getParameterTypes());
-    }
-
-    @Override
-    public Class<?> getReturnType() {
-        return void.class;
+        constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
     }
 
     @Override
@@ -39,22 +34,39 @@ public class JavaConstructor extends JavaCodeUnit<Constructor<?>, MemberDescript
 
     @Override
     public Set<JavaConstructorCall> getAccessesToSelf() {
-        return calls;
+        return callsToSelf;
     }
 
-    public void registerCalls(Collection<JavaConstructorCall> calls) {
-        this.calls = ImmutableSet.copyOf(calls);
+    @Override
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
+    public Constructor<?> reflect() {
+        return constructorSupplier.get();
     }
 
-    static final class Builder extends JavaMember.Builder<MemberDescription.ForConstructor, JavaConstructor> {
+    void registerCallsToConstructor(Collection<JavaConstructorCall> calls) {
+        this.callsToSelf = ImmutableSet.copyOf(calls);
+    }
+
+    static final class Builder extends JavaCodeUnit.Builder<JavaConstructor, Builder> {
         @Override
-        public JavaConstructor build(JavaClass owner) {
-            this.owner = owner;
-            return new JavaConstructor(this);
+        JavaConstructor construct(Builder builder) {
+            return new JavaConstructor(builder);
         }
+    }
 
-        public BuilderWithBuildParameter<JavaClass, JavaConstructor> withConstructor(Constructor<?> constructor) {
-            return withMember(new MemberDescription.ForConstructor(constructor));
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    private class ReflectConstructorSupplier implements Supplier<Constructor<?>> {
+        @Override
+        public Constructor<?> get() {
+            Class<?> reflectedOwner = getOwner().reflect();
+            try {
+                return reflectedOwner.getDeclaredConstructor(reflect(getParameters()));
+            } catch (NoSuchMethodException e) {
+                throw new InconsistentClassPathException(
+                        "Can't resolve constructor " + formatMethod(reflectedOwner.getName(), getName(), getParameters()), e);
+            }
         }
     }
 }

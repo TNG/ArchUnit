@@ -1,14 +1,18 @@
 package com.tngtech.archunit.core;
 
-import java.lang.reflect.Member;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
-import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -19,24 +23,20 @@ import static com.tngtech.archunit.core.Formatters.formatMethodParameters;
  * </ul>
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
- *
- * @param <M> The type of the {@link Member java.lang.reflect.Member} associated with this code unit
- * @param <T> The type of the description for this member; the description is an abstraction in case there are problems
- *            in determining a fitting {@link Member java.lang.reflect.Member}
  */
-public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription<M>> extends JavaMember<M, T> {
+public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
+    private final JavaClass returnType;
+    private final List<JavaClass> parameters;
+    private final String fullName;
 
-    private Set<JavaFieldAccess> fieldAccesses;
-    private Set<JavaMethodCall> methodCalls;
-    private Set<JavaConstructorCall> constructorCalls;
-    private String fullName;
+    private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
+    private Set<JavaMethodCall> methodCalls = Collections.emptySet();
+    private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
 
-    JavaCodeUnit(Builder<T, ?> builder) {
-        this(builder.member, builder.owner);
-    }
-
-    JavaCodeUnit(T memberDescription, JavaClass owner) {
-        super(memberDescription, owner);
+    JavaCodeUnit(Builder<?, ?> builder) {
+        super(builder);
+        this.returnType = builder.getReturnType();
+        this.parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -45,18 +45,14 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return fullName;
     }
 
-    public abstract List<Class<?>> getParameters();
-
-    public static DescribedPredicate<JavaCodeUnit<?, ?>> hasParameters(final List<Class<?>> paramTypes) {
-        return new DescribedPredicate<JavaCodeUnit<?, ?>>("has parameters [%s]", formatMethodParameters(paramTypes)) {
-            @Override
-            public boolean apply(JavaCodeUnit<?, ?> input) {
-                return paramTypes.equals(input.getParameters());
-            }
-        };
+    @Override
+    public JavaClassList getParameters() {
+        return new JavaClassList(parameters);
     }
 
-    public abstract Class<?> getReturnType();
+    public JavaClass getReturnType() {
+        return returnType;
+    }
 
     public Set<JavaFieldAccess> getFieldAccesses() {
         return fieldAccesses;
@@ -74,7 +70,7 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         return false;
     }
 
-    AccessCompletion.SubProcess completeFrom(ClassFileImportContext context) {
+    AccessContext.Part completeFrom(ImportContext context) {
         ImmutableSet.Builder<JavaFieldAccess> fieldAccessesBuilder = ImmutableSet.builder();
         for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
             fieldAccessesBuilder.add(new JavaFieldAccess(record));
@@ -82,17 +78,54 @@ public abstract class JavaCodeUnit<M extends Member, T extends MemberDescription
         fieldAccesses = fieldAccessesBuilder.build();
 
         ImmutableSet.Builder<JavaMethodCall> methodCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<JavaMethod> record : context.getMethodCallRecordsFor(this)) {
+        for (AccessRecord<MethodCallTarget> record : context.getMethodCallRecordsFor(this)) {
             methodCallsBuilder.add(new JavaMethodCall(record));
         }
         methodCalls = methodCallsBuilder.build();
 
         ImmutableSet.Builder<JavaConstructorCall> constructorCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<JavaConstructor> record : context.getConstructorCallRecordsFor(this)) {
+        for (AccessRecord<ConstructorCallTarget> record : context.getConstructorCallRecordsFor(this)) {
             constructorCallsBuilder.add(new JavaConstructorCall(record));
         }
         constructorCalls = constructorCallsBuilder.build();
 
-        return new AccessCompletion.SubProcess(this);
+        return new AccessContext.Part(this);
+    }
+
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    static Class<?>[] reflect(JavaClassList parameters) {
+        List<Class<?>> result = new ArrayList<>();
+        for (JavaClass parameter : parameters) {
+            result.add(parameter.reflect());
+        }
+        return result.toArray(new Class<?>[result.size()]);
+    }
+
+    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
+        private Type returnType;
+        private Type[] parameters;
+
+        SELF withReturnType(Type type) {
+            returnType = type;
+            return self();
+        }
+
+        SELF withParameters(Type[] parameters) {
+            this.parameters = parameters;
+            return self();
+        }
+
+        JavaClass getReturnType() {
+            return get(returnType.getClassName());
+        }
+
+        public List<JavaClass> getParameters() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            for (Type parameter : parameters) {
+                result.add(get(parameter.getClassName()));
+            }
+            return result.build();
+        }
     }
 }

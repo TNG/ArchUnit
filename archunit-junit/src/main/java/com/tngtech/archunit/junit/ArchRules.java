@@ -9,11 +9,11 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ReflectionUtils.Predicate;
+import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllFields;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllMethods;
+import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
+import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 
 public class ArchRules<T> {
     private final Collection<Field> fields;
