@@ -143,8 +143,6 @@ public class ClassFileImporterTest {
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
 
-    // FIXME: Write tests for array parameters
-
     @Test
     public void imports_simple_package() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
