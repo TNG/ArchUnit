@@ -31,9 +31,6 @@ interface JavaType {
     @ResolvesTypesViaReflection
     Class<?> resolveClass(ClassLoader classLoader);
 
-    @ResolvesTypesViaReflection
-    Optional<Class<?>> tryResolveClass();
-
     class From {
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
@@ -84,7 +81,7 @@ interface JavaType {
         }
 
         private static String createComponentTypeName(String name) {
-            String baseName = name.replaceAll("(\\[\\])*$", "");
+            String baseName = name.substring(0, name.indexOf("[]"));
 
             return primitiveClassesByName.containsKey(baseName) ?
                     createPrimitiveComponentType(baseName) :
@@ -152,15 +149,6 @@ interface JavaType {
                     return classForName(classLoader);
                 } catch (ClassNotFoundException e) {
                     throw new ReflectionException(e);
-                }
-            }
-
-            @Override
-            public Optional<Class<?>> tryResolveClass() {
-                try {
-                    return Optional.<Class<?>>of(classForName(getClass().getClassLoader()));
-                } catch (ClassNotFoundException e) {
-                    return Optional.absent();
                 }
             }
 

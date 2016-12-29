@@ -159,17 +159,13 @@ class ClassFileProcessor {
                 return Optional.of(importedClasses.get(typeName));
             }
 
-            Optional<Class<?>> type = JavaType.From.name(typeName).tryResolveClass();
-            if (!type.isPresent()) {
-                return Optional.absent();
-            }
-            return tryResolve(type.get());
+            return tryResolve(typeName);
         }
 
-        private Optional<JavaClass> tryResolve(Class<?> type) {
-            String typeFile = "/" + type.getName().replace(".", "/") + ".class";
+        private Optional<JavaClass> tryResolve(String typeName) {
+            String typeFile = "/" + typeName.replace(".", "/") + ".class";
 
-            try (InputStream inputStream = type.getResourceAsStream(typeFile)) {
+            try (InputStream inputStream = getClass().getResourceAsStream(typeFile)) {
                 JavaClassProcessor classProcessor = new JavaClassProcessor(declarationHandler);
                 new ClassReader(inputStream).accept(classProcessor, 0);
                 return classProcessor.createJavaClass();
