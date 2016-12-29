@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -62,19 +63,19 @@ interface AccessRecord<TARGET extends AccessTarget> {
         private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
             private final RawAccessRecord record;
             private final ImportedClasses classes;
-            private final Set<JavaConstructor> constructors;
             private final JavaClass targetOwner;
+            private final Supplier<JavaCodeUnit> callerSupplier;
 
             RawConstructorCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.get(record.target.owner.getName());
-                constructors = targetOwner.getAllConstructors();
+                callerSupplier = createCallerSupplier(record, classes);
             }
 
             @Override
             public JavaCodeUnit getCaller() {
-                return Factory.getCaller(record.caller, classes);
+                return callerSupplier.get();
             }
 
             @Override
@@ -82,7 +83,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaConstructor>> constructorSupplier = new Supplier<Optional<JavaConstructor>>() {
                     @Override
                     public Optional<JavaConstructor> get() {
-                        return uniqueTargetIn(tryFindMatchingTargets(constructors, record.target));
+                        return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllConstructors(), record.target));
                     }
                 };
                 JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
@@ -97,19 +98,19 @@ interface AccessRecord<TARGET extends AccessTarget> {
         private static class RawMethodCallRecordProcessed implements AccessRecord<MethodCallTarget> {
             private final RawAccessRecord record;
             final ImportedClasses classes;
-            private final Set<JavaMethod> methods;
             private final JavaClass targetOwner;
+            private final Supplier<JavaCodeUnit> callerSupplier;
 
             RawMethodCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.get(record.target.owner.getName());
-                methods = targetOwner.getAllMethods();
+                callerSupplier = createCallerSupplier(record, classes);
             }
 
             @Override
             public JavaCodeUnit getCaller() {
-                return Factory.getCaller(record.caller, classes);
+                return callerSupplier.get();
             }
 
             @Override
@@ -117,7 +118,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Set<JavaMethod>> methodsSupplier = new Supplier<Set<JavaMethod>>() {
                     @Override
                     public Set<JavaMethod> get() {
-                        return tryFindMatchingTargets(methods, record.target);
+                        return tryFindMatchingTargets(targetOwner.getAllMethods(), record.target);
                     }
                 };
                 JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
@@ -133,14 +134,14 @@ interface AccessRecord<TARGET extends AccessTarget> {
         private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
             private final RawAccessRecord.ForField record;
             final ImportedClasses classes;
-            private final Set<JavaField> fields;
             private final JavaClass targetOwner;
+            private final Supplier<JavaCodeUnit> callerSupplier;
 
             RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.get(record.target.owner.getName());
-                fields = targetOwner.getAllFields();
+                callerSupplier = createCallerSupplier(record, classes);
             }
 
             @Override
@@ -150,7 +151,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public JavaCodeUnit getCaller() {
-                return Factory.getCaller(record.caller, classes);
+                return callerSupplier.get();
             }
 
             @Override
@@ -158,7 +159,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaField>> fieldSupplier = new Supplier<Optional<JavaField>>() {
                     @Override
                     public Optional<JavaField> get() {
-                        return uniqueTargetIn(tryFindMatchingTargets(fields, record.target));
+                        return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllFields(), record.target));
                     }
                 };
                 JavaClass fieldType = classes.get(Type.getType(record.target.desc).getClassName());
@@ -168,6 +169,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public int getLineNumber() {
                 return record.lineNumber;
             }
+        }
+
+        private static Supplier<JavaCodeUnit> createCallerSupplier(final RawAccessRecord record, final ImportedClasses classes) {
+            return Suppliers.memoize(new Supplier<JavaCodeUnit>() {
+                @Override
+                public JavaCodeUnit get() {
+                    return Factory.getCaller(record.caller, classes);
+                }
+            });
         }
 
         private static JavaCodeUnit getCaller(CodeUnit caller, ImportedClasses classes) {

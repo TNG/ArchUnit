@@ -10,7 +10,6 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,16 +115,9 @@ class ClassGraphCreator implements ImportContext {
             B rawRecord,
             AccessRecord.Factory<B, T> factory,
             Multimap<JavaCodeUnit, T> processedAccessRecords) {
-        try {
-            T processed = factory.create(rawRecord, classes);
-            processedAccessRecords.put(processed.getCaller(), processed);
-        } catch (NoClassDefFoundError e) {
-            LOG.warn("Can't analyse access to '{}' because of missing dependency '{}'",
-                    rawRecord.target, e.getMessage());
-        } catch (ReflectionException e) {
-            LOG.warn("Can't analyse access to '{}' because of missing dependency. Error was: '{}'",
-                    rawRecord.target, e.getMessage());
-        }
+
+        T processed = factory.create(rawRecord, classes);
+        processedAccessRecords.put(processed.getCaller(), processed);
     }
 
     @Override
