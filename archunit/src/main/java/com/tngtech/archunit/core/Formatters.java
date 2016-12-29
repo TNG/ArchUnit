@@ -7,17 +7,19 @@ import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 
 public class Formatters {
-    private static final String FULL_METHOD_NAME_TEMPLATE = "%s.%s(%s)";
-
     private Formatters() {
     }
 
     public static String formatMethod(String ownerName, String methodName, JavaClassList parameters) {
-        return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameters(parameters));
+        return format(ownerName, methodName, formatMethodParameters(parameters));
+    }
+
+    private static String format(String ownerName, String methodName, String parameters) {
+        return ownerName + "." + methodName + "(" + parameters + ")";
     }
 
     public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
-        return String.format(FULL_METHOD_NAME_TEMPLATE, ownerName, methodName, formatMethodParameterTypeNames(parameters));
+        return format(ownerName, methodName, formatMethodParameterTypeNames(parameters));
     }
 
     private static String formatMethodParameters(List<? extends HasName> parameters) {
@@ -31,7 +33,7 @@ public class Formatters {
     public static String formatMethodParameterTypeNames(List<String> typeNames) {
         List<String> formatted = new ArrayList<>();
         for (String name : typeNames) {
-            formatted.add(String.format("%s.class", ensureSimpleName(name)));
+            formatted.add(ensureSimpleName(name) + ".class");
         }
         return Joiner.on(", ").join(formatted);
     }

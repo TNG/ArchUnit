@@ -260,7 +260,7 @@ class AnnotationProxy {
             for (Map.Entry<String, Object> entry : toProxy.getProperties().entrySet()) {
                 Class<?> returnType = getDeclaredMethod(entry.getKey()).getReturnType();
                 String value = format(conversions.convertIfNecessary(entry.getValue(), returnType));
-                properties.add(String.format("%s=%s", entry.getKey(), value));
+                properties.add(entry.getKey() + "=" + value);
             }
             return Joiner.on(", ").join(properties);
         }

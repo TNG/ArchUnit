@@ -21,11 +21,6 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     }
 
     @Override
-    public String toString() {
-        return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
-    }
-
-    @Override
     public Member reflect() {
         throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
