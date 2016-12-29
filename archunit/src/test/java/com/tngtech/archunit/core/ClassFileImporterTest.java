@@ -157,14 +157,18 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_simple_class_details() throws Exception {
-        JavaClass javaClass = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
+        ImportedClasses classes = classesIn("testexamples/simpleimport");
+        JavaClass javaClass = classes.get(ClassToImportOne.class);
 
         assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
         assertThat(javaClass.getPackage()).as("package").isEqualTo(ClassToImportOne.class.getPackage().getName());
+        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC);
         assertThat(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
+
+        assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
 
     @Test

@@ -61,8 +61,11 @@ class JavaClassProcessor extends ClassVisitor {
         Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
-        javaClassBuilder = new JavaClass.Builder().withType(JavaType.From.fromAsmObjectTypeName(name));
-        javaClassBuilder.withInterface(opCodeForInterfaceIsPresent);
+        javaClassBuilder = new JavaClass.Builder()
+                .withType(JavaType.From.fromAsmObjectTypeName(name))
+                .withInterface(opCodeForInterfaceIsPresent)
+                .withModifiers(JavaModifier.getModifiersForClass(access));
+
         className = createTypeName(name);
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
     }
@@ -104,7 +107,7 @@ class JavaClassProcessor extends ClassVisitor {
         JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
                 .withType(Type.getType(desc))
-                .withModifiers(JavaModifier.getModifiersFor(access))
+                .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
         return new FieldProcessor(fieldBuilder);
@@ -119,7 +122,7 @@ class JavaClassProcessor extends ClassVisitor {
         Type methodType = Type.getMethodType(desc);
         codeUnitBuilder
                 .withName(name)
-                .withModifiers(JavaModifier.getModifiersFor(access))
+                .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withParameters(methodType.getArgumentTypes())
                 .withReturnType(methodType.getReturnType())
                 .withDescriptor(desc);

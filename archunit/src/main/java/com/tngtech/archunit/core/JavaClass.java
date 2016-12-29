@@ -22,6 +22,8 @@ import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class JavaClass implements HasName, HasAnnotations {
     private final JavaType javaType;
+    private final boolean isInterface;
+    private final Set<JavaModifier> modifiers;
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = new HashSet<>();
     private Set<JavaCodeUnit> codeUnits = new HashSet<>();
@@ -33,12 +35,11 @@ public class JavaClass implements HasName, HasAnnotations {
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Map<String, JavaAnnotation> annotations = new HashMap<>();
-    private boolean isInterface;
-    // FIXME: JavaClass should have modifiers
 
     private JavaClass(Builder builder) {
         javaType = checkNotNull(builder.javaType);
         isInterface = builder.isInterface;
+        modifiers = builder.modifiers;
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
@@ -490,6 +491,10 @@ public class JavaClass implements HasName, HasAnnotations {
         }
     };
 
+    public Set<JavaModifier> getModifiers() {
+        return modifiers;
+    }
+
     class CompletionProcess {
         AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
             AccessContext.Part part = new AccessContext.Part();
@@ -503,6 +508,7 @@ public class JavaClass implements HasName, HasAnnotations {
     static final class Builder {
         private JavaType javaType;
         private boolean isInterface;
+        private Set<JavaModifier> modifiers;
 
         @SuppressWarnings("unchecked")
         Builder withType(JavaType javaType) {
@@ -512,6 +518,11 @@ public class JavaClass implements HasName, HasAnnotations {
 
         Builder withInterface(boolean isInterface) {
             this.isInterface = isInterface;
+            return this;
+        }
+
+        Builder withModifiers(Set<JavaModifier> modifiers) {
+            this.modifiers = modifiers;
             return this;
         }
 

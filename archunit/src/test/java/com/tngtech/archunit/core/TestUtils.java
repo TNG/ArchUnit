@@ -83,7 +83,7 @@ public class TestUtils {
                 .withName(method.getName())
                 .withDescriptor(Type.getMethodDescriptor(method))
                 .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
-                .withModifiers(JavaModifier.getModifiersFor(method.getModifiers()))
+                .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
                 .build(clazz, simpleImportedClasses());
     }
 
@@ -113,10 +113,18 @@ public class TestUtils {
         }
 
         private JavaClass importNew(Class<?> owner) {
-            JavaClass result = new JavaClass.Builder().withType(JavaType.From.name(owner.getName())).build();
+            JavaClass result = javaClassFor(owner);
             imported.put(result.getName(), result);
             return result;
         }
+    }
+
+    private static JavaClass javaClassFor(Class<?> owner) {
+        return new JavaClass.Builder()
+                .withType(JavaType.From.name(owner.getName()))
+                .withInterface(owner.isInterface())
+                .withModifiers(JavaModifier.getModifiersForClass(owner.getModifiers()))
+                .build();
     }
 
     private static Type[] allTypesIn(Class<?>[] types) {
@@ -136,7 +144,7 @@ public class TestUtils {
                 .withName(field.getName())
                 .withDescriptor(Type.getDescriptor(field.getType()))
                 .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
-                .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
+                .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
                 .withType(Type.getType(field.getType()))
                 .build(owner, simpleImportedClasses());
     }
@@ -208,7 +216,7 @@ public class TestUtils {
     }
 
     private static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
-        JavaClass javaClass = new JavaClass.Builder().withType(JavaType.From.name(owner.getName())).build();
+        JavaClass javaClass = javaClassFor(owner);
         importedClasses.register(javaClass);
         ImportContext context = simulateImportContext(owner, importedClasses);
         javaClass.completeMembers(context);
@@ -256,7 +264,7 @@ public class TestUtils {
                     .withName(field.getName())
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersFor(field.getModifiers()))
+                    .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
                     .withType(Type.getType(field.getType())));
         }
         return fieldBuilders;
@@ -271,7 +279,7 @@ public class TestUtils {
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
                     .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersFor(method.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers())));
         }
         return methodBuilders;
     }
@@ -285,7 +293,7 @@ public class TestUtils {
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
                     .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersFor(constructor.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers())));
         }
         return constructorBuilders;
     }
