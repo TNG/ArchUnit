@@ -1,13 +1,12 @@
 package com.tngtech.archunit.core;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -103,13 +102,14 @@ import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecialTarget;
-import org.junit.Ignore;
+import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -141,7 +141,7 @@ import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
     @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
 
     // FIXME: Write tests for array parameters
 
@@ -1261,34 +1261,49 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    @Ignore("The current goal is to pass this test, however at the moment we get 0 classes due to ClassNotFoundExceptions")
     public void imports_classes_outside_of_the_classpath() throws IOException {
-        Path targetDir = setupClassesOutsideOfClasspathWithMissingDependencies();
+        Path targetDir = outsideOfClassPath
+                .onlyKeep(not(containsPattern("^Missing.*")))
+                .setUp(getClass().getResource("testexamples/outsideofclasspath"));
 
         JavaClasses classes = new ClassFileImporter().importPath(targetDir);
 
-        // FIXME: Make better assertions, once we know the technical limitations
-        assertThat(classes).hasSize(3);
-        JavaClass middleClass =
-                findAnyByName(classes, "com.tngtech.archunit.core.testexamples.outsideofclasspath.MiddleClass");
-        assertThat(middleClass).isNotNull();
-        JavaClass childClass =
-                findAnyByName(classes, "com.tngtech.archunit.core.testexamples.outsideofclasspath.ChildClass");
-        assertThat(childClass).isNotNull();
+        assertThat(classes).hasSize(5);
+        assertThat(classes).extracting("name").containsOnly(
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.ChildClass",
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.MiddleClass",
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.ExistingDependency",
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.ChildClass$MySeed",
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.ExistingDependency$GimmeADescription"
+        );
+
+        JavaClass middleClass = findAnyByName(classes,
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.MiddleClass");
+        assertThat(middleClass.getSimpleName()).as("simple name").isEqualTo("MiddleClass");
+        assertThat(middleClass.isInterface()).as("is interface").isFalse();
+        assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "println"))
+                .isFrom(middleClass.getMethod("overrideMe"))
+                .isTo(targetWithFullName(PrintStream.class.getName() + ".println(String.class)"))
+                .inLineNumber(12);
+        assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "getSomeString"))
+                .isFrom(middleClass.getMethod("overrideMe"))
+                .isTo(targetWithFullName(
+                        "com.tngtech.archunit.core.testexamples.outsideofclasspath.MissingDependency.getSomeString()"))
+                .inLineNumber(12);
+
+        JavaClass gimmeADescription = findAnyByName(classes,
+                "com.tngtech.archunit.core.testexamples.outsideofclasspath.ExistingDependency$GimmeADescription");
+        assertThat(gimmeADescription.getSimpleName()).as("simple name").isEqualTo("GimmeADescription");
+        assertThat(gimmeADescription.isInterface()).as("is interface").isTrue();
     }
 
-    private Path setupClassesOutsideOfClasspathWithMissingDependencies() throws IOException {
-        File sourceDir = new File(getClass().getResource("testexamples/outsideofclasspath").getFile());
-        Path targetDir = temporaryFolder.newFolder().toPath();
-
-        for (File file : sourceDir.listFiles()) {
-            if (!file.getName().startsWith("Missing")) {
-                Files.move(file.toPath(), targetDir.resolve(file.getName()));
-            } else {
-                file.delete();
+    private Condition<MethodCallTarget> targetWithFullName(final String name) {
+        return new Condition<MethodCallTarget>(String.format("target with name '%s'", name)) {
+            @Override
+            public boolean matches(MethodCallTarget value) {
+                return value.getFullName().equals(name);
             }
-        }
-        return targetDir;
+        };
     }
 
     private URL urlOf(Class<?> clazz) {
@@ -1520,6 +1535,11 @@ public class ClassFileImporterTest {
 
         SELF isTo(TARGET target) {
             assertThat(access.getTarget()).as("Target of " + access.getName()).isEqualTo(target);
+            return newAssertion(access);
+        }
+
+        SELF isTo(Condition<TARGET> target) {
+            assertThat(access.getTarget()).as("Target of " + access.getName()).is(target);
             return newAssertion(access);
         }
 
