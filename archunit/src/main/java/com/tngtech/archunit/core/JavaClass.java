@@ -14,6 +14,8 @@ import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
+import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class JavaClass implements HasName, HasAnnotations {
@@ -367,6 +369,30 @@ public class JavaClass implements HasName, HasAnnotations {
                 .build();
     }
 
+    public boolean isAssignableFrom(Class<?> type) {
+        List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
+                .add(this).addAll(getAllSubClasses()).build();
+
+        for (JavaClass javaClass : possibleTargets) {
+            if (javaClass.getName().equals(type.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isAssignableTo(Class<?> type) {
+        List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
+                .addAll(getClassHierarchy()).addAll(getAllInterfaces()).build();
+
+        for (JavaClass javaClass : possibleTargets) {
+            if (javaClass.getName().equals(type.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Resolves the respective {@link Class} from the classpath.<br/>
      * NOTE: This method will throw an exception, if the respective {@link Class} or any of its dependencies
@@ -432,35 +458,25 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
-        return DescribedPredicate.<Class<?>>equalTo(type).onResultOf(REFLECT).as("with type " + type.getName());
-    }
-
-    public static DescribedPredicate<Class<?>> reflectionAssignableTo(final Class<?> type) {
-        checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable to " + type.getName()) {
-            @Override
-            public boolean apply(Class<?> input) {
-                return type.isAssignableFrom(input);
-            }
-        };
-    }
-
-    public static DescribedPredicate<Class<?>> reflectionAssignableFrom(final Class<?> type) {
-        checkNotNull(type);
-        return new DescribedPredicate<Class<?>>("assignable from " + type.getName()) {
-            @Override
-            public boolean apply(Class<?> input) {
-                return input.isAssignableFrom(type);
-            }
-        };
+        return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("with type " + type.getName());
     }
 
     public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
-        return reflectionAssignableTo(type).onResultOf(REFLECT);
+        return new DescribedPredicate<JavaClass>("assignable to " + type.getName()) {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableTo(type);
+            }
+        };
     }
 
     public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
-        return reflectionAssignableFrom(type).onResultOf(REFLECT);
+        return new DescribedPredicate<JavaClass>("assignable from " + type.getName()) {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableFrom(type);
+            }
+        };
     }
 
     public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {

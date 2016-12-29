@@ -2,18 +2,17 @@ package com.tngtech.archunit.core;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.tngtech.archunit.core.JavaClass.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaClass.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.reflectionAssignableFrom;
-import static com.tngtech.archunit.core.JavaClass.reflectionAssignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
@@ -134,6 +133,19 @@ public class JavaClassTest {
                 .to(SuperClassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
+                .via(SuperClassWithFieldAndMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(InterfaceWithMethod.class)
+                .to(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().from(Parent.class)
+                .to(InterfaceWithMethod.class)
+                .isFalse();
+        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
                 .to(Parent.class)
                 .isTrue();
         assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
@@ -152,6 +164,19 @@ public class JavaClassTest {
         assertThatAssignable().to(ClassWithTwoFieldsAndTwoMethods.class)
                 .from(SuperClassWithFieldAndMethod.class)
                 .isFalse();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(InterfaceWithMethod.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(SuperClassWithFieldAndMethod.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .via(SuperClassWithFieldAndMethod.class)
+                .from(ClassWithTwoFieldsAndTwoMethods.class)
+                .isTrue();
+        assertThatAssignable().to(InterfaceWithMethod.class)
+                .from(Parent.class)
+                .isFalse();
         assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
                 .from(Parent.class)
                 .isFalse();
@@ -166,8 +191,6 @@ public class JavaClassTest {
     @Test
     public void descriptions() {
         assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
-        assertThat(reflectionAssignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
-        assertThat(reflectionAssignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
         assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
         assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
         assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
@@ -179,54 +202,62 @@ public class JavaClassTest {
 
     private static class AssignableAssert {
         private String message;
-        private DescribedPredicate<Class<?>> reflectionAssignable;
         private DescribedPredicate<JavaClass> assignable;
+        private Class<?> firstType;
 
         public FromEvaluation from(Class<?> type) {
+            firstType = type;
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
-            reflectionAssignable = reflectionAssignableFrom(type);
             assignable = assignableFrom(type);
             return new FromEvaluation();
         }
 
         public ToEvaluation to(Class<?> type) {
+            firstType = type;
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
-            reflectionAssignable = reflectionAssignableTo(type);
             assignable = assignableTo(type);
             return new ToEvaluation();
         }
 
-        private class FromEvaluation extends Evaluation {
+        private class FromEvaluation extends Evaluation<FromEvaluation> {
             public Evaluation to(Class<?> toType) {
                 return evaluationToType(toType);
             }
         }
 
-        private class ToEvaluation extends Evaluation {
-            public Evaluation from(Class<?> toType) {
-                return evaluationToType(toType);
+        private class ToEvaluation extends Evaluation<ToEvaluation> {
+            public Evaluation from(Class<?> fromType) {
+                return evaluationToType(fromType);
             }
         }
 
-        private class Evaluation {
-            private AbstractBooleanAssert<?> reflectionAssignableAssertion;
+        private class Evaluation<SELF> {
             private AbstractBooleanAssert<?> assignableAssertion;
 
-            Evaluation evaluationToType(Class<?> toType) {
-                reflectionAssignableAssertion = assertThat(reflectionAssignable.apply(toType))
-                        .as(LOWER_UNDERSCORE.to(LOWER_CAMEL, "reflection_" + message) + toType.getSimpleName());
-                assignableAssertion = assertThat(assignable.apply(javaClassViaReflection(toType)))
-                        .as(message + toType.getSimpleName());
+            private final Set<Class<?>> additionalTypes = new HashSet<>();
+
+            // NOTE: We need all the classes in the context to create realistic hierarchies
+            @SuppressWarnings("unchecked")
+            SELF via(Class<?> type) {
+                additionalTypes.add(type);
+                return (SELF) this;
+            }
+
+            Evaluation evaluationToType(Class<?> secondType) {
+                Class<?>[] types = ImmutableSet.<Class<?>>builder()
+                        .addAll(additionalTypes).add(firstType).add(secondType)
+                        .build().toArray(new Class<?>[0]);
+                JavaClass javaClass = javaClassesViaReflection(types).get(secondType);
+                assignableAssertion = assertThat(assignable.apply(javaClass))
+                        .as(message + secondType.getSimpleName());
                 return this;
             }
 
             public void isTrue() {
-                reflectionAssignableAssertion.isTrue();
                 assignableAssertion.isTrue();
             }
 
             public void isFalse() {
-                reflectionAssignableAssertion.isFalse();
                 assignableAssertion.isFalse();
             }
         }
@@ -249,12 +280,17 @@ public class JavaClassTest {
         }
     }
 
-    static abstract class SuperClassWithFieldAndMethod extends Parent {
+    static abstract class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
-        private Object objectMethod() {
+        @Override
+        public Object objectMethod() {
             return null;
         }
+    }
+
+    interface InterfaceWithMethod {
+        Object objectMethod();
     }
 
     @SomeAnnotation

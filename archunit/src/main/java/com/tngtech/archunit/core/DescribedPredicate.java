@@ -50,7 +50,7 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
-    public <F> DescribedPredicate<F> onResultOf(final Function<F, ? extends T> function) {
+    public <F> DescribedPredicate<F> onResultOf(final Function<? super F, ? extends T> function) {
         checkNotNull(function);
         return new DescribedPredicate<F>(description) {
             @Override

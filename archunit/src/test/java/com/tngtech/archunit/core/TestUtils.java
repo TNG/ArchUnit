@@ -177,6 +177,17 @@ public class TestUtils {
                         Optional.<JavaClass>absent();
             }
         });
+        when(context.createInterfaces(any(JavaClass.class))).thenAnswer(new Answer<Set<JavaClass>>() {
+            @Override
+            public Set<JavaClass> answer(InvocationOnMock invocation) throws Throwable {
+                Class<?> clazz = classForName(((JavaClass) invocation.getArguments()[0]).getName());
+                ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+                for (Class<?> iface : clazz.getInterfaces()) {
+                    result.add(importedClasses.get(iface.getName()));
+                }
+                return result.build();
+            }
+        });
         when(context.getJavaClassWithType(anyString())).thenAnswer(new Answer<JavaClass>() {
             @Override
             public JavaClass answer(InvocationOnMock invocation) throws Throwable {

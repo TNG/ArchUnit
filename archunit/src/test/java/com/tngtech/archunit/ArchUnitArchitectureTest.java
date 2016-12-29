@@ -14,7 +14,6 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
@@ -44,7 +43,6 @@ public class ArchUnitArchitectureTest {
     }
 
     @Test
-    @Ignore
     public void types_are_only_resolved_via_reflection_in_allowed_places() {
         all(archUnitClasses).should(notIllegallyResolveClassesViaReflection());
     }
