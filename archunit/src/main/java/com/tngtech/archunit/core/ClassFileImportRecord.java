@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkState;
 class ClassFileImportRecord {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
 
-    private final Set<JavaClass> classes = new HashSet<>();
+    private final Map<String, JavaClass> classes = new HashMap<>();
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
@@ -127,10 +127,12 @@ class ClassFileImportRecord {
     }
 
     void addAll(Collection<JavaClass> javaClasses) {
-        classes.addAll(javaClasses);
+        for (JavaClass javaClass : javaClasses) {
+            classes.put(javaClass.getName(), javaClass);
+        }
     }
 
-    Set<JavaClass> getClasses() {
+    Map<String, JavaClass> getClasses() {
         return classes;
     }
 

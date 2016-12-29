@@ -46,6 +46,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public boolean isNew(String className) {
+            return !importRecord.getClasses().containsKey(className);
+        }
+
+        @Override
         public void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames) {
             ownerName = className;
             if (superClassName.isPresent()) {

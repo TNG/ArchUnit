@@ -49,12 +49,17 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     Optional<JavaClass> createJavaClass() {
-        return Optional.of(javaClassBuilder.build());
+        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.<JavaClass>absent();
     }
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.info("Analysing class '{}'", name);
+        JavaType javaType = JavaType.From.fromAsmObjectTypeName(name);
+        if (alreadyImported(javaType)) {
+            return;
+        }
+
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
@@ -62,12 +67,16 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
         javaClassBuilder = new JavaClass.Builder()
-                .withType(JavaType.From.fromAsmObjectTypeName(name))
+                .withType(javaType)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
-        className = createTypeName(name);
+        className = javaType.getName();
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
+    }
+
+    private boolean alreadyImported(JavaType javaType) {
+        return !declarationHandler.isNew(javaType.getName());
     }
 
     // NOTE: For some reason ASM claims superName == java/lang/Object for Interfaces???
@@ -78,8 +87,16 @@ class JavaClassProcessor extends ClassVisitor {
                 Optional.<String>absent();
     }
 
+    private boolean importAborted() {
+        return javaClassBuilder == null;
+    }
+
     @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (importAborted()) {
+            return;
+        }
+
         if (name != null && outerName != null) {
             declarationHandler.registerEnclosingClass(createTypeName(name), createTypeName(outerName));
         }
@@ -87,6 +104,10 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public void visitOuterClass(String owner, String name, String desc) {
+        if (importAborted()) {
+            return;
+        }
+
         declarationHandler.registerEnclosingClass(className, createTypeName(owner));
     }
 
@@ -104,6 +125,10 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+        if (importAborted()) {
+            return super.visitField(access, name, desc, signature, value);
+        }
+
         JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
                 .withType(Type.getType(desc))
@@ -115,6 +140,10 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        if (importAborted()) {
+            return super.visitMethod(access, name, desc, signature, exceptions);
+        }
+
         LOG.debug("Analysing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
@@ -148,11 +177,19 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        if (importAborted()) {
+            return super.visitAnnotation(desc, visible);
+        }
+
         return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
     }
 
     @Override
     public void visitEnd() {
+        if (importAborted()) {
+            return;
+        }
+
         declarationHandler.onDeclaredAnnotations(annotations);
         LOG.debug("Done analysing {}", className);
     }
@@ -212,6 +249,8 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     interface DeclarationHandler {
+        boolean isNew(String className);
+
         void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames);
 
         void onDeclaredField(JavaField.Builder fieldBuilder);

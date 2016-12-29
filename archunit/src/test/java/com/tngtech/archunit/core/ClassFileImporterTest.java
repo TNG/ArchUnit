@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -103,6 +104,7 @@ import com.tngtech.archunit.core.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.testexamples.specialtargets.ClassCallingSpecialTarget;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
@@ -142,6 +144,8 @@ import static org.junit.Assume.assumeTrue;
 public class ClassFileImporterTest {
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
+    @Rule
+    public final TransientCopyRule copyRule = new TransientCopyRule();
 
     @Test
     public void imports_simple_package() throws Exception {
@@ -1315,6 +1319,18 @@ public class ClassFileImporterTest {
                 "com.tngtech.archunit.core.testexamples.outsideofclasspath.ExistingDependency$GimmeADescription");
         assertThat(gimmeADescription.getSimpleName()).as("simple name").isEqualTo("GimmeADescription");
         assertThat(gimmeADescription.isInterface()).as("is interface").isTrue();
+    }
+
+    @Test
+    public void imports_duplicate_classes() throws IOException {
+        String existingClass = "/" + JavaClass.class.getName().replace(".", "/") + ".class";
+        copyRule.copy(
+                new File(getClass().getResource(existingClass).getFile()),
+                new File(getClass().getResource(".").getFile()));
+
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName());
+
+        assertThat(classes.get(JavaClass.class)).isNotNull();
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {

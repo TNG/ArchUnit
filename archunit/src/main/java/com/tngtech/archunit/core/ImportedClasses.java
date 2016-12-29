@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,12 +10,8 @@ class ImportedClasses {
     private final Map<String, JavaClass> additionalClasses = new HashMap<>();
     private final ClassResolver resolver;
 
-    ImportedClasses(Collection<JavaClass> directlyImported, ClassResolver resolver) {
-        ImmutableMap.Builder<String, JavaClass> directlyImportedByTypeName = ImmutableMap.builder();
-        for (JavaClass javaClass : directlyImported) {
-            directlyImportedByTypeName.put(javaClass.getName(), javaClass);
-        }
-        this.directlyImported = directlyImportedByTypeName.build();
+    ImportedClasses(Map<String, JavaClass> directlyImported, ClassResolver resolver) {
+        this.directlyImported = ImmutableMap.copyOf(directlyImported);
         this.resolver = resolver;
     }
 
@@ -36,7 +31,7 @@ class ImportedClasses {
         }
     }
 
-    static JavaClass simpleClassOf(String typeName) {
+    private static JavaClass simpleClassOf(String typeName) {
         return new JavaClass.Builder().withType(JavaType.From.name(typeName)).build();
     }
 
