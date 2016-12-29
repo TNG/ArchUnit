@@ -1236,6 +1236,24 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void reflect_works() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+
+        JavaClass calledClass = classes.get(CalledClass.class);
+        assertThat(calledClass.reflect()).isEqualTo(CalledClass.class);
+        assertThat(calledClass.getField("someString").reflect()).isEqualTo(field(CalledClass.class, "someString"));
+        assertThat(calledClass.getConstructor().reflect()).isEqualTo(constructor(CalledClass.class));
+        assertThat(calledClass.getConstructor(String.class).reflect()).isEqualTo(constructor(CalledClass.class, String.class));
+        assertThat(calledClass.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, String.class).reflect())
+                .isEqualTo(constructor(CalledClass.class, String.class));
+
+        JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
+        assertThat(innerClass.reflect()).isEqualTo(ClassWithInnerClass.Inner.class);
+        assertThat(innerClass.getMethod("call").reflect())
+                .isEqualTo(method(ClassWithInnerClass.Inner.class, "call"));
+    }
+
+    @Test
     public void imports_urls_of_files() {
         Set<URL> urls = newHashSet(urlOf(ClassToImportOne.class), urlOf(ClassWithNestedClass.class));
 

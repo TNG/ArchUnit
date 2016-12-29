@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -89,6 +90,16 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
         constructorCalls = constructorCallsBuilder.build();
 
         return new AccessContext.Part(this);
+    }
+
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    static Class<?>[] reflect(JavaClassList parameters) {
+        List<Class<?>> result = new ArrayList<>();
+        for (JavaClass parameter : parameters) {
+            result.add(parameter.reflect());
+        }
+        return result.toArray(new Class<?>[result.size()]);
     }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {

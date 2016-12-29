@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -20,6 +22,7 @@ import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class JavaClass implements HasName, HasAnnotations {
     private final JavaType javaType;
+    private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = new HashSet<>();
     private Set<JavaCodeUnit> codeUnits = new HashSet<>();
     private Set<JavaMethod> methods = new HashSet<>();
@@ -36,6 +39,7 @@ public class JavaClass implements HasName, HasAnnotations {
     private JavaClass(Builder builder) {
         javaType = checkNotNull(builder.javaType);
         isInterface = builder.isInterface;
+        reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
     @Override
@@ -396,13 +400,13 @@ public class JavaClass implements HasName, HasAnnotations {
     /**
      * Resolves the respective {@link Class} from the classpath.<br/>
      * NOTE: This method will throw an exception, if the respective {@link Class} or any of its dependencies
-     * can not be found on the classpath.
+     * can't be found on the classpath.
      *
      * @return The {@link Class} equivalent to this {@link JavaClass}
      */
-    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
+    @ResolvesTypesViaReflection
     public Class<?> reflect() {
-        return javaType.resolveClass(getClass().getClassLoader());
+        return reflectSupplier.get();
     }
 
     void completeClassHierarchyFrom(ImportContext context) {
@@ -486,14 +490,6 @@ public class JavaClass implements HasName, HasAnnotations {
         }
     };
 
-    public static final Function<JavaClass, Class<?>> REFLECT = new Function<JavaClass, Class<?>>() {
-        @Override
-        @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
-        public Class<?> apply(JavaClass input) {
-            return input.reflect();
-        }
-    };
-
     class CompletionProcess {
         AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
             AccessContext.Part part = new AccessContext.Part();
@@ -521,6 +517,15 @@ public class JavaClass implements HasName, HasAnnotations {
 
         JavaClass build() {
             return new JavaClass(this);
+        }
+    }
+
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    private class ReflectClassSupplier implements Supplier<Class<?>> {
+        @Override
+        public Class<?> get() {
+            return javaType.resolveClass(getClass().getClassLoader());
         }
     }
 }

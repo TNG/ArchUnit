@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 
@@ -93,6 +94,16 @@ public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwne
                     return input.getOwner();
                 }
             };
+
+
+    /**
+     * Resolves the respective {@link Member} from the classpath.<br/>
+     * NOTE: This method will throw an exception, if the owning {@link Class} or any of its dependencies
+     * can't be found on the classpath.
+     *
+     * @return The {@link Member} equivalent to this {@link JavaMember}
+     */
+    public abstract Member reflect();
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         private String name;

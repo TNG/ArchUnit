@@ -10,7 +10,6 @@ import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaClass.INTERFACES;
-import static com.tngtech.archunit.core.JavaClass.REFLECT;
 import static com.tngtech.archunit.core.JavaClass.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.withType;
@@ -261,11 +260,6 @@ public class JavaClassTest {
                 assignableAssertion.isFalse();
             }
         }
-    }
-
-    @Test
-    public void REFLECT_works() {
-        assertThat(REFLECT.apply(javaClassViaReflection(Parent.class))).isEqualTo(Parent.class);
     }
 
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {

@@ -13,9 +13,9 @@ public class ReflectionTestUtils {
         }
     }
 
-    public static Constructor<?> constructor(Class<?> clazz) {
+    public static Constructor<?> constructor(Class<?> clazz, Class<?>... parameterTypes) {
         try {
-            return clazz.getDeclaredConstructor();
+            return clazz.getDeclaredConstructor(parameterTypes);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

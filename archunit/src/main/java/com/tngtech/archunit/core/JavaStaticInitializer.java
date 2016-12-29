@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.Set;
 
@@ -22,6 +23,11 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     @Override
     public String toString() {
         return String.format("%s{owner=%s, name=%s}", getClass().getSimpleName(), getOwner(), getName());
+    }
+
+    @Override
+    public Member reflect() {
+        throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
 
     static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
