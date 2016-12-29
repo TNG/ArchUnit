@@ -39,10 +39,6 @@ class ImportedClasses {
         additionalClasses.put(clazz.getName(), clazz);
     }
 
-    void add(Map<String, JavaClass> additionalClasses) {
-        this.additionalClasses.putAll(additionalClasses);
-    }
-
     JavaClass get(String typeName) {
         ensurePresent(typeName);
         return directlyImported.containsKey(typeName) ?

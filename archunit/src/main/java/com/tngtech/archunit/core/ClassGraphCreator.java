@@ -10,15 +10,11 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
 class ClassGraphCreator implements ImportContext {
-    private static final Logger LOG = LoggerFactory.getLogger(ClassGraphCreator.class);
-
     private final ImportedClasses classes;
 
     private final ClassFileImportRecord importRecord;

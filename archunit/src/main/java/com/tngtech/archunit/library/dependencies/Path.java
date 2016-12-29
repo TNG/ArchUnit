@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableSet;
 import static com.google.common.collect.Iterables.getLast;
 
 class Path<T, ATTACHMENT> {
-    final List<Edge<T, ATTACHMENT>> edges;
+    private final List<Edge<T, ATTACHMENT>> edges;
 
     Path() {
         this(Collections.<Edge<T, ATTACHMENT>>emptyList());

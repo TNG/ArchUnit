@@ -46,12 +46,6 @@ public abstract class ArchTestExecution {
     }
 
     static class PositiveResult extends Result {
-        private final Description description;
-
-        PositiveResult(Description description) {
-            this.description = description;
-        }
-
         @Override
         void notify(RunNotifier notifier) {
             // Do nothing

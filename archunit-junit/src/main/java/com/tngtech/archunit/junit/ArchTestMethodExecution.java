@@ -20,7 +20,7 @@ public class ArchTestMethodExecution extends ArchTestExecution {
     public Result evaluateOn(JavaClasses classes) {
         try {
             executeTestMethod(classes);
-            return new PositiveResult(describeSelf());
+            return new PositiveResult();
         } catch (Throwable failure) {
             return new NegativeResult(describeSelf(), failure);
         }

@@ -122,7 +122,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void handleMethodInstruction(int opcode, String owner, String name, String desc) {
+        public void handleMethodInstruction(String owner, String name, String desc) {
             LOG.debug("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
                 TargetInfo target = new RawAccessRecord.ConstructorTargetInfo(owner, name, desc);

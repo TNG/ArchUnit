@@ -11,7 +11,7 @@ import org.junit.runner.Description;
 public class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
 
-    public ArchRuleExecution(Class<?> testClass, Field ruleField) {
+    ArchRuleExecution(Class<?> testClass, Field ruleField) {
         super(testClass);
         this.ruleField = validate(ruleField);
     }
@@ -47,7 +47,7 @@ public class ArchRuleExecution extends ArchTestExecution {
             try {
                 Object ruleCandidate = ruleField.get(testClass);
                 return ruleCandidate instanceof OpenArchRule ?
-                        new Retrieved(ruleField, asArchRule(ruleCandidate)) :
+                        new Retrieved(asArchRule(ruleCandidate)) :
                         new FailedToRetrieve(fieldTypeFailure(ruleField));
             } catch (IllegalAccessException e) {
                 return RuleToEvaluate.retrievalFailedWith(new RuleEvaluationException(
@@ -71,24 +71,22 @@ public class ArchRuleExecution extends ArchTestExecution {
         abstract Evaluation evaluateOn(JavaClasses classes);
 
         private static class Retrieved extends RuleToEvaluate {
-            private final Field ruleField;
             private OpenArchRule<JavaClass> rule;
 
-            public Retrieved(Field ruleField, OpenArchRule<JavaClass> rule) {
-                this.ruleField = ruleField;
+            Retrieved(OpenArchRule<JavaClass> rule) {
                 this.rule = rule;
             }
 
             @Override
             public Evaluation evaluateOn(JavaClasses classes) {
-                return new RetrievalEvaluation(ruleField, rule, classes);
+                return new RetrievalEvaluation(rule, classes);
             }
         }
 
         private static class FailedToRetrieve extends RuleToEvaluate {
             private RuleEvaluationException failure;
 
-            public FailedToRetrieve(RuleEvaluationException failure) {
+            FailedToRetrieve(RuleEvaluationException failure) {
                 this.failure = failure;
             }
 
@@ -104,12 +102,10 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     private static class RetrievalEvaluation extends Evaluation {
-        private final Field ruleField;
         private final OpenArchRule<JavaClass> rule;
         private final JavaClasses classes;
 
-        public RetrievalEvaluation(Field ruleField, OpenArchRule<JavaClass> rule, JavaClasses classes) {
-            this.ruleField = ruleField;
+        public RetrievalEvaluation(OpenArchRule<JavaClass> rule, JavaClasses classes) {
             this.rule = rule;
             this.classes = classes;
         }
@@ -121,14 +117,14 @@ public class ArchRuleExecution extends ArchTestExecution {
             } catch (Exception | AssertionError e) {
                 return new NegativeResult(description, e);
             }
-            return new PositiveResult(description);
+            return new PositiveResult();
         }
     }
 
     private static class FailureEvaluation extends Evaluation {
         private final RuleEvaluationException failure;
 
-        public FailureEvaluation(RuleEvaluationException failure) {
+        FailureEvaluation(RuleEvaluationException failure) {
             this.failure = failure;
         }
 

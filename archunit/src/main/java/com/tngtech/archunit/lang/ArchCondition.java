@@ -17,7 +17,7 @@ public abstract class ArchCondition<T> {
         this(null, description);
     }
 
-    public ArchCondition(Iterable<T> objectsToTest, String description) {
+    private ArchCondition(Iterable<T> objectsToTest, String description) {
         this.objectsToTest = objectsToTest;
         this.description = checkNotNull(description);
     }

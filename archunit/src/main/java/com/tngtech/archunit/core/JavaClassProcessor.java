@@ -234,7 +234,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            accessHandler.handleMethodInstruction(opcode, owner, name, desc);
+            accessHandler.handleMethodInstruction(owner, name, desc);
         }
 
         @Override
@@ -273,7 +273,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         void setLineNumber(int lineNumber);
 
-        void handleMethodInstruction(int opcode, String owner, String name, String desc);
+        void handleMethodInstruction(String owner, String name, String desc);
 
         class NoOp implements AccessHandler {
             @Override
@@ -289,7 +289,7 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             @Override
-            public void handleMethodInstruction(int opcode, String owner, String name, String desc) {
+            public void handleMethodInstruction(String owner, String name, String desc) {
             }
         }
     }

@@ -214,10 +214,16 @@ public class JavaClass implements HasName, HasAnnotations {
         return getCodeUnitWithParameterTypeNames(name, ImmutableList.copyOf(parameters));
     }
 
+    /**
+     * @see #getCodeUnitWithParameterTypes(String, Class[])
+     */
     public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
         return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
     }
 
+    /**
+     * @see #getCodeUnitWithParameterTypeNames(String, String...)
+     */
     public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
