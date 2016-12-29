@@ -142,6 +142,14 @@ class ClassFileImportRecord {
                 .build();
     }
 
+    Map<String, String> getSuperClassNamesBySubClass() {
+        return superClassNamesByOwner;
+    }
+
+    SetMultimap<String, String> getInterfaceNamesBySubInterface() {
+        return interfaceNamesByOwner;
+    }
+
     // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported
     //       and sometimes again when the inner class is imported. To make it easier, we'll just deal with duplicate
     //       registrations, as there is no harm, as long as no conflicting information is recorded.

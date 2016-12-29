@@ -126,9 +126,6 @@ import static com.tngtech.archunit.core.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.ReflectionUtilsTest.constructor;
-import static com.tngtech.archunit.core.ReflectionUtilsTest.field;
-import static com.tngtech.archunit.core.ReflectionUtilsTest.method;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
@@ -137,6 +134,9 @@ import static com.tngtech.archunit.core.testexamples.annotationmethodimport.Clas
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
@@ -1477,7 +1477,7 @@ public class ClassFileImporterTest {
             return methods;
         }
 
-        public Set<JavaField> getFields() {
+        Set<JavaField> getFields() {
             Set<JavaField> fields = new HashSet<>();
             for (JavaClass clazz : classes) {
                 fields.addAll(clazz.getFields());

@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +15,6 @@ import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 
 public class JavaClass implements HasName, HasAnnotations {
     private final JavaType javaType;
@@ -335,6 +335,14 @@ public class JavaClass implements HasName, HasAnnotations {
         return result;
     }
 
+    public Set<JavaFieldAccess> getFieldAccessesToSelf() {
+        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
+        for (JavaField field : fields) {
+            result.addAll(field.getAccessesToSelf());
+        }
+        return result.build();
+    }
+
     public Set<JavaMethodCall> getMethodCallsToSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (JavaMethod method : methods) {
@@ -411,12 +419,16 @@ public class JavaClass implements HasName, HasAnnotations {
         return "JavaClass{name='" + javaType.getName() + "\'}";
     }
 
-    public Set<JavaFieldAccess> getFieldAccessesToSelf() {
-        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaField field : fields) {
-            result.addAll(field.getAccessesToSelf());
+    public static List<String> namesOf(Class<?>... paramTypes) {
+        return namesOf(ImmutableList.copyOf(paramTypes));
+    }
+
+    public static List<String> namesOf(List<Class<?>> paramTypes) {
+        ArrayList<String> result = new ArrayList<>();
+        for (Class<?> paramType : paramTypes) {
+            result.add(paramType.getName());
         }
-        return result.build();
+        return result;
     }
 
     public static DescribedPredicate<JavaClass> withType(final Class<?> type) {

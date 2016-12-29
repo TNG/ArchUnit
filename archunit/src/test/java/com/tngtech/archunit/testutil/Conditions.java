@@ -3,7 +3,7 @@ package com.tngtech.archunit.testutil;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import org.assertj.core.api.Condition;
 
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 
 public final class Conditions {
     private Conditions() {}

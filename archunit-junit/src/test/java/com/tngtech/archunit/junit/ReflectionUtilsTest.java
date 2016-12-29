@@ -1,19 +1,17 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.junit;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import com.tngtech.archunit.core.ReflectionUtils.Predicate;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ReflectionUtilsTest {
     @Test
     public void getAllFields() {
@@ -79,30 +77,6 @@ public class ReflectionUtilsTest {
                 return input.getName().equals(name);
             }
         };
-    }
-
-    public static Field field(Class<?> clazz, String fieldName) {
-        try {
-            return clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Constructor<?> constructor(Class<?> clazz) {
-        try {
-            return clazz.getDeclaredConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Method method(Class<?> clazz, String name, Class<?>... parameterTypes) {
-        try {
-            return clazz.getDeclaredMethod(name, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private static class Parent {

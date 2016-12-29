@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.junit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.collect.Collections2.filter;
 
-public class ReflectionUtils {
+class ReflectionUtils {
     private ReflectionUtils() {
     }
 
@@ -31,7 +31,7 @@ public class ReflectionUtils {
         return result.build();
     }
 
-    public static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
+    static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
         return filter(getAll(owner, new Collector<Field>() {
             @Override
             protected Collection<? extends Field> extractFrom(Class<?> type) {
@@ -40,25 +40,13 @@ public class ReflectionUtils {
         }), toGuava(predicate));
     }
 
-    public static Collection<Method> getAllMethods(Class<?> owner, Predicate<? super Method> predicate) {
+    static Collection<Method> getAllMethods(Class<?> owner, Predicate<? super Method> predicate) {
         return filter(getAll(owner, new Collector<Method>() {
             @Override
             protected Collection<? extends Method> extractFrom(Class<?> type) {
                 return ImmutableList.copyOf(type.getDeclaredMethods());
             }
         }), toGuava(predicate));
-    }
-
-    public static List<String> namesOf(Class<?>... paramTypes) {
-        return namesOf(ImmutableList.copyOf(paramTypes));
-    }
-
-    public static List<String> namesOf(List<Class<?>> paramTypes) {
-        ArrayList<String> result = new ArrayList<>();
-        for (Class<?> paramType : paramTypes) {
-            result.add(paramType.getName());
-        }
-        return result;
     }
 
     private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {

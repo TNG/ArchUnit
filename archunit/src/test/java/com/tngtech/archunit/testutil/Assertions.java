@@ -43,6 +43,7 @@ import org.assertj.core.internal.cglib.asm.Type;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.JavaModifier.FINAL;
@@ -54,7 +55,6 @@ import static com.tngtech.archunit.core.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.JavaModifier.SYNCHRONIZED;
 import static com.tngtech.archunit.core.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.JavaModifier.VOLATILE;
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 import static com.tngtech.archunit.core.TestUtils.classForName;
 import static com.tngtech.archunit.core.TestUtils.invoke;
 

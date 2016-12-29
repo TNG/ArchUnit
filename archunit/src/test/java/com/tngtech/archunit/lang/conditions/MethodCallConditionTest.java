@@ -14,7 +14,7 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;

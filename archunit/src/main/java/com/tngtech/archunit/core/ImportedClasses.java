@@ -30,7 +30,7 @@ class ImportedClasses {
 
     void ensurePresent(String typeName) {
         if (!contain(typeName)) {
-            Optional<JavaClass> resolved = resolver.resolve(typeName, byType());
+            Optional<JavaClass> resolved = resolver.tryResolve(typeName, byType());
             JavaClass newClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
             additionalClasses.put(typeName, newClass);
         }

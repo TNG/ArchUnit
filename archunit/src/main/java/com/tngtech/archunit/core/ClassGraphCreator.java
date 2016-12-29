@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.ImportedClasses.simpleClassOf;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
 class ClassGraphCreator implements ImportContext {
@@ -29,11 +28,33 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final ClassResolver classResolver;
+    private final Function<JavaClass, Set<String>> superClassStrategy;
+    private final Function<JavaClass, Set<String>> interfaceStrategy;
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
         this.classResolver = classResolver;
         classes = new ImportedClasses(importRecord.getClasses(), classResolver);
+        superClassStrategy = createSuperClassStrategy();
+        interfaceStrategy = createInterfaceStrategy();
+    }
+
+    private Function<JavaClass, Set<String>> createSuperClassStrategy() {
+        return new Function<JavaClass, Set<String>>() {
+            @Override
+            public Set<String> apply(JavaClass input) {
+                return importRecord.getSuperClassFor(input.getName()).asSet();
+            }
+        };
+    }
+
+    private Function<JavaClass, Set<String>> createInterfaceStrategy() {
+        return new Function<JavaClass, Set<String>>() {
+            @Override
+            public Set<String> apply(JavaClass input) {
+                return importRecord.getInterfaceNamesFor(input.getName());
+            }
+        };
     }
 
     JavaClasses complete() {
@@ -66,15 +87,21 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void ensureClassesOfHierarchyInContext() {
-        for (String name : ImmutableSet.copyOf(classes.getAll().keySet())) {
-            resolveSuperTypesOf(name);
+        for (String superClassName : ImmutableSet.copyOf(importRecord.getSuperClassNamesBySubClass().values())) {
+            resolveInheritance(superClassName, superClassStrategy);
+        }
+
+        for (String superInterfaceName : ImmutableSet.copyOf(importRecord.getInterfaceNamesBySubInterface().values())) {
+            resolveInheritance(superInterfaceName, interfaceStrategy);
         }
     }
 
-    private void resolveSuperTypesOf(String className) {
-        for (Map.Entry<String, Optional<JavaClass>> toAdd : classResolver.getAllSuperClasses(className, classes.byType()).entrySet()) {
-            if (!classes.contain(toAdd.getKey())) {
-                classes.add(toAdd.getValue().or(simpleClassOf(toAdd.getKey())));
+    private void resolveInheritance(String currentTypeName, Function<JavaClass, Set<String>> inheritanceStrategy) {
+        Optional<JavaClass> resolved = classResolver.tryResolve(currentTypeName, classes.byType());
+        if (resolved.isPresent() && !classes.contain(resolved.get().getName())) {
+            classes.add(resolved.get());
+            for (String parent : inheritanceStrategy.apply(resolved.get())) {
+                resolveInheritance(parent, interfaceStrategy);
             }
         }
     }

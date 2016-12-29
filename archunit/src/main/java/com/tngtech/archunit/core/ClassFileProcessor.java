@@ -2,12 +2,9 @@ package com.tngtech.archunit.core;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -19,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.ReflectionUtils.getAllSuperTypes;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor {
@@ -153,7 +149,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public Optional<JavaClass> resolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
+        public Optional<JavaClass> tryResolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
             if (importedClasses.contain(typeName)) {
                 return Optional.of(importedClasses.get(typeName));
             }
@@ -175,25 +171,6 @@ class ClassFileProcessor {
             } catch (Exception e) {
                 return Optional.absent();
             }
-        }
-
-        @Override
-        public Map<String, Optional<JavaClass>> getAllSuperClasses(String className, ImportedClasses.ByTypeName importedClasses) {
-            Optional<Class<?>> type = JavaType.From.name(className).tryResolveClass();
-            return type.isPresent() ?
-                    tryGetAllSuperClasses(type.get(), importedClasses) :
-                    Collections.<String, Optional<JavaClass>>emptyMap();
-        }
-
-        private Map<String, Optional<JavaClass>> tryGetAllSuperClasses(Class<?> type, ImportedClasses.ByTypeName importedClasses) {
-            ImmutableMap.Builder<String, Optional<JavaClass>> result = ImmutableMap.builder();
-            for (Class<?> superClass : getAllSuperTypes(type)) {
-                Optional<JavaClass> javaClass = importedClasses.contain(superClass.getName()) ?
-                        Optional.of(importedClasses.get(superClass.getName())) :
-                        tryResolve(superClass);
-                result.put(superClass.getName(), javaClass);
-            }
-            return result.build();
         }
     }
 }

@@ -16,9 +16,9 @@ import com.tngtech.archunit.core.Optional;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 

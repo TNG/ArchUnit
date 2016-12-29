@@ -20,7 +20,7 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.JavaClass.REFLECT;
-import static com.tngtech.archunit.core.ReflectionUtils.namesOf;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {
