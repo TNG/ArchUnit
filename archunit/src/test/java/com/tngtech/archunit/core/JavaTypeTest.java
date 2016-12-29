@@ -99,6 +99,15 @@ public class JavaTypeTest {
         assertThat(specialChars.getPackage()).isEqualTo("s_123_wéirdâ");
     }
 
+    @Test
+    public void default_package() {
+        JavaType specialChars = JavaType.From.name("DefaultPackage");
+
+        assertThat(specialChars.getName()).isEqualTo("DefaultPackage");
+        assertThat(specialChars.getSimpleName()).isEqualTo("DefaultPackage");
+        assertThat(specialChars.getPackage()).isEmpty();
+    }
+
     @DataProvider
     public static Object[][] primitives() {
         return ImmutableList.builder()

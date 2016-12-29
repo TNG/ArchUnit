@@ -194,14 +194,16 @@ interface JavaType {
 
         private static class ObjectType extends AbstractType {
             static final String CLASS_NAME_REGEX = "([^.]+\\.)*([^.])+";
+            private static final Pattern CLASS_NAME_PATTERN = Pattern.compile(CLASS_NAME_REGEX);
 
             ObjectType(String fullName) {
                 super(fullName, ensureSimpleName(fullName), createPackage(fullName));
-                checkArgument(fullName.matches(CLASS_NAME_REGEX), "Full name %s is invalid", fullName);
+                checkArgument(CLASS_NAME_PATTERN.matcher(fullName).matches(), "Full name %s is invalid", fullName);
             }
 
             private static String createPackage(String fullName) {
-                return fullName.replaceAll("\\.?[^.]*$", "");
+                int packageEnd = fullName.lastIndexOf('.');
+                return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
             }
         }
 
