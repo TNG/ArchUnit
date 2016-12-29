@@ -35,6 +35,9 @@ public class JavaClass implements HasName, HasAnnotations {
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Map<String, JavaAnnotation> annotations = new HashMap<>();
+    private Supplier<Set<JavaMethod>> allMethods;
+    private Supplier<Set<JavaConstructor>> allConstructors;
+    private Supplier<Set<JavaField>> allFields;
 
     private JavaClass(Builder builder) {
         javaType = checkNotNull(builder.javaType);
@@ -172,11 +175,8 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public Set<JavaField> getAllFields() {
-        ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getClassHierarchy()) {
-            result.addAll(javaClass.getFields());
-        }
-        return result.build();
+        checkNotNull(allFields, "Method may not be called before construction of hierarchy is complete");
+        return allFields.get();
     }
 
     public JavaField getField(String name) {
@@ -245,11 +245,8 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public Set<JavaMethod> getAllMethods() {
-        ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-        for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
-            result.addAll(javaClass.getMethods());
-        }
-        return result.build();
+        checkNotNull(allMethods, "Method may not be called before construction of hierarchy is complete");
+        return allMethods.get();
     }
 
     public JavaConstructor getConstructor(Class<?>... parameters) {
@@ -261,11 +258,8 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public Set<JavaConstructor> getAllConstructors() {
-        ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getClassHierarchy()) {
-            result.addAll(javaClass.getConstructors());
-        }
-        return result.build();
+        checkNotNull(allConstructors, "Method may not be called before construction of hierarchy is complete");
+        return allConstructors.get();
     }
 
     public Optional<JavaStaticInitializer> getStaticInitializer() {
@@ -413,6 +407,36 @@ public class JavaClass implements HasName, HasAnnotations {
     void completeClassHierarchyFrom(ImportContext context) {
         completeSuperClassFrom(context);
         completeInterfacesFrom(context);
+        allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
+            @Override
+            public Set<JavaField> get() {
+                ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
+                for (JavaClass javaClass : getClassHierarchy()) {
+                    result.addAll(javaClass.getFields());
+                }
+                return result.build();
+            }
+        });
+        allMethods = Suppliers.memoize(new Supplier<Set<JavaMethod>>() {
+            @Override
+            public Set<JavaMethod> get() {
+                ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
+                for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
+                    result.addAll(javaClass.getMethods());
+                }
+                return result.build();
+            }
+        });
+        allConstructors = Suppliers.memoize(new Supplier<Set<JavaConstructor>>() {
+            @Override
+            public Set<JavaConstructor> get() {
+                ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
+                for (JavaClass javaClass : getClassHierarchy()) {
+                    result.addAll(javaClass.getConstructors());
+                }
+                return result.build();
+            }
+        });
     }
 
     private void completeSuperClassFrom(ImportContext context) {
