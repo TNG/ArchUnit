@@ -19,6 +19,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
@@ -44,7 +45,7 @@ public class ArchUnitArchitectureTest {
 
     @Test
     public void types_are_only_resolved_via_reflection_in_allowed_places() {
-        all(archUnitClasses).should(notIllegallyResolveClassesViaReflection());
+        all(classes()).should(notIllegallyResolveClassesViaReflection()).check(archUnitClasses);
     }
 
     private ArchCondition<JavaClass> notIllegallyResolveClassesViaReflection() {

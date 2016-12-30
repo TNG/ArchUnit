@@ -1,29 +1,20 @@
 package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.ClosedArchRule.ClosedDescribable;
 import com.tngtech.archunit.lang.OpenArchRule.OpenDescribable;
 
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 
 /**
  * Base class for all rules about a specified set of objects of interest
- * (e.g. {@link com.tngtech.archunit.core.JavaClass}). Static factory methods allow either writing a rule
- * on the fly (e.g. in an unit test), or just specifying a rule to be applied to different sets of classes later.
- * To write a rule on the fly (assuming the classes to analyse are already available), use
- * {@link #all(Iterable objects)}, for example
- * <br/><br/><pre><code>
- * all(classes).should("do something").assertedBy(conditionThatDetectsThis)
- * </code></pre>
- * If you want to define a rule for later use, use {@link #all(InputTransformer)},
- * for example
+ * (e.g. {@link JavaClass}).
+ * To define a rule, use {@link #all(InputTransformer)}, for example
  * <br/><br/><pre><code>
  * all(services).should("not access the ui").assertedBy(conditionThatDetectsThis)
  * </code></pre>
- * where '<code>services</code>' is a filter denoting when a {@link com.tngtech.archunit.core.JavaClass} counts as service
+ * where '<code>services</code>' is a filter denoting when a {@link JavaClass} counts as service
  * (e.g. package contains 'svc', name ends in 'Service', ...).
  * <br/><br/>
  * {@link InputTransformer} defines how the type of objects
@@ -53,11 +44,6 @@ public abstract class ArchRule<T> {
     @Override
     public String toString() {
         return text;
-    }
-
-    public static <TYPE, ITERABLE extends Iterable<TYPE> & HasDescription>
-    ClosedDescribable<TYPE, ITERABLE> all(ITERABLE iterable) {
-        return priority(MEDIUM).all(iterable);
     }
 
     /**
@@ -93,11 +79,6 @@ public abstract class ArchRule<T> {
 
         private Creator(Priority priority) {
             this.priority = priority;
-        }
-
-        public <TYPE, ITERABLE extends Iterable<TYPE> & HasDescription>
-        ClosedDescribable<TYPE, ITERABLE> all(ITERABLE iterable) {
-            return new ClosedDescribable<>(iterable, priority);
         }
 
         public <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {

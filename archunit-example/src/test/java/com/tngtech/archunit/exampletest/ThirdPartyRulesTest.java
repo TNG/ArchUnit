@@ -13,6 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
@@ -35,7 +36,9 @@ public class ThirdPartyRulesTest {
     @Ignore
     @Test
     public void third_party_class_should_only_be_instantiated_via_workaround() {
-        all(classes).should(notCreateProblematicClassesOutsideOfWorkaroundFactory().as(THIRD_PARTY_CLASS_RULE_TEXT));
+        all(classes()).should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
+                .as(THIRD_PARTY_CLASS_RULE_TEXT))
+                .check(classes);
     }
 
     private ArchCondition<JavaClass> notCreateProblematicClassesOutsideOfWorkaroundFactory() {

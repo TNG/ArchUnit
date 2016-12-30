@@ -7,6 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
@@ -23,21 +24,21 @@ public class LayerDependencyRulesTest {
     @Ignore
     @Test
     public void services_should_not_access_controllers() {
-        all(classes.that(resideIn("..service..")))
-                .should(never(accessClassesThatResideIn("..controller..")));
+        all(classes().that(resideIn("..service..")))
+                .should(never(accessClassesThatResideIn("..controller.."))).check(classes);
     }
 
     @Ignore
     @Test
     public void persistence_should_not_access_services() {
-        all(classes.that(resideIn("..persistence..")))
-                .should(never(accessClassesThatResideIn("..service..")));
+        all(classes().that(resideIn("..persistence..")))
+                .should(never(accessClassesThatResideIn("..service.."))).check(classes);
     }
 
     @Ignore
     @Test
     public void services_should_only_be_accessed_by_controllers_or_other_services() {
-        all(classes.that(resideIn("..service..")))
-                .should(onlyBeAccessedByAnyPackage("..controller..", "..service.."));
+        all(classes().that(resideIn("..service..")))
+                .should(onlyBeAccessedByAnyPackage("..controller..", "..service..")).check(classes);
     }
 }

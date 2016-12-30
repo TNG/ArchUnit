@@ -18,21 +18,11 @@ import org.junit.rules.ExpectedException;
 import static com.tngtech.archunit.core.JavaClassesTest.SOME_CLASS;
 import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.Priority.HIGH;
-import static com.tngtech.archunit.lang.Priority.LOW;
 import static java.util.Collections.singleton;
 
 public class ArchRuleTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
-
-    @Test
-    public void priority_is_passed_on_closed_rule() {
-        thrown.expect(ArchAssertionError.class);
-        thrown.expect(priority(LOW));
-
-        ArchRule.priority(LOW).all(new DummyCollection())
-                .should(ALWAYS_BE_VIOLATED);
-    }
 
     @Test
     public void priority_is_passed_on_open_rule() {

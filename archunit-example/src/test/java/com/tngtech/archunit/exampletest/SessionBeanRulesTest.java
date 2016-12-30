@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaClass.INTERFACES;
 import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -38,15 +39,15 @@ public class SessionBeanRulesTest {
     @Ignore
     @Test
     public void stateless_session_beans_should_not_have_state() {
-        all(classes.that(are(ANNOTATED_WITH_STATELESS)).as("Stateless Session Beans"))
-                .should(NOT_SET_FIELDS_AFTER_CONSTRUCTION.as("not have state"));
+        all(classes().that(are(ANNOTATED_WITH_STATELESS)).as("Stateless Session Beans"))
+                .should(NOT_SET_FIELDS_AFTER_CONSTRUCTION.as("not have state")).check(classes);
     }
 
     @Ignore
     @Test
     public void business_interface_implementations_should_be_unique() {
-        all(classes.that(are(BUSINESS_INTERFACES)).as("Business Interfaces"))
-                .should(HAVE_AN_UNIQUE_IMPLEMENTATION);
+        all(classes().that(are(BUSINESS_INTERFACES)).as("Business Interfaces"))
+                .should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
     }
 
     private static final DescribedPredicate<JavaClass> ANNOTATED_WITH_STATELESS =
