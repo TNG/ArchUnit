@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.OpenArchRule;
+import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
@@ -16,7 +16,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 /**
- * Evaluates {@link OpenArchRule}s against the classes inside of the packages specified via
+ * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
  * <p/>
  * {@link AnalyseClasses @AnalyseClasses} on the annotated test class.
  * <p>

@@ -2,7 +2,7 @@ package com.tngtech.archunit.library;
 
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.OpenArchRule;
+import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.core.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.ArchRule.all;
@@ -34,7 +34,7 @@ public class GeneralCodingRules {
      * <li>Writing to the console is synchronized and can lead to bottle necks</li>
      * </ul>
      */
-    public static final OpenArchRule<JavaClass> CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS =
+    public static final ArchRule<JavaClass> CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS =
             all(classes()).should(NOT_ACCESS_STANDARD_STREAMS);
 
     public static final ArchCondition<JavaClass> NOT_THROW_GENERIC_EXCEPTIONS = noGenericExceptions();
@@ -56,7 +56,7 @@ public class GeneralCodingRules {
      * It is generally good practice to throw specific exceptions like {@link java.lang.IllegalArgumentException}
      * or custom exceptions, instead of throwing generic exceptions like {@link java.lang.RuntimeException}.
      */
-    public static final OpenArchRule<JavaClass> CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS =
+    public static final ArchRule<JavaClass> CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS =
             all(classes()).should(NOT_THROW_GENERIC_EXCEPTIONS);
 
     public static final ArchCondition<JavaClass> NOT_SET_JAVA_UTIL_LOGGING_FIELDS =
@@ -66,6 +66,6 @@ public class GeneralCodingRules {
      * Most projects use the more powerful LOG4J or Logback instead of java.util.logging, often hidden behind
      * SLF4J. In this case it's important to ensure consistent use of the agreed logging framework.
      */
-    public static final OpenArchRule<JavaClass> CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING =
+    public static final ArchRule<JavaClass> CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING =
             all(classes()).should(NOT_SET_JAVA_UTIL_LOGGING_FIELDS);
 }

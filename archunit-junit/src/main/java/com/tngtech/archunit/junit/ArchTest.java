@@ -8,7 +8,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks a field of type {@link com.tngtech.archunit.lang.OpenArchRule} to be evaluated by the {@link ArchUnitRunner}.
+ * Marks a field of type {@link com.tngtech.archunit.lang.ArchRule} to be evaluated by the {@link ArchUnitRunner}.
  *
  * @see ArchUnitRunner
  */

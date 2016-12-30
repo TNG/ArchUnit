@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.OpenArchRule;
+import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
 public class ArchRuleExecution extends ArchTestExecution {
@@ -46,7 +46,7 @@ public class ArchRuleExecution extends ArchTestExecution {
         static RuleToEvaluate from(Class<?> testClass, Field ruleField) {
             try {
                 Object ruleCandidate = ruleField.get(testClass);
-                return ruleCandidate instanceof OpenArchRule ?
+                return ruleCandidate instanceof ArchRule ?
                         new Retrieved(asArchRule(ruleCandidate)) :
                         new FailedToRetrieve(fieldTypeFailure(ruleField));
             } catch (IllegalAccessException e) {
@@ -56,13 +56,13 @@ public class ArchRuleExecution extends ArchTestExecution {
         }
 
         @SuppressWarnings("unchecked")
-        private static OpenArchRule<JavaClass> asArchRule(Object ruleCandidate) {
-            return (OpenArchRule<JavaClass>) ruleCandidate;
+        private static ArchRule<JavaClass> asArchRule(Object ruleCandidate) {
+            return (ArchRule<JavaClass>) ruleCandidate;
         }
 
         private static RuleEvaluationException fieldTypeFailure(Field ruleField) {
             String hint = String.format("Only fields of type %s may be annotated with @%s",
-                    OpenArchRule.class.getName(), ArchTest.class.getName());
+                    ArchRule.class.getName(), ArchTest.class.getName());
             String problem = String.format("Cannot evaluate @%s on field %s.%s",
                     ArchTest.class.getSimpleName(), ruleField.getDeclaringClass().getName(), ruleField.getName());
             return new RuleEvaluationException(hint + problem);
@@ -71,9 +71,9 @@ public class ArchRuleExecution extends ArchTestExecution {
         abstract Evaluation evaluateOn(JavaClasses classes);
 
         private static class Retrieved extends RuleToEvaluate {
-            private OpenArchRule<JavaClass> rule;
+            private ArchRule<JavaClass> rule;
 
-            Retrieved(OpenArchRule<JavaClass> rule) {
+            Retrieved(ArchRule<JavaClass> rule) {
                 this.rule = rule;
             }
 
@@ -102,10 +102,10 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     private static class RetrievalEvaluation extends Evaluation {
-        private final OpenArchRule<JavaClass> rule;
+        private final ArchRule<JavaClass> rule;
         private final JavaClasses classes;
 
-        public RetrievalEvaluation(OpenArchRule<JavaClass> rule, JavaClasses classes) {
+        public RetrievalEvaluation(ArchRule<JavaClass> rule, JavaClasses classes) {
             this.rule = rule;
             this.classes = classes;
         }

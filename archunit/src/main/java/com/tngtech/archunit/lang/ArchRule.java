@@ -1,6 +1,7 @@
 package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.core.ClassFileImporter;
+import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 
@@ -22,16 +23,29 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
  * to run the rule against. It can also just transform {@link JavaClasses} by filtering a subset of interest.
  *
  * @param <T> The type of objects the rule applies to
- * @see OpenArchRule.ClosedArchRule
- * @see OpenArchRule
  */
-public abstract class ArchRule<T> {
+public class ArchRule<T> {
+    private Priority priority;
+    private InputTransformer<T> inputTransformer;
     private final String text;
-    final ArchCondition<T> condition;
+    private final ArchCondition<T> condition;
 
     ArchRule(String text, ArchCondition<T> condition) {
         this.text = text;
         this.condition = condition;
+    }
+
+    ArchRule(OpenDescribable<T> describable, ArchCondition<T> condition) {
+        this(condition.getDescription(), condition);
+        this.priority = describable.priority;
+        this.inputTransformer = describable.inputTransformer;
+    }
+
+    public void check(JavaClasses classes) {
+        DescribedIterable<T> describedCollection = inputTransformer.transform(classes);
+        String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
+        ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
+        ArchRuleAssertion.from(rule).assertNoViolations(priority);
     }
 
     void evaluate(Iterable<T> objectsToTest, ConditionEvents events) {
@@ -94,8 +108,8 @@ public abstract class ArchRule<T> {
             this.priority = priority;
         }
 
-        public OpenArchRule<TYPE> should(ArchCondition<TYPE> condition) {
-            return new OpenArchRule<>(this, condition);
+        public ArchRule<TYPE> should(ArchCondition<TYPE> condition) {
+            return new ArchRule<>(this, condition);
         }
     }
 
