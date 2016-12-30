@@ -44,6 +44,7 @@ public class ArchRule<T> {
     public void check(JavaClasses classes) {
         DescribedIterable<T> describedCollection = inputTransformer.transform(classes);
         String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
+        condition.objectsToTest = describedCollection;
         ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
         ArchRuleAssertion.from(rule).assertNoViolations(priority);
     }
@@ -117,13 +118,8 @@ public class ArchRule<T> {
         private final Iterable<T> objectsToTest;
 
         ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
-            super(text, finish(condition, objectsToTest));
+            super(text, condition);
             this.objectsToTest = objectsToTest;
-        }
-
-        private static <T> ArchCondition<T> finish(ArchCondition<T> condition, Iterable<T> objectsToTest) {
-            condition.objectsToTest = objectsToTest;
-            return condition;
         }
 
         @Override
