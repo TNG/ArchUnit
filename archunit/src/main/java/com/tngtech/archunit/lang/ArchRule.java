@@ -113,7 +113,7 @@ public class ArchRule<T> {
         }
     }
 
-    static final class ClosedArchRule<T> extends ArchRule<T> {
+    static final class ClosedArchRule<T> extends ArchRule<T> implements RuleToEvaluate {
         private final Iterable<T> objectsToTest;
 
         ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
@@ -126,10 +126,16 @@ public class ArchRule<T> {
             return condition;
         }
 
-        ConditionEvents evaluate() {
+        @Override
+        public ConditionEvents evaluate() {
             ConditionEvents events = new ConditionEvents();
             super.evaluate(objectsToTest, events);
             return events;
+        }
+
+        @Override
+        public String getDescription() {
+            return toString();
         }
     }
 }

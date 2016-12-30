@@ -14,9 +14,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 class ArchRuleAssertion {
     static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
 
-    private ArchRule.ClosedArchRule<?> rule;
+    private RuleToEvaluate rule;
 
-    private ArchRuleAssertion(ArchRule.ClosedArchRule<?> rule) {
+    private ArchRuleAssertion(RuleToEvaluate rule) {
         this.rule = rule;
     }
 
@@ -73,7 +73,7 @@ class ArchRuleAssertion {
         return result.build();
     }
 
-    static ArchRuleAssertion from(ArchRule.ClosedArchRule<?> rule) {
+    static ArchRuleAssertion from(RuleToEvaluate rule) {
         return new ArchRuleAssertion(rule);
     }
 }
