@@ -1,12 +1,19 @@
 package com.tngtech.archunit.core;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
+import com.tngtech.archunit.core.Source.Md5sum;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -32,7 +39,7 @@ public class SourceTest {
         Source source = new Source(url.toURI());
 
         assertThat(source.getUri()).as("source URI").isEqualTo(url.toURI());
-        assertThat(source.getMd5sum()).isEqualTo(expectedMd5sumOf(url));
+        assertThat(source.getMd5sum().asBytes()).isEqualTo(expectedMd5BytesAt(url));
     }
 
     @Test
@@ -44,17 +51,81 @@ public class SourceTest {
         assertThat(source).as("source").isEqualTo(equalSource);
         assertThat(source.hashCode()).as("hashcode").isEqualTo(equalSource.hashCode());
         assertThat(source).as("source").isNotEqualTo(new Source(urlOf(Object.class).toURI()));
-        String expectedToString = String.format("%s [md5='%s']", url, hexStringOf(expectedMd5sumOf(url)));
+        String expectedToString = String.format("%s [md5='%s']", url, expectedMd5StringAt(url));
         assertThat(source.toString()).as("source.toString()").isEqualTo(expectedToString);
     }
 
-    private String hexStringOf(byte[] bytes) {
-        return HashCode.fromBytes(bytes).toString();
+    @DataProvider
+    public static Object[][] equalMd5Sums() {
+        return $$(
+                $(Md5sum.UNDETERMINED, Md5sum.UNDETERMINED),
+                $(Md5sum.NOT_SUPPORTED, Md5sum.NOT_SUPPORTED),
+                $(Md5sum.of("anything".getBytes()), Md5sum.of("anything".getBytes())));
     }
 
-    static byte[] expectedMd5sumOf(URL url) throws IOException, NoSuchAlgorithmException {
-        byte[] bytes = ByteStreams.toByteArray(url.openStream());
+    @Test
+    @UseDataProvider("equalMd5Sums")
+    public void positive_equals_hashcode_of_md5sums(Md5sum first, Md5sum second) {
+        assertThat(first).isEqualTo(second);
+        assertThat(first.hashCode()).isEqualTo(second.hashCode());
+    }
+
+    @DataProvider
+    public static List<List<?>> unequalMd5Sums() {
+        return createUnequalTestCasesFor(
+                Md5sum.UNDETERMINED,
+                Md5sum.NOT_SUPPORTED,
+                Md5sum.of("anything".getBytes()),
+                Md5sum.of("totallyDifferent".getBytes()));
+    }
+
+    private static List<List<?>> createUnequalTestCasesFor(Md5sum... md5sums) {
+        List<List<?>> result = new ArrayList<>();
+        List<Md5sum> input = ImmutableList.copyOf(md5sums);
+        ArrayList<Md5sum> shifting = Lists.newArrayList(md5sums);
+        for (int i = 1; i < md5sums.length; i++) {
+            Collections.rotate(shifting, 1);
+            result.addAll(zip(input, shifting));
+        }
+        return result;
+    }
+
+    private static List<List<?>> zip(List<?> first, List<?> second) {
+        List<List<?>> result = new ArrayList<>();
+        for (int i = 0; i < first.size(); i++) {
+            result.add(ImmutableList.of(first.get(i), second.get(i)));
+        }
+        return result;
+    }
+
+    @Test
+    @UseDataProvider("unequalMd5Sums")
+    public void negative_equals_of_md5sums(Md5sum first, Md5sum second) {
+        assertThat(first).isNotEqualTo(second);
+    }
+
+    @Test
+    public void compensates_error_on_md5_calculation() throws Exception {
+        Source source = new Source(new URI("bummer"));
+
+        assertThat(source.getMd5sum()).isEqualTo(Md5sum.UNDETERMINED);
+    }
+
+    private static String expectedMd5StringAt(URL url) throws IOException, NoSuchAlgorithmException {
+        return hexOf(expectedMd5BytesAt(url));
+    }
+
+    private static byte[] expectedMd5BytesAt(URL url) throws IOException, NoSuchAlgorithmException {
+        byte[] bytes = bytesAt(url);
         return MessageDigest.getInstance("MD5").digest(bytes);
+    }
+
+    static byte[] bytesAt(URL url) throws IOException {
+        return ByteStreams.toByteArray(url.openStream());
+    }
+
+    private static String hexOf(byte[] md5Bytes) {
+        return HashCode.fromBytes(md5Bytes).toString();
     }
 
     private static Object fileUrl() {

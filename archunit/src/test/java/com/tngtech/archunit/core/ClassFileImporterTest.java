@@ -30,6 +30,7 @@ import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.Source.Md5sum;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithIntValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithStringValue;
@@ -131,7 +132,7 @@ import static com.tngtech.archunit.core.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
-import static com.tngtech.archunit.core.SourceTest.expectedMd5sumOf;
+import static com.tngtech.archunit.core.SourceTest.bytesAt;
 import static com.tngtech.archunit.core.SourceTest.urlOf;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
@@ -1366,12 +1367,12 @@ public class ClassFileImporterTest {
         JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
         Source source = clazzFromFile.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(ClassToImportOne.class).toURI());
-        assertThat(source.getMd5sum()).isEqualTo(expectedMd5sumOf(urlOf(ClassToImportOne.class)));
+        assertThat(source.getMd5sum()).isEqualTo(Md5sum.of(bytesAt(urlOf(ClassToImportOne.class))));
 
         JavaClass clazzFromJar = new ClassFileImporter().importClass(Rule.class);
         source = clazzFromJar.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(Rule.class).toURI());
-        assertThat(source.getMd5sum()).isEqualTo(expectedMd5sumOf(urlOf(Rule.class)));
+        assertThat(source.getMd5sum()).isEqualTo(Md5sum.of(bytesAt(urlOf(Rule.class))));
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {
