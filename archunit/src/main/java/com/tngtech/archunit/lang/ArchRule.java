@@ -3,7 +3,6 @@ package com.tngtech.archunit.lang;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.OpenArchRule.OpenDescribable;
 
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 
@@ -23,7 +22,7 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
  * to run the rule against. It can also just transform {@link JavaClasses} by filtering a subset of interest.
  *
  * @param <T> The type of objects the rule applies to
- * @see ClosedArchRule
+ * @see OpenArchRule.ClosedArchRule
  * @see OpenArchRule
  */
 public abstract class ArchRule<T> {
@@ -83,6 +82,40 @@ public abstract class ArchRule<T> {
 
         public <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
             return new OpenDescribable<>(inputTransformer, priority);
+        }
+    }
+
+    public static class OpenDescribable<TYPE> {
+        final InputTransformer<TYPE> inputTransformer;
+        final Priority priority;
+
+        OpenDescribable(InputTransformer<TYPE> inputTransformer, Priority priority) {
+            this.inputTransformer = inputTransformer;
+            this.priority = priority;
+        }
+
+        public OpenArchRule<TYPE> should(ArchCondition<TYPE> condition) {
+            return new OpenArchRule<>(this, condition);
+        }
+    }
+
+    static final class ClosedArchRule<T> extends ArchRule<T> {
+        private final Iterable<T> objectsToTest;
+
+        ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
+            super(text, finish(condition, objectsToTest));
+            this.objectsToTest = objectsToTest;
+        }
+
+        private static <T> ArchCondition<T> finish(ArchCondition<T> condition, Iterable<T> objectsToTest) {
+            condition.objectsToTest = objectsToTest;
+            return condition;
+        }
+
+        ConditionEvents evaluate() {
+            ConditionEvents events = new ConditionEvents();
+            super.evaluate(objectsToTest, events);
+            return events;
         }
     }
 }

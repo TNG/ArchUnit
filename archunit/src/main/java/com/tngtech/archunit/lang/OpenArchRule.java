@@ -19,7 +19,7 @@ public final class OpenArchRule<T> extends ArchRule<T> {
     private final Priority priority;
     private final InputTransformer<T> inputTransformer;
 
-    private OpenArchRule(OpenDescribable<T> describable, ArchCondition<T> condition) {
+    OpenArchRule(OpenDescribable<T> describable, ArchCondition<T> condition) {
         super(condition.getDescription(), condition);
         this.priority = describable.priority;
         this.inputTransformer = describable.inputTransformer;
@@ -30,19 +30,5 @@ public final class OpenArchRule<T> extends ArchRule<T> {
         String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
         ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
         ArchRuleAssertion.from(rule).assertNoViolations(priority);
-    }
-
-    public static class OpenDescribable<TYPE> {
-        private final InputTransformer<TYPE> inputTransformer;
-        private final Priority priority;
-
-        OpenDescribable(InputTransformer<TYPE> inputTransformer, Priority priority) {
-            this.inputTransformer = inputTransformer;
-            this.priority = priority;
-        }
-
-        public OpenArchRule<TYPE> should(ArchCondition<TYPE> condition) {
-            return new OpenArchRule<>(this, condition);
-        }
     }
 }
