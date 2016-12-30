@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang;
 
+import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
@@ -61,12 +62,13 @@ public abstract class ArchRule<T> {
 
     /**
      * Takes an {@link InputTransformer} to specify how the set of objects of interest is to be created
-     * from {@link JavaClasses} (which are the general input obtained from a
-     * {@link com.tngtech.archunit.core.ClassFileImporter ClassFileImporter}). The most simple {@link InputTransformer}
-     * is {@link #classes()}, which simply forwards the {@link JavaClasses} as a collection of {@link JavaClass}.
+     * from {@link JavaClasses} (which are the general input obtained from a {@link ClassFileImporter}).
+     * The most simple {@link InputTransformer} is {@link #classes()}, which simply forwards the
+     * {@link JavaClasses} as a collection of {@link JavaClass}.
      *
      * @param inputTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
-     * @param <TYPE>           The target type to which the {@link ArchCondition ArchCondition&lt;TYPE&gt;} will refer to
+     * @param <TYPE>           The target type to which the later used {@link ArchCondition ArchCondition&lt;TYPE&gt;}
+     *                         will have to refer to
      * @return An {@link OpenDescribable OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRule ArchRule&lt;TYPE&gt;}
      */
     public static <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
