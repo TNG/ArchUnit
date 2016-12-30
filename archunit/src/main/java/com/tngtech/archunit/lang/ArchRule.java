@@ -35,10 +35,10 @@ public class ArchRule<T> {
         this.condition = condition;
     }
 
-    ArchRule(OpenDescribable<T> describable, ArchCondition<T> condition) {
+    ArchRule(InputDescription<T> inputDescription, ArchCondition<T> condition) {
         this(condition.getDescription(), condition);
-        this.priority = describable.priority;
-        this.inputTransformer = describable.inputTransformer;
+        this.priority = inputDescription.priority;
+        this.inputTransformer = inputDescription.inputTransformer;
     }
 
     public void check(JavaClasses classes) {
@@ -63,9 +63,9 @@ public class ArchRule<T> {
      * @param inputTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
      * @param <TYPE>           The target type to which the later used {@link ArchCondition ArchCondition&lt;TYPE&gt;}
      *                         will have to refer to
-     * @return An {@link OpenDescribable OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRule ArchRule&lt;TYPE&gt;}
+     * @return An {@link InputDescription OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRule ArchRule&lt;TYPE&gt;}
      */
-    public static <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
+    public static <TYPE> InputDescription<TYPE> all(InputTransformer<TYPE> inputTransformer) {
         return priority(MEDIUM).all(inputTransformer);
     }
 
@@ -89,16 +89,16 @@ public class ArchRule<T> {
             this.priority = priority;
         }
 
-        public <TYPE> OpenDescribable<TYPE> all(InputTransformer<TYPE> inputTransformer) {
-            return new OpenDescribable<>(inputTransformer, priority);
+        public <TYPE> InputDescription<TYPE> all(InputTransformer<TYPE> inputTransformer) {
+            return new InputDescription<>(inputTransformer, priority);
         }
     }
 
-    public static class OpenDescribable<TYPE> {
+    public static class InputDescription<TYPE> {
         final InputTransformer<TYPE> inputTransformer;
         final Priority priority;
 
-        OpenDescribable(InputTransformer<TYPE> inputTransformer, Priority priority) {
+        InputDescription(InputTransformer<TYPE> inputTransformer, Priority priority) {
             this.inputTransformer = inputTransformer;
             this.priority = priority;
         }
