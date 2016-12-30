@@ -7,7 +7,7 @@ import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
-import com.tngtech.archunit.lang.InputTransformer;
+import com.tngtech.archunit.lang.ClassesTransformer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void entities_must_reside_in_a_domain_package() {
-        InputTransformer<JavaClass> entities = classes().that(are(annotatedWith(Entity.class))).as("Entities");
+        ClassesTransformer<JavaClass> entities = classes().that(are(annotatedWith(Entity.class))).as("Entities");
 
         all(entities).should(resideInAPackage("..domain..")).check(classes);
     }

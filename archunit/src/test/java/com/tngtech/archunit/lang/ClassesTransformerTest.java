@@ -12,32 +12,32 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class InputTransformerTest {
+public class ClassesTransformerTest {
     @Test
     public void transform_javaclasses() {
-        InputTransformer<String> transformer = toNameTransformer();
+        ClassesTransformer<String> transformer = toNameTransformer();
 
-        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
-        assertThat(transformed).containsOnly(InputTransformer.class.getName(), InputTransformerTest.class.getName());
+        assertThat(transformed).containsOnly(ClassesTransformer.class.getName(), ClassesTransformerTest.class.getName());
     }
 
     @Test
     public void filter_by_predicate() {
-        InputTransformer<String> transformer = toNameTransformer().that(endInTest());
+        ClassesTransformer<String> transformer = toNameTransformer().that(endInTest());
 
-        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
-        assertThat(transformed).containsOnly(InputTransformerTest.class.getName());
+        assertThat(transformed).containsOnly(ClassesTransformerTest.class.getName());
     }
 
     @Test
     public void description_is_applied() {
-        InputTransformer<String> transformer = toNameTransformer().as("special description");
+        ClassesTransformer<String> transformer = toNameTransformer().as("special description");
 
-        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("special description");
@@ -45,9 +45,9 @@ public class InputTransformerTest {
 
     @Test
     public void description_is_extended_by_predicate() {
-        InputTransformer<String> transformer = toNameTransformer().as("names").that(endInTest().as("end in Test"));
+        ClassesTransformer<String> transformer = toNameTransformer().as("names").that(endInTest().as("end in Test"));
 
-        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("names that end in Test");
@@ -55,18 +55,18 @@ public class InputTransformerTest {
 
     @Test
     public void description_can_be_overwritten() {
-        InputTransformer<String> transformer = toNameTransformer().as("names")
+        ClassesTransformer<String> transformer = toNameTransformer().as("names")
                 .that(endInTest().as("end in Test"))
                 .as("override");
 
-        JavaClasses classes = javaClassesViaReflection(InputTransformer.class, InputTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("override");
     }
 
-    private InputTransformer<String> toNameTransformer() {
-        return new InputTransformer<String>("changeMe") {
+    private ClassesTransformer<String> toNameTransformer() {
+        return new ClassesTransformer<String>("changeMe") {
             @Override
             public Iterable<String> doTransform(JavaClasses collection) {
                 Set<String> names = new HashSet<>();

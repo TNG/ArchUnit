@@ -10,14 +10,14 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
 /**
  * Base class for all rules about a specified set of objects of interest
  * (e.g. {@link JavaClass}).
- * To define a rule, use {@link #all(InputTransformer)}, for example
+ * To define a rule, use {@link #all(ClassesTransformer)}, for example
  * <br/><br/><pre><code>
  * all(services).should("not access the ui").assertedBy(conditionThatDetectsThis)
  * </code></pre>
  * where '<code>services</code>' is a filter denoting when a {@link JavaClass} counts as service
  * (e.g. package contains 'svc', name ends in 'Service', ...).
  * <br/><br/>
- * {@link InputTransformer} defines how the type of objects
+ * {@link ClassesTransformer} defines how the type of objects
  * can be created from imported {@link JavaClasses}, e.g. if you want to define a rule
  * on slices of packages, the input transformer would specify how the transform the imported classes to those slices
  * to run the rule against. It can also just transform {@link JavaClasses} by filtering a subset of interest.
@@ -26,7 +26,7 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
  */
 public class ArchRule<T> {
     private Priority priority;
-    private InputTransformer<T> inputTransformer;
+    private ClassesTransformer<T> classesTransformer;
     private final String text;
     private final ArchCondition<T> condition;
 
@@ -38,11 +38,11 @@ public class ArchRule<T> {
     ArchRule(InputDescription<T> inputDescription, ArchCondition<T> condition) {
         this(condition.getDescription(), condition);
         this.priority = inputDescription.priority;
-        this.inputTransformer = inputDescription.inputTransformer;
+        this.classesTransformer = inputDescription.classesTransformer;
     }
 
     public void check(JavaClasses classes) {
-        DescribedIterable<T> describedCollection = inputTransformer.transform(classes);
+        DescribedIterable<T> describedCollection = classesTransformer.transform(classes);
         String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
         condition.objectsToTest = describedCollection;
         ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
@@ -55,26 +55,26 @@ public class ArchRule<T> {
     }
 
     /**
-     * Takes an {@link InputTransformer} to specify how the set of objects of interest is to be created
+     * Takes an {@link ClassesTransformer} to specify how the set of objects of interest is to be created
      * from {@link JavaClasses} (which are the general input obtained from a {@link ClassFileImporter}).
-     * The most simple {@link InputTransformer} is {@link #classes()}, which simply forwards the
+     * The most simple {@link ClassesTransformer} is {@link #classes()}, which simply forwards the
      * {@link JavaClasses} as a collection of {@link JavaClass}.
      *
-     * @param inputTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
+     * @param classesTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
      * @param <TYPE>           The target type to which the later used {@link ArchCondition ArchCondition&lt;TYPE&gt;}
      *                         will have to refer to
      * @return An {@link InputDescription OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRule ArchRule&lt;TYPE&gt;}
      */
-    public static <TYPE> InputDescription<TYPE> all(InputTransformer<TYPE> inputTransformer) {
-        return priority(MEDIUM).all(inputTransformer);
+    public static <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
+        return priority(MEDIUM).all(classesTransformer);
     }
 
     public static Creator priority(Priority priority) {
         return new Creator(priority);
     }
 
-    public static InputTransformer<JavaClass> classes() {
-        return new InputTransformer<JavaClass>("classes") {
+    public static ClassesTransformer<JavaClass> classes() {
+        return new ClassesTransformer<JavaClass>("classes") {
             @Override
             public Iterable<JavaClass> doTransform(JavaClasses collection) {
                 return collection;
@@ -89,17 +89,17 @@ public class ArchRule<T> {
             this.priority = priority;
         }
 
-        public <TYPE> InputDescription<TYPE> all(InputTransformer<TYPE> inputTransformer) {
-            return new InputDescription<>(inputTransformer, priority);
+        public <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
+            return new InputDescription<>(classesTransformer, priority);
         }
     }
 
     public static class InputDescription<TYPE> {
-        final InputTransformer<TYPE> inputTransformer;
+        final ClassesTransformer<TYPE> classesTransformer;
         final Priority priority;
 
-        InputDescription(InputTransformer<TYPE> inputTransformer, Priority priority) {
-            this.inputTransformer = inputTransformer;
+        InputDescription(ClassesTransformer<TYPE> classesTransformer, Priority priority) {
+            this.classesTransformer = classesTransformer;
             this.priority = priority;
         }
 

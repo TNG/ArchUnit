@@ -12,7 +12,7 @@ import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Optional;
-import com.tngtech.archunit.lang.InputTransformer;
+import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -69,7 +69,7 @@ public class Slices implements DescribedIterable<Slice> {
         return new Transformer(packageIdentifier, String.format("slices matching '%s'", packageIdentifier));
     }
 
-    public static class Transformer extends InputTransformer<Slice> {
+    public static class Transformer extends ClassesTransformer<Slice> {
         private final String packageIdentifier;
         private Optional<String> namingPattern = Optional.absent();
 

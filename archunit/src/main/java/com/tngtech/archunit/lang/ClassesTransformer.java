@@ -6,10 +6,10 @@ import com.tngtech.archunit.core.Guava;
 import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClasses;
 
-public abstract class InputTransformer<T> implements HasDescription {
+public abstract class ClassesTransformer<T> implements HasDescription {
     private String description;
 
-    protected InputTransformer(String description) {
+    protected ClassesTransformer(String description) {
         this.description = description;
     }
 
@@ -19,11 +19,11 @@ public abstract class InputTransformer<T> implements HasDescription {
 
     public abstract Iterable<T> doTransform(JavaClasses collection);
 
-    public InputTransformer<T> that(final DescribedPredicate<? super T> predicate) {
-        return new InputTransformer<T>(description + " that " + predicate.getDescription()) {
+    public ClassesTransformer<T> that(final DescribedPredicate<? super T> predicate) {
+        return new ClassesTransformer<T>(description + " that " + predicate.getDescription()) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {
-                Iterable<T> transformed = InputTransformer.this.doTransform(collection);
+                Iterable<T> transformed = ClassesTransformer.this.doTransform(collection);
                 return Guava.Iterables.filter(transformed, predicate);
             }
         };
@@ -34,11 +34,11 @@ public abstract class InputTransformer<T> implements HasDescription {
         return description;
     }
 
-    public InputTransformer<T> as(String description) {
-        return new InputTransformer<T>(description) {
+    public ClassesTransformer<T> as(String description) {
+        return new ClassesTransformer<T>(description) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {
-                return InputTransformer.this.doTransform(collection);
+                return ClassesTransformer.this.doTransform(collection);
             }
         };
     }
