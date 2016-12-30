@@ -131,6 +131,8 @@ import static com.tngtech.archunit.core.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.SourceTest.expectedMd5sumOf;
+import static com.tngtech.archunit.core.SourceTest.urlOf;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
@@ -1362,10 +1364,14 @@ public class ClassFileImporterTest {
     @Test
     public void class_has_source_of_import() throws Exception {
         JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
-        assertThat(clazzFromFile.getSource()).contains(urlOf(ClassToImportOne.class).toURI());
+        Source source = clazzFromFile.getSource().get();
+        assertThat(source.getUri()).isEqualTo(urlOf(ClassToImportOne.class).toURI());
+        assertThat(source.getMd5sum()).isEqualTo(expectedMd5sumOf(urlOf(ClassToImportOne.class)));
 
         JavaClass clazzFromJar = new ClassFileImporter().importClass(Rule.class);
-        assertThat(clazzFromJar.getSource()).contains(urlOf(Rule.class).toURI());
+        source = clazzFromJar.getSource().get();
+        assertThat(source.getUri()).isEqualTo(urlOf(Rule.class).toURI());
+        assertThat(source.getMd5sum()).isEqualTo(expectedMd5sumOf(urlOf(Rule.class)));
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {
@@ -1375,10 +1381,6 @@ public class ClassFileImporterTest {
                 return value.getFullName().equals(name);
             }
         };
-    }
-
-    private URL urlOf(Class<?> clazz) {
-        return getClass().getResource("/" + clazz.getName().replace('.', '/') + ".class");
     }
 
     private Constructor<?> reflect(ConstructorCallTarget target) {

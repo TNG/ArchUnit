@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +21,7 @@ import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class JavaClass implements HasName, HasAnnotations {
-    private final Optional<URI> source;
+    private final Optional<Source> source;
     private final JavaType javaType;
     private final boolean isInterface;
     private final Set<JavaModifier> modifiers;
@@ -49,7 +48,7 @@ public class JavaClass implements HasName, HasAnnotations {
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
-    public Optional<URI> getSource() {
+    public Optional<Source> getSource() {
         return source;
     }
 
@@ -543,12 +542,12 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     static final class Builder {
-        private Optional<URI> source = Optional.absent();
+        private Optional<Source> source = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
         private Set<JavaModifier> modifiers;
 
-        Builder withSource(URI source) {
+        Builder withSource(Source source) {
             this.source = Optional.of(source);
             return this;
         }

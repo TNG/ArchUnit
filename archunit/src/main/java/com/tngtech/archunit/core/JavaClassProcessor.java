@@ -35,18 +35,18 @@ class JavaClassProcessor extends ClassVisitor {
 
     private JavaClass.Builder javaClassBuilder;
     private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
-    private final URI source;
+    private final URI sourceURI;
     private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
     private String className;
 
-    JavaClassProcessor(URI source, DeclarationHandler declarationHandler) {
-        this(source, declarationHandler, NO_OP);
+    JavaClassProcessor(URI sourceURI, DeclarationHandler declarationHandler) {
+        this(sourceURI, declarationHandler, NO_OP);
     }
 
-    JavaClassProcessor(URI source, DeclarationHandler declarationHandler, AccessHandler accessHandler) {
+    JavaClassProcessor(URI sourceURI, DeclarationHandler declarationHandler, AccessHandler accessHandler) {
         super(ASM_API_VERSION);
-        this.source = source;
+        this.sourceURI = sourceURI;
         this.declarationHandler = declarationHandler;
         this.accessHandler = accessHandler;
     }
@@ -70,7 +70,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
         javaClassBuilder = new JavaClass.Builder()
-                .withSource(source)
+                .withSource(new Source(sourceURI))
                 .withType(javaType)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
