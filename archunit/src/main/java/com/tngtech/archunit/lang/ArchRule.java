@@ -30,7 +30,7 @@ public class ArchRule<T> {
     private final String text;
     private final ArchCondition<T> condition;
 
-    ArchRule(String text, ArchCondition<T> condition) {
+    private ArchRule(String text, ArchCondition<T> condition) {
         this.text = text;
         this.condition = condition;
     }
@@ -47,12 +47,6 @@ public class ArchRule<T> {
         condition.objectsToTest = describedCollection;
         ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
         ArchRuleAssertion.from(rule).assertNoViolations(priority);
-    }
-
-    void evaluate(Iterable<T> objectsToTest, ConditionEvents events) {
-        for (T object : objectsToTest) {
-            condition.check(object, events);
-        }
     }
 
     @Override
@@ -114,24 +108,29 @@ public class ArchRule<T> {
         }
     }
 
-    static final class ClosedArchRule<T> extends ArchRule<T> implements RuleToEvaluate {
+    private static final class ClosedArchRule<T> implements RuleToEvaluate {
         private final Iterable<T> objectsToTest;
+        private final String text;
+        private final ArchCondition<T> condition;
 
         ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
-            super(text, condition);
             this.objectsToTest = objectsToTest;
+            this.text = text;
+            this.condition = condition;
         }
 
         @Override
         public ConditionEvents evaluate() {
             ConditionEvents events = new ConditionEvents();
-            super.evaluate(objectsToTest, events);
+            for (T object : objectsToTest) {
+                condition.check(object, events);
+            }
             return events;
         }
 
         @Override
         public String getDescription() {
-            return toString();
+            return text;
         }
     }
 }
