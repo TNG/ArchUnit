@@ -27,7 +27,7 @@ class ArchRuleAssertion {
         FailureMessages messagesToReport = filterIgnoredMessagesFrom(failureMessages);
 
         if (!messagesToReport.isEmpty()) {
-            String message = ConfiguredMessageFormat.get().format(rule, messagesToReport, priority);
+            String message = ConfiguredMessageFormat.get().formatFailure(rule, messagesToReport, priority);
             throw new ArchAssertionError(priority, message);
         }
     }

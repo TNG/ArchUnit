@@ -6,20 +6,27 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.DescribedIterable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class ArchCondition<T> {
-    Iterable<T> objectsToTest;
+    DescribedIterable<T> objectsToTest;
     private String description;
 
     public ArchCondition(String description) {
         this(null, description);
     }
 
-    private ArchCondition(Iterable<T> objectsToTest, String description) {
+    private ArchCondition(DescribedIterable<T> objectsToTest, String description) {
         this.objectsToTest = objectsToTest;
         this.description = checkNotNull(description);
+    }
+
+    void check(ConditionEvents events) {
+        for (T object : objectsToTest) {
+            check(object, events);
+        }
     }
 
     public abstract void check(T item, ConditionEvents events);

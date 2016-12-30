@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.Dependency;
+import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaMethod;
 import org.junit.Test;
@@ -22,16 +23,16 @@ public class SlicesTest {
     public void matches_slices() {
         JavaClasses classes = javaClassesViaReflection(Object.class, String.class, List.class, Set.class, Pattern.class);
 
-        assertThat(Slices.of(classes).matching("java.(*)..")).hasSize(2);
-        assertThat(Slices.of(classes).matching("(**)")).hasSize(3);
-        assertThat(Slices.of(classes).matching("java.(**)")).hasSize(3);
-        assertThat(Slices.of(classes).matching("java.(*).(*)")).hasSize(1);
+        assertThat(Slices.matching("java.(*)..").transform(classes)).hasSize(2);
+        assertThat(Slices.matching("(**)").transform(classes)).hasSize(3);
+        assertThat(Slices.matching("java.(**)").transform(classes)).hasSize(3);
+        assertThat(Slices.matching("java.(*).(*)").transform(classes)).hasSize(1);
     }
 
     @Test
     public void default_naming_slices() {
         JavaClasses classes = javaClassesViaReflection(Object.class, String.class, Pattern.class);
-        Slices slices = Slices.of(classes).matching("java.(*)..");
+        DescribedIterable<Slice> slices = Slices.matching("java.(*)..").transform(classes);
 
         assertThat(slices).extractingResultOf("getDescription").containsOnly("Slice lang", "Slice util");
     }
@@ -39,7 +40,7 @@ public class SlicesTest {
     @Test
     public void renaming_slices() {
         JavaClasses classes = javaClassesViaReflection(Object.class, String.class, Pattern.class);
-        Slices slices = Slices.of(classes).matching("java.(*)..").namingSlices("Hallo $1");
+        DescribedIterable<Slice> slices = Slices.matching("java.(*)..").namingSlices("Hallo $1").transform(classes);
 
         assertThat(slices).extractingResultOf("getDescription").containsOnly("Hallo lang", "Hallo util");
     }
@@ -47,7 +48,7 @@ public class SlicesTest {
     @Test
     public void name_parts_are_resolved_correctly() {
         JavaClasses classes = javaClassesViaReflection(Object.class);
-        Slices slices = Slices.of(classes).matching("(*).(*)..");
+        DescribedIterable<Slice> slices = Slices.matching("(*).(*)..").transform(classes);
 
         assertThat(getOnlyElement(slices).getNamePart(1)).isEqualTo("java");
         assertThat(getOnlyElement(slices).getNamePart(2)).isEqualTo("lang");

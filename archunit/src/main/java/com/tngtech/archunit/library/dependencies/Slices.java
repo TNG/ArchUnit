@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
@@ -19,16 +20,30 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Dependency.toTargetClasses;
 import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
+/**
+ * Basic collection of {@link Slice} for tests on dependencies of package slices, e.g. to avoid cycles.
+ * Example to specify a {@link ClassesTransformer} to run {@link ArchRule ArchRules} against {@link Slices}:
+ * <pre><code>
+ * Slices.matching("some.pkg.(*)..")
+ * </code></pre>
+ * would group the packages
+ * <ul>
+ * <li><code>some.pkg.one.any</code></li>
+ * <li><code>some.pkg.one.other</code></li>
+ * </ul>
+ * in the same slice, the package
+ * <ul>
+ * <li><code>some.pkg.two.any</code></li>
+ * </ul>
+ * in a different slice.<br/>
+ * The resulting {@link ClassesTransformer} can be used to specify an {@link ArchRule} on slices.
+ */
 public class Slices implements DescribedIterable<Slice> {
     private final Iterable<Slice> slices;
     private String description = "Slices";
 
     private Slices(Iterable<Slice> slices) {
         this.slices = slices;
-    }
-
-    public static ClosedCreator of(JavaClasses classes) {
-        return new ClosedCreator(classes);
     }
 
     @Override
@@ -69,6 +84,12 @@ public class Slices implements DescribedIterable<Slice> {
         return new Transformer(packageIdentifier, String.format("slices matching '%s'", packageIdentifier));
     }
 
+    /**
+     * Specifies how to transform a set of {@link JavaClass} into a set of {@link Slice}, e.g. to test that
+     * no cycles between certain package slices appear.
+     *
+     * @see Slices
+     */
     public static class Transformer extends ClassesTransformer<Slice> {
         private final String packageIdentifier;
         private Optional<String> namingPattern = Optional.absent();
