@@ -1,7 +1,5 @@
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.core.HasDescription;
-
 /**
  * A specification of {@link ArchRule} where the set of classes is known at the time the
  * rule is defined.<br><p>
@@ -17,7 +15,7 @@ import com.tngtech.archunit.core.HasDescription;
 public final class ClosedArchRule<T> extends ArchRule<T> {
     private final Iterable<T> objectsToTest;
 
-    private ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
+    ClosedArchRule(Iterable<T> objectsToTest, String text, ArchCondition<T> condition) {
         super(text, finish(condition, objectsToTest));
         this.objectsToTest = objectsToTest;
     }
@@ -31,21 +29,5 @@ public final class ClosedArchRule<T> extends ArchRule<T> {
         ConditionEvents events = new ConditionEvents();
         super.evaluate(objectsToTest, events);
         return events;
-    }
-
-    public static class ClosedDescribable<TYPE, ITERABLE extends Iterable<TYPE> & HasDescription> {
-        private final ITERABLE describedCollection;
-        private final Priority priority;
-
-        ClosedDescribable(ITERABLE describedCollection, Priority priority) {
-            this.describedCollection = describedCollection;
-            this.priority = priority;
-        }
-
-        public void should(ArchCondition<TYPE> condition) {
-            String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
-            ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
-            ArchRuleAssertion.from(rule).assertNoViolations(priority);
-        }
     }
 }

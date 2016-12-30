@@ -1,8 +1,7 @@
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.core.HasDescription;
+import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.ClosedArchRule.ClosedDescribable;
 
 /**
  * A specification of {@link ArchRule} where the set of classes is not known at the time the
@@ -26,13 +25,11 @@ public final class OpenArchRule<T> extends ArchRule<T> {
         this.inputTransformer = describable.inputTransformer;
     }
 
-    public <U extends Iterable<T> & HasDescription> void check(JavaClasses classes) {
-        all(inputTransformer.transform(classes)).should(condition);
-    }
-
-    private <TYPE, ITERABLE extends Iterable<TYPE> & HasDescription>
-    ClosedDescribable<TYPE, ITERABLE> all(ITERABLE iterable) {
-        return new ClosedDescribable<>(iterable, priority);
+    public void check(JavaClasses classes) {
+        DescribedIterable<T> describedCollection = inputTransformer.transform(classes);
+        String completeRuleText = String.format("%s should %s", describedCollection.getDescription(), condition.getDescription());
+        ClosedArchRule<?> rule = new ClosedArchRule<>(describedCollection, completeRuleText, condition);
+        ArchRuleAssertion.from(rule).assertNoViolations(priority);
     }
 
     public static class OpenDescribable<TYPE> {
