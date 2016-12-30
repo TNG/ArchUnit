@@ -3,6 +3,8 @@ package com.tngtech.archunit.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -21,13 +23,16 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
+import com.tngtech.archunit.core.ArchUnitException.LocationException;
 
-interface ClassFileSource extends Iterable<Supplier<InputStream>> {
+import static com.tngtech.archunit.core.Location.newJarUrl;
+
+interface ClassFileSource extends Iterable<ClassFileLocation> {
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
         private static final PathMatcher classMatcher = FileSystems.getDefault().getPathMatcher("glob:**/*.class");
-        private final Set<Supplier<InputStream>> inputStreams = new HashSet<>();
+        private final Set<ClassFileLocation> classFileLocations = new HashSet<>();
 
-        public FromFilePath(Path path) {
+        FromFilePath(Path path) {
             if (path.toFile().exists()) {
                 try {
                     Files.walkFileTree(path, this);
@@ -38,14 +43,14 @@ interface ClassFileSource extends Iterable<Supplier<InputStream>> {
         }
 
         @Override
-        public Iterator<Supplier<InputStream>> iterator() {
-            return inputStreams.iterator();
+        public Iterator<ClassFileLocation> iterator() {
+            return classFileLocations.iterator();
         }
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
             if (classMatcher.matches(file)) {
-                inputStreams.add(newInputStreamSupplierFor(file));
+                classFileLocations.add(new InputStreamSupplierClassFileLocation(file.toUri(), newInputStreamSupplierFor(file)));
             }
             return super.visitFile(file, attrs);
         }
@@ -62,15 +67,15 @@ interface ClassFileSource extends Iterable<Supplier<InputStream>> {
     }
 
     class FromJar implements ClassFileSource {
-        private final FluentIterable<Supplier<InputStream>> inputStreams;
+        private final FluentIterable<ClassFileLocation> classFileLocations;
 
         FromJar(JarURLConnection connection) {
             try {
                 JarFile jarFile = connection.getJarFile();
                 String prefix = connection.getJarEntry() != null ? connection.getJarEntry().getName() : "";
-                inputStreams = FluentIterable.from(Collections.list(jarFile.entries()))
+                classFileLocations = FluentIterable.from(Collections.list(jarFile.entries()))
                         .filter(classFilesBeneath(prefix))
-                        .transform(toInputStreamSupplierFrom(jarFile));
+                        .transform(toInputStreamSupplierFrom(connection));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -86,23 +91,51 @@ interface ClassFileSource extends Iterable<Supplier<InputStream>> {
             };
         }
 
-        private Function<JarEntry, Supplier<InputStream>> toInputStreamSupplierFrom(final JarFile jar) {
-            return new Function<JarEntry, Supplier<InputStream>>() {
+        private Function<JarEntry, ClassFileLocation> toInputStreamSupplierFrom(final JarURLConnection connection) {
+            return new Function<JarEntry, ClassFileLocation>() {
                 @Override
-                public Supplier<InputStream> apply(final JarEntry input) {
-                    return new InputStreamSupplier() {
+                public ClassFileLocation apply(final JarEntry input) {
+                    return new InputStreamSupplierClassFileLocation(makeJarUrl(input), new InputStreamSupplier() {
                         @Override
                         InputStream getInputStream() throws IOException {
-                            return jar.getInputStream(input);
+                            return connection.getJarFile().getInputStream(input);
                         }
-                    };
+                    });
+                }
+
+                private URI makeJarUrl(JarEntry input) {
+                    try {
+                        return new URI(newJarUrl(connection.getJarFileURL()) + input.getName());
+                    } catch (URISyntaxException e) {
+                        throw new LocationException(e);
+                    }
                 }
             };
         }
 
         @Override
-        public Iterator<Supplier<InputStream>> iterator() {
-            return inputStreams.iterator();
+        public Iterator<ClassFileLocation> iterator() {
+            return classFileLocations.iterator();
+        }
+    }
+
+    class InputStreamSupplierClassFileLocation implements ClassFileLocation {
+        private final URI uri;
+        private final Supplier<InputStream> streamSupplier;
+
+        InputStreamSupplierClassFileLocation(URI uri, Supplier<InputStream> streamSupplier) {
+            this.uri = uri;
+            this.streamSupplier = streamSupplier;
+        }
+
+        @Override
+        public InputStream openStream() {
+            return streamSupplier.get();
+        }
+
+        @Override
+        public URI getUri() {
+            return uri;
         }
     }
 

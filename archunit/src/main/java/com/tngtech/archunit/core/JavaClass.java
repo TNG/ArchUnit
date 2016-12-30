@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +22,7 @@ import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class JavaClass implements HasName, HasAnnotations {
+    private final Optional<URI> source;
     private final JavaType javaType;
     private final boolean isInterface;
     private final Set<JavaModifier> modifiers;
@@ -40,10 +42,15 @@ public class JavaClass implements HasName, HasAnnotations {
     private Supplier<Set<JavaField>> allFields;
 
     private JavaClass(Builder builder) {
+        source = checkNotNull(builder.source);
         javaType = checkNotNull(builder.javaType);
         isInterface = builder.isInterface;
         modifiers = builder.modifiers;
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
+    }
+
+    public Optional<URI> getSource() {
+        return source;
     }
 
     @Override
@@ -61,6 +68,10 @@ public class JavaClass implements HasName, HasAnnotations {
 
     public boolean isInterface() {
         return isInterface;
+    }
+
+    public Set<JavaModifier> getModifiers() {
+        return modifiers;
     }
 
     @Override
@@ -521,10 +532,6 @@ public class JavaClass implements HasName, HasAnnotations {
         }
     };
 
-    public Set<JavaModifier> getModifiers() {
-        return modifiers;
-    }
-
     class CompletionProcess {
         AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
             AccessContext.Part part = new AccessContext.Part();
@@ -536,9 +543,15 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     static final class Builder {
+        private Optional<URI> source = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
         private Set<JavaModifier> modifiers;
+
+        Builder withSource(URI source) {
+            this.source = Optional.of(source);
+            return this;
+        }
 
         @SuppressWarnings("unchecked")
         Builder withType(JavaType javaType) {

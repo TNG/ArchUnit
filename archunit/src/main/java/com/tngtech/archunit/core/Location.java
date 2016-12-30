@@ -80,7 +80,7 @@ public abstract class Location {
         return new JarFileLocation(newJarUrl(newURL(String.format("%s:%s", FILE_PROTOCOL, jar.getName()))));
     }
 
-    private static URL newJarUrl(URL url) {
+    static URL newJarUrl(URL url) {
         try {
             return new URL(String.format("%s:%s!/", JAR_PROTOCOL, url.toExternalForm()));
         } catch (MalformedURLException e) {

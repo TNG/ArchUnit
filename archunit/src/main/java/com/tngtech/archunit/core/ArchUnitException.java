@@ -15,7 +15,7 @@ public class ArchUnitException extends RuntimeException {
         super(cause);
     }
 
-    public static class LocationException extends ArchUnitException {
+    static class LocationException extends ArchUnitException {
         LocationException(Exception e) {
             super(e);
         }
@@ -27,13 +27,13 @@ public class ArchUnitException extends RuntimeException {
         }
     }
 
-    public static class UnsupportedUrlProtocolException extends ArchUnitException {
+    static class UnsupportedUrlProtocolException extends ArchUnitException {
         UnsupportedUrlProtocolException(URL url) {
             super("The protocol of the following URL is not (yet) supported: " + url);
         }
     }
 
-    public static class InconsistentClassPathException extends ArchUnitException {
+    static class InconsistentClassPathException extends ArchUnitException {
         InconsistentClassPathException(String message, Throwable cause) {
             super(message, cause);
         }

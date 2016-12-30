@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -12,11 +11,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.util.Collections.singletonList;
 
 public class ClassFileImporter {
@@ -70,6 +69,11 @@ public class ClassFileImporter {
         return new ClassFileImporter(importOptions).importLocations(locations);
     }
 
+    public JavaClass importClass(Class<?> clazz) {
+        return getOnlyElement(importUrl(getClass().getResource(
+                "/" + clazz.getName().replace(".", "/") + ".class")));
+    }
+
     public JavaClasses importUrl(URL url) {
         return importUrls(singletonList(url));
     }
@@ -93,10 +97,10 @@ public class ClassFileImporter {
     }
 
     private ClassFileSource unify(final List<ClassFileSource> sources) {
-        final Iterable<Supplier<InputStream>> concatenatedStreams = Iterables.concat(sources);
+        final Iterable<ClassFileLocation> concatenatedStreams = Iterables.concat(sources);
         return new ClassFileSource() {
             @Override
-            public Iterator<Supplier<InputStream>> iterator() {
+            public Iterator<ClassFileLocation> iterator() {
                 return concatenatedStreams.iterator();
             }
         };
@@ -109,7 +113,7 @@ public class ClassFileImporter {
             this(Collections.<ImportOption>emptySet());
         }
 
-        public ImportOptions(Set<ImportOption> options) {
+        private ImportOptions(Set<ImportOption> options) {
             this.options = checkNotNull(options);
         }
 

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 
-import com.google.common.base.Supplier;
 import org.junit.Test;
 
 import static com.google.common.io.ByteStreams.toByteArray;
@@ -62,8 +61,8 @@ public class LocationTest {
         ClassFileSource source = Location.of(urlOfOwnClass()).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
-        for (Supplier<InputStream> stream : source) {
-            try (InputStream s = stream.get()) {
+        for (ClassFileLocation location : source) {
+            try (InputStream s = location.openStream()) {
                 importedFiles.add(asList(toByteArray(s)));
             }
         }
@@ -80,8 +79,8 @@ public class LocationTest {
         ClassFileSource source = Location.of(new URL("file:///" + jar.getName())).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
-        for (Supplier<InputStream> stream : source) {
-            try (InputStream s = stream.get()) {
+        for (ClassFileLocation location : source) {
+            try (InputStream s = location.openStream()) {
                 importedFiles.add(asList(toByteArray(s)));
             }
         }
@@ -113,11 +112,11 @@ public class LocationTest {
         return clazz.getResource(fullClassFileName(clazz));
     }
 
-    static InputStream streamOfClass(Class<?> clazz) {
+    private static InputStream streamOfClass(Class<?> clazz) {
         return clazz.getResourceAsStream(fullClassFileName(clazz));
     }
 
-    static String fullClassFileName(Class<?> clazz) {
+    private static String fullClassFileName(Class<?> clazz) {
         return String.format("/%s.class", clazz.getName().replace('.', '/'));
     }
 }

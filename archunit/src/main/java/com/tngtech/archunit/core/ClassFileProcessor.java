@@ -2,10 +2,12 @@ package com.tngtech.archunit.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Set;
 
-import com.google.common.base.Supplier;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.core.ArchUnitException.LocationException;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -20,15 +22,18 @@ import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 class ClassFileProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
+
     static final int ASM_API_VERSION = ASM5;
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
         RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
         ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord);
-        for (Supplier<InputStream> stream : source) {
-            try (InputStream s = stream.get()) {
-                JavaClassProcessor javaClassProcessor = new JavaClassProcessor(classDetailsRecorder, accessHandler);
+        for (ClassFileLocation location : source) {
+            try (InputStream s = location.openStream()) {
+                JavaClassProcessor javaClassProcessor =
+                        new JavaClassProcessor(location.getUri(), classDetailsRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
                 importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
             } catch (IOException e) {
@@ -179,11 +184,26 @@ class ClassFileProcessor {
             String typeFile = "/" + typeName.replace(".", "/") + ".class";
 
             try (InputStream inputStream = getClass().getResourceAsStream(typeFile)) {
-                JavaClassProcessor classProcessor = new JavaClassProcessor(declarationHandler);
+                if (inputStream == null) {
+                    LOG.debug("Couldn't resolve class {} from classpath, falling back to simple import", typeFile);
+                    return Optional.absent();
+                }
+
+                JavaClassProcessor classProcessor = new JavaClassProcessor(uriOf(typeFile), declarationHandler);
                 new ClassReader(inputStream).accept(classProcessor, 0);
                 return classProcessor.createJavaClass();
             } catch (Exception e) {
+                LOG.warn(String.format(
+                        "Error during import of %s from classpath, falling back to simple import", typeFile), e);
                 return Optional.absent();
+            }
+        }
+
+        private URI uriOf(String typeFile) {
+            try {
+                return getClass().getResource(typeFile).toURI();
+            } catch (URISyntaxException e) {
+                throw new LocationException(e);
             }
         }
     }

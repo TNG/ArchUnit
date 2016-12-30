@@ -1336,9 +1336,9 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_duplicate_classes() throws IOException {
-        String existingClass = "/" + JavaClass.class.getName().replace(".", "/") + ".class";
+        String existingClass = urlOf(JavaClass.class).getFile();
         copyRule.copy(
-                new File(getClass().getResource(existingClass).getFile()),
+                new File(existingClass),
                 new File(getClass().getResource(".").getFile()));
 
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName());
@@ -1357,6 +1357,15 @@ public class ClassFileImporterTest {
         clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 
         assertThat(clazz.getSuperClass().get().getMethods()).isEmpty();
+    }
+
+    @Test
+    public void class_has_source_of_import() throws Exception {
+        JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
+        assertThat(clazzFromFile.getSource()).contains(urlOf(ClassToImportOne.class).toURI());
+
+        JavaClass clazzFromJar = new ClassFileImporter().importClass(Rule.class);
+        assertThat(clazzFromJar.getSource()).contains(urlOf(Rule.class).toURI());
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {
