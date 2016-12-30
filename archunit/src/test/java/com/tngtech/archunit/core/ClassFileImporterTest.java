@@ -109,7 +109,6 @@ import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.assertj.core.api.Condition;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -152,11 +151,6 @@ public class ClassFileImporterTest {
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
     @Rule
     public final TransientCopyRule copyRule = new TransientCopyRule();
-
-    @Before
-    public void setUp() {
-        ArchConfiguration.get().reset();
-    }
 
     @After
     public void tearDown() {
@@ -1364,6 +1358,8 @@ public class ClassFileImporterTest {
 
     @Test
     public void class_has_source_of_import() throws Exception {
+        ArchConfiguration.get().setMd5InClassSourcesEnabled(true);
+
         JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
         Source source = clazzFromFile.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(ClassToImportOne.class).toURI());
@@ -1373,6 +1369,10 @@ public class ClassFileImporterTest {
         source = clazzFromJar.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(Rule.class).toURI());
         assertThat(source.getMd5sum()).isEqualTo(Md5sum.of(bytesAt(urlOf(Rule.class))));
+
+        ArchConfiguration.get().setMd5InClassSourcesEnabled(false);
+        source = new ClassFileImporter().importClass(ClassToImportOne.class).getSource().get();
+        assertThat(source.getMd5sum()).isEqualTo(Md5sum.DISABLED);
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {

@@ -10,11 +10,13 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 public class ArchConfiguration {
-    private static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
+    static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
     static final String RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH = "resolveMissingDependenciesFromClassPath";
+    static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
-            RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, "" + false
+            RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, "" + false,
+            ENABLE_MD5_IN_CLASS_SOURCES, "" + false
     );
 
     private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(new Supplier<ArchConfiguration>() {
@@ -30,6 +32,7 @@ public class ArchConfiguration {
 
     private final String propertiesResourceName;
     private boolean resolveMissingDependenciesFromClassPath;
+    private boolean enableMd5InClassSources;
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
@@ -66,6 +69,16 @@ public class ArchConfiguration {
     private void set(Properties properties) {
         resolveMissingDependenciesFromClassPath = Boolean.valueOf(
                 propertyOrDefault(properties, RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH));
+        enableMd5InClassSources = Boolean.valueOf(
+                propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
+    }
+
+    public boolean md5InClassSourcesEnabled() {
+        return enableMd5InClassSources;
+    }
+
+    public void setMd5InClassSourcesEnabled(boolean enabled) {
+        this.enableMd5InClassSources = enabled;
     }
 
     private String propertyOrDefault(Properties properties, String propertyName) {

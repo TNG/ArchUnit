@@ -13,10 +13,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.Source.Md5sum;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class SourceTest {
+    @After
+    public void tearDown() {
+        ArchConfiguration.get().reset();
+    }
+
     @DataProvider
     public static Object[][] classes() {
         return $$($(fileUrl()), $(jarUrl()));
@@ -109,6 +116,16 @@ public class SourceTest {
         Source source = new Source(new URI("bummer"));
 
         assertThat(source.getMd5sum()).isEqualTo(Md5sum.UNDETERMINED);
+    }
+
+    @Test
+    public void disables_md5_calculation_via_config() throws Exception {
+        ArchConfiguration.get().setMd5InClassSourcesEnabled(false);
+
+        assertThat(Md5sum.of("any".getBytes())).isEqualTo(Md5sum.DISABLED);
+
+        // NOTE: This tests, that URIs are note resolved, which costs performance, if it would be resolved, we would get UNDETERMINED
+        assertThat(new Source(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
     }
 
     private static String expectedMd5StringAt(URL url) throws IOException, NoSuchAlgorithmException {

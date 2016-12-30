@@ -8,27 +8,27 @@ import java.util.Objects;
 
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
+import com.tngtech.archunit.ArchConfiguration;
 
+/**
+ * Contains information about an imported class, i.e. the URI from where the class was imported and an md5 sum
+ * to compare different versions of the same class file at the same location.
+ * <p>
+ * <b>NOTE</b>: Since the generation of md5 sums has a performance impact, it is disabled by default.<br/>
+ * To enable it, add
+ * <br/><br/><code>
+ * {@value ArchConfiguration#ENABLE_MD5_IN_CLASS_SOURCES}=true
+ * </code><br/><br/>
+ * to your <code>{@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>.
+ * </p>
+ */
 public class Source {
     private final URI uri;
     private final Md5sum md5sum;
 
     Source(URI uri) {
         this.uri = uri;
-        md5sum = createMd5sum(uri);
-    }
-
-    private Md5sum createMd5sum(URI uri) {
-        Optional<byte[]> bytesFromUri = read(uri);
-        return bytesFromUri.isPresent() ? Md5sum.of(bytesFromUri.get()) : Md5sum.UNDETERMINED;
-    }
-
-    private Optional<byte[]> read(URI uri) {
-        try {
-            return Optional.of(ByteStreams.toByteArray(uri.toURL().openStream()));
-        } catch (Exception e) {
-            return Optional.absent();
-        }
+        md5sum = Md5sum.of(uri);
     }
 
     public URI getUri() {
@@ -71,20 +71,12 @@ public class Source {
          * We can't determine the md5 sum, due to an error while digesting the source
          */
         static final Md5sum UNDETERMINED = new Md5sum("UNDETERMINED");
+        /**
+         * The calculation of md5 sums is disabled via {@link ArchConfiguration}
+         */
+        static final Md5sum DISABLED = new Md5sum("DISABLED");
 
         private static final MessageDigest MD5_DIGEST = getMd5Digest();
-
-        private static MessageDigest getMd5Digest() {
-            try {
-                return MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                return null;
-            }
-        }
-
-        static Md5sum of(byte[] input) {
-            return MD5_DIGEST != null ? new Md5sum(input, MD5_DIGEST) : NOT_SUPPORTED;
-        }
 
         private final byte[] md5Bytes;
         private final String text;
@@ -124,6 +116,39 @@ public class Source {
         @Override
         public String toString() {
             return text;
+        }
+
+        private static MessageDigest getMd5Digest() {
+            try {
+                return MessageDigest.getInstance("MD5");
+            } catch (NoSuchAlgorithmException e) {
+                return null;
+            }
+        }
+
+        static Md5sum of(byte[] input) {
+            if (MD5_DIGEST == null) {
+                return NOT_SUPPORTED;
+            }
+
+            return ArchConfiguration.get().md5InClassSourcesEnabled() ? new Md5sum(input, MD5_DIGEST) : DISABLED;
+        }
+
+        private static Md5sum of(URI uri) {
+            if (!ArchConfiguration.get().md5InClassSourcesEnabled()) {
+                return DISABLED;
+            }
+
+            Optional<byte[]> bytesFromUri = read(uri);
+            return bytesFromUri.isPresent() ? Md5sum.of(bytesFromUri.get()) : UNDETERMINED;
+        }
+
+        private static Optional<byte[]> read(URI uri) {
+            try {
+                return Optional.of(ByteStreams.toByteArray(uri.toURL().openStream()));
+            } catch (Exception e) {
+                return Optional.absent();
+            }
         }
     }
 }

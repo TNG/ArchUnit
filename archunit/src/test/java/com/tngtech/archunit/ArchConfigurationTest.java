@@ -47,12 +47,14 @@ public class ArchConfigurationTest {
     @Test
     public void properties_explicitly_set() {
         writeProperties(ImmutableMap.of(
-                ArchConfiguration.RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, true
+                ArchConfiguration.RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, true,
+                ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, true
         ));
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
 
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
+        assertThat(configuration.md5InClassSourcesEnabled()).isTrue();
     }
 
     @Test
@@ -88,6 +90,7 @@ public class ArchConfigurationTest {
 
     private void assertDefault(ArchConfiguration configuration) {
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isFalse();
+        assertThat(configuration.md5InClassSourcesEnabled()).isFalse();
     }
 
     private ArchConfiguration testConfiguration(String resourceName) {
