@@ -410,6 +410,26 @@ class RawAccessRecord {
             this.accessType = accessType;
         }
 
+        @Override
+        public int hashCode() {
+            return 31 * super.hashCode() + Objects.hash(accessType);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            if (!super.equals(obj)) {
+                return false;
+            }
+            final ForField other = (ForField) obj;
+            return Objects.equals(this.accessType, other.accessType);
+        }
+
         static class Builder extends BaseBuilder<Builder> {
             private AccessType accessType;
 

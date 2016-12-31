@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Or>
+            <!-- Null is not used as a value (return or input) in any method, so we don't need @Nullable and co. -->
+            <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
+            <!-- We don't use Java serialization, so we don't want to be forced to add serialVersionUuid to fields of enums, etc. -->
+            <Bug pattern="SE_BAD_FIELD"/>
+        </Or>
+    </Match>
+    <Match>
+        <!-- The respective methods add URLClassLoaders to a set, not URLs. I don't see any equals or hashCode that
+             would delegate to URL either, so this seems like a false positive -->
+        <Bug pattern="DMI_COLLECTION_OF_URLS"/>
+        <Or>
+            <Method name="findAllUrlClassLoadersInContext"/>
+            <Method name="findUrlClassLoadersInHierarchy"/>
+        </Or>
+    </Match>
+</FindBugsFilter>

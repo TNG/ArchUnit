@@ -92,7 +92,7 @@ public class Source {
         }
 
         public byte[] asBytes() {
-            return md5Bytes;
+            return Arrays.copyOf(md5Bytes, md5Bytes.length);
         }
 
         @Override

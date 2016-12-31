@@ -55,6 +55,8 @@ ext.shadowConfig = { classifierName ->
 
 [':archunit', ':archunit-junit'].each {
     project(it) {
+        apply plugin: 'findbugs'
+
         assemble.dependsOn(shadowJar)
 
         shadowJar shadowConfig('')
@@ -72,6 +74,18 @@ ext.shadowConfig = { classifierName ->
                         }
                     }
                 }
+            }
+        }
+
+        findbugs {
+            sourceSets = [sourceSets.main]
+            excludeFilter = file("$rootProject.projectDir/findbugs-excludes.xml")
+        }
+
+        tasks.withType(FindBugs) {
+            reports {
+                xml.enabled false
+                html.enabled true
             }
         }
     }
