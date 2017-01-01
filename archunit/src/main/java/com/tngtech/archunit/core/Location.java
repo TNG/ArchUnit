@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.jar.JarFile;
@@ -14,6 +15,7 @@ import com.tngtech.archunit.core.ArchUnitException.LocationException;
 import com.tngtech.archunit.core.ArchUnitException.UnsupportedUrlProtocolException;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class Location {
     private static final String FILE_PROTOCOL = "file";
@@ -21,9 +23,17 @@ public abstract class Location {
 
     final URI uri;
 
+    private Location(URI uri) {
+        this.uri = checkNotNull(uri);
+    }
+
     private Location(URL url) {
+        this(toUri(url));
+    }
+
+    private static URI toUri(URL url) {
         try {
-            this.uri = url.toURI();
+            return url.toURI();
         } catch (URISyntaxException e) {
             throw new LocationException(e);
         }
@@ -44,6 +54,10 @@ public abstract class Location {
         }
         final Location other = (Location) obj;
         return Objects.equals(this.uri, other.uri);
+    }
+
+    public URI asURI() {
+        return uri;
     }
 
     @Override
@@ -96,6 +110,10 @@ public abstract class Location {
         }
     }
 
+    public static Location of(Path path) {
+        return new FilePathLocation(path.toUri());
+    }
+
     private static class JarFileLocation extends Location {
         JarFileLocation(URL url) {
             super(url);
@@ -117,6 +135,11 @@ public abstract class Location {
         FilePathLocation(URL url) {
             super(url);
             checkArgument(FILE_PROTOCOL.equals(url.getProtocol()), "URL of %s must have protocol %s", getClass().getSimpleName(), FILE_PROTOCOL);
+        }
+
+        FilePathLocation(URI uri) {
+            super(uri);
+            checkArgument(FILE_PROTOCOL.equals(uri.getScheme()), "URL of %s must have scheme %s", getClass().getSimpleName(), FILE_PROTOCOL);
         }
 
         @Override

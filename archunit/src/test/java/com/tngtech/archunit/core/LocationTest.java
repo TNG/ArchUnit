@@ -3,7 +3,9 @@ package com.tngtech.archunit.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
@@ -98,6 +100,18 @@ public class LocationTest {
         assertThat(location.contains("/archunit/")).as("location contains '/archunit/'").isTrue();
         assertThat(location.contains(getClass().getSimpleName())).as("location contains own simple class name").isTrue();
         assertThat(location.contains("wrong")).as("location contains 'wrong'").isFalse();
+    }
+
+    @Test
+    public void asUri_works() throws URISyntaxException {
+        URL url = getClass().getResource(".");
+        assertThat(Location.of(url).asURI()).isEqualTo(url.toURI());
+    }
+
+    @Test
+    public void location_of_path_works() throws URISyntaxException {
+        URL url = getClass().getResource(".");
+        Location.of(Paths.get(url.toURI())).asURI().getPath().equals(url.getFile());
     }
 
     private URL urlOfOwnClass() {

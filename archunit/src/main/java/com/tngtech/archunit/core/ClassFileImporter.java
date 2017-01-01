@@ -16,6 +16,7 @@ import com.google.common.collect.Iterables;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 public class ClassFileImporter {
@@ -34,11 +35,11 @@ public class ClassFileImporter {
     }
 
     public JavaClasses importPath(Path path) {
-        return new ClassFileProcessor().process(new ClassFileSource.FromFilePath(path));
+        return importLocations(singleton(Location.of(path)));
     }
 
     public JavaClasses importJar(JarFile jar) {
-        return new ClassFileProcessor().process(Location.of(jar).asClassFileSource());
+        return importLocations(singleton(Location.of(jar)));
     }
 
     /**
@@ -66,7 +67,7 @@ public class ClassFileImporter {
         for (Location location : Locations.inClassPath()) {
             locations.add(location);
         }
-        return new ClassFileImporter(importOptions).importLocations(locations);
+        return new ClassFileImporter(options).importLocations(locations);
     }
 
     public JavaClass importClass(Class<?> clazz) {

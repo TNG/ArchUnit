@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
@@ -28,6 +29,7 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.Source.Md5sum;
@@ -113,6 +115,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.base.Predicates.not;
@@ -1373,6 +1376,31 @@ public class ClassFileImporterTest {
         ArchConfiguration.get().setMd5InClassSourcesEnabled(false);
         source = new ClassFileImporter().importClass(ClassToImportOne.class).getSource().get();
         assertThat(source.getMd5sum()).isEqualTo(Md5sum.DISABLED);
+    }
+
+    @Test
+    public void ImportOptions_are_respected() throws Exception {
+        ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
+
+        assertThat(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).isEmpty();
+        assertThat(importer.importUrl(urlOf(getClass()))).isEmpty();
+        assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
+    }
+
+    private JarFile jarFileOf(Class<Rule> clazzInJar) throws IOException {
+        String fileName = urlOf(clazzInJar).getFile();
+        checkArgument(fileName.contains(".jar!/"), "Class %s is not contained in a JAR", clazzInJar.getName());
+        File file = new File(fileName.replaceAll(".*:", "").replaceAll("!/.*", ""));
+        return new JarFile(file);
+    }
+
+    private ImportOption importNothing() {
+        return new ImportOption() {
+            @Override
+            public boolean includes(Location location) {
+                return false;
+            }
+        };
     }
 
     private Condition<MethodCallTarget> targetWithFullName(final String name) {
