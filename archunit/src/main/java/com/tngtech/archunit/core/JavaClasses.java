@@ -55,8 +55,12 @@ public class JavaClasses implements DescribedIterable<JavaClass>, Restrictable<J
     }
 
     public JavaClass get(Class<?> reflectedType) {
-        return checkNotNull(classes.get(reflectedType.getName()), "%s don't contain %s of type %s",
-                getClass().getSimpleName(), JavaClass.class.getSimpleName(), reflectedType.getName());
+        return get(reflectedType.getName());
+    }
+
+    public JavaClass get(String typeName) {
+        return checkNotNull(classes.get(typeName), "%s don't contain %s of type %s",
+                getClass().getSimpleName(), JavaClass.class.getSimpleName(), typeName);
     }
 
     public static JavaClasses of(Iterable<JavaClass> classes) {

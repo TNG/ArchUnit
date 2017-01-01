@@ -48,8 +48,9 @@ public class JavaClassesTest {
     }
 
     @Test
-    public void get_type_returns_correct_JavaClass() {
+    public void get_returns_correct_JavaClass() {
         assertThat(ALL_CLASSES.get(SomeOtherClass.class)).isEqualTo(SOME_OTHER_CLASS);
+        assertThat(ALL_CLASSES.get(SomeOtherClass.class.getName())).isEqualTo(SOME_OTHER_CLASS);
     }
 
     @Test
