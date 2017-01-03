@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 buildscript {
     repositories {
         mavenCentral();
@@ -32,15 +34,17 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.2'
 }
 
+allprojects {
+    group = 'com.tngtech.archunit'
+    version = '0.3.0-SNAPSHOT'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
-
-    group = 'com.tngtech.archunit'
-    version = '0.3.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
@@ -145,3 +149,34 @@ def configurePublish = {
     project(it, configureProguard)
     project(it, configurePublish)
 }
+
+task prepareMavenTest {
+    doLast {
+        def pom = file("$rootProject.projectDir/archunit-maven-test/pom.xml")
+        def pomBak = file("$rootProject.projectDir/archunit-maven-test/pom.xml.bak")
+        pomBak.delete()
+        Files.copy(pom.toPath(), pomBak.toPath())
+        pom.text = pom.text.replace('#{archunit.version}', version)
+    }
+}
+
+task executeMavenTest(type: Exec) {
+    workingDir "$rootProject.projectDir/archunit-maven-test"
+
+    commandLine 'mvn', 'clean', 'test'
+}
+
+task cleanUpMavenTest {
+    doLast {
+        def pom = file("$rootProject.projectDir/archunit-maven-test/pom.xml")
+        def pomBak = file("$rootProject.projectDir/archunit-maven-test/pom.xml.bak")
+        pom.delete()
+        Files.copy(pomBak.toPath(), pom.toPath())
+        pomBak.delete()
+    }
+}
+
+cleanUpMavenTest.mustRunAfter executeMavenTest
+cleanUpMavenTest.mustRunAfter prepareMavenTest
+executeMavenTest.mustRunAfter prepareMavenTest
+task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])

@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit-maven-test</artifactId>
+    <version>#{archunit.version}</version>
+
+    <description>Tests the created Maven artifacts of archunit and archunit-junit</description>
+
+    <repositories>
+        <repository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>https://nexus.int.tngtech.com/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>https://nexus.int.tngtech.com/content/repositories/releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit</artifactId>
+            <version>#{archunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
