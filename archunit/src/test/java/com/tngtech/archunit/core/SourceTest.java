@@ -163,8 +163,8 @@ public class SourceTest {
         return urlOf(Rule.class);
     }
 
-    static URL urlOf(Class<?> clazz) {
-        return checkNotNull(SourceTest.class.getResource("/" + clazz.getName().replace('.', '/') + ".class"),
+    public static URL urlOf(Class<?> clazz) {
+        return checkNotNull(clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class"),
                 "Can't determine url of %s", clazz.getName());
     }
 }

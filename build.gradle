@@ -1,5 +1,7 @@
 import java.nio.file.Files
 
+import static java.nio.charset.StandardCharsets.UTF_8
+
 buildscript {
     repositories {
         mavenCentral();
@@ -91,7 +93,7 @@ def configureShadow = {
     shadowJar shadowConfig('all')
 }
 
-def configureProguard = {
+def configureProGuard = {
     configurations {
         proguard
     }
@@ -114,8 +116,10 @@ def configureProguard = {
         dontwarn 'org.slf4j.impl.**'
 
         keep "class !${guavaRelocationPackage}.** {*;}"
-        keepclassmembers "class ${guavaRelocationPackage}.**ImmutableSet** {*;}"
-        keepclassmembers "class ${guavaRelocationPackage}.**ImmutableMap** {*;}"
+
+        file("$rootProject.projectDir/proguard-keepclassmembers.txt").eachLine(UTF_8.name()) {
+            keepclassmembers "class ${thirdPartyRelocationPackage}.**${it}** {*;}"
+        }
     }
 
     assemble.dependsOn(shrinkDependencies)
@@ -146,7 +150,7 @@ def configurePublish = {
 
     project(it, configureFindbugs)
     project(it, configureShadow)
-    project(it, configureProguard)
+    project(it, configureProGuard)
     project(it, configurePublish)
 }
 
@@ -177,6 +181,7 @@ task cleanUpMavenTest {
 }
 
 cleanUpMavenTest.mustRunAfter executeMavenTest
+executeMavenTest.finalizedBy cleanUpMavenTest
 cleanUpMavenTest.mustRunAfter prepareMavenTest
 executeMavenTest.mustRunAfter prepareMavenTest
 task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])
