@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.Source.Md5sum;
@@ -33,6 +32,25 @@ public class SourceTest {
     @After
     public void tearDown() {
         ArchConfiguration.get().reset();
+    }
+
+    @DataProvider
+    public static List<List<?>> expectedHexCodes() {
+        List<List<?>> testCases = new ArrayList<>();
+        testCases.add(ImmutableList.of(new byte[]{0}, "00"));
+        testCases.add(ImmutableList.of(new byte[]{15}, "0f"));
+        testCases.add(ImmutableList.of(new byte[]{16}, "10"));
+        testCases.add(ImmutableList.of(new byte[]{31}, "1f"));
+        testCases.add(ImmutableList.of(new byte[]{32}, "20"));
+        testCases.add(ImmutableList.of(new byte[]{(byte) 255}, "ff"));
+        testCases.add(ImmutableList.of(new byte[]{(byte) 128, 37, 45, 22, 99}, "80252d1663"));
+        return testCases;
+    }
+
+    @Test
+    @UseDataProvider("expectedHexCodes")
+    public void toHex_works(byte[] input, String expectedHexString) {
+        assertThat(Md5sum.toHex(input)).as("Bytes").isEqualTo(expectedHexString);
     }
 
     @DataProvider
@@ -58,7 +76,7 @@ public class SourceTest {
         assertThat(source).as("source").isEqualTo(equalSource);
         assertThat(source.hashCode()).as("hashcode").isEqualTo(equalSource.hashCode());
         assertThat(source).as("source").isNotEqualTo(new Source(urlOf(Object.class).toURI()));
-        String expectedToString = String.format("%s [md5='%s']", url, expectedMd5StringAt(url));
+        String expectedToString = String.format("%s [md5='%s']", url, Md5sum.toHex(expectedMd5BytesAt(url)));
         assertThat(source.toString()).as("source.toString()").isEqualTo(expectedToString);
     }
 
@@ -128,10 +146,6 @@ public class SourceTest {
         assertThat(new Source(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
     }
 
-    private static String expectedMd5StringAt(URL url) throws IOException, NoSuchAlgorithmException {
-        return hexOf(expectedMd5BytesAt(url));
-    }
-
     private static byte[] expectedMd5BytesAt(URL url) throws IOException, NoSuchAlgorithmException {
         byte[] bytes = bytesAt(url);
         return MessageDigest.getInstance("MD5").digest(bytes);
@@ -139,10 +153,6 @@ public class SourceTest {
 
     static byte[] bytesAt(URL url) throws IOException {
         return ByteStreams.toByteArray(url.openStream());
-    }
-
-    private static String hexOf(byte[] md5Bytes) {
-        return HashCode.fromBytes(md5Bytes).toString();
     }
 
     private static Object fileUrl() {

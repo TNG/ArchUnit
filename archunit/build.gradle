@@ -18,6 +18,16 @@ dependencies {
     }
 }
 
+shadowJar {
+    dependencies {
+        exclude(dependency(project.dependency.slf4j))
+    }
+}
+
+shrinkDependencies {
+    outjars jar.archivePath
+}
+
 task testJar(type: ShadowJar) {
     from sourceSets.test.output
     configurations = [configurations.tests]
@@ -40,9 +50,3 @@ def configureDependenciesAfterShadow = { pom ->
 }
 install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfterShadow
 uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
-
-shadowJar {
-    dependencies {
-        exclude(dependency(project.dependency.slf4j))
-    }
-}

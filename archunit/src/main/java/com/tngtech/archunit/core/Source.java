@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Objects;
 
-import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
 
@@ -88,8 +87,18 @@ public class Source {
 
         private Md5sum(byte[] input, MessageDigest md5Digest) {
             this.md5Bytes = md5Digest.digest(input);
-            text = HashCode.fromBytes(md5Bytes).toString();
+            text = toHex(md5Bytes);
         }
+
+        static String toHex(byte[] bytes) {
+            StringBuilder sb = new StringBuilder(2 * bytes.length);
+            for (byte b : bytes) {
+                sb.append(hexDigits[(b >> 4) & 0xf]).append(hexDigits[b & 0xf]);
+            }
+            return sb.toString();
+        }
+
+        private static final char[] hexDigits = "0123456789abcdef".toCharArray();
 
         public byte[] asBytes() {
             return Arrays.copyOf(md5Bytes, md5Bytes.length);
