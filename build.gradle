@@ -110,7 +110,8 @@ def configureProguard = {
         dontwarn 'org.slf4j.impl.**'
 
         keep "class !${guavaRelocationPackage}.** {*;}"
-        keepclassmembers "class ${guavaRelocationPackage}.** {*;}"
+        keepclassmembers "class ${guavaRelocationPackage}.**ImmutableSet** {*;}"
+        keepclassmembers "class ${guavaRelocationPackage}.**ImmutableMap** {*;}"
     }
 
     assemble.dependsOn(shrinkDependencies)
