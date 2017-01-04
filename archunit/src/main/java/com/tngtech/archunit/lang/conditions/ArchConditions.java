@@ -7,12 +7,12 @@ import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.JavaAccess.GET_TARGET;
-import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
@@ -127,7 +127,7 @@ public final class ArchConditions {
 
     private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
         public ClassAccessesCondition(final DescribedPredicate<? super JavaClass> predicate) {
-            super(new JavaAccessCondition(predicate.onResultOf(GET_OWNER.after(GET_TARGET))
+            super(new JavaAccessCondition(predicate.onResultOf(Get.<JavaClass>owner().after(GET_TARGET))
                     .as("access class " + predicate.getDescription())));
         }
 

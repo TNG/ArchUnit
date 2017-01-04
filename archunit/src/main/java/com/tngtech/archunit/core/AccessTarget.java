@@ -15,7 +15,7 @@ import com.tngtech.archunit.core.properties.HasType;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
-public abstract class AccessTarget implements HasName.AndFullName, HasOwner<JavaClass> {
+public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
     private final String name;
     private final JavaClass owner;
     private final String fullName;
@@ -81,6 +81,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
      * @param annotation The type of the annotation to check for
      * @return true if one of the resolved targets is annotated with the given type
      */
+    @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
         for (JavaMember member : resolve()) {
             if (member.isAnnotatedWith(annotation)) {
@@ -122,7 +123,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         }
     }
 
-    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters, CanBeAnnotated {
+    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 

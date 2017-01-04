@@ -12,13 +12,13 @@ import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasParameters;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 
@@ -78,7 +78,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     private CombinedCallPredicate ownerIs(DescribedPredicate<? super JavaClass> predicate) {
-        return modification.modify(this.predicate, predicate.onResultOf(GET_OWNER));
+        return modification.modify(this.predicate, predicate.onResultOf(Get.<JavaClass>owner()));
     }
 
     public CallPredicate is(Class<?> clazz, String methodName, Class<?>... paramTypes) {
@@ -90,7 +90,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
-        DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(GET_OWNER).forSubType();
+        DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(Get.<JavaClass>owner()).forSubType();
         DescribedPredicate<T> hasName = withName(methodName).forSubType();
         DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(ArchPredicates.hasParameterTypeNames(paramTypeNames))
                 .as(formatMethod(owner.getName(), methodName, paramTypeNames));

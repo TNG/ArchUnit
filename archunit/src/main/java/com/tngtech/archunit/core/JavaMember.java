@@ -10,13 +10,15 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.properties.HasAnnotations;
 import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasModifiers;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
-public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, HasAnnotations, HasOwner<JavaClass> {
+public abstract class JavaMember implements
+        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass> {
     private final String name;
     private final String descriptor;
     private final Supplier<Map<String, JavaAnnotation>> annotations;
@@ -73,6 +75,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
         return owner;
     }
 
+    @Override
     public Set<JavaModifier> getModifiers() {
         return modifiers;
     }
@@ -93,23 +96,6 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
     public String toString() {
         return getClass().getSimpleName() + '{' + getFullName() + '}';
     }
-
-    public static DescribedPredicate<JavaMember> modifier(final JavaModifier modifier) {
-        return new DescribedPredicate<JavaMember>("modifier " + modifier) {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.getModifiers().contains(modifier);
-            }
-        };
-    }
-
-    public static final ChainableFunction<HasOwner<JavaClass>, JavaClass> GET_OWNER =
-            new ChainableFunction<HasOwner<JavaClass>, JavaClass>() {
-                @Override
-                public JavaClass apply(HasOwner<JavaClass> input) {
-                    return input.getOwner();
-                }
-            };
 
 
     /**
