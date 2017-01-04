@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import com.google.common.base.Function;
@@ -41,12 +42,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
+    private static final Random random = new Random();
+
     /**
      * NOTE: The resolution of {@link Files#newTemporaryFolder()}, using {@link System#currentTimeMillis()}
      * is not good enough and makes tests flaky.
      */
     public static File newTemporaryFolder() {
-        String folderName = "archtmp" + System.currentTimeMillis();
+        String folderName = "archtmp" + System.nanoTime() + random.nextLong();
         File folder = new File(concat(temporaryFolderPath(), folderName));
         if (folder.exists()) {
             Files.delete(folder);

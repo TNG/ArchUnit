@@ -38,7 +38,7 @@ public class LocationTest {
         JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(getClass())).create();
         Location location = Location.of(jarFile);
         Location equal = Location.of(jarFile);
-        Location different = Location.of(new TestJarFile().withEntry(fullClassFileName(Location.class)).create());
+        Location different = Location.of(new TestJarFile().withEntry(fullClassFileName(getClass())).create());
 
         assertThat(location).isEqualTo(location);
         assertThat(location).isEqualTo(equal);
