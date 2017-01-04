@@ -69,6 +69,22 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         return "target{" + fullName + '}';
     }
 
+    /**
+     * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param annotation The type of the annotation to check for
+     * @return true if one of the resolved targets is annotated with the given type
+     */
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
+        for (JavaMember member : resolve()) {
+            if (member.isAnnotatedWith(annotation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static class FieldAccessTarget extends AccessTarget {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
@@ -126,23 +142,6 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          * @see MethodCallTarget#resolve()
          */
         public abstract Set<? extends JavaCodeUnit> resolve();
-
-        /**
-         * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
-         * NOTE: If the target was not imported, this method will always return false.
-         *
-         * @param annotation The type of the annotation to check for
-         * @return true if one of the resolved targets is annotated with the given type
-         */
-        @Override
-        public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-            for (JavaCodeUnit codeUnit : resolve()) {
-                if (codeUnit.isAnnotatedWith(annotation)) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 
     public static class ConstructorCallTarget extends CodeUnitCallTarget {

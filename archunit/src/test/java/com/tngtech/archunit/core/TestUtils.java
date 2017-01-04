@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -344,13 +345,21 @@ public class TestUtils {
                 target.getReturnType(), Suppliers.ofInstance(Optional.of(target)));
     }
 
-    static MethodCallTarget targetFrom(JavaMethod target) {
+    static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
+        return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.singleton(target)));
+    }
+
+    static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
+        return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
+    }
+
+    private static MethodCallTarget resolvedTargetFrom(JavaMethod target, Supplier<Set<JavaMethod>> resolveSupplier) {
         return new MethodCallTarget(
                 target.getOwner(),
                 target.getName(),
                 target.getParameters(),
                 target.getReturnType(),
-                Suppliers.ofInstance(Collections.singleton(target)));
+                resolveSupplier);
     }
 
     static Class[] asClasses(List<JavaClass> parameters) {
@@ -485,21 +494,29 @@ public class TestUtils {
         }
 
         public JavaMethodCall to(JavaMethod target) {
-            targets.add(new TestAccessRecord<>(targetFrom(target)));
+            return to(resolvedTargetFrom(target));
+        }
+
+        private JavaMethodCall to(MethodCallTarget methodCallTarget) {
+            targets.add(new TestAccessRecord<>(methodCallTarget));
             ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getMethodCallRecordsFor(method)).thenReturn(ImmutableSet.copyOf(targets));
             method.completeFrom(context);
-            return getCallToTarget(target);
+            return getCallToTarget(methodCallTarget);
         }
 
         public JavaCall<?> to(Class<?> clazz, String methodName, Class<?>... params) {
-            return to(javaMethodViaReflection(clazz, methodName, params));
+            return to(resolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
         }
 
-        private JavaMethodCall getCallToTarget(JavaMethod target) {
+        public JavaCall<?> toUnresolved(Class<?> clazz, String methodName, Class<?>... params) {
+            return to(unresolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
+        }
+
+        private JavaMethodCall getCallToTarget(MethodCallTarget callTarget) {
             Set<JavaMethodCall> matchingCalls = new HashSet<>();
             for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
-                if (call.getTarget().equals(targetFrom(target))) {
+                if (call.getTarget().equals(callTarget)) {
                     matchingCalls.add(call);
                 }
             }

@@ -148,6 +148,7 @@ import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER
 import static com.tngtech.archunit.core.SourceTest.bytesAt;
 import static com.tngtech.archunit.core.SourceTest.urlOf;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
+import static com.tngtech.archunit.core.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
@@ -1895,7 +1896,7 @@ public class ClassFileImporterTest {
         }
 
         MethodCallAssertion isTo(JavaMethod target) {
-            return isTo(targetFrom(target));
+            return isTo(resolvedTargetFrom(target));
         }
 
         @Override
