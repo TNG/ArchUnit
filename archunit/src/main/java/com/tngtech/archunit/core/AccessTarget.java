@@ -102,15 +102,21 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
 
     public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters, CanBeAnnotated {
         private final ImmutableList<JavaClass> parameters;
+        private final JavaClass returnType;
 
-        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters) {
+        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters, JavaClass returnType) {
             super(owner, name, Formatters.formatMethod(owner.getName(), name, parameters));
             this.parameters = ImmutableList.copyOf(parameters);
+            this.returnType = returnType;
         }
 
         @Override
         public JavaClassList getParameters() {
             return new JavaClassList(parameters);
+        }
+
+        public JavaClass getReturnType() {
+            return returnType;
         }
 
         /**
@@ -121,6 +127,13 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          */
         public abstract Set<? extends JavaCodeUnit> resolve();
 
+        /**
+         * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
+         * NOTE: If the target was not imported, this method will always return false.
+         *
+         * @param annotation The type of the annotation to check for
+         * @return true if one of the resolved targets is annotated with the given type
+         */
         @Override
         public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
             for (JavaCodeUnit codeUnit : resolve()) {
@@ -135,8 +148,8 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
     public static class ConstructorCallTarget extends CodeUnitCallTarget {
         private final Supplier<Optional<JavaConstructor>> constructor;
 
-        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, Supplier<Optional<JavaConstructor>> constructor) {
-            super(owner, CONSTRUCTOR_NAME, parameters);
+        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, JavaClass returnType, Supplier<Optional<JavaConstructor>> constructor) {
+            super(owner, CONSTRUCTOR_NAME, parameters, returnType);
             this.constructor = Suppliers.memoize(constructor);
         }
 
@@ -159,13 +172,11 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
     }
 
     public static class MethodCallTarget extends CodeUnitCallTarget {
-        private final JavaClass returnType;
         private final Supplier<Set<JavaMethod>> methods;
 
         MethodCallTarget(JavaClass owner, String name, JavaClassList parameters,
                          JavaClass returnType, Supplier<Set<JavaMethod>> methods) {
-            super(owner, name, parameters);
-            this.returnType = returnType;
+            super(owner, name, parameters, returnType);
             this.methods = Suppliers.memoize(methods);
         }
 
@@ -205,10 +216,6 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          */
         public Set<JavaMethod> resolve() {
             return methods.get();
-        }
-
-        public JavaClass getReturnType() {
-            return returnType;
         }
     }
 }

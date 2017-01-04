@@ -341,7 +341,7 @@ public class TestUtils {
         return new ConstructorCallTarget(
                 target.getOwner(),
                 target.getParameters(),
-                Suppliers.ofInstance(Optional.of(target)));
+                target.getReturnType(), Suppliers.ofInstance(Optional.of(target)));
     }
 
     static MethodCallTarget targetFrom(JavaMethod target) {

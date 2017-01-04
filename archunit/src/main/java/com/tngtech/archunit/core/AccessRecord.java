@@ -87,7 +87,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     }
                 };
                 JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
-                return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
+                JavaClass returnType = classes.get(void.class.getName());
+                return new ConstructorCallTarget(targetOwner, paramTypes, returnType, constructorSupplier);
             }
 
             public int getLineNumber() {
