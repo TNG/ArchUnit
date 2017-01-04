@@ -11,6 +11,7 @@ import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasParameters;
+import com.tngtech.archunit.core.properties.HasType;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
@@ -89,7 +90,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         return false;
     }
 
-    public static class FieldAccessTarget extends AccessTarget {
+    public static class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
@@ -99,6 +100,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
             this.field = Suppliers.memoize(field);
         }
 
+        @Override
         public JavaClass getType() {
             return type;
         }
