@@ -72,7 +72,7 @@ class AccessContext {
                 public Set<JavaFieldAccess> apply(JavaClass input) {
                     Set<JavaFieldAccess> result = new HashSet<>();
                     for (JavaFieldAccess access : fieldAccessesByTarget.get(input)) {
-                        if (access.getTarget().resolve().asSet().contains(field)) {
+                        if (access.getTarget().resolveField().asSet().contains(field)) {
                             result.add(access);
                         }
                     }

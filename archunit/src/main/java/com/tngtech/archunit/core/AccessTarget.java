@@ -41,6 +41,17 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         return Objects.hash(fullName);
     }
 
+    /**
+     * Tries to resolve the targeted members (methods, fields or constructors). In most cases this will be a
+     * single element, if the target was imported, or an empty set, if the target was not imported. However,
+     * for {@link MethodCallTarget MethodCallTargets}, there can be multiple possible targets.
+     *
+     * @see MethodCallTarget#resolve()
+     * @see FieldAccessTarget#resolve()
+     * @see ConstructorCallTarget#resolve()
+     */
+    public abstract Set<? extends JavaMember> resolve();
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -75,8 +86,17 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         /**
          * @return A field that matches this target, or {@link Optional#absent()} if no matching field was imported.
          */
-        public Optional<JavaField> resolve() {
+        public Optional<JavaField> resolveField() {
             return field.get();
+        }
+
+        /**
+         * @return Fields that match the target, this will always be either one field, or no field
+         * @see #resolveField()
+         */
+        @Override
+        public Set<JavaField> resolve() {
+            return resolveField().asSet();
         }
     }
 
@@ -96,7 +116,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         /**
          * Tries to resolve the targeted method or constructor.
          *
-         * @see ConstructorCallTarget#tryResolve()
+         * @see ConstructorCallTarget#resolveConstructor()
          * @see MethodCallTarget#resolve()
          */
         public abstract Set<? extends JavaCodeUnit> resolve();
@@ -124,13 +144,17 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          * @return A constructor that matches this target, or {@link Optional#absent()} if no matching constructor
          * was imported.
          */
-        public Optional<JavaConstructor> tryResolve() {
+        public Optional<JavaConstructor> resolveConstructor() {
             return constructor.get();
         }
 
+        /**
+         * @return constructors that match the target, this will always be either one constructor, or no constructor
+         * @see #resolveConstructor()
+         */
         @Override
-        public Set<? extends JavaCodeUnit> resolve() {
-            return tryResolve().asSet();
+        public Set<JavaConstructor> resolve() {
+            return resolveConstructor().asSet();
         }
     }
 

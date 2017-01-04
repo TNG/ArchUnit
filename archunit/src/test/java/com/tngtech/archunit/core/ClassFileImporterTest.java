@@ -1624,7 +1624,7 @@ public class ClassFileImporterTest {
     }
 
     private Constructor<?> reflect(ConstructorCallTarget target) {
-        return reflect(target.tryResolve().get());
+        return reflect(target.resolveConstructor().get());
     }
 
     private Constructor<?> reflect(JavaConstructor javaConstructor) {

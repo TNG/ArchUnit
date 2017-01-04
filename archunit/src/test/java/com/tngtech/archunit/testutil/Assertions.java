@@ -80,7 +80,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static JavaFieldAssertion assertThat(FieldAccessTarget target) {
-        return assertThat(target.resolve().get());
+        return assertThat(target.resolveField().get());
     }
 
     public static JavaFieldAssertion assertThat(JavaField field) {
