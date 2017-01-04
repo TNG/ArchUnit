@@ -220,13 +220,4 @@ public class ArchPredicates {
             }
         };
     }
-
-    public static DescribedPredicate<JavaCodeUnit> declaredIn(final DescribedPredicate<? super JavaClass> predicate) {
-        return new DescribedPredicate<JavaCodeUnit>("declared in " + predicate.getDescription()) {
-            @Override
-            public boolean apply(JavaCodeUnit input) {
-                return predicate.apply(input.getOwner());
-            }
-        };
-    }
 }

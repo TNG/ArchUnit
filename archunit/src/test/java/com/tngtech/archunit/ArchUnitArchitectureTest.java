@@ -27,7 +27,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.declaredIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
@@ -91,7 +90,7 @@ public class ArchUnitArchitectureTest {
         DescribedPredicate<JavaFieldAccess> notAllowedOrigin =
                 not(accessOrigin(named(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
                         .and(not(accessOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
-                        .and(not(accessOrigin(declaredIn(annotatedWith(MayResolveTypesViaReflection.class)))));
+                        .and(not(accessOrigin(ownerIs(annotatedWith(MayResolveTypesViaReflection.class)))));
 
         return accessFieldWhere(targetIsReflectFunction.and(notAllowedOrigin));
     }
