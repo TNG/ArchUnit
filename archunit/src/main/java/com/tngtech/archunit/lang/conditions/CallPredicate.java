@@ -4,12 +4,12 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
-import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
-import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;

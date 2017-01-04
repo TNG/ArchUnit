@@ -9,7 +9,7 @@ import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.assignableTo;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;

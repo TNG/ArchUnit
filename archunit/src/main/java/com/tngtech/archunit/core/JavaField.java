@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.core.properties.HasType;
 import org.objectweb.asm.Type;
 

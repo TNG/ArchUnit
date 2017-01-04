@@ -6,8 +6,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaMethod;
 import org.junit.Test;

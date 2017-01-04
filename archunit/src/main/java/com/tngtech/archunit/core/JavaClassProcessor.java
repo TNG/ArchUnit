@@ -20,6 +20,8 @@ import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;

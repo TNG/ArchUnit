@@ -23,7 +23,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
-import com.tngtech.archunit.core.ArchUnitException.LocationException;
+import com.tngtech.archunit.base.ArchUnitException.LocationException;
 
 import static com.tngtech.archunit.core.Location.newJarUrl;
 

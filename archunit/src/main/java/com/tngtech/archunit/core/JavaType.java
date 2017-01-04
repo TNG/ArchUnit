@@ -9,8 +9,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
-import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.base.Optional;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;

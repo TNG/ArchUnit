@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 public abstract class ChainableFunction<F, T> implements Function<F, T> {
     public <E> Function<E, T> after(final Function<E, ? extends F> function) {

@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Restrictable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

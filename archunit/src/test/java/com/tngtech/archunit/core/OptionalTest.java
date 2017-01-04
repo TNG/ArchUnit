@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

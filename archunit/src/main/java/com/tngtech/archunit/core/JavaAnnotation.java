@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

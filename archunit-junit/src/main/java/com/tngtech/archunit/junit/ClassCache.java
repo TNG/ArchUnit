@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;

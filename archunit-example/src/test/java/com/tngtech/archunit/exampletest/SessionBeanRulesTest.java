@@ -9,7 +9,7 @@ import javax.ejb.Stateless;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaFieldAccess;

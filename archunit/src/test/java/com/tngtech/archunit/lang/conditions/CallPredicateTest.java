@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import org.junit.Test;

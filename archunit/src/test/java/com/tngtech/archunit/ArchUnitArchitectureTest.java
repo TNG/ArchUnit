@@ -2,8 +2,8 @@ package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
@@ -16,8 +16,8 @@ import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
-import static com.tngtech.archunit.core.DescribedPredicate.not;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;

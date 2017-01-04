@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.properties;
 
-import com.tngtech.archunit.core.ChainableFunction;
+import com.tngtech.archunit.base.ChainableFunction;
 
 public interface HasOwner<T> {
     T getOwner();

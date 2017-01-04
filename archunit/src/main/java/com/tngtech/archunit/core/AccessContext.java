@@ -9,6 +9,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.base.Function;
 
 class AccessContext {
     final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();

@@ -3,9 +3,9 @@ package com.tngtech.archunit.lang.conditions;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
@@ -15,7 +15,7 @@ import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasParameters;
 
-import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
@@ -32,7 +32,7 @@ public class ArchPredicates {
      * For further details see {@link com.tngtech.archunit.lang.conditions.PackageMatcher}.
      *
      * @param packageIdentifier A string representing the identifier to match packages against
-     * @return A {@link com.tngtech.archunit.core.DescribedPredicate} returning true iff the package of the
+     * @return A {@link DescribedPredicate} returning true iff the package of the
      * tested {@link com.tngtech.archunit.core.JavaClass} matches the identifier
      */
     public static DescribedPredicate<JavaClass> resideIn(final String packageIdentifier) {
@@ -122,7 +122,7 @@ public class ArchPredicates {
      * For further details see {@link PackageMatcher}.
      *
      * @param packageIdentifier A string representing the identifier to match packages against
-     * @return A {@link com.tngtech.archunit.core.DescribedPredicate} returning true iff the package of the
+     * @return A {@link DescribedPredicate} returning true iff the package of the
      * tested {@link JavaClass} matches the identifier
      */
     public static DescribedPredicate<JavaFieldAccess> targetTypeResidesIn(String packageIdentifier) {

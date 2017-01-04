@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.DescribedIterable;
+import com.tngtech.archunit.base.DescribedIterable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

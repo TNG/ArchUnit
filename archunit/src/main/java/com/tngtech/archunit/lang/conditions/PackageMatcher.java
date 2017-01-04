@@ -7,8 +7,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.Function;
-import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of

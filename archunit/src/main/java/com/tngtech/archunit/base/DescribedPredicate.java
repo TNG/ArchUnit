@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 
 import static com.google.common.base.Preconditions.checkArgument;

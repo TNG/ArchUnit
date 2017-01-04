@@ -2,8 +2,8 @@ package com.tngtech.archunit.core.properties;
 
 import java.util.regex.Pattern;
 
-import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.Function;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 
 public interface HasName {
     String getName();

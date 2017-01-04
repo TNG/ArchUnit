@@ -3,8 +3,8 @@ package com.tngtech.archunit.core.properties;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.Optional;
 
 public interface HasAnnotations extends CanBeAnnotated {
     Set<JavaAnnotation> getAnnotations();

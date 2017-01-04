@@ -4,7 +4,7 @@ import java.lang.annotation.Retention;
 import java.util.Arrays;
 import java.util.Collections;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.properties.HasParameters;

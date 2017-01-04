@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 import java.net.URL;
 
@@ -15,8 +15,8 @@ public class ArchUnitException extends RuntimeException {
         super(cause);
     }
 
-    static class LocationException extends ArchUnitException {
-        LocationException(Exception e) {
+    public static class LocationException extends ArchUnitException {
+        public LocationException(Exception e) {
             super(e);
         }
     }
@@ -27,14 +27,14 @@ public class ArchUnitException extends RuntimeException {
         }
     }
 
-    static class UnsupportedUrlProtocolException extends ArchUnitException {
-        UnsupportedUrlProtocolException(URL url) {
+    public static class UnsupportedUrlProtocolException extends ArchUnitException {
+        public UnsupportedUrlProtocolException(URL url) {
             super("The protocol of the following URL is not (yet) supported: " + url);
         }
     }
 
-    static class InconsistentClassPathException extends ArchUnitException {
-        InconsistentClassPathException(String message, Throwable cause) {
+    public static class InconsistentClassPathException extends ArchUnitException {
+        public InconsistentClassPathException(String message, Throwable cause) {
             super(message, cause);
         }
     }

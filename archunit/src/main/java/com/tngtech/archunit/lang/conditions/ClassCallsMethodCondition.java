@@ -2,7 +2,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 

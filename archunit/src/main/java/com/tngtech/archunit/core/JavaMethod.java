@@ -6,7 +6,8 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Formatters.formatMethod;

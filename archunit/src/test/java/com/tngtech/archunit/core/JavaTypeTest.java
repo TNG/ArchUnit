@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;

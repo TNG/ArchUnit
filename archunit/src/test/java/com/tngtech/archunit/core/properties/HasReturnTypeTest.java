@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.properties;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import org.junit.Test;
 

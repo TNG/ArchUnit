@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 public interface Function<F, T> {
     T apply(F input);

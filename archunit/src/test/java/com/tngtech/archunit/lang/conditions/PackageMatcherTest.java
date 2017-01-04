@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang.conditions;
 
-import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.conditions.PackageMatcher.Result;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;

@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.conditions.PackageMatcher;

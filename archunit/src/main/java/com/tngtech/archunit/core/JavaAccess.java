@@ -2,6 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.core.properties.HasDescription;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;

@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.properties.HasDescriptor;
 import com.tngtech.archunit.core.properties.HasName;

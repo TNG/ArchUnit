@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.lang.ArchCondition;

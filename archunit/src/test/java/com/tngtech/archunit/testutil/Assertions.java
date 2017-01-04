@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
@@ -30,7 +31,6 @@ import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
-import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.FailureMessages;

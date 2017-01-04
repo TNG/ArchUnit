@@ -1,7 +1,7 @@
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.core.DescribedIterable;
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.Guava;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.properties.HasDescription;

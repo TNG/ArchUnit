@@ -7,7 +7,8 @@ import java.net.URISyntaxException;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.core.ArchUnitException.LocationException;
+import com.tngtech.archunit.base.ArchUnitException.LocationException;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;

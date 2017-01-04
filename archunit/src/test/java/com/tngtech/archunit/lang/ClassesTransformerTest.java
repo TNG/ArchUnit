@@ -3,8 +3,8 @@ package com.tngtech.archunit.lang;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.tngtech.archunit.core.DescribedIterable;
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import org.junit.Test;

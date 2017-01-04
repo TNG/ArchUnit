@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.Optional;
 
 class ImportedClasses {
     private final ImmutableMap<String, JavaClass> directlyImported;

@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core.properties;
 
-import com.tngtech.archunit.core.ChainableFunction;
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;

@@ -2,6 +2,7 @@ package com.tngtech.archunit.core;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;

@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
-import static com.tngtech.archunit.core.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;

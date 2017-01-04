@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 

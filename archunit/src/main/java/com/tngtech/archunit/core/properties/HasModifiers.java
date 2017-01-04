@@ -2,7 +2,7 @@ package com.tngtech.archunit.core.properties;
 
 import java.util.Set;
 
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaModifier;
 
 public interface HasModifiers {

@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 

@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 /**
  * Common Interface for types that allow a restriction by predicates,<br>
