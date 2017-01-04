@@ -30,7 +30,6 @@ import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
-import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.Source.Md5sum;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue;
@@ -1458,7 +1457,7 @@ public class ClassFileImporterTest {
         return result;
     }
 
-    private <T extends IsOwnedByCodeUnit> T getOnlyByCaller(Set<T> calls, JavaCodeUnit caller) {
+    private <T extends HasOwner<JavaCodeUnit>> T getOnlyByCaller(Set<T> calls, JavaCodeUnit caller) {
         return getOnlyElement(getByCaller(calls, caller));
     }
 
@@ -1501,7 +1500,7 @@ public class ClassFileImporterTest {
         });
     }
 
-    private <T extends IsOwnedByCodeUnit> Set<T> getByCaller(Set<T> calls, final JavaCodeUnit caller) {
+    private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, final JavaCodeUnit caller) {
         return getBy(calls, new Predicate<T>() {
             @Override
             public boolean apply(T input) {
@@ -1510,7 +1509,7 @@ public class ClassFileImporterTest {
         });
     }
 
-    private <T extends IsOwnedByCodeUnit> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
+    private <T extends HasOwner<JavaCodeUnit>> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
         return FluentIterable.from(calls).filter(predicate).toSet();
     }
 

@@ -125,7 +125,7 @@ class RawAccessRecord {
             this.desc = desc;
         }
 
-        <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> boolean matches(T member) {
+        <T extends HasName & HasDescriptor & HasOwner<JavaClass>> boolean matches(T member) {
             if (!name.equals(member.getName()) || !desc.equals(member.getDescriptor())) {
                 return false;
             }
@@ -133,7 +133,7 @@ class RawAccessRecord {
                     classHierarchyFrom(member).hasExactlyOneMatchFor(this);
         }
 
-        private <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> ClassHierarchyPath classHierarchyFrom(T member) {
+        private <T extends HasName & HasDescriptor & HasOwner<JavaClass>> ClassHierarchyPath classHierarchyFrom(T member) {
             return new ClassHierarchyPath(owner, member.getOwner());
         }
 

@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
-public abstract class JavaMember implements HasName.AndFullName, HasOwner.IsOwnedByClass, HasDescriptor, HasAnnotations {
+public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, HasAnnotations, HasOwner<JavaClass> {
     private final String name;
     private final String descriptor;
     private final Map<String, JavaAnnotation> annotations;

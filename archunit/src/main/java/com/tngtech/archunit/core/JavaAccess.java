@@ -2,12 +2,10 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
-import com.tngtech.archunit.core.HasOwner.IsOwnedByCodeUnit;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
-        implements HasName, IsOwnedByCodeUnit, HasDescription {
+        implements HasName, HasDescription, HasOwner<JavaCodeUnit> {
 
     private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
 

@@ -190,7 +190,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     " that matches supposed caller " + caller);
         }
 
-        private static <T extends HasOwner.IsOwnedByClass & HasName & HasDescriptor> Set<T>
+        private static <T extends HasName & HasDescriptor & HasOwner<JavaClass>> Set<T>
         tryFindMatchingTargets(Set<T> possibleTargets, TargetInfo targetInfo) {
             ImmutableSet.Builder<T> result = ImmutableSet.builder();
             for (T possibleTarget : possibleTargets) {
