@@ -11,14 +11,14 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 
 public class DependencyRules {
     public static ArchCondition<Slice> beFreeOfCycles() {
         return new SliceCycleArchCondition();
     }
 
-    public static ArchRule<Slice> slicesShouldOnlyDependOnTheirOwnSliceIn(Slices.Transformer inputTransformer) {
+    public static ArchRule slicesShouldOnlyDependOnTheirOwnSliceIn(Slices.Transformer inputTransformer) {
         return all(inputTransformer).should(onlyDependOnTheirOwnSlice(inputTransformer));
     }
 

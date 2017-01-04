@@ -19,8 +19,8 @@ import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.ArchRuleAssertion.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static java.nio.charset.StandardCharsets.UTF_8;
 

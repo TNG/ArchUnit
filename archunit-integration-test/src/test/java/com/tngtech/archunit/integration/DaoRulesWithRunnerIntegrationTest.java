@@ -21,7 +21,7 @@ public class DaoRulesWithRunnerIntegrationTest {
 
     @ArchTest
     @ExpectedViolationFrom(location = DaoRulesWithRunnerIntegrationTest.class, method = "expectViolationByIllegalUseOfEntityManager")
-    public static final ArchRule<?> only_DAOs_may_use_the_EntityManager =
+    public static final ArchRule only_DAOs_may_use_the_EntityManager =
             DaoRulesWithRunnerTest.only_DAOs_may_use_the_EntityManager;
 
     private static void expectViolationByIllegalUseOfEntityManager(ExpectedViolation expectedViolation) {

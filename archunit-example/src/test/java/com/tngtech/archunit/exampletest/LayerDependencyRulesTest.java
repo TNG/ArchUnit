@@ -6,8 +6,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;

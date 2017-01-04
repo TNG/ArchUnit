@@ -15,7 +15,7 @@ import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesSh
 public class SlicesIsolationTest {
     @ArchIgnore
     @ArchTest
-    public static final ArchRule<?> controllers_should_only_use_their_own_slice =
+    public static final ArchRule controllers_should_only_use_their_own_slice =
             slicesShouldOnlyDependOnTheirOwnSliceIn(
                     Slices.matching("..controller.(*)..")
                             .namingSlices("Controller $1").as("Controllers"));

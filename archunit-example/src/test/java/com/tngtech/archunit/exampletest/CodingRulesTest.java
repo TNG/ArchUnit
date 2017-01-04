@@ -6,8 +6,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING;

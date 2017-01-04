@@ -3,7 +3,6 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
@@ -56,8 +55,8 @@ public class ArchRuleExecution extends ArchTestExecution {
         }
 
         @SuppressWarnings("unchecked")
-        private static ArchRule<JavaClass> asArchRule(Object ruleCandidate) {
-            return (ArchRule<JavaClass>) ruleCandidate;
+        private static ArchRule asArchRule(Object ruleCandidate) {
+            return (ArchRule) ruleCandidate;
         }
 
         private static RuleEvaluationException fieldTypeFailure(Field ruleField) {
@@ -71,9 +70,9 @@ public class ArchRuleExecution extends ArchTestExecution {
         abstract Evaluation evaluateOn(JavaClasses classes);
 
         private static class Retrieved extends RuleToEvaluate {
-            private ArchRule<JavaClass> rule;
+            private ArchRule rule;
 
-            Retrieved(ArchRule<JavaClass> rule) {
+            Retrieved(ArchRule rule) {
                 this.rule = rule;
             }
 
@@ -102,10 +101,10 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     private static class RetrievalEvaluation extends Evaluation {
-        private final ArchRule<JavaClass> rule;
+        private final ArchRule rule;
         private final JavaClasses classes;
 
-        public RetrievalEvaluation(ArchRule<JavaClass> rule, JavaClasses classes) {
+        RetrievalEvaluation(ArchRule rule, JavaClasses classes) {
             this.rule = rule;
             this.classes = classes;
         }

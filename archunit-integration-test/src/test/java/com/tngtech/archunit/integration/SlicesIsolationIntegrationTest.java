@@ -19,7 +19,7 @@ import static com.tngtech.archunit.junit.ExpectedViolation.from;
 public class SlicesIsolationIntegrationTest {
     @ArchTest
     @ExpectedViolationFrom(location = SlicesIsolationIntegrationTest.class, method = "expectViolationFromDependencies")
-    public static final ArchRule<?> controllers_should_only_use_their_own_slice =
+    public static final ArchRule controllers_should_only_use_their_own_slice =
             SlicesIsolationTest.controllers_should_only_use_their_own_slice;
 
     static void expectViolationFromDependencies(ExpectedViolation expectViolation) {

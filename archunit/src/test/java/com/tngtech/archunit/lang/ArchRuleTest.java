@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.core.JavaClassesTest.SOME_CLASS;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static java.util.Collections.singleton;
 
@@ -29,7 +29,7 @@ public class ArchRuleTest {
         thrown.expect(ArchAssertionError.class);
         thrown.expect(priority(HIGH));
 
-        ArchRule.priority(HIGH).all(classes())
+        ArchRule.Definition.priority(HIGH).all(classes())
                 .should(ALWAYS_BE_VIOLATED)
                 .check(JavaClassesTest.ALL_CLASSES);
     }

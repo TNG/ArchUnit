@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 import static com.tngtech.archunit.library.dependencies.DependencyRules.beFreeOfCycles;
 
 public class CyclicDependencyRulesTest {

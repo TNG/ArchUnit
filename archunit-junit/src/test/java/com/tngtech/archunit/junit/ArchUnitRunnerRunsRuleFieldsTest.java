@@ -1,6 +1,5 @@
 package com.tngtech.archunit.junit;
 
-import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
 import com.tngtech.archunit.lang.ArchRule;
@@ -29,8 +28,8 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongA
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTest.WRONG_MODIFIER_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -158,16 +157,16 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String IGNORED_FIELD_NAME = "someIgnoredRule";
 
         @ArchTest
-        public static final ArchRule<JavaClass> someSatisfiedRule =
+        public static final ArchRule someSatisfiedRule =
                 all(classes()).should(BE_SATISFIED);
 
         @ArchTest
-        public static final ArchRule<JavaClass> someFailingRule =
+        public static final ArchRule someFailingRule =
                 all(classes()).should(NEVER_BE_SATISFIED);
 
         @ArchIgnore
         @ArchTest
-        public static final ArchRule<JavaClass> someIgnoredRule =
+        public static final ArchRule someIgnoredRule =
                 all(classes()).should(NEVER_BE_SATISFIED);
     }
 
@@ -177,7 +176,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String NO_RULE_AT_ALL_FIELD_NAME = "noRuleAtAll";
 
         @ArchTest
-        private ArchRule<JavaClass> ruleWithWrongModifier =
+        private ArchRule ruleWithWrongModifier =
                 all(classes()).should(BE_SATISFIED);
 
         @ArchTest
@@ -191,11 +190,11 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";
 
         @ArchTest
-        public static final ArchRule<JavaClass> someRuleOne =
+        public static final ArchRule someRuleOne =
                 all(classes()).should(NEVER_BE_SATISFIED);
 
         @ArchTest
-        public static final ArchRule<JavaClass> someRuleTwo =
+        public static final ArchRule someRuleTwo =
                 all(classes()).should(NEVER_BE_SATISFIED);
     }
 }

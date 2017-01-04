@@ -174,7 +174,7 @@ This way the rule can easily be reused and it can be evaluated using the `ArchUn
 @AnalyseClasses(packages = {"my.pkg.one", "my.pkg.two"})
 public class MyArchTest {
     @ArchTest
-    public static final ArchRule<JavaClass> oneShouldntAccessTwo = 
+    public static final ArchRule oneShouldntAccessTwo = 
             // This could of course easily come from a central library instead of being defined here
             all(classes()).that(resideIn("..one.."))
                     .should(never(accessClassesIn("..two..")));
@@ -204,7 +204,7 @@ It is possible to define reusable rule sets as classes like:
 ```Java
 public class MyArchRules {
     @ArchTest
-    public static final ArchRule<JavaClass> someRuleAsField = /* definition of some rule */;
+    public static final ArchRule someRuleAsField = /* definition of some rule */;
                     
     @ArchTest
     public static void anotherRuleAsMethod(JavaClasses classes) {
