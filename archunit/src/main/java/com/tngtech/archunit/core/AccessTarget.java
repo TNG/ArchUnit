@@ -11,6 +11,7 @@ import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasParameters;
+import com.tngtech.archunit.core.properties.HasReturnType;
 import com.tngtech.archunit.core.properties.HasType;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
@@ -123,7 +124,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
-    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters {
+    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters, HasReturnType {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -138,6 +139,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return new JavaClassList(parameters);
         }
 
+        @Override
         public JavaClass getReturnType() {
             return returnType;
         }

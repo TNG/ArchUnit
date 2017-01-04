@@ -2,7 +2,6 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -13,7 +12,6 @@ import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
-import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasParameters;
 
@@ -21,6 +19,7 @@ import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {
@@ -52,19 +51,6 @@ public class ArchPredicates {
             @Override
             public boolean apply(CanBeAnnotated input) {
                 return input.isAnnotatedWith(annotationType);
-            }
-        };
-    }
-
-    /**
-     * Predicate for matching names against a regular expression.
-     */
-    public static DescribedPredicate<HasName> withName(final String regex) {
-        final Pattern pattern = Pattern.compile(regex);
-        return new DescribedPredicate<HasName>(String.format("with name '%s'", regex)) {
-            @Override
-            public boolean apply(HasName input) {
-                return pattern.matcher(input.getName()).matches();
             }
         };
     }
@@ -108,7 +94,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return fieldAccessTarget(ownerIs(withName(quote(target.getName()))))
+        return fieldAccessTarget(ownerIs(withNameMatching(quote(target.getName()))))
                 .as("owner is " + target.getName());
     }
 

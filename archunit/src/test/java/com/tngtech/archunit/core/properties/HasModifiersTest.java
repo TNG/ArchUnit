@@ -1,13 +1,13 @@
 package com.tngtech.archunit.core.properties;
 
+import java.util.Set;
+
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaModifier;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.withModifier;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class HasModifiersTest {
     @Test
@@ -19,9 +19,12 @@ public class HasModifiersTest {
         assertThat(withModifier(JavaModifier.PRIVATE).getDescription()).isEqualTo("with modifier PRIVATE");
     }
 
-    private static HasModifiers hasModifiers(JavaModifier... modifiers) {
-        HasModifiers hasModifiers = mock(HasModifiers.class);
-        when(hasModifiers.getModifiers()).thenReturn(ImmutableSet.copyOf(modifiers));
-        return hasModifiers;
+    private static HasModifiers hasModifiers(final JavaModifier... modifiers) {
+        return new HasModifiers() {
+            @Override
+            public Set<JavaModifier> getModifiers() {
+                return ImmutableSet.copyOf(modifiers);
+            }
+        };
     }
 }

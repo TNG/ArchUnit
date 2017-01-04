@@ -1,5 +1,8 @@
 package com.tngtech.archunit.core.properties;
 
+import java.util.regex.Pattern;
+
+import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.Function;
 
 public interface HasName {
@@ -7,6 +10,30 @@ public interface HasName {
 
     interface AndFullName extends HasName {
         String getFullName();
+    }
+
+    class Predicates {
+        /**
+         * Matches names against a regular expression.
+         */
+        public static DescribedPredicate<HasName> withNameMatching(final String regex) {
+            final Pattern pattern = Pattern.compile(regex);
+            return new DescribedPredicate<HasName>(String.format("with name matching '%s'", regex)) {
+                @Override
+                public boolean apply(HasName input) {
+                    return pattern.matcher(input.getName()).matches();
+                }
+            };
+        }
+
+        public static DescribedPredicate<HasName> withName(final String name) {
+            return new DescribedPredicate<HasName>(String.format("with name '%s'", name)) {
+                @Override
+                public boolean apply(HasName input) {
+                    return input.getName().equals(name);
+                }
+            };
+        }
     }
 
     class Functions {

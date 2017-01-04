@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.DescribedPredicate.not;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static com.tngtech.archunit.lang.ArchRule.all;
 import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
@@ -29,7 +30,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 
 public class ArchUnitArchitectureTest {
     private static final ClassFileImporter importer = new ClassFileImporter()
@@ -88,7 +88,7 @@ public class ArchUnitArchitectureTest {
     private ArchCondition<JavaClass> illegallyAccessReflectFunction() {
         DescribedPredicate<JavaFieldAccess> targetIsReflectFunction = ownerAndNameAre(JavaClass.class, "REFLECT");
         DescribedPredicate<JavaFieldAccess> notAllowedOrigin =
-                not(accessOrigin(withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
+                not(accessOrigin(withNameMatching(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
                         .and(not(accessOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
                         .and(not(accessOrigin(ownerIs(annotatedWith(MayResolveTypesViaReflection.class)))));
 
