@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.core.properties;
 
 public interface HasDescription {
     String getDescription();

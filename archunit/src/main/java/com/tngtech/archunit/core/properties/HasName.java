@@ -1,4 +1,6 @@
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.core.properties;
+
+import com.tngtech.archunit.core.Function;
 
 public interface HasName {
     String getName();

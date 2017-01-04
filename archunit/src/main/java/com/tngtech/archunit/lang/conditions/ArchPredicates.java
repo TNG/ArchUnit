@@ -6,21 +6,21 @@ import java.util.regex.Pattern;
 
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.CanBeAnnotated;
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.HasName;
-import com.tngtech.archunit.core.HasOwner;
-import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasParameters;
 
 import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.Formatters.formatMethodParameterTypeNames;
-import static com.tngtech.archunit.core.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
+import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {

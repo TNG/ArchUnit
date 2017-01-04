@@ -34,7 +34,8 @@ import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.Source.Md5sum;
-import com.tngtech.archunit.core.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassWithAnnotationWithEmptyArrays;
@@ -42,6 +43,7 @@ import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassWithComp
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassWithOneAnnotation;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.SimpleAnnotation;
+import com.tngtech.archunit.core.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithIntValue;

@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.properties.HasParameters;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;

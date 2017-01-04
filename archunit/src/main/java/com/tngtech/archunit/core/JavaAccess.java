@@ -2,6 +2,10 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>

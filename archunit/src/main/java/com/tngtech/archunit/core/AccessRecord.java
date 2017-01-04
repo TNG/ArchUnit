@@ -14,6 +14,9 @@ import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
+import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;

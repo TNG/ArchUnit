@@ -10,6 +10,9 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;

@@ -4,10 +4,10 @@ import java.util.Set;
 
 import com.google.common.collect.ForwardingSet;
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClassesTest;
 import com.tngtech.archunit.core.Restrictable;
+import com.tngtech.archunit.core.properties.HasDescription;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;

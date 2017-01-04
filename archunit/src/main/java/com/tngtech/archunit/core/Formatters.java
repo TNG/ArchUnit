@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
+import com.tngtech.archunit.core.properties.HasName;
 
 public class Formatters {
     private Formatters() {

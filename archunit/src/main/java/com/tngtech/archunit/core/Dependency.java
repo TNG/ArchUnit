@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ComparisonChain;
+import com.tngtech.archunit.core.properties.HasDescription;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the

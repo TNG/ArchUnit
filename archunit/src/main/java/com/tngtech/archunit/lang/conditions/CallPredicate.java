@@ -6,13 +6,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.HasName;
-import com.tngtech.archunit.core.HasOwner;
-import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasParameters;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaClass.namesOf;

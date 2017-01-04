@@ -3,8 +3,8 @@ package com.tngtech.archunit.lang;
 import com.tngtech.archunit.core.DescribedIterable;
 import com.tngtech.archunit.core.DescribedPredicate;
 import com.tngtech.archunit.core.Guava;
-import com.tngtech.archunit.core.HasDescription;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.properties.HasDescription;
 
 public abstract class ClassesTransformer<T> implements HasDescription {
     private String description;

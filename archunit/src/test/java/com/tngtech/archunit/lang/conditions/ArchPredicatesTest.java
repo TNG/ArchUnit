@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import com.tngtech.archunit.core.DescribedPredicate;
-import com.tngtech.archunit.core.HasParameters;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaMethod;
+import com.tngtech.archunit.core.properties.HasParameters;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;

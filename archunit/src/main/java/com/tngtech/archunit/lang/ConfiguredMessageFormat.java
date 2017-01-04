@@ -2,7 +2,7 @@ package com.tngtech.archunit.lang;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.DescribedIterable;
-import com.tngtech.archunit.core.HasDescription;
+import com.tngtech.archunit.core.properties.HasDescription;
 
 class ConfiguredMessageFormat {
     private static final ConfiguredMessageFormat instance = new ConfiguredMessageFormat();
