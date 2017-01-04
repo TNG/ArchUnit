@@ -13,7 +13,7 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
@@ -176,7 +176,7 @@ class RawAccessRecord {
 
             private ClassHierarchyPath(JavaType childType, JavaClass parent) {
                 Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
-                Optional<JavaClass> child = tryFind(classesToSearchForChild, named(quote(childType.getName())));
+                Optional<JavaClass> child = tryFind(classesToSearchForChild, withName(quote(childType.getName())));
                 if (child.isPresent()) {
                     createPath(child.get(), parent);
                 }

@@ -59,9 +59,9 @@ public class ArchPredicates {
     /**
      * Predicate for matching names against a regular expression.
      */
-    public static DescribedPredicate<HasName> named(final String regex) {
+    public static DescribedPredicate<HasName> withName(final String regex) {
         final Pattern pattern = Pattern.compile(regex);
-        return new DescribedPredicate<HasName>(String.format("named '%s'", regex)) {
+        return new DescribedPredicate<HasName>(String.format("with name '%s'", regex)) {
             @Override
             public boolean apply(HasName input) {
                 return pattern.matcher(input.getName()).matches();
@@ -108,7 +108,7 @@ public class ArchPredicates {
     }
 
     public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return fieldAccessTarget(ownerIs(named(quote(target.getName()))))
+        return fieldAccessTarget(ownerIs(withName(quote(target.getName()))))
                 .as("owner is " + target.getName());
     }
 

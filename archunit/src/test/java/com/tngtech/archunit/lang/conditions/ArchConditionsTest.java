@@ -37,7 +37,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessed
 import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
@@ -67,11 +67,11 @@ public class ArchConditionsTest {
         JavaClass clazz = javaClassViaReflection(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
-        ConditionEvents events = check(never(accessClass(named(".*Some.*"))), clazz);
+        ConditionEvents events = check(never(accessClass(withName(".*Some.*"))), clazz);
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(named(".*Wong.*"))), clazz);
+        events = check(never(accessClass(withName(".*Wong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }

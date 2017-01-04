@@ -20,7 +20,7 @@ import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaMember.GET_OWNER;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     private final CombinedCallPredicate predicate;
@@ -38,7 +38,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate hasName(String name) {
-        return new CallPredicate(modification.modify(predicate, named(name).as("has name '%s'", name)), modification);
+        return new CallPredicate(modification.modify(predicate, withName(name).as("has name '%s'", name)), modification);
     }
 
     public CallPredicate hasParameters(Class<?>... paramTypes) {
@@ -91,7 +91,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
 
     public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
         DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(GET_OWNER).forSubType();
-        DescribedPredicate<T> hasName = named(methodName).forSubType();
+        DescribedPredicate<T> hasName = withName(methodName).forSubType();
         DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(ArchPredicates.hasParameterTypeNames(paramTypeNames))
                 .as(formatMethod(owner.getName(), methodName, paramTypeNames));
 

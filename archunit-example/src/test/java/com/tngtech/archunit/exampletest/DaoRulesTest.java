@@ -17,7 +17,7 @@ import static com.tngtech.archunit.lang.ArchRule.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 
 public class DaoRulesTest {
     private JavaClasses classes;
@@ -30,7 +30,7 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
-        all(classes().that(are(named(".*Dao"))).as("DAOs"))
+        all(classes().that(are(withName(".*Dao"))).as("DAOs"))
                 .should(resideInAPackage("..dao..")).check(classes);
     }
 

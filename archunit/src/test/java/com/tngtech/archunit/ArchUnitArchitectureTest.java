@@ -27,9 +27,9 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 
 public class ArchUnitArchitectureTest {
     private static final ClassFileImporter importer = new ClassFileImporter()
@@ -88,7 +88,7 @@ public class ArchUnitArchitectureTest {
     private ArchCondition<JavaClass> illegallyAccessReflectFunction() {
         DescribedPredicate<JavaFieldAccess> targetIsReflectFunction = ownerAndNameAre(JavaClass.class, "REFLECT");
         DescribedPredicate<JavaFieldAccess> notAllowedOrigin =
-                not(accessOrigin(named(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
+                not(accessOrigin(withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
                         .and(not(accessOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
                         .and(not(accessOrigin(ownerIs(annotatedWith(MayResolveTypesViaReflection.class)))));
 

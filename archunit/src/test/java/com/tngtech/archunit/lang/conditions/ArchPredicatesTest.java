@@ -21,13 +21,13 @@ import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetTypeResidesIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOfAClassThat;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.withName;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -73,29 +73,29 @@ public class ArchPredicatesTest {
     public void matches_name() {
         when(mockClass.getName()).thenReturn("com.tngtech.SomeClass");
 
-        assertThat(named(".*Class").apply(mockClass)).as("class name matches").isTrue();
-        assertThat(named(".*Wrong").apply(mockClass)).as("class name matches").isFalse();
-        assertThat(named("com.*").apply(mockClass)).as("class name matches").isTrue();
-        assertThat(named("wrong.*").apply(mockClass)).as("class name matches").isFalse();
-        assertThat(named(".*\\.S.*s").apply(mockClass)).as("class name matches").isTrue();
-        assertThat(named(".*W.*").apply(mockClass)).as("class name matches").isFalse();
+        assertThat(withName(".*Class").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(withName(".*Wrong").apply(mockClass)).as("class name matches").isFalse();
+        assertThat(withName("com.*").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(withName("wrong.*").apply(mockClass)).as("class name matches").isFalse();
+        assertThat(withName(".*\\.S.*s").apply(mockClass)).as("class name matches").isTrue();
+        assertThat(withName(".*W.*").apply(mockClass)).as("class name matches").isFalse();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_class_itself() {
-        assertThat(theHierarchyOfAClassThat(named(".*Class")).apply(javaClassViaReflection(AnyClass.class)))
+        assertThat(theHierarchyOfAClassThat(withName(".*Class")).apply(javaClassViaReflection(AnyClass.class)))
                 .as("class itself matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_matches_subclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClassViaReflection(SubClass.class)))
+        assertThat(theHierarchyOfAClassThat(withName(".*Any.*")).apply(javaClassViaReflection(SubClass.class)))
                 .as("subclass matches the predicate").isTrue();
     }
 
     @Test
     public void inTheHierarchyOfAClass_does_not_match_superclass() {
-        assertThat(theHierarchyOfAClassThat(named(".*Any.*")).apply(javaClassViaReflection(Object.class)))
+        assertThat(theHierarchyOfAClassThat(withName(".*Any.*")).apply(javaClassViaReflection(Object.class)))
                 .as("superclass matches the predicate").isFalse();
     }
 
@@ -107,8 +107,8 @@ public class ArchPredicatesTest {
         assertThat(annotatedWith(Rule.class).getDescription())
                 .isEqualTo("annotated with @Rule");
 
-        assertThat(named("any").getDescription())
-                .isEqualTo("named 'any'");
+        assertThat(withName("any").getDescription())
+                .isEqualTo("with name 'any'");
 
         assertThat(theHierarchyOf(Object.class).getDescription())
                 .isEqualTo("the hierarchy of Object.class");
