@@ -31,9 +31,9 @@ import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
+import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.FailureMessages;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -428,11 +428,17 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         private List<String> messagesOf(Collection<ConditionEvent> events) {
-            FailureMessages messages = new FailureMessages();
+            final List<String> result = new ArrayList<>();
+            CollectsLines messages = new CollectsLines() {
+                @Override
+                public void add(String message) {
+                    result.add(message);
+                }
+            };
             for (ConditionEvent event : events) {
                 event.describeTo(messages);
             }
-            return newArrayList(messages);
+            return result;
         }
 
         private List<String> concat(String violation, String[] additional) {

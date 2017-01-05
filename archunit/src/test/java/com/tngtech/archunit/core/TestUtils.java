@@ -175,9 +175,8 @@ public class TestUtils {
         ImportContext context = simulateContextForCompletion(importedClasses);
         for (JavaClass javaClass : result.values()) {
             javaClass.completeClassHierarchyFrom(context);
-            javaClass.completeFrom(context).completeCodeUnitsFrom(context);
         }
-        return new JavaClasses(result);
+        return JavaClasses.of(result, context);
     }
 
     private static ImportContext simulateContextForCompletion(final ImportedTestClasses importedClasses) {

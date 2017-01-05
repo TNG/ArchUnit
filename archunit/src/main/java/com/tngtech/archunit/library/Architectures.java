@@ -1,22 +1,30 @@
 package com.tngtech.archunit.library;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.Priority;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
 import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideInAnyPackage;
+import static java.lang.System.lineSeparator;
+import static java.util.Arrays.asList;
 
 public class Architectures {
     public static LayeredArchitecture layeredArchitecture() {
@@ -24,8 +32,8 @@ public class Architectures {
     }
 
     public static class LayeredArchitecture implements ArchRule {
-        private Map<String, LayerDefinition> layerDefinitions = new HashMap<>();
-        private Set<LayerDependencySpecification> dependencySpecifications = new HashSet<>();
+        private Map<String, LayerDefinition> layerDefinitions = new LinkedHashMap<>();
+        private Set<LayerDependencySpecification> dependencySpecifications = new LinkedHashSet<>();
 
         private LayeredArchitecture() {
         }
@@ -45,15 +53,37 @@ public class Architectures {
         }
 
         @Override
-        public void check(JavaClasses classes) {
+        public String getDescription() {
+            List<String> lines = newArrayList("Layered architecture consisting of");
+            for (LayerDefinition definition : layerDefinitions.values()) {
+                lines.add(definition.toString());
+            }
+            for (LayerDependencySpecification specification : dependencySpecifications) {
+                lines.add(specification.toString());
+            }
+            return Joiner.on(lineSeparator()).join(lines);
+        }
+
+        @Override
+        public EvaluationResult evaluate(JavaClasses classes) {
+            EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
                 SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
                 packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
 
-                all(classes().that(resideInAnyPackage(toArray(packagesOfOwnLayer))))
-                        .should(onlyBeAccessedByAnyPackage(toArray(packagesOfAllowedAccessors))).check(classes);
+                EvaluationResult partial = all(classes().that(resideInAnyPackage(toArray(packagesOfOwnLayer))))
+                        .should(onlyBeAccessedByAnyPackage(toArray(packagesOfAllowedAccessors)))
+                        .evaluate(classes);
+
+                result.add(partial);
             }
+            return result;
+        }
+
+        @Override
+        public void check(JavaClasses classes) {
+            assertNoViolation(evaluate(classes));
         }
 
         private String[] toArray(Set<String> strings) {
@@ -89,23 +119,37 @@ public class Architectures {
                 this.packageIdentifiers = ImmutableSet.copyOf(packageIdentifiers);
                 return LayeredArchitecture.this.addLayerDefinition(this);
             }
+
+            @Override
+            public String toString() {
+                return String.format("layer '%s' ('%s')", name, Joiner.on("', '").join(packageIdentifiers));
+            }
         }
 
         public class LayerDependencySpecification {
             private final String layerName;
-            private final Set<String> allowedAccessors = new HashSet<>();
+            private final Set<String> allowedAccessors = new LinkedHashSet<>();
+            private String descriptionSuffix;
 
             private LayerDependencySpecification(String layerName) {
                 this.layerName = layerName;
             }
 
             public LayeredArchitecture mayNotBeAccessedByAnyLayer() {
+                descriptionSuffix = "may not be accessed by any layer";
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                allowedAccessors.addAll(ImmutableSet.copyOf(layerNames));
+                allowedAccessors.addAll(asList(layerNames));
+                descriptionSuffix = String.format("may only be accessed by layers ['%s']",
+                        Joiner.on("', '").join(allowedAccessors));
                 return LayeredArchitecture.this.addDependencySpecification(this);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("where layer '%s' %s", layerName, descriptionSuffix);
             }
         }
     }

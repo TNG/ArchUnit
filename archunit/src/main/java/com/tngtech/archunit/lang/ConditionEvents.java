@@ -30,7 +30,7 @@ public class ConditionEvents implements Iterable<ConditionEvent> {
         return getAllowed().isEmpty() && getViolating().isEmpty();
     }
 
-    public void describeFailuresTo(FailureMessages messages) {
+    public void describeFailuresTo(CollectsLines messages) {
         for (ConditionEvent event : getViolating()) {
             event.describeTo(messages);
         }

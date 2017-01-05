@@ -106,6 +106,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters, 
     }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
+        // FIXME: Use JavaType instead of ASM Type
         private Type returnType;
         private Type[] parameters;
 

@@ -26,7 +26,7 @@ public class ConditionEvent {
         events.add(new ConditionEvent(!conditionSatisfied, message));
     }
 
-    public void describeTo(FailureMessages messages) {
+    public void describeTo(CollectsLines messages) {
         messages.add(message);
     }
 

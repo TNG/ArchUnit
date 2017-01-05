@@ -1,6 +1,8 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.JavaCall;
@@ -9,14 +11,13 @@ import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.TestUtils.AccessesSimulator;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.FailureMessages;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Sets.newTreeSet;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
@@ -142,11 +143,17 @@ public class ArchConditionsTest {
         @SuppressWarnings("unchecked")
         @Override
         public String extract(Object input) {
-            FailureMessages messages = new FailureMessages();
+            final SortedSet<String> lines = new TreeSet<>();
+            CollectsLines messages = new CollectsLines() {
+                @Override
+                public void add(String message) {
+                    lines.add(message);
+                }
+            };
             for (ConditionEvent event : ((Collection<ConditionEvent>) input)) {
                 event.describeTo(messages);
             }
-            return Joiner.on("").join(newTreeSet(messages));
+            return Joiner.on("").join(lines);
         }
     };
 

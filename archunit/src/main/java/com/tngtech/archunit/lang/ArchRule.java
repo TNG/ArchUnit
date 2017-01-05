@@ -1,10 +1,20 @@
 package com.tngtech.archunit.lang;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 
+import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Represents a rule about a specified set of objects of interest (e.g. {@link JavaClass}).
@@ -23,8 +33,62 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
  *
  * @see com.tngtech.archunit.library.dependencies.Slices.Transformer
  */
-public interface ArchRule {
+public interface ArchRule extends CanBeEvaluated {
     void check(JavaClasses classes);
+
+    class Assertions {
+        static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
+
+        public static void assertNoViolation(EvaluationResult result) {
+            assertNoViolation(result, Priority.MEDIUM);
+        }
+
+        public static void assertNoViolation(EvaluationResult result, Priority priority) {
+            FailureReport report = result.getFailureReport();
+
+            Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
+            report = report.filter(notMatchedByAny(patterns));
+            if (!report.isEmpty()) {
+                String message = report.toString();
+                throw new ArchAssertionError(priority, message);
+            }
+        }
+
+        private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
+            return new Predicate<String>() {
+                @Override
+                public boolean apply(String message) {
+                    for (Pattern pattern : patterns) {
+                        if (pattern.matcher(message.replaceAll("\r*\n", " ")).matches()) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            };
+        }
+
+        private static Set<Pattern> readPatternsFrom(String fileNameInClassPath) {
+            URL ignorePatternsResource = Assertions.class.getResource('/' + fileNameInClassPath);
+            if (ignorePatternsResource == null) {
+                return Collections.emptySet();
+            }
+
+            try {
+                return readPatternsFrom(ignorePatternsResource);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private static Set<Pattern> readPatternsFrom(URL ignorePatternsResource) throws IOException {
+            ImmutableSet.Builder<Pattern> result = ImmutableSet.builder();
+            for (String line : readLines(ignorePatternsResource, UTF_8)) {
+                result.add(Pattern.compile(line));
+            }
+            return result.build();
+        }
+    }
 
     class Definition<T> implements ArchRule {
         private final Priority priority;
@@ -39,24 +103,21 @@ public interface ArchRule {
 
         @Override
         public void check(JavaClasses classes) {
-            condition.objectsToTest = classesTransformer.transform(classes);
-            ArchRuleAssertion.from(evaluate(condition)).assertNoViolations(priority);
+            EvaluationResult result = evaluate(classes);
+            Assertions.assertNoViolation(result, priority);
         }
 
-        private RuleToEvaluate evaluate(final ArchCondition<T> condition) {
-            return new RuleToEvaluate() {
-                @Override
-                public ConditionEvents evaluate() {
-                    ConditionEvents events = new ConditionEvents();
-                    condition.check(events);
-                    return events;
-                }
+        @Override
+        public EvaluationResult evaluate(JavaClasses classes) {
+            condition.objectsToTest = classesTransformer.transform(classes);
+            ConditionEvents events = new ConditionEvents();
+            condition.check(events);
+            return new EvaluationResult(this, events, priority);
+        }
 
-                @Override
-                public String getDescription() {
-                    return ConfiguredMessageFormat.get().formatRuleText(condition.objectsToTest, condition);
-                }
-            };
+        @Override
+        public String getDescription() {
+            return ConfiguredMessageFormat.get().formatRuleText(condition.objectsToTest, condition);
         }
 
         /**
