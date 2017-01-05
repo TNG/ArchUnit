@@ -4,8 +4,6 @@ import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.Set;
 
-import org.objectweb.asm.Type;
-
 import static java.util.Collections.emptySet;
 
 public class JavaStaticInitializer extends JavaCodeUnit {
@@ -27,8 +25,8 @@ public class JavaStaticInitializer extends JavaCodeUnit {
 
     static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
         public Builder() {
-            withReturnType(Type.getType(void.class));
-            withParameters(new Type[0]);
+            withReturnType(JavaType.From.name(void.class.getName()));
+            withParameters(Collections.<JavaType>emptyList());
             withName(STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
             withAnnotations(Collections.<JavaAnnotation.Builder>emptySet());

@@ -12,7 +12,6 @@ import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.properties.HasParameters;
 import com.tngtech.archunit.core.properties.HasReturnType;
-import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 
@@ -106,28 +105,27 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters, 
     }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
-        // FIXME: Use JavaType instead of ASM Type
-        private Type returnType;
-        private Type[] parameters;
+        private JavaType returnType;
+        private List<JavaType> parameters;
 
-        SELF withReturnType(Type type) {
+        SELF withReturnType(JavaType type) {
             returnType = type;
             return self();
         }
 
-        SELF withParameters(Type[] parameters) {
+        SELF withParameters(List<JavaType> parameters) {
             this.parameters = parameters;
             return self();
         }
 
         JavaClass getReturnType() {
-            return get(returnType.getClassName());
+            return get(returnType.getName());
         }
 
         public List<JavaClass> getParameters() {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            for (Type parameter : parameters) {
-                result.add(get(parameter.getClassName()));
+            for (JavaType parameter : parameters) {
+                result.add(get(parameter.getName()));
             }
             return result.build();
         }

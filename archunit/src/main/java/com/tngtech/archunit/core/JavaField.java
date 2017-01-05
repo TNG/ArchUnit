@@ -8,7 +8,6 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.core.properties.HasType;
-import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,15 +49,15 @@ public class JavaField extends JavaMember implements HasType {
     }
 
     static final class Builder extends JavaMember.Builder<JavaField, Builder> {
-        private Type type;
+        private JavaType type;
 
-        Builder withType(Type type) {
+        Builder withType(JavaType type) {
             this.type = type;
             return self();
         }
 
         public JavaClass getType() {
-            return get(type.getClassName());
+            return get(type.getName());
         }
 
         @Override

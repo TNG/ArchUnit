@@ -84,8 +84,8 @@ public class TestUtils {
 
     public static JavaMethod javaMethodViaReflection(JavaClass clazz, Method method) {
         return new JavaMethod.Builder()
-                .withReturnType(Type.getType(method.getReturnType()))
-                .withParameters(allTypesIn(method.getParameterTypes()))
+                .withReturnType(JavaType.From.name(method.getReturnType().getName()))
+                .withParameters(typesFrom(method.getParameterTypes()))
                 .withName(method.getName())
                 .withDescriptor(Type.getMethodDescriptor(method))
                 .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
@@ -133,14 +133,6 @@ public class TestUtils {
                 .build();
     }
 
-    private static Type[] allTypesIn(Class<?>[] types) {
-        Type[] result = new Type[types.length];
-        for (int i = 0; i < types.length; i++) {
-            result[i] = Type.getType(types[i]);
-        }
-        return result;
-    }
-
     public static JavaClass javaClassViaReflection(Class<?> owner) {
         return getOnlyElement(javaClassesViaReflection(owner));
     }
@@ -151,7 +143,7 @@ public class TestUtils {
                 .withDescriptor(Type.getDescriptor(field.getType()))
                 .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                .withType(Type.getType(field.getType()))
+                .withType(JavaType.From.name(field.getType().getName()))
                 .build(owner, simpleImportedClasses());
     }
 
@@ -270,7 +262,7 @@ public class TestUtils {
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), importedClasses))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(Type.getType(field.getType())));
+                    .withType(JavaType.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }
@@ -279,7 +271,7 @@ public class TestUtils {
         final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new JavaMethod.Builder()
-                    .withReturnType(Type.getType(method.getReturnType()))
+                    .withReturnType(JavaType.From.name(method.getReturnType().getName()))
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
@@ -293,7 +285,7 @@ public class TestUtils {
         final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new JavaConstructor.Builder()
-                    .withReturnType(Type.getType(void.class))
+                    .withReturnType(JavaType.From.name(void.class.getName()))
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
@@ -311,12 +303,12 @@ public class TestUtils {
         return result.build();
     }
 
-    private static Type[] typesFrom(Class<?>[] classes) {
-        ArrayList<Type> result = new ArrayList<>();
+    private static List<JavaType> typesFrom(Class<?>[] classes) {
+        List<JavaType> result = new ArrayList<>();
         for (Class<?> clazz : classes) {
-            result.add(Type.getType(clazz));
+            result.add(JavaType.From.name(clazz.getName()));
         }
-        return result.toArray(new Type[classes.length]);
+        return result;
     }
 
     public static AccessesSimulator simulateCall() {

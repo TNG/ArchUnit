@@ -146,7 +146,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
-                .withType(Type.getType(desc))
+                .withType(JavaType.From.asmType(Type.getType(desc)))
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
@@ -167,11 +167,19 @@ class JavaClassProcessor extends ClassVisitor {
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
-                .withParameters(methodType.getArgumentTypes())
-                .withReturnType(methodType.getReturnType())
+                .withParameters(typesFrom(methodType.getArgumentTypes()))
+                .withReturnType(JavaType.From.asmType(methodType.getReturnType()))
                 .withDescriptor(desc);
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
+    }
+
+    private List<JavaType> typesFrom(Type[] asmTypes) {
+        List<JavaType> result = new ArrayList<>();
+        for (Type asmType : asmTypes) {
+            result.add(JavaType.From.asmType(asmType));
+        }
+        return result;
     }
 
     private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(String name) {
