@@ -1,6 +1,7 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
-import com.tngtech.archunit.exampletest.LayerDependencyRulesWithRunnerTest;
+import com.tngtech.archunit.exampletest.junit.LayerDependencyRulesWithRunnerTest;
+import com.tngtech.archunit.integration.LayerDependencyRulesIntegrationTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;

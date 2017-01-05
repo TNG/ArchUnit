@@ -1,10 +1,10 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import javax.persistence.EntityManager;
 
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules.MyEntityManager;
-import com.tngtech.archunit.exampletest.DaoRulesWithRunnerTest;
+import com.tngtech.archunit.exampletest.junit.DaoRulesWithRunnerTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ExpectedViolation;

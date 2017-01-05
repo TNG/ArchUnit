@@ -1,4 +1,4 @@
-package com.tngtech.archunit.exampletest;
+package com.tngtech.archunit.exampletest.junit;
 
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchRules;

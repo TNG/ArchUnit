@@ -78,7 +78,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
         super.classes_should_not_use_java_util_logging();
     }
 
-    static void expectViolationByUsingJavaUtilLogging(ExpectedViolation expectedViolation) {
+    public static void expectViolationByUsingJavaUtilLogging(ExpectedViolation expectedViolation) {
         expectedViolation.ofRule("classes should not use java.util.logging")
                 .byAccess(from(ClassViolatingCodingRules.class, "<clinit>")
                         .setting().field(ClassViolatingCodingRules.class, "log")

@@ -7,10 +7,10 @@ import java.util.List;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
 
-public class ClassFileImportHelper {
+class ClassFileImportHelper {
     private final ClassFileImporter importer = new ClassFileImporter();
 
-    public JavaClasses importTreesOf(Class<?>... rootClasses) {
+    JavaClasses importTreesOf(Class<?>... rootClasses) {
         try {
             return uncheckedImportTreesOf(rootClasses);
         } catch (Exception e) {

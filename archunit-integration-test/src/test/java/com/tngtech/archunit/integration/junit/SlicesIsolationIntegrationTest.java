@@ -1,8 +1,8 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import com.tngtech.archunit.example.controller.one.UseCaseOneController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
-import com.tngtech.archunit.exampletest.SlicesIsolationTest;
+import com.tngtech.archunit.exampletest.junit.SlicesIsolationTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.example.controller.one.UseCaseOneController.doSomethingOne;
 import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
-import static com.tngtech.archunit.integration.SliceDependencyErrorMatcher.sliceDependency;
+import static com.tngtech.archunit.integration.junit.SliceDependencyErrorMatcher.sliceDependency;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)

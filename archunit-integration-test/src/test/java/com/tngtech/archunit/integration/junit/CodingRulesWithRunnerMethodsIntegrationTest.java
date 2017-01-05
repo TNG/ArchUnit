@@ -1,7 +1,7 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.exampletest.CodingRulesWithRunnerMethodsTest;
+import com.tngtech.archunit.exampletest.junit.CodingRulesWithRunnerMethodsTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ExpectedViolation;

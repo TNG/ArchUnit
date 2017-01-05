@@ -1,4 +1,4 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

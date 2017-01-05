@@ -1,4 +1,4 @@
-package com.tngtech.archunit.exampletest;
+package com.tngtech.archunit.exampletest.junit;
 
 import javax.persistence.EntityManager;
 
