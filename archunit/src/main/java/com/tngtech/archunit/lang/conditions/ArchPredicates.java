@@ -1,8 +1,11 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -36,12 +39,29 @@ public class ArchPredicates {
      * tested {@link com.tngtech.archunit.core.JavaClass} matches the identifier
      */
     public static DescribedPredicate<JavaClass> resideIn(final String packageIdentifier) {
-        return new DescribedPredicate<JavaClass>(String.format("reside in '%s'", packageIdentifier)) {
-            private final PackageMatcher packageMatcher = PackageMatcher.of(packageIdentifier);
+        return resideInAnyPackage(new String[]{packageIdentifier},
+                String.format("reside in '%s'", packageIdentifier));
+    }
 
+    public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
+        return resideInAnyPackage(packageIdentifiers,
+                String.format("reside in any '%s'", Joiner.on("', '").join(packageIdentifiers)));
+    }
+
+    private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
+        final Set<PackageMatcher> packageMatchers = new HashSet<>();
+        for (String identifier : packageIdentifiers) {
+            packageMatchers.add(PackageMatcher.of(identifier));
+        }
+        return new DescribedPredicate<JavaClass>(description) {
             @Override
             public boolean apply(JavaClass input) {
-                return packageMatcher.matches(input.getPackage());
+                for (PackageMatcher matcher : packageMatchers) {
+                    if (matcher.matches(input.getPackage())) {
+                        return true;
+                    }
+                }
+                return false;
             }
         };
     }

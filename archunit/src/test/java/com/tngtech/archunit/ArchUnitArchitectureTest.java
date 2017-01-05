@@ -30,6 +30,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
+import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 public class ArchUnitArchitectureTest {
     private static final ClassFileImporter importer = new ClassFileImporter()
@@ -40,6 +41,22 @@ public class ArchUnitArchitectureTest {
     @BeforeClass
     public static void setUp() {
         archUnitClasses = importer.importPackages(ArchUnitArchitectureTest.class.getPackage().getName());
+    }
+
+    @Test
+    public void layers_are_respected() {
+        layeredArchitecture()
+                .layer("Base").definedBy("com.tngtech.archunit.base..")
+                .layer("Core").definedBy("com.tngtech.archunit.core..")
+                .layer("Lang").definedBy("com.tngtech.archunit.lang..")
+                .layer("Library").definedBy("com.tngtech.archunit.library..")
+
+                .whereLayer("Library").mayNotBeAccessedByAnyLayer()
+                .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library")
+                .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library")
+                .whereLayer("Base").mayOnlyBeAccessedByLayers("Core", "Lang", "Library")
+
+                .check(archUnitClasses);
     }
 
     @Test
