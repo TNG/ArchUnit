@@ -27,6 +27,32 @@ import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
 
 public class Architectures {
+    /**
+     * Can be used to assert a typical layered architecture, e.g. with an UI layer, a business logic layer and
+     * a persistence layer, where specific access rules should be adhered to, like UI may not access persistence
+     * and each layer may only access lower layers, i.e. UI -> business logic -> persistence.
+     * <br/><br/>
+     * A layered architecture can for example be defined like this:
+     * <pre><code>layeredArchitecture()
+     * .layer("UI").definedBy("my.application.ui..")
+     * .layer("Business Logic").definedBy("my.application.domain..")
+     * .layer("Persistence").definedBy("my.application.persistence..")
+     *
+     * .whereLayer("UI").mayNotBeAccessedByAnyLayer()
+     * .whereLayer("Business Logic").mayOnlyBeAccessedByLayers("UI")
+     * .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Business Logic")
+     * </code></pre>
+     * NOTE: Principally it would be possible to assert such an architecture in a white list or black list way.
+     * <br/>I.e. one can specify layer 'Persistence' MAY ONLY be accessed by layer 'Business Logic' (white list), or
+     * layer 'Persistence' MAY NOT access layer 'Business Logic' AND MAY NOT access layer 'UI' (black list).<br/>
+     * {@link LayeredArchitecture LayeredArchitecture} only supports the white list way, because it prevents detours "outside of
+     * the architecture", e.g.<br/>
+     * 'Persistence' -> 'my.application.somehelper' -> 'Business Logic'<br/>
+     * The white list way enforces, that every class that wants to interact with classes inside of
+     * the layered architecture must be part of the layered architecture itself and thus adhere to the same rules.
+     *
+     * @return An {@link ArchRule} enforcing the specified layered architecture
+     */
     public static LayeredArchitecture layeredArchitecture() {
         return new LayeredArchitecture();
     }

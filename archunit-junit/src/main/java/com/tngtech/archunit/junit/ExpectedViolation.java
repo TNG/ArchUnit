@@ -2,11 +2,13 @@ package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -15,9 +17,13 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.junit.MessageAssertionChain.containsConsecutiveLines;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
 import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
+import static java.lang.System.lineSeparator;
 import static java.util.Collections.singleton;
 import static java.util.regex.Pattern.quote;
 
@@ -37,9 +43,26 @@ public class ExpectedViolation implements TestRule {
     }
 
     public ExpectedViolation ofRule(String ruleText) {
+        LinkedList<String> ruleLines = new LinkedList<>(Splitter.on(lineSeparator()).splitToList(ruleText));
+        checkArgument(!ruleLines.isEmpty(), "Rule text may not be empty");
+        if (ruleLines.size() == 1) {
+            addSingleLineRuleAssertion(getOnlyElement(ruleLines));
+        } else {
+            addMultiLineRuleAssertion(ruleLines);
+        }
+        return this;
+    }
+
+    private void addSingleLineRuleAssertion(String ruleText) {
         assertionChain.add(matchesLine(String.format(
                 "Architecture Violation .* Rule '%s' was violated.*", quote(ruleText))));
-        return this;
+    }
+
+    private void addMultiLineRuleAssertion(LinkedList<String> ruleLines) {
+        assertionChain.add(matchesLine(String.format(
+                "Architecture Violation .* Rule '%s", quote(ruleLines.pollFirst()))));
+        assertionChain.add(matchesLine(String.format("%s' was violated.*", quote(ruleLines.pollLast()))));
+        assertionChain.add(containsConsecutiveLines(ruleLines));
     }
 
     public ExpectedViolation byAccess(ExpectedFieldAccess access) {

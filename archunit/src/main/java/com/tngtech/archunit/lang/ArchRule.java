@@ -20,10 +20,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Represents a rule about a specified set of objects of interest (e.g. {@link JavaClass}).
  * To define a rule, use {@link Definition#all(ClassesTransformer)}, for example
  * <br/><br/><pre><code>
- * all(services).should(never(accessClassesThatResideIn("..ui..")).as("access the UI"))
+ * ClassesTransformer services = classes().that(resideIn("..svc..")).as("Services");
+ * ArchRule rule = all(services).should(never(accessClassesThatResideIn("..ui..")).as("access the UI"));
+ * rule.check(importedJavaClasses);
  * </code></pre>
  * where '<code>services</code>' is (in this case just) a filter denoting when a {@link JavaClass} counts as service
- * (e.g. package contains 'svc', name ends in 'Service', ...).
+ * (e.g. package contains 'svc').
  * <br/><br/>
  * {@link ClassesTransformer} in general defines how the type of objects
  * can be created from imported {@link JavaClasses}. It can filter, like in the example, or completely transform,
