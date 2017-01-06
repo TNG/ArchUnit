@@ -12,11 +12,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 
 public class DaoRulesTest {

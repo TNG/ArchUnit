@@ -1,7 +1,5 @@
 package com.tngtech.archunit.lang.conditions;
 
-import java.lang.annotation.Annotation;
-
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
@@ -11,7 +9,6 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
@@ -19,15 +16,6 @@ import static java.util.regex.Pattern.quote;
 
 public class ArchPredicates {
     private ArchPredicates() {
-    }
-
-    public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
-        return new DescribedPredicate<CanBeAnnotated>("annotated with @" + annotationType.getSimpleName()) {
-            @Override
-            public boolean apply(CanBeAnnotated input) {
-                return input.isAnnotatedWith(annotationType);
-            }
-        };
     }
 
     public static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
