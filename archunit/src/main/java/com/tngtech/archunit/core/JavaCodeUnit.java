@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.properties.HasParameters;
+import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
@@ -25,7 +25,7 @@ import static com.tngtech.archunit.core.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameters, HasReturnType {
+public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType {
     private final JavaClass returnType;
     private final List<JavaClass> parameters;
     private final String fullName;

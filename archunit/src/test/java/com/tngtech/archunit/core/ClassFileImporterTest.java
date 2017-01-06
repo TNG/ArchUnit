@@ -1548,7 +1548,7 @@ public class ClassFileImporterTest {
         assertThat(middleClass.isInterface()).as("is interface").isFalse();
         assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "println"))
                 .isFrom(middleClass.getMethod("overrideMe"))
-                .isTo(targetWithFullName(PrintStream.class.getName() + ".println(String.class)"))
+                .isTo(targetWithFullName(String.format("%s.println(%s)", PrintStream.class.getName(), String.class.getName())))
                 .inLineNumber(12);
         assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "getSomeString"))
                 .isFrom(middleClass.getMethod("overrideMe"))

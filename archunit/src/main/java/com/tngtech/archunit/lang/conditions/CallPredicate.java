@@ -13,14 +13,14 @@ import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
-import com.tngtech.archunit.core.properties.HasParameters;
+import com.tngtech.archunit.core.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.hasParameterTypes;
+import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.withParameterTypes;
 
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     private final CombinedCallPredicate predicate;
@@ -41,12 +41,15 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return new CallPredicate(modification.modify(predicate, withNameMatching(name).as("has name '%s'", name)), modification);
     }
 
-    public CallPredicate hasParameters(Class<?>... paramTypes) {
-        return hasParameters(ImmutableList.copyOf(paramTypes));
+    public CallPredicate hasParameterTypes(Class<?>... paramTypes) {
+        return hasParameterTypes(ImmutableList.copyOf(paramTypes));
     }
 
-    public CallPredicate hasParameters(final List<Class<?>> paramTypes) {
-        return new CallPredicate(modification.modify(predicate, hasParameterTypes(paramTypes)), modification);
+    public CallPredicate hasParameterTypes(final List<Class<?>> paramTypes) {
+        DescribedPredicate<HasParameterTypes> hasParameterTypes = withParameterTypes(paramTypes.toArray(new Class[paramTypes.size()]));
+        hasParameterTypes = hasParameterTypes
+                .as(hasParameterTypes.getDescription().replace("with parameter types", "has parameter types"));
+        return new CallPredicate(modification.modify(predicate, hasParameterTypes), modification);
     }
 
     public CallPredicate isConstructor() {
@@ -85,14 +88,14 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return is(clazz, methodName, ImmutableList.copyOf(paramTypes));
     }
 
-    public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate is(Class<?> owner, String methodName, List<Class<?>> paramTypes) {
+    public <T extends HasOwner<JavaClass> & HasName & HasParameterTypes> CallPredicate is(Class<?> owner, String methodName, List<Class<?>> paramTypes) {
         return matches(owner, methodName, namesOf(paramTypes));
     }
 
-    public <T extends HasOwner<JavaClass> & HasName & HasParameters> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
+    public <T extends HasOwner<JavaClass> & HasName & HasParameterTypes> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
         DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(Get.<JavaClass>owner()).forSubType();
         DescribedPredicate<T> hasName = withNameMatching(methodName).forSubType();
-        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(ArchPredicates.hasParameterTypeNames(paramTypeNames))
+        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(withParameterTypes(paramTypeNames))
                 .as(formatMethod(owner.getName(), methodName, paramTypeNames));
 
         // FIXME: It was a bad design decision to combine origin and target inside of this predicate,
@@ -122,7 +125,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return predicate.or(DescribedPredicate.<T>alwaysTrue());
     }
 
-    private static abstract class Modification<T extends HasName & HasOwner<JavaClass> & HasParameters> {
+    private static abstract class Modification<T extends HasName & HasOwner<JavaClass> & HasParameterTypes> {
         abstract CombinedCallPredicate modify(CombinedCallPredicate predicate, DescribedPredicate<? super T> addition);
 
         private static Modification<CodeUnitCallTarget> target() {

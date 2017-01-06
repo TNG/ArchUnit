@@ -121,7 +121,7 @@ public final class ArchConditions {
             return callMethodWhere(callTarget()
                     .isDeclaredIn(theHierarchyOf(type))
                     .hasName(methodName)
-                    .hasParameters(params));
+                    .hasParameterTypes(params));
         }
     }
 

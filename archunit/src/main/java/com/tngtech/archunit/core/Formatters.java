@@ -32,11 +32,7 @@ public class Formatters {
     }
 
     public static String formatMethodParameterTypeNames(List<String> typeNames) {
-        List<String> formatted = new ArrayList<>();
-        for (String name : typeNames) {
-            formatted.add(ensureSimpleName(name) + ".class");
-        }
-        return Joiner.on(", ").join(formatted);
+        return Joiner.on(", ").join(typeNames);
     }
 
     static String ensureSimpleName(String name) {

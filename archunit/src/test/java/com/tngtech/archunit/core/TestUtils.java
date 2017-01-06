@@ -97,6 +97,14 @@ public class TestUtils {
         return new ImportedTestClasses();
     }
 
+    public static JavaClassList javaClassList(Class<?>... types) {
+        List<JavaClass> classes = new ArrayList<>();
+        for (Class<?> type : types) {
+            classes.add(javaClassViaReflection(type));
+        }
+        return new JavaClassList(classes);
+    }
+
     private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
         private final Map<String, JavaClass> imported = new HashMap<>();
 

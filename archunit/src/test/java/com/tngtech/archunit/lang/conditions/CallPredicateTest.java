@@ -18,8 +18,8 @@ public class CallPredicateTest {
         assertThat(declaredIn.apply(call)).as("predicate matches").isTrue();
         assertThat(declaredIn.hasName("someMethod").apply(call)).as("predicate matches").isTrue();
         assertThat(declaredIn.hasName("wrong").apply(call)).as("predicate matches").isFalse();
-        assertThat(declaredIn.hasParameters(String.class).apply(call)).as("predicate matches").isTrue();
-        assertThat(declaredIn.hasParameters().apply(call)).as("predicate matches").isFalse();
+        assertThat(declaredIn.hasParameterTypes(String.class).apply(call)).as("predicate matches").isTrue();
+        assertThat(declaredIn.hasParameterTypes().apply(call)).as("predicate matches").isFalse();
         assertThat(declaredIn.hasName("someMethod").is(DescribedPredicate.<JavaCodeUnit>alwaysTrue()).apply(call))
                 .as("predicate matches").isTrue();
         assertThat(declaredIn.hasName("wrong").is(DescribedPredicate.<JavaCodeUnit>alwaysTrue()).apply(call))
@@ -27,7 +27,7 @@ public class CallPredicateTest {
         assertThat(declaredIn.hasName("someMethod").is(DescribedPredicate.<JavaCodeUnit>alwaysFalse()).apply(call))
                 .as("predicate matches").isFalse();
 
-        assertThat(declaredIn.hasName("someMethod").hasParameters(String.class).apply(call))
+        assertThat(declaredIn.hasName("someMethod").hasParameterTypes(String.class).apply(call))
                 .as("predicate matches").isTrue();
     }
 
@@ -35,11 +35,11 @@ public class CallPredicateTest {
     public void descriptions() {
         CallPredicate predicate = target().is(SomeClass.class, "someMethod", String.class);
         assertThat(predicate.getDescription())
-                .isEqualTo(String.format("target is %s.someMethod(String.class)", SomeClass.class.getName()));
+                .isEqualTo(String.format("target is %s.someMethod(%s)", SomeClass.class.getName(), String.class.getName()));
 
-        predicate = target().isDeclaredIn(SomeClass.class).hasName("someMethod").hasParameters(String.class);
+        predicate = target().isDeclaredIn(SomeClass.class).hasName("someMethod").hasParameterTypes(String.class);
         assertThat(predicate.getDescription())
-                .isEqualTo("target is declared in SomeClass and has name 'someMethod' and has parameters [String.class]");
+                .isEqualTo("target is declared in SomeClass and has name 'someMethod' and has parameter types [java.lang.String]");
     }
 
     private static class SomeClass {

@@ -241,7 +241,7 @@ public class ExpectedViolation implements TestRule {
             this.clazz = clazz;
             this.memberName = memberName;
             for (Class<?> paramType : paramTypes) {
-                params.add(String.format("%s.class", paramType.getSimpleName()));
+                params.add(paramType.getName());
             }
         }
 
