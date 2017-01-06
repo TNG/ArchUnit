@@ -10,10 +10,10 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.JavaClass.INTERFACES;
-import static com.tngtech.archunit.core.JavaClass.assignableFrom;
-import static com.tngtech.archunit.core.JavaClass.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.withType;
+import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;

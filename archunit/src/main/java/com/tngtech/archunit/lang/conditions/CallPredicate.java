@@ -16,8 +16,8 @@ import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
+import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
-import static com.tngtech.archunit.core.JavaClass.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.withParameterTypes;
@@ -73,11 +73,11 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate isNotAssignableTo(Class<?> type) {
-        return new CallPredicate(ownerIs(not(JavaClass.assignableTo(type))), modification);
+        return new CallPredicate(ownerIs(not(JavaClass.Predicates.assignableTo(type))), modification);
     }
 
     public CallPredicate isAssignableTo(Class<?> type) {
-        return new CallPredicate(ownerIs(JavaClass.assignableTo(type)), modification);
+        return new CallPredicate(ownerIs(JavaClass.Predicates.assignableTo(type)), modification);
     }
 
     private CombinedCallPredicate ownerIs(DescribedPredicate<? super JavaClass> predicate) {

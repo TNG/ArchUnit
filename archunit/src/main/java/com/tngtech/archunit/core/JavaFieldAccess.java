@@ -32,7 +32,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + Objects.hash(accessType);
+        return 31 * super.hashCode() + accessType.hashCode();
     }
 
     @Override

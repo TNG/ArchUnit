@@ -529,34 +529,36 @@ public class JavaClass implements HasName, HasAnnotations {
         return result;
     }
 
-    public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
-        return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("with type " + type.getName());
-    }
-
-    public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
-        return new DescribedPredicate<JavaClass>("assignable to " + type.getName()) {
+    public static class Predicates {
+        public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
             @Override
             public boolean apply(JavaClass input) {
-                return input.isAssignableTo(type);
+                return input.isInterface();
             }
         };
-    }
 
-    public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
-        return new DescribedPredicate<JavaClass>("assignable from " + type.getName()) {
-            @Override
-            public boolean apply(JavaClass input) {
-                return input.isAssignableFrom(type);
-            }
-        };
-    }
-
-    public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
-        @Override
-        public boolean apply(JavaClass input) {
-            return input.isInterface();
+        public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
+            return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("with type " + type.getName());
         }
-    };
+
+        public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
+            return new DescribedPredicate<JavaClass>("assignable to " + type.getName()) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.isAssignableTo(type);
+                }
+            };
+        }
+
+        public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
+            return new DescribedPredicate<JavaClass>("assignable from " + type.getName()) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.isAssignableFrom(type);
+                }
+            };
+        }
+    }
 
     class CompletionProcess {
         AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
