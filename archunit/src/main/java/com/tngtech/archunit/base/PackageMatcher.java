@@ -1,4 +1,4 @@
-package com.tngtech.archunit.lang.conditions;
+package com.tngtech.archunit.base;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
@@ -87,10 +85,10 @@ public class PackageMatcher {
     }
 
     /**
-     * Creates a new {@link com.tngtech.archunit.lang.conditions.PackageMatcher}
+     * Creates a new {@link PackageMatcher}
      *
      * @param packageIdentifier The package literal to match against (e.g. {@code 'some*..pk*'} -> {@code 'somewhere.in.some.pkg'})
-     * @return {@link com.tngtech.archunit.lang.conditions.PackageMatcher} to match packages against the supplied literal
+     * @return {@link PackageMatcher} to match packages against the supplied literal
      * supporting AspectJ syntax
      */
     public static PackageMatcher of(String packageIdentifier) {
@@ -102,12 +100,12 @@ public class PackageMatcher {
     }
 
     /**
-     * Returns a matching {@link com.tngtech.archunit.lang.conditions.PackageMatcher.Result Result}
+     * Returns a matching {@link PackageMatcher.Result Result}
      * against the provided package name. If the package identifier of this {@link PackageMatcher} does not match the
      * given package name, then {@link Optional#absent()} is returned.
      *
      * @param aPackage The package name to match against
-     * @return A {@link com.tngtech.archunit.lang.conditions.PackageMatcher.Result Result} if the package name matches,
+     * @return A {@link PackageMatcher.Result Result} if the package name matches,
      * otherwise {@link Optional#absent()}
      */
     public Optional<Result> match(String aPackage) {

@@ -11,11 +11,11 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
 
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
@@ -23,7 +23,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
 public class DaoRulesWithRunnerTest {
     @ArchTest
     public static final ArchRule only_DAOs_may_use_the_EntityManager =
-            all(classes().that(not(resideIn("..dao.."))).as("classes that are no DAOs"))
+            all(classes().that(not(resideInPackage("..dao.."))).as("classes that are no DAOs"))
                     .should(never(accessClass(assignableTo(EntityManager.class))
                             .as("access the " + EntityManager.class.getSimpleName())));
 }

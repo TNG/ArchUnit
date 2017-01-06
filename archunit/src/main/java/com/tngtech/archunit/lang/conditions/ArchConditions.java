@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
@@ -13,9 +14,9 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.JavaAccess.GET_TARGET;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.theHierarchyOf;
 
 public final class ArchConditions {
     private ArchConditions() {
@@ -27,7 +28,7 @@ public final class ArchConditions {
      */
     public static ArchCondition<JavaClass> accessClassesThatResideIn(String packageIdentifier) {
         return accessClassesThatResideInAnyPackage(packageIdentifier).
-                as("access classes that reside in '%s'", packageIdentifier);
+                as("access classes that reside in package '%s'", packageIdentifier);
     }
 
     /**
@@ -119,7 +120,7 @@ public final class ArchConditions {
 
         public ArchCondition<JavaClass> inHierarchyOf(Class<?> type) {
             return callMethodWhere(callTarget()
-                    .isDeclaredIn(theHierarchyOf(type))
+                    .isDeclaredIn(assignableTo(type))
                     .hasName(methodName)
                     .hasParameterTypes(params));
         }

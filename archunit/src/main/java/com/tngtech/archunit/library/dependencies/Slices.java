@@ -9,16 +9,16 @@ import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
-import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.Dependency.toTargetClasses;
-import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
 /**
  * Basic collection of {@link Slice} for tests on dependencies of package slices, e.g. to avoid cycles.
@@ -144,7 +144,7 @@ public class Slices implements DescribedIterable<Slice> {
 
         /**
          * Supports partitioning a set of {@link JavaClasses} into different slices by matching the supplied
-         * package identifier. For identifier syntax, see {@link com.tngtech.archunit.lang.conditions.PackageMatcher}.<br/>
+         * package identifier. For identifier syntax, see {@link PackageMatcher}.<br/>
          * The slicing is done according to capturing groups (thus if none are contained in the identifier, no more than
          * a single slice will be the result). For example
          * <p>

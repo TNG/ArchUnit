@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.conditions;
 
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;

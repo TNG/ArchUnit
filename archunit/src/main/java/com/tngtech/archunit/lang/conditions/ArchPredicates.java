@@ -1,11 +1,9 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaCall;
@@ -16,8 +14,6 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasOwner;
 
-import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static java.util.regex.Pattern.quote;
 
@@ -25,66 +21,11 @@ public class ArchPredicates {
     private ArchPredicates() {
     }
 
-    /**
-     * Offers a syntax to identify packages similar to AspectJ. In particular '*' stands for any sequence of
-     * characters, '..' stands for any sequence of packages.
-     * For further details see {@link com.tngtech.archunit.lang.conditions.PackageMatcher}.
-     *
-     * @param packageIdentifier A string representing the identifier to match packages against
-     * @return A {@link DescribedPredicate} returning true iff the package of the
-     * tested {@link com.tngtech.archunit.core.JavaClass} matches the identifier
-     */
-    public static DescribedPredicate<JavaClass> resideIn(final String packageIdentifier) {
-        return resideInAnyPackage(new String[]{packageIdentifier},
-                String.format("reside in '%s'", packageIdentifier));
-    }
-
-    public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
-        return resideInAnyPackage(packageIdentifiers,
-                String.format("reside in any '%s'", Joiner.on("', '").join(packageIdentifiers)));
-    }
-
-    private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
-        final Set<PackageMatcher> packageMatchers = new HashSet<>();
-        for (String identifier : packageIdentifiers) {
-            packageMatchers.add(PackageMatcher.of(identifier));
-        }
-        return new DescribedPredicate<JavaClass>(description) {
-            @Override
-            public boolean apply(JavaClass input) {
-                for (PackageMatcher matcher : packageMatchers) {
-                    if (matcher.matches(input.getPackage())) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-    }
-
     public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
         return new DescribedPredicate<CanBeAnnotated>("annotated with @" + annotationType.getSimpleName()) {
             @Override
             public boolean apply(CanBeAnnotated input) {
                 return input.isAnnotatedWith(annotationType);
-            }
-        };
-    }
-
-    public static DescribedPredicate<JavaClass> theHierarchyOf(Class<?> type) {
-        return theHierarchyOfAClassThat(equalTo(type.getName()).onResultOf(GET_NAME))
-                .as("the hierarchy of %s.class", type.getSimpleName());
-    }
-
-    public static DescribedPredicate<JavaClass> theHierarchyOfAClassThat(final DescribedPredicate<? super JavaClass> predicate) {
-        return new DescribedPredicate<JavaClass>("the hierarchy of a class that " + predicate.getDescription()) {
-            @Override
-            public boolean apply(JavaClass input) {
-                JavaClass current = input;
-                while (current.getSuperClass().isPresent() && !predicate.apply(current)) {
-                    current = current.getSuperClass().get();
-                }
-                return predicate.apply(current);
             }
         };
     }

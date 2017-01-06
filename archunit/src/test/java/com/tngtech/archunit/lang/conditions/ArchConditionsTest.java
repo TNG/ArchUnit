@@ -80,7 +80,7 @@ public class ArchConditionsTest {
     @Test
     public void descriptions() {
         assertThat(accessClassesThatResideIn("..any..").getDescription())
-                .isEqualTo("access classes that reside in '..any..'");
+                .isEqualTo("access classes that reside in package '..any..'");
 
         assertThat(accessClassesThatResideInAnyPackage("..one..", "..two..").getDescription())
                 .isEqualTo("access classes that reside in any package ['..one..', '..two..']");

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -15,6 +16,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.properties.HasAnnotations;
 import com.tngtech.archunit.core.properties.HasName;
 
@@ -555,6 +557,46 @@ public class JavaClass implements HasName, HasAnnotations {
                 @Override
                 public boolean apply(JavaClass input) {
                     return input.isAssignableFrom(type);
+                }
+            };
+        }
+
+        /**
+         * Offers a syntax to identify packages similar to AspectJ. In particular '*' stands for any sequence of
+         * characters, '..' stands for any sequence of packages.
+         * For further details see {@link PackageMatcher}.
+         *
+         * @param packageIdentifier A string representing the identifier to match packages against
+         * @return A {@link DescribedPredicate} returning true iff the package of the
+         * tested {@link JavaClass} matches the identifier
+         */
+        public static DescribedPredicate<JavaClass> resideInPackage(final String packageIdentifier) {
+            return resideInAnyPackage(new String[]{packageIdentifier},
+                    String.format("reside in package '%s'", packageIdentifier));
+        }
+
+        /**
+         * @see #resideInPackage(String)
+         */
+        public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
+            return resideInAnyPackage(packageIdentifiers,
+                    String.format("reside in any package '%s'", Joiner.on("', '").join(packageIdentifiers)));
+        }
+
+        private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
+            final Set<PackageMatcher> packageMatchers = new HashSet<>();
+            for (String identifier : packageIdentifiers) {
+                packageMatchers.add(PackageMatcher.of(identifier));
+            }
+            return new DescribedPredicate<JavaClass>(description) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    for (PackageMatcher matcher : packageMatchers) {
+                        if (matcher.matches(input.getPackage())) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             };
         }

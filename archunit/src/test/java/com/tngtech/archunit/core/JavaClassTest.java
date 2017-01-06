@@ -13,6 +13,8 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
@@ -22,6 +24,8 @@ import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JavaClassTest {
 
@@ -117,15 +121,17 @@ public class JavaClassTest {
     }
 
     @Test
-    public void withType_works() {
+    public void predicate_withType() {
         assertThat(withType(Parent.class).apply(javaClassViaReflection(Parent.class)))
                 .as("withType(Parent) matches JavaClass Parent").isTrue();
         assertThat(withType(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
                 .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+
+        assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
     }
 
     @Test
-    public void assignableFrom_works() {
+    public void predicate_assignableFrom() {
         assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
                 .to(SuperClassWithFieldAndMethod.class)
                 .isTrue();
@@ -154,10 +160,12 @@ public class JavaClassTest {
         assertThatAssignable().from(Parent.class)
                 .to(SuperClassWithFieldAndMethod.class)
                 .isFalse();
+
+        assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
     }
 
     @Test
-    public void assignableTo_works() {
+    public void predicate_assignableTo() {
         assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
                 .from(SuperClassWithFieldAndMethod.class)
                 .isTrue();
@@ -186,14 +194,49 @@ public class JavaClassTest {
         assertThatAssignable().to(Parent.class)
                 .from(SuperClassWithFieldAndMethod.class)
                 .isTrue();
+
+        assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
     }
 
     @Test
-    public void descriptions() {
-        assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
-        assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
-        assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
+    public void predicate_interfaces() {
+        assertThat(INTERFACES.apply(javaClassViaReflection(Serializable.class))).as("Predicate matches").isTrue();
+        assertThat(INTERFACES.apply(javaClassViaReflection(Object.class))).as("Predicate matches").isFalse();
         assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
+    }
+
+    @Test
+    public void predicate_reside_in_package() {
+        JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
+
+        assertThat(resideInPackage("some..pkg").apply(clazz)).as("package matches").isTrue();
+
+        clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
+
+        assertThat(resideInPackage("some..pkg").apply(clazz)).as("package matches").isFalse();
+
+        assertThat(resideInPackage("..any..").getDescription())
+                .isEqualTo("reside in package '..any..'");
+    }
+
+    @Test
+    public void predicate_reside_in_any_package() {
+        JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
+
+        assertThat(resideInAnyPackage("any.thing", "some..pkg").apply(clazz)).as("package matches").isTrue();
+
+        clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
+
+        assertThat(resideInAnyPackage("any.thing", "some..pkg").apply(clazz)).as("package matches").isFalse();
+
+        assertThat(resideInAnyPackage("any.thing", "..any..").getDescription())
+                .isEqualTo("reside in any package 'any.thing', '..any..'");
+    }
+
+    private JavaClass fakeClassWithPackage(String pkg) {
+        JavaClass javaClass = mock(JavaClass.class);
+        when(javaClass.getPackage()).thenReturn(pkg);
+        return javaClass;
     }
 
     private static AssignableAssert assertThatAssignable() {

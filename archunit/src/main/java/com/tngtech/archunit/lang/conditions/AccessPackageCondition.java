@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
