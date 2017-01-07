@@ -11,6 +11,7 @@ import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaStaticInitializer;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
@@ -29,7 +30,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 public class ArchUnitArchitectureTest {
@@ -79,7 +79,7 @@ public class ArchUnitArchitectureTest {
     }
 
     private DescribedPredicate<JavaCall<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
-        return callOrigin(ownerIs(new DescribedPredicate<JavaClass>(
+        return callOrigin(With.owner(new DescribedPredicate<JavaClass>(
                 "annotated with @" + annotationType.getName()) {
 
             @Override
@@ -107,7 +107,7 @@ public class ArchUnitArchitectureTest {
         DescribedPredicate<JavaFieldAccess> notAllowedOrigin =
                 not(accessOrigin(withNameMatching(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
                         .and(not(accessOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
-                        .and(not(accessOrigin(ownerIs(annotatedWith(MayResolveTypesViaReflection.class)))));
+                        .and(not(accessOrigin(With.<JavaClass>owner(annotatedWith(MayResolveTypesViaReflection.class)))));
 
         return accessFieldWhere(targetIsReflectFunction.and(notAllowedOrigin));
     }

@@ -9,7 +9,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
 import static java.util.regex.Pattern.quote;
@@ -29,17 +29,8 @@ public class ArchPredicates {
         };
     }
 
-    public static DescribedPredicate<HasOwner<JavaClass>> ownerIs(final DescribedPredicate<? super JavaClass> predicate) {
-        return new DescribedPredicate<HasOwner<JavaClass>>("owner " + predicate.getDescription()) {
-            @Override
-            public boolean apply(HasOwner<JavaClass> input) {
-                return predicate.apply(input.getOwner());
-            }
-        };
-    }
-
     public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return fieldAccessTarget(ownerIs(withNameMatching(quote(target.getName()))))
+        return fieldAccessTarget(With.<JavaClass>owner(withNameMatching(quote(target.getName()))))
                 .as("owner is " + target.getName());
     }
 
