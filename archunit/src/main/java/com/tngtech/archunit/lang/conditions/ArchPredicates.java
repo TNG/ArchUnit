@@ -8,11 +8,9 @@ import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
-import static java.util.regex.Pattern.quote;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
 
 public class ArchPredicates {
     private ArchPredicates() {
@@ -23,15 +21,10 @@ public class ArchPredicates {
                 String.format("owner is %s and name is '%s'", target.getName(), fieldName)) {
             @Override
             public boolean apply(JavaFieldAccess input) {
-                return ownerIs(target).apply(input) &&
+                return fieldAccessTarget(With.<JavaClass>owner(withName(target.getName()))).apply(input) &&
                         fieldName.equals(input.getTarget().getName());
             }
         };
-    }
-
-    public static DescribedPredicate<JavaFieldAccess> ownerIs(final Class<?> target) {
-        return fieldAccessTarget(With.<JavaClass>owner(withNameMatching(quote(target.getName()))))
-                .as("owner is " + target.getName());
     }
 
     private static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(final DescribedPredicate<? super FieldAccessTarget> predicate) {
@@ -39,15 +32,6 @@ public class ArchPredicates {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return predicate.apply(input.getTarget());
-            }
-        };
-    }
-
-    public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
-        return new DescribedPredicate<JavaFieldAccess>("access type " + accessType) {
-            @Override
-            public boolean apply(JavaFieldAccess input) {
-                return accessType == input.getAccessType();
             }
         };
     }

@@ -12,8 +12,8 @@ import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.accessType;
 import static com.tngtech.archunit.core.JavaFieldAccess.getDescriptionTemplateFor;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessType;
 import static java.util.Collections.singleton;
 
 class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {

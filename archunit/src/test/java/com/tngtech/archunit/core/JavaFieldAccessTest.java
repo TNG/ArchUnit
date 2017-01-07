@@ -1,17 +1,28 @@
 package com.tngtech.archunit.core;
 
+import java.util.EnumSet;
+
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.accessType;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaFieldViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class JavaFieldAccessTest {
     @Test
     public void equals_should_work() throws Exception {
@@ -62,14 +73,48 @@ public class JavaFieldAccessTest {
         assertThat(access.getName()).isEqualTo(access.getTarget().getName());
     }
 
-    private TestFieldAccessRecord.Builder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
-        return stringFieldAccess(clazz, "stringField");
+    @DataProvider
+    public static Object[][] accessTypes() {
+        return $$($(GET), $(SET));
     }
 
-    private TestFieldAccessRecord.Builder stringFieldAccess(JavaClass clazz, String name) throws NoSuchFieldException {
+    @Test
+    @UseDataProvider("accessTypes")
+    public void predicate_access_type(AccessType accessType) throws Exception {
+        assertThat(accessType(accessType).apply(stringFieldAccess(accessType)))
+                .as("Predicate matches").isTrue();
+        assertThat(accessType(accessType).apply(stringFieldAccess(not(accessType))))
+                .as("Predicate matches").isFalse();
+
+        assertThat(accessType(accessType).getDescription())
+                .as("Predicate description").isEqualTo("access type " + accessType);
+    }
+
+    private AccessType not(AccessType accessType) {
+        return getOnlyElement(EnumSet.complementOf(EnumSet.of(accessType)));
+    }
+
+    private TestFieldAccessRecord.Builder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
+        return stringFieldAccessBuilder(clazz, "stringField");
+    }
+
+    private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
+        JavaClass clazz = javaClassViaReflection(SomeClass.class);
+        return new JavaFieldAccess(
+                stringFieldAccessBuilder(clazz, "stringField", accessType)
+                        .withCaller(accessFieldMethod(clazz))
+                        .withField(javaFieldViaReflection(clazz, "intField"))
+                        .build());
+    }
+
+    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
+        return stringFieldAccessBuilder(clazz, name, GET);
+    }
+
+    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(JavaClass clazz, String name, AccessType accessType) throws NoSuchFieldException {
         return new TestFieldAccessRecord.Builder()
                 .withField(javaFieldViaReflection(clazz, name))
-                .withAccessType(GET)
+                .withAccessType(accessType)
                 .withLineNumber(31);
     }
 
