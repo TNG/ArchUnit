@@ -2,6 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.util.EnumSet;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -11,9 +12,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.JavaClassTest.fakeClassWithPackage;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.accessType;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
+import static com.tngtech.archunit.core.TestUtils.fieldAccessTarget;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaFieldViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
@@ -90,6 +95,67 @@ public class JavaFieldAccessTest {
                 .as("Predicate description").isEqualTo("access type " + accessType);
     }
 
+    @Test
+    public void predicate_field_access_target_by_class() throws Exception {
+        Class<SomeClass> fieldOwner = SomeClass.class;
+        String fieldName = "testField";
+        JavaFieldAccess access = defaultFieldAccessTo(fieldAccessTarget(fieldOwner, fieldName, String.class));
+        assertThat(fieldAccessTarget(fieldOwner, fieldName)
+                .apply(access)).as("Predicate matches").isTrue();
+        assertThat(fieldAccessTarget(getClass(), fieldName)
+                .apply(access)).as("Predicate matches").isFalse();
+        assertThat(fieldAccessTarget(fieldOwner, "wrong" + fieldName)
+                .apply(access)).as("Predicate matches").isFalse();
+
+        assertThat(fieldAccessTarget(fieldOwner, fieldName).getDescription()).as("description")
+                .isEqualTo(String.format("field access target %s.%s", fieldOwner.getName(), fieldName));
+    }
+
+    @Test
+    public void predicate_field_access_target_by_string() throws Exception {
+        Class<SomeClass> fieldOwner = SomeClass.class;
+        String fieldOwnerName = fieldOwner.getName();
+        String fieldName = "testField";
+        JavaFieldAccess access = defaultFieldAccessTo(fieldAccessTarget(fieldOwner, fieldName, String.class));
+        assertThat(fieldAccessTarget(fieldOwnerName, fieldName)
+                .apply(access)).as("Predicate matches").isTrue();
+        assertThat(fieldAccessTarget("wrong" + fieldOwnerName, fieldName)
+                .apply(access)).as("Predicate matches").isFalse();
+        assertThat(fieldAccessTarget(fieldOwnerName, "wrong" + fieldName)
+                .apply(access)).as("Predicate matches").isFalse();
+
+        assertThat(fieldAccessTarget(fieldOwnerName, fieldName).getDescription()).as("description")
+                .isEqualTo(String.format("field access target %s.%s", fieldOwnerName, fieldName));
+    }
+
+    @Test
+    public void predicate_field_access_target_by_predicate() throws Exception {
+        assertThat(fieldAccessTarget(DescribedPredicate.<FieldAccessTarget>alwaysTrue())
+                .apply(stringFieldAccess(GET))).as("Predicate matches").isTrue();
+        assertThat(fieldAccessTarget(DescribedPredicate.<FieldAccessTarget>alwaysFalse())
+                .apply(stringFieldAccess(GET))).as("Predicate matches").isFalse();
+
+        assertThat(fieldAccessTarget(DescribedPredicate.<FieldAccessTarget>alwaysTrue().as("any message"))
+                .getDescription()).as("description").isEqualTo("field access target any message");
+    }
+
+    @Test
+    public void predicte_target_type_resides_in_package() throws Exception {
+        JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
+        JavaFieldAccess access = defaultFieldAccessTo(fieldAccessTarget(SomeClass.class, "", clazz));
+
+        assertThat(targetTypeResidesInPackage("some..pkg").apply(access)).as("target matches").isTrue();
+
+        clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
+        access = defaultFieldAccessTo(fieldAccessTarget(SomeClass.class, "", clazz));
+
+        assertThat(targetTypeResidesInPackage("some..pkg").apply(access)).as("target matches").isFalse();
+
+        assertThat(targetTypeResidesInPackage("..any..").getDescription())
+                .isEqualTo("target type resides in package '..any..'");
+
+    }
+
     private AccessType not(AccessType accessType) {
         return getOnlyElement(EnumSet.complementOf(EnumSet.of(accessType)));
     }
@@ -101,20 +167,29 @@ public class JavaFieldAccessTest {
     private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
         JavaClass clazz = javaClassViaReflection(SomeClass.class);
         return new JavaFieldAccess(
-                stringFieldAccessBuilder(clazz, "stringField", accessType)
+                new TestFieldAccessRecord.Builder()
                         .withCaller(accessFieldMethod(clazz))
-                        .withField(javaFieldViaReflection(clazz, "intField"))
+                        .withTarget(targetFrom(javaFieldViaReflection(clazz, "stringField")))
+                        .withAccessType(accessType)
+                        .withLineNumber(31)
                         .build());
     }
 
     private TestFieldAccessRecord.Builder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
-        return stringFieldAccessBuilder(clazz, name, GET);
+        return stringFieldAccessBuilder(targetFrom(javaFieldViaReflection(clazz, name)));
     }
 
-    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(JavaClass clazz, String name, AccessType accessType) throws NoSuchFieldException {
+    private JavaFieldAccess defaultFieldAccessTo(FieldAccessTarget target) throws Exception {
+        return new JavaFieldAccess(stringFieldAccessBuilder(target)
+                .withCaller(accessFieldMethod(javaClassViaReflection(SomeClass.class)))
+                .withAccessType(GET)
+                .build());
+    }
+
+    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
         return new TestFieldAccessRecord.Builder()
-                .withField(javaFieldViaReflection(clazz, name))
-                .withAccessType(accessType)
+                .withTarget(target)
+                .withAccessType(GET)
                 .withLineNumber(31);
     }
 
@@ -138,13 +213,13 @@ public class JavaFieldAccessTest {
     private static class TestFieldAccessRecord implements AccessRecord.FieldAccessRecord {
         private final AccessType accessType;
         private final JavaCodeUnit caller;
-        private final JavaField field;
+        private FieldAccessTarget fieldAccessTarget;
         private final int lineNumber;
 
         private TestFieldAccessRecord(Builder builder) {
             accessType = builder.accessType;
             caller = builder.caller;
-            field = builder.field;
+            fieldAccessTarget = builder.target;
             lineNumber = builder.lineNumber;
         }
 
@@ -160,7 +235,7 @@ public class JavaFieldAccessTest {
 
         @Override
         public FieldAccessTarget getTarget() {
-            return targetFrom(field);
+            return fieldAccessTarget;
         }
 
         @Override
@@ -171,7 +246,7 @@ public class JavaFieldAccessTest {
         static final class Builder {
             private AccessType accessType;
             private JavaCodeUnit caller;
-            private JavaField field;
+            public FieldAccessTarget target;
             private int lineNumber;
 
             Builder withAccessType(AccessType accessType) {
@@ -185,7 +260,11 @@ public class JavaFieldAccessTest {
             }
 
             Builder withField(JavaField field) {
-                this.field = field;
+                return withTarget(targetFrom(field));
+            }
+
+            Builder withTarget(FieldAccessTarget target) {
+                this.target = target;
                 return this;
             }
 

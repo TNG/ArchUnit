@@ -105,6 +105,15 @@ public class TestUtils {
         return new JavaClassList(classes);
     }
 
+    public static FieldAccessTarget fieldAccessTarget(Class<?> ownerType, String fieldName, Class<?> fieldType) {
+        return fieldAccessTarget(ownerType, fieldName, javaClassViaReflection(fieldType));
+    }
+
+    public static FieldAccessTarget fieldAccessTarget(Class<?> ownerType, String fieldName, JavaClass fieldType) {
+        return new FieldAccessTarget(javaClassViaReflection(ownerType), fieldName, fieldType,
+                Suppliers.ofInstance(Optional.<JavaField>absent()));
+    }
+
     private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
         private final Map<String, JavaClass> imported = new HashMap<>();
 

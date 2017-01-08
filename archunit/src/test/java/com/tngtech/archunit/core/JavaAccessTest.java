@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core;
 
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.testexamples.SomeClass;
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class JavaAccessTest {
         JavaAccess<?> access = simulateCall().from(javaMethodViaReflection(getClass(), "toString"), 5)
                 .to(javaMethodViaReflection(getClass(), "hashCode"));
 
-        assertThat(JavaAccess.GET_TARGET.apply(access)).isEqualTo(access.getTarget());
+        assertThat(Get.target().apply(access)).isEqualTo(access.getTarget());
     }
 
     @Override

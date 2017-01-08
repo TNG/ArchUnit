@@ -7,6 +7,7 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
@@ -122,6 +123,16 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public Set<JavaField> resolve() {
             return resolveField().asSet();
+        }
+
+        public static class Functions {
+            public static final ChainableFunction<FieldAccessTarget, JavaClass> GET_TYPE =
+                    new ChainableFunction<FieldAccessTarget, JavaClass>() {
+                        @Override
+                        public JavaClass apply(FieldAccessTarget input) {
+                            return input.getType();
+                        }
+                    };
         }
     }
 

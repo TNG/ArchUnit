@@ -233,7 +233,7 @@ public class JavaClassTest {
                 .isEqualTo("reside in any package 'any.thing', '..any..'");
     }
 
-    private JavaClass fakeClassWithPackage(String pkg) {
+    static JavaClass fakeClassWithPackage(String pkg) {
         JavaClass javaClass = mock(JavaClass.class);
         when(javaClass.getPackage()).thenReturn(pkg);
         return javaClass;

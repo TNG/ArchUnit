@@ -2,21 +2,24 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.AccessTarget;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
+import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
-import static com.tngtech.archunit.core.JavaAccess.GET_TARGET;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
 
 public final class ArchConditions {
     private ArchConditions() {
@@ -105,6 +108,12 @@ public final class ArchConditions {
         return new ContainsOnlyCondition<>(condition);
     }
 
+    private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
+        return fieldAccessTarget(With.<JavaClass>owner(withName(target.getName())))
+                .and(fieldAccessTarget(withName(fieldName)))
+                .as(target.getName() + "." + fieldName);
+    }
+
     public static class MethodCallConditionCreator {
         private final String methodName;
         private final Class<?>[] params;
@@ -127,9 +136,14 @@ public final class ArchConditions {
     }
 
     private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
-        public ClassAccessesCondition(final DescribedPredicate<? super JavaClass> predicate) {
-            super(new JavaAccessCondition(predicate.onResultOf(Get.<JavaClass>owner().after(GET_TARGET))
-                    .as("access class " + predicate.getDescription())));
+        ClassAccessesCondition(final DescribedPredicate<? super JavaClass> predicate) {
+            super(new JavaAccessCondition(accessWithOwnerWith(predicate)));
+        }
+
+        private static DescribedPredicate<JavaAccess<?>> accessWithOwnerWith(DescribedPredicate<? super JavaClass> predicate) {
+            ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+            return predicate.onResultOf(Get.<JavaClass>owner().after(getTarget))
+                    .as("access class " + predicate.getDescription());
         }
 
         @Override

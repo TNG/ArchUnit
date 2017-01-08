@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.util.Objects;
 
 import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.properties.HasDescription;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
@@ -110,11 +111,31 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     protected abstract String descriptionTemplate();
 
-    public static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET =
-            new ChainableFunction<JavaAccess<?>, AccessTarget>() {
-                @Override
-                public AccessTarget apply(JavaAccess<?> input) {
-                    return input.getTarget();
-                }
-            };
+    public static class Predicates {
+        public static DescribedPredicate<JavaAccess<?>> withOrigin(DescribedPredicate<? super JavaCodeUnit> predicate) {
+            return predicate.onResultOf(Functions.Get.origin());
+        }
+    }
+
+    public static class Functions {
+        public static class Get {
+            public static ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin() {
+                return new ChainableFunction<JavaAccess<?>, JavaCodeUnit>() {
+                    @Override
+                    public JavaCodeUnit apply(JavaAccess<?> input) {
+                        return input.getOrigin();
+                    }
+                };
+            }
+
+            public static <A extends JavaAccess<? extends T>, T extends AccessTarget> ChainableFunction<A, T> target() {
+                return new ChainableFunction<A, T>() {
+                    @Override
+                    public T apply(A input) {
+                        return input.getTarget();
+                    }
+                };
+            }
+        }
+    }
 }

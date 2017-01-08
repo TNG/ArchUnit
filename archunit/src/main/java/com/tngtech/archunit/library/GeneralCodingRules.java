@@ -5,6 +5,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
 import static com.tngtech.archunit.lang.ArchRule.Definition.all;
 import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
@@ -14,7 +15,6 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.targetTypeResidesIn;
 
 public class GeneralCodingRules {
     public static final ArchCondition<JavaClass> NOT_ACCESS_STANDARD_STREAMS = notAccessStandardStreams();
@@ -60,7 +60,7 @@ public class GeneralCodingRules {
             all(classes()).should(NOT_THROW_GENERIC_EXCEPTIONS);
 
     public static final ArchCondition<JavaClass> NOT_SET_JAVA_UTIL_LOGGING_FIELDS =
-            never(setFieldWhere(targetTypeResidesIn("java.util.logging.."))).as("not use java.util.logging");
+            never(setFieldWhere(targetTypeResidesInPackage("java.util.logging.."))).as("not use java.util.logging");
 
     /**
      * Most projects use the more powerful LOG4J or Logback instead of java.util.logging, often hidden behind
