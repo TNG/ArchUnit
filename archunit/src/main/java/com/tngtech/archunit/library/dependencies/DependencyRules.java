@@ -11,7 +11,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 
 public class DependencyRules {
     public static ArchCondition<Slice> beFreeOfCycles() {

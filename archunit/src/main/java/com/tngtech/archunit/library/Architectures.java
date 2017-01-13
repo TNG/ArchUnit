@@ -20,9 +20,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
 

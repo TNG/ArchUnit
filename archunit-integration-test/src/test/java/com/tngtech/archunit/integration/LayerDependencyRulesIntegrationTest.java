@@ -31,8 +31,8 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
     }
 
     static void expectViolationByAccessFromServiceToController(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes that reside in package '..service..' " +
-                "should never access classes that reside in package '..controller..'")
+        expectViolation.ofRule("no classes that reside in package '..service..' " +
+                "should access classes that reside in package '..controller..'")
                 .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneController.class, someString)
                         .inLine(11))
@@ -53,8 +53,8 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
     }
 
     static void expectViolationByAccessFromPersistenceToService(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes that reside in package '..persistence..' should " +
-                "never access classes that reside in package '..service..'")
+        expectViolation.ofRule("no classes that reside in package '..persistence..' should " +
+                "access classes that reside in package '..service..'")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(13));

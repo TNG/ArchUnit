@@ -7,8 +7,8 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.GeneralCodingRules.NOT_SET_JAVA_UTIL_LOGGING_FIELDS;
 
 @ArchIgnore

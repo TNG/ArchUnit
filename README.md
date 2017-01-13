@@ -86,8 +86,7 @@ public void one_should_not_access_two() {
 If this rule is violated, the test will fail with an error message like
 
 ```
-com.tngtech.archunit.lang.ArchAssertionError: 
-Architecture Violation [Priority: MEDIUM] - 
+java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] - 
 Rule 'classes that reside in '..one..' should never access classes that reside in '..two..'' was violated:
 Method <my.one.ClassInOne.illegalAccessToTwo()> calls method <my.two.ClassInTwo.doSomething()> in (ClassInOne.java:12)
 Method <my.one.ClassInOne.illegalAccessToTwo()> calls constructor <my.two.ClassInTwo.<init>()> in (ClassInOne.java:11)
@@ -146,7 +145,7 @@ public void core_classes_shouldnt_access_remote_endpoints() {
 A resulting violation could be reported for example as
 
 ```
-com.tngtech.archunit.lang.ArchAssertionError: 
+java.lang.AssertionError: 
 Architecture Violation [Priority: MEDIUM] - Rule 'classes that are annotated with @Core should not call remote api endpoints' was violated:
 Target is annotated with @Remote where 
 Method <com.tngtech.archunit.example.foo.SomeCoreClass.accessRemote()> 

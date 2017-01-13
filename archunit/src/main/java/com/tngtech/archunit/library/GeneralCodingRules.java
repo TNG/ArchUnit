@@ -6,8 +6,6 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
@@ -15,6 +13,8 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 public class GeneralCodingRules {
     public static final ArchCondition<JavaClass> NOT_ACCESS_STANDARD_STREAMS = notAccessStandardStreams();

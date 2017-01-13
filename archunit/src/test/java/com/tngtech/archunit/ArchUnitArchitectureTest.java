@@ -25,13 +25,13 @@ import static com.tngtech.archunit.core.JavaAccess.Predicates.withOrigin;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 public class ArchUnitArchitectureTest {

@@ -22,11 +22,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 public class SessionBeanRulesTest {
     private JavaClasses classes;

@@ -8,17 +8,16 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.io.Resources.readLines;
-import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Represents a rule about a specified set of objects of interest (e.g. {@link JavaClass}).
- * To define a rule, use {@link Definition#all(ClassesTransformer)}, for example
+ * To define a rule, use {@link ArchRuleDefinition#all(ClassesTransformer)}, for example
  * <br/><br/><pre><code>
  * ClassesTransformer services = classes().that(resideIn("..svc..")).as("Services");
  * ArchRule rule = all(services).should(never(accessClassesThatResideIn("..ui..")).as("access the UI"));
@@ -52,7 +51,7 @@ public interface ArchRule extends CanBeEvaluated {
             report = report.filter(notMatchedByAny(patterns));
             if (!report.isEmpty()) {
                 String message = report.toString();
-                throw new ArchAssertionError(priority, message);
+                throw new AssertionError(message);
             }
         }
 
@@ -92,88 +91,28 @@ public interface ArchRule extends CanBeEvaluated {
         }
     }
 
-    class Definition<T> implements ArchRule {
-        private final Priority priority;
-        private final ClassesTransformer<T> classesTransformer;
-        private final ArchCondition<T> condition;
-
-        private Definition(InputDescription<T> inputDescription, ArchCondition<T> condition) {
-            this.condition = condition;
-            this.priority = inputDescription.priority;
-            this.classesTransformer = inputDescription.classesTransformer;
-        }
-
-        @Override
-        public void check(JavaClasses classes) {
-            EvaluationResult result = evaluate(classes);
-            Assertions.assertNoViolation(result, priority);
-        }
-
-        @Override
-        public EvaluationResult evaluate(JavaClasses classes) {
-            condition.objectsToTest = classesTransformer.transform(classes);
-            ConditionEvents events = new ConditionEvents();
-            condition.check(events);
-            return new EvaluationResult(this, events, priority);
-        }
-
-        @Override
-        public String getDescription() {
-            return ConfiguredMessageFormat.get().formatRuleText(condition.objectsToTest, condition);
-        }
-
-        /**
-         * Takes an {@link ClassesTransformer} to specify how the set of objects of interest is to be created
-         * from {@link JavaClasses} (which are the general input obtained from a {@link ClassFileImporter}).
-         * The most simple {@link ClassesTransformer} is {@link #classes()}, which simply forwards the
-         * {@link JavaClasses} as a collection of {@link JavaClass}.
-         *
-         * @param classesTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
-         * @param <TYPE>             The target type to which the later used {@link ArchCondition ArchCondition&lt;TYPE&gt;}
-         *                           will have to refer to
-         * @return An {@link InputDescription OpenDescribable&lt;TYPE&gt;} to construct an {@link Definition ArchRule&lt;TYPE&gt;}
-         */
-        public static <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
-            return priority(MEDIUM).all(classesTransformer);
-        }
-
-        public static Creator priority(Priority priority) {
-            return new Creator(priority);
-        }
-
-        public static ClassesTransformer<JavaClass> classes() {
-            return new ClassesTransformer<JavaClass>("classes") {
+    class Factory {
+        public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
+            return new ArchRule() {
                 @Override
-                public Iterable<JavaClass> doTransform(JavaClasses collection) {
-                    return collection;
+                public void check(JavaClasses classes) {
+                    EvaluationResult result = evaluate(classes);
+                    Assertions.assertNoViolation(result, priority);
+                }
+
+                @Override
+                public EvaluationResult evaluate(JavaClasses classes) {
+                    condition.objectsToTest = classesTransformer.transform(classes);
+                    ConditionEvents events = new ConditionEvents();
+                    condition.check(events);
+                    return new EvaluationResult(this, events, priority);
+                }
+
+                @Override
+                public String getDescription() {
+                    return ConfiguredMessageFormat.get().formatRuleText(condition.objectsToTest, condition);
                 }
             };
-        }
-
-        public static class Creator {
-            private final Priority priority;
-
-            private Creator(Priority priority) {
-                this.priority = priority;
-            }
-
-            public <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
-                return new InputDescription<>(classesTransformer, priority);
-            }
-        }
-
-        public static class InputDescription<TYPE> {
-            final ClassesTransformer<TYPE> classesTransformer;
-            final Priority priority;
-
-            InputDescription(ClassesTransformer<TYPE> classesTransformer, Priority priority) {
-                this.classesTransformer = classesTransformer;
-                this.priority = priority;
-            }
-
-            public Definition<TYPE> should(ArchCondition<TYPE> condition) {
-                return new Definition<>(this, condition);
-            }
         }
     }
 }

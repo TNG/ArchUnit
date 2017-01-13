@@ -10,9 +10,8 @@ import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClassesTest;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -23,9 +22,9 @@ import org.junit.rules.ExpectedException;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
 import static com.tngtech.archunit.lang.Priority.HIGH;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ArchRuleTest {
@@ -44,10 +43,10 @@ public class ArchRuleTest {
 
     @Test
     public void priority_is_passed() {
-        thrown.expect(ArchAssertionError.class);
-        thrown.expect(priority(HIGH));
+        thrown.expect(AssertionError.class);
+        thrown.expectMessage("Priority: HIGH");
 
-        ArchRule.Definition.priority(HIGH).all(classes())
+        ArchRuleDefinition.priority(HIGH).all(classes())
                 .should(ALWAYS_BE_VIOLATED)
                 .check(JavaClassesTest.ALL_CLASSES);
     }
@@ -89,7 +88,7 @@ public class ArchRuleTest {
     }
 
     private void expectAssertionErrorWithMessages(final String... messages) {
-        thrown.expect(ArchAssertionError.class);
+        thrown.expect(AssertionError.class);
         thrown.expectMessage(containingOnlyLinesWith(messages));
     }
 
@@ -133,21 +132,6 @@ public class ArchRuleTest {
                 for (String message : messages) {
                     events.add(ConditionEvent.violated(message));
                 }
-            }
-        };
-    }
-
-    private static Matcher<ArchAssertionError> priority(final Priority priority) {
-        return new TypeSafeDiagnosingMatcher<ArchAssertionError>() {
-            @Override
-            protected boolean matchesSafely(ArchAssertionError item, Description mismatchDescription) {
-                mismatchDescription.appendText(String.format("was '%s'", item.getPriority()));
-                return item.getPriority() == priority;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText(String.format("Priority '%s'", priority));
             }
         };
     }

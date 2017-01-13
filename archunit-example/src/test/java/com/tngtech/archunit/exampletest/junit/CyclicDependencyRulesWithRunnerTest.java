@@ -8,7 +8,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.Slices;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.library.dependencies.DependencyRules.beFreeOfCycles;
 
 @ArchIgnore

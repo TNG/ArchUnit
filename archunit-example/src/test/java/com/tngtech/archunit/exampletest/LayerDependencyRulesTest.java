@@ -6,12 +6,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
-import static com.tngtech.archunit.lang.ArchRule.Definition.all;
-import static com.tngtech.archunit.lang.ArchRule.Definition.classes;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class LayerDependencyRulesTest {
     private JavaClasses classes;
@@ -24,21 +20,21 @@ public class LayerDependencyRulesTest {
     @Ignore
     @Test
     public void services_should_not_access_controllers() {
-        all(classes().that(resideInPackage("..service..")))
-                .should(never(accessClassesThatResideIn("..controller.."))).check(classes);
+        noClasses().that().resideInPackage("..service..")
+                .should().access().classesThat().resideInPackage("..controller..").check(classes);
     }
 
     @Ignore
     @Test
     public void persistence_should_not_access_services() {
-        all(classes().that(resideInPackage("..persistence..")))
-                .should(never(accessClassesThatResideIn("..service.."))).check(classes);
+        noClasses().that().resideInPackage("..persistence..")
+                .should().access().classesThat().resideInPackage("..service..").check(classes);
     }
 
     @Ignore
     @Test
     public void services_should_only_be_accessed_by_controllers_or_other_services() {
-        all(classes().that(resideInPackage("..service..")))
-                .should(onlyBeAccessedByAnyPackage("..controller..", "..service..")).check(classes);
+        allClasses().that().resideInPackage("..service..")
+                .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..").check(classes);
     }
 }
