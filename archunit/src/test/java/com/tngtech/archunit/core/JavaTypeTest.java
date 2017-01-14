@@ -32,6 +32,8 @@ public class JavaTypeTest {
     @UseDataProvider("primitives")
     public void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
         JavaType primitiveType = JavaType.From.name(name);
+        assertThat(primitiveType.isPrimitive()).isTrue();
+        assertThat(primitiveType.tryGetComponentType()).isAbsent();
 
         assertThat(primitiveType).isEquivalentTo(expected);
     }
@@ -40,15 +42,19 @@ public class JavaTypeTest {
     @UseDataProvider("arrays")
     public void array_types_by_name_and_canonical_name(String name, Class<?> expected) {
         JavaType arrayType = JavaType.From.name(name);
+        assertThat(arrayType.isPrimitive()).isFalse();
+        assertThat(arrayType.tryGetComponentType()).contains(JavaType.From.name(expected.getComponentType().getName()));
 
         assertThat(arrayType).isEquivalentTo(expected);
     }
 
     @Test
     public void object_name() {
-        JavaType arrayType = JavaType.From.name(Object.class.getName());
+        JavaType objectType = JavaType.From.name(Object.class.getName());
+        assertThat(objectType.isPrimitive()).isFalse();
+        assertThat(objectType.tryGetComponentType()).isAbsent();
 
-        assertThat(arrayType).isEquivalentTo(Object.class);
+        assertThat(objectType).isEquivalentTo(Object.class);
     }
 
     @Test
@@ -109,8 +115,8 @@ public class JavaTypeTest {
     }
 
     @DataProvider
-    public static Object[][] primitives() {
-        return ImmutableList.builder()
+    public static List<List<Object>> primitives() {
+        return ImmutableList.<List<Object>>builder()
                 .addAll(namesToPrimitive(void.class))
                 .addAll(namesToPrimitive(boolean.class))
                 .addAll(namesToPrimitive(byte.class))
@@ -120,18 +126,18 @@ public class JavaTypeTest {
                 .addAll(namesToPrimitive(long.class))
                 .addAll(namesToPrimitive(float.class))
                 .addAll(namesToPrimitive(double.class))
-                .build().toArray(new Object[0][]);
+                .build();
     }
 
-    private static List<Object[]> namesToPrimitive(Class<?> primitiveType) {
-        return ImmutableList.of(
-                new Object[]{primitiveType.getName(), primitiveType},
-                new Object[]{Type.getType(primitiveType).getDescriptor(), primitiveType});
+    private static List<List<Object>> namesToPrimitive(Class<?> primitiveType) {
+        return ImmutableList.<List<Object>>of(
+                ImmutableList.<Object>of(primitiveType.getName(), primitiveType),
+                ImmutableList.<Object>of(Type.getType(primitiveType).getDescriptor(), primitiveType));
     }
 
     @DataProvider
-    public static Object[][] arrays() {
-        return ImmutableList.builder()
+    public static List<List<Object>> arrays() {
+        return ImmutableList.<List<Object>>builder()
                 .addAll(namesToArray(boolean[].class))
                 .addAll(namesToArray(byte[].class))
                 .addAll(namesToArray(char[].class))
@@ -150,12 +156,12 @@ public class JavaTypeTest {
                 .addAll(namesToArray(float[][].class))
                 .addAll(namesToArray(double[][].class))
                 .addAll(namesToArray(Object[][].class))
-                .build().toArray(new Object[0][]);
+                .build();
     }
 
-    private static List<Object[]> namesToArray(Class<?> arrayType) {
-        return ImmutableList.of(
-                new Object[]{arrayType.getName(), arrayType},
-                new Object[]{arrayType.getCanonicalName(), arrayType});
+    private static List<List<Object>> namesToArray(Class<?> arrayType) {
+        return ImmutableList.<List<Object>>of(
+                ImmutableList.<Object>of(arrayType.getName(), arrayType),
+                ImmutableList.<Object>of(arrayType.getCanonicalName(), arrayType));
     }
 }

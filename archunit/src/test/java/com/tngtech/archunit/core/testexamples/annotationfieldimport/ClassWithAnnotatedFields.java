@@ -3,7 +3,10 @@ package com.tngtech.archunit.core.testexamples.annotationfieldimport;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Map;
 
+import com.tngtech.archunit.core.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
@@ -22,11 +25,23 @@ public class ClassWithAnnotatedFields {
     @FieldAnnotationWithEnumClassAndArrayValue(
             value = OTHER_VALUE,
             enumArray = {SOME_VALUE, OTHER_VALUE},
-            clazz = Serializable.class,
-            classes = {Object.class, Serializable.class},
-            additional = @SomeValueAnnotation(value = OTHER_VALUE),
-            additionals = {@SomeValueAnnotation(value = SOME_VALUE), @SomeValueAnnotation(value = OTHER_VALUE)})
+            subAnnotation = @SubAnnotation("changed"),
+            subAnnotationArray = {@SubAnnotation("another"), @SubAnnotation("one")},
+            clazz = Map.class,
+            classes = {Object.class, Serializable.class})
     public Object enumAndArrayAnnotatedField;
+
+    @FieldAnnotationWithArrays(
+            primitives = {},
+            objects = {},
+            enums = {},
+            classes = {},
+            annotations = {}
+    )
+    public Object fieldAnnotatedWithEmptyArrays;
+
+    @SomeAnnotation(mandatory = "mandatory", mandatoryEnum = SOME_VALUE)
+    public Object fieldAnnotatedWithAnnotationFromParentPackage;
 
     @Target(FIELD)
     @Retention(RUNTIME)
@@ -45,17 +60,33 @@ public class ClassWithAnnotatedFields {
     @Target(FIELD)
     @Retention(RUNTIME)
     public @interface FieldAnnotationWithEnumClassAndArrayValue {
-        SomeEnum value() default SOME_VALUE;
+        SomeEnum value();
 
-        SomeEnum[] enumArray() default {SOME_VALUE};
+        SomeEnum valueWithDefault() default SOME_VALUE;
 
-        Class clazz() default String.class;
+        SomeEnum[] enumArray();
+
+        SomeEnum[] enumArrayWithDefault() default {OTHER_VALUE};
+
+        SubAnnotation subAnnotation();
+
+        SubAnnotation subAnnotationWithDefault() default @SubAnnotation("default");
+
+        SubAnnotation[] subAnnotationArray();
+
+        SubAnnotation[] subAnnotationArrayWithDefault() default {@SubAnnotation("first"), @SubAnnotation("second")};
+
+        Class clazz();
+
+        Class clazzWithDefault() default String.class;
 
         Class[] classes();
 
-        SomeValueAnnotation additional();
+        Class[] classesWithDefault() default {Serializable.class, List.class};
+    }
 
-        SomeValueAnnotation[] additionals();
+    public @interface SubAnnotation {
+        String value();
     }
 
     public @interface SomeValueAnnotation {

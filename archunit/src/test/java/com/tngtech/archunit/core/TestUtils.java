@@ -90,7 +90,7 @@ public class TestUtils {
                 .build(clazz, simpleImportedClasses());
     }
 
-    private static ImportedTestClasses simpleImportedClasses() {
+    static ImportedTestClasses simpleImportedClasses() {
         return new ImportedTestClasses();
     }
 
@@ -438,7 +438,7 @@ public class TestUtils {
     }
 
     private static JavaAnnotation.Builder javaAnnotationBuilderFrom(Annotation annotation, ImportedClasses.ByTypeName importedClasses) {
-        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(Type.getType(annotation.annotationType()));
+        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(JavaType.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, importedClasses).entrySet()) {
             builder.addProperty(entry.getKey(), JavaAnnotation.ValueBuilder.ofFinished(entry.getValue()));
         }

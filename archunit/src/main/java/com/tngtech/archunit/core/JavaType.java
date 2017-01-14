@@ -29,6 +29,10 @@ interface JavaType {
     @ResolvesTypesViaReflection
     Class<?> resolveClass(ClassLoader classLoader);
 
+    Optional<JavaType> tryGetComponentType();
+
+    boolean isPrimitive();
+
     class From {
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
@@ -156,6 +160,16 @@ interface JavaType {
             }
 
             @Override
+            public Optional<JavaType> tryGetComponentType() {
+                return Optional.absent();
+            }
+
+            @Override
+            public boolean isPrimitive() {
+                return false;
+            }
+
+            @Override
             public int hashCode() {
                 return Objects.hash(getName());
             }
@@ -199,6 +213,11 @@ interface JavaType {
             Class<?> classForName(ClassLoader classLoader) throws ClassNotFoundException {
                 return primitiveClassesByName.get(getName());
             }
+
+            @Override
+            public boolean isPrimitive() {
+                return true;
+            }
         }
 
         private static class ArrayType extends AbstractType {
@@ -207,8 +226,18 @@ interface JavaType {
             }
 
             private static String createSimpleName(String fullName) {
-                // NOTE: ASM type.getClassName() returns the canonical name for any array, e.g. java.lang.Object[]
-                return ensureSimpleName(Type.getType(fullName).getClassName());
+                return ensureSimpleName(getCanonicalName(fullName));
+            }
+
+            private static String getCanonicalName(String fullName) {
+                return Type.getType(fullName).getClassName();
+            }
+
+            @Override
+            public Optional<JavaType> tryGetComponentType() {
+                String canonicalName = getCanonicalName(getName());
+                String componentTypeName = canonicalName.substring(0, canonicalName.lastIndexOf("["));
+                return Optional.of(JavaType.From.name(componentTypeName));
             }
         }
     }

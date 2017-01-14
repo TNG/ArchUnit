@@ -86,7 +86,7 @@ class AnnotationProxy {
     private interface Conversion<F> {
         Object convert(F input, Class<?> returnType);
 
-        boolean canHandle(Object input);
+        boolean canHandle(Class<?> returnType);
     }
 
     private static class JavaClassConversion implements Conversion<JavaClass> {
@@ -102,12 +102,12 @@ class AnnotationProxy {
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaClass.class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return Class.class.isAssignableFrom(returnType);
         }
     }
 
-    private static class JavaClassArrayConversion implements Conversion<JavaClass[]> {
+    private static class JavaClassArrayConversion implements Conversion<Object[]> {
         private final JavaClassConversion javaClassConversion;
 
         private JavaClassArrayConversion(JavaClassConversion javaClassConversion) {
@@ -115,13 +115,13 @@ class AnnotationProxy {
         }
 
         @Override
-        public Object convert(JavaClass[] input, Class<?> returnType) {
+        public Object convert(Object[] input, Class<?> returnType) {
             return convertArray(input, javaClassConversion, returnType.getComponentType());
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaClass[].class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return Class[].class.isAssignableFrom(returnType);
         }
     }
 
@@ -139,12 +139,12 @@ class AnnotationProxy {
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaEnumConstant.class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return returnType.isEnum();
         }
     }
 
-    private static class JavaEnumConstantArrayConversion implements Conversion<JavaEnumConstant[]> {
+    private static class JavaEnumConstantArrayConversion implements Conversion<Object[]> {
         private final JavaEnumConstantConversion enumConversion;
 
         private JavaEnumConstantArrayConversion(JavaEnumConstantConversion enumConversion) {
@@ -152,13 +152,13 @@ class AnnotationProxy {
         }
 
         @Override
-        public Object convert(JavaEnumConstant[] input, Class<?> returnType) {
+        public Object convert(Object[] input, Class<?> returnType) {
             return convertArray(input, enumConversion, returnType.getComponentType());
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaEnumConstant[].class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return returnType.getComponentType() != null && returnType.getComponentType().isEnum();
         }
     }
 
@@ -176,12 +176,12 @@ class AnnotationProxy {
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaAnnotation.class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return returnType.isAnnotation();
         }
     }
 
-    private static class JavaAnnotationArrayConversion implements Conversion<JavaAnnotation[]> {
+    private static class JavaAnnotationArrayConversion implements Conversion<Object[]> {
         private final JavaAnnotationConversion annotationConversion;
 
         private JavaAnnotationArrayConversion(JavaAnnotationConversion annotationConversion) {
@@ -189,21 +189,21 @@ class AnnotationProxy {
         }
 
         @Override
-        public Object convert(JavaAnnotation[] input, Class<?> returnType) {
+        public Object convert(Object[] input, Class<?> returnType) {
             return convertArray(input, annotationConversion, returnType.getComponentType());
         }
 
         @Override
-        public boolean canHandle(Object input) {
-            return JavaAnnotation[].class.isInstance(input);
+        public boolean canHandle(Class<?> returnType) {
+            return returnType.getComponentType() != null && returnType.getComponentType().isAnnotation();
         }
     }
 
-    @SuppressWarnings("unchecked") // Component type = targetType
-    private static <F> Object[] convertArray(F[] input, Conversion<F> elementConversion, Class<?> targetType) {
+    @SuppressWarnings("unchecked") // canHandle must ensure this
+    private static <F> Object[] convertArray(Object[] input, Conversion<F> elementConversion, Class<?> targetType) {
         Object[] result = (Object[]) Array.newInstance(targetType, input.length);
         for (int i = 0; i < input.length; i++) {
-            result[i] = elementConversion.convert(input[i], targetType);
+            result[i] = elementConversion.convert((F) input[i], targetType);
         }
         return result;
     }
@@ -294,7 +294,10 @@ class AnnotationProxy {
         }
 
         <T> Object convertIfNecessary(T result, Class<?> returnType) {
-            return tryFindConversionFor(result).or(new NoOpConversion<T>()).convert(result, returnType);
+            if (returnType.isInstance(result)) {
+                return result;
+            }
+            return tryFindConversionFor(returnType).or(new NoOpConversion<>()).convert(result, returnType);
         }
 
         private static class NoOpConversion<T> implements Conversion<T> {
@@ -304,15 +307,15 @@ class AnnotationProxy {
             }
 
             @Override
-            public boolean canHandle(Object input) {
+            public boolean canHandle(Class<?> returnType) {
                 return true;
             }
         }
 
         @SuppressWarnings("unchecked") // Trust sanity of canHandle(..)
-        private <F> Optional<Conversion<F>> tryFindConversionFor(F result) {
+        private <F> Optional<Conversion<F>> tryFindConversionFor(Class<?> returnType) {
             for (Conversion<?> conversion : conversions) {
-                if (conversion.canHandle(result)) {
+                if (conversion.canHandle(returnType)) {
                     return Optional.of((Conversion<F>) conversion);
                 }
             }

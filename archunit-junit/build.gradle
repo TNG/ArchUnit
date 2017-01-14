@@ -19,7 +19,7 @@ dependencies {
 test {
     if (!project.hasProperty('allTests')) {
         useJUnit {
-            excludeCategories 'com.tngtech.archunit.junit.Slow'
+            excludeCategories 'com.tngtech.archunit.Slow'
         }
     }
 }

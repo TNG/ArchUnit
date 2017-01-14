@@ -5,8 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import com.tngtech.archunit.core.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
@@ -19,6 +19,9 @@ public class ClassWithAnnotatedMethods {
     public static final String stringAnnotatedMethod = "stringAnnotatedMethod";
     public static final String stringAndIntAnnotatedMethod = "stringAndIntAnnotatedMethod";
     public static final String enumAndArrayAnnotatedMethod = "enumAndArrayAnnotatedMethod";
+    public static final String methodAnnotatedWithEmptyArrays = "methodAnnotatedWithEmptyArrays";
+    public static final String methodAnnotatedWithAnnotationFromParentPackage =
+            "methodAnnotatedWithAnnotationFromParentPackage";
 
     @MethodAnnotationWithEnumAndArrayValue(
             value = OTHER_VALUE,
@@ -44,13 +47,26 @@ public class ClassWithAnnotatedMethods {
 
     @MethodAnnotationWithEnumAndArrayValue(
             value = OTHER_VALUE,
-            enumArray = {SOME_VALUE},
+            enumArray = {SOME_VALUE, OTHER_VALUE},
             subAnnotation = @SubAnnotation("changed"),
             subAnnotationArray = {@SubAnnotation("another"), @SubAnnotation("one")},
-            clazz = Set.class,
+            clazz = Map.class,
             classes = {Object.class, Serializable.class})
     public Object enumAndArrayAnnotatedMethod() {
         return null;
+    }
+
+    @MethodAnnotationWithArrays(
+            primitives = {},
+            objects = {},
+            enums = {},
+            classes = {},
+            annotations = {})
+    public void methodAnnotatedWithEmptyArrays() {
+    }
+
+    @SomeAnnotation(mandatory = "mandatory", mandatoryEnum = SOME_VALUE)
+    public void methodAnnotatedWithAnnotationFromParentPackage() {
     }
 
     @Target(METHOD)

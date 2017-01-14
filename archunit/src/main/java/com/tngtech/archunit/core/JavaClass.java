@@ -2,7 +2,7 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +35,8 @@ public class JavaClass implements HasName, HasAnnotations {
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
-    private Map<String, JavaAnnotation> annotations = new HashMap<>();
+    private Supplier<Map<String, JavaAnnotation>> annotations =
+            Suppliers.ofInstance(Collections.<String, JavaAnnotation>emptyMap());
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
@@ -75,7 +76,7 @@ public class JavaClass implements HasName, HasAnnotations {
 
     @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-        return annotations.containsKey(annotation.getName());
+        return annotations.get().containsKey(annotation.getName());
     }
 
     /**
@@ -98,13 +99,18 @@ public class JavaClass implements HasName, HasAnnotations {
      */
     @Override
     public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
-        return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(
-                String.format("Type %s is not annotated with @%s", getSimpleName(), type.getSimpleName())));
+        return getAnnotationOfType(type.getName());
+    }
+
+    @Override
+    public JavaAnnotation getAnnotationOfType(String typeName) {
+        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
+                String.format("Type %s is not annotated with @%s", getSimpleName(), Formatters.ensureSimpleName(typeName))));
     }
 
     @Override
     public Set<JavaAnnotation> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.values());
+        return ImmutableSet.copyOf(annotations.get().values());
     }
 
     /**
@@ -116,7 +122,15 @@ public class JavaClass implements HasName, HasAnnotations {
      */
     @Override
     public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
-        return Optional.fromNullable(annotations.get(type.getName()));
+        return tryGetAnnotationOfType(type.getName());
+    }
+
+    /**
+     * Same as {@link #tryGetAnnotationOfType(Class)}, but takes the type name.
+     */
+    @Override
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
+        return Optional.fromNullable(annotations.get().get(typeName));
     }
 
     public Optional<JavaClass> getSuperClass() {
@@ -254,6 +268,10 @@ public class JavaClass implements HasName, HasAnnotations {
 
     public JavaMethod getMethod(String name, Class<?>... parameters) {
         return findMatchingCodeUnit(methods, name, namesOf(parameters));
+    }
+
+    public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
+        return tryFindMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
     public Set<JavaMethod> getMethods() {
@@ -469,7 +487,7 @@ public class JavaClass implements HasName, HasAnnotations {
         }
     }
 
-    void completeMembers(ImportContext context) {
+    void completeMembers(final ImportContext context) {
         fields = context.createFields(this);
         methods = context.createMethods(this);
         constructors = context.createConstructors(this);
@@ -477,7 +495,12 @@ public class JavaClass implements HasName, HasAnnotations {
         codeUnits = ImmutableSet.<JavaCodeUnit>builder()
                 .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
                 .build();
-        this.annotations = context.createAnnotations(this);
+        this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
+            @Override
+            public Map<String, JavaAnnotation> get() {
+                return context.createAnnotations(JavaClass.this);
+            }
+        });
     }
 
     CompletionProcess completeFrom(ImportContext context) {

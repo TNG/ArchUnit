@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
-import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -69,13 +68,17 @@ public class JavaAnnotation {
     }
 
     static class Builder {
-        private Type type;
+        private JavaType type;
         private Map<String, ValueBuilder> values = new HashMap<>();
         private ImportedClasses.ByTypeName importedClasses;
 
-        Builder withType(Type type) {
+        Builder withType(JavaType type) {
             this.type = type;
             return this;
+        }
+
+        JavaType getType() {
+            return type;
         }
 
         Builder addProperty(String key, ValueBuilder valueBuilder) {
@@ -85,30 +88,42 @@ public class JavaAnnotation {
 
         JavaAnnotation build(ImportedClasses.ByTypeName importedClasses) {
             this.importedClasses = importedClasses;
-            return new JavaAnnotation(getType(), getValues(importedClasses));
+            return new JavaAnnotation(createFinalType(), getValues(importedClasses));
         }
 
-        private JavaClass getType() {
-            return importedClasses.get(type.getClassName());
+        private JavaClass createFinalType() {
+            return importedClasses.get(type.getName());
         }
 
         private Map<String, Object> getValues(ImportedClasses.ByTypeName importedClasses) {
             ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
             for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                result.put(entry.getKey(), entry.getValue().build(importedClasses));
+                Optional<Object> value = entry.getValue().build(importedClasses);
+                if (value.isPresent()) {
+                    result.put(entry.getKey(), value.get());
+                }
             }
+            addDefaultValues(result, importedClasses);
             return result.build();
+        }
+
+        private void addDefaultValues(ImmutableMap.Builder<String, Object> result, ImportedClasses.ByTypeName importedClasses) {
+            for (JavaMethod method : importedClasses.get(type.getName()).getMethods()) {
+                if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
+                    result.put(method.getName(), method.getDefaultValue().get());
+                }
+            }
         }
     }
 
     static abstract class ValueBuilder {
-        abstract Object build(ImportedClasses.ByTypeName importedClasses);
+        abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
 
         static ValueBuilder ofFinished(final Object value) {
             return new ValueBuilder() {
                 @Override
-                Object build(ImportedClasses.ByTypeName importedClasses) {
-                    return value;
+                Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                    return Optional.of(value);
                 }
             };
         }
@@ -116,8 +131,8 @@ public class JavaAnnotation {
         static ValueBuilder from(final JavaAnnotation.Builder builder) {
             return new ValueBuilder() {
                 @Override
-                Object build(ImportedClasses.ByTypeName importedClasses) {
-                    return builder.build(importedClasses);
+                Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                    return Optional.<Object>of(builder.build(importedClasses));
                 }
             };
         }

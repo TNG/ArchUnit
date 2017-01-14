@@ -8,5 +8,9 @@ public interface HasAnnotations extends CanBeAnnotated {
 
     JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type);
 
+    JavaAnnotation getAnnotationOfType(String typeName);
+
     Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type);
+
+    Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName);
 }

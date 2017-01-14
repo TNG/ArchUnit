@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.core.TestUtils.javaAnnotationFrom;
+import static com.tngtech.archunit.core.TestUtils.simpleImportedClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationProxyTest {
@@ -230,6 +231,21 @@ public class AnnotationProxyTest {
         thrown.expectMessage(TestAnnotation.class.getSimpleName());
         thrown.expectMessage("incompatible");
         AnnotationProxy.of(TestAnnotation.class, mismatch);
+    }
+
+    @Test
+    public void array_is_converted_to_the_correct_type() {
+        JavaAnnotation annotation = new JavaAnnotation.Builder()
+                .withType(JavaType.From.name(TestAnnotation.class.getName()))
+                .addProperty("types", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("enumConstants", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("subAnnotations", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
+                .build(simpleImportedClasses());
+
+        TestAnnotation reflected = annotation.as(TestAnnotation.class);
+        assertThat(reflected.types()).isEmpty();
+        assertThat(reflected.enumConstants()).isEmpty();
+        assertThat(reflected.subAnnotations()).isEmpty();
     }
 
     private ImmutableMap<String, String> propertiesOf(Class<TestAnnotation> type) {

@@ -5,6 +5,8 @@ import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -13,7 +15,7 @@ import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, HasAnnotations, HasOwner<JavaClass> {
     private final String name;
     private final String descriptor;
-    private final Map<String, JavaAnnotation> annotations;
+    private final Supplier<Map<String, JavaAnnotation>> annotations;
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
@@ -27,7 +29,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
 
     @Override
     public Set<JavaAnnotation> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.values());
+        return ImmutableSet.copyOf(annotations.get().values());
     }
 
     /**
@@ -37,19 +39,29 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
      */
     @Override
     public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
-        return tryGetAnnotationOfType(type).getOrThrow(new IllegalArgumentException(String.format(
+        return getAnnotationOfType(type.getName());
+    }
+
+    @Override
+    public JavaAnnotation getAnnotationOfType(String typeName) {
+        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(String.format(
                 "Member %s is not annotated with @%s",
-                getFullName(), type.getSimpleName())));
+                getFullName(), Formatters.ensureSimpleName(typeName))));
     }
 
     @Override
     public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
-        return Optional.fromNullable(annotations.get(type.getName()));
+        return tryGetAnnotationOfType(type.getName());
+    }
+
+    @Override
+    public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
+        return Optional.fromNullable(annotations.get().get(typeName));
     }
 
     @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> type) {
-        return annotations.containsKey(type.getName());
+        return annotations.get().containsKey(type.getName());
     }
 
     @Override
@@ -155,8 +167,13 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
 
         abstract OUTPUT construct(SELF self, ImportedClasses.ByTypeName importedClasses);
 
-        Map<String, JavaAnnotation> getAnnotations() {
-            return buildAnnotations(annotations, importedClasses);
+        Supplier<Map<String, JavaAnnotation>> getAnnotations() {
+            return Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
+                @Override
+                public Map<String, JavaAnnotation> get() {
+                    return buildAnnotations(annotations, importedClasses);
+                }
+            });
         }
     }
 }

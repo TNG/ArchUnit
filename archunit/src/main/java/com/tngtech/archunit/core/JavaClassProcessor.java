@@ -12,6 +12,14 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Chars;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -161,7 +169,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withReturnType(methodType.getReturnType())
                 .withDescriptor(desc);
 
-        return new MethodProcessor(accessHandler, codeUnitBuilder);
+        return new MethodProcessor(className, accessHandler, codeUnitBuilder);
     }
 
     private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(String name) {
@@ -208,13 +216,15 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static class MethodProcessor extends MethodVisitor {
+        private final String declaringClassName;
         private final AccessHandler accessHandler;
         private final JavaCodeUnit.Builder<?, ?> codeUnitBuilder;
         private final Set<JavaAnnotation.Builder> annotations = new HashSet<>();
         private int actualLineNumber;
 
-        MethodProcessor(AccessHandler accessHandler, JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
+        MethodProcessor(String declaringClassName, AccessHandler accessHandler, JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
             super(ASM_API_VERSION);
+            this.declaringClassName = declaringClassName;
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
         }
@@ -249,7 +259,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotationDefault() {
-            return new AnnotationDefaultProcessor(codeUnitBuilder);
+            return new AnnotationDefaultProcessor(declaringClassName, codeUnitBuilder);
         }
 
         @Override
@@ -258,10 +268,12 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         private static class AnnotationDefaultProcessor extends AnnotationVisitor {
+            private final String annotationTypeName;
             private final JavaMethod.Builder methodBuilder;
 
-            AnnotationDefaultProcessor(JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
+            AnnotationDefaultProcessor(String annotationTypeName, JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
                 super(ClassFileProcessor.ASM_API_VERSION);
+                this.annotationTypeName = annotationTypeName;
                 checkArgument(codeUnitBuilder instanceof JavaMethod.Builder,
                         "tried to import annotation defaults for code unit '%s' that is not a method " +
                                 "(as any annotation.property() is assumed to be), " +
@@ -282,34 +294,43 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return new AnnotationProcessor(setAsDefaultValueIn(methodBuilder), annotationBuilderFor(desc));
+                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder), annotationBuilderFor(desc));
             }
 
             @Override
             public AnnotationVisitor visitArray(String name) {
-                return new AnnotationArrayProcessor(setAsDefaultValueIn(methodBuilder));
+                return new AnnotationArrayProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder));
             }
 
-            private SetAsAnnotationDefault setAsDefaultValueIn(final JavaMethod.Builder methodBuilder) {
-                return new SetAsAnnotationDefault(methodBuilder);
-            }
         }
     }
 
-    private static class SetAsAnnotationDefault implements TakesAnnotationBuilder, TakesAnnotationValueBuilder {
+    private static class SetAsAnnotationDefault implements TakesAnnotationBuilder, AnnotationArrayContext {
+        private final String annotationTypeName;
         private final JavaMethod.Builder methodBuilder;
 
-        private SetAsAnnotationDefault(JavaMethod.Builder methodBuilder) {
+        private SetAsAnnotationDefault(String annotationTypeName, JavaMethod.Builder methodBuilder) {
+            this.annotationTypeName = annotationTypeName;
             this.methodBuilder = methodBuilder;
         }
 
         @Override
         public void add(JavaAnnotation.Builder annotation) {
-            add(JavaAnnotation.ValueBuilder.from(annotation));
+            setArrayResult(JavaAnnotation.ValueBuilder.from(annotation));
         }
 
         @Override
-        public void add(JavaAnnotation.ValueBuilder valueBuilder) {
+        public String getDeclaringAnnotationTypeName() {
+            return annotationTypeName;
+        }
+
+        @Override
+        public String getDeclaringAnnotationMemberName() {
+            return methodBuilder.getName();
+        }
+
+        @Override
+        public void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder) {
             methodBuilder.withAnnotationDefaultValue(valueBuilder);
         }
     }
@@ -382,8 +403,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static JavaAnnotation.Builder annotationBuilderFor(String desc) {
-        return new JavaAnnotation.Builder()
-                .withType(Type.getType(desc));
+        return new JavaAnnotation.Builder().withType(JavaType.From.asmType(Type.getType(desc)));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
@@ -413,9 +433,19 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitArray(final String name) {
-            return new AnnotationArrayProcessor(new TakesAnnotationValueBuilder() {
+            return new AnnotationArrayProcessor(new AnnotationArrayContext() {
                 @Override
-                public void add(JavaAnnotation.ValueBuilder valueBuilder) {
+                public String getDeclaringAnnotationTypeName() {
+                    return annotationBuilder.getType().getName();
+                }
+
+                @Override
+                public String getDeclaringAnnotationMemberName() {
+                    return name;
+                }
+
+                @Override
+                public void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder) {
                     annotationBuilder.addProperty(name, valueBuilder);
                 }
             });
@@ -450,24 +480,24 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
-        private final TakesAnnotationValueBuilder takesAnnotationValueBuilder;
-        private Class<?> componentType;
+        private final AnnotationArrayContext annotationArrayContext;
+        private Class<?> derivedComponentType;
         private final List<JavaAnnotation.ValueBuilder> values = new ArrayList<>();
 
-        private AnnotationArrayProcessor(TakesAnnotationValueBuilder takesAnnotationValueBuilder) {
+        private AnnotationArrayProcessor(AnnotationArrayContext annotationArrayContext) {
             super(ASM_API_VERSION);
-            this.takesAnnotationValueBuilder = takesAnnotationValueBuilder;
+            this.annotationArrayContext = annotationArrayContext;
         }
 
         @Override
         public void visit(String name, Object value) {
-            setComponentType(value);
+            setDerivedComponentType(value);
             values.add(AnnotationTypeConversion.convert(value));
         }
 
         @Override
         public AnnotationVisitor visitAnnotation(String name, String desc) {
-            setComponentType(JavaAnnotation.class);
+            setDerivedComponentType(JavaAnnotation.class);
             return new AnnotationProcessor(new TakesAnnotationBuilder() {
                 @Override
                 public void add(JavaAnnotation.Builder annotationBuilder) {
@@ -478,57 +508,149 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnum(String name, final String desc, final String value) {
-            setComponentType(JavaEnumConstant.class);
+            setDerivedComponentType(JavaEnumConstant.class);
             values.add(javaEnumBuilder(desc, value));
         }
 
-        private void setComponentType(Object value) {
-            setComponentType(value.getClass());
+        private void setDerivedComponentType(Object value) {
+            setDerivedComponentType(value.getClass());
         }
 
-        private void setComponentType(Class<?> type) {
+        // NOTE: If the declared annotation is not imported itself, we can still use this heuristic,
+        //       to determine additional information about the respective array.
+        //       (It the annotation is imported itself, we could easily determine this from the respective
+        //       JavaClass methods)
+        private void setDerivedComponentType(Class<?> type) {
             type = AnnotationTypeConversion.convert(type);
-            checkState(componentType == null || componentType.equals(type),
+            checkState(derivedComponentType == null || derivedComponentType.equals(type),
                     "Found mixed component types while importing array, this is most likely a bug");
 
-            componentType = type;
+            derivedComponentType = type;
         }
 
         @Override
         public void visitEnd() {
-            takesAnnotationValueBuilder.add(valueArrayBuilder());
+            annotationArrayContext.setArrayResult(new ArrayValueBuilder());
         }
 
-        private JavaAnnotation.ValueBuilder valueArrayBuilder() {
-            return new JavaAnnotation.ValueBuilder() {
-                @Override
-                Object build(ImportedClasses.ByTypeName importedClasses) {
-                    Object[] array = (Object[]) Array.newInstance(componentType, values.size());
-                    for (int i = 0; i < values.size(); i++) {
-                        array[i] = values.get(i).build(importedClasses);
-                    }
-                    return array;
+        private class ArrayValueBuilder extends JavaAnnotation.ValueBuilder {
+            @Override
+            Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                Optional<Class<?>> componentType = determineComponentType(importedClasses);
+                if (!componentType.isPresent()) {
+                    return Optional.absent();
                 }
-            };
+
+                return Optional.of(toArray(componentType.get(), buildValues(importedClasses)));
+            }
+
+            @SuppressWarnings("unchecked") // NOTE: We assume the component type matches the list
+            private Object toArray(Class<?> componentType, List<Object> values) {
+                if (componentType == boolean.class) {
+                    return Booleans.toArray((Collection) values);
+                } else if (componentType == byte.class) {
+                    return Bytes.toArray((Collection) values);
+                } else if (componentType == short.class) {
+                    return Shorts.toArray((Collection) values);
+                } else if (componentType == int.class) {
+                    return Ints.toArray((Collection) values);
+                } else if (componentType == long.class) {
+                    return Longs.toArray((Collection) values);
+                } else if (componentType == float.class) {
+                    return Floats.toArray((Collection) values);
+                } else if (componentType == double.class) {
+                    return Doubles.toArray((Collection) values);
+                } else if (componentType == char.class) {
+                    return Chars.toArray((Collection) values);
+                }
+                return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
+            }
+
+            private List<Object> buildValues(ImportedClasses.ByTypeName importedClasses) {
+                List<Object> result = new ArrayList<>();
+                for (JavaAnnotation.ValueBuilder value : values) {
+                    result.addAll(value.build(importedClasses).asSet());
+                }
+                return result;
+            }
+
+            private Optional<Class<?>> determineComponentType(ImportedClasses.ByTypeName importedClasses) {
+                if (derivedComponentType != null) {
+                    return Optional.<Class<?>>of(derivedComponentType);
+                }
+
+                JavaClass annotationType = importedClasses.get(annotationArrayContext.getDeclaringAnnotationTypeName());
+                Optional<JavaMethod> method = annotationType
+                        .tryGetMethod(annotationArrayContext.getDeclaringAnnotationMemberName());
+
+                return method.isPresent() ?
+                        determineComponentTypeFromReturnValue(method) :
+                        Optional.<Class<?>>absent();
+            }
+
+            private Optional<Class<?>> determineComponentTypeFromReturnValue(Optional<JavaMethod> method) {
+                String name = method.get().getReturnType().getName();
+                Optional<Class<?>> result = AnnotationTypeConversion.tryConvert(name);
+                if (result.isPresent()) {
+                    return Optional.<Class<?>>of(result.get().getComponentType());
+                }
+                return resolveComponentTypeFrom(name);
+            }
+
+            @MayResolveTypesViaReflection(reason = "Resolving primitives does not really use reflection")
+            private Optional<Class<?>> resolveComponentTypeFrom(String name) {
+                JavaType type = JavaType.From.name(name);
+                JavaType componentType = getComponentType(type);
+
+                if (componentType.isPrimitive()) {
+                    return Optional.<Class<?>>of(componentType.resolveClass());
+                }
+                if (String.class.getName().equals(componentType.getName())) {
+                    return Optional.<Class<?>>of(String.class);
+                }
+
+                // if we couldn't determine the type up to now, it must be an empty enum or annotation array,
+                // it's not completely consistent, but we'll just treat this as Object array for now and see
+                // if this will ever make a problem, since annotation proxy would to the conversion backwards
+                // and if one has to handle get(property): Object, this to be an empty Object[]
+                // instead of a JavaEnumConstant[] or JavaAnnotation[] should hardly cause any real problems
+                return Optional.<Class<?>>of(Object.class);
+            }
+
+            private JavaType getComponentType(JavaType type) {
+                Optional<JavaType> result = type.tryGetComponentType();
+                checkState(result.isPresent(), "Couldn't determine component type of array return type %s, " +
+                        "this is most likely a bug", type.getName());
+
+                return result.get();
+            }
         }
     }
 
-    private interface TakesAnnotationValueBuilder {
-        void add(JavaAnnotation.ValueBuilder valueBuilder);
+
+    private interface AnnotationArrayContext {
+        String getDeclaringAnnotationTypeName();
+
+        String getDeclaringAnnotationMemberName();
+
+        void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder);
     }
 
     private static JavaAnnotation.ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new JavaAnnotation.ValueBuilder() {
             @Override
-            Object build(ImportedClasses.ByTypeName importedClasses) {
-                return new JavaEnumConstant(importedClasses.get(Type.getType(desc).getClassName()), value);
+            Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                return Optional.<Object>of(
+                        new JavaEnumConstant(importedClasses.get(Type.getType(desc).getClassName()), value));
             }
         };
     }
 
     private static class AnnotationTypeConversion {
-        private static final Map<Class<?>, Class<?>> importedTypeToInternalType = ImmutableMap.<Class<?>, Class<?>>of(
-                Type.class, JavaClass.class
+        private static final Map<String, Class<?>> externalTypeToInternalType = ImmutableMap.of(
+                Type.class.getName(), JavaClass.class,
+                Class.class.getName(), JavaClass.class,
+                Class[].class.getName(), JavaClass[].class
         );
         private static final Map<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>> importedValueToInternalValue =
                 ImmutableMap.<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>>of(
@@ -537,8 +659,8 @@ class JavaClassProcessor extends ClassVisitor {
                             public JavaAnnotation.ValueBuilder apply(final Object input) {
                                 return new JavaAnnotation.ValueBuilder() {
                                     @Override
-                                    Object build(ImportedClasses.ByTypeName importedClasses) {
-                                        return importedClasses.get(((Type) input).getClassName());
+                                    Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                                        return Optional.<Object>of(importedClasses.get(((Type) input).getClassName()));
                                     }
                                 };
                             }
@@ -546,9 +668,15 @@ class JavaClassProcessor extends ClassVisitor {
                 );
 
         static Class<?> convert(Class<?> type) {
-            return importedTypeToInternalType.containsKey(type) ?
-                    importedTypeToInternalType.get(type) :
+            return externalTypeToInternalType.containsKey(type.getName()) ?
+                    externalTypeToInternalType.get(type.getName()) :
                     type;
+        }
+
+        static Optional<Class<?>> tryConvert(String typeName) {
+            return externalTypeToInternalType.containsKey(typeName) ?
+                    Optional.<Class<?>>of(externalTypeToInternalType.get(typeName)) :
+                    Optional.<Class<?>>absent();
         }
 
         static JavaAnnotation.ValueBuilder convert(Object value) {
