@@ -23,6 +23,7 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.ClassFileProcessor.ASM_API_VERSION;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
@@ -247,8 +248,69 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
+        public AnnotationVisitor visitAnnotationDefault() {
+            return new AnnotationDefaultProcessor(codeUnitBuilder);
+        }
+
+        @Override
         public void visitEnd() {
             codeUnitBuilder.withAnnotations(annotations);
+        }
+
+        private static class AnnotationDefaultProcessor extends AnnotationVisitor {
+            private final JavaMethod.Builder methodBuilder;
+
+            AnnotationDefaultProcessor(JavaCodeUnit.Builder<?, ?> codeUnitBuilder) {
+                super(ClassFileProcessor.ASM_API_VERSION);
+                checkArgument(codeUnitBuilder instanceof JavaMethod.Builder,
+                        "tried to import annotation defaults for code unit '%s' that is not a method " +
+                                "(as any annotation.property() is assumed to be), " +
+                                "this is likely a bug", codeUnitBuilder.getName());
+
+                methodBuilder = (JavaMethod.Builder) codeUnitBuilder;
+            }
+
+            @Override
+            public void visit(String name, Object value) {
+                methodBuilder.withAnnotationDefaultValue(AnnotationTypeConversion.convert(value));
+            }
+
+            @Override
+            public void visitEnum(String name, String desc, String value) {
+                methodBuilder.withAnnotationDefaultValue(javaEnumBuilder(desc, value));
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, String desc) {
+                return new AnnotationProcessor(setAsDefaultValueIn(methodBuilder), annotationBuilderFor(desc));
+            }
+
+            @Override
+            public AnnotationVisitor visitArray(String name) {
+                return new AnnotationArrayProcessor(setAsDefaultValueIn(methodBuilder));
+            }
+
+            private SetAsAnnotationDefault setAsDefaultValueIn(final JavaMethod.Builder methodBuilder) {
+                return new SetAsAnnotationDefault(methodBuilder);
+            }
+        }
+    }
+
+    private static class SetAsAnnotationDefault implements TakesAnnotationBuilder, TakesAnnotationValueBuilder {
+        private final JavaMethod.Builder methodBuilder;
+
+        private SetAsAnnotationDefault(JavaMethod.Builder methodBuilder) {
+            this.methodBuilder = methodBuilder;
+        }
+
+        @Override
+        public void add(JavaAnnotation.Builder annotation) {
+            add(JavaAnnotation.ValueBuilder.from(annotation));
+        }
+
+        @Override
+        public void add(JavaAnnotation.ValueBuilder valueBuilder) {
+            methodBuilder.withAnnotationDefaultValue(valueBuilder);
         }
     }
 
@@ -350,8 +412,13 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public AnnotationVisitor visitArray(String name) {
-            return new AnnotationArrayProcessor(name, annotationBuilder);
+        public AnnotationVisitor visitArray(final String name) {
+            return new AnnotationArrayProcessor(new TakesAnnotationValueBuilder() {
+                @Override
+                public void add(JavaAnnotation.ValueBuilder valueBuilder) {
+                    annotationBuilder.addProperty(name, valueBuilder);
+                }
+            });
         }
 
         @Override
@@ -383,15 +450,13 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
-        private final String name;
-        private final JavaAnnotation.Builder annotationBuilder;
+        private final TakesAnnotationValueBuilder takesAnnotationValueBuilder;
         private Class<?> componentType;
         private final List<JavaAnnotation.ValueBuilder> values = new ArrayList<>();
 
-        private AnnotationArrayProcessor(String name, JavaAnnotation.Builder annotationBuilder) {
+        private AnnotationArrayProcessor(TakesAnnotationValueBuilder takesAnnotationValueBuilder) {
             super(ASM_API_VERSION);
-            this.name = name;
-            this.annotationBuilder = annotationBuilder;
+            this.takesAnnotationValueBuilder = takesAnnotationValueBuilder;
         }
 
         @Override
@@ -431,7 +496,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            annotationBuilder.addProperty(name, valueArrayBuilder());
+            takesAnnotationValueBuilder.add(valueArrayBuilder());
         }
 
         private JavaAnnotation.ValueBuilder valueArrayBuilder() {
@@ -446,6 +511,10 @@ class JavaClassProcessor extends ClassVisitor {
                 }
             };
         }
+    }
+
+    private interface TakesAnnotationValueBuilder {
+        void add(JavaAnnotation.ValueBuilder valueBuilder);
     }
 
     private static JavaAnnotation.ValueBuilder javaEnumBuilder(final String desc, final String value) {

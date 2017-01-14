@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarFile;
@@ -32,6 +33,7 @@ import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.Source.Md5sum;
+import com.tngtech.archunit.core.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithIntValue;
 import com.tngtech.archunit.core.testexamples.annotationfieldimport.ClassWithAnnotatedFields.FieldAnnotationWithStringValue;
@@ -286,6 +288,31 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_annotation_defaults() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/annotatedclassimport");
+
+        JavaClass annotationType = classes.get(TypeAnnotationWithEnumAndArrayValue.class);
+        assertThat((JavaEnumConstant) annotationType.getMethod("valueWithDefault")
+                .getDefaultValue().get())
+                .as("default of valueWithDefault()").isEquivalentTo(SOME_VALUE);
+        assertThat(((JavaEnumConstant[]) annotationType.getMethod("enumArrayWithDefault")
+                .getDefaultValue().get()))
+                .as("default of enumArrayWithDefault()").matches(OTHER_VALUE);
+        assertThat(((JavaAnnotation) annotationType.getMethod("subAnnotationWithDefault")
+                .getDefaultValue().get()).get("value").get())
+                .as("default of subAnnotationWithDefault()").isEqualTo("default");
+        assertThat(((JavaAnnotation[]) annotationType.getMethod("subAnnotationArrayWithDefault")
+                .getDefaultValue().get())[0].get("value").get())
+                .as("default of subAnnotationArrayWithDefault()").isEqualTo("first");
+        assertThat((JavaClass) annotationType.getMethod("clazzWithDefault")
+                .getDefaultValue().get())
+                .as("default of clazzWithDefault()").matches(String.class);
+        assertThat((JavaClass[]) annotationType.getMethod("classesWithDefault")
+                .getDefaultValue().get())
+                .as("default of clazzWithDefault()").matches(Serializable.class, List.class);
+    }
+
+    @Test
     public void imports_fields_with_one_annotation_correctly() throws Exception {
         ImportedClasses classes = classesIn("testexamples/annotationfieldimport");
 
@@ -343,6 +370,7 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_methods_with_correct_parameters() throws Exception {
         Set<JavaMethod> methods = classesIn("testexamples/methodimport").getMethods();
+        assertThat(methods).extractingResultOf("getDefaultValue").containsOnly(Optional.absent());
 
         assertThat(findAnyByName(methods, "createString")).isEquivalentTo(
                 ClassWithStringStringMethod.class.getDeclaredMethod("createString", String.class));

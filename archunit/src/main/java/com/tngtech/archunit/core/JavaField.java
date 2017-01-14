@@ -60,7 +60,7 @@ public class JavaField extends JavaMember {
         }
 
         @Override
-        JavaField construct(Builder builder) {
+        JavaField construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
             return new JavaField(builder);
         }
     }

@@ -118,6 +118,10 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
             return self();
         }
 
+        String getName() {
+            return name;
+        }
+
         SELF withDescriptor(String descriptor) {
             this.descriptor = descriptor;
             return self();
@@ -142,14 +146,14 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
         public final OUTPUT build(JavaClass owner, ImportedClasses.ByTypeName importedClasses) {
             this.owner = owner;
             this.importedClasses = importedClasses;
-            return construct(self());
+            return construct(self(), importedClasses);
         }
 
         JavaClass get(String typeName) {
             return importedClasses.get(typeName);
         }
 
-        abstract OUTPUT construct(SELF self);
+        abstract OUTPUT construct(SELF self, ImportedClasses.ByTypeName importedClasses);
 
         Map<String, JavaAnnotation> getAnnotations() {
             return buildAnnotations(annotations, importedClasses);

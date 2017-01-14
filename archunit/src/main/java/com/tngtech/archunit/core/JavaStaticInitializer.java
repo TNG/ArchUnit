@@ -36,7 +36,7 @@ public class JavaStaticInitializer extends JavaCodeUnit {
         }
 
         @Override
-        JavaStaticInitializer construct(Builder builder) {
+        JavaStaticInitializer construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
             return new JavaStaticInitializer(builder);
         }
     }

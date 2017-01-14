@@ -50,7 +50,7 @@ public class JavaConstructor extends JavaCodeUnit {
 
     static final class Builder extends JavaCodeUnit.Builder<JavaConstructor, Builder> {
         @Override
-        JavaConstructor construct(Builder builder) {
+        JavaConstructor construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
             return new JavaConstructor(builder);
         }
     }

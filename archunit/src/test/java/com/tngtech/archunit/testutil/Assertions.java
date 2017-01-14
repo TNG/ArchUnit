@@ -71,6 +71,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaClassAssertion(javaClass);
     }
 
+    public static JavaClassesAssertion assertThat(JavaClass[] javaClass) {
+        return new JavaClassesAssertion(javaClass);
+    }
+
     public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
         return new JavaClassListAssertion(javaClasses);
     }
@@ -97,6 +101,19 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaEnumConstantsAssertion assertThat(JavaEnumConstant[] enumConstants) {
         return new JavaEnumConstantsAssertion(enumConstants);
+    }
+
+    public static class JavaClassesAssertion extends AbstractObjectAssert<JavaClassesAssertion, JavaClass[]> {
+        private JavaClassesAssertion(JavaClass[] actual) {
+            super(actual, JavaClassesAssertion.class);
+        }
+
+        public void matches(Class<?>... classes) {
+            assertThat((Object[]) actual).as("classes").hasSize(classes.length);
+            for (int i = 0; i < actual.length; i++) {
+                assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
+            }
+        }
     }
 
     public static class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion, JavaClass> {
@@ -184,6 +201,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void isEquivalentTo(Enum<?> enumConstant) {
+            assertThat(actual).as(JavaEnumConstant.class.getSimpleName()).isNotNull();
             assertThat(actual.getDeclaringClass().getName()).isEqualTo(enumConstant.getDeclaringClass().getName());
             assertThat(actual.name()).isEqualTo(enumConstant.name());
         }
