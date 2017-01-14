@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.core.Optional;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
