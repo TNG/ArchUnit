@@ -13,6 +13,7 @@ import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 
@@ -90,7 +91,7 @@ public class Slices implements DescribedIterable<Slice> {
      *
      * @see Slices
      */
-    public static class Transformer extends ClassesTransformer<Slice> {
+    public static class Transformer extends AbstractClassesTransformer<Slice> {
         private final String packageIdentifier;
         private Optional<String> namingPattern = Optional.absent();
 

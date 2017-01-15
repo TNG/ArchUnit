@@ -12,32 +12,32 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ClassesTransformerTest {
+public class AbstractClassesTransformerTest {
     @Test
     public void transform_javaclasses() {
-        ClassesTransformer<String> transformer = toNameTransformer();
+        AbstractClassesTransformer<String> transformer = toNameTransformer();
 
-        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(AbstractClassesTransformer.class, AbstractClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
-        assertThat(transformed).containsOnly(ClassesTransformer.class.getName(), ClassesTransformerTest.class.getName());
+        assertThat(transformed).containsOnly(AbstractClassesTransformer.class.getName(), AbstractClassesTransformerTest.class.getName());
     }
 
     @Test
     public void filter_by_predicate() {
         ClassesTransformer<String> transformer = toNameTransformer().that(endInTest());
 
-        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(AbstractClassesTransformer.class, AbstractClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
-        assertThat(transformed).containsOnly(ClassesTransformerTest.class.getName());
+        assertThat(transformed).containsOnly(AbstractClassesTransformerTest.class.getName());
     }
 
     @Test
     public void description_is_applied() {
         ClassesTransformer<String> transformer = toNameTransformer().as("special description");
 
-        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(AbstractClassesTransformer.class, AbstractClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("special description");
@@ -47,7 +47,7 @@ public class ClassesTransformerTest {
     public void description_is_extended_by_predicate() {
         ClassesTransformer<String> transformer = toNameTransformer().as("names").that(endInTest().as("end in Test"));
 
-        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(AbstractClassesTransformer.class, AbstractClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("names that end in Test");
@@ -59,14 +59,14 @@ public class ClassesTransformerTest {
                 .that(endInTest().as("end in Test"))
                 .as("override");
 
-        JavaClasses classes = javaClassesViaReflection(ClassesTransformer.class, ClassesTransformerTest.class);
+        JavaClasses classes = javaClassesViaReflection(AbstractClassesTransformer.class, AbstractClassesTransformerTest.class);
         DescribedIterable<String> transformed = transformer.transform(classes);
 
         assertThat(transformed.getDescription()).isEqualTo("override");
     }
 
-    private ClassesTransformer<String> toNameTransformer() {
-        return new ClassesTransformer<String>("changeMe") {
+    private AbstractClassesTransformer<String> toNameTransformer() {
+        return new AbstractClassesTransformer<String>("changeMe") {
             @Override
             public Iterable<String> doTransform(JavaClasses collection) {
                 Set<String> names = new HashSet<>();

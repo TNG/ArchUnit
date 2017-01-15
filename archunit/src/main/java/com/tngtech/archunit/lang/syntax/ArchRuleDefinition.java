@@ -4,6 +4,7 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -36,7 +37,7 @@ public class ArchRuleDefinition<T> {
     }
 
     public static ClassesTransformer<JavaClass> classes() {
-        return new ClassesTransformer<JavaClass>("classes") {
+        return new AbstractClassesTransformer<JavaClass>("classes") {
             @Override
             public Iterable<JavaClass> doTransform(JavaClasses collection) {
                 return collection;
