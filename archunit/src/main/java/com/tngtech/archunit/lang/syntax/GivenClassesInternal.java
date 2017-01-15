@@ -1,54 +1,66 @@
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Function.Functions;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
-class GivenClassesInternal extends GivenObjectsInternal<JavaClass, GivenClassesInternal> implements GivenClasses {
+import static java.util.Collections.singletonList;
+
+class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal> implements GivenClasses {
+
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer) {
         this(priority, classesTransformer, Functions.<ArchCondition<JavaClass>>identity());
     }
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,
                          Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
-        super(priority, classesTransformer, prepareCondition);
+        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<JavaClass>(), Optional.<String>absent());
     }
 
     private GivenClassesInternal(
             Priority priority,
             ClassesTransformer<JavaClass> classesTransformer,
             Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition,
-            PredicateAggregator<JavaClass> relevantObjectsPredicates) {
-        super(priority, classesTransformer, prepareCondition, relevantObjectsPredicates);
-    }
+            PredicateAggregator<JavaClass> relevantObjectsPredicates,
+            Optional<String> overriddenDescription) {
 
-    @Override
-    public GivenClassesInternal with(DescribedPredicate<JavaClass> predicate) {
-        PredicateAggregator<JavaClass> relevantObjectsPredicates = this.relevantObjectsPredicates.and(predicate);
-        return new GivenClassesInternal(priority, classesTransformer, prepareCondition, relevantObjectsPredicates);
+        super(new GivenClassesFactory(),
+                priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
+
     }
 
     @Override
     public ClassesShould should() {
-        ClassesTransformer<JavaClass> finishedTransformer = finish(classesTransformer);
-        return new ClassesShouldInternal(finishedTransformer, this.priority, prepareCondition);
-    }
-
-    private ClassesTransformer<JavaClass> finish(ClassesTransformer<JavaClass> classesTransformer) {
-        return relevantObjectsPredicates.isPresent() ?
-                classesTransformer.that(relevantObjectsPredicates.get()) :
-                classesTransformer;
+        return new ClassesShouldInternal(priority, finishedClassesTransformer(), prepareCondition);
     }
 
     @Override
     public GivenClassesThat that() {
         return new GivenClassesThatInternal(this);
+    }
+
+    @Override
+    public ArchRule should(ArchCondition<JavaClass> condition) {
+        return new ClassesShouldInternal(priority, finishedClassesTransformer(), singletonList(condition), prepareCondition);
+    }
+
+    private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {
+        @Override
+        public GivenClassesInternal create(Priority priority,
+                                           ClassesTransformer<JavaClass> classesTransformer,
+                                           Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition,
+                                           PredicateAggregator<JavaClass> relevantObjectsPredicates,
+                                           Optional<String> overriddenDescription) {
+            return new GivenClassesInternal(
+                    priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
+        }
     }
 }

@@ -14,10 +14,11 @@ class PredicateAggregator<T> {
         this.predicate = predicate;
     }
 
-    PredicateAggregator<T> and(DescribedPredicate<T> furtherPredicate) {
+    PredicateAggregator<T> and(DescribedPredicate<? super T> furtherPredicate) {
+        DescribedPredicate<T> additional = furtherPredicate.forSubType();
         return new PredicateAggregator<>(predicate.isPresent() ?
-                Optional.of(predicate.get().and(furtherPredicate)) :
-                Optional.of(furtherPredicate));
+                Optional.of(predicate.get().and(additional)) :
+                Optional.of(additional));
     }
 
     <S extends HasPredicates<T, S>> S addTo(HasPredicates<T, S> hasPredicates) {

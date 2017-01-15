@@ -16,8 +16,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
 
 public class ThirdPartyRulesTest {
     protected static final String THIRD_PARTY_CLASS_RULE_TEXT =
@@ -36,7 +35,7 @@ public class ThirdPartyRulesTest {
     @Ignore
     @Test
     public void third_party_class_should_only_be_instantiated_via_workaround() {
-        all(classes()).should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
+        allClasses().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
                 .as(THIRD_PARTY_CLASS_RULE_TEXT))
                 .check(classes);
     }

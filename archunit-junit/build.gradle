@@ -16,14 +16,6 @@ dependencies {
     testCompile project(path: ':archunit', configuration: 'tests')
 }
 
-test {
-    if (!project.hasProperty('allTests')) {
-        useJUnit {
-            excludeCategories 'com.tngtech.archunit.Slow'
-        }
-    }
-}
-
 shadowJar {
     dependencies {
         exclude(project(':archunit'))

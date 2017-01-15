@@ -152,6 +152,14 @@ def configurePublish = {
     project(it, configureShadow)
     project(it, configureProGuard)
     project(it, configurePublish)
+
+    project(it).test {
+        if (!project.hasProperty('allTests')) {
+            it.useJUnit {
+                excludeCategories 'com.tngtech.archunit.Slow'
+            }
+        }
+    }
 }
 
 task prepareMavenTest {

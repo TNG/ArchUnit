@@ -60,6 +60,16 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
+    @SuppressWarnings("unchecked") // DescribedPredicate is contravariant
+    public <U extends T> DescribedPredicate<U> forSubType() {
+        return (DescribedPredicate<U>) this;
+    }
+
+    @Override
+    public String toString() {
+        return getDescription();
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysTrue() {
         return (DescribedPredicate<T>) ALWAYS_TRUE;
@@ -102,10 +112,5 @@ public abstract class DescribedPredicate<T> {
                 return !predicate.apply(input);
             }
         };
-    }
-
-    @SuppressWarnings("unchecked") // DescribedPredicate is contra variant
-    public <U extends T> DescribedPredicate<U> forSubType() {
-        return (DescribedPredicate<U>) this;
     }
 }

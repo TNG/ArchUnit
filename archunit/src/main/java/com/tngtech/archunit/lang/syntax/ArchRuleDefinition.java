@@ -10,6 +10,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
+import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
@@ -21,14 +22,14 @@ public class ArchRuleDefinition<T> {
     /**
      * @see Creator#all(ClassesTransformer)
      */
-    public static <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
+    public static <TYPE> GivenObjects<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
         return priority(MEDIUM).all(classesTransformer);
     }
 
     /**
      * @see Creator#no(ClassesTransformer)
      */
-    public static <TYPE> InputDescription<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
+    public static <TYPE> GivenObjects<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
         return priority(MEDIUM).no(classesTransformer);
     }
 
@@ -65,53 +66,42 @@ public class ArchRuleDefinition<T> {
         }
 
         public GivenClasses noClasses() {
-            return new GivenClassesInternal(priority, classes().as("no classes"), new Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>>() {
-                @Override
-                public ArchCondition<JavaClass> apply(final ArchCondition<JavaClass> condition) {
-                    return never(condition).as(condition.getDescription());
-                }
-            });
+            return new GivenClassesInternal(
+                    priority,
+                    classes().as("no classes"),
+                    ArchRuleDefinition.<JavaClass>negateCondition());
         }
 
         /**
          * Takes a {@link ClassesTransformer} to specify how the set of objects of interest is to be created
          * from {@link JavaClasses} (which are the general input obtained from a {@link ClassFileImporter}).
-         * The most simple {@link ClassesTransformer} is {@link #classes()}, which simply forwards the
-         * {@link JavaClasses} as a collection of {@link JavaClass}.
          *
-         * @param classesTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
          * @param <TYPE>             The target type to which the later used {@link ArchCondition ArchCondition&lt;TYPE&gt;}
          *                           will have to refer to
-         * @return An {@link InputDescription OpenDescribable&lt;TYPE&gt;} to construct an {@link ArchRuleDefinition ArchRule&lt;TYPE&gt;}
+         * @param classesTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
+         * @return {@link GivenObjects} to guide the creation of an {@link ArchRule}
          */
-        public <TYPE> InputDescription<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
-            return new InputDescription<>(classesTransformer, priority);
+        public <TYPE> GivenObjects<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
+            return new GivenObjectsInternal<>(priority, classesTransformer);
         }
 
         /**
          * Same as {@link #all(ClassesTransformer)}, but negates the following condition.
          */
-        public <TYPE> InputDescription<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
-            return new InputDescription<TYPE>(classesTransformer.as("no " + classesTransformer.getDescription()), priority) {
-                @Override
-                public ArchRule should(ArchCondition<TYPE> condition) {
-                    return super.should(never(condition).as(condition.getDescription()));
-                }
-            };
+        public <TYPE> GivenObjects<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
+            return new GivenObjectsInternal<>(
+                    priority,
+                    classesTransformer.as("no " + classesTransformer.getDescription()),
+                    ArchRuleDefinition.<TYPE>negateCondition());
         }
     }
 
-    public static class InputDescription<TYPE> {
-        final ClassesTransformer<TYPE> classesTransformer;
-        final Priority priority;
-
-        private InputDescription(ClassesTransformer<TYPE> classesTransformer, Priority priority) {
-            this.classesTransformer = classesTransformer;
-            this.priority = priority;
-        }
-
-        public ArchRule should(ArchCondition<TYPE> condition) {
-            return ArchRule.Factory.create(classesTransformer, condition, priority);
-        }
+    private static <T> Function<ArchCondition<T>, ArchCondition<T>> negateCondition() {
+        return new Function<ArchCondition<T>, ArchCondition<T>>() {
+            @Override
+            public ArchCondition<T> apply(ArchCondition<T> condition) {
+                return never(condition).as(condition.getDescription());
+            }
+        };
     }
 }

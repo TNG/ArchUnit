@@ -6,8 +6,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING;
@@ -24,7 +23,7 @@ public class CodingRulesTest {
     @Ignore
     @Test
     public void classes_should_not_access_standard_streams_defined_by_hand() {
-        all(classes()).should(NOT_ACCESS_STANDARD_STREAMS).check(classes);
+        allClasses().should(NOT_ACCESS_STANDARD_STREAMS).check(classes);
     }
 
     @Ignore

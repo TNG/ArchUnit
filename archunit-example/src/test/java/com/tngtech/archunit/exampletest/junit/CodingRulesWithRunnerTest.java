@@ -8,8 +8,7 @@ import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS;
 import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING;
@@ -31,6 +30,6 @@ public class CodingRulesWithRunnerTest {
 
     @ArchTest
     public static void no_java_util_logging_as_method(JavaClasses classes) {
-        all(classes()).should(NOT_SET_JAVA_UTIL_LOGGING_FIELDS).check(classes);
+        allClasses().should(NOT_SET_JAVA_UTIL_LOGGING_FIELDS).check(classes);
     }
 }

@@ -25,8 +25,7 @@ import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
 
 public class SessionBeanRulesTest {
     private JavaClasses classes;
@@ -39,14 +38,14 @@ public class SessionBeanRulesTest {
     @Ignore
     @Test
     public void stateless_session_beans_should_not_have_state() {
-        all(classes().that(are(ANNOTATED_WITH_STATELESS)).as("Stateless Session Beans"))
+        allClasses().that(are(ANNOTATED_WITH_STATELESS)).as("Stateless Session Beans")
                 .should(NOT_SET_FIELDS_AFTER_CONSTRUCTION.as("not have state")).check(classes);
     }
 
     @Ignore
     @Test
     public void business_interface_implementations_should_be_unique() {
-        all(classes().that(are(BUSINESS_INTERFACES)).as("Business Interfaces"))
+        allClasses().that(are(BUSINESS_INTERFACES)).as("Business Interfaces")
                 .should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
     }
 
