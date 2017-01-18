@@ -23,7 +23,7 @@ public class SlicesIsolationIntegrationTest {
             SlicesIsolationTest.controllers_should_only_use_their_own_slice;
 
     static void expectViolationFromDependencies(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("Controllers should only depend on their own slice")
+        expectViolation.ofRule("Controllers should not depend on each other")
                 .by(sliceDependency()
                         .described("Controller one calls Controller two")
                         .byAccess(from(UseCaseOneController.class, doSomethingOne)

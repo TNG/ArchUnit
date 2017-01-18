@@ -13,17 +13,17 @@ import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 
-public class DependencyRules {
-    public static ArchCondition<Slice> beFreeOfCycles() {
+class DependencyRules {
+    static ArchCondition<Slice> beFreeOfCycles() {
         return new SliceCycleArchCondition();
     }
 
-    public static ArchRule slicesShouldOnlyDependOnTheirOwnSliceIn(Slices.Transformer inputTransformer) {
-        return all(inputTransformer).should(onlyDependOnTheirOwnSlice(inputTransformer));
+    static ArchRule slicesShouldNotDependOnEachOtherIn(Slices.Transformer inputTransformer) {
+        return all(inputTransformer).should(notDependOnEachOther(inputTransformer));
     }
 
-    private static ArchCondition<Slice> onlyDependOnTheirOwnSlice(final Slices.Transformer inputTransformer) {
-        return new ArchCondition<Slice>("only depend on their own slice") {
+    private static ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer) {
+        return new ArchCondition<Slice>("not depend on each other") {
             @Override
             public void check(Slice slice, ConditionEvents events) {
                 Slices dependencySlices = inputTransformer.transform(slice.getDependencies());

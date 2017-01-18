@@ -1,4 +1,4 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import java.util.ArrayList;
 import java.util.Collection;

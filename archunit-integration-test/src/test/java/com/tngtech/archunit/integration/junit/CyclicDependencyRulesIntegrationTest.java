@@ -1,4 +1,4 @@
-package com.tngtech.archunit.integration;
+package com.tngtech.archunit.integration.junit;
 
 import com.tngtech.archunit.example.cycle.complexcycles.slice1.ClassBeingCalledInSliceOne;
 import com.tngtech.archunit.example.cycle.complexcycles.slice1.ClassOfMinimalCircleCallingSliceTwo;
@@ -29,27 +29,51 @@ import com.tngtech.archunit.example.cycle.simplescenario.administration.Invoice;
 import com.tngtech.archunit.example.cycle.simplescenario.importer.ImportService;
 import com.tngtech.archunit.example.cycle.simplescenario.report.Report;
 import com.tngtech.archunit.example.cycle.simplescenario.report.ReportService;
-import com.tngtech.archunit.exampletest.CyclicDependencyRulesTest;
+import com.tngtech.archunit.exampletest.junit.CyclicDependencyRulesTest;
+import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
-import org.junit.Rule;
-import org.junit.Test;
+import com.tngtech.archunit.lang.ArchRule;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.integration.CyclicErrorMatcher.cycle;
+import static com.tngtech.archunit.integration.junit.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
-public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesTest {
+@RunWith(ArchUnitIntegrationTestRunner.class)
+@AnalyseClasses(packages = "com.tngtech.archunit.example.cycle")
+public class CyclicDependencyRulesIntegrationTest {
 
-    @Rule
-    public final ExpectedViolation expectViolation = ExpectedViolation.none();
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromSimpleCycle")
+    public static final ArchRule NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES =
+            CyclicDependencyRulesTest.NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES;
 
-    @Test
-    @Override
-    public void slices_should_not_contain_cyclic_dependencies_by_simple_method_calls() {
-        expectViolationFromSimpleCycle(expectViolation);
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromConstructorCycle")
+    public static final ArchRule NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES =
+            CyclicDependencyRulesTest.NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES;
 
-        super.slices_should_not_contain_cyclic_dependencies_by_simple_method_calls();
-    }
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromInheritanceCycle")
+    public static final ArchRule NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES =
+            CyclicDependencyRulesTest.NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES;
+
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromFieldAccessCycle")
+    public static final ArchRule NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES =
+            CyclicDependencyRulesTest.NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES;
+
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromSimpleCyclicScenario")
+    public static final ArchRule NO_CYCLES_IN_SIMPLE_SCENARIO =
+            CyclicDependencyRulesTest.NO_CYCLES_IN_SIMPLE_SCENARIO;
+
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromComplexCyclicScenario")
+    public static final ArchRule NO_CYCLES_IN_COMPLEX_SCENARIO =
+            CyclicDependencyRulesTest.NO_CYCLES_IN_COMPLEX_SCENARIO;
+
 
     static void expectViolationFromSimpleCycle(ExpectedViolation expectedViolation) {
         expectedViolation.ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
@@ -68,14 +92,6 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
                                 .inLine(9)));
     }
 
-    @Test
-    @Override
-    public void slices_should_not_contain_cyclic_dependencies_by_simple_constructor_calls() {
-        expectViolationFromConstructorCycle(expectViolation);
-
-        super.slices_should_not_contain_cyclic_dependencies_by_simple_constructor_calls();
-    }
-
     static void expectViolationFromConstructorCycle(ExpectedViolation expectedViolation) {
         expectedViolation.ofRule("slices matching '..(constructorcycle).(*)..' should be free of cycles")
                 .by(cycle()
@@ -87,14 +103,6 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
                         .byAccess(from(SliceTwoCallingConstructorInSliceOne.class, "callSliceOne")
                                 .toConstructor(SomeClassWithCalledConstructor.class)
                                 .inLine(7)));
-    }
-
-    @Test
-    @Override
-    public void slices_should_not_contain_cyclic_dependencies_by_inheritance() {
-        expectViolationFromInheritanceCycle(expectViolation);
-
-        super.slices_should_not_contain_cyclic_dependencies_by_inheritance();
     }
 
     static void expectViolationFromInheritanceCycle(ExpectedViolation expectedViolation) {
@@ -110,13 +118,6 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
                                 .inLine(5)));
     }
 
-    @Test
-    @Override
-    public void slices_should_not_contain_cyclic_dependencies_by_field_access() {
-        expectViolationFromFieldAccessCycle(expectViolation);
-
-        super.slices_should_not_contain_cyclic_dependencies_by_field_access();
-    }
 
     static void expectViolationFromFieldAccessCycle(ExpectedViolation expectedViolation) {
         expectedViolation.ofRule("slices matching '..(fieldaccesscycle).(*)..' should be free of cycles")
@@ -129,14 +130,6 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
                         .byAccess(from(SliceTwoAccessingFieldInSliceOne.class, "accessSliceOne")
                                 .setting().field(ClassInSliceOneWithAccessedField.class, "accessedField")
                                 .inLine(10)));
-    }
-
-    @Test
-    @Override
-    public void simple_cyclic_scenario() {
-        expectViolationFromSimpleCyclicScenario(expectViolation);
-
-        super.simple_cyclic_scenario();
     }
 
     static void expectViolationFromSimpleCyclicScenario(ExpectedViolation expectedViolation) {
@@ -156,14 +149,6 @@ public class CyclicDependencyRulesIntegrationTest extends CyclicDependencyRulesT
                         .byAccess(from(ImportService.class, "process", String.class)
                                 .toMethod(AdministrationService.class, "createCustomerId", String.class)
                                 .inLine(11)));
-    }
-
-    @Test
-    @Override
-    public void slices_should_not_contain_cyclic_dependencies() {
-        expectViolationFromComplexCyclicScenario(expectViolation);
-
-        super.slices_should_not_contain_cyclic_dependencies();
     }
 
     static void expectViolationFromComplexCyclicScenario(ExpectedViolation expectedViolation) {

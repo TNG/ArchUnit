@@ -5,39 +5,37 @@ import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.dependencies.Slices;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.library.dependencies.DependencyRules.beFreeOfCycles;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.allSlices;
 
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
 @AnalyseClasses(packages = "com.tngtech.archunit.example.cycle")
-public class CyclicDependencyRulesWithRunnerTest {
+public class CyclicDependencyRulesTest {
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES =
-            all(Slices.matching("..(simplecycle).(*)..").namingSlices("$2 of $1")).should(beFreeOfCycles());
+            allSlices().matching("..(simplecycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES =
-            all(Slices.matching("..(constructorcycle).(*)..").namingSlices("$2 of $1")).should(beFreeOfCycles());
+            allSlices().matching("..(constructorcycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES =
-            all(Slices.matching("..(inheritancecycle).(*)..").namingSlices("$2 of $1")).should(beFreeOfCycles());
+            allSlices().matching("..(inheritancecycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES =
-            all(Slices.matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1")).should(beFreeOfCycles());
+            allSlices().matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_IN_SIMPLE_SCENARIO =
-            all(Slices.matching("..simplescenario.(*)..").namingSlices("$1")).should(beFreeOfCycles());
+            allSlices().matching("..simplescenario.(*)..").namingSlices("$1").shouldBeFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_IN_COMPLEX_SCENARIO =
-            all(Slices.matching("..(complexcycles).(*)..").namingSlices("$2 of $1")).should(beFreeOfCycles());
+            allSlices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
 }
 

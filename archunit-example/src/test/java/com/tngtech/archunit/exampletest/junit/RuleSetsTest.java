@@ -13,5 +13,5 @@ public class RuleSetsTest {
     public static final ArchRules<?> CODING_RULES = ArchRules.in(CodingRulesWithRunnerTest.class);
 
     @ArchTest
-    public static final ArchRules<?> CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesWithRunnerTest.class);
+    public static final ArchRules<?> CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
 }

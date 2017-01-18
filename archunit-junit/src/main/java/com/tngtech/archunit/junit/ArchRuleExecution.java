@@ -61,7 +61,7 @@ public class ArchRuleExecution extends ArchTestExecution {
 
         private static RuleEvaluationException fieldTypeFailure(Field ruleField) {
             String hint = String.format("Only fields of type %s may be annotated with @%s",
-                    ArchRule.class.getName(), ArchTest.class.getName());
+                    ArchRule.class.getSimpleName(), ArchTest.class.getSimpleName());
             String problem = String.format("Cannot evaluate @%s on field %s.%s",
                     ArchTest.class.getSimpleName(), ruleField.getDeclaringClass().getName(), ruleField.getName());
             return new RuleEvaluationException(hint + problem);
