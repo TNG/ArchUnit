@@ -29,9 +29,15 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();
+    private Iterable<Slice> allObjectsToTest;
 
-    public SliceCycleArchCondition() {
+    SliceCycleArchCondition() {
         super("be free of cycles");
+    }
+
+    @Override
+    public void init(Iterable<Slice> allObjectsToTest) {
+        this.allObjectsToTest = allObjectsToTest;
     }
 
     @Override
@@ -49,7 +55,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         }
 
         graph = new DependencyGraph();
-        for (Slice slice : allObjectsToTest()) {
+        for (Slice slice : allObjectsToTest) {
             graph.add(slice, Collections.<Edge<Slice, Dependency>>emptySet());
         }
     }
@@ -66,7 +72,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
                 return mapping;
             }
             ImmutableMap.Builder<JavaClass, Slice> result = ImmutableMap.builder();
-            for (Slice slice : allObjectsToTest()) {
+            for (Slice slice : allObjectsToTest) {
                 for (JavaClass javaClass : slice) {
                     result.put(javaClass, slice);
                 }
@@ -126,7 +132,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private final Set<Cycle<Slice, Dependency>> alreadyRecorded = new HashSet<>();
 
-        public void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
+        void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
             if (alreadyRecorded.contains(cycle)) {
                 return;
             }

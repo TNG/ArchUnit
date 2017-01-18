@@ -13,6 +13,11 @@ class NeverCondition<T> extends ArchCondition<T> {
     }
 
     @Override
+    public void init(Iterable<T> allObjectsToTest) {
+        condition.init(allObjectsToTest);
+    }
+
+    @Override
     public void check(T item, ConditionEvents events) {
         ConditionEvents subEvents = new ConditionEvents();
         condition.check(item, subEvents);

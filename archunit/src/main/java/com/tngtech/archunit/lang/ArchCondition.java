@@ -6,34 +6,26 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.DescribedIterable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class ArchCondition<T> {
-    DescribedIterable<T> objectsToTest;
     private String description;
 
     public ArchCondition(String description) {
-        this(null, description);
-    }
-
-    private ArchCondition(DescribedIterable<T> objectsToTest, String description) {
-        this.objectsToTest = objectsToTest;
         this.description = checkNotNull(description);
     }
 
-    void check(ConditionEvents events) {
-        for (T object : objectsToTest) {
-            check(object, events);
-        }
+    /**
+     * Can be used to prepare this condition with respect to the collection of all objects the condition
+     * will be tested against.
+     *
+     * @param allObjectsToTest All objects that {@link #check(Object, ConditionEvents)} will be called against
+     */
+    public void init(Iterable<T> allObjectsToTest) {
     }
 
     public abstract void check(T item, ConditionEvents events);
-
-    protected final Iterable<T> allObjectsToTest() {
-        return checkNotNull(objectsToTest, "Objects to test were never set, this is most likely a bug");
-    }
 
     public ArchCondition<T> and(ArchCondition<T> condition) {
         return new AndCondition<>(this, condition);
@@ -44,7 +36,12 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> as(String description, Object... args) {
-        return new ArchCondition<T>(objectsToTest, String.format(description, args)) {
+        return new ArchCondition<T>(String.format(description, args)) {
+            @Override
+            public void init(Iterable<T> allObjectsToTest) {
+                ArchCondition.this.init(allObjectsToTest);
+            }
+
             @Override
             public void check(T item, ConditionEvents events) {
                 ArchCondition.this.check(item, events);
@@ -70,6 +67,13 @@ public abstract class ArchCondition<T> {
                 descriptions.add(condition.getDescription());
             }
             return Joiner.on(" and ").join(descriptions);
+        }
+
+        @Override
+        public void init(Iterable<T> allObjectsToTest) {
+            for (ArchCondition<T> condition : conditions) {
+                condition.init(allObjectsToTest);
+            }
         }
 
         @Override

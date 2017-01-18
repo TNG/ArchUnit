@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
@@ -94,6 +95,8 @@ public interface ArchRule extends CanBeEvaluated {
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
             return new ArchRule() {
+                private DescribedIterable<T> allObjects;
+
                 @Override
                 public void check(JavaClasses classes) {
                     EvaluationResult result = evaluate(classes);
@@ -102,15 +105,18 @@ public interface ArchRule extends CanBeEvaluated {
 
                 @Override
                 public EvaluationResult evaluate(JavaClasses classes) {
-                    condition.objectsToTest = classesTransformer.transform(classes);
+                    allObjects = classesTransformer.transform(classes);
+                    condition.init(allObjects);
                     ConditionEvents events = new ConditionEvents();
-                    condition.check(events);
+                    for (T object : allObjects) {
+                        condition.check(object, events);
+                    }
                     return new EvaluationResult(this, events, priority);
                 }
 
                 @Override
                 public String getDescription() {
-                    return ConfiguredMessageFormat.get().formatRuleText(condition.objectsToTest, condition);
+                    return ConfiguredMessageFormat.get().formatRuleText(allObjects, condition);
                 }
             };
         }
