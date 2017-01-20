@@ -12,3 +12,4 @@ _site
 .jekyll-metadata
 .asciidoctor
 verification-results
+node_modules

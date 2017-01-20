@@ -1,3 +1,7 @@
+plugins {
+    id "com.moowork.node" version "0.13"
+}
+
 dependencies {
     compile project(path: ':archunit', configuration: 'shadow')
     compile dependency.guava
@@ -26,3 +30,79 @@ configurations {
     /* Exclude archunit from the shadow jar */
     runtime.exclude module: ':archunit'
 }
+
+def nodeVersion = '7.2.0'
+
+node {
+    version = nodeVersion
+    npmVersion = '4.0.2'
+    distBaseUrl = 'https://nodejs.org/dist'
+    download = true
+    workDir = file("${project.buildDir}/nodejs")
+    nodeModulesDir = file("${project.projectDir}")
+}
+
+task installBrowserify(type: NpmTask) {
+    args = ['install', 'browserify']
+}
+
+task installTestSupport(type: NpmTask) {
+    args = ['install', 'mocha', 'chai', '--save-dev']
+}
+
+task setupNode(dependsOn: ['installBrowserify', 'installTestSupport']) {
+    doLast {
+        def subFolder = file("${project.buildDir}/nodejs").list().grep { it.contains(nodeVersion) }[0]
+        println """
+            >> Ensuring Browserify is installed...
+            >> Ensuring Mocha and Chai exist...
+            >> To run node from the command line, add the nodejs bin folder to your PATH:
+            >> export PATH="${project.buildDir}/nodejs/${subFolder}/bin:\$PATH"
+            """.stripIndent()
+    }
+}
+
+task mocha(type: NodeTask, dependsOn: 'setupNode') {
+    script = file('node_modules/mocha/bin/mocha')
+    args = ['--reporter', 'spec', 'src/test/resources/report/**/*.js']
+}
+
+task createReportDir {
+    file("${project.buildDir}/report").mkdir()
+}
+
+task copyStaticReport(type: Copy, dependsOn: createReportDir) {
+    from 'src/main/resources/report'
+    include '*.html'
+    into "${project.buildDir}/report"
+}
+
+task copyStatic(dependsOn: ['copyStaticReport']) {}
+
+task copyJsLibsReport(type: Copy, dependsOn: createReportDir) {
+    from 'src/main/resources/d3'
+    include 'd3.js'
+    into "${project.buildDir}/report"
+}
+
+task copyJson(type: Copy, dependsOn: createReportDir) {
+    from 'src/main/resources/report'
+    include 'DemoData.json'
+    into "${project.buildDir}/report"
+}
+
+task copyJsLibs(dependsOn: ['copyJsLibsReport', 'copyJson']) {}
+
+task browserifyReportTree(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
+    script = file('node_modules/browserify/bin/cmd.js')
+    args = ['-r', './src/main/resources/report/tree.js:tree', '-o', "${project.buildDir}/report/tree-bundle.js"]
+}
+
+task browserifyReportDep(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
+    script = file('node_modules/browserify/bin/cmd.js')
+    args = ['-r', './src/main/resources/report/dependencies.js:dependencies', '-o', "${project.buildDir}/report/dependencies-bundle.js"]
+}
+
+task browserify(dependsOn: ['browserifyReportTree', 'browserifyReportDep']) {}
+
+task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
