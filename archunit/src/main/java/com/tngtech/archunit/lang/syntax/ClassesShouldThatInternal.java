@@ -17,6 +17,7 @@ import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.ann
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
+import static com.tngtech.archunit.lang.syntax.GivenClassesThatInternal.negate;
 
 class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction {
     private final ClassesShouldInternal classesShould;
@@ -43,6 +44,12 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction 
     }
 
     @Override
+    public ShouldConjunction resideOutsideOfPackage(String packageIdentifier) {
+        return shouldWith(negate(JavaClass.Predicates.resideInPackage(packageIdentifier),
+                "reside in", "reside outside of"));
+    }
+
+    @Override
     public ShouldConjunction areAnnotatedWith(Class<? extends Annotation> annotationType) {
         return shouldWith(are(annotatedWith(annotationType)));
     }
@@ -50,6 +57,11 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction 
     @Override
     public ShouldConjunction haveNameMatching(String regex) {
         return shouldWith(have(nameMatching(regex)));
+    }
+
+    @Override
+    public ShouldConjunction areAssignableTo(Class<?> type) {
+        return shouldWith(are(JavaClass.Predicates.assignableTo(type)));
     }
 
     @Override
