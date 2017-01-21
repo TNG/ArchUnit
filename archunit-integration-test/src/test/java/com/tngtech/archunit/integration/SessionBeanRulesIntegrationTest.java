@@ -26,7 +26,7 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Test
     @Override
     public void stateless_session_beans_should_not_have_state() {
-        expectedViolation.ofRule("Stateless Session Beans should not have state")
+        expectedViolation.ofRule("No Stateless Session Bean should have state")
                 .byAccess(from(ClassViolatingSessionBeanRules.class, "setState", String.class)
                         .setting().field(ClassViolatingSessionBeanRules.class, "state")
                         .inLine(25));
@@ -37,7 +37,7 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Test
     @Override
     public void business_interface_implementations_should_be_unique() {
-        expectedViolation.ofRule("Business Interfaces should have an unique implementation")
+        expectedViolation.ofRule("classes that are business interfaces should have an unique implementation")
                 .by(SOME_BUSINESS_INTERFACE_IS_IMPLEMENTED_BY_TWO_BEANS);
 
         super.business_interface_implementations_should_be_unique();

@@ -6,10 +6,11 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF>>
-        implements GivenObjects<T>, HasPredicates<T, SELF> {
+        implements GivenObjects<T>, GivenConjunction<T>, HasPredicates<T, SELF> {
 
     private final Factory<T, SELF> factory;
     final Priority priority;
@@ -45,12 +46,6 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
         return overriddenDescription.isPresent() ?
                 completeTransformation.as(overriddenDescription.get()) :
                 completeTransformation;
-    }
-
-    @Override
-    public SELF as(String description) {
-        return factory.create(
-                priority, classesTransformer, prepareCondition, relevantObjectsPredicates, Optional.of(description));
     }
 
     @Override

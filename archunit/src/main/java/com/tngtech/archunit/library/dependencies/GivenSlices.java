@@ -5,12 +5,13 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 import static com.tngtech.archunit.library.dependencies.DependencyRules.beFreeOfCycles;
 import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldNotDependOnEachOtherIn;
 
-public class GivenSlices implements GivenObjects<Slice> {
+public class GivenSlices implements GivenObjects<Slice>, GivenConjunction<Slice> {
     private Priority priority;
     private final Slices.Transformer classesTransformer;
     private final Optional<String> overriddenDescription;
@@ -37,13 +38,12 @@ public class GivenSlices implements GivenObjects<Slice> {
     }
 
     @Override
-    public GivenSlices as(String description) {
-        return new GivenSlices(priority, classesTransformer, Optional.of(description));
-    }
-
-    @Override
     public GivenSlices that(DescribedPredicate<? super Slice> predicate) {
         return new GivenSlices(priority, classesTransformer.that(predicate), overriddenDescription);
+    }
+
+    public GivenSlices as(String newDescription) {
+        return new GivenSlices(priority, classesTransformer, Optional.of(newDescription));
     }
 
     /**

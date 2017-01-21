@@ -11,6 +11,7 @@ import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -58,10 +59,22 @@ public class Architectures {
     }
 
     public static class LayeredArchitecture implements ArchRule {
-        private Map<String, LayerDefinition> layerDefinitions = new LinkedHashMap<>();
-        private Set<LayerDependencySpecification> dependencySpecifications = new LinkedHashSet<>();
+        private final Map<String, LayerDefinition> layerDefinitions;
+        private final Set<LayerDependencySpecification> dependencySpecifications;
+        private final Optional<String> overriddenDescription;
 
         private LayeredArchitecture() {
+            this(new LinkedHashMap<String, LayerDefinition>(),
+                    new LinkedHashSet<LayerDependencySpecification>(),
+                    Optional.<String>absent());
+        }
+
+        private LayeredArchitecture(Map<String, LayerDefinition> layerDefinitions,
+                                    Set<LayerDependencySpecification> dependencySpecifications,
+                                    Optional<String> overriddenDescription) {
+            this.layerDefinitions = layerDefinitions;
+            this.dependencySpecifications = dependencySpecifications;
+            this.overriddenDescription = overriddenDescription;
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
@@ -80,6 +93,10 @@ public class Architectures {
 
         @Override
         public String getDescription() {
+            if (overriddenDescription.isPresent()) {
+                return overriddenDescription.get();
+            }
+
             List<String> lines = newArrayList("Layered architecture consisting of");
             for (LayerDefinition definition : layerDefinitions.values()) {
                 lines.add(definition.toString());
@@ -110,6 +127,11 @@ public class Architectures {
         @Override
         public void check(JavaClasses classes) {
             assertNoViolation(evaluate(classes));
+        }
+
+        @Override
+        public LayeredArchitecture as(String newDescription) {
+            return new LayeredArchitecture(layerDefinitions, dependencySpecifications, Optional.of(newDescription));
         }
 
         private String[] toArray(Set<String> strings) {

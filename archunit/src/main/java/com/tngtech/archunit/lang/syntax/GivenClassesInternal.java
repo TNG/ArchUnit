@@ -10,11 +10,13 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
+import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 import static java.util.Collections.singletonList;
 
-class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal> implements GivenClasses {
+class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal>
+        implements GivenClasses, GivenClassesConjunction {
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer) {
         this(priority, classesTransformer, Functions.<ArchCondition<JavaClass>>identity());

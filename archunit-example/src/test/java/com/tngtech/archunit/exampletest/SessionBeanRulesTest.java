@@ -22,10 +22,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class SessionBeanRulesTest {
     private JavaClasses classes;
@@ -38,24 +38,15 @@ public class SessionBeanRulesTest {
     @Ignore
     @Test
     public void stateless_session_beans_should_not_have_state() {
-        allClasses().that(are(ANNOTATED_WITH_STATELESS)).as("Stateless Session Beans")
-                .should(NOT_SET_FIELDS_AFTER_CONSTRUCTION.as("not have state")).check(classes);
+        noClasses().that().areAnnotatedWith(Stateless.class).should(SET_FIELDS_AFTER_CONSTRUCTION)
+                .as("No Stateless Session Bean should have state").check(classes);
     }
 
     @Ignore
     @Test
     public void business_interface_implementations_should_be_unique() {
-        allClasses().that(are(BUSINESS_INTERFACES)).as("Business Interfaces")
-                .should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
+        allClasses().that(are(BUSINESS_INTERFACES)).should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
     }
-
-    private static final DescribedPredicate<JavaClass> ANNOTATED_WITH_STATELESS =
-            new DescribedPredicate<JavaClass>("annotated with @" + Stateless.class.getSimpleName()) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.isAnnotatedWith(Stateless.class);
-                }
-            };
 
     private static final DescribedPredicate<JavaFieldAccess> ACCESS_ORIGIN_IS_OUTSIDE_OF_CONSTRUCTION =
             new DescribedPredicate<JavaFieldAccess>("access origin is outside of construction") {
@@ -66,8 +57,8 @@ public class SessionBeanRulesTest {
                 }
             };
 
-    private static final ArchCondition<JavaClass> NOT_SET_FIELDS_AFTER_CONSTRUCTION =
-            never(setFieldWhere(ACCESS_ORIGIN_IS_OUTSIDE_OF_CONSTRUCTION));
+    private static final ArchCondition<JavaClass> SET_FIELDS_AFTER_CONSTRUCTION =
+            setFieldWhere(ACCESS_ORIGIN_IS_OUTSIDE_OF_CONSTRUCTION);
 
     private static final DescribedPredicate<JavaClass> HAVE_LOCAL_BEAN_SUBCLASS = new DescribedPredicate<JavaClass>("have subclass that is a local bean") {
         @Override
@@ -89,7 +80,8 @@ public class SessionBeanRulesTest {
         }
     };
 
-    private static final DescribedPredicate<JavaClass> BUSINESS_INTERFACES = INTERFACES.and(HAVE_LOCAL_BEAN_SUBCLASS);
+    private static final DescribedPredicate<JavaClass> BUSINESS_INTERFACES = INTERFACES.and(HAVE_LOCAL_BEAN_SUBCLASS)
+            .as("business interfaces");
 
     private static final ArchCondition<JavaClass> HAVE_AN_UNIQUE_IMPLEMENTATION =
             new ArchCondition<JavaClass>("have an unique implementation") {

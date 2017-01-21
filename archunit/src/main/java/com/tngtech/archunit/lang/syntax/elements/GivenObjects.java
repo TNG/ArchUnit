@@ -7,7 +7,5 @@ import com.tngtech.archunit.lang.ArchRule;
 public interface GivenObjects<T> {
     ArchRule should(ArchCondition<T> condition);
 
-    GivenObjects<T> as(String description);
-
-    GivenObjects<T> that(DescribedPredicate<? super T> predicate);
+    GivenConjunction<T> that(DescribedPredicate<? super T> predicate);
 }

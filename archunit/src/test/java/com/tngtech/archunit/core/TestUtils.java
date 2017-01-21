@@ -4,7 +4,6 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,10 +61,11 @@ public class TestUtils {
         return folder;
     }
 
-    public static Object invoke(Method method, Object owner) {
+    public static Object invoke(Method method, Object owner, Object... params) {
         try {
-            return method.invoke(owner);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            method.setAccessible(true);
+            return method.invoke(owner, params);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

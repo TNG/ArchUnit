@@ -8,9 +8,10 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.io.Resources.readLines;
@@ -35,7 +36,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @see com.tngtech.archunit.library.dependencies.Slices.Transformer
  */
-public interface ArchRule extends CanBeEvaluated {
+public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRule> {
     void check(JavaClasses classes);
 
     class Assertions {
@@ -94,31 +95,51 @@ public interface ArchRule extends CanBeEvaluated {
 
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
-            return new ArchRule() {
-                private DescribedIterable<T> allObjects;
+            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>absent());
+        }
 
-                @Override
-                public void check(JavaClasses classes) {
-                    EvaluationResult result = evaluate(classes);
-                    Assertions.assertNoViolation(result, priority);
-                }
+        private static class SimpleArchRule<T> implements ArchRule {
+            private final Priority priority;
+            private final ClassesTransformer<T> classesTransformer;
+            private final ArchCondition<T> condition;
+            private final Optional<String> overriddenDescription;
 
-                @Override
-                public EvaluationResult evaluate(JavaClasses classes) {
-                    allObjects = classesTransformer.transform(classes);
-                    condition.init(allObjects);
-                    ConditionEvents events = new ConditionEvents();
-                    for (T object : allObjects) {
-                        condition.check(object, events);
-                    }
-                    return new EvaluationResult(this, events, priority);
-                }
+            private SimpleArchRule(Priority priority, ClassesTransformer<T> classesTransformer, ArchCondition<T> condition,
+                                   Optional<String> overriddenDescription) {
+                this.priority = priority;
+                this.classesTransformer = classesTransformer;
+                this.condition = condition;
+                this.overriddenDescription = overriddenDescription;
+            }
 
-                @Override
-                public String getDescription() {
-                    return ConfiguredMessageFormat.get().formatRuleText(allObjects, condition);
+            @Override
+            public ArchRule as(String newDescription) {
+                return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.of(newDescription));
+            }
+
+            @Override
+            public void check(JavaClasses classes) {
+                EvaluationResult result = evaluate(classes);
+                Assertions.assertNoViolation(result, priority);
+            }
+
+            @Override
+            public EvaluationResult evaluate(JavaClasses classes) {
+                Iterable<T> allObjects = classesTransformer.transform(classes);
+                condition.init(allObjects);
+                ConditionEvents events = new ConditionEvents();
+                for (T object : allObjects) {
+                    condition.check(object, events);
                 }
-            };
+                return new EvaluationResult(this, events, priority);
+            }
+
+            @Override
+            public String getDescription() {
+                return overriddenDescription.isPresent() ?
+                        overriddenDescription.get() :
+                        ConfiguredMessageFormat.get().formatRuleText(classesTransformer, condition);
+            }
         }
     }
 }

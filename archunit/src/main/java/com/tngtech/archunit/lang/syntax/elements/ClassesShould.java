@@ -1,9 +1,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-import com.tngtech.archunit.lang.ArchRule;
-
-public interface ClassesShould extends ArchRule {
+public interface ClassesShould {
     AccessSpecification access();
 
-    OnlyBeAccessedSpecification onlyBeAccessed();
+    OnlyBeAccessedSpecification<ShouldConjunction> onlyBeAccessed();
 }

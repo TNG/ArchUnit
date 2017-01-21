@@ -26,6 +26,7 @@ import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchRuleTest {
     @Rule
@@ -75,6 +76,22 @@ public class ArchRuleTest {
 
         all(classes()).should(conditionThatReportsErrors("first one", "second two"))
                 .check(javaClassesViaReflection(EvaluationResultTest.class));
+    }
+
+    @Test
+    public void description_can_be_overridden() throws IOException {
+        writeIgnoreFileWithPatterns(".*");
+
+        ArchRule ruleWithOverriddenDescription = all(classes()).should(conditionThatReportsErrors("first one", "second two"))
+                .as("rule text overridden");
+        String description = ruleWithOverriddenDescription.getDescription();
+
+        assertThat(description).isEqualTo("rule text overridden");
+
+        String failures = ruleWithOverriddenDescription
+                .evaluate(javaClassesViaReflection(EvaluationResultTest.class))
+                .getFailureReport().toString();
+        assertThat(failures).contains("rule text overridden");
     }
 
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {

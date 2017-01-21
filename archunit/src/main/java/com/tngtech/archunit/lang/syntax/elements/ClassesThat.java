@@ -1,5 +1,9 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-public interface ClassesThat<SELF extends ClassesThat<SELF>> {
-    SELF resideInPackage(String packageIdentifier);
+import java.lang.annotation.Annotation;
+
+public interface ClassesThat<CONJUNCTION extends Conjunction> {
+    CONJUNCTION resideInPackage(String packageIdentifier);
+
+    CONJUNCTION areAnnotatedWith(Class<? extends Annotation> annotationType);
 }

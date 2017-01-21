@@ -3,7 +3,6 @@ package com.tngtech.archunit.lang;
 import java.util.Collection;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.core.properties.HasDescription;
 
 class ConfiguredMessageFormat {
@@ -20,7 +19,7 @@ class ConfiguredMessageFormat {
         return priorityPrefix + message;
     }
 
-    <T> String formatRuleText(DescribedIterable<T> itemsUnderTest, ArchCondition<T> condition) {
+    <T> String formatRuleText(HasDescription itemsUnderTest, ArchCondition<T> condition) {
         return String.format("%s should %s", itemsUnderTest.getDescription(), condition.getDescription());
     }
 }

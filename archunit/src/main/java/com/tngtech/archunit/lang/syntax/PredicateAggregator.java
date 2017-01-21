@@ -21,17 +21,6 @@ class PredicateAggregator<T> {
                 Optional.of(additional));
     }
 
-    <S extends HasPredicates<T, S>> S addTo(HasPredicates<T, S> hasPredicates) {
-        return predicate.isPresent() ?
-                hasPredicates.with(predicate.get()) :
-                selfOf(hasPredicates);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <S extends HasPredicates<T, S>> S selfOf(HasPredicates<T, S> hasPredicates) {
-        return (S) hasPredicates;
-    }
-
     public boolean isPresent() {
         return predicate.isPresent();
     }

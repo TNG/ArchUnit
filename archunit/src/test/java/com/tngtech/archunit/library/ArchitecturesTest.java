@@ -50,6 +50,16 @@ public class ArchitecturesTest {
     }
 
     @Test
+    public void overridden_description_of_layered_architecture() {
+        Architectures.LayeredArchitecture architecture = layeredArchitecture()
+                .layer("One").definedBy("some.pkg..")
+                .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                .as("overridden");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden");
+    }
+
+    @Test
     public void defining_constraint_on_non_existing_layer_is_rejected() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("no layer");

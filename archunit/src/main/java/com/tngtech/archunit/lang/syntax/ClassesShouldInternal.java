@@ -10,12 +10,10 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
+import com.tngtech.archunit.lang.syntax.elements.ShouldConjunction;
 
-class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass> implements ClassesShould {
-
-    ClassesShouldInternal(ClassesShouldInternal copy) {
-        this(copy.priority, copy.classesTransformer, copy.conditions, copy.prepareCondition);
-    }
+class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
+        implements ClassesShould, ShouldConjunction {
 
     ClassesShouldInternal(Priority priority,
                           ClassesTransformer<JavaClass> classesTransformer,
@@ -36,7 +34,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass> implements 
     }
 
     @Override
-    public OnlyBeAccessedSpecification onlyBeAccessed() {
+    public OnlyBeAccessedSpecification<ShouldConjunction> onlyBeAccessed() {
         return new OnlyBeAccessedSpecificationInternal(this);
     }
 

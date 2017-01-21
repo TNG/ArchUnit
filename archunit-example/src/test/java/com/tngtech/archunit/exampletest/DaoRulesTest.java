@@ -27,14 +27,14 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
-        allClasses().that(withNameMatching(".*Dao")).as("DAOs")
-                .should(resideInAPackage("..dao..")).check(classes);
+        allClasses().that(withNameMatching(".*Dao")).should(resideInAPackage("..dao.."))
+                .as("DAOs should reside in a package '..dao..'").check(classes);
     }
 
     @Ignore
     @Test
     public void entities_must_reside_in_a_domain_package() {
-        allClasses().that(are(annotatedWith(Entity.class))).as("Entities")
-                .should(resideInAPackage("..domain..")).check(classes);
+        allClasses().that(are(annotatedWith(Entity.class))).should(resideInAPackage("..domain.."))
+                .as("Entities should reside in a package '..domain..'").check(classes);
     }
 }

@@ -45,6 +45,11 @@ class ObjectsShouldInternal<T> implements ArchRule {
         finishedRule.get().check(classes);
     }
 
+    @Override
+    public ArchRule as(String newDescription) {
+        return finishedRule.get().as(newDescription);
+    }
+
     private class FinishedRule implements Supplier<ArchRule> {
         @Override
         public ArchRule get() {
