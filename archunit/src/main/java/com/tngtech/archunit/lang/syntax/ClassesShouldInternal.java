@@ -8,6 +8,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
 import com.tngtech.archunit.lang.syntax.elements.ShouldConjunction;
@@ -36,6 +37,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public OnlyBeAccessedSpecification<ShouldConjunction> onlyBeAccessed() {
         return new OnlyBeAccessedSpecificationInternal(this);
+    }
+
+    @Override
+    public ShouldConjunction resideInAPackage(String packageIdentifier) {
+        return copyWithCondition(ArchConditions.resideInAPackage(packageIdentifier));
     }
 
     ClassesShouldInternal copyWithCondition(ArchCondition<JavaClass> condition) {

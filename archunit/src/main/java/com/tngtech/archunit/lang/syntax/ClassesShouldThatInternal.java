@@ -14,7 +14,9 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 import com.tngtech.archunit.lang.syntax.elements.ShouldConjunction;
 
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction {
     private final ClassesShouldInternal classesShould;
@@ -43,6 +45,11 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction 
     @Override
     public ShouldConjunction areAnnotatedWith(Class<? extends Annotation> annotationType) {
         return shouldWith(are(annotatedWith(annotationType)));
+    }
+
+    @Override
+    public ShouldConjunction haveNameMatching(String regex) {
+        return shouldWith(have(nameMatching(regex)));
     }
 
     @Override

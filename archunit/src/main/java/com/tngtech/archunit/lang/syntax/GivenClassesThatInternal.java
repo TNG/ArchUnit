@@ -7,7 +7,9 @@ import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class GivenClassesThatInternal implements GivenClassesThat {
     private final GivenClassesInternal givenClasses;
@@ -30,5 +32,10 @@ class GivenClassesThatInternal implements GivenClassesThat {
     @Override
     public GivenClassesConjunction areAnnotatedWith(Class<? extends Annotation> annotationType) {
         return givenClasses.with(currentPredicate.and(are(annotatedWith(annotationType))).get());
+    }
+
+    @Override
+    public GivenClassesConjunction haveNameMatching(String regex) {
+        return givenClasses.with(currentPredicate.and(have(nameMatching(regex))).get());
     }
 }

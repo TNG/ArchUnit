@@ -6,4 +6,6 @@ public interface ClassesThat<CONJUNCTION extends Conjunction> {
     CONJUNCTION resideInPackage(String packageIdentifier);
 
     CONJUNCTION areAnnotatedWith(Class<? extends Annotation> annotationType);
+
+    CONJUNCTION haveNameMatching(String regex);
 }
