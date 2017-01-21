@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.testexamples.SomeClass;
@@ -35,11 +36,30 @@ public class JavaAccessTest {
     }
 
     @Test
-    public void get_target() {
+    public void get_functions() {
         JavaAccess<?> access = simulateCall().from(javaMethodViaReflection(getClass(), "toString"), 5)
                 .to(javaMethodViaReflection(getClass(), "hashCode"));
 
+        assertThat(Get.origin().apply(access)).isEqualTo(access.getOrigin());
         assertThat(Get.target().apply(access)).isEqualTo(access.getTarget());
+    }
+
+    @Test
+    public void origin_predicate() {
+        DescribedPredicate<JavaAccess<?>> predicate =
+                JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysTrue().as("some text"));
+
+        assertThat(predicate.getDescription()).isEqualTo("origin some text");
+        assertThat(predicate.apply(anyAccess())).as("predicate matches").isTrue();
+
+        predicate = JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysFalse());
+        assertThat(predicate.apply(anyAccess())).as("predicate matches").isFalse();
+    }
+
+    private TestJavaAccess anyAccess() {
+        return javaAccessFrom(javaClassViaReflection(SomeClass.Inner.class), "foo")
+                .to(SomeEnum.class, "bar")
+                .inLineNumber(7);
     }
 
     @Override

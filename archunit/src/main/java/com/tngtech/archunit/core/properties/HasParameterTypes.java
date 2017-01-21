@@ -15,21 +15,21 @@ public interface HasParameterTypes {
     JavaClassList getParameters();
 
     class Predicates {
-        public static DescribedPredicate<HasParameterTypes> withParameterTypes(final Class<?>... types) {
-            return withParameterTypes(namesOf(types));
+        public static DescribedPredicate<HasParameterTypes> parameterTypes(final Class<?>... types) {
+            return parameterTypes(namesOf(types));
         }
 
-        public static DescribedPredicate<HasParameterTypes> withParameterTypes(final String... types) {
-            return withParameterTypes(ImmutableList.copyOf(types));
+        public static DescribedPredicate<HasParameterTypes> parameterTypes(final String... types) {
+            return parameterTypes(ImmutableList.copyOf(types));
         }
 
-        public static DescribedPredicate<HasParameterTypes> withParameterTypes(final List<String> typeNames) {
-            return withParameterTypes(equalTo(typeNames).onResultOf(GET_NAMES)
+        public static DescribedPredicate<HasParameterTypes> parameterTypes(final List<String> typeNames) {
+            return parameterTypes(equalTo(typeNames).onResultOf(GET_NAMES)
                     .as("[%s]", formatMethodParameterTypeNames(typeNames)));
         }
 
-        public static DescribedPredicate<HasParameterTypes> withParameterTypes(final DescribedPredicate<JavaClassList> predicate) {
-            return new DescribedPredicate<HasParameterTypes>("with parameter types " + predicate.getDescription()) {
+        public static DescribedPredicate<HasParameterTypes> parameterTypes(final DescribedPredicate<JavaClassList> predicate) {
+            return new DescribedPredicate<HasParameterTypes>("parameter types " + predicate.getDescription()) {
                 @Override
                 public boolean apply(HasParameterTypes input) {
                     return predicate.apply(input.getParameters());

@@ -112,8 +112,8 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     protected abstract String descriptionTemplate();
 
     public static class Predicates {
-        public static DescribedPredicate<JavaAccess<?>> withOrigin(DescribedPredicate<? super JavaCodeUnit> predicate) {
-            return predicate.onResultOf(Functions.Get.origin());
+        public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
+            return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
         }
     }
 

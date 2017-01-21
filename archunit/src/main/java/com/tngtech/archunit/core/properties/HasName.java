@@ -16,9 +16,9 @@ public interface HasName {
         /**
          * Matches names against a regular expression.
          */
-        public static DescribedPredicate<HasName> withNameMatching(final String regex) {
+        public static DescribedPredicate<HasName> nameMatching(final String regex) {
             final Pattern pattern = Pattern.compile(regex);
-            return new DescribedPredicate<HasName>(String.format("with name matching '%s'", regex)) {
+            return new DescribedPredicate<HasName>(String.format("name matching '%s'", regex)) {
                 @Override
                 public boolean apply(HasName input) {
                     return pattern.matcher(input.getName()).matches();
@@ -26,8 +26,8 @@ public interface HasName {
             };
         }
 
-        public static DescribedPredicate<HasName> withName(final String name) {
-            return new DescribedPredicate<HasName>(String.format("with name '%s'", name)) {
+        public static DescribedPredicate<HasName> name(final String name) {
+            return new DescribedPredicate<HasName>(String.format("name '%s'", name)) {
                 @Override
                 public boolean apply(HasName input) {
                     return input.getName().equals(name);

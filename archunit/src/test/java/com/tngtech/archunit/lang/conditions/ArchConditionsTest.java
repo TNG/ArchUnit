@@ -22,7 +22,7 @@ import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
@@ -68,11 +68,11 @@ public class ArchConditionsTest {
         JavaClass clazz = javaClassViaReflection(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
-        ConditionEvents events = check(never(accessClass(withNameMatching(".*Some.*"))), clazz);
+        ConditionEvents events = check(never(accessClass(nameMatching(".*Some.*"))), clazz);
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(withNameMatching(".*Wong.*"))), clazz);
+        events = check(never(accessClass(nameMatching(".*Wong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }

@@ -9,8 +9,8 @@ public interface HasModifiers {
     Set<JavaModifier> getModifiers();
 
     class Predicates {
-        public static DescribedPredicate<HasModifiers> withModifier(final JavaModifier modifier) {
-            return new DescribedPredicate<HasModifiers>("with modifier " + modifier) {
+        public static DescribedPredicate<HasModifiers> modifier(final JavaModifier modifier) {
+            return new DescribedPredicate<HasModifiers>("modifier " + modifier) {
                 @Override
                 public boolean apply(HasModifiers input) {
                     return input.getModifiers().contains(modifier);

@@ -15,7 +15,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,7 +82,7 @@ public class FieldAccessConditionTest {
     }
 
     private static DescribedPredicate<JavaFieldAccess> nameIs(final String fieldName) {
-        return fieldAccessTarget(withName(fieldName)).as("name is" + fieldName);
+        return fieldAccessTarget(name(fieldName)).as("name is" + fieldName);
     }
 
     private String messageOf(Collection<ConditionEvent> events) {

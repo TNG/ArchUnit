@@ -16,11 +16,11 @@ import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
-import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
-import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.withParameterTypes;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     private final CombinedCallPredicate predicate;
@@ -38,7 +38,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate hasName(String name) {
-        return new CallPredicate(modification.modify(predicate, withNameMatching(name).as("has name '%s'", name)), modification);
+        return new CallPredicate(modification.modify(predicate, nameMatching(name).as("has name '%s'", name)), modification);
     }
 
     public CallPredicate hasParameterTypes(Class<?>... paramTypes) {
@@ -46,9 +46,8 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     public CallPredicate hasParameterTypes(final List<Class<?>> paramTypes) {
-        DescribedPredicate<HasParameterTypes> hasParameterTypes = withParameterTypes(paramTypes.toArray(new Class[paramTypes.size()]));
-        hasParameterTypes = hasParameterTypes
-                .as(hasParameterTypes.getDescription().replace("with parameter types", "has parameter types"));
+        DescribedPredicate<HasParameterTypes> hasParameterTypes =
+                has(HasParameterTypes.Predicates.parameterTypes(paramTypes.toArray(new Class[paramTypes.size()])));
         return new CallPredicate(modification.modify(predicate, hasParameterTypes), modification);
     }
 
@@ -69,7 +68,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     }
 
     private DescribedPredicate<JavaClass> declaredInPredicateFor(Class<?> targetClass) {
-        return withType(targetClass).as("declared in " + targetClass.getSimpleName());
+        return type(targetClass).as("declared in " + targetClass.getSimpleName());
     }
 
     public CallPredicate isNotAssignableTo(Class<?> type) {
@@ -94,8 +93,8 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
 
     public <T extends HasOwner<JavaClass> & HasName & HasParameterTypes> CallPredicate matches(Class<?> owner, String methodName, List<String> paramTypeNames) {
         DescribedPredicate<T> isDeclaredIn = declaredInPredicateFor(owner).onResultOf(Get.<JavaClass>owner()).forSubType();
-        DescribedPredicate<T> hasName = withNameMatching(methodName).forSubType();
-        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(withParameterTypes(paramTypeNames))
+        DescribedPredicate<T> hasName = nameMatching(methodName).forSubType();
+        DescribedPredicate<T> isPredicate = isDeclaredIn.and(hasName).and(HasParameterTypes.Predicates.parameterTypes(paramTypeNames))
                 .as(formatMethod(owner.getName(), methodName, paramTypeNames));
 
         // FIXME: It was a bad design decision to combine origin and target inside of this predicate,

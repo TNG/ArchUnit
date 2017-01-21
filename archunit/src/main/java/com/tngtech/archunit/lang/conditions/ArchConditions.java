@@ -18,7 +18,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSet
 
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 
 public final class ArchConditions {
@@ -109,8 +109,8 @@ public final class ArchConditions {
     }
 
     private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
-        return fieldAccessTarget(With.<JavaClass>owner(withName(target.getName())))
-                .and(fieldAccessTarget(withName(fieldName)))
+        return fieldAccessTarget(With.<JavaClass>owner(name(target.getName())))
+                .and(fieldAccessTarget(name(fieldName)))
                 .as(target.getName() + "." + fieldName);
     }
 

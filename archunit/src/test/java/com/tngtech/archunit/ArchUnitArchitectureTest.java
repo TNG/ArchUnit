@@ -21,10 +21,10 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
-import static com.tngtech.archunit.core.JavaAccess.Predicates.withOrigin;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withNameMatching;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
@@ -81,7 +81,7 @@ public class ArchUnitArchitectureTest {
     }
 
     private DescribedPredicate<JavaAccess<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
-        return withOrigin(With.owner(withAnnotation(annotationType)));
+        return origin(With.owner(withAnnotation(annotationType)));
     }
 
     private DescribedPredicate<JavaClass> withAnnotation(final Class<? extends Annotation> annotationType) {
@@ -110,9 +110,9 @@ public class ArchUnitArchitectureTest {
     private ArchCondition<JavaClass> illegallyAccessReflectFunction() {
         DescribedPredicate<JavaFieldAccess> targetIsReflectFunction = fieldAccessTarget(JavaClass.class, "REFLECT");
         DescribedPredicate<JavaAccess<?>> withForbiddenOrigin =
-                not(withOrigin(withNameMatching(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
-                        .and(not(withOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
-                        .and(not(withOrigin(With.<JavaClass>owner(annotatedWith(MayResolveTypesViaReflection.class)))));
+                not(origin(nameMatching(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
+                        .and(not(origin(annotatedWith(MayResolveTypesViaReflection.class))))
+                        .and(not(origin(With.<JavaClass>owner(annotatedWith(MayResolveTypesViaReflection.class)))));
 
         return accessFieldWhere(targetIsReflectFunction.and(withForbiddenOrigin));
     }

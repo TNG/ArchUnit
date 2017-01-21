@@ -5,7 +5,7 @@ import com.tngtech.archunit.core.JavaClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
-import static com.tngtech.archunit.core.properties.HasReturnType.Predicates.withReturnType;
+import static com.tngtech.archunit.core.properties.HasReturnType.Predicates.returnType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HasReturnTypeTest {
@@ -13,31 +13,31 @@ public class HasReturnTypeTest {
     public void predicate_on_return_type_by_Class() {
         HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
 
-        assertThat(withReturnType(String.class).apply(hasReturnTypeString)).as("predicate matches").isTrue();
-        assertThat(withReturnType(Object.class).apply(hasReturnTypeString)).as("predicate matches").isFalse();
-        assertThat(withReturnType(String.class).getDescription()).isEqualTo("with return type 'java.lang.String'");
+        assertThat(returnType(String.class).apply(hasReturnTypeString)).as("predicate matches").isTrue();
+        assertThat(returnType(Object.class).apply(hasReturnTypeString)).as("predicate matches").isFalse();
+        assertThat(returnType(String.class).getDescription()).isEqualTo("return type 'java.lang.String'");
     }
 
     @Test
     public void predicate_on_return_type_by_String() {
         HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
 
-        assertThat(withReturnType(String.class.getName()).apply(hasReturnTypeString)).as("predicate matches").isTrue();
-        assertThat(withReturnType(String.class.getSimpleName()).apply(hasReturnTypeString)).as("predicate matches").isFalse();
-        assertThat(withReturnType(Object.class.getName()).apply(hasReturnTypeString)).as("predicate matches").isFalse();
+        assertThat(returnType(String.class.getName()).apply(hasReturnTypeString)).as("predicate matches").isTrue();
+        assertThat(returnType(String.class.getSimpleName()).apply(hasReturnTypeString)).as("predicate matches").isFalse();
+        assertThat(returnType(Object.class.getName()).apply(hasReturnTypeString)).as("predicate matches").isFalse();
 
-        assertThat(withReturnType(String.class.getName()).getDescription()).isEqualTo("with return type 'java.lang.String'");
+        assertThat(returnType(String.class.getName()).getDescription()).isEqualTo("return type 'java.lang.String'");
     }
 
     @Test
     public void predicate_on_return_type_by_Predicate() {
         HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
 
-        assertThat(withReturnType(DescribedPredicate.<JavaClass>alwaysTrue()).apply(hasReturnTypeString)).isTrue();
-        assertThat(withReturnType(DescribedPredicate.<JavaClass>alwaysFalse()).apply(hasReturnTypeString)).isFalse();
+        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysTrue()).apply(hasReturnTypeString)).isTrue();
+        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysFalse()).apply(hasReturnTypeString)).isFalse();
 
-        assertThat(withReturnType(DescribedPredicate.<JavaClass>alwaysFalse().as("some text")).getDescription())
-                .isEqualTo("with return type 'some text'");
+        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysFalse().as("some text")).getDescription())
+                .isEqualTo("return type 'some text'");
     }
 
     @Test

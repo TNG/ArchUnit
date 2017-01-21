@@ -15,7 +15,7 @@ import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
-import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
@@ -122,12 +122,12 @@ public class JavaClassTest {
 
     @Test
     public void predicate_withType() {
-        assertThat(withType(Parent.class).apply(javaClassViaReflection(Parent.class)))
+        assertThat(type(Parent.class).apply(javaClassViaReflection(Parent.class)))
                 .as("withType(Parent) matches JavaClass Parent").isTrue();
-        assertThat(withType(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
+        assertThat(type(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
                 .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
 
-        assertThat(withType(System.class).getDescription()).isEqualTo("with type java.lang.System");
+        assertThat(type(System.class).getDescription()).isEqualTo("type java.lang.System");
     }
 
     @Test

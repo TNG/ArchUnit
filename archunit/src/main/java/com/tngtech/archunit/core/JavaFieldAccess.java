@@ -19,7 +19,7 @@ import static com.tngtech.archunit.core.AccessTarget.FieldAccessTarget.Functions
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 
 public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     private static final Map<AccessType, String> MESSAGE_TEMPLATE = ImmutableMap.of(
@@ -106,12 +106,12 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
         public static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(String fieldOwnerName, String fieldName) {
             return fieldAccessTarget(
-                    withOwnerName(fieldOwnerName).and(withName(fieldName)).as(fieldOwnerName + "." + fieldName)
+                    ownerName(fieldOwnerName).and(name(fieldName)).as(fieldOwnerName + "." + fieldName)
             );
         }
 
-        private static DescribedPredicate<FieldAccessTarget> withOwnerName(String fieldOwnerName) {
-            return With.<JavaClass>owner(withName(fieldOwnerName)).forSubType();
+        private static DescribedPredicate<FieldAccessTarget> ownerName(String fieldOwnerName) {
+            return With.<JavaClass>owner(name(fieldOwnerName)).forSubType();
         }
 
         public static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(final DescribedPredicate<? super FieldAccessTarget> predicate) {

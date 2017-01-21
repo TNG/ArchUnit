@@ -137,7 +137,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.tngtech.archunit.core.JavaClass.Predicates.withType;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
@@ -1520,7 +1520,7 @@ public class ClassFileImporterTest {
                 "jar".equals(urls.iterator().next().getProtocol()));
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls)
-                .that(DescribedPredicate.not(withType(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
+                .that(DescribedPredicate.not(type(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
 
         assertThat(classes).as("Number of classes at the given URLs").hasSize(2);
     }

@@ -6,17 +6,17 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaModifier;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.withModifier;
+import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.modifier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HasModifiersTest {
     @Test
     public void modifier_predicate() {
-        assertThat(withModifier(JavaModifier.PRIVATE).apply(hasModifiers(JavaModifier.PRIVATE, JavaModifier.STATIC)))
+        assertThat(modifier(JavaModifier.PRIVATE).apply(hasModifiers(JavaModifier.PRIVATE, JavaModifier.STATIC)))
                 .as("Predicate matches").isTrue();
-        assertThat(withModifier(JavaModifier.PRIVATE).apply(hasModifiers(JavaModifier.PUBLIC, JavaModifier.STATIC)))
+        assertThat(modifier(JavaModifier.PRIVATE).apply(hasModifiers(JavaModifier.PUBLIC, JavaModifier.STATIC)))
                 .as("Predicate matches").isFalse();
-        assertThat(withModifier(JavaModifier.PRIVATE).getDescription()).isEqualTo("with modifier PRIVATE");
+        assertThat(modifier(JavaModifier.PRIVATE).getDescription()).isEqualTo("modifier PRIVATE");
     }
 
     private static HasModifiers hasModifiers(final JavaModifier... modifiers) {

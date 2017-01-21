@@ -539,8 +539,8 @@ public class JavaClass implements HasName, HasAnnotations {
             }
         };
 
-        public static DescribedPredicate<JavaClass> withType(final Class<?> type) {
-            return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("with type " + type.getName());
+        public static DescribedPredicate<JavaClass> type(final Class<?> type) {
+            return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }
 
         public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {

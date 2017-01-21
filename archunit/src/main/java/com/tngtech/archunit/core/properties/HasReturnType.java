@@ -4,23 +4,23 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 
-import static com.tngtech.archunit.core.properties.HasName.Predicates.withName;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasReturnType.Functions.GET_RETURN_TYPE;
 
 public interface HasReturnType {
     JavaClass getReturnType();
 
     class Predicates {
-        public static DescribedPredicate<HasReturnType> withReturnType(DescribedPredicate<? super JavaClass> predicate) {
-            return predicate.onResultOf(GET_RETURN_TYPE).as("with return type '%s'", predicate.getDescription());
+        public static DescribedPredicate<HasReturnType> returnType(DescribedPredicate<? super JavaClass> predicate) {
+            return predicate.onResultOf(GET_RETURN_TYPE).as("return type '%s'", predicate.getDescription());
         }
 
-        public static DescribedPredicate<HasReturnType> withReturnType(Class<?> returnType) {
-            return withReturnType(returnType.getName());
+        public static DescribedPredicate<HasReturnType> returnType(Class<?> returnType) {
+            return returnType(returnType.getName());
         }
 
-        public static DescribedPredicate<HasReturnType> withReturnType(String returnTypeName) {
-            return withReturnType(withName(returnTypeName)).as("with return type '%s'", returnTypeName);
+        public static DescribedPredicate<HasReturnType> returnType(String returnTypeName) {
+            return returnType(name(returnTypeName)).as("return type '%s'", returnTypeName);
         }
     }
 
