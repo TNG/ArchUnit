@@ -32,6 +32,10 @@ public abstract class ArchCondition<T> {
         return new AndCondition<>(this, condition);
     }
 
+    public ArchCondition<T> or(ArchCondition<T> condition) {
+        return new OrCondition<>(this, condition);
+    }
+
     public String getDescription() {
         return description;
     }
@@ -165,6 +169,17 @@ public abstract class ArchCondition<T> {
         @Override
         public void check(T item, ConditionEvents events) {
             events.add(new AndConditionEvent(evaluateConditions(item)));
+        }
+    }
+
+    private static class OrCondition<T> extends JoinCondition<T> {
+        private OrCondition(ArchCondition<T> first, ArchCondition<T> second) {
+            super("or", ImmutableList.of(first, second));
+        }
+
+        @Override
+        public void check(T item, ConditionEvents events) {
+            events.add(new OrConditionEvent(evaluateConditions(item)));
         }
     }
 
