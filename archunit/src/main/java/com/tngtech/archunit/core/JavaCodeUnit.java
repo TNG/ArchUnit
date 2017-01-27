@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
@@ -102,6 +103,17 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
             result.add(parameter.reflect());
         }
         return result.toArray(new Class<?>[result.size()]);
+    }
+
+    public static class Predicates {
+        public static DescribedPredicate<JavaCodeUnit> constructor() {
+            return new DescribedPredicate<JavaCodeUnit>("constructor") {
+                @Override
+                public boolean apply(JavaCodeUnit input) {
+                    return input.isConstructor();
+                }
+            };
+        }
     }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {

@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
+import com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules;
 import com.tngtech.archunit.example.SecondBeanImplementingSomeBusinessInterface;
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.exampletest.SessionBeanRulesTest;
@@ -17,6 +18,7 @@ import org.junit.Test;
 
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
+import static com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules.init;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
@@ -29,7 +31,10 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
         expectedViolation.ofRule("No Stateless Session Bean should have state")
                 .byAccess(from(ClassViolatingSessionBeanRules.class, "setState", String.class)
                         .setting().field(ClassViolatingSessionBeanRules.class, "state")
-                        .inLine(25));
+                        .inLine(25))
+                .byAccess(from(OtherClassViolatingSessionBeanRules.class, init)
+                        .setting().field(ClassViolatingSessionBeanRules.class, "state")
+                        .inLine(13));
 
         super.stateless_session_beans_should_not_have_state();
     }

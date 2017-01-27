@@ -3,8 +3,10 @@ package com.tngtech.archunit.lang.syntax;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
@@ -42,6 +44,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ShouldConjunction resideInAPackage(String packageIdentifier) {
         return copyWithCondition(ArchConditions.resideInAPackage(packageIdentifier));
+    }
+
+    @Override
+    public ShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return copyWithCondition(ArchConditions.setFieldWhere(predicate));
     }
 
     ClassesShouldInternal copyWithCondition(ArchCondition<JavaClass> condition) {

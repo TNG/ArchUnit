@@ -10,7 +10,7 @@ public class ClassViolatingSessionBeanRules implements SomeBusinessInterface {
     public static final String CONSTANT = "CONSTANT";
     private final String CONSTANT_FROM_CONSTRUCTOR;
     private String setOnConstruction;
-    private String state;
+    String state;
 
     public ClassViolatingSessionBeanRules() {
         CONSTANT_FROM_CONSTRUCTOR = "CONSTANT_FROM_CONSTRUCTOR";

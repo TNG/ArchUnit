@@ -115,6 +115,15 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
             return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
         }
+
+        public static DescribedPredicate<JavaAccess<?>> originOwnerEqualsTargetOwner() {
+            return new DescribedPredicate<JavaAccess<?>>("origin owner equals target owner") {
+                @Override
+                public boolean apply(JavaAccess<?> input) {
+                    return input.getOriginOwner().equals(input.getTargetOwner());
+                }
+            };
+        }
     }
 
     public static class Functions {
