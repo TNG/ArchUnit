@@ -31,7 +31,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     }
 
     static void expectViolationByWritingToStandardStream(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("classes should not access standard streams")
+        expectedViolation.ofRule("no classes should access standard streams")
                 .byAccess(from(ClassViolatingCodingRules.class, "printToStandardStream")
                         .accessing().field(System.class, "out")
                         .inLine(9))
@@ -55,7 +55,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     }
 
     static void expectViolationByThrowingGenericException(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("classes should not throw generic exceptions")
+        expectedViolation.ofRule("no classes should throw generic exceptions")
                 .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
                         .inLine(16))
@@ -79,7 +79,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     }
 
     public static void expectViolationByUsingJavaUtilLogging(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("classes should not use java.util.logging")
+        expectedViolation.ofRule("no classes should use java.util.logging")
                 .byAccess(from(ClassViolatingCodingRules.class, "<clinit>")
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(6));

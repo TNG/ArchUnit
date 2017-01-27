@@ -6,11 +6,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
-import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS;
-import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS;
-import static com.tngtech.archunit.library.GeneralCodingRules.CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING;
-import static com.tngtech.archunit.library.GeneralCodingRules.NOT_ACCESS_STANDARD_STREAMS;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.library.GeneralCodingRules.ACCESS_STANDARD_STREAMS;
+import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
+import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS;
+import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
 public class CodingRulesTest {
     private JavaClasses classes;
@@ -23,24 +23,24 @@ public class CodingRulesTest {
     @Ignore
     @Test
     public void classes_should_not_access_standard_streams_defined_by_hand() {
-        allClasses().should(NOT_ACCESS_STANDARD_STREAMS).check(classes);
+        noClasses().should(ACCESS_STANDARD_STREAMS).check(classes);
     }
 
     @Ignore
     @Test
     public void classes_should_not_access_standard_streams_from_library() {
-        CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS.check(classes);
+        NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS.check(classes);
     }
 
     @Ignore
     @Test
     public void classes_should_not_throw_generic_exceptions() {
-        CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS.check(classes);
+        NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS.check(classes);
     }
 
     @Ignore
     @Test
     public void classes_should_not_use_java_util_logging() {
-        CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING.check(classes);
+        NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING.check(classes);
     }
 }

@@ -9,22 +9,20 @@ import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeRes
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class GeneralCodingRules {
-    public static final ArchCondition<JavaClass> NOT_ACCESS_STANDARD_STREAMS = notAccessStandardStreams();
+    public static final ArchCondition<JavaClass> ACCESS_STANDARD_STREAMS = accessStandardStreams();
 
-    private static ArchCondition<JavaClass> notAccessStandardStreams() {
-        ArchCondition<JavaClass> noAccessToSystemOut = never(accessField(System.class, "out"));
-        ArchCondition<JavaClass> noAccessToSystemErr = never(accessField(System.class, "err"));
-        ArchCondition<JavaClass> noCallOfPrintStackTrace = never(callMethod("printStackTrace").inHierarchyOf(Throwable.class));
+    private static ArchCondition<JavaClass> accessStandardStreams() {
+        ArchCondition<JavaClass> accessToSystemOut = accessField(System.class, "out");
+        ArchCondition<JavaClass> accessToSystemErr = accessField(System.class, "err");
+        ArchCondition<JavaClass> callOfPrintStackTrace = callMethod("printStackTrace").inHierarchyOf(Throwable.class);
 
-        return noAccessToSystemOut.and(noAccessToSystemErr).and(noCallOfPrintStackTrace).as("not access standard streams");
+        return accessToSystemOut.or(accessToSystemErr).or(callOfPrintStackTrace).as("access standard streams");
     }
 
     /**
@@ -34,38 +32,39 @@ public class GeneralCodingRules {
      * <li>Writing to the console is synchronized and can lead to bottle necks</li>
      * </ul>
      */
-    public static final ArchRule CLASSES_SHOULD_NOT_ACCESS_STANDARD_STREAMS =
-            all(classes()).should(NOT_ACCESS_STANDARD_STREAMS);
+    public static final ArchRule NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS =
+            noClasses().should(ACCESS_STANDARD_STREAMS);
 
-    public static final ArchCondition<JavaClass> NOT_THROW_GENERIC_EXCEPTIONS = noGenericExceptions();
+    public static final ArchCondition<JavaClass> THROW_GENERIC_EXCEPTIONS = throwGenericExceptions();
 
-    private static ArchCondition<JavaClass> noGenericExceptions() {
-        ArchCondition<JavaClass> noCreationOfThrowable =
-                never(callMethodWhere(callTarget().isDeclaredIn(Throwable.class).hasName("<init>")));
-        ArchCondition<JavaClass> noCreationOfException =
-                never(callMethodWhere(callTarget().isDeclaredIn(Exception.class).hasName("<init>")
-                        .and(not(callOrigin().isAssignableTo(Exception.class)))));
-        ArchCondition<JavaClass> noCreationOfRuntimeException =
-                never(callMethodWhere(callTarget().isDeclaredIn(RuntimeException.class).hasName("<init>")
-                        .and(not(callOrigin().isAssignableTo(RuntimeException.class)))));
+    private static ArchCondition<JavaClass> throwGenericExceptions() {
+        ArchCondition<JavaClass> creationOfThrowable =
+                callMethodWhere(callTarget().isDeclaredIn(Throwable.class).isConstructor());
+        ArchCondition<JavaClass> creationOfException =
+                callMethodWhere(callTarget().isDeclaredIn(Exception.class).isConstructor()
+                        .and(not(callOrigin().isAssignableTo(Exception.class))));
+        ArchCondition<JavaClass> creationOfRuntimeException =
+                callMethodWhere(callTarget().isDeclaredIn(RuntimeException.class).isConstructor()
+                        .and(not(callOrigin().isAssignableTo(RuntimeException.class))));
 
-        return noCreationOfThrowable.and(noCreationOfException).and(noCreationOfRuntimeException).as("not throw generic exceptions");
+        return creationOfThrowable.or(creationOfException).or(creationOfRuntimeException).as("throw generic exceptions");
     }
 
     /**
      * It is generally good practice to throw specific exceptions like {@link java.lang.IllegalArgumentException}
      * or custom exceptions, instead of throwing generic exceptions like {@link java.lang.RuntimeException}.
      */
-    public static final ArchRule CLASSES_SHOULD_NOT_THROW_GENERIC_EXCEPTIONS =
-            all(classes()).should(NOT_THROW_GENERIC_EXCEPTIONS);
+    public static final ArchRule NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS =
+            noClasses().should(THROW_GENERIC_EXCEPTIONS);
 
-    public static final ArchCondition<JavaClass> NOT_SET_JAVA_UTIL_LOGGING_FIELDS =
-            never(setFieldWhere(targetTypeResidesInPackage("java.util.logging.."))).as("not use java.util.logging");
+    public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
+            setFieldWhere(targetTypeResidesInPackage("java.util.logging.."))
+                    .as("use java.util.logging");
 
     /**
      * Most projects use the more powerful LOG4J or Logback instead of java.util.logging, often hidden behind
      * SLF4J. In this case it's important to ensure consistent use of the agreed logging framework.
      */
-    public static final ArchRule CLASSES_SHOULD_NOT_USE_JAVA_UTIL_LOGGING =
-            all(classes()).should(NOT_SET_JAVA_UTIL_LOGGING_FIELDS);
+    public static final ArchRule NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING =
+            noClasses().should(USE_JAVA_UTIL_LOGGING);
 }
