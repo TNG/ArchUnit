@@ -147,7 +147,7 @@ public class ArchRuleTest {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 for (String message : messages) {
-                    events.add(ConditionEvent.violated(message));
+                    events.add(SimpleConditionEvent.violated(message));
                 }
             }
         };
@@ -157,7 +157,7 @@ public class ArchRuleTest {
             new ArchCondition<JavaClass>("always be violated") {
                 @Override
                 public void check(JavaClass item, ConditionEvents events) {
-                    events.add(new ConditionEvent(false, "I'm violated"));
+                    events.add(new SimpleConditionEvent(false, "I'm violated"));
                 }
             };
 }

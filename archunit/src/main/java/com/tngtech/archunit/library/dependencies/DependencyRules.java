@@ -8,8 +8,8 @@ import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 
@@ -28,7 +28,7 @@ class DependencyRules {
             public void check(Slice slice, ConditionEvents events) {
                 Slices dependencySlices = inputTransformer.transform(slice.getDependencies());
                 for (Slice dependencySlice : dependencySlices) {
-                    events.add(ConditionEvent.violated("%s calls %s:%n%s",
+                    events.add(SimpleConditionEvent.violated("%s calls %s:%n%s",
                             slice.getDescription(), dependencySlice.getDescription(), joinDependencies(slice, dependencySlice)));
                 }
             }

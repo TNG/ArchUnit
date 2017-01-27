@@ -2,8 +2,8 @@ package com.tngtech.archunit.junit;
 
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.runners.model.InitializationError;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
@@ -12,7 +12,7 @@ public class ArchUnitRunnerTestUtils {
     static final ArchCondition<JavaClass> BE_SATISFIED = new ArchCondition<JavaClass>("satisfy something") {
         @Override
         public void check(JavaClass item, ConditionEvents events) {
-            events.add(ConditionEvent.satisfied("I'm always satisfied"));
+            events.add(SimpleConditionEvent.satisfied("I'm always satisfied"));
         }
     };
 

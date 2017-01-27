@@ -24,6 +24,7 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
@@ -144,7 +145,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             Map<String, Edge<Slice, Dependency>> descriptionsToEdges = sortEdgesByDescription(cycle);
             String description = createDescription(descriptionsToEdges);
             String details = createDetails(descriptionsToEdges);
-            return new ConditionEvent(false, MESSAGE_TEMPLATE, description, details);
+            return new SimpleConditionEvent(false, MESSAGE_TEMPLATE, description, details);
         }
 
         private Map<String, Edge<Slice, Dependency>> sortEdgesByDescription(Cycle<Slice, Dependency> cycle) {

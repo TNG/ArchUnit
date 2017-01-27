@@ -5,6 +5,7 @@ import java.util.Collection;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
@@ -30,7 +31,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         return getClass().getSimpleName() + "{condition=" + condition + "}";
     }
 
-    private static class OnlyConditionEvent extends ConditionEvent {
+    private static class OnlyConditionEvent extends SimpleConditionEvent {
         private Collection<ConditionEvent> allowed;
         private Collection<ConditionEvent> violating;
 

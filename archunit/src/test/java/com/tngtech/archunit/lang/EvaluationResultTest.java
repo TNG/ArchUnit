@@ -24,7 +24,7 @@ public class EvaluationResultTest {
     private ConditionEvents events(String... messages) {
         ConditionEvents result = new ConditionEvents();
         for (String message : messages) {
-            result.add(new ConditionEvent(false, message));
+            result.add(new SimpleConditionEvent(false, message));
         }
         return result;
     }

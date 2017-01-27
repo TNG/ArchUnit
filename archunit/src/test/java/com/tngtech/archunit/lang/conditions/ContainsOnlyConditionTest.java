@@ -6,6 +6,7 @@ import java.util.List;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
@@ -21,7 +22,7 @@ public class ContainsOnlyConditionTest {
         @Override
         public void check(Object item, ConditionEvents events) {
             boolean satisfied = item instanceof Serializable;
-            events.add(new ConditionEvent(satisfied, isSerializableMessageFor(item.getClass())));
+            events.add(new SimpleConditionEvent(satisfied, isSerializableMessageFor(item.getClass())));
         }
     };
 

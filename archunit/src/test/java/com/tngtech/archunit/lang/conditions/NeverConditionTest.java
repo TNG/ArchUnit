@@ -6,6 +6,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInit;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.ArchConditionTest.someCondition;
@@ -16,9 +17,9 @@ public class NeverConditionTest {
     public static final String ORIGINALLY_MISMATCH = "originally mismatch";
     public static final String ORIGINALLY_NO_MISMATCH = "originally no mismatch";
 
-    public static final ConditionEvent ORIGINALLY_VIOLATING_EVENT = new ConditionEvent(false, ORIGINALLY_MISMATCH);
+    public static final ConditionEvent ORIGINALLY_VIOLATING_EVENT = new SimpleConditionEvent(false, ORIGINALLY_MISMATCH);
 
-    public static final ConditionEvent ORIGINALLY_ALLOWED_EVENT = new ConditionEvent(true, ORIGINALLY_NO_MISMATCH);
+    public static final ConditionEvent ORIGINALLY_ALLOWED_EVENT = new SimpleConditionEvent(true, ORIGINALLY_NO_MISMATCH);
 
     public static final ArchCondition<Object> ONE_VIOLATED_ONE_SATISFIED = new ArchCondition<Object>("irrelevant") {
         @Override

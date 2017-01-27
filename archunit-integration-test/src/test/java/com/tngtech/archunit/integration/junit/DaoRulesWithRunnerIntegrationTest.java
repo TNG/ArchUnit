@@ -17,7 +17,7 @@ import static com.tngtech.archunit.junit.ExpectedViolation.from;
 @AnalyseClasses(packages = "com.tngtech.archunit.example")
 public class DaoRulesWithRunnerIntegrationTest {
     private static final String ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT =
-            "Only DAOs may access the " + EntityManager.class.getSimpleName();
+            "Only DAOs may use the " + EntityManager.class.getSimpleName();
 
     @ArchTest
     @ExpectedViolationFrom(location = DaoRulesWithRunnerIntegrationTest.class, method = "expectViolationByIllegalUseOfEntityManager")

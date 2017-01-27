@@ -1,7 +1,10 @@
 package com.tngtech.archunit.lang;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
+import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Collections.singleton;
 
@@ -17,14 +20,21 @@ public class ArchConditionTest {
 
     @Test
     public void and_checks_all_conditions() {
-        ArchCondition<Integer> greaterThanTenAndTwenty = greaterThan(10).and(greaterThan(20));
+        ArchCondition<Integer> greaterThanTenFourteenAndTwenty = greaterThan(10).and(greaterThan(14, 20));
 
         ConditionEvents events = new ConditionEvents();
-        greaterThanTenAndTwenty.check(15, events);
+        greaterThanTenFourteenAndTwenty.check(15, events);
         assertThat(events).containViolations("15 is not greater than 20");
 
         events = new ConditionEvents();
-        greaterThanTenAndTwenty.check(21, events);
+        greaterThanTenFourteenAndTwenty.check(5, events);
+        assertThat(events).containViolations(
+                "5 is not greater than 10",
+                "5 is not greater than 14",
+                "5 is not greater than 20");
+
+        events = new ConditionEvents();
+        greaterThanTenFourteenAndTwenty.check(21, events);
         assertThat(events).containNoViolation();
     }
 
@@ -47,11 +57,39 @@ public class ArchConditionTest {
         assertThat(one.and(two).getDescription()).isEqualTo("one and two");
     }
 
-    private ArchCondition<Integer> greaterThan(final int number) {
-        return new ArchCondition<Integer>("greater than " + number) {
+    @Test
+    public void never_and() {
+        ArchCondition<Integer> condition = never(greaterThan(3, 9).and(greaterThan(5, 7)));
+
+        ConditionEvents events = new ConditionEvents();
+        condition.check(4, events);
+        assertThat(events.containViolation()).as("Events contain violation").isFalse();
+
+        events = new ConditionEvents();
+        condition.check(6, events);
+        assertThat(events.containViolation()).as("Events contain violation").isTrue();
+    }
+
+    @Test
+    public void double_never_and() {
+        ArchCondition<Integer> condition = never(never(greaterThan(3, 9).and(greaterThan(5, 7))));
+
+        ConditionEvents events = new ConditionEvents();
+        condition.check(9, events);
+        assertThat(events.containViolation()).as("Events contain violation").isTrue();
+
+        events = new ConditionEvents();
+        condition.check(10, events);
+        assertThat(events.containViolation()).as("Events contain violation").isFalse();
+    }
+
+    private ArchCondition<Integer> greaterThan(final int... numbers) {
+        return new ArchCondition<Integer>("greater than " + Arrays.toString(numbers)) {
             @Override
             public void check(final Integer item, ConditionEvents events) {
-                events.add(new GreaterThanEvent(item, number));
+                for (int number : numbers) {
+                    events.add(new GreaterThanEvent(item, number));
+                }
             }
         };
     }
@@ -60,9 +98,11 @@ public class ArchConditionTest {
         return new ConditionWithInit(description);
     }
 
-    private static class GreaterThanEvent extends ConditionEvent {
-        public GreaterThanEvent(Integer item, int number) {
-            super(item > number, String.format("%d is not greater than %d", item, number));
+    private static class GreaterThanEvent extends SimpleConditionEvent {
+        GreaterThanEvent(int item, int number) {
+            super(item > number, String.format(
+                    "%d is%s greater than %d",
+                    item, item <= number ? " not" : "", number));
         }
     }
 

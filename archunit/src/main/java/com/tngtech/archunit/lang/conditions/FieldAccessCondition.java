@@ -7,8 +7,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
@@ -35,7 +35,7 @@ class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
     @Override
     public void check(JavaFieldAccess item, ConditionEvents events) {
         String message = item.getDescriptionWithTemplate(descriptionTemplate);
-        events.add(new ConditionEvent(fieldAccessIdentifier.apply(item), message));
+        events.add(new SimpleConditionEvent(fieldAccessIdentifier.apply(item), message));
     }
 
     static class FieldGetAccessCondition extends FieldAccessCondition {

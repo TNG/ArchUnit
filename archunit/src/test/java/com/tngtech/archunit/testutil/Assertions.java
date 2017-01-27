@@ -409,7 +409,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(actual.containViolation()).as("Condition is violated").isTrue();
 
             List<String> expected = concat(violation, additional);
-            if (!sorted(violatingMessages()).equals(sorted(expected))) {
+            if (!sorted(messagesOf(actual.getViolating())).equals(sorted(expected))) {
                 failWithMessage("Expected %s to contain only violations %s", actual, expected);
             }
         }
@@ -421,10 +421,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             if (!sorted(messagesOf(actual.getAllowed())).equals(sorted(expected))) {
                 failWithMessage("Expected %s to contain only allowed events %s", actual, expected);
             }
-        }
-
-        private List<String> violatingMessages() {
-            return messagesOf(actual.getViolating());
         }
 
         private List<String> messagesOf(Collection<ConditionEvent> events) {
@@ -455,14 +451,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         public void containNoViolation() {
             assertThat(actual.containViolation()).as("Condition is violated").isFalse();
-            assertThat(violatingMessages()).as("No violating messages").isEmpty();
+            assertThat(messagesOf(actual.getViolating())).as("Violating messages").isEmpty();
         }
 
         public void haveOneViolationMessageContaining(Set<String> messageParts) {
-            assertThat(violatingMessages()).as("Number of violations").hasSize(1);
-            AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(violatingMessages()));
+            assertThat(messagesOf(actual.getViolating())).as("Number of violations").hasSize(1);
+            AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(messagesOf(actual.getViolating())));
             for (String part : messageParts) {
-                assertion.as("violation message containing " + part).contains(part);
+                assertion.as("Violation message").contains(part);
             }
         }
     }

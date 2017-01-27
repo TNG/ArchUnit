@@ -15,8 +15,8 @@ import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class SessionBeanRulesTest {
             new ArchCondition<JavaClass>("have an unique implementation") {
                 @Override
                 public void check(JavaClass businessInterface, ConditionEvents events) {
-                    events.add(new ConditionEvent(businessInterface.getAllSubClasses().size() <= 1, "%s is implemented by %s",
+                    events.add(new SimpleConditionEvent(businessInterface.getAllSubClasses().size() <= 1, "%s is implemented by %s",
                             businessInterface.getSimpleName(), joinNamesOf(businessInterface.getAllSubClasses())));
                 }
 

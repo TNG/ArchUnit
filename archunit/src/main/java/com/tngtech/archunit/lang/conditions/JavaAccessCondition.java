@@ -3,8 +3,8 @@ package com.tngtech.archunit.lang.conditions;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class JavaAccessCondition extends ArchCondition<JavaAccess<?>> {
     private final DescribedPredicate<JavaAccess<?>> predicate;
@@ -16,6 +16,6 @@ class JavaAccessCondition extends ArchCondition<JavaAccess<?>> {
 
     @Override
     public void check(JavaAccess<?> item, ConditionEvents events) {
-        events.add(new ConditionEvent(predicate.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent(predicate.apply(item), item.getDescription()));
     }
 }
