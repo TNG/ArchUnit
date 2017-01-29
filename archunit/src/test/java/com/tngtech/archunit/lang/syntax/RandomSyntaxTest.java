@@ -13,6 +13,7 @@ import java.util.Set;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -22,7 +23,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,25 +36,30 @@ import static com.tngtech.archunit.core.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class RandomSyntaxTest {
     private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTest.class);
     private static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
-    @Test
-    public void build_random_rules() {
+    @DataProvider
+    public static List<List<?>> random_rules() {
+        List<List<?>> result = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            testRandomRule();
+            SyntaxSpec spec = new SyntaxSpec();
+            result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
         }
+        return result;
     }
 
-    private void testRandomRule() {
-        SyntaxSpec spec = new SyntaxSpec();
-        ArchRule archRule = spec.getActualArchRule();
+    @Test
+    @UseDataProvider("random_rules")
+    public void rule_has_expected_description_and_can_be_evaluated_without_error(DescribedRule describedRule, String expectedDescription) {
+        ArchRule archRule = describedRule.archRule;
 
         assertThat(archRule.getDescription())
                 .as("description of constructed ArchRule")
-                .isEqualTo(spec.getExpectedDescription());
+                .isEqualTo(expectedDescription);
 
         archRule.evaluate(JavaClasses.of(Collections.<JavaClass>emptySet()));
         archRule.check(JavaClasses.of(Collections.<JavaClass>emptySet()));
@@ -92,8 +102,21 @@ public class RandomSyntaxTest {
                     .replace("dont", "don't");
         }
 
-        ArchRule getActualArchRule() {
-            return actualArchRule;
+        DescribedRule getActualArchRule() {
+            return new DescribedRule(actualArchRule);
+        }
+    }
+
+    private static class DescribedRule {
+        private final ArchRule archRule;
+
+        private DescribedRule(ArchRule archRule) {
+            this.archRule = archRule;
+        }
+
+        @Override
+        public String toString() {
+            return "RULE[" + archRule.getDescription() + "]";
         }
     }
 
