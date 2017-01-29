@@ -199,7 +199,7 @@ public class ArchConditionTest {
         }
     }
 
-    private static abstract class ConditionCombination {
+    private abstract static class ConditionCombination {
         private final String joinWord;
 
         ConditionCombination(String joinWord) {

@@ -2,8 +2,8 @@ package com.tngtech.archunit.core.properties;
 
 import java.util.regex.Pattern;
 
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 
 public interface HasName {
     String getName();
@@ -37,7 +37,7 @@ public interface HasName {
     }
 
     class Functions {
-        public static final Function<HasName, String> GET_NAME = new Function<HasName, String>() {
+        public static final ChainableFunction<HasName, String> GET_NAME = new ChainableFunction<HasName, String>() {
             @Override
             public String apply(HasName input) {
                 return input.getName();

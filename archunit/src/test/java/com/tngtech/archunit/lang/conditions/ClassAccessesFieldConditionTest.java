@@ -100,7 +100,7 @@ public class ClassAccessesFieldConditionTest {
     static class NegativeTestCase extends TestCase<NegativeTestCase> {
     }
 
-    static abstract class TestCase<SELF extends TestCase> {
+    abstract static class TestCase<SELF extends TestCase> {
         AccessInfo accessInfo;
         ArchCondition<JavaClass> condition;
 

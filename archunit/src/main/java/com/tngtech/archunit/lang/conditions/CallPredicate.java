@@ -124,7 +124,7 @@ public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
         return predicate.or(DescribedPredicate.<T>alwaysTrue());
     }
 
-    private static abstract class Modification<T extends HasName & HasOwner<JavaClass> & HasParameterTypes> {
+    private abstract static class Modification<T extends HasName & HasOwner<JavaClass> & HasParameterTypes> {
         abstract CombinedCallPredicate modify(CombinedCallPredicate predicate, DescribedPredicate<? super T> addition);
 
         private static Modification<CodeUnitCallTarget> target() {

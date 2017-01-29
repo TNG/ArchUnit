@@ -8,7 +8,9 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasAnnotations;
 import com.tngtech.archunit.core.properties.HasDescriptor;
 import com.tngtech.archunit.core.properties.HasModifiers;
@@ -68,7 +70,17 @@ public abstract class JavaMember implements
 
     @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> type) {
-        return annotations.get().containsKey(type.getName());
+        return isAnnotatedWith(type.getName());
+    }
+
+    @Override
+    public boolean isAnnotatedWith(String typeName) {
+        return annotations.get().containsKey(typeName);
+    }
+
+    @Override
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
     @Override

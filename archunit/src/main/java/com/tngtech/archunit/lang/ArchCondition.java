@@ -54,7 +54,7 @@ public abstract class ArchCondition<T> {
         };
     }
 
-    private static abstract class JoinCondition<T> extends ArchCondition<T> {
+    private abstract static class JoinCondition<T> extends ArchCondition<T> {
         private final Collection<ArchCondition<T>> conditions;
 
         private JoinCondition(String infix, Collection<ArchCondition<T>> conditions) {
@@ -119,7 +119,7 @@ public abstract class ArchCondition<T> {
         }
     }
 
-    private static abstract class JoinConditionEvent implements ConditionEvent {
+    private abstract static class JoinConditionEvent implements ConditionEvent {
         final List<ConditionWithEvents> evaluatedConditions;
 
         JoinConditionEvent(List<ConditionWithEvents> evaluatedConditions) {

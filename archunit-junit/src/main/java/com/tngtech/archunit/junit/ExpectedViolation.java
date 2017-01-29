@@ -154,7 +154,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    private static abstract class ExpectedAccessViolationBuilder {
+    private abstract static class ExpectedAccessViolationBuilder {
         protected final Origin origin;
         protected final Target target;
 
@@ -199,7 +199,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static abstract class ExpectedAccess {
+    public abstract static class ExpectedAccess {
         private final Origin origin;
         private final Target target;
         private final int lineNumber;
@@ -232,7 +232,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    private static abstract class Member {
+    private abstract static class Member {
         private final Class<?> clazz;
         private final String memberName;
         protected final List<String> params = new ArrayList<>();
@@ -266,7 +266,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    private static abstract class Target extends Member {
+    private abstract static class Target extends Member {
         private Target(Class<?> clazz, String memberName, Class<?>[] paramTypes) {
             super(clazz, memberName, paramTypes);
         }

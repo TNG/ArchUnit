@@ -15,18 +15,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasAnnotations;
+import com.tngtech.archunit.core.properties.HasModifiers;
 import com.tngtech.archunit.core.properties.HasName;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.JavaClass.Functions.SIMPLE_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 
-public class JavaClass implements HasName, HasAnnotations {
+public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
     private final JavaType javaType;
     private final boolean isInterface;
@@ -76,13 +80,24 @@ public class JavaClass implements HasName, HasAnnotations {
         return isInterface;
     }
 
+    @Override
     public Set<JavaModifier> getModifiers() {
         return modifiers;
     }
 
     @Override
-    public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-        return annotations.get().containsKey(annotation.getName());
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return isAnnotatedWith(annotationType.getName());
+    }
+
+    @Override
+    public boolean isAnnotatedWith(String annotationTypeName) {
+        return annotations.get().containsKey(annotationTypeName);
+    }
+
+    @Override
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
     /**
@@ -409,23 +424,38 @@ public class JavaClass implements HasName, HasAnnotations {
     }
 
     public boolean isAssignableFrom(Class<?> type) {
+        return isAssignableFrom(type.getName());
+    }
+
+    public boolean isAssignableFrom(String typeName) {
+        return isAssignableFrom(GET_NAME.is(equalTo(typeName)));
+    }
+
+    public boolean isAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
                 .add(this).addAll(getAllSubClasses()).build();
 
-        for (JavaClass javaClass : possibleTargets) {
-            if (javaClass.getName().equals(type.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return anyMatches(possibleTargets, predicate);
     }
 
     public boolean isAssignableTo(Class<?> type) {
+        return isAssignableTo(type.getName());
+    }
+
+    public boolean isAssignableTo(final String typeName) {
+        return isAssignableTo(GET_NAME.is(equalTo(typeName)));
+    }
+
+    public boolean isAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
                 .addAll(getClassHierarchy()).addAll(getAllInterfaces()).build();
 
+        return anyMatches(possibleTargets, predicate);
+    }
+
+    private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
         for (JavaClass javaClass : possibleTargets) {
-            if (javaClass.getName().equals(type.getName())) {
+            if (predicate.apply(javaClass)) {
                 return true;
             }
         }
@@ -531,6 +561,15 @@ public class JavaClass implements HasName, HasAnnotations {
         return result;
     }
 
+    public static class Functions {
+        public static final Function<JavaClass, String> SIMPLE_NAME = new Function<JavaClass, String>() {
+            @Override
+            public String apply(JavaClass input) {
+                return input.getSimpleName();
+            }
+        };
+    }
+
     public static class Predicates {
         public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
             @Override
@@ -543,20 +582,40 @@ public class JavaClass implements HasName, HasAnnotations {
             return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }
 
+        public static DescribedPredicate<JavaClass> simpleName(final String name) {
+            return equalTo(name).onResultOf(SIMPLE_NAME).as("simple name '%s'", name);
+        }
+
         public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
-            return new DescribedPredicate<JavaClass>("assignable to " + type.getName()) {
+            return assignableTo(type.getName());
+        }
+
+        public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
+            return assignableFrom(type.getName());
+        }
+
+        public static DescribedPredicate<JavaClass> assignableTo(final String typeName) {
+            return assignableTo(GET_NAME.is(equalTo(typeName)).as(typeName));
+        }
+
+        public static DescribedPredicate<JavaClass> assignableFrom(final String typeName) {
+            return assignableFrom(GET_NAME.is(equalTo(typeName)).as(typeName));
+        }
+
+        public static DescribedPredicate<JavaClass> assignableTo(final DescribedPredicate<? super JavaClass> predicate) {
+            return new DescribedPredicate<JavaClass>("assignable to " + predicate.getDescription()) {
                 @Override
                 public boolean apply(JavaClass input) {
-                    return input.isAssignableTo(type);
+                    return input.isAssignableTo(predicate);
                 }
             };
         }
 
-        public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
-            return new DescribedPredicate<JavaClass>("assignable from " + type.getName()) {
+        public static DescribedPredicate<JavaClass> assignableFrom(final DescribedPredicate<? super JavaClass> predicate) {
+            return new DescribedPredicate<JavaClass>("assignable from " + predicate.getDescription()) {
                 @Override
                 public boolean apply(JavaClass input) {
-                    return input.isAssignableFrom(type);
+                    return input.isAssignableFrom(predicate);
                 }
             };
         }
@@ -580,7 +639,7 @@ public class JavaClass implements HasName, HasAnnotations {
          */
         public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers,
-                    String.format("reside in any package '%s'", Joiner.on("', '").join(packageIdentifiers)));
+                    String.format("reside in any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
         }
 
         private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {

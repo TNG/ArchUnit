@@ -8,10 +8,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
@@ -29,8 +31,8 @@ import static com.tngtech.archunit.core.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SyntaxTest {
-    private static final Logger LOG = LoggerFactory.getLogger(SyntaxTest.class);
+public class RandomSyntaxTest {
+    private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTest.class);
     private static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
@@ -86,7 +88,8 @@ public class SyntaxTest {
         }
 
         String getExpectedDescription() {
-            return Joiner.on(" ").join(expectedDescription);
+            return Joiner.on(" ").join(expectedDescription)
+                    .replace("dont", "don't");
         }
 
         ArchRule getActualArchRule() {
@@ -94,7 +97,7 @@ public class SyntaxTest {
         }
     }
 
-    private static abstract class Step {
+    private abstract static class Step {
         final List<String> expectedDescription;
         final TypedValue currentValue;
 
@@ -130,7 +133,7 @@ public class SyntaxTest {
         private static List<Parameter> getParametersFor(Method method) {
             ArrayList<Parameter> result = new ArrayList<>();
             for (Type type : method.getGenericParameterTypes()) {
-                result.add(parameterProvider.get(TypeToken.of(type)));
+                result.add(parameterProvider.get(method.getName(), TypeToken.of(type)));
             }
             return result;
         }
@@ -247,32 +250,83 @@ public class SyntaxTest {
     }
 
     private static class ParameterProvider {
-        @SuppressWarnings("unchecked")
-        Parameter get(TypeToken<?> type) {
-            if (String.class.isAssignableFrom(type.getRawType())) {
-                return new Parameter("string", "'string'");
-            }
-            if (String[].class.isAssignableFrom(type.getRawType())) {
-                return new Parameter(new String[]{"one", "two"}, "['one', 'two']");
-            }
-            if (Class.class.isAssignableFrom(type.getRawType())) {
-                TypeToken<?> typeParam = type.resolveType(Class.class.getTypeParameters()[0]);
-                String description = Annotation.class.isAssignableFrom(typeParam.getRawType()) ?
-                        "@" + Deprecated.class.getSimpleName() :
-                        Deprecated.class.getName();
-                return new Parameter(Deprecated.class, description);
-            }
-            if (DescribedPredicate.class.isAssignableFrom(type.getRawType())) {
-                return new Parameter(DescribedPredicate.alwaysTrue().as("custom predicate"), "custom predicate");
-            }
-            if (ArchCondition.class.isAssignableFrom(type.getRawType())) {
-                return new Parameter(new ArchCondition<Object>("overrideMe") {
+        private static final Set<SpecificParameterProvider> providers = ImmutableSet.<SpecificParameterProvider>builder()
+                .add(new SpecificParameterProvider(String.class) {
                     @Override
-                    public void check(Object item, ConditionEvents events) {
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        if (methodName.toLowerCase().contains("annotat")) {
+                            return new Parameter("AnnotationType", "@AnnotationType");
+                        } else if (methodName.toLowerCase().contains("assign")) {
+                            return new Parameter("some.Type", "some.Type");
+                        } else {
+                            return new Parameter("string", "'string'");
+                        }
                     }
-                }.as("custom condition"), "custom condition");
+                })
+                .add(new SpecificParameterProvider(String[].class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        return new Parameter(new String[]{"one", "two"}, "['one', 'two']");
+                    }
+                })
+                .add(new SpecificParameterProvider(Class.class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        TypeToken<?> typeParam = type.resolveType(Class.class.getTypeParameters()[0]);
+                        String description = Annotation.class.isAssignableFrom(typeParam.getRawType()) ?
+                                "@" + Deprecated.class.getSimpleName() :
+                                Deprecated.class.getName();
+                        return new Parameter(Deprecated.class, description);
+                    }
+                })
+                .add(new SpecificParameterProvider(Enum.class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        Object constant = type.getRawType().getEnumConstants()[0];
+                        return new Parameter(constant, String.valueOf(constant));
+                    }
+                })
+                .add(new SpecificParameterProvider(DescribedPredicate.class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        return new Parameter(DescribedPredicate.alwaysTrue().as("custom predicate"), "custom predicate");
+                    }
+                })
+                .add(new SpecificParameterProvider(ArchCondition.class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        return new Parameter(new ArchCondition<Object>("overrideMe") {
+                            @Override
+                            public void check(Object item, ConditionEvents events) {
+                            }
+                        }.as("custom condition"), "custom condition");
+                    }
+                })
+                .build();
+
+
+        @SuppressWarnings("unchecked")
+        Parameter get(String methodName, TypeToken<?> type) {
+            for (SpecificParameterProvider provider : providers) {
+                if (provider.canHandle(type.getRawType())) {
+                    return provider.get(methodName, type);
+                }
             }
             throw new RuntimeException("Parameter type " + type + " is not supported yet");
+        }
+
+        private abstract static class SpecificParameterProvider {
+            private final Class<?> supportedType;
+
+            SpecificParameterProvider(Class<?> supportedType) {
+                this.supportedType = supportedType;
+            }
+
+            boolean canHandle(Class<?> type) {
+                return supportedType.isAssignableFrom(type);
+            }
+
+            abstract Parameter get(String methodName, TypeToken<?> type);
         }
     }
 

@@ -164,6 +164,10 @@ public class TestUtils {
                 .build(owner, simpleImportedClasses());
     }
 
+    public static JavaField javaFieldViaReflection(Class<?> owner, String name) {
+        return javaFieldViaReflection(javaClassViaReflection(owner), name);
+    }
+
     public static JavaField javaFieldViaReflection(JavaClass owner, String name) {
         try {
             Field field = owner.reflect().getDeclaredField(name);

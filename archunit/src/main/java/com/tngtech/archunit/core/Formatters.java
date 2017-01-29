@@ -35,7 +35,7 @@ public class Formatters {
         return Joiner.on(", ").join(typeNames);
     }
 
-    static String ensureSimpleName(String name) {
+    public static String ensureSimpleName(String name) {
         int innerClassStart = name.lastIndexOf('$');
         int classStart = name.lastIndexOf('.');
         if (innerClassStart < 0 && classStart < 0) {

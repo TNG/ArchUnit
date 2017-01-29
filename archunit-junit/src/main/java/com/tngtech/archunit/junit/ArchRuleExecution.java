@@ -37,7 +37,7 @@ public class ArchRuleExecution extends ArchTestExecution {
         return ruleField.getAnnotation(type);
     }
 
-    private static abstract class RuleToEvaluate {
+    private abstract static class RuleToEvaluate {
         static RuleToEvaluate retrievalFailedWith(RuleEvaluationException exception) {
             return new FailedToRetrieve(exception);
         }
@@ -96,7 +96,7 @@ public class ArchRuleExecution extends ArchTestExecution {
         }
     }
 
-    private static abstract class Evaluation {
+    private abstract static class Evaluation {
         abstract Result asResult(Description description);
     }
 

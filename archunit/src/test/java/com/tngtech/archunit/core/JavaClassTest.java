@@ -2,7 +2,9 @@ package com.tngtech.archunit.core;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -15,6 +17,7 @@ import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
+import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
@@ -100,11 +103,29 @@ public class JavaClassTest {
     }
 
     @Test
-    public void Annotations_are_reported() {
+    public void isAnnotatedWith_type() {
         assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
         assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
+    }
+
+    @Test
+    public void isAnnotatedWith_typeName() {
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class.getName()))
+                .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
+        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class.getName()))
+                .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
+    }
+
+    @Test
+    public void isAnnotatedWith_predicate() {
+        assertThat(javaClassViaReflection(Parent.class)
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .as("predicate matches").isTrue();
+        assertThat(javaClassViaReflection(Parent.class)
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .as("predicate matches").isFalse();
     }
 
     @Test
@@ -121,13 +142,30 @@ public class JavaClassTest {
     }
 
     @Test
+    public void function_simpleName() {
+        assertThat(JavaClass.Functions.SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
+                .as("result of SIMPLE_NAME(clazz)")
+                .isEqualTo(List.class.getSimpleName());
+    }
+
+    @Test
     public void predicate_withType() {
         assertThat(type(Parent.class).apply(javaClassViaReflection(Parent.class)))
-                .as("withType(Parent) matches JavaClass Parent").isTrue();
+                .as("type(Parent) matches JavaClass Parent").isTrue();
         assertThat(type(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
-                .as("withType(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+                .as("type(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
 
         assertThat(type(System.class).getDescription()).isEqualTo("type java.lang.System");
+    }
+
+    @Test
+    public void predicate_simpleName() {
+        assertThat(simpleName(Parent.class.getSimpleName()).apply(javaClassViaReflection(Parent.class)))
+                .as("simpleName(Parent) matches JavaClass Parent").isTrue();
+        assertThat(simpleName(Parent.class.getSimpleName()).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
+                .as("simpleName(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+
+        assertThat(simpleName("Simple").getDescription()).isEqualTo("simple name 'Simple'");
     }
 
     @Test
@@ -230,7 +268,7 @@ public class JavaClassTest {
         assertThat(resideInAnyPackage("any.thing", "some..pkg").apply(clazz)).as("package matches").isFalse();
 
         assertThat(resideInAnyPackage("any.thing", "..any..").getDescription())
-                .isEqualTo("reside in any package 'any.thing', '..any..'");
+                .isEqualTo("reside in any package ['any.thing', '..any..']");
     }
 
     static JavaClass fakeClassWithPackage(String pkg) {
@@ -245,20 +283,30 @@ public class JavaClassTest {
 
     private static class AssignableAssert {
         private String message;
-        private DescribedPredicate<JavaClass> assignable;
+        private Set<DescribedPredicate<JavaClass>> assignable = new HashSet<>();
         private Class<?> firstType;
 
-        public FromEvaluation from(Class<?> type) {
+        public FromEvaluation from(final Class<?> type) {
             firstType = type;
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
-            assignable = assignableFrom(type);
+            assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable from") {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.isAssignableFrom(type) && input.isAssignableFrom(type.getName());
+                }
+            }, assignableFrom(type), assignableFrom(type.getName()));
             return new FromEvaluation();
         }
 
-        public ToEvaluation to(Class<?> type) {
+        public ToEvaluation to(final Class<?> type) {
             firstType = type;
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
-            assignable = assignableTo(type);
+            assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable to") {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.isAssignableTo(type) && input.isAssignableTo(type.getName());
+                }
+            }, assignableTo(type), assignableTo(type.getName()));
             return new ToEvaluation();
         }
 
@@ -275,7 +323,7 @@ public class JavaClassTest {
         }
 
         private class Evaluation<SELF> {
-            private AbstractBooleanAssert<?> assignableAssertion;
+            private List<AbstractBooleanAssert<?>> assignableAssertion = new ArrayList<>();
 
             private final Set<Class<?>> additionalTypes = new HashSet<>();
 
@@ -291,17 +339,23 @@ public class JavaClassTest {
                         .addAll(additionalTypes).add(firstType).add(secondType)
                         .build().toArray(new Class<?>[0]);
                 JavaClass javaClass = javaClassesViaReflection(types).get(secondType);
-                assignableAssertion = assertThat(assignable.apply(javaClass))
-                        .as(message + secondType.getSimpleName());
+                for (DescribedPredicate<JavaClass> predicate : assignable) {
+                    assignableAssertion.add(assertThat(predicate.apply(javaClass))
+                            .as(message + secondType.getSimpleName()));
+                }
                 return this;
             }
 
             public void isTrue() {
-                assignableAssertion.isTrue();
+                for (AbstractBooleanAssert<?> assertion : assignableAssertion) {
+                    assertion.isTrue();
+                }
             }
 
             public void isFalse() {
-                assignableAssertion.isFalse();
+                for (AbstractBooleanAssert<?> assertion : assignableAssertion) {
+                    assertion.isFalse();
+                }
             }
         }
     }
@@ -318,7 +372,7 @@ public class JavaClassTest {
         }
     }
 
-    static abstract class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
+    abstract static class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
         @Override
@@ -332,7 +386,7 @@ public class JavaClassTest {
     }
 
     @SomeAnnotation
-    static abstract class Parent {
+    abstract static class Parent {
     }
 
     static class ClassWithSeveralConstructors {

@@ -41,7 +41,7 @@ public abstract class ArchTestExecution {
         return testClass.getAnnotation(ArchIgnore.class) != null || getAnnotation(ArchIgnore.class) != null;
     }
 
-    static abstract class Result {
+    abstract static class Result {
         abstract void notify(RunNotifier notifier);
     }
 

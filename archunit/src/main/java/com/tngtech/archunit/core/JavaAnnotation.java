@@ -7,10 +7,11 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.properties.HasType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaAnnotation {
+public class JavaAnnotation implements HasType {
     private final JavaClass type;
     private final Map<String, Object> values;
 
@@ -19,6 +20,7 @@ public class JavaAnnotation {
         this.values = checkNotNull(values);
     }
 
+    @Override
     public JavaClass getType() {
         return type;
     }
@@ -117,7 +119,7 @@ public class JavaAnnotation {
         }
     }
 
-    static abstract class ValueBuilder {
+    abstract static class ValueBuilder {
         abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
 
         static ValueBuilder ofFinished(final Object value) {

@@ -4,10 +4,11 @@ import java.lang.annotation.Annotation;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
@@ -81,13 +82,47 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
      * NOTE: If the target was not imported, this method will always return false.
      *
-     * @param annotation The type of the annotation to check for
+     * @param annotationType The type of the annotation to check for
      * @return true if one of the resolved targets is annotated with the given type
      */
     @Override
-    public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-        for (JavaMember member : resolve()) {
-            if (member.isAnnotatedWith(annotation)) {
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return isAnnotatedWith(annotationType.getName());
+    }
+
+    /**
+     * @see AccessTarget#isAnnotatedWith(Class)
+     */
+    @Override
+    public boolean isAnnotatedWith(final String annotationTypeName) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isAnnotatedWith(annotationTypeName);
+            }
+        });
+    }
+
+    /**
+     * Returns true, if one of the resolved targets is annotated with an annotation matching the predicate.<br/>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param predicate Qualifies matching annotations
+     * @return true if one of the resolved targets is annotated with an annotation matching the predicate
+     */
+    @Override
+    public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isAnnotatedWith(predicate);
+            }
+        });
+    }
+
+    private boolean anyMember(Predicate<JavaMember> predicate) {
+        for (final JavaMember member : resolve()) {
+            if (predicate.apply(member)) {
                 return true;
             }
         }
@@ -124,19 +159,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public Set<JavaField> resolve() {
             return resolveField().asSet();
         }
-
-        public static class Functions {
-            public static final ChainableFunction<FieldAccessTarget, JavaClass> GET_TYPE =
-                    new ChainableFunction<FieldAccessTarget, JavaClass>() {
-                        @Override
-                        public JavaClass apply(FieldAccessTarget input) {
-                            return input.getType();
-                        }
-                    };
-        }
     }
 
-    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
+    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -162,6 +187,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @see ConstructorCallTarget#resolveConstructor()
          * @see MethodCallTarget#resolve()
          */
+        @Override
         public abstract Set<? extends JavaCodeUnit> resolve();
     }
 
@@ -234,6 +260,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          *
          * @return Set of matching methods, usually a single target
          */
+        @Override
         public Set<JavaMethod> resolve() {
             return methods.get();
         }

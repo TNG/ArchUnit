@@ -119,7 +119,7 @@ class RawAccessRecord {
         }
     }
 
-    static abstract class TargetInfo {
+    abstract static class TargetInfo {
         final JavaType owner;
         final String name;
         final String desc;

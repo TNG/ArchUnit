@@ -15,11 +15,11 @@ import org.objectweb.asm.Opcodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.AccessTarget.FieldAccessTarget.Functions.GET_TYPE;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
 
 public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     private static final Map<AccessType, String> MESSAGE_TEMPLATE = ImmutableMap.of(

@@ -1,10 +1,12 @@
+import proguard.gradle.ProGuardTask
+
 import java.nio.file.Files
 
 import static java.nio.charset.StandardCharsets.UTF_8
 
 buildscript {
     repositories {
-        mavenCentral();
+        mavenCentral()
     }
 
     dependencies {
@@ -38,7 +40,7 @@ task wrapper(type: Wrapper) {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.3.0-SNAPSHOT'
+    version = '0.4.0-SNAPSHOT'
 }
 
 subprojects {
@@ -102,7 +104,7 @@ def configureProGuard = {
         proguard 'com.google.code.findbugs:jsr305:3.0.1'
     }
 
-    task shrinkDependencies(type: proguard.gradle.ProGuardTask, dependsOn: shadowJar) {
+    task shrinkDependencies(type: ProGuardTask, dependsOn: shadowJar) {
         injars shadowJar.archivePath
 
         libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
