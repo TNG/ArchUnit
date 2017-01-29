@@ -34,6 +34,8 @@ interface JavaType {
 
     boolean isPrimitive();
 
+    boolean isArray();
+
     class From {
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
@@ -115,7 +117,7 @@ interface JavaType {
             return name(javaClass.getName());
         }
 
-        private static abstract class AbstractType implements JavaType {
+        private abstract static class AbstractType implements JavaType {
             private final String name;
             private final String simpleName;
             private final String javaPackage;
@@ -167,6 +169,11 @@ interface JavaType {
 
             @Override
             public boolean isPrimitive() {
+                return false;
+            }
+
+            @Override
+            public boolean isArray() {
                 return false;
             }
 
@@ -232,6 +239,11 @@ interface JavaType {
 
             private static String getCanonicalName(String fullName) {
                 return Type.getType(fullName).getClassName();
+            }
+
+            @Override
+            public boolean isArray() {
+                return true;
             }
 
             @Override

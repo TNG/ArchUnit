@@ -4,9 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Optional;
 
+import static com.tngtech.archunit.core.JavaModifier.ABSTRACT;
+import static com.tngtech.archunit.core.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.JavaModifier.PUBLIC;
+
 class ImportedClasses {
+    private static final ImmutableSet<JavaModifier> PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS =
+            Sets.immutableEnumSet(PUBLIC, ABSTRACT, FINAL);
+
     private final ImmutableMap<String, JavaClass> directlyImported;
     private final Map<String, JavaClass> additionalClasses = new HashMap<>();
     private final ClassResolver resolver;
@@ -33,7 +42,16 @@ class ImportedClasses {
     }
 
     private static JavaClass simpleClassOf(String typeName) {
-        return new JavaClass.Builder().withType(JavaType.From.name(typeName)).build();
+        JavaType type = JavaType.From.name(typeName);
+        JavaClass.Builder builder = new JavaClass.Builder().withType(type);
+        addModifiersIfPossible(builder, type);
+        return builder.build();
+    }
+
+    private static void addModifiersIfPossible(JavaClass.Builder builder, JavaType type) {
+        if (type.isPrimitive() || type.isArray()) {
+            builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
+        }
     }
 
     void add(JavaClass clazz) {

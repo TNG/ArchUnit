@@ -162,6 +162,7 @@ import static com.tngtech.archunit.core.testexamples.annotationmethodimport.Clas
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
@@ -217,15 +218,13 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_nested_classes() throws Exception {
-        Set<String> expectedClassNames = Sets.newHashSet(
-                ClassWithNestedClass.class.getName(),
-                ClassWithNestedClass.NestedClass.class.getName(),
-                ClassWithNestedClass.StaticNestedClass.class.getName(),
-                ClassWithNestedClass.class.getName() + "$PrivateNestedClass");
+        JavaClasses classes = classesIn("testexamples/nestedimport").classes;
 
-        Iterable<JavaClass> classes = classesIn("testexamples/nestedimport");
-
-        assertThat(namesOf(classes)).isEqualTo(expectedClassNames);
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassWithNestedClass.class,
+                ClassWithNestedClass.NestedClass.class,
+                ClassWithNestedClass.StaticNestedClass.class,
+                Class.forName(ClassWithNestedClass.class.getName() + "$PrivateNestedClass"));
     }
 
     @Test
@@ -324,7 +323,7 @@ public class ClassFileImporterTest {
                 .as("default of clazzWithDefault()").matches(String.class);
         assertThat((JavaClass[]) annotationType.getMethod("classesWithDefault")
                 .getDefaultValue().get())
-                .as("default of clazzWithDefault()").matches(Serializable.class, List.class);
+                .as("default of clazzWithDefault()").matchExactly(Serializable.class, List.class);
     }
 
     @Test
@@ -385,8 +384,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Object.class, Serializable.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
     }
@@ -526,8 +525,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Object.class, Serializable.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(enumAndArrayAnnotatedMethod));
     }
@@ -612,8 +611,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Serializable.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Serializable.class, String.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Serializable.class, String.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(clazz).matches(ClassWithComplexAnnotations.class);
     }
@@ -1595,6 +1594,13 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_class_objects() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassToImportOne.class, ClassToImportTwo.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
+    }
+
+    @Test
     public void ImportOptions_are_respected() throws Exception {
         ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
 
@@ -1775,7 +1781,7 @@ public class ClassFileImporterTest {
 
     private class ImportedClasses implements Iterable<JavaClass> {
         private final ClassFileImporter importer = new ClassFileImporter();
-        private final Iterable<JavaClass> classes;
+        private final JavaClasses classes;
 
         private ImportedClasses(String path) throws Exception {
             classes = importer.importPath(Paths.get(ClassFileImporterTest.this.getClass().getResource(path).toURI()));

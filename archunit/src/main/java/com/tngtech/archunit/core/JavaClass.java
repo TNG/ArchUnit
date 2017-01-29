@@ -51,7 +51,7 @@ public class JavaClass implements HasName, HasAnnotations {
         source = checkNotNull(builder.source);
         javaType = checkNotNull(builder.javaType);
         isInterface = builder.isInterface;
-        modifiers = builder.modifiers;
+        modifiers = checkNotNull(builder.modifiers);
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
@@ -616,7 +616,7 @@ public class JavaClass implements HasName, HasAnnotations {
         private Optional<Source> source = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
-        private Set<JavaModifier> modifiers;
+        private Set<JavaModifier> modifiers = new HashSet<>();
 
         Builder withSource(Source source) {
             this.source = Optional.of(source);

@@ -113,7 +113,18 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         if (name != null && outerName != null) {
-            declarationHandler.registerEnclosingClass(createTypeName(name), createTypeName(outerName));
+            String innerTypeName = createTypeName(name);
+            correctModifiersForNestedClass(innerTypeName, access);
+            declarationHandler.registerEnclosingClass(innerTypeName, createTypeName(outerName));
+        }
+    }
+
+    // Modifier handling is somewhat counter intuitive for nested classes, even though we 'visit' the nested class
+    // like any outer class in visit(..) before, the modifiers like 'PUBLIC' or 'PRIVATE'
+    // are found in the access flags of visitInnerClass(..)
+    private void correctModifiersForNestedClass(String innerTypeName, int access) {
+        if (innerTypeName.equals(className)) {
+            javaClassBuilder.withModifiers(JavaModifier.getModifiersForClass(access));
         }
     }
 

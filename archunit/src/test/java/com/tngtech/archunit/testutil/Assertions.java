@@ -8,8 +8,10 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
@@ -31,6 +35,7 @@ import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
+import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -71,8 +76,12 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaClassAssertion(javaClass);
     }
 
-    public static JavaClassesAssertion assertThat(JavaClass[] javaClass) {
-        return new JavaClassesAssertion(javaClass);
+    public static JavaClassesAssertion assertThatClasses(Iterable<JavaClass> javaClasses) {
+        return new JavaClassesAssertion(javaClasses);
+    }
+
+    public static JavaClassesAssertion assertThat(JavaClass[] javaClasses) {
+        return new JavaClassesAssertion(javaClasses);
     }
 
     public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
@@ -108,7 +117,37 @@ public class Assertions extends org.assertj.core.api.Assertions {
             super(actual, JavaClassesAssertion.class);
         }
 
-        public void matches(Class<?>... classes) {
+        private JavaClassesAssertion(Iterable<JavaClass> actual) {
+            super(sort(actual), JavaClassesAssertion.class);
+        }
+
+        private static JavaClass[] sort(Iterable<JavaClass> actual) {
+            JavaClass[] result = Iterables.toArray(actual, JavaClass.class);
+            Arrays.sort(result, new Comparator<JavaClass>() {
+                @Override
+                public int compare(JavaClass o1, JavaClass o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            return result;
+        }
+
+        public void matchInAnyOrder(Iterable<Class<?>> classes) {
+            Class<?>[] sorted = Iterables.toArray(classes, Class.class);
+            Arrays.sort(sorted, new Comparator<Class<?>>() {
+                @Override
+                public int compare(Class<?> o1, Class<?> o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            matchExactly(sorted);
+        }
+
+        public void matchInAnyOrder(Class<?>... classes) {
+            matchInAnyOrder(ImmutableSet.copyOf(classes));
+        }
+
+        public void matchExactly(Class<?>... classes) {
             assertThat((Object[]) actual).as("classes").hasSize(classes.length);
             for (int i = 0; i < actual.length; i++) {
                 assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
@@ -124,10 +163,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getName()).isEqualTo(clazz.getName());
-            assertThat(actual.getSimpleName()).isEqualTo(ensureArrayName(clazz.getSimpleName()));
-            assertThat(actual.getPackage()).isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
-            assertThat(propertiesOf(actual.getAnnotations())).isEqualTo(propertiesOf(clazz.getAnnotations()));
+            assertThat(actual.getName()).as("Name of " + actual)
+                    .isEqualTo(clazz.getName());
+            assertThat(actual.getSimpleName()).as("Simple name of " + actual)
+                    .isEqualTo(ensureArrayName(clazz.getSimpleName()));
+            assertThat(actual.getPackage()).as("Package of " + actual)
+                    .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+            assertThat(actual.getModifiers()).as("Modifiers of " + actual)
+                    .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
+            assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
+                    .isEqualTo(propertiesOf(clazz.getAnnotations()));
         }
 
         private String ensureArrayName(String name) {
