@@ -64,10 +64,10 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField()));
     }
 
-    private ArchRules<?> getArchRules(FrameworkField ruleField) {
+    private ArchRules getArchRules(FrameworkField ruleField) {
         ArchTestExecution.validate(ruleField.getField());
         try {
-            return (ArchRules<?>) ruleField.get(null);
+            return (ArchRules) ruleField.get(null);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

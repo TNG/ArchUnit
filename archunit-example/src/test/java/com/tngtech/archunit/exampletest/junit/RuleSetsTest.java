@@ -10,8 +10,8 @@ import org.junit.runner.RunWith;
 @AnalyseClasses(packages = "com.tngtech.archunit.example")
 public class RuleSetsTest {
     @ArchTest
-    public static final ArchRules<?> CODING_RULES = ArchRules.in(CodingRulesWithRunnerTest.class);
+    public static final ArchRules CODING_RULES = ArchRules.in(CodingRulesWithRunnerTest.class);
 
     @ArchTest
-    public static final ArchRules<?> CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
+    public static final ArchRules CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
 }

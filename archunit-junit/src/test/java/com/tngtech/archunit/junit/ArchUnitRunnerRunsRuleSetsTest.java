@@ -99,7 +99,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         public static final String someOtherMethodRuleName = "someOtherMethodRule";
 
         @ArchTest
-        public static final ArchRules<JavaClass> rules = ArchRules.in(ArchTestWithRuleSet.class);
+        public static final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
 
         @ArchTest
         public static void someOtherMethodRule(JavaClasses classes) {
@@ -109,7 +109,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyseClasses(packages = "some.pkg")
     public static class ArchTestWithRuleSet {
         @ArchTest
-        public static final ArchRules<JavaClass> rules = ArchRules.in(Rules.class);
+        public static final ArchRules rules = ArchRules.in(Rules.class);
     }
 
     public static class Rules {
