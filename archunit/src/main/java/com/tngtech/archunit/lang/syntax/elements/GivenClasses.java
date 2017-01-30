@@ -8,5 +8,6 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
 
     GivenClassesThat that();
 
-    GivenConjunction<JavaClass> that(DescribedPredicate<? super JavaClass> predicate);
+    @Override
+    GivenClassesConjunction that(DescribedPredicate<? super JavaClass> predicate);
 }
