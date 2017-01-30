@@ -1,0 +1,99 @@
+{
+  "name": "com.tngtech.archunit.visual.testjson",
+  "fullname": "com.tngtech.archunit.visual.testjson",
+  "type": "package",
+  "children": [
+    {
+      "name": "EmptyClass",
+      "fullname": "com.tngtech.archunit.visual.testjson.EmptyClass",
+      "type": "class",
+      "children": [],
+      "superclass": "",
+      "interfaces": [],
+      "fieldAccesses": [],
+      "methodCalls": [],
+      "constructorCalls": []
+    },
+    {
+      "name": "simpleInheritStructure",
+      "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure",
+      "type": "package",
+      "children": [
+        {
+          "name": "Class1",
+          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+          "type": "class",
+          "children": [],
+          "superclass": "",
+          "interfaces": [
+            "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1"
+          ],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": []
+        },
+        {
+          "name": "Class2",
+          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+          "type": "class",
+          "children": [],
+          "superclass": "",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "sayHello"
+            },
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "sayHi"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "Class1"
+            }
+          ]
+        },
+        {
+          "name": "Class3",
+          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class3",
+          "type": "class",
+          "children": [],
+          "superclass": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "sayHelloAndBye"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+              "startCodeUnit": "Class3",
+              "targetElement": "Class2"
+            }
+          ]
+        },
+        {
+          "name": "Interface1",
+          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1",
+          "type": "interface",
+          "children": [],
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": []
+        }
+      ]
+    }
+  ]
+}

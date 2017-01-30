@@ -73,7 +73,7 @@
       gEdges = svg.append("g").attr("transform", "translate(2,2)");
   const pack = d3.pack().size([diameter - 4, diameter - 4]).padding(PADDING);
 
-  d3.json("testjs.json", function (error, jsonroot) { //DemoData
+  d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
 
     root = jsonToRoot(jsonroot);

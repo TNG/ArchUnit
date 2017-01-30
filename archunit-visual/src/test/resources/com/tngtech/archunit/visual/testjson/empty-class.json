@@ -1,0 +1,18 @@
+{
+  "name": "com.tngtech.archunit.visual.testjson",
+  "fullname": "com.tngtech.archunit.visual.testjson",
+  "type": "package",
+  "children": [
+    {
+      "name": "EmptyClass",
+      "fullname": "com.tngtech.archunit.visual.testjson.EmptyClass",
+      "type": "class",
+      "children": [],
+      "superclass": "",
+      "interfaces": [],
+      "fieldAccesses": [],
+      "methodCalls": [],
+      "constructorCalls": []
+    }
+  ]
+}

@@ -13,9 +13,6 @@ dependencies {
     testCompile dependency.junit
     testCompile dependency.mockito
     testCompile dependency.assertj
-    testCompile(dependency.assertj_guava) {
-        exclude module: 'assertj-core'
-    }
     testCompile project(path: ':archunit', configuration: 'tests')
 }
 
@@ -64,45 +61,41 @@ task setupNode(dependsOn: ['installBrowserify', 'installTestSupport']) {
 
 task mocha(type: NodeTask, dependsOn: 'setupNode') {
     script = file('node_modules/mocha/bin/mocha')
-    args = ['--reporter', 'spec', 'src/test/resources/report/**/*.js']
+    args = ['--reporter', 'spec', 'src/test/app/report/**/*.js']
 }
+
+def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
 
 task createReportDir {
-    file("${project.buildDir}/report").mkdir()
+    doFirst {
+        file(reportOutputDir).mkdirs()
+    }
 }
 
-task copyStaticReport(type: Copy, dependsOn: createReportDir) {
-    from 'src/main/resources/report'
+task copyStatic(type: Copy, dependsOn: createReportDir) {
+    from 'src/main/app/report'
     include '*.html', '*.css'
-    into "${project.buildDir}/report"
+    into reportOutputDir
 }
 
-task copyStatic(dependsOn: ['copyStaticReport']) {}
-
-task copyJsLibsReport(type: Copy, dependsOn: createReportDir) {
-    from 'src/main/resources/d3'
+task copyJsLibs(type: Copy, dependsOn: createReportDir) {
+    from 'src/main/app/report/lib'
     include 'd3.js'
-    into "${project.buildDir}/report"
+    into "${reportOutputDir}/lib"
 }
-
-task copyJson(type: Copy, dependsOn: createReportDir) {
-    from 'src/main/resources/report'
-    include 'DemoData.json', 'testjs.json'
-    into "${project.buildDir}/report"
-}
-
-task copyJsLibs(dependsOn: ['copyJsLibsReport', 'copyJson']) {}
 
 task browserifyReportTree(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
     script = file('node_modules/browserify/bin/cmd.js')
-    args = ['-r', './src/main/resources/report/tree.js:tree', '-o', "${project.buildDir}/report/tree-bundle.js"]
+    args = ['-r', './src/main/app/report/tree.js:tree', '-o', "${reportOutputDir}/tree-bundle.js"]
 }
 
 task browserifyReportDep(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
     script = file('node_modules/browserify/bin/cmd.js')
-    args = ['-r', './src/main/resources/report/dependencies.js:dependencies', '-o', "${project.buildDir}/report/dependencies-bundle.js"]
+    args = ['-r', './src/main/app/report/dependencies.js:dependencies', '-o', "${reportOutputDir}/dependencies-bundle.js"]
 }
 
 task browserify(dependsOn: ['browserifyReportTree', 'browserifyReportDep']) {}
 
 task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
+
+jar.dependsOn buildReport

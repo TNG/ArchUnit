@@ -2,40 +2,40 @@ package com.tngtech.archunit.visual;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.JavaClasses;
 
 public class Visualizer {
-    public Visualizer(JavaClasses classes) {
+    public Visualizer() {
 
     }
 
-    public void write() {
-        // FIXME: Declare path in some config
-        File dir = new File(new File(Visualizer.class.getResource("/report").getFile()), "data.json");
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println(gson.toJson(ImmutableList.of(new Foo("Hans", 55), new Foo("Karl", 22))));
+    public void visualize(JavaClasses classes, final File targetDir) {
+        targetDir.mkdirs();
+        new JsonExporter().export(classes,
+                new File(targetDir, "classes.json"), "com.tngtech.archunit.visual");
 
         try {
-            Files.write("{}", dir, StandardCharsets.UTF_8);
+            Files.walkFileTree(Paths.get(getClass().getResource("./report").toURI()), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+                    if (!path.toFile().isDirectory()) {
+                        com.google.common.io.Files.copy(path.toFile(), new File(targetDir, path.toFile().getName()));
+                    }
+                    return super.visitFile(path, basicFileAttributes);
+                }
+            });
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private static class Foo {
-        private String name;
-        private int age;
-
-        private Foo(String name, int age) {
-            this.name = name;
-            this.age = age;
         }
     }
 }

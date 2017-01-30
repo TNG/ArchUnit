@@ -2,10 +2,10 @@
 
 require('./chai-extensions');
 const expect = require("chai").expect;
-const hierarchy = require("../../../main/resources/report/lib/d3.js").hierarchy;
-const pack = require("../../../main/resources/report/lib/d3.js").pack().size([500, 500]).padding(100);
-const jsonToRoot = require("../../../main/resources/report/tree.js").jsonToRoot;
-const jsonToDependencies = require("../../../main/resources/report/dependencies.js").jsonToDependencies;
+const hierarchy = require("../../../main/app/report/lib/d3.js").hierarchy;
+const pack = require("../../../main/app/report/lib/d3.js").pack().size([500, 500]).padding(100);
+const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
+const jsonToDependencies = require("../../../main/app/report/dependencies.js").jsonToDependencies;
 const testJson = require("./test-json-creator");
 
 let getNode = (root, fullname) => root.nodeMap.get(fullname);
