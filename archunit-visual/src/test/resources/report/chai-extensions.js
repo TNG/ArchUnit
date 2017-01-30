@@ -20,3 +20,18 @@ Assertion.addMethod('containExactlyNodes', function () {
       , actualStrings   // actual
   );
 });
+
+Assertion.addMethod('haveExactlyPositions', function () {
+  let actualNodes = Array.from(this._obj);
+  let exp = arguments[0];
+
+  let positionsAreCorrect = actualNodes.reduce((res, n) => {
+        let pos = exp.get(n.projectData.fullname);
+        return res && n.visualData.x == pos[0] && n.visualData.y == pos[1];
+      },
+      true);
+
+  this.assert(
+      positionsAreCorrect
+  )
+});

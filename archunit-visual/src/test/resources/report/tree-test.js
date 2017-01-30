@@ -7,8 +7,8 @@ const pack = require("../../../main/resources/report/lib/d3.js").pack().size([50
 const jsonToRoot = require("../../../main/resources/report/tree.js").jsonToRoot;
 const testJson = require("./test-json-creator");
 
-let allNodes1 = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-  "com.tngtech.main.class1"];
+let allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
+
 let setupSimpleTestTree1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
@@ -22,9 +22,6 @@ let setupSimpleTestTree1 = () => {
   return root;
 };
 
-let allNodes2 = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-  "com.tngtech.main.class1", "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-  "com.tngtech.test.subtest.subtestclass1"];
 let setupSimpleTestTree2 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
@@ -59,10 +56,10 @@ describe("Node", function () {
 
   it("knows if it is current leaf", function () {
     let root = setupSimpleTestTree1();
-    expect(root.isCurrentLeaf()).to.equal(false);
-    expect(getNode(root, "com.tngtech.class2").isCurrentLeaf()).to.equal(true);
+    expect(root.isCurrentlyLeaf()).to.equal(false);
+    expect(getNode(root, "com.tngtech.class2").isCurrentlyLeaf()).to.equal(true);
     root.changeFold();
-    expect(root.isCurrentLeaf()).to.equal(true);
+    expect(root.isCurrentlyLeaf()).to.equal(true);
   });
 
   it("knows if it is child of an other node", function () {
@@ -80,6 +77,7 @@ describe("Node", function () {
 
   it("can unfold single node", function () {
     let root = setupSimpleTestTree1();
+    let allNodes1 = allNodes(root);
     root.changeFold();
     root.changeFold();
     expect(root.getVisibleDescendants()).to.containExactlyNodes(allNodes1);
@@ -88,11 +86,11 @@ describe("Node", function () {
   it("can be folded and unfolded without changing the fold-state of its children", function () {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.test.subtest").changeFold();
-    getNode(root, "com.tngtech.test").changeFold();
-    getNode(root, "com.tngtech.test").changeFold();
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-      "com.tngtech.main.class1", "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    let toFold = getNode(root, "com.tngtech.test");
+    toFold.changeFold();
+    toFold.changeFold();
+    let exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
+    expect(toFold.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
 
   it("adapts radius on folding to minimum radius on the same level", function () {
@@ -115,17 +113,74 @@ describe("Node", function () {
 
   it("can be dragged", function () {
     let root = setupSimpleTestTree2();
+    let toDrag = getNode(root, "com.tngtech.class2");
+    let dx = 1, dy = -3;
+    let newX = toDrag.visualData.x + dx, newY = toDrag.visualData.y + dy;
+    toDrag.drag(dx, dy);
+    expect(toDrag.visualData.x).to.equal(newX);
+    expect(toDrag.visualData.y).to.equal(newY);
+  });
+
+  it("drags also its children if it is dragged", function () {
+    let root = setupSimpleTestTree2();
+    let allNodes2 = allNodes(root);
+    let toDrag = getNode(root, "com.tngtech.test");
+    let dx = 1, dy = -3;
+    let exp = new Map();
+    allNodes2.forEach(n => {
+      let node = getNode(root, n);
+      let xy = [node.visualData.x, node.visualData.y];
+      if (node.isChildOf(toDrag)) {
+        xy[0] += dx;
+        xy[1] += dy;
+      }
+      exp.set(n, xy);
+    });
+    toDrag.drag(dx, dy);
+    expect(root.getVisibleDescendants()).to.haveExactlyPositions(exp);
+  });
+
+  it("cannot be dragged out of its parent", function () {
+    let root = setupSimpleTestTree2();
+    let toDrag = getNode(root, "com.tngtech.test.subtest.subtestclass1");
+    let parent = getNode(root, "com.tngtech.test.subtest");
+    let dx = toDrag.visualData.x + parent.visualData.r, dy = 5;
+    let newX = toDrag.visualData.x, newY = toDrag.visualData.y;
+    toDrag.drag(dx, dy);
+    expect(toDrag.visualData.x).to.equal(newX);
+    expect(toDrag.visualData.y).to.equal(newY);
+    expect(toDrag.visualData.y).to.be.within(0, newY);
+  });
+
+  it("is dragged automatically back into its parent on unfolding, so that it is completely within its parent", function () {
+    let root = setupSimpleTestTree2();
+    let toDrag = getNode(root, "com.tngtech.test.subtest");
+    let parent = getNode(root, "com.tngtech.test");
+    //move toDrag to the middle of parent
+    toDrag.drag(parent.visualData.x - toDrag.visualData.x, parent.visualData.y - toDrag.visualData.y);
+
+    let newDelta = Math.sqrt((parent.visualData.r - toDrag.visualData.r) / 2);
+    let newX = toDrag.visualData.x + newDelta, newY = toDrag.visualData.y - newDelta;
+    toDrag.changeFold();
+    let delta = Math.sqrt((parent.visualData.r - toDrag.visualData.r - 0.5) / 2);
+    //move toDrag to the right upper corner of parent
+    toDrag.drag(delta, -delta);
+    toDrag.changeFold();
+    expect(toDrag.visualData.x).to.be.within(newX - 2, newX + 2);
+    expect(toDrag.visualData.y).to.be.within(newY - 2, newY + 2);
   });
 });
 
 describe("Tree", function () {
   it("creates a correct node map", function () {
     let root = setupSimpleTestTree1();
+    let allNodes1 = allNodes(root);
     expect(allNodes1.map(n => root.nodeMap.get(n))).to.containExactlyNodes(allNodes1);
   });
 
   it("returns correct visible nodes", function () {
     let root = setupSimpleTestTree1();
+    let allNodes1 = allNodes(root);
     expect(root.getVisibleDescendants()).to.containExactlyNodes(allNodes1);
     getNode(root, "com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
@@ -148,8 +203,4 @@ describe("Tree", function () {
     let root = setupSimpleTestTree1();
     expect(root.traverseTree()).to.equal("tngtech(main(class1, ), class2, class3, )");
   });
-});
-
-describe("Dependencies", function () {
-
 });
