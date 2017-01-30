@@ -481,7 +481,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             @Override
             public Set<JavaField> get() {
                 ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
-                for (JavaClass javaClass : getClassHierarchy()) {
+                for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
                     result.addAll(javaClass.getFields());
                 }
                 return result.build();

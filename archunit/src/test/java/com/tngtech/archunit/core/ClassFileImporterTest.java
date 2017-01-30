@@ -101,6 +101,10 @@ import com.tngtech.archunit.core.testexamples.fieldaccessimport.ForeignStaticFie
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.MultipleFieldAccessInSameMethod;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnFieldAccess;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnStaticFieldAccess;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.ClassAccessingInterfaceFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.InterfaceWithFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.OtherInterfaceWithFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.ParentInterfaceWithFields;
 import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithIntAndObjectFields;
 import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithStringField;
 import com.tngtech.archunit.core.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubClassField;
@@ -1086,6 +1090,25 @@ public class ClassFileImporterTest {
                 .isFrom("accessSubClassField")
                 .isTo(subClassWithAccessedField.getField("maskedField"))
                 .inLineNumber(9);
+    }
+
+    @Test
+    public void imports_field_accesses_to_fields_from_interfaces() throws Exception {
+        Set<JavaFieldAccess> accesses = classesIn("testexamples/fieldaccesstointerfaces")
+                .get(ClassAccessingInterfaceFields.class).getFieldAccessesFromSelf();
+
+        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldOne));
+        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldTwo));
+        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldOne));
+        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldTwo));
+        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldOne));
+        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldTwo));
     }
 
     @Test
