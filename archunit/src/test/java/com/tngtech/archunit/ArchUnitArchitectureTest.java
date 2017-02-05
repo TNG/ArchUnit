@@ -27,11 +27,9 @@ import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.ann
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 public class ArchUnitArchitectureTest {
@@ -63,16 +61,16 @@ public class ArchUnitArchitectureTest {
 
     @Test
     public void types_are_only_resolved_via_reflection_in_allowed_places() {
-        all(classes()).should(notIllegallyResolveClassesViaReflection()).check(archUnitClasses);
+        noClasses().should(illegallyResolveClassesViaReflection()).check(archUnitClasses);
     }
 
-    private ArchCondition<JavaClass> notIllegallyResolveClassesViaReflection() {
-        return never(callMethodWhere(targetResolvesTypesIllegallyViaReflection()))
-                .and(never(illegallyAccessReflectFunction()))
-                .as("not illegally resolve classes via reflection");
+    private ArchCondition<JavaClass> illegallyResolveClassesViaReflection() {
+        return callMethodWhere(typeIsIllegallyResolvedViaReflection())
+                .or(illegallyAccessReflectFunction())
+                .as("illegally resolve classes via reflection");
     }
 
-    private DescribedPredicate<JavaCall<?>> targetResolvesTypesIllegallyViaReflection() {
+    private DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
                 callOrigin().is(annotatedWith(MayResolveTypesViaReflection.class))
                         .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class));
