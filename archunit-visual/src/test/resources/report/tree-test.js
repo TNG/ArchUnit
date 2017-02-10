@@ -149,7 +149,6 @@ describe("Node", function () {
     toDrag.drag(dx, dy);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
-    expect(toDrag.visualData.y).to.be.within(0, newY);
   });
 
   it("is dragged automatically back into its parent on unfolding, so that it is completely within its parent", function () {
