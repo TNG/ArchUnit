@@ -4,7 +4,6 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -37,17 +36,8 @@ public class ArchRuleDefinition<T> {
         return new Creator(priority);
     }
 
-    public static ClassesTransformer<JavaClass> classes() {
-        return new AbstractClassesTransformer<JavaClass>("classes") {
-            @Override
-            public Iterable<JavaClass> doTransform(JavaClasses collection) {
-                return collection;
-            }
-        };
-    }
-
-    public static GivenClasses allClasses() {
-        return priority(MEDIUM).allClasses();
+    public static GivenClasses classes() {
+        return priority(MEDIUM).classes();
     }
 
     public static GivenClasses noClasses() {
@@ -61,14 +51,14 @@ public class ArchRuleDefinition<T> {
             this.priority = priority;
         }
 
-        public GivenClasses allClasses() {
-            return new GivenClassesInternal(priority, classes());
+        public GivenClasses classes() {
+            return new GivenClassesInternal(priority, ClassesIdentityTransformer.classes());
         }
 
         public GivenClasses noClasses() {
             return new GivenClassesInternal(
                     priority,
-                    classes().as("no classes"),
+                    ClassesIdentityTransformer.classes().as("no classes"),
                     ArchRuleDefinition.<JavaClass>negateCondition());
         }
 

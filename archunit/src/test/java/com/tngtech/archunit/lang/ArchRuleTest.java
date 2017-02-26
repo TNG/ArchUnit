@@ -24,7 +24,7 @@ import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -147,7 +147,7 @@ public class ArchRuleTest {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 for (String message : messages) {
-                    events.add(SimpleConditionEvent.violated(message));
+                    events.add(SimpleConditionEvent.violated(item, message));
                 }
             }
         };
@@ -157,7 +157,7 @@ public class ArchRuleTest {
             new ArchCondition<JavaClass>("always be violated") {
                 @Override
                 public void check(JavaClass item, ConditionEvents events) {
-                    events.add(new SimpleConditionEvent(false, "I'm violated"));
+                    events.add(new SimpleConditionEvent<>(item, false, "I'm violated"));
                 }
             };
 }

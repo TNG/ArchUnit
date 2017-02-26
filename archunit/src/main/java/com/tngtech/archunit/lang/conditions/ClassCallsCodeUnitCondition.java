@@ -6,8 +6,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 
-class ClassCallsMethodCondition extends AnyAttributeMatchesCondition<JavaCall<?>> {
-    public ClassCallsMethodCondition(DescribedPredicate<? super JavaCall<?>> predicate) {
+class ClassCallsCodeUnitCondition extends AnyAttributeMatchesCondition<JavaCall<?>> {
+    ClassCallsCodeUnitCondition(DescribedPredicate<? super JavaCall<?>> predicate) {
         super(new MethodCallCondition(predicate));
     }
 

@@ -31,7 +31,7 @@ import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.JavaCodeUnit.Predicates.constructor;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class SessionBeanRulesTest {
@@ -53,7 +53,7 @@ public class SessionBeanRulesTest {
     @Ignore
     @Test
     public void business_interface_implementations_should_be_unique() {
-        allClasses().that(are(BUSINESS_INTERFACES)).should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
+        classes().that(are(BUSINESS_INTERFACES)).should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);
     }
 
     private static final DescribedPredicate<JavaFieldAccess> TARGET_IS_STATELESS_SESSION_BEAN =
@@ -96,9 +96,14 @@ public class SessionBeanRulesTest {
             new ArchCondition<JavaClass>("have an unique implementation") {
                 @Override
                 public void check(JavaClass businessInterface, ConditionEvents events) {
-                    events.add(new SimpleConditionEvent(businessInterface.getAllSubClasses().size() <= 1,
-                            "%s is implemented by %s",
-                            businessInterface.getSimpleName(), joinNamesOf(businessInterface.getAllSubClasses())));
+                    events.add(new SimpleConditionEvent<>(businessInterface,
+                            businessInterface.getAllSubClasses().size() <= 1,
+                            describe(businessInterface)));
+                }
+
+                private String describe(JavaClass businessInterface) {
+                    return String.format("%s is implemented by %s",
+                            businessInterface.getSimpleName(), joinNamesOf(businessInterface.getAllSubClasses()));
                 }
 
                 private String joinNamesOf(Set<JavaClass> implementations) {

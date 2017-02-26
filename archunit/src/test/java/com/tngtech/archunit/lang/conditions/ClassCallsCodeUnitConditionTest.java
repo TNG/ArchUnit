@@ -14,7 +14,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
-public class ClassCallsMethodConditionTest {
+public class ClassCallsCodeUnitConditionTest {
     private static final Set<String> VIOLATION_MESSAGE_PARTS = ImmutableSet.of(
             CallerClass.methodThatCallsAppendString,
             TargetClass.appendStringMethod,

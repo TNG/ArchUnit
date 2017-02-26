@@ -7,7 +7,7 @@ import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaModifier;
 
-public interface ClassesThat<CONJUNCTION extends Conjunction> {
+public interface ClassesThat<CONJUNCTION> {
 
     CONJUNCTION areNamed(String name);
 

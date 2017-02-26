@@ -16,6 +16,6 @@ class JavaAccessCondition extends ArchCondition<JavaAccess<?>> {
 
     @Override
     public void check(JavaAccess<?> item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent(predicate.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent<>(item, predicate.apply(item), item.getDescription()));
     }
 }

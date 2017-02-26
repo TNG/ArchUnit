@@ -28,9 +28,15 @@ class DependencyRules {
             public void check(Slice slice, ConditionEvents events) {
                 Slices dependencySlices = inputTransformer.transform(slice.getDependencies());
                 for (Slice dependencySlice : dependencySlices) {
-                    events.add(SimpleConditionEvent.violated("%s calls %s:%n%s",
-                            slice.getDescription(), dependencySlice.getDescription(), joinDependencies(slice, dependencySlice)));
+                    events.add(SimpleConditionEvent.violated(slice, describe(slice, dependencySlice)));
                 }
+            }
+
+            private String describe(Slice slice, Slice dependencySlice) {
+                return String.format("%s calls %s:%n%s",
+                        slice.getDescription(),
+                        dependencySlice.getDescription(),
+                        joinDependencies(slice, dependencySlice));
             }
 
             private String joinDependencies(Slice from, Slice to) {

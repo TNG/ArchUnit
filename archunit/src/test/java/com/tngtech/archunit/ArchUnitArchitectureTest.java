@@ -9,12 +9,9 @@ import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaStaticInitializer;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,11 +19,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -61,13 +54,9 @@ public class ArchUnitArchitectureTest {
 
     @Test
     public void types_are_only_resolved_via_reflection_in_allowed_places() {
-        noClasses().should(illegallyResolveClassesViaReflection()).check(archUnitClasses);
-    }
-
-    private ArchCondition<JavaClass> illegallyResolveClassesViaReflection() {
-        return callMethodWhere(typeIsIllegallyResolvedViaReflection())
-                .or(illegallyAccessReflectFunction())
-                .as("illegally resolve classes via reflection");
+        noClasses().should().callMethodWhere(typeIsIllegallyResolvedViaReflection())
+                .as("no classes should illegally resolve classes via reflection")
+                .check(archUnitClasses);
     }
 
     private DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
@@ -103,15 +92,5 @@ public class ArchUnitArchitectureTest {
                 annotatedWith(ResolvesTypesViaReflection.class).onResultOf(Get.target());
 
         return defaultClassForName.or(targetIsMarked);
-    }
-
-    private ArchCondition<JavaClass> illegallyAccessReflectFunction() {
-        DescribedPredicate<JavaFieldAccess> targetIsReflectFunction = fieldAccessTarget(JavaClass.class, "REFLECT");
-        DescribedPredicate<JavaAccess<?>> withForbiddenOrigin =
-                not(origin(nameMatching(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
-                        .and(not(origin(annotatedWith(MayResolveTypesViaReflection.class))))
-                        .and(not(origin(With.<JavaClass>owner(annotatedWith(MayResolveTypesViaReflection.class)))));
-
-        return accessFieldWhere(targetIsReflectFunction.and(withForbiddenOrigin));
     }
 }

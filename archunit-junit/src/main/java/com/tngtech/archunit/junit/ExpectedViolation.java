@@ -12,7 +12,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import org.hamcrest.core.StringContains;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -87,7 +86,7 @@ public class ExpectedViolation implements TestRule {
     public static class PackageAssertionCreator {
         private final Class<?> clazz;
 
-        public PackageAssertionCreator(Class<?> clazz) {
+        private PackageAssertionCreator(Class<?> clazz) {
             this.clazz = clazz;
         }
 
@@ -99,7 +98,7 @@ public class ExpectedViolation implements TestRule {
     private class ExpectedViolationStatement extends Statement {
         private final Statement base;
 
-        public ExpectedViolationStatement(Statement base) {
+        private ExpectedViolationStatement(Statement base) {
             this.base = base;
         }
 
@@ -114,8 +113,8 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static class NoExpectedViolationException extends RuntimeException {
-        public NoExpectedViolationException(MessageAssertionChain assertionChain) {
+    private static class NoExpectedViolationException extends RuntimeException {
+        private NoExpectedViolationException(MessageAssertionChain assertionChain) {
             super("Rule was not violated in the expected way: Expected " + assertionChain);
         }
     }
@@ -155,8 +154,8 @@ public class ExpectedViolation implements TestRule {
     }
 
     private abstract static class ExpectedAccessViolationBuilder {
-        protected final Origin origin;
-        protected final Target target;
+        final Origin origin;
+        final Target target;
 
         private ExpectedAccessViolationBuilder(Origin origin, Target target) {
             this.origin = origin;
@@ -168,7 +167,7 @@ public class ExpectedViolation implements TestRule {
         private final Origin origin;
         private final ImmutableSet<AccessType> accessType;
 
-        public ExpectedFieldAccessViolationBuilderStep1(Origin origin, AccessType... accessType) {
+        private ExpectedFieldAccessViolationBuilderStep1(Origin origin, AccessType... accessType) {
             this.origin = origin;
             this.accessType = ImmutableSet.copyOf(accessType);
         }
@@ -220,13 +219,13 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static class ExpectedFieldAccess extends ExpectedAccess {
+    static class ExpectedFieldAccess extends ExpectedAccess {
         private ExpectedFieldAccess(Origin origin, Target target, int lineNumber) {
             super(origin, target, lineNumber);
         }
     }
 
-    public static class ExpectedMethodCall extends ExpectedAccess {
+    static class ExpectedMethodCall extends ExpectedAccess {
         private ExpectedMethodCall(Origin origin, Target target, int lineNumber) {
             super(origin, target, lineNumber);
         }
@@ -235,7 +234,7 @@ public class ExpectedViolation implements TestRule {
     private abstract static class Member {
         private final Class<?> clazz;
         private final String memberName;
-        protected final List<String> params = new ArrayList<>();
+        final List<String> params = new ArrayList<>();
 
         private Member(Class<?> clazz, String memberName, Class<?>[] paramTypes) {
             this.clazz = clazz;
@@ -245,7 +244,7 @@ public class ExpectedViolation implements TestRule {
             }
         }
 
-        protected String lineMessage(int number) {
+        String lineMessage(int number) {
             return String.format("(%s.java:%d)", clazz.getSimpleName(), number);
         }
 
@@ -323,21 +322,6 @@ public class ExpectedViolation implements TestRule {
         @Override
         String template() {
             return "Method <%s> calls constructor <%s> in %s";
-        }
-    }
-
-    private static ContainsStringWithBetterMessage containsString(String string) {
-        return new ContainsStringWithBetterMessage(string);
-    }
-
-    private static class ContainsStringWithBetterMessage extends StringContains {
-        public ContainsStringWithBetterMessage(String substring) {
-            super(substring);
-        }
-
-        @Override
-        public void describeTo(org.hamcrest.Description description) {
-            description.appendText(String.format("containing \"%s\"", substring));
         }
     }
 }

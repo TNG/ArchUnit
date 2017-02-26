@@ -90,7 +90,7 @@ public class RandomSyntaxTest {
         private GivenClasses initRuleDefinition() {
             if (random.nextBoolean()) {
                 expectedDescription.add("classes");
-                return ArchRuleDefinition.allClasses();
+                return ArchRuleDefinition.classes();
             } else {
                 expectedDescription.add("no classes");
                 return ArchRuleDefinition.noClasses();

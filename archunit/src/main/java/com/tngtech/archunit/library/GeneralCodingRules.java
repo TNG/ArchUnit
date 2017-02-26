@@ -7,8 +7,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
@@ -39,12 +39,12 @@ public class GeneralCodingRules {
 
     private static ArchCondition<JavaClass> throwGenericExceptions() {
         ArchCondition<JavaClass> creationOfThrowable =
-                callMethodWhere(callTarget().isDeclaredIn(Throwable.class).isConstructor());
+                callCodeUnitWhere(callTarget().isDeclaredIn(Throwable.class).isConstructor());
         ArchCondition<JavaClass> creationOfException =
-                callMethodWhere(callTarget().isDeclaredIn(Exception.class).isConstructor()
+                callCodeUnitWhere(callTarget().isDeclaredIn(Exception.class).isConstructor()
                         .and(not(callOrigin().isAssignableTo(Exception.class))));
         ArchCondition<JavaClass> creationOfRuntimeException =
-                callMethodWhere(callTarget().isDeclaredIn(RuntimeException.class).isConstructor()
+                callCodeUnitWhere(callTarget().isDeclaredIn(RuntimeException.class).isConstructor()
                         .and(not(callOrigin().isAssignableTo(RuntimeException.class))));
 
         return creationOfThrowable.or(creationOfException).or(creationOfRuntimeException).as("throw generic exceptions");

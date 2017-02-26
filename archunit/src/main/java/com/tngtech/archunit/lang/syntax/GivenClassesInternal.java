@@ -13,8 +13,6 @@ import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
-import static java.util.Collections.singletonList;
-
 class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal>
         implements GivenClasses, GivenClassesConjunction {
 
@@ -41,7 +39,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ClassesShould should() {
-        return new ClassesShouldInternal(priority, finishedClassesTransformer(), prepareCondition);
+        return new ClassesShouldInternal(finishedClassesTransformer(), priority, prepareCondition);
     }
 
     @Override
@@ -51,7 +49,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ArchRule should(ArchCondition<JavaClass> condition) {
-        return new ClassesShouldInternal(priority, finishedClassesTransformer(), singletonList(condition), prepareCondition);
+        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition, prepareCondition);
     }
 
     private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {

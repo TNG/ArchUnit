@@ -10,9 +10,12 @@ import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
@@ -84,8 +87,17 @@ public final class ArchConditions {
         return new MethodCallConditionCreator(methodName, paramTypes);
     }
 
-    public static ArchCondition<JavaClass> callMethodWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
-        return new ClassCallsMethodCondition(predicate);
+    public static ArchCondition<JavaClass> callMethodWhere(final DescribedPredicate<? super JavaMethodCall> predicate) {
+        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>(predicate.getDescription()) {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return input instanceof JavaMethodCall && predicate.apply((JavaMethodCall) input);
+            }
+        });
+    }
+
+    public static ArchCondition<JavaClass> callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
+        return new ClassCallsCodeUnitCondition(predicate);
     }
 
     public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<? super JavaClass> predicate) {
@@ -124,11 +136,11 @@ public final class ArchConditions {
         }
 
         public ArchCondition<JavaClass> in(Class<?> clazz) {
-            return callMethodWhere(callTarget().is(clazz, methodName, params));
+            return callCodeUnitWhere(callTarget().is(clazz, methodName, params));
         }
 
         public ArchCondition<JavaClass> inHierarchyOf(Class<?> type) {
-            return callMethodWhere(callTarget()
+            return callCodeUnitWhere(callTarget()
                     .isDeclaredIn(assignableTo(type))
                     .hasName(methodName)
                     .hasParameterTypes(params));
@@ -150,5 +162,17 @@ public final class ArchConditions {
         Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
             return item.getAccessesFromSelf();
         }
+    }
+
+    public static ArchCondition<JavaClass> beNamed(final String name) {
+        return new ArchCondition<JavaClass>(String.format("be named '%s'", name)) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean matches = item.getName().equals(name);
+                String infix = matches ? "" : "not ";
+                String message = String.format("class %s is %snamed '%s'", item.getName(), infix, name);
+                events.add(new SimpleConditionEvent<>(item, matches, message));
+            }
+        };
     }
 }

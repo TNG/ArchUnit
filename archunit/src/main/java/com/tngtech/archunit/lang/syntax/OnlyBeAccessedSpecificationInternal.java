@@ -1,11 +1,11 @@
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
-import com.tngtech.archunit.lang.syntax.elements.ShouldConjunction;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 
-class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification<ShouldConjunction> {
+class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification<ClassesShouldConjunction> {
     private final ClassesShouldInternal classesShould;
 
     OnlyBeAccessedSpecificationInternal(ClassesShouldInternal classesShould) {
@@ -13,7 +13,7 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
     }
 
     @Override
-    public ShouldConjunction byAnyPackage(String... packageIdentifiers) {
-        return classesShould.copyWithCondition(onlyBeAccessedByAnyPackage(packageIdentifiers));
+    public ClassesShouldConjunction byAnyPackage(String... packageIdentifiers) {
+        return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(onlyBeAccessedByAnyPackage(packageIdentifiers)));
     }
 }

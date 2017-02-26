@@ -29,7 +29,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongA
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;

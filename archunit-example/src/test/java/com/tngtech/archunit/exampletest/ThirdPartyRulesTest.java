@@ -12,11 +12,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 public class ThirdPartyRulesTest {
     protected static final String THIRD_PARTY_CLASS_RULE_TEXT =
@@ -35,7 +35,7 @@ public class ThirdPartyRulesTest {
     @Ignore
     @Test
     public void third_party_class_should_only_be_instantiated_via_workaround() {
-        allClasses().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
+        classes().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
                 .as(THIRD_PARTY_CLASS_RULE_TEXT))
                 .check(classes);
     }
@@ -57,6 +57,6 @@ public class ThirdPartyRulesTest {
                         and(notFromWithinThirdPartyClass).
                         and(notFromWorkaroundFactory);
 
-        return never(callMethodWhere(targetIsIllegalConstructorOfThirdPartyClass));
+        return never(callCodeUnitWhere(targetIsIllegalConstructorOfThirdPartyClass));
     }
 }

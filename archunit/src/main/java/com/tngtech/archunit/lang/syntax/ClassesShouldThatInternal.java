@@ -12,8 +12,8 @@ import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
-import com.tngtech.archunit.lang.syntax.elements.ShouldConjunction;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
@@ -21,7 +21,7 @@ import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatchi
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction {
+class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConjunction {
     private final ClassesShouldInternal classesShould;
     private final PredicateAggregator<JavaClass> predicateAggregator;
     private final Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition;
@@ -41,192 +41,192 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction 
     }
 
     @Override
-    public ShouldConjunction resideInPackage(String packageIdentifier) {
+    public ClassesShouldConjunction resideInPackage(String packageIdentifier) {
         return shouldWith(JavaClass.Predicates.resideInPackage(packageIdentifier));
     }
 
     @Override
-    public ShouldConjunction resideInAnyPackage(String... packageIdentifiers) {
+    public ClassesShouldConjunction resideInAnyPackage(String... packageIdentifiers) {
         return shouldWith(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
     }
 
     @Override
-    public ShouldConjunction resideOutsideOfPackage(String packageIdentifier) {
+    public ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier) {
         return shouldWith(ClassesThatPredicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @Override
-    public ShouldConjunction resideOutsideOfPackages(String... packageIdentifiers) {
+    public ClassesShouldConjunction resideOutsideOfPackages(String... packageIdentifiers) {
         return shouldWith(ClassesThatPredicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @Override
-    public ShouldConjunction areAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public ClassesShouldConjunction areAnnotatedWith(Class<? extends Annotation> annotationType) {
         return shouldWith(are(annotatedWith(annotationType)));
     }
 
     @Override
-    public ShouldConjunction areNotAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public ClassesShouldConjunction areNotAnnotatedWith(Class<? extends Annotation> annotationType) {
         return shouldWith(are(not(annotatedWith(annotationType))));
     }
 
     @Override
-    public ShouldConjunction areAnnotatedWith(String annotationTypeName) {
+    public ClassesShouldConjunction areAnnotatedWith(String annotationTypeName) {
         return shouldWith(are(annotatedWith(annotationTypeName)));
     }
 
     @Override
-    public ShouldConjunction areNotAnnotatedWith(String annotationTypeName) {
+    public ClassesShouldConjunction areNotAnnotatedWith(String annotationTypeName) {
         return shouldWith(are(not(annotatedWith(annotationTypeName))));
     }
 
     @Override
-    public ShouldConjunction areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return shouldWith(are(annotatedWith(predicate)));
     }
 
     @Override
-    public ShouldConjunction areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return shouldWith(are(not(annotatedWith(predicate))));
     }
 
     @Override
-    public ShouldConjunction haveNameMatching(String regex) {
+    public ClassesShouldConjunction haveNameMatching(String regex) {
         return shouldWith(have(nameMatching(regex)));
     }
 
     @Override
-    public ShouldConjunction haveNameNotMatching(String regex) {
+    public ClassesShouldConjunction haveNameNotMatching(String regex) {
         return shouldWith(ClassesThatPredicates.haveNameNotMatching(regex));
     }
 
     @Override
-    public ShouldConjunction areAssignableTo(Class<?> type) {
+    public ClassesShouldConjunction areAssignableTo(Class<?> type) {
         return shouldWith(are(JavaClass.Predicates.assignableTo(type)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableTo(Class<?> type) {
+    public ClassesShouldConjunction areNotAssignableTo(Class<?> type) {
         return shouldWith(are(not(JavaClass.Predicates.assignableTo(type))));
     }
 
     @Override
-    public ShouldConjunction areAssignableTo(String typeName) {
+    public ClassesShouldConjunction areAssignableTo(String typeName) {
         return shouldWith(are(JavaClass.Predicates.assignableTo(typeName)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableTo(String typeName) {
+    public ClassesShouldConjunction areNotAssignableTo(String typeName) {
         return shouldWith(are(not(JavaClass.Predicates.assignableTo(typeName))));
     }
 
     @Override
-    public ShouldConjunction areAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
+    public ClassesShouldConjunction areAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         return shouldWith(are(JavaClass.Predicates.assignableTo(predicate)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
+    public ClassesShouldConjunction areNotAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         return shouldWith(are(not(JavaClass.Predicates.assignableTo(predicate))));
     }
 
     @Override
-    public ShouldConjunction areAssignableFrom(Class<?> type) {
+    public ClassesShouldConjunction areAssignableFrom(Class<?> type) {
         return shouldWith(are(JavaClass.Predicates.assignableFrom(type)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableFrom(Class<?> type) {
+    public ClassesShouldConjunction areNotAssignableFrom(Class<?> type) {
         return shouldWith(are(not(JavaClass.Predicates.assignableFrom(type))));
     }
 
     @Override
-    public ShouldConjunction areAssignableFrom(String typeName) {
+    public ClassesShouldConjunction areAssignableFrom(String typeName) {
         return shouldWith(are(JavaClass.Predicates.assignableFrom(typeName)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableFrom(String typeName) {
+    public ClassesShouldConjunction areNotAssignableFrom(String typeName) {
         return shouldWith(are(not(JavaClass.Predicates.assignableFrom(typeName))));
     }
 
     @Override
-    public ShouldConjunction areAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
+    public ClassesShouldConjunction areAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return shouldWith(are(JavaClass.Predicates.assignableFrom(predicate)));
     }
 
     @Override
-    public ShouldConjunction areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
+    public ClassesShouldConjunction areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return shouldWith(are(not(JavaClass.Predicates.assignableFrom(predicate))));
     }
 
     @Override
-    public ShouldConjunction arePublic() {
+    public ClassesShouldConjunction arePublic() {
         return shouldWith(ClassesThatPredicates.arePublic());
     }
 
     @Override
-    public ShouldConjunction areNotPublic() {
+    public ClassesShouldConjunction areNotPublic() {
         return shouldWith(ClassesThatPredicates.areNotPublic());
     }
 
     @Override
-    public ShouldConjunction areProtected() {
+    public ClassesShouldConjunction areProtected() {
         return shouldWith(ClassesThatPredicates.areProtected());
     }
 
     @Override
-    public ShouldConjunction areNotProtected() {
+    public ClassesShouldConjunction areNotProtected() {
         return shouldWith(ClassesThatPredicates.areNotProtected());
     }
 
     @Override
-    public ShouldConjunction arePackagePrivate() {
+    public ClassesShouldConjunction arePackagePrivate() {
         return shouldWith(ClassesThatPredicates.arePackagePrivate());
     }
 
     @Override
-    public ShouldConjunction areNotPackagePrivate() {
+    public ClassesShouldConjunction areNotPackagePrivate() {
         return shouldWith(ClassesThatPredicates.areNotPackagePrivate());
     }
 
     @Override
-    public ShouldConjunction arePrivate() {
+    public ClassesShouldConjunction arePrivate() {
         return shouldWith(ClassesThatPredicates.arePrivate());
     }
 
     @Override
-    public ShouldConjunction areNotPrivate() {
+    public ClassesShouldConjunction areNotPrivate() {
         return shouldWith(ClassesThatPredicates.areNotPrivate());
     }
 
     @Override
-    public ShouldConjunction areNamed(String name) {
+    public ClassesShouldConjunction areNamed(String name) {
         return shouldWith(ClassesThatPredicates.areNamed(name));
     }
 
     @Override
-    public ShouldConjunction areNotNamed(String name) {
+    public ClassesShouldConjunction areNotNamed(String name) {
         return shouldWith(ClassesThatPredicates.areNotNamed(name));
     }
 
     @Override
-    public ShouldConjunction haveSimpleName(String name) {
+    public ClassesShouldConjunction haveSimpleName(String name) {
         return shouldWith(ClassesThatPredicates.haveSimpleName(name));
     }
 
     @Override
-    public ShouldConjunction dontHaveSimpleName(String name) {
+    public ClassesShouldConjunction dontHaveSimpleName(String name) {
         return shouldWith(ClassesThatPredicates.dontHaveSimpleName(name));
     }
 
     @Override
-    public ShouldConjunction haveModifier(JavaModifier modifier) {
+    public ClassesShouldConjunction haveModifier(JavaModifier modifier) {
         return shouldWith(ClassesThatPredicates.haveModifier(modifier));
     }
 
     @Override
-    public ShouldConjunction dontHaveModifier(JavaModifier modifier) {
+    public ClassesShouldConjunction dontHaveModifier(JavaModifier modifier) {
         return shouldWith(ClassesThatPredicates.dontHaveModifier(modifier));
     }
 
@@ -256,10 +256,15 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ShouldConjunction 
                 createCondition);
     }
 
+    @Override
+    public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
+        return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(createCondition.apply(predicateAggregator.get()).or(condition)));
+    }
+
     private class FinishedRule implements Supplier<ArchRule> {
         @Override
         public ArchRule get() {
-            return classesShould.copyWithCondition(createCondition.apply(predicateAggregator.get()));
+            return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(createCondition.apply(predicateAggregator.get())));
         }
     }
 }

@@ -27,43 +27,51 @@ public class ArchConditionTest {
 
     @Test
     public void and_checks_all_conditions() {
-        ArchCondition<Integer> greaterThanTenFourteenAndTwenty = greaterThan(10).and(greaterThan(14, 20));
+        ArchCondition<Integer> greaterThan10_14And20 = greaterThan(10).and(greaterThan(14, 20));
 
         ConditionEvents events = new ConditionEvents();
-        greaterThanTenFourteenAndTwenty.check(15, events);
+        greaterThan10_14And20.check(15, events);
         assertThat(events).containViolations("15 is not greater than 20");
 
         events = new ConditionEvents();
-        greaterThanTenFourteenAndTwenty.check(5, events);
+        greaterThan10_14And20.check(5, events);
         assertThat(events).containViolations(
                 "5 is not greater than 10",
                 "5 is not greater than 14",
                 "5 is not greater than 20");
 
         events = new ConditionEvents();
-        greaterThanTenFourteenAndTwenty.check(21, events);
+        greaterThan10_14And20.check(21, events);
         assertThat(events).containNoViolation();
     }
 
     @Test
     public void or_checks_all_conditions() {
-        ArchCondition<Integer> greaterThanFifteenOrGreaterThanFourteenAndTwenty =
+        ArchCondition<Integer> greaterThan15OrGreater14And20 =
                 greaterThan(15).or(greaterThan(14, 20));
 
         ConditionEvents events = new ConditionEvents();
-        greaterThanFifteenOrGreaterThanFourteenAndTwenty.check(15, events);
-        assertThat(events).containViolations("15 is not greater than 15", "15 is not greater than 20");
+        greaterThan15OrGreater14And20.check(15, events);
+        assertThat(events).containViolations("15 is not greater than 15 and 15 is not greater than 20");
 
         events = new ConditionEvents();
-        greaterThanFifteenOrGreaterThanFourteenAndTwenty.check(5, events);
+        greaterThan15OrGreater14And20.check(5, events);
         assertThat(events).containViolations(
-                "5 is not greater than 15",
-                "5 is not greater than 14",
-                "5 is not greater than 20");
+                "5 is not greater than 14 and 5 is not greater than 15 and 5 is not greater than 20");
 
         events = new ConditionEvents();
-        greaterThanFifteenOrGreaterThanFourteenAndTwenty.check(16, events);
+        greaterThan15OrGreater14And20.check(16, events);
         assertThat(events).containNoViolation();
+    }
+
+    @Test
+    public void or_events_join_descriptions() {
+        ArchCondition<Integer> isGreaterThan15OrEndsWith1 =
+                greaterThan(15).or(endsWith(1));
+
+        ConditionEvents events = new ConditionEvents();
+        isGreaterThan15OrEndsWith1.check(12, events);
+        assertThat(events).containViolations("12 does not end with 1 and 12 is not greater than 15");
     }
 
     @DataProvider
@@ -170,15 +178,27 @@ public class ArchConditionTest {
         };
     }
 
+    private ArchCondition<Integer> endsWith(final int number) {
+        return new ArchCondition<Integer>("ends with " + number) {
+            @Override
+            public void check(final Integer item, ConditionEvents events) {
+                boolean matches = item.toString().endsWith(Integer.toString(number));
+                events.add(new SimpleConditionEvent<>(item, matches,
+                        item + (matches ? " ends with " : " does not end with ") + number));
+            }
+        };
+    }
+
     public static ConditionWithInit someCondition(String description) {
         return new ConditionWithInit(description);
     }
 
-    private static class GreaterThanEvent extends SimpleConditionEvent {
+    private static class GreaterThanEvent extends SimpleConditionEvent<Integer> {
         GreaterThanEvent(int item, int number) {
-            super(item > number, String.format(
-                    "%d is%s greater than %d",
-                    item, item <= number ? " not" : "", number));
+            super(item, item > number,
+                    String.format(
+                            "%d is%s greater than %d",
+                            item, item <= number ? " not" : "", number));
         }
     }
 

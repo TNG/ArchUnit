@@ -35,7 +35,7 @@ class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
     @Override
     public void check(JavaFieldAccess item, ConditionEvents events) {
         String message = item.getDescriptionWithTemplate(descriptionTemplate);
-        events.add(new SimpleConditionEvent(fieldAccessIdentifier.apply(item), message));
+        events.add(new SimpleConditionEvent<>(item, fieldAccessIdentifier.apply(item), message));
     }
 
     static class FieldGetAccessCondition extends FieldAccessCondition {

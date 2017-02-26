@@ -386,14 +386,14 @@ public class ClassesShouldThatTest {
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
     }
 
-    private Evaluator filterClassesHitBy(ShouldConjunction classesShould) {
+    private Evaluator filterClassesHitBy(ClassesShouldConjunction classesShould) {
         return new Evaluator(classesShould);
     }
 
     private class Evaluator {
-        private final ShouldConjunction classesShould;
+        private final ClassesShouldConjunction classesShould;
 
-        Evaluator(ShouldConjunction classesShould) {
+        Evaluator(ClassesShouldConjunction classesShould) {
             this.classesShould = classesShould;
         }
 

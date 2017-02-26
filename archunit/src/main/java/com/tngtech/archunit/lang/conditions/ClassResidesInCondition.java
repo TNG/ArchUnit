@@ -18,6 +18,6 @@ class ClassResidesInCondition extends ArchCondition<JavaClass> {
     public void check(final JavaClass item, ConditionEvents events) {
         boolean matches = PackageMatcher.of(packageIdentifier).matches(item.getPackage());
         String message = String.format("Class %s does not reside in a package that matches '%s'", item.getName(), packageIdentifier);
-        events.add(new SimpleConditionEvent(matches, message));
+        events.add(new SimpleConditionEvent<>(item, matches, message));
     }
 }

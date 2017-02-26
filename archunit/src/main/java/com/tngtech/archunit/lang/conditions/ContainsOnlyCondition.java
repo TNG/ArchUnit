@@ -22,7 +22,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
             condition.check(item, subEvents);
         }
         if (!subEvents.isEmpty()) {
-            events.add(new OnlyConditionEvent(subEvents));
+            events.add(new OnlyConditionEvent<>(collection, subEvents));
         }
     }
 
@@ -31,23 +31,26 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         return getClass().getSimpleName() + "{condition=" + condition + "}";
     }
 
-    private static class OnlyConditionEvent extends SimpleConditionEvent {
+    private static class OnlyConditionEvent<T> extends SimpleConditionEvent<Collection<T>> {
         private Collection<ConditionEvent> allowed;
         private Collection<ConditionEvent> violating;
 
-        public OnlyConditionEvent(ConditionEvents events) {
-            this(!events.containViolation(), events.getAllowed(), events.getViolating());
+        private OnlyConditionEvent(Collection<T> correspondingObject, ConditionEvents events) {
+            this(correspondingObject, !events.containViolation(), events.getAllowed(), events.getViolating());
         }
 
-        public OnlyConditionEvent(boolean conditionSatisfied, Collection<ConditionEvent> allowed, Collection<ConditionEvent> violating) {
-            super(conditionSatisfied, joinMessages(violating));
+        private OnlyConditionEvent(Collection<T> correspondingObject,
+                                   boolean conditionSatisfied,
+                                   Collection<ConditionEvent> allowed,
+                                   Collection<ConditionEvent> violating) {
+            super(correspondingObject, conditionSatisfied, joinMessages(violating));
             this.allowed = allowed;
             this.violating = violating;
         }
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new OnlyConditionEvent(isViolation(), violating, allowed));
+            events.add(new OnlyConditionEvent<>(getCorrespondingObject(), isViolation(), violating, allowed));
         }
     }
 }

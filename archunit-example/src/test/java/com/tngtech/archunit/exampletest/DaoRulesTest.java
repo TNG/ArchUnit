@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 public class DaoRulesTest {
     private JavaClasses classes;
@@ -23,14 +23,14 @@ public class DaoRulesTest {
     @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
-        allClasses().that().haveNameMatching(".*Dao").should().resideInAPackage("..dao..")
+        classes().that().haveNameMatching(".*Dao").should().resideInAPackage("..dao..")
                 .as("DAOs should reside in a package '..dao..'").check(classes);
     }
 
     @Ignore
     @Test
     public void entities_must_reside_in_a_domain_package() {
-        allClasses().that().areAnnotatedWith(Entity.class).should().resideInAPackage("..domain..")
+        classes().that().areAnnotatedWith(Entity.class).should().resideInAPackage("..domain..")
                 .as("Entities should reside in a package '..domain..'").check(classes);
     }
 }

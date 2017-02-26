@@ -15,8 +15,8 @@ public class ConditionEventsTest {
     @DataProvider
     public static Object[][] eventsWithEmpty() {
         return $$(
-                $(events(SimpleConditionEvent.satisfied("irrelevant")), false),
-                $(events(SimpleConditionEvent.violated("irrelevant")), false),
+                $(events(SimpleConditionEvent.satisfied("irrelevant", "irrelevant")), false),
+                $(events(SimpleConditionEvent.violated("irrelevant", "irrelevant")), false),
                 $(new ConditionEvents(), true));
     }
 

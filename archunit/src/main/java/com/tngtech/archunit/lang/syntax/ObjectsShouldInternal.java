@@ -1,11 +1,9 @@
 package com.tngtech.archunit.lang.syntax;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -18,13 +16,29 @@ import static com.google.common.base.Preconditions.checkState;
 class ObjectsShouldInternal<T> implements ArchRule {
     private final Supplier<ArchRule> finishedRule = Suppliers.memoize(new FinishedRule());
 
-    final List<ArchCondition<T>> conditions;
+    final ConditionAggregator<T> conditionAggregator;
     final ClassesTransformer<T> classesTransformer;
     final Priority priority;
     final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition;
 
-    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer, Priority priority, List<ArchCondition<T>> conditions, Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this.conditions = conditions;
+    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+                          Priority priority,
+                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+        this(classesTransformer, priority, new ConditionAggregator<T>(), prepareCondition);
+    }
+
+    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+                          Priority priority,
+                          ArchCondition<T> condition,
+                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+        this(classesTransformer, priority, new ConditionAggregator<>(condition), prepareCondition);
+    }
+
+    private ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+                                  Priority priority,
+                                  ConditionAggregator<T> conditionAggregator,
+                                  Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+        this.conditionAggregator = conditionAggregator;
         this.classesTransformer = classesTransformer;
         this.priority = priority;
         this.prepareCondition = prepareCondition;
@@ -50,6 +64,11 @@ class ObjectsShouldInternal<T> implements ArchRule {
         return finishedRule.get().as(newDescription);
     }
 
+    @Override
+    public String toString() {
+        return finishedRule.get().getDescription();
+    }
+
     private class FinishedRule implements Supplier<ArchRule> {
         @Override
         public ArchRule get() {
@@ -57,14 +76,37 @@ class ObjectsShouldInternal<T> implements ArchRule {
         }
 
         private ArchCondition<T> createCondition() {
-            checkState(conditions.size() >= 1,
-                    "No condition was specified for this rule, so this rule would always be satisfied");
-            LinkedList<ArchCondition<T>> combine = new LinkedList<>(conditions);
-            ArchCondition<T> result = combine.pollFirst();
-            for (ArchCondition<T> condition : combine) {
-                result = result.and(condition);
-            }
-            return prepareCondition.apply(result);
+            return prepareCondition.apply(conditionAggregator.getCondition());
+        }
+    }
+
+    static class ConditionAggregator<T> {
+        private final Optional<ArchCondition<T>> condition;
+
+        ConditionAggregator(ArchCondition<T> condition) {
+            this(Optional.of(condition));
+        }
+
+        ConditionAggregator() {
+            this(Optional.<ArchCondition<T>>absent());
+        }
+
+        private ConditionAggregator(Optional<ArchCondition<T>> condition) {
+            this.condition = condition;
+        }
+
+        ArchCondition<T> getCondition() {
+            checkState(condition.isPresent(),
+                    "No condition was added to this rule, this is most likely a bug within the syntax");
+            return condition.get();
+        }
+
+        ArchCondition<T> and(ArchCondition<? super T> other) {
+            return condition.isPresent() ? condition.get().and(other) : other.<T>forSubType();
+        }
+
+        ArchCondition<T> or(ArchCondition<? super T> other) {
+            return condition.isPresent() ? condition.get().or(other) : other.<T>forSubType();
         }
     }
 }

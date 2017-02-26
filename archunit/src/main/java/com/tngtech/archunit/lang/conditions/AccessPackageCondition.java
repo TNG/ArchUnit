@@ -47,7 +47,7 @@ class AccessPackageCondition extends ArchCondition<JavaAccess<?>> {
         for (PackageMatcher matcher : packageMatchers) {
             matches = matches || matcher.matches(getPackage.apply(item));
         }
-        events.add(new SimpleConditionEvent(matches, item.getDescription()));
+        events.add(new SimpleConditionEvent<>(item, matches, item.getDescription()));
     }
 
     static class Creator {

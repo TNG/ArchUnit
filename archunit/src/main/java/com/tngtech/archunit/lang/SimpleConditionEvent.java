@@ -7,18 +7,21 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.transform;
 
-public class SimpleConditionEvent implements ConditionEvent {
+public class SimpleConditionEvent<T> implements ConditionEvent<T> {
+    private final T correspondingObject;
     private final boolean conditionSatisfied;
     private final String message;
 
-    public SimpleConditionEvent(boolean conditionSatisfied, String messageTemplate, Object... args) {
+    public SimpleConditionEvent(T correspondingObject, boolean conditionSatisfied, String message) {
+        this.correspondingObject = correspondingObject;
         this.conditionSatisfied = conditionSatisfied;
-        this.message = String.format(messageTemplate, args);
-        checkArgument(conditionSatisfied || !message.trim().isEmpty(), "Message may not be empty for violation");
+        this.message = message;
+        checkArgument(conditionSatisfied || !this.message.trim().isEmpty(), "Message may not be empty for violation");
     }
 
     @Override
@@ -28,7 +31,7 @@ public class SimpleConditionEvent implements ConditionEvent {
 
     @Override
     public void addInvertedTo(ConditionEvents events) {
-        events.add(new SimpleConditionEvent(!conditionSatisfied, message));
+        events.add(new SimpleConditionEvent<>(correspondingObject, !conditionSatisfied, message));
     }
 
     @Override
@@ -37,8 +40,17 @@ public class SimpleConditionEvent implements ConditionEvent {
     }
 
     @Override
+    public T getCorrespondingObject() {
+        return null;
+    }
+
+    @Override
     public String toString() {
-        return "ConditionEvent{conditionSatisfied=" + conditionSatisfied + ", message='" + message + "'}";
+        return toStringHelper(this)
+                .add("correspondingObject", correspondingObject)
+                .add("conditionSatisfied", conditionSatisfied)
+                .add("message", message)
+                .toString();
     }
 
     protected static String joinMessages(Collection<ConditionEvent> violating) {
@@ -60,11 +72,11 @@ public class SimpleConditionEvent implements ConditionEvent {
         }
     };
 
-    public static ConditionEvent violated(String message, Object... args) {
-        return new SimpleConditionEvent(false, message, args);
+    public static <T> ConditionEvent<T> violated(T correspondingObject, String message) {
+        return new SimpleConditionEvent<>(correspondingObject, false, message);
     }
 
-    public static ConditionEvent satisfied(String message, Object... args) {
-        return new SimpleConditionEvent(true, message, args);
+    public static <T> ConditionEvent<T> satisfied(T correspondingObject, String message) {
+        return new SimpleConditionEvent<>(correspondingObject, true, message);
     }
 }

@@ -7,7 +7,7 @@ import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.allClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @ArchIgnore
@@ -27,6 +27,6 @@ public class LayerDependencyRulesWithRunnerTest {
 
     @ArchTest
     public static final ArchRule services_should_only_be_accessed_by_controllers_or_other_services =
-            allClasses().that().resideInPackage("..service..")
+            classes().that().resideInPackage("..service..")
                     .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
 }

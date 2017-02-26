@@ -9,8 +9,6 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
-import static java.util.Collections.singletonList;
-
 public class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>>
         implements GivenObjects<T>, HasPredicates<T, GivenObjectsInternal<T>> {
 
@@ -37,7 +35,7 @@ public class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObject
 
     @Override
     public ArchRule should(ArchCondition<T> condition) {
-        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, singletonList(condition), prepareCondition);
+        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, condition, prepareCondition);
     }
 
     private static class GivenObjectsFactory<T> implements AbstractGivenObjects.Factory<T, GivenObjectsInternal<T>> {

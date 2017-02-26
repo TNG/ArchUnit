@@ -28,8 +28,8 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesT
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
@@ -106,7 +106,7 @@ public class ArchConditionsTest {
         assertThat(accessFieldWhere(predicateWithDescription("something")).getDescription())
                 .isEqualTo("access field where something");
 
-        assertThat(callMethodWhere(predicateWithDescription("something")).getDescription())
+        assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
                 .isEqualTo("call method where something");
 
         assertThat(accessClass(predicateWithDescription("something")).getDescription())
