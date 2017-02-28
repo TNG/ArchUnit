@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.TestUtils.invoke;
 import static java.util.Arrays.asList;
@@ -139,7 +141,7 @@ public class RandomSyntaxTest {
         final List<Parameter> parameters;
 
         <T> PartialStep(List<String> expectedDescription, Class<T> type, T currentValue) {
-            this(expectedDescription, new TypedValue(type, currentValue), chooseRandomMethod(currentValue.getClass()));
+            this(expectedDescription, new TypedValue(type, currentValue), chooseRandomMethod(currentValue.getClass()).get());
         }
 
         private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method) {
@@ -181,21 +183,30 @@ public class RandomSyntaxTest {
                     "Invoking %s() on %s returned null (%s.java:0)",
                     method.getName(), currentValue.value, currentValue.value.getClass().getSimpleName());
 
-            Method method = chooseRandomMethod(nextValue.type);
-            Step nextStep = ArchRule.class.isAssignableFrom(nextValue.type) ?
-                    new LastStep(expectedDescription, nextValue) :
-                    new PartialStep(expectedDescription, nextValue, method, getParametersFor(method));
+            Optional<Method> method = chooseRandomMethod(nextValue.type);
+            Step nextStep = method.isPresent() && shouldNotFinish(nextValue) ?
+                    new PartialStep(expectedDescription, nextValue, method.get(), getParametersFor(method.get())) :
+                    new LastStep(expectedDescription, nextValue);
             LOG.debug("Next step is {}", nextStep);
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
+        }
+
+        private boolean shouldNotFinish(TypedValue nextValue) {
+            return !ArchRule.class.isAssignableFrom(nextValue.type) || random.nextBoolean();
         }
 
         private Class<?> returnType(Method method, Object value) {
             return TypeToken.of(value.getClass()).resolveType(method.getGenericReturnType()).getRawType();
         }
 
-        private static Method chooseRandomMethod(Class<?> clazz) {
+        private static Optional<Method> chooseRandomMethod(Class<?> clazz) {
             List<Method> methods = getPossibleMethodCandidates(clazz);
-            return methods.get(random.nextInt(methods.size()));
+            for (Method method : ArchRule.class.getMethods()) {
+                methods.remove(method);
+            }
+            return !methods.isEmpty() ?
+                    Optional.of(methods.get(random.nextInt(methods.size()))) :
+                    Optional.<Method>absent();
         }
 
         private static List<Method> getPossibleMethodCandidates(Class<?> clazz) {
@@ -234,6 +245,8 @@ public class RandomSyntaxTest {
     private static class LastStep extends Step {
         private LastStep(List<String> expectedDescription, TypedValue currentValue) {
             super(expectedDescription, currentValue);
+            checkArgument(ArchRule.class.isAssignableFrom(currentValue.type),
+                    "Type %s must be assignable to ArchRule", currentValue.type.getName());
         }
 
         @Override

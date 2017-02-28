@@ -6,4 +6,6 @@ import com.tngtech.archunit.lang.ArchRule;
 
 public interface ClassesShouldConjunction extends ArchRule {
     ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition);
+
+    ClassesShould orShould();
 }

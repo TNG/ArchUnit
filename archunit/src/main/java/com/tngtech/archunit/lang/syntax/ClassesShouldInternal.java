@@ -29,6 +29,13 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         super(classesTransformer, priority, condition, prepareCondition);
     }
 
+    private ClassesShouldInternal(ClassesTransformer<JavaClass> classesTransformer,
+                                  Priority priority,
+                                  ConditionAggregator<JavaClass> conditionAggregator,
+                                  Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
+        super(classesTransformer, priority, conditionAggregator, prepareCondition);
+    }
+
     @Override
     public AccessSpecificationInternal access() {
         return new AccessSpecificationInternal(this);
@@ -41,30 +48,45 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction beNamed(final String name) {
-        return copyWithNewCondition(conditionAggregator.and(ArchConditions.beNamed(name)));
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beNamed(name)));
     }
 
     @Override
     public ClassesShouldConjunction resideInAPackage(String packageIdentifier) {
-        return copyWithNewCondition(conditionAggregator.and(ArchConditions.resideInAPackage(packageIdentifier)));
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.resideInAPackage(packageIdentifier)));
     }
 
     @Override
     public ClassesShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
-        return copyWithNewCondition(conditionAggregator.and(ArchConditions.setFieldWhere(predicate)));
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setFieldWhere(predicate)));
     }
 
     @Override
     public ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate) {
-        return copyWithNewCondition(conditionAggregator.and(ArchConditions.callMethodWhere(predicate)));
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethodWhere(predicate)));
     }
 
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
         return new ClassesShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }
 
+    ClassesShouldInternal addCondition(ArchCondition<JavaClass> condition) {
+        return copyWithNewCondition(conditionAggregator.add(condition));
+    }
+
     @Override
     public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
-        return copyWithNewCondition(conditionAggregator.or(condition.as("should " + condition.getDescription())));
+        return copyWithNewCondition(conditionAggregator
+                .thatORsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should"))
+                .add(condition));
+    }
+
+    @Override
+    public ClassesShould orShould() {
+        return new ClassesShouldInternal(
+                classesTransformer,
+                priority,
+                conditionAggregator.thatORsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should")),
+                prepareCondition);
     }
 }

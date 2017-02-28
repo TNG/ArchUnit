@@ -14,6 +14,6 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
 
     @Override
     public ClassesShouldConjunction byAnyPackage(String... packageIdentifiers) {
-        return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(onlyBeAccessedByAnyPackage(packageIdentifiers)));
+        return classesShould.addCondition(onlyBeAccessedByAnyPackage(packageIdentifiers));
     }
 }

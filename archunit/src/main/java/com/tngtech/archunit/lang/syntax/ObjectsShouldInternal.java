@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -24,20 +25,20 @@ class ObjectsShouldInternal<T> implements ArchRule {
     ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
                           Priority priority,
                           Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(classesTransformer, priority, new ConditionAggregator<T>(), prepareCondition);
+        this(classesTransformer, priority, new ConditionAggregator<>(AddMode.<T>and()), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
                           Priority priority,
                           ArchCondition<T> condition,
                           Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(classesTransformer, priority, new ConditionAggregator<>(condition), prepareCondition);
+        this(classesTransformer, priority, new ConditionAggregator<>(condition, AddMode.<T>and()), prepareCondition);
     }
 
-    private ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
-                                  Priority priority,
-                                  ConditionAggregator<T> conditionAggregator,
-                                  Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+                          Priority priority,
+                          ConditionAggregator<T> conditionAggregator,
+                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this.conditionAggregator = conditionAggregator;
         this.classesTransformer = classesTransformer;
         this.priority = priority;
@@ -82,17 +83,19 @@ class ObjectsShouldInternal<T> implements ArchRule {
 
     static class ConditionAggregator<T> {
         private final Optional<ArchCondition<T>> condition;
+        private final AddMode<T> addMode;
 
-        ConditionAggregator(ArchCondition<T> condition) {
-            this(Optional.of(condition));
+        ConditionAggregator(AddMode<T> addMode) {
+            this(Optional.<ArchCondition<T>>absent(), addMode);
         }
 
-        ConditionAggregator() {
-            this(Optional.<ArchCondition<T>>absent());
+        ConditionAggregator(ArchCondition<T> condition, AddMode<T> addMode) {
+            this(Optional.of(condition), addMode);
         }
 
-        private ConditionAggregator(Optional<ArchCondition<T>> condition) {
+        private ConditionAggregator(Optional<ArchCondition<T>> condition, AddMode<T> addMode) {
             this.condition = condition;
+            this.addMode = addMode;
         }
 
         ArchCondition<T> getCondition() {
@@ -101,12 +104,49 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return condition.get();
         }
 
-        ArchCondition<T> and(ArchCondition<? super T> other) {
-            return condition.isPresent() ? condition.get().and(other) : other.<T>forSubType();
+        ArchCondition<T> add(ArchCondition<? super T> other) {
+            return addMode.apply(condition, other);
         }
 
-        ArchCondition<T> or(ArchCondition<? super T> other) {
-            return condition.isPresent() ? condition.get().or(other) : other.<T>forSubType();
+        ConditionAggregator<T> thatORsWith(Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            return new ConditionAggregator<>(condition, AddMode.or(prepareCondition));
         }
+    }
+
+    private abstract static class AddMode<T> {
+        static <T> AddMode<T> and() {
+            return and(Functions.<ArchCondition<T>>identity());
+        }
+
+        static <T> AddMode<T> and(final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            return new AddMode<T>() {
+                @Override
+                ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
+                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubType());
+                    return first.isPresent() ? first.get().and(second) : second;
+                }
+            };
+        }
+
+        static <T> AddMode<T> or(final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            return new AddMode<T>() {
+                @Override
+                ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
+                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubType());
+                    return first.isPresent() ? first.get().or(second) : second;
+                }
+            };
+        }
+
+        abstract ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other);
+    }
+
+    static <T> Function<ArchCondition<T>, ArchCondition<T>> prependDescription(final String prefix) {
+        return new Function<ArchCondition<T>, ArchCondition<T>>() {
+            @Override
+            public ArchCondition<T> apply(ArchCondition<T> input) {
+                return input.as(prefix + " " + input.getDescription());
+            }
+        };
     }
 }

@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 
@@ -258,13 +259,20 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
-        return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(createCondition.apply(predicateAggregator.get()).or(condition)));
+        return classesShould.addCondition(createCondition.apply(predicateAggregator.get())).orShould(condition);
+    }
+
+    @Override
+    public ClassesShould orShould() {
+        return classesShould.addCondition(createCondition.apply(predicateAggregator.get())).orShould();
     }
 
     private class FinishedRule implements Supplier<ArchRule> {
         @Override
         public ArchRule get() {
-            return classesShould.copyWithNewCondition(classesShould.conditionAggregator.and(createCondition.apply(predicateAggregator.get())));
+            return classesShould.copyWithNewCondition(
+                    classesShould.conditionAggregator
+                            .add(createCondition.apply(predicateAggregator.get())));
         }
     }
 }
