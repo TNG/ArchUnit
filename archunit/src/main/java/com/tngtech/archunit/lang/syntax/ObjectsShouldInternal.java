@@ -111,6 +111,10 @@ class ObjectsShouldInternal<T> implements ArchRule {
         ConditionAggregator<T> thatORsWith(Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
             return new ConditionAggregator<>(condition, AddMode.or(prepareCondition));
         }
+
+        ConditionAggregator<T> thatANDsWith(Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            return new ConditionAggregator<>(condition, AddMode.and(prepareCondition));
+        }
     }
 
     private abstract static class AddMode<T> {

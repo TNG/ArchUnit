@@ -75,6 +75,22 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction andShould(ArchCondition<? super JavaClass> condition) {
+        return copyWithNewCondition(conditionAggregator
+                .thatANDsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should"))
+                .add(condition));
+    }
+
+    @Override
+    public ClassesShould andShould() {
+        return new ClassesShouldInternal(
+                classesTransformer,
+                priority,
+                conditionAggregator.thatANDsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should")),
+                prepareCondition);
+    }
+
+    @Override
     public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
         return copyWithNewCondition(conditionAggregator
                 .thatORsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should"))

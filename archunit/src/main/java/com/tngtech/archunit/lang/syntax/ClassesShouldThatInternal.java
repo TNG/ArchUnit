@@ -258,6 +258,16 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
+    public ClassesShouldConjunction andShould(ArchCondition<? super JavaClass> condition) {
+        return classesShould.addCondition(createCondition.apply(predicateAggregator.get())).andShould(condition);
+    }
+
+    @Override
+    public ClassesShould andShould() {
+        return classesShould.addCondition(createCondition.apply(predicateAggregator.get())).andShould();
+    }
+
+    @Override
     public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
         return classesShould.addCondition(createCondition.apply(predicateAggregator.get())).orShould(condition);
     }
