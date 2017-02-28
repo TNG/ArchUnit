@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -138,7 +137,7 @@ public class RandomSyntaxTest {
         private static final ParameterProvider parameterProvider = new ParameterProvider();
 
         final Method method;
-        final List<Parameter> parameters;
+        final Parameters parameters;
 
         <T> PartialStep(List<String> expectedDescription, Class<T> type, T currentValue) {
             this(expectedDescription, new TypedValue(type, currentValue), chooseRandomMethod(currentValue.getClass()).get());
@@ -148,27 +147,19 @@ public class RandomSyntaxTest {
             this(expectedDescription, currentValue, method, getParametersFor(method));
         }
 
-        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method, List<Parameter> parameters) {
+        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method, Parameters parameters) {
             super(expectedDescription, currentValue);
             this.method = method;
             this.parameters = parameters;
-            expectedDescription.addAll(getDescription());
+            expectedDescription.add(getDescription());
         }
 
-        private static List<Parameter> getParametersFor(Method method) {
-            ArrayList<Parameter> result = new ArrayList<>();
+        private static Parameters getParametersFor(Method method) {
+            List<TypeToken<?>> tokens = new ArrayList<>();
             for (Type type : method.getGenericParameterTypes()) {
-                result.add(parameterProvider.get(method.getName(), TypeToken.of(type)));
+                tokens.add(TypeToken.of(type));
             }
-            return result;
-        }
-
-        private Object[] getParameterValues(List<Parameter> parameters) {
-            Object[] params = new Object[parameters.size()];
-            for (int i = 0; i < parameters.size(); i++) {
-                params[i] = parameters.get(i).value;
-            }
-            return params;
+            return parameterProvider.get(method.getName(), tokens);
         }
 
         @Override
@@ -178,7 +169,7 @@ public class RandomSyntaxTest {
             }
 
             TypedValue nextValue = new TypedValue(returnType(method, currentValue.value),
-                    invoke(method, currentValue.value, getParameterValues(parameters)));
+                    invoke(method, currentValue.value, parameters.getValues()));
             checkState(nextValue.value != null,
                     "Invoking %s() on %s returned null (%s.java:0)",
                     method.getName(), currentValue.value, currentValue.value.getClass().getSimpleName());
@@ -220,17 +211,8 @@ public class RandomSyntaxTest {
             return result;
         }
 
-        public Collection<String> getDescription() {
-            List<String> result = new ArrayList<>();
-            result.add(verbalize(method.getName()));
-            for (Parameter parameter : parameters) {
-                result.add(parameter.description);
-            }
-            return result;
-        }
-
-        private String verbalize(String name) {
-            return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).replace("_", " ");
+        public String getDescription() {
+            return parameters.getDescription();
         }
 
         @Override
@@ -286,7 +268,7 @@ public class RandomSyntaxTest {
     }
 
     private static class ParameterProvider {
-        private static final Set<SpecificParameterProvider> providers = ImmutableSet.<SpecificParameterProvider>builder()
+        private static final Set<SpecificParameterProvider> singleParameterProviders = ImmutableSet.<SpecificParameterProvider>builder()
                 .add(new SpecificParameterProvider(String.class) {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
@@ -340,15 +322,36 @@ public class RandomSyntaxTest {
                 })
                 .build();
 
+        private final List<SpecificParametersProvider> parametersProvider = ImmutableList.of(
+                new FieldMethodParametersProvider(),
+                new SingleParametersProvider()
+        );
+
+
+        Parameters get(String methodName, List<TypeToken<?>> types) {
+            for (SpecificParametersProvider provider : parametersProvider) {
+                if (provider.canHandle(methodName, types)) {
+                    return provider.get(methodName, types);
+                }
+            }
+            throw new IllegalStateException(String.format("No ParametersProvider found for %s with parameterTypes %s",
+                    methodName, types));
+        }
 
         @SuppressWarnings("unchecked")
         Parameter get(String methodName, TypeToken<?> type) {
-            for (SpecificParameterProvider provider : providers) {
+            for (SpecificParameterProvider provider : singleParameterProviders) {
                 if (provider.canHandle(type.getRawType())) {
                     return provider.get(methodName, type);
                 }
             }
             throw new RuntimeException("Parameter type " + type + " is not supported yet");
+        }
+
+        private abstract static class SpecificParametersProvider {
+            abstract boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes);
+
+            abstract Parameters get(String methodName, List<TypeToken<?>> parameterTypes);
         }
 
         private abstract static class SpecificParameterProvider {
@@ -363,6 +366,106 @@ public class RandomSyntaxTest {
             }
 
             abstract Parameter get(String methodName, TypeToken<?> type);
+        }
+
+        private class FieldMethodParametersProvider extends SpecificParametersProvider {
+            @Override
+            boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
+                return methodName.toLowerCase().contains("field");
+            }
+
+            @Override
+            Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
+                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                if (parameterTypes.size() == 2) {
+                    return specificHandlingOfTwoParameterMethods(methodName, parameterTypes, parameters);
+                }
+                return parameters;
+            }
+
+            private Parameters specificHandlingOfTwoParameterMethods(String methodName, List<TypeToken<?>> parameterTypes, Parameters parameters) {
+                checkKnownCase(parameterTypes);
+                String first = Class.class.isAssignableFrom(parameterTypes.get(0).getRawType()) ?
+                        ((Class) ParameterProvider.this.get(methodName, TypeToken.of(Class.class)).value).getSimpleName() :
+                        (String) ParameterProvider.this.get(methodName, TypeToken.of(String.class)).value;
+                String params = first + "." + ParameterProvider.this.get(methodName, TypeToken.of(String.class)).value;
+                return parameters.withDescription(verbalize(methodName) + " " + params);
+            }
+
+            private void checkKnownCase(List<TypeToken<?>> parameterTypes) {
+                boolean firstParameterInvalid = !Class.class.isAssignableFrom(parameterTypes.get(0).getRawType()) &&
+                        !String.class.isAssignableFrom(parameterTypes.get(0).getRawType());
+
+                boolean secondParameterInvalid = !String.class.isAssignableFrom(parameterTypes.get(1).getRawType());
+
+                if (firstParameterInvalid || secondParameterInvalid) {
+                    throw new UnsupportedOperationException(String.format("Up to now all methods with two parameters " +
+                                    "dealing with fields have either %s or %s as their first parameter type and" +
+                                    "%s as their second parameter type. " +
+                                    "If this doesn't hold anymore, please replace this with something more sophisticated",
+                            Class.class.getName(), String.class.getName(), String.class.getName()));
+                }
+            }
+        }
+
+        private class SingleParametersProvider extends SpecificParametersProvider {
+            @Override
+            boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
+                return true;
+            }
+
+            @Override
+            Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
+                List<Parameter> params = new ArrayList<>();
+                for (TypeToken<?> type : parameterTypes) {
+                    params.add(ParameterProvider.this.get(methodName, type));
+                }
+                return new Parameters(methodName, params);
+            }
+        }
+    }
+
+    private static String verbalize(String name) {
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).replace("_", " ");
+    }
+
+    private static class Parameters {
+        private final List<Parameter> parameters;
+        private final String description;
+
+        private Parameters(List<Parameter> parameters, String description) {
+            this.parameters = parameters;
+            this.description = description;
+        }
+
+        private Parameters(String methodName, List<Parameter> parameters) {
+            this.parameters = parameters;
+            description = getDescription(methodName);
+        }
+
+        private String getDescription(String methodName) {
+            List<String> result = new ArrayList<>();
+            result.add(verbalize(methodName));
+            for (Parameter parameter : parameters) {
+                result.add(parameter.description);
+            }
+            return Joiner.on(" ").join(result);
+        }
+
+        Object[] getValues() {
+            Object[] params = new Object[parameters.size()];
+            for (int i = 0; i < parameters.size(); i++) {
+                params[i] = parameters.get(i).value;
+            }
+            return params;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        Parameters withDescription(String description) {
+            return new Parameters(parameters, description);
         }
     }
 

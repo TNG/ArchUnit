@@ -19,6 +19,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
+import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
@@ -53,9 +54,13 @@ public final class ArchConditions {
         return new ClassIsOnlyAccessedByAnyPackageCondition(packageIdentifiers);
     }
 
-    public static ArchCondition<JavaClass> getField(final Class<?> clazz, final String fieldName) {
-        return getFieldWhere(ownerAndNameAre(clazz, fieldName))
-                .as("get field %s.%s", clazz.getSimpleName(), fieldName);
+    public static ArchCondition<JavaClass> getField(final Class<?> owner, final String fieldName) {
+        return getField(owner.getName(), fieldName);
+    }
+
+    public static ArchCondition<JavaClass> getField(final String ownerName, final String fieldName) {
+        return getFieldWhere(ownerAndNameAre(ownerName, fieldName))
+                .as("get field %s.%s", ensureSimpleName(ownerName), fieldName);
     }
 
     public static ArchCondition<JavaClass> getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
@@ -63,9 +68,13 @@ public final class ArchConditions {
                 .as("get field where " + predicate.getDescription());
     }
 
-    public static ArchCondition<JavaClass> setField(final Class<?> clazz, final String fieldName) {
-        return setFieldWhere(ownerAndNameAre(clazz, fieldName))
-                .as("set field %s.%s", clazz.getSimpleName(), fieldName);
+    public static ArchCondition<JavaClass> setField(final Class<?> owner, final String fieldName) {
+        return setField(owner.getName(), fieldName);
+    }
+
+    public static ArchCondition<JavaClass> setField(final String ownerName, final String fieldName) {
+        return setFieldWhere(ownerAndNameAre(ownerName, fieldName))
+                .as("set field %s.%s", ensureSimpleName(ownerName), fieldName);
     }
 
     public static ArchCondition<JavaClass> setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
@@ -73,9 +82,13 @@ public final class ArchConditions {
                 .as("set field where " + predicate.getDescription());
     }
 
-    public static ArchCondition<JavaClass> accessField(final Class<?> clazz, final String fieldName) {
-        return accessFieldWhere(ownerAndNameAre(clazz, fieldName))
-                .as("access field %s.%s", clazz.getSimpleName(), fieldName);
+    public static ArchCondition<JavaClass> accessField(final Class<?> owner, final String fieldName) {
+        return accessField(owner.getName(), fieldName);
+    }
+
+    public static ArchCondition<JavaClass> accessField(final String ownerName, final String fieldName) {
+        return accessFieldWhere(ownerAndNameAre(ownerName, fieldName))
+                .as("access field %s.%s", ensureSimpleName(ownerName), fieldName);
     }
 
     public static ArchCondition<JavaClass> accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
@@ -120,10 +133,10 @@ public final class ArchConditions {
         return new ContainsOnlyCondition<>(condition);
     }
 
-    private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(final Class<?> target, final String fieldName) {
-        return fieldAccessTarget(With.<JavaClass>owner(name(target.getName())))
+    private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(String ownerName, final String fieldName) {
+        return fieldAccessTarget(With.<JavaClass>owner(name(ownerName)))
                 .and(fieldAccessTarget(name(fieldName)))
-                .as(target.getName() + "." + fieldName);
+                .as(ownerName + "." + fieldName);
     }
 
     public static class MethodCallConditionCreator {

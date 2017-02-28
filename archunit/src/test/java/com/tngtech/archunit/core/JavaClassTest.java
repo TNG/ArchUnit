@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -139,6 +140,14 @@ public class JavaClassTest {
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
                 .containsOnly(javaClass, javaClass.getSuperClass().get());
+    }
+
+    @Test
+    public void JavaClass_is_equivalent_to_reflect_type() {
+        JavaClass list = javaClassViaReflection(List.class);
+
+        assertThat(list.isEquivalentTo(List.class)).as("JavaClass is List.class").isTrue();
+        assertThat(list.isEquivalentTo(Collection.class)).as("JavaClass is Collection.class").isFalse();
     }
 
     @Test

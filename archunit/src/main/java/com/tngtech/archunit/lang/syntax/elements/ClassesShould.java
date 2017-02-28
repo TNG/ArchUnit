@@ -16,6 +16,22 @@ public interface ClassesShould {
      */
     ClassesShouldConjunction resideInAPackage(String packageIdentifier);
 
+    ClassesShouldConjunction accessField(Class<?> owner, String fieldName);
+
+    ClassesShouldConjunction accessField(String ownerName, String fieldName);
+
+    ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
+
+    ClassesShouldConjunction getField(Class<?> owner, String fieldName);
+
+    ClassesShouldConjunction getField(String ownerName, String fieldName);
+
+    ClassesShouldConjunction getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
+
+    ClassesShouldConjunction setField(Class<?> owner, String fieldName);
+
+    ClassesShouldConjunction setField(String ownerName, String fieldName);
+
     ClassesShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
 
     ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate);

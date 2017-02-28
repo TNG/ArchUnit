@@ -57,6 +57,46 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction accessField(Class<?> owner, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessField(owner, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction getField(Class<?> owner, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getField(owner, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction setField(Class<?> owner, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setField(owner, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction accessField(String ownerName, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessField(ownerName, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction getField(String ownerName, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getField(ownerName, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction setField(String ownerName, String fieldName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setField(ownerName, fieldName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessFieldWhere(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getFieldWhere(predicate)));
+    }
+
+    @Override
     public ClassesShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.setFieldWhere(predicate)));
     }

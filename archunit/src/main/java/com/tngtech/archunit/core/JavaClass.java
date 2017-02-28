@@ -423,6 +423,10 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                 .build();
     }
 
+    public boolean isEquivalentTo(Class<?> type) {
+        return getName().equals(type.getName());
+    }
+
     public boolean isAssignableFrom(Class<?> type) {
         return isAssignableFrom(type.getName());
     }

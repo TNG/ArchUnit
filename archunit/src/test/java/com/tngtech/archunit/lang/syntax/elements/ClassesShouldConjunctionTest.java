@@ -2,8 +2,6 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import java.util.Comparator;
 
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.FailureReport;
@@ -14,6 +12,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -154,10 +153,6 @@ public class ClassesShouldConjunctionTest {
                 return element.matches(assertAgainst) ? 0 : element.compareTo(assertAgainst);
             }
         };
-    }
-
-    private JavaClasses importClasses(Class<?>... classes) {
-        return new ClassFileImporter().importClasses(classes);
     }
 
     private static class RightOne {

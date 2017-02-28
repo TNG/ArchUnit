@@ -114,6 +114,10 @@ public class TestUtils {
                 Suppliers.ofInstance(Optional.<JavaField>absent()));
     }
 
+    public static JavaClasses importClasses(Class<?>... classes) {
+        return new ClassFileImporter().importClasses(classes);
+    }
+
     private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
         private final Map<String, JavaClass> imported = new HashMap<>();
 
