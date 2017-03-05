@@ -5,10 +5,14 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
+import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
@@ -20,7 +24,8 @@ public class GeneralCodingRules {
     private static ArchCondition<JavaClass> accessStandardStreams() {
         ArchCondition<JavaClass> accessToSystemOut = accessField(System.class, "out");
         ArchCondition<JavaClass> accessToSystemErr = accessField(System.class, "err");
-        ArchCondition<JavaClass> callOfPrintStackTrace = callMethod("printStackTrace").inHierarchyOf(Throwable.class);
+        ArchCondition<JavaClass> callOfPrintStackTrace = callMethodWhere(
+                target(name("printStackTrace")).and(target(owner(assignableTo(Throwable.class)))));
 
         return accessToSystemOut.or(accessToSystemErr).or(callOfPrintStackTrace).as("access standard streams");
     }

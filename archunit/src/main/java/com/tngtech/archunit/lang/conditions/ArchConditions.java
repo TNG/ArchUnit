@@ -20,10 +20,8 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 
 public final class ArchConditions {
     private ArchConditions() {
@@ -96,10 +94,6 @@ public final class ArchConditions {
                 .as("access field where " + predicate.getDescription());
     }
 
-    public static MethodCallConditionCreator callMethod(final String methodName, Class<?>... paramTypes) {
-        return new MethodCallConditionCreator(methodName, paramTypes);
-    }
-
     public static ArchCondition<JavaClass> callMethodWhere(final DescribedPredicate<? super JavaMethodCall> predicate) {
         return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>(predicate.getDescription()) {
             @Override
@@ -137,27 +131,6 @@ public final class ArchConditions {
         return fieldAccessTarget(With.<JavaClass>owner(name(ownerName)))
                 .and(fieldAccessTarget(name(fieldName)))
                 .as(ownerName + "." + fieldName);
-    }
-
-    public static class MethodCallConditionCreator {
-        private final String methodName;
-        private final Class<?>[] params;
-
-        private MethodCallConditionCreator(String methodName, Class<?>[] params) {
-            this.methodName = methodName;
-            this.params = params;
-        }
-
-        public ArchCondition<JavaClass> in(Class<?> clazz) {
-            return callCodeUnitWhere(callTarget().is(clazz, methodName, params));
-        }
-
-        public ArchCondition<JavaClass> inHierarchyOf(Class<?> type) {
-            return callCodeUnitWhere(callTarget()
-                    .isDeclaredIn(assignableTo(type))
-                    .hasName(methodName)
-                    .hasParameterTypes(params));
-        }
     }
 
     private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {

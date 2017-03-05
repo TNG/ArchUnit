@@ -523,11 +523,11 @@ public class TestUtils {
             return getCallToTarget(methodCallTarget);
         }
 
-        public JavaCall<?> to(Class<?> clazz, String methodName, Class<?>... params) {
+        public JavaMethodCall to(Class<?> clazz, String methodName, Class<?>... params) {
             return to(resolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
         }
 
-        public JavaCall<?> toUnresolved(Class<?> clazz, String methodName, Class<?>... params) {
+        public JavaMethodCall toUnresolved(Class<?> clazz, String methodName, Class<?>... params) {
             return to(unresolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
         }
 

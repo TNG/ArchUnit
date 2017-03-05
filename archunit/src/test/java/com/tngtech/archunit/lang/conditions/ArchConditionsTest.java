@@ -18,18 +18,23 @@ import org.assertj.core.api.iterable.Extractor;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
@@ -52,14 +57,17 @@ public class ArchConditionsTest {
         JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
         ConditionEvents events =
-                check(never(callMethod("dontCallMe").inHierarchyOf(SomeSuperClass.class)), callingClass);
+                check(never(callMethodWhere(target(name("dontCallMe"))
+                        .and(target(owner(assignableTo(SomeSuperClass.class)))))), callingClass);
 
         assertThat(events).containViolations(callToDontCallMe.getDescription());
 
         events = new ConditionEvents();
-        never(callMethod("dontCallMe").in(SomeSuperClass.class)).check(callingClass, events);
+        never(callMethodWhere(target(name("dontCallMe")).and(target(owner(type(SomeSuperClass.class))))))
+                .check(callingClass, events);
         assertThat(events).containNoViolation();
-        assertThat(getOnlyElement(events.getAllowed())).extracting("allowed").extracting(TO_STRING_LEXICOGRAPHICALLY)
+        assertThat(getOnlyElement(events.getAllowed())).extracting("allowed")
+                .extracting(TO_STRING_LEXICOGRAPHICALLY)
                 .containsOnly(callToCallMe.getDescription() + callToDontCallMe.getDescription());
     }
 
