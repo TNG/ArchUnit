@@ -20,7 +20,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.fieldAccessTarget;
+import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.target;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 
 public final class ArchConditions {
@@ -128,8 +128,8 @@ public final class ArchConditions {
     }
 
     private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(String ownerName, final String fieldName) {
-        return fieldAccessTarget(With.<JavaClass>owner(name(ownerName)))
-                .and(fieldAccessTarget(name(fieldName)))
+        return target(With.<JavaClass>owner(name(ownerName)))
+                .and(target(name(fieldName)))
                 .as(ownerName + "." + fieldName);
     }
 

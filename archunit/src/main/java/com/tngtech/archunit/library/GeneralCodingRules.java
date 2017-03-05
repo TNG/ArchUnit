@@ -1,15 +1,19 @@
 package com.tngtech.archunit.library;
 
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.targetTypeResidesInPackage;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
@@ -63,7 +67,8 @@ public class GeneralCodingRules {
             noClasses().should(THROW_GENERIC_EXCEPTIONS);
 
     public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
-            setFieldWhere(targetTypeResidesInPackage("java.util.logging.."))
+            setFieldWhere(resideInPackage("java.util.logging..")
+                    .onResultOf(Get.<JavaFieldAccess, FieldAccessTarget>target().then(GET_TYPE)))
                     .as("use java.util.logging");
 
     /**

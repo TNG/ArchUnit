@@ -6,20 +6,14 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.JavaAccess.Functions.Get;
-import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import org.objectweb.asm.Opcodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
 
 public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     private static final Map<AccessType, String> MESSAGE_TEMPLATE = ImmutableMap.of(
@@ -100,43 +94,13 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             };
         }
 
-        public static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(Class<?> fieldOwner, String fieldName) {
-            return fieldAccessTarget(fieldOwner.getName(), fieldName);
-        }
-
-        public static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(String fieldOwnerName, String fieldName) {
-            return fieldAccessTarget(
-                    ownerName(fieldOwnerName).and(name(fieldName)).as(fieldOwnerName + "." + fieldName)
-            );
-        }
-
-        private static DescribedPredicate<FieldAccessTarget> ownerName(String fieldOwnerName) {
-            return With.<JavaClass>owner(name(fieldOwnerName)).forSubType();
-        }
-
-        public static DescribedPredicate<JavaFieldAccess> fieldAccessTarget(final DescribedPredicate<? super FieldAccessTarget> predicate) {
+        public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
             return new DescribedPredicate<JavaFieldAccess>("field access target " + predicate.getDescription()) {
                 @Override
                 public boolean apply(JavaFieldAccess input) {
                     return predicate.apply(input.getTarget());
                 }
             };
-        }
-
-        /**
-         * Offers a syntax to identify packages similar to AspectJ. In particular '*' stands for any sequence of
-         * characters, '..' stands for any sequence of packages.
-         * For further details see {@link PackageMatcher}.
-         *
-         * @param packageIdentifier A string representing the identifier to match packages against
-         * @return A {@link DescribedPredicate} returning true iff the package of the
-         * tested {@link JavaClass} matches the identifier
-         */
-        public static DescribedPredicate<JavaFieldAccess> targetTypeResidesInPackage(String packageIdentifier) {
-            return resideInPackage(packageIdentifier)
-                    .onResultOf(GET_TYPE.after(Get.<JavaFieldAccess, FieldAccessTarget>target()))
-                    .as("target type resides in package '%s'", packageIdentifier)
-                    .forSubType();
         }
     }
 }
