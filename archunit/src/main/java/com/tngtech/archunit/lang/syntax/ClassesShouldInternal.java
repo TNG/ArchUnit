@@ -102,6 +102,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction callMethod(Class<?> owner, String methodName, Class<?>[] parameterTypes) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethod(owner, methodName, parameterTypes)));
+    }
+
+    @Override
+    public ClassesShouldConjunction callMethod(String ownerName, String methodName, String... parameterTypeNames) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethod(ownerName, methodName, parameterTypeNames)));
+    }
+
+    @Override
     public ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethodWhere(predicate)));
     }

@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
@@ -13,7 +14,10 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.TestUtils.importClasses;
+import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -81,22 +85,17 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] accessFieldWhere_rules() {
         return $$(
-                $(classes().should().getFieldWhere(targetIs(ClassWithField.class)), "get", "gets"),
-                $(classes().should(ArchConditions.getFieldWhere(targetIs(ClassWithField.class))), "get", "gets"),
-                $(classes().should().setFieldWhere(targetIs(ClassWithField.class)), "set", "sets"),
-                $(classes().should(ArchConditions.setFieldWhere(targetIs(ClassWithField.class))), "set", "sets"),
-                $(classes().should().accessFieldWhere(targetIs(ClassWithField.class)), "access", "accesses"),
-                $(classes().should(ArchConditions.accessFieldWhere(targetIs(ClassWithField.class))), "access", "accesses")
+                $(classes().should().getFieldWhere(accessTargetIs(ClassWithField.class)), "get", "gets"),
+                $(classes().should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))), "get", "gets"),
+                $(classes().should().setFieldWhere(accessTargetIs(ClassWithField.class)), "set", "sets"),
+                $(classes().should(ArchConditions.setFieldWhere(accessTargetIs(ClassWithField.class))), "set", "sets"),
+                $(classes().should().accessFieldWhere(accessTargetIs(ClassWithField.class)), "access", "accesses"),
+                $(classes().should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))), "access", "accesses")
         );
     }
 
-    private static DescribedPredicate<JavaFieldAccess> targetIs(final Class<?> targetType) {
-        return new DescribedPredicate<JavaFieldAccess>("target owner is " + targetType.getSimpleName()) {
-            @Override
-            public boolean apply(JavaFieldAccess input) {
-                return input.getTargetOwner().isEquivalentTo(targetType);
-            }
-        };
+    private static DescribedPredicate<JavaFieldAccess> accessTargetIs(final Class<?> targetType) {
+        return JavaFieldAccess.Predicates.target(owner(type(targetType))).as("target owner is " + targetType.getSimpleName());
     }
 
     @Test
@@ -116,9 +115,78 @@ public class ClassesShouldTest {
                         ClassWithField.class, "field"));
     }
 
+    @DataProvider
+    public static Object[][] callMethod_rules() {
+        return $$(
+                $(classes().should().callMethod(ClassWithMethod.class, "method", String.class)),
+                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class))),
+                $(classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())),
+                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())))
+        );
+    }
+
+    @Test
+    @UseDataProvider("callMethod_rules")
+    public void callMethod(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
+
+        assertThat(result.getFailureReport().toString().replaceAll("\\s+", " "))
+                .contains(String.format("classes should call method %s.%s(%s)",
+                        ClassWithMethod.class.getSimpleName(), "method", String.class.getSimpleName()))
+                .containsPattern(callMethodRegex(
+                        ClassCallingWrongMethod.class,
+                        ClassCallingMethod.class, "call"))
+                .doesNotMatch(callMethodRegex(
+                        ClassCallingMethod.class,
+                        ClassWithMethod.class, "method", String.class));
+    }
+
+    @DataProvider
+    public static Object[][] callMethodWhere_rules() {
+        return $$(
+                $(classes().should().callMethodWhere(callTargetIs(ClassWithMethod.class))),
+                $(classes().should(ArchConditions.callMethodWhere(callTargetIs(ClassWithMethod.class))))
+        );
+    }
+
+    private static DescribedPredicate<JavaMethodCall> callTargetIs(Class<?> type) {
+        return target(owner(type(type))).as("target is " + type.getSimpleName());
+    }
+
+    @Test
+    @UseDataProvider("callMethodWhere_rules")
+    public void callMethodWhere(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
+
+        assertThat(result.getFailureReport().toString().replaceAll("\\s+", " "))
+                .contains(String.format("classes should call method where target is %s",
+                        ClassWithMethod.class.getSimpleName()))
+                .containsPattern(callMethodRegex(
+                        ClassCallingWrongMethod.class,
+                        ClassCallingMethod.class, "call"))
+                .doesNotMatch(callMethodRegex(
+                        ClassCallingMethod.class,
+                        ClassWithMethod.class, "method", String.class));
+    }
+
     private Pattern accessesFieldRegex(Class<?> origin, String accessType, Class<?> targetClass, String fieldName) {
         return Pattern.compile(String.format(".*%s.*%s field.*%s\\.%s.*",
-                quote(origin.getName()), accessType, targetClass.getSimpleName(), fieldName), MULTILINE);
+                quote(origin.getName()), accessType, quote(targetClass.getName()), fieldName), MULTILINE);
+    }
+
+    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, Class<?> paramType) {
+        return callMethodRegex(origin, targetClass, methodName, paramType.getName());
+    }
+
+    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName) {
+        return callMethodRegex(origin, targetClass, methodName, "");
+    }
+
+    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, String paramTypeName) {
+        return Pattern.compile(String.format(".*%s.* method.*%s\\.%s\\(%s\\).*",
+                quote(origin.getName()), quote(targetClass.getName()), methodName, quote(paramTypeName)));
     }
 
     private static class RightNamedClass {
@@ -143,9 +211,30 @@ public class ClassesShouldTest {
     private static class ClassAccessingWrongField {
         ClassAccessingField classAccessingField;
 
-        ClassWithField evilAccess() {
+        ClassWithField wrongAccess() {
             classAccessingField.classWithField = null;
             return classAccessingField.classWithField;
+        }
+    }
+
+    private static class ClassWithMethod {
+        void method(String param) {
+        }
+    }
+
+    private static class ClassCallingMethod {
+        ClassWithMethod classWithMethod;
+
+        void call() {
+            classWithMethod.method("param");
+        }
+    }
+
+    private static class ClassCallingWrongMethod {
+        ClassCallingMethod classCallingMethod;
+
+        void callWrong() {
+            classCallingMethod.call();
         }
     }
 }

@@ -19,16 +19,24 @@ public class Formatters {
         return ownerName + "." + methodName + "(" + parameters + ")";
     }
 
+    public static String formatMethodSimple(String ownerName, String methodName, List<String> parameters) {
+        List<String> simpleParams = new ArrayList<>();
+        for (String parameter : parameters) {
+            simpleParams.add(ensureSimpleName(parameter));
+        }
+        return formatMethod(ensureSimpleName(ownerName), methodName, simpleParams);
+    }
+
     public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
         return format(ownerName, methodName, formatMethodParameterTypeNames(parameters));
     }
 
     private static String formatMethodParameters(List<? extends HasName> parameters) {
-        List<String> simpleNames = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         for (HasName type : parameters) {
-            simpleNames.add(type.getName());
+            names.add(type.getName());
         }
-        return formatMethodParameterTypeNames(simpleNames);
+        return formatMethodParameterTypeNames(names);
     }
 
     public static String formatMethodParameterTypeNames(List<String> typeNames) {

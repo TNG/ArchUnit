@@ -95,7 +95,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         }
 
         public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
-            return new DescribedPredicate<JavaFieldAccess>("field access target " + predicate.getDescription()) {
+            return new DescribedPredicate<JavaFieldAccess>("target " + predicate.getDescription()) {
                 @Override
                 public boolean apply(JavaFieldAccess input) {
                     return predicate.apply(input.getTarget());

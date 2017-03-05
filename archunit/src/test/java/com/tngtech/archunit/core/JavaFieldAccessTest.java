@@ -100,7 +100,7 @@ public class JavaFieldAccessTest {
                 .apply(stringFieldAccess(GET))).as("Predicate matches").isFalse();
 
         assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue().as("any message"))
-                .getDescription()).as("description").isEqualTo("field access target any message");
+                .getDescription()).as("description").isEqualTo("target any message");
     }
 
     private AccessType not(AccessType accessType) {

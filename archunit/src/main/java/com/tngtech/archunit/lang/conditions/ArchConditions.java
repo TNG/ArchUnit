@@ -6,6 +6,7 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.AccessTarget;
+import com.tngtech.archunit.core.Formatters;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
@@ -20,8 +21,13 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.target;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.JavaClass.namesOf;
+import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.parameterTypes;
+import static java.util.Arrays.asList;
 
 public final class ArchConditions {
     private ArchConditions() {
@@ -94,6 +100,22 @@ public final class ArchConditions {
                 .as("access field where " + predicate.getDescription());
     }
 
+    public static ArchCondition<JavaClass> callMethod(String ownerName, String methodName, String... parameterTypeNames) {
+        return callMethodWhere(target(With.<JavaClass>owner(name(ownerName)))
+                .and(target(name(methodName)))
+                .and(target(parameterTypes(parameterTypeNames))))
+                .as("call method %s", Formatters.formatMethodSimple(
+                        ensureSimpleName(ownerName), methodName, asList(parameterTypeNames)));
+    }
+
+    public static ArchCondition<JavaClass> callMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
+        return callMethodWhere(target(owner(type(owner)))
+                .and(target(name(methodName)))
+                .and(target(parameterTypes(parameterTypes))))
+                .as("call method %s", Formatters.formatMethodSimple(
+                        owner.getSimpleName(), methodName, namesOf(parameterTypes)));
+    }
+
     public static ArchCondition<JavaClass> callMethodWhere(final DescribedPredicate<? super JavaMethodCall> predicate) {
         return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>(predicate.getDescription()) {
             @Override
@@ -127,9 +149,9 @@ public final class ArchConditions {
         return new ContainsOnlyCondition<>(condition);
     }
 
-    private static DescribedPredicate<JavaFieldAccess> ownerAndNameAre(String ownerName, final String fieldName) {
-        return target(With.<JavaClass>owner(name(ownerName)))
-                .and(target(name(fieldName)))
+    private static DescribedPredicate<? super JavaFieldAccess> ownerAndNameAre(String ownerName, final String fieldName) {
+        return JavaFieldAccess.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+                .and(JavaFieldAccess.Predicates.target(name(fieldName)))
                 .as(ownerName + "." + fieldName);
     }
 
