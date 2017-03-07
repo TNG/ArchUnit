@@ -2,8 +2,269 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Some Vizual</title>
+    <title>Visualization</title>
 </head>
+<link rel="stylesheet" href="styles.css">
 <body>
+<svg width="960" height="960"></svg>
+<script src="d3.js"></script>
+<script src="tree-bundle.js"></script>
+<script src="dependencies-bundle.js"></script>
+<script>
+  const PADDING = 100;
+  //must match the fontsize in the CSS-declaration
+  const FONTSIZE = 12;
+  //defines how exact the font-size of the circle-text is adapted to the radius of the circle
+  const UNIT = 2;
+  const MINFONTSIZE = 10;
+  //defines after which proportion of the circle the text is positioned; only affects nodes
+  const TEXTPOSITION = 0.8;
+  //padding between a line and its title
+  const TEXTPADDING = 5;
+  //the width of the click area of the lines
+  const CLICKAREAWIDTH = 30;
+
+  const jsonToRoot = require('tree').jsonToRoot;
+  const jsonToDependencies = require('dependencies').jsonToDependencies;
+
+  var visNodes;
+
+  const svg = d3.select("svg"),
+      diameter = +svg.attr("width"),
+      gTree = svg.append("g").attr("transform", "translate(2,2)"),
+      gEdges = svg.append("g").attr("transform", "translate(2,2)");
+  const pack = d3.pack().size([diameter - 4, diameter - 4]).padding(PADDING);
+
+  d3.json("DemoData.json", function (error, jsonroot) {
+    if (error) throw error;
+
+    let root = jsonToRoot(jsonroot);
+    let d3root = d3.hierarchy(root, d => d.currentChildren)
+        .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
+        .sort((a, b) => b.value - a.value);
+    d3root = pack(d3root);
+    d3root.descendants().forEach(d => {
+      d.data.initVisual(d.x, d.y, d.r);
+    });
+    let deps = jsonToDependencies(jsonroot, root.nodeMap);
+    root.setDepsForAll(deps);
+    initializeGraph(root);
+    root.foldAllExceptRoot();
+    this.updateAfterFold(root, root);
+  });
+
+  function initializeGraph(root) {
+    initializeTree(root);
+    initializeDeps(root);
+  }
+
+  function initializeTree(root) {
+    visNodes = gTree.selectAll()
+        .data(root.getVisibleDescendants())
+        .enter()
+        .append("g")
+        .attr("class", d => d.getClass())
+        .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
+
+    let drag = d3.drag().on("drag", d => {
+      d.drag(d3.event.dx, d3.event.dy);
+      this.updateAfterDragging(root, d);
+    });
+
+    visNodes.filter(d => !d.isRoot())
+        .on("click", d => {
+          d.changeFold();
+          this.updateAfterFold(root, d);
+        })
+        .call(drag);
+
+    visNodes
+        .filter(d => !d.isRoot())
+        .append("circle")
+        .attr("r", d => d.visualData.r);
+
+    visNodes
+        .append("text")
+        .text(d => d.projectData.name);
+
+    visNodes.each(function (d) {
+      let group = d3.select(this);
+      let text = group.select("text");
+      if (d.isRoot()) {
+        text.attr("dy", -d.visualData.r + FONTSIZE);
+      }
+      else positionAndResizeText(text, group.select("circle"), d);
+    });
+  }
+
+  function initializeDeps(root) {
+    var defs = svg.append("defs");
+    var marker = defs.append("marker")
+        .attr("id", "end_arrow")
+        .attr("viewBox", '0 -5 10 10')
+        .attr("refX", 10)
+        .attr("markerWidth", 10)
+        .attr("markerHeight", 10)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5");
+
+    createNewDeps(gEdges.selectAll().data(root.getVisibleEdges()).enter());
+  }
+
+  function createNewDeps(selection) {
+    let newEdges = selection.append("g");
+
+    newEdges.filter(e => e.hasDescription())
+        .on("click", function (e) {
+          let t = d3.select(this).select("text");
+          t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
+        });
+
+    newEdges
+        .append("line")
+        .attr("id", "dep")
+        .attr("class", e => e.getClass())
+        .attr("x1", e => e.startPoint[0])
+        .attr("y1", e => e.startPoint[1])
+        .attr("x2", e => e.endPoint[0])
+        .attr("y2", e => e.endPoint[1]);
+
+    newEdges
+        .filter(e => e.hasDescription())
+        .append("line")
+        .attr("id", "area")
+        .attr("class", "area")
+        .style("visibility", "hidden")
+        .style("pointer-events", "all")
+        .style("stroke-width", CLICKAREAWIDTH)
+        .style("stroke", "yellow")
+        .attr("x1", e => e.startPoint[0])
+        .attr("y1", e => e.startPoint[1])
+        .attr("x2", e => e.endPoint[0])
+        .attr("y2", e => e.endPoint[1]);
+
+      /* TODO:
+       * am besten auch entfernen, nachdem Menueleiste mit der Auswahloption der automatischen Einblendung
+       * der Beschriftung existiert
+       * */
+    ///
+    newEdges
+        .append("title")
+        .text(e => e.getDescriptionString());
+    ///
+
+    newEdges
+        .filter(e => e.hasDescription())
+        .append("text")
+        .attr("class", e => e.getClass())
+        .text(e => e.getDescriptionString())
+        .style("visibility", "hidden")
+        .attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+  }
+
+  function positionAndResizeText(text, circ, d) {
+    let textDom = text.node();
+    let radius = circ.attr("r");
+    let transform = circ.attr("transform");
+    if (transform) {
+      var scale = transform.split("(")[1].split(")")[0]
+      radius *= scale;
+    }
+    let actFontSize = FONTSIZE;
+    text.style("font-size", actFontSize);
+    while (textDom.getBBox().width >= 2 * radius) {
+      actFontSize -= UNIT;
+      if (actFontSize < MINFONTSIZE) {
+        //TODO: in der Mitte des Textes Zeichen durch ... ersetzen
+      }
+      text.style("font-size", actFontSize);
+    }
+    if (!d.isCurrentlyLeaf())
+      text.attr("dy", computeTextShift(radius, textDom.getBBox().width, actFontSize));
+    else text.attr("dy", 0);
+  }
+
+
+  /**
+   * computes the greatest possible shift in y-direction of the text, so that the text is still in the circle;
+   * if the required TEXTPOSITION is not reached, the font-size is decreased, but never falling below the MINFONTSIZE
+   **/
+  function computeTextShift(r, width, actFontsize) {
+    var shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
+    shift = -shift + actFontsize;
+    if (shift < TEXTPOSITION * r) {
+      //TODO: shift auf den mindestens noetigen shift erhoehen; dafuer font-size verkleinern; falls MINFONTSIZE
+      // ueberschritten wuerde, ersetzte wieder einen Teil des Textes durch ...
+    }
+    return shift;
+  }
+
+  function updateAfterDragging(root, node) {
+    visNodes.filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    let visEdges = gEdges.selectAll("g");
+    this.updateDepPosition(visEdges, node);
+  }
+
+  function updateAfterFold(root, node) {
+    updateTreeAfterFold(root, node);
+    updateEdgesAfterFold(root, node);
+  }
+
+  function updateTreeAfterFold(root, node) {
+    visNodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
+    visNodes.exit().style("visibility", "hidden");
+    visNodes.style("visibility", "visible");
+    visNodes.filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    visNodes.filter(d => d.isChildOf(node)).select("circle").attr("r", d => d.visualData.r);
+    visNodes.filter(d => !d.isRoot() && d.isChildOf(node)).each(function (d) {
+      let group = d3.select(this);
+      positionAndResizeText(group.select("text"), group.select("circle"), d);
+    });
+  }
+
+  function updateEdgesAfterFold(root, node) {
+    let visEdges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
+    hideEdges(visEdges.exit());
+    showEdges(visEdges);
+    updateDepPosition(visEdges, node);
+    createNewDeps(visEdges.enter());
+  }
+
+  function hideEdges(exitEdges) {
+    exitEdges.style("visibility", "hidden");
+    exitEdges.select("#area").style("pointer-events", "none");
+  }
+
+  function showEdges(updateEdges) {
+    updateEdges.style("visibility", "visible");
+    updateEdges.select("#area").style("pointer-events", "all");
+  }
+
+  function updateDepPosition(visEdges, node) {
+    updateLinePosition(visEdges, node);
+    updateTitlePosition(visEdges, node);
+  }
+
+  function updateLinePosition(visEdges, node) {
+    visEdges
+        .select("#dep")
+        .attr("x1", e => e.startPoint[0])
+        .attr("y1", e => e.startPoint[1])
+        .attr("x2", e => e.endPoint[0])
+        .attr("y2", e => e.endPoint[1]);
+
+    visEdges
+        .select("#area")
+        .attr("x1", e => e.startPoint[0])
+        .attr("y1", e => e.startPoint[1])
+        .attr("x2", e => e.endPoint[0])
+        .attr("y2", e => e.endPoint[1]);
+  }
+
+  function updateTitlePosition(visEdges, node) {
+    visEdges.select("text").attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+  }
+</script>
 </body>
 </html>

@@ -101,19 +101,18 @@ let setIsFolded = (d, isFolded) => {
 let fold = (d, folded) => {
   if (!isLeaf(d)) {
     setIsFolded(d, folded);
-    //d.deps.changeFold(d.projectData.fullname, d.isFolded);
+    d.deps.changeFold(d.projectData.fullname, d.isFolded);
   }
 };
 
 let Node = class {
 
-  constructor(projectData, parent, deps) {
+  constructor(projectData, parent) {
     this.projectData = projectData;
     this.parent = parent;
     this.origChildren = [];
     this.currentChildren = this.origChildren;
     this.isFolded = false;
-    this.deps = deps;
   }
 
   initVisual(x, y, r) {
@@ -128,7 +127,7 @@ let Node = class {
    */
   drag(dx, dy) {
     this.visualData.move(dx, dy, this.parent, () => this.origChildren.forEach(d => d.drag(dx, dy)), true);
-    //this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
+    this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
   }
 
   isRoot() {
@@ -178,11 +177,18 @@ let Node = class {
     return d => d.projectData.fullname;
   }
 
-  initNodeMap() {
-    this.nodeMap = new Map();
-    descendants(this).forEach(d => this.nodeMap.set(d.projectData.fullname, d));
-    //this.deps.setNodeMap(this.nodeMap);
+  setDepsForAll(deps) {
+    descendants(this).forEach(d => d.deps = deps);
   }
+
+  getVisibleEdges() {
+    return this.deps.getVisible();
+  }
+};
+
+let initNodeMap = root => {
+  root.nodeMap = new Map();
+  descendants(root).forEach(d => root.nodeMap.set(d.projectData.fullname, d));
 };
 
 let addChild = (d, child) => {
@@ -194,17 +200,17 @@ let jsonToProjectData = jsonEl => {
   return new ProjectData(jsonEl.name, jsonEl.fullname, jsonEl.type);
 };
 
-let jsonToNode = (parent, jsonNode, dependencies) => {
-  let node = new Node(jsonToProjectData(jsonNode), parent, dependencies);
+let jsonToNode = (parent, jsonNode) => {
+  let node = new Node(jsonToProjectData(jsonNode), parent);
   if (jsonNode.hasOwnProperty("children")) {
-    jsonNode.children.forEach(c => addChild(node, jsonToNode(node, c, dependencies)));
+    jsonNode.children.forEach(c => addChild(node, jsonToNode(node, c)));
   }
   return node;
 };
 
-let jsonToRoot = (jsonRoot, dependencies) => {
-  let root = jsonToNode(null, jsonRoot, dependencies);
-  root.initNodeMap();
+let jsonToRoot = (jsonRoot) => {
+  let root = jsonToNode(null, jsonRoot);
+  initNodeMap(root);
   return root;
 };
 

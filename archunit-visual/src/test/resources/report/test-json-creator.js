@@ -28,10 +28,40 @@ module.exports = {
     return builder;
   },
   clazz: function (simpleName, type) {
-    return {
+    let res = {
       fullname: simpleName,
       name: simpleName,
-      type: type
-    }
+      type: type,
+      interfaces: [],
+      fieldAccesses: [],
+      methodCalls: [],
+      constructorCalls: []
+    };
+    let builder = {
+      extending: function (superclassfullname) {
+        res.superclass = superclassfullname;
+        return builder;
+      },
+      implementing: function (interfacefullname) {
+        res.interfaces.push(interfacefullname);
+        return builder;
+      },
+      callingMethod: function (to, startCodeUnit, targetElement) {
+        res.methodCalls.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+        return builder;
+      },
+      callingConstructor: function (to, startCodeUnit, targetElement) {
+        res.constructorCalls.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+        return builder;
+      },
+      accessingField: function (to, startCodeUnit, targetElement) {
+        res.fieldAccesses.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+        return builder;
+      },
+      build: function () {
+        return res;
+      }
+    };
+    return builder;
   }
 };

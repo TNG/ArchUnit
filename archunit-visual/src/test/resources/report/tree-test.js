@@ -9,39 +9,47 @@ const testJson = require("./test-json-creator");
 
 let allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
 
+let emptyDeps = {
+  changeFold: () => {
+  }, recalcEndCoordinatesOf: () => {
+  }
+};
+
 let setupSimpleTestTree1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
-          .add(testJson.clazz("class1", "abstractclass"))
+          .add(testJson.clazz("class1", "abstractclass").build())
           .build())
-      .add(testJson.clazz("class2", "class"))
-      .add(testJson.clazz("class3", "interface"))
+      .add(testJson.clazz("class2", "class").build())
+      .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree, []);
+  let root = jsonToRoot(simpleJsonTree);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
+  root.setDepsForAll(emptyDeps);
   return root;
 };
 
 let setupSimpleTestTree2 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
-          .add(testJson.clazz("class1", "abstractclass"))
+          .add(testJson.clazz("class1", "abstractclass").build())
           .build())
       .add(testJson.package("test")
-          .add(testJson.clazz("testclass1"))
+          .add(testJson.clazz("testclass1").build())
           .add(testJson.package("subtest")
-              .add(testJson.clazz("subtestclass1", "class"))
+              .add(testJson.clazz("subtestclass1", "class").build())
               .build())
           .build())
-      .add(testJson.clazz("class2", "class"))
-      .add(testJson.clazz("class3", "interface"))
+      .add(testJson.clazz("class2", "class").build())
+      .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree, []);
+  let root = jsonToRoot(simpleJsonTree);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
   d3root = pack(d3root);
   d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  root.setDepsForAll(emptyDeps);
   return root;
 };
 
