@@ -87,7 +87,7 @@ task copyJsLibsReport(type: Copy, dependsOn: createReportDir) {
 
 task copyJson(type: Copy, dependsOn: createReportDir) {
     from 'src/main/resources/report'
-    include 'DemoData.json'
+    include 'DemoData.json', 'testjs.json'
     into "${project.buildDir}/report"
 }
 
