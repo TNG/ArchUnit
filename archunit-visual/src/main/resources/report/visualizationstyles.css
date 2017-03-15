@@ -1,0 +1,63 @@
+circle {
+    fill: rgb(152, 175, 199);
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.package circle {
+    fill: red;
+    fill-opacity: 0.25;
+}
+
+.interface circle {
+    stroke-dasharray: 2, 2;
+}
+
+.abstractclass circle {
+    stroke-dasharray: 10, 10;
+}
+
+.area {
+    cursor: pointer;
+}
+
+text {
+    font-family: sans-serif;
+    font-size: 12px;
+    text-anchor: middle;
+    font-weight: bold;
+}
+
+.package text {
+    font-style: italic;
+    font-weight: normal;
+}
+
+line.access {
+    stroke: black;
+    marker-end: url(#end_arrow);
+}
+
+line.methodCall {
+    stroke: blue;
+}
+
+line.fieldAccess {
+    stroke: yellow;
+}
+
+line.constructorCall {
+    stroke: red;
+}
+
+line.extends {
+    stroke-dasharray: 10, 10;
+}
+
+line.implements {
+    stroke-dasharray: 2, 2;
+}
+
+text.access {
+    font-weight: normal;
+}

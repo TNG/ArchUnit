@@ -25,7 +25,7 @@ let VisualData = class {
   move(dx, dy, parent, callback, addToProtocol) {
     let newX = this.x + dx;
     let newY = this.y + dy;
-    if (parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
+    if (parent.isRoot() || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -38,14 +38,28 @@ let VisualData = class {
  * Node functions
  */
 
-let recdescendants = (res, node) => {
+let recdescendants = (res, node, onlyVisible) => {
   res.push(node);
-  node.currentChildren.forEach(d => recdescendants(res, d));
+  let arr = onlyVisible ? node.currentChildren : node.origChildren;
+  arr.forEach(d => recdescendants(res, d, onlyVisible));
 };
 
-let descendants = node => {
+let descendants = (node, onlyVisible) => {
   let res = [];
-  recdescendants(res, node);
+  recdescendants(res, node, onlyVisible);
+  return res;
+};
+
+let recpredecessors = (res, node) => {
+  if (!node.isRoot()) {
+    res.push(node.parent);
+    recpredecessors(res, node.parent);
+  }
+};
+
+let predecessors = node => {
+  let res = [];
+  recpredecessors(res, node);
   return res;
 };
 
@@ -78,7 +92,7 @@ let checkAndCorrectPosition = d => {
 let getFoldedR = d => {
   let foldedR = d.visualData.r;
   if (!d.isRoot()) {
-    d.parent.currentChildren.forEach(e => foldedR = e.visualData.r < foldedR ? e.visualData.r : foldedR);
+    d.parent.origChildren.forEach(e => foldedR = e.visualData.r < foldedR ? e.visualData.r : foldedR);
   }
   return foldedR;
 };
@@ -91,7 +105,7 @@ let setIsFolded = (d, isFolded) => {
   }
   else {
     d.visualData.r = d.visualData.origR;
-    d.currentChildren = d.origChildren;
+    d.currentChildren = d.filteredChildren;
     if (!d.isRoot()) {
       checkAndCorrectPosition(d);
     }
@@ -105,13 +119,32 @@ let fold = (d, folded) => {
   }
 };
 
+let filterAll = (n, filterFun) => {
+  if (!isLeaf(n)) {
+    n.filteredChildren = n.origChildren.filter(filterFun);
+    n.filteredChildren.forEach(c => filterAll(c, filterFun));
+    if (!n.isFolded) {
+      n.currentChildren = n.filteredChildren;
+    }
+  }
+};
+
+let resetFilter = n => {
+  n.filteredChildren = n.origChildren;
+  n.filteredChildren.forEach(c => resetFilter(c));
+  if (!n.isFolded) {
+    n.currentChildren = n.filteredChildren;
+  }
+};
+
 let Node = class {
 
   constructor(projectData, parent) {
     this.projectData = projectData;
     this.parent = parent;
     this.origChildren = [];
-    this.currentChildren = this.origChildren;
+    this.filteredChildren = this.origChildren;
+    this.currentChildren = this.filteredChildren;
     this.isFolded = false;
   }
 
@@ -139,7 +172,7 @@ let Node = class {
   }
 
   isChildOf(d) {
-    return descendants(d).indexOf(this) !== -1;
+    return descendants(d, true).indexOf(this) !== -1;
   }
 
   changeFold() {
@@ -151,9 +184,7 @@ let Node = class {
   }
 
   getVisibleDescendants() {
-    let res = [];
-    recdescendants(res, this);
-    return res;
+    return descendants(this, true);
   }
 
   traverseTree() {
@@ -178,17 +209,83 @@ let Node = class {
   }
 
   setDepsForAll(deps) {
-    descendants(this).forEach(d => d.deps = deps);
+    descendants(this, true).forEach(d => d.deps = deps);
   }
 
   getVisibleEdges() {
     return this.deps.getVisible();
   }
+
+  /**
+   * filters the children of this node and invokes this method recursively for all children;
+   * the root package is ignored while filtering
+   *
+   * @param str string that should be filtered by
+   * @param filterByFullname true, if the fullname of a package/class should contain the string to be filtered by
+   * @param filterClassesAndEliminatePkgs true, if only classes should be filtered and packages without matching classes
+   * should be eliminated; if this param is true, filterPackages and filterClasses is ignored
+   * @param filterPackages true, if packages should be filtered
+   * @param filterClasses true, if classes should be filtered
+   * @param inclusive true, if packages resp. classes not matching the filter should be eliminated, otherwise true
+   */
+  filterAll(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase) {
+    let filterFun = filterFunction(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
+        inclusive, matchCase);
+    filterAll(this, filterFun);
+    this.deps.filter(filterFun);
+  }
+
+  resetFilter() {
+    resetFilter(this);
+    this.deps.resetFilter();
+  }
+};
+
+let isElementMatching = (c, str, filterByFullName, inclusive, matchCase) => {
+  let toFilter = filterByFullName ? c.projectData.fullname : c.projectData.name;
+  let res;
+  if (matchCase) {
+    res = toFilter.includes(str);
+  }
+  else {
+    res = toFilter.toLowerCase().includes(str.toLowerCase());
+  }
+  return inclusive ? res : !res;
+};
+
+let filterFunction = (str, filterByFullName, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
+                      inclusive, matchCase) => {
+  return c => {
+    if (filterClassesAndEliminatePkgs) {
+      if (c.projectData.type === "package") {
+        return descendants(c, false).reduce((acc, n) => acc || (n.projectData.type !== "package" &&
+        filterFunction(str, filterByFullName, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
+            inclusive, matchCase)(n)), false);
+      }
+      else {
+        return isElementMatching(c, str, filterByFullName, inclusive, matchCase);
+      }
+    }
+    else {
+      if (!filterPackages && !filterClasses) {
+        return true;
+      }
+      if (filterClasses && !filterPackages && c.projectData.type === "package") {
+        return true;
+      }
+      if (filterPackages && c.projectData.type !== "package") {
+        return (filterClasses ? isElementMatching(c, str, filterByFullName, inclusive, matchCase) : true)
+            && predecessors(c).reduce((acc, n) => acc && (n.isRoot() || filterFunction(str, filterByFullName,
+                filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase)(n)), true);
+      }
+      return isElementMatching(c, str, filterByFullName, inclusive, matchCase);
+    }
+  }
 };
 
 let initNodeMap = root => {
   root.nodeMap = new Map();
-  descendants(root).forEach(d => root.nodeMap.set(d.projectData.fullname, d));
+  descendants(root, true).forEach(d => root.nodeMap.set(d.projectData.fullname, d));
 };
 
 let addChild = (d, child) => {

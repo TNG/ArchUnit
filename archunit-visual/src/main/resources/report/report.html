@@ -1,11 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <title>Visualization</title>
 </head>
+<link rel="stylesheet" href="visualizationstyles.css">
 <link rel="stylesheet" href="styles.css">
 <body>
+<div id="form">
+    <form action="#" onsubmit="return filterAll(this);" onreset="return resetFilter();" class="inputarea">
+        <label>Filter-String: </label>
+        <fieldset class="inputs">
+            <input type="text" name="filter"><br>
+            <input type="checkbox" name="matchCase">match case
+        </fieldset>
+
+        <label>Filter by:</label>
+        <fieldset class="inputs">
+            <input type="radio" name="filterBy" value="simplename" checked>simplename<br>
+            <input type="radio" name="filterBy" value="fullname">fullname
+        </fieldset>
+
+        <label>What to filter:</label>
+        <fieldset class="inputs">
+            <input type="radio" name="whatToFilter" value="filterClassesAndEliminatePkgs" checked>
+            filter classes and eliminate packages without matching classes<br>
+            <input type="radio" name="whatToFilter" value="filterPkgsOrClasses">filter the following:
+            <fieldset class="subinputs">
+                <input type="checkbox" name="filterPackages" value="packages">packages<br>
+                <input type="checkbox" name="filterClasses" value="classes">classes
+            </fieldset>
+        </fieldset>
+
+        <label>How to filter:</label>
+        <fieldset class="inputs">
+            <input type="radio" name="howToFilter" value="inclusively" checked>inclusively<br>
+            <input type="radio" name="howToFilter" value="exclusively">exclusively<br>
+        </fieldset>
+        <br>
+        <input type="submit" value="Submit">
+        <input type="reset" value="Reset">
+    </form>
+</div>
 <svg width="960" height="960"></svg>
 <script src="d3.js"></script>
 <script src="tree-bundle.js"></script>
@@ -29,6 +65,8 @@
 
   var visNodes;
 
+  var root;
+
   const svg = d3.select("svg"),
       diameter = +svg.attr("width"),
       gTree = svg.append("g").attr("transform", "translate(2,2)"),
@@ -38,7 +76,7 @@
   d3.json("testjs.json", function (error, jsonroot) { //DemoData
     if (error) throw error;
 
-    let root = jsonToRoot(jsonroot);
+    root = jsonToRoot(jsonroot);
     let d3root = d3.hierarchy(root, d => d.currentChildren)
         .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
         .sort((a, b) => b.value - a.value);
@@ -48,17 +86,17 @@
     });
     let deps = jsonToDependencies(jsonroot, root.nodeMap);
     root.setDepsForAll(deps);
-    initializeGraph(root);
+    initializeGraph();
     root.foldAllExceptRoot();
-    this.updateAfterFold(root, root);
+    this.updateAfterFold(root);
   });
 
-  function initializeGraph(root) {
-    initializeTree(root);
-    initializeDeps(root);
+  function initializeGraph() {
+    initializeTree();
+    initializeDeps();
   }
 
-  function initializeTree(root) {
+  function initializeTree() {
     visNodes = gTree.selectAll()
         .data(root.getVisibleDescendants())
         .enter()
@@ -68,13 +106,13 @@
 
     let drag = d3.drag().on("drag", d => {
       d.drag(d3.event.dx, d3.event.dy);
-      this.updateAfterDragging(root, d);
+      this.updateAfterDragging(d);
     });
 
     visNodes.filter(d => !d.isRoot())
         .on("click", d => {
           d.changeFold();
-          this.updateAfterFold(root, d);
+          this.updateAfterFold(d);
         })
         .call(drag);
 
@@ -97,7 +135,7 @@
     });
   }
 
-  function initializeDeps(root) {
+  function initializeDeps() {
     var defs = svg.append("defs");
     var marker = defs.append("marker")
         .attr("id", "end_arrow")
@@ -200,35 +238,45 @@
     return shift;
   }
 
-  function updateAfterDragging(root, node) {
+  function updateAfterDragging(node) {
     visNodes.filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
     let visEdges = gEdges.selectAll("g");
-    this.updateDepPosition(visEdges, node);
+    this.updateDepPosition(visEdges);
   }
 
-  function updateAfterFold(root, node) {
-    updateTreeAfterFold(root, node);
-    updateEdgesAfterFold(root, node);
+  function updateAfterFold(node) {
+    updateTree(d => d.isChildOf(node));
+    updateEdges();
   }
 
-  function updateTreeAfterFold(root, node) {
-    visNodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
-    visNodes.exit().style("visibility", "hidden");
-    visNodes.style("visibility", "visible");
-    visNodes.filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    visNodes.filter(d => d.isChildOf(node)).select("circle").attr("r", d => d.visualData.r);
-    visNodes.filter(d => !d.isRoot() && d.isChildOf(node)).each(function (d) {
+  function updateTree(filter) {
+    updateNodeVisibility();
+    visNodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    visNodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
+    visNodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
       let group = d3.select(this);
       positionAndResizeText(group.select("text"), group.select("circle"), d);
     });
   }
 
-  function updateEdgesAfterFold(root, node) {
+  function updateNodeVisibility() {
+    visNodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
+    visNodes.exit().style("visibility", "hidden");
+    visNodes.style("visibility", "visible");
+
+  }
+
+  function updateEdges() {
+    let visEdges = updateEdgeVisibility();
+    updateDepPosition(visEdges);
+  }
+
+  function updateEdgeVisibility() {
     let visEdges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
     hideEdges(visEdges.exit());
     showEdges(visEdges);
-    updateDepPosition(visEdges, node);
     createNewDeps(visEdges.enter());
+    return visEdges;
   }
 
   function hideEdges(exitEdges) {
@@ -241,12 +289,12 @@
     updateEdges.select("#area").style("pointer-events", "all");
   }
 
-  function updateDepPosition(visEdges, node) {
-    updateLinePosition(visEdges, node);
-    updateTitlePosition(visEdges, node);
+  function updateDepPosition(visEdges) {
+    updateLinePosition(visEdges);
+    updateTitlePosition(visEdges);
   }
 
-  function updateLinePosition(visEdges, node) {
+  function updateLinePosition(visEdges) {
     visEdges
         .select("#dep")
         .attr("x1", e => e.startPoint[0])
@@ -262,8 +310,26 @@
         .attr("y2", e => e.endPoint[1]);
   }
 
-  function updateTitlePosition(visEdges, node) {
+  function updateTitlePosition(visEdges) {
     visEdges.select("text").attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+  }
+
+  function filterAll(form) {
+    root.filterAll(form.filter.value, form.filterBy.value === "fullname",
+        form.whatToFilter.value === "filterClassesAndEliminatePkgs", form.filterPackages.checked,
+        form.filterClasses.checked, form.howToFilter.value === "inclusively", form.matchCase.checked);
+    //updateNodeVisibility();
+    //updateEdgeVisibility();
+    updateTree(d => true);
+    updateEdges();
+    return false;
+  }
+
+  function resetFilter() {
+    root.resetFilter();
+    //updateNodeVisibility();
+    updateTree(d => true);
+    updateEdges();
   }
 </script>
 </body>

@@ -135,56 +135,226 @@ let testmainFoldedDeps = [
   "com.tngtech.class2->com.tngtech.interface1( implements )"
 ];
 
-describe("Dependencies", function () {
-  it("are created correctly", function () {
+describe("Dependencies", () => {
+  it("are created correctly", () => {
     let root = setupSimpleTestTree1();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(allDeps1);
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps1);
   });
 
-  it("are initially uniqued correctly", function () {
+  it("are initially uniqued correctly", () => {
     let root = setupSimpleTestTree2();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
   });
 
-  it("calc their end positions correctly", function () {
+  it("calc their end positions correctly", () => {
     let root = setupSimpleTestTree2();
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
   it("transform if origin is folded: no dependencies within the folded package, " +
-      "grouping dependencies with the same target (only different properties are replaced by \"several\")", function () {
+      "grouping dependencies with the same target (only different properties are replaced by \"several\")", () => {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.test").changeFold();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(testFoldedDeps);
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(testFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
   it("transform if target is folded: no dependencies within the folded package, " +
-      "grouping dependencies with the same target (only different properties are replaced by \"several\")", function () {
+      "grouping dependencies with the same target (only different properties are replaced by \"several\")", () => {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.main").changeFold();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(mainFoldedDeps);
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(mainFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
   it("transform if origin and target are folded: no dependencies within the folded package, " +
-      "grouping dependencies with the same target (only different properties are replaced by \"several\")", function () {
+      "grouping dependencies with the same target (only different properties are replaced by \"several\")", () => {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.test").changeFold();
     getNode(root, "com.tngtech.main").changeFold();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(testmainFoldedDeps);
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(testmainFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
-  it("transform reverse on unfold", function () {
+  it("does the filtering of classes only with eliminating packages correctly (no dependencies of eliminated nodes) " +
+      "and resets them correctly", () => {
+    let root = setupSimpleTestTree2();
+    root.filterAll("subtest", true, true, false, true, false, true);
+    let exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    root.resetFilter();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("does the filtering of packages only correctly (no dependencies of eliminated nodes) and resets them correctly",
+      () => {
+        let root = setupSimpleTestTree2();
+        root.filterAll("main", false, false, true, false, true, false);
+        let exp = [
+          "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+          "com.tngtech.class2->com.tngtech.main.class1( extends )",
+          "com.tngtech.class2->com.tngtech.interface1( implements )"
+        ];
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+        root.resetFilter();
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+      });
+
+  it("does the filtering of packages and classes correctly (no dependencies of eliminated nodes) and resets them correctly",
+      () => {
+        let root = setupSimpleTestTree2();
+        root.filterAll("i", false, false, true, true, false, false);
+        let exp = [
+          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)"
+        ];
+        let desc = root.getVisibleDescendants();
+        let act = root.getVisibleEdges();
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+        root.resetFilter();
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+      });
+
+  it("does the filtering of classes only correctly (no dependencies of eliminated nodes) and resets them correctly",
+      () => {
+        let root = setupSimpleTestTree2();
+        root.filterAll("i", false, false, false, true, false, false);
+        let exp = [
+          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+          "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
+          "com.tngtech.class2->com.tngtech.main.class1( extends )"
+        ];
+        let desc = root.getVisibleDescendants();
+        let act = root.getVisibleEdges();
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+        root.resetFilter();
+        expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+        expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+      });
+
+  it("does the following correctly (in this order): fold, filter, reset filter and unfold", () => {
+    let root = setupSimpleTestTree2();
+    getNode(root, "com.tngtech.test").changeFold();
+    root.filterAll("subtest", true, true, false, true, false, true);
+    let exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
+      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    root.resetFilter();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(testFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    getNode(root, "com.tngtech.test").changeFold();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("does the following correctly (in this order): fold, filter, unfold and reset filter", () => {
+    let root = setupSimpleTestTree2();
+    getNode(root, "com.tngtech.test").changeFold();
+    root.filterAll("subtest", true, true, false, true, false, true);
+    let exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
+      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    getNode(root, "com.tngtech.test").changeFold();
+    exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    root.resetFilter();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("does the following correctly (in this order): filter, fold, unfold and reset the filter", () => {
+    let root = setupSimpleTestTree2();
+    root.filterAll("subtest", true, true, false, true, false, true);
+    getNode(root, "com.tngtech.test").changeFold();
+    let exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
+      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    getNode(root, "com.tngtech.test").changeFold();
+    exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    root.resetFilter();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("does the following correctly (in this order): filter, fold, reset the filter and unfold", () => {
+    let root = setupSimpleTestTree2();
+    root.filterAll("subtest", true, true, false, true, false, true);
+    getNode(root, "com.tngtech.test").changeFold();
+    let exp = [
+      "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
+      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
+      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.class2->com.tngtech.main.class1( extends )",
+      "com.tngtech.class2->com.tngtech.interface1( implements )"
+    ];
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    root.resetFilter();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(testFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+    getNode(root, "com.tngtech.test").changeFold();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("transform reverse on unfold", () => {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.test").changeFold();
     getNode(root, "com.tngtech.main").changeFold();
     getNode(root, "com.tngtech.test").changeFold();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(mainFoldedDeps);
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(mainFoldedDeps);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
     getNode(root, "com.tngtech.main").changeFold();
-    expect(root.deps.getVisible()).to.containExactlyDependencies(allDeps2);
-    expect(root.deps.getVisible()).to.haveCorrectEndPositions();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 });

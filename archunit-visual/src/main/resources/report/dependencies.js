@@ -2,7 +2,6 @@
 
 let nodes = new Map();
 
-
 let Dependency = class {
   constructor(from, to, kind, startCodeUnit, targetElement) {
     this.from = from;
@@ -177,12 +176,16 @@ let foldTransformer = pkg => {
 let recalculateVisible = (transformers, dependencies) => Array.from(transformers)
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-let changeFold = (dependencies, type, callback) => {
-  let before = dependencies._visibleDependencies;
-  callback(dependencies);
-  let after = recalculateVisible(dependencies._transformers.values(), dependencies._all);
+let recreateVisible = dependencies => {
+  let after = recalculateVisible(dependencies._transformers.values(), dependencies._filtered); //_all
   dependencies.setVisibleDependencies(after);
-  dependencies.getVisible().forEach(e => e.calcEndCoordinates());
+};
+
+let changeFold = (dependencies, type, callback) => {
+  //let before = dependencies._visibleDependencies;
+  callback(dependencies);
+  recreateVisible(dependencies);
+  //dependencies.getVisible().forEach(e => e.calcEndCoordinates());
 };
 
 let setForAllMustShareNodes = visDeps => {
@@ -195,13 +198,15 @@ let Dependencies = class {
     this._transformers = new Map();
     nodes = nodeMap;
     this._all = unique(Array.from(all));
-    this.setVisibleDependencies(this._all);
-    this._all.forEach(e => e.calcEndCoordinates());
+    this._filtered = this._all;
+    this.setVisibleDependencies(this._filtered); //this._all
+    //this._all.forEach(e => e.calcEndCoordinates());
   }
 
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
     setForAllMustShareNodes(this._visibleDependencies);
+    this._visibleDependencies.forEach(e => e.calcEndCoordinates()); //new
   }
 
   /**
@@ -215,6 +220,20 @@ let Dependencies = class {
   changeFold(pkg, isFolded) {
     if (isFolded) changeFold(this, 'fold', dependencies => dependencies._transformers.set(pkg, foldTransformer(pkg)));
     else changeFold(this, 'unfold', dependencies => dependencies._transformers.delete(pkg));
+  }
+
+  /**
+   * filters the dependencies: only dependencies, whose start and target pass the filterFunction, are taken over
+   * @param filterFunction
+   */
+  filter(filterFunction) {
+    this._filtered = this._all.filter(d => filterFunction(nodes.get(d.from)) && filterFunction(nodes.get(d.to)));
+    recreateVisible(this);
+  }
+
+  resetFilter() {
+    this._filtered = this._all;
+    recreateVisible(this);
   }
 
   recalcEndCoordinatesOf(node) {

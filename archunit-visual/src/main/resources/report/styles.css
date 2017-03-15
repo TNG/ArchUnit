@@ -1,63 +1,36 @@
-circle {
-    fill: rgb(152, 175, 199);
-    stroke: black;
-    stroke-width: 1px;
+#form {
+    position: relative;
 }
 
-.package circle {
-    fill: red;
-    fill-opacity: 0.25;
+form.inputarea {
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
 }
 
-.interface circle {
-    stroke-dasharray: 2, 2;
+fieldset.inputs {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    padding-top: 30px;
 }
 
-.abstractclass circle {
-    stroke-dasharray: 10, 10;
+fieldset.subinputs {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    padding-left: 20px;
 }
 
-.area {
-    cursor: pointer;
+fieldset.inputs {
+    display: inline-block;
+    vertical-align: top;
 }
 
-text {
-    font-family: sans-serif;
-    font-size: 12px;
-    text-anchor: middle;
+label {
+    position: absolute;
+    top: 5px;
+    left: auto;
+    margin-left: 5px;
     font-weight: bold;
-}
-
-.package text {
-    font-style: italic;
-    font-weight: normal;
-}
-
-line.access {
-    stroke: black;
-    marker-end: url(#end_arrow);
-}
-
-line.methodCall {
-    stroke: blue;
-}
-
-line.fieldAccess {
-    stroke: yellow;
-}
-
-line.constructorCall {
-    stroke: red;
-}
-
-line.extends {
-    stroke-dasharray: 10, 10;
-}
-
-line.implements {
-    stroke-dasharray: 2, 2;
-}
-
-text.access {
-    font-weight: normal;
 }
