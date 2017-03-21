@@ -15,4 +15,8 @@ public class Class1 implements Interface1 {
     public void sayHi() {
         System.out.println(this.s);
     }
+
+    class InnerClass1 {
+
+    }
 }

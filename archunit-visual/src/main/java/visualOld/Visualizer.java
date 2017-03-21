@@ -1,4 +1,4 @@
-package com.tngtech.archunit.visual;
+package visualOld;
 
 import com.tngtech.archunit.core.JavaClasses;
 

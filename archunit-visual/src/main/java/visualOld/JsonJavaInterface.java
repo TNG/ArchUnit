@@ -1,6 +1,6 @@
-package com.tngtech.archunit.visual;
+package visualOld;
 
-class JsonJavaInterface extends JsonJavaElement {
+class JsonJavaInterface extends JsonJavaFile {
     JsonJavaInterface(String name, String fullname) {
         super(name, fullname, "interface");
     }

@@ -1,4 +1,4 @@
-package com.tngtech.archunit.visual;
+package visualOld;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
@@ -10,6 +10,10 @@ import java.util.List;
 
 public class JsonExporter {
 
+    public static void main(String[] args) {
+
+    }
+
     /**
      * export the given Java-classes to a JSON-file, ignoring all dependencies to classes not being in the basePath
      *
@@ -17,7 +21,7 @@ public class JsonExporter {
      * @param file
      * @param basePath
      */
-    public void export(JavaClasses classes, File file, VisualizationContext context) {
+    public void export(JavaClasses classes, File file, String basePath) {
         final List<JsonJavaElement> elements = new ArrayList<>();
         parseJavaClasses(classesToList(classes), "", new Consumer<JsonJavaElement>() {
             @Override
@@ -119,7 +123,7 @@ public class JsonExporter {
         return true;
     }
 
-    private JsonJavaElement parseJavaFile(JavaClass c, String basePath) {
+    private JsonJavaFile parseJavaFile(JavaClass c, String basePath) {
         if (c.isInterface()) {
             return parseJavaInterface(c, basePath);
         } else {
@@ -132,13 +136,13 @@ public class JsonExporter {
                 c.getSuperClass().get().getName() : "";
     }
 
-    private JsonJavaElement parseJavaClass(final JavaClass c, String basePath) {
+    private JsonJavaFile parseJavaClass(final JavaClass c, String basePath) {
         final JsonJavaClazz res = new JsonJavaClazz(c.getSimpleName(), c.getName(), "class", getSuperClass(c, basePath));
         parseJavaElementsToJavaFile(c, basePath, res);
         return res;
     }
 
-    private JsonJavaElement parseJavaInterface(JavaClass c, String basePath) {
+    private JsonJavaFile parseJavaInterface(JavaClass c, String basePath) {
         JsonJavaInterface res = new JsonJavaInterface(c.getSimpleName(), c.getName());
         parseJavaElementsToJavaFile(c, basePath, res);
         return res;
@@ -152,7 +156,7 @@ public class JsonExporter {
         return !targetOwnerSimpleName.isEmpty() && targetOwner.startsWith(basePath) && !targetOwner.equals(origOwner);
     }
 
-    private void parseJavaElementsToJavaFile(JavaClass c, String basePath, JsonJavaElement res) {
+    private void parseJavaElementsToJavaFile(JavaClass c, String basePath, JsonJavaFile res) {
         if (c.getEnclosingClass().isPresent()) {
             res.addChild(parseJavaClass(c.getEnclosingClass().get(), basePath));
         }

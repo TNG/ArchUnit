@@ -1,4 +1,4 @@
-package com.tngtech.archunit.visual;
+package visualOld;
 
 import java.util.HashSet;
 import java.util.Set;

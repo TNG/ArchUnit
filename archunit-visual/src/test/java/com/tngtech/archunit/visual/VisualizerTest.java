@@ -1,9 +1,9 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-
 import com.tngtech.archunit.core.ClassFileImporter;
 import org.junit.Test;
+
+import java.io.File;
 
 public class VisualizerTest {
     @Test

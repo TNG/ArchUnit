@@ -23,7 +23,19 @@
           "name": "Class1",
           "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
           "type": "class",
-          "children": [],
+          "children": [
+            {
+              "name": "InnerClass1",
+              "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "type": "class",
+              "children": [],
+              "superclass": "",
+              "interfaces": [],
+              "fieldAccesses": [],
+              "methodCalls": [],
+              "constructorCalls": []
+            }
+          ],
           "superclass": "",
           "interfaces": [
             "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1"
