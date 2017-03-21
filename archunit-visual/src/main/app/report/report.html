@@ -63,8 +63,6 @@
   const jsonToRoot = require('tree').jsonToRoot;
   const jsonToDependencies = require('dependencies').jsonToDependencies;
 
-  var visNodes;
-
   var root;
 
   const svg = d3.select("svg"),
@@ -88,7 +86,7 @@
     root.setDepsForAll(deps);
     initializeGraph();
     root.foldAllExceptRoot();
-    this.updateAfterFold(root);
+    updateAfterFold(root);
   });
 
   function initializeGraph() {
@@ -97,7 +95,7 @@
   }
 
   function initializeTree() {
-    visNodes = gTree.selectAll()
+    let nodes = gTree.selectAll()
         .data(root.getVisibleDescendants())
         .enter()
         .append("g")
@@ -109,23 +107,23 @@
       this.updateAfterDragging(d);
     });
 
-    visNodes.filter(d => !d.isRoot())
+    nodes.filter(d => !d.isRoot())
         .on("click", d => {
           d.changeFold();
-          this.updateAfterFold(d);
+          updateAfterFold(d);
         })
         .call(drag);
 
-    visNodes
+    nodes
         .filter(d => !d.isRoot())
         .append("circle")
         .attr("r", d => d.visualData.r);
 
-    visNodes
+    nodes
         .append("text")
         .text(d => d.projectData.name);
 
-    visNodes.each(function (d) {
+    nodes.each(function (d) {
       let group = d3.select(this);
       let text = group.select("text");
       if (d.isRoot()) {
@@ -147,10 +145,10 @@
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
 
-    createNewDeps(gEdges.selectAll().data(root.getVisibleEdges()).enter());
+    createNewEdges(gEdges.selectAll().data(root.getVisibleEdges()).enter());
   }
 
-  function createNewDeps(selection) {
+  function createNewEdges(selection) {
     let newEdges = selection.append("g");
 
     newEdges.filter(e => e.hasDescription())
@@ -239,70 +237,64 @@
   }
 
   function updateAfterDragging(node) {
-    visNodes.filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    let visEdges = gEdges.selectAll("g");
-    this.updateDepPosition(visEdges);
+    gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    let edges = gEdges.selectAll("g");
+    updateEdgePosition(edges);
   }
 
   function updateAfterFold(node) {
-    updateTree(d => d.isChildOf(node));
+    updateVisualization(d => d.isChildOf(node));
+  }
+
+  function updateVisualization(filter) {
+    updateNodes(filter);
     updateEdges();
   }
 
-  function updateTree(filter) {
-    updateNodeVisibility();
-    visNodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    visNodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
-    visNodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
+  function updateNodes(filter) {
+    let nodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
+    nodes.exit().style("visibility", "hidden");
+    nodes.style("visibility", "visible");
+    nodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
+    nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
       let group = d3.select(this);
       positionAndResizeText(group.select("text"), group.select("circle"), d);
     });
   }
 
-  function updateNodeVisibility() {
-    visNodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
-    visNodes.exit().style("visibility", "hidden");
-    visNodes.style("visibility", "visible");
-
-  }
-
   function updateEdges() {
-    let visEdges = updateEdgeVisibility();
-    updateDepPosition(visEdges);
-  }
-
-  function updateEdgeVisibility() {
     let visEdges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
     hideEdges(visEdges.exit());
     showEdges(visEdges);
-    createNewDeps(visEdges.enter());
-    return visEdges;
+    createNewEdges(visEdges.enter());
+    updateEdgePosition(visEdges);
   }
 
-  function hideEdges(exitEdges) {
-    exitEdges.style("visibility", "hidden");
-    exitEdges.select("#area").style("pointer-events", "none");
+  function hideEdges(edges) {
+    edges.style("visibility", "hidden");
+    edges.select("#area").style("pointer-events", "none");
   }
 
-  function showEdges(updateEdges) {
-    updateEdges.style("visibility", "visible");
-    updateEdges.select("#area").style("pointer-events", "all");
+  function showEdges(edges) {
+    edges.style("visibility", "visible");
+    edges.select("#area").style("pointer-events", "all");
   }
 
-  function updateDepPosition(visEdges) {
-    updateLinePosition(visEdges);
-    updateTitlePosition(visEdges);
+  function updateEdgePosition(edges) {
+    updateLinePosition(edges);
+    updateTitlePosition(edges);
   }
 
-  function updateLinePosition(visEdges) {
-    visEdges
+  function updateLinePosition(edges) {
+    edges
         .select("#dep")
         .attr("x1", e => e.startPoint[0])
         .attr("y1", e => e.startPoint[1])
         .attr("x2", e => e.endPoint[0])
         .attr("y2", e => e.endPoint[1]);
 
-    visEdges
+    edges
         .select("#area")
         .attr("x1", e => e.startPoint[0])
         .attr("y1", e => e.startPoint[1])
@@ -310,26 +302,21 @@
         .attr("y2", e => e.endPoint[1]);
   }
 
-  function updateTitlePosition(visEdges) {
-    visEdges.select("text").attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+  function updateTitlePosition(edges) {
+    edges.select("text").attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
   }
 
   function filterAll(form) {
     root.filterAll(form.filter.value, form.filterBy.value === "fullname",
         form.whatToFilter.value === "filterClassesAndEliminatePkgs", form.filterPackages.checked,
         form.filterClasses.checked, form.howToFilter.value === "inclusively", form.matchCase.checked);
-    //updateNodeVisibility();
-    //updateEdgeVisibility();
-    updateTree(d => true);
-    updateEdges();
+    updateVisualization(d => true);
     return false;
   }
 
   function resetFilter() {
     root.resetFilter();
-    //updateNodeVisibility();
-    updateTree(d => true);
-    updateEdges();
+    updateVisualization(d => true);
   }
 </script>
 </body>

@@ -1,16 +1,5 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -21,12 +10,20 @@ import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1;
 import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2;
 import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class3;
 import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.net.URL;
+import java.util.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class JsonExporterTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();

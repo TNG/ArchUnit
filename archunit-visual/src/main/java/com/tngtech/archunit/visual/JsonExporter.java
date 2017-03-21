@@ -1,21 +1,12 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.JavaCodeUnit;
-import com.tngtech.archunit.core.JavaConstructorCall;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodCall;
+import com.tngtech.archunit.core.*;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JsonExporter {
 
@@ -76,13 +67,21 @@ public class JsonExporter {
                 fullPath : fullPath.substring(0, fullPath.indexOf(sep, partialPath.length() + 1));
     }
 
-    private void parseJavaClasses(List<JavaClass> classes, String parent, Consumer<JsonJavaElement> insert, String basePath) {
+    private void parseJavaClasses(List<JavaClass> classes, String parent, Consumer<JsonJavaElement> insert,
+                                  String basePath) {
         String path = parent;
         String commonPath = parent;
         if (classes.isEmpty()) return;
         JavaClass c = classes.get(0);
+        for (JavaClass cur : classes) {
+            //c = classes.get(0);
+            c = cur;
+            if (c.getName().startsWith(basePath)) {
+                break;
+            }
+        }
         boolean fullPathNotReached = true;
-        while (eachStartsWith(classes, path) && (fullPathNotReached = path.length() < c.getPackage().length())) {
+        while (eachStartsWith(classes, path, basePath) && (fullPathNotReached = path.length() < c.getPackage().length())) {
             commonPath = path;
             path = expandPath(path, c.getPackage(), ".");
         }
@@ -105,16 +104,18 @@ public class JsonExporter {
                 parseJavaClasses(s.matching, parent, insert, basePath);
                 parseJavaClasses(s.notMatching, parent, insert, basePath);
             } else {
-                insert.accept(parseJavaFile(c, basePath));
+                if (!c.getSimpleName().isEmpty() && c.getName().startsWith(basePath)) {
+                    insert.accept(parseJavaFile(c, basePath));
+                }
                 parseJavaClasses(classes.subList(1, classes.size()), parent, insert, basePath);
             }
         }
 
     }
 
-    private boolean eachStartsWith(Iterable<JavaClass> classes, String prefix) {
+    private boolean eachStartsWith(Iterable<JavaClass> classes, String prefix, String basePath) {
         for (JavaClass c : classes) {
-            if (!c.getPackage().startsWith(prefix)) return false;
+            if (c.getName().startsWith(basePath) && !c.getPackage().startsWith(prefix)) return false;
         }
         return true;
     }
@@ -148,8 +149,8 @@ public class JsonExporter {
         return origin.isConstructor() ? c.getSimpleName() : origin.getName();
     }
 
-    private boolean isRelevantDep(String targetOwner, String origOwner, String basePath) {
-        return targetOwner.startsWith(basePath) && !targetOwner.equals(origOwner);
+    private boolean isRelevantDep(String targetOwner, String targetOwnerSimpleName, String origOwner, String basePath) {
+        return !targetOwnerSimpleName.isEmpty() && targetOwner.startsWith(basePath) && !targetOwner.equals(origOwner);
     }
 
     private void parseJavaElementsToJavaFile(JavaClass c, String basePath, JsonJavaFile res) {
@@ -162,19 +163,19 @@ public class JsonExporter {
             }
         }
         for (JavaFieldAccess fa : c.getFieldAccessesFromSelf()) {
-            if (isRelevantDep(fa.getTargetOwner().getName(), c.getName(), basePath)) {
+            if (isRelevantDep(fa.getTargetOwner().getName(), fa.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
                 res.addFieldAccess(new JsonFieldAccess(fa.getTargetOwner().getName(), getStartCodeUnit(fa.getOrigin(), c),
                         fa.getTarget().getName()));
             }
         }
         for (JavaMethodCall mc : c.getMethodCallsFromSelf()) {
-            if (isRelevantDep(mc.getTargetOwner().getName(), c.getName(), basePath)) {
+            if (isRelevantDep(mc.getTargetOwner().getName(), mc.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
                 res.addMethodCall(new JsonMethodCall(mc.getTargetOwner().getName(), getStartCodeUnit(mc.getOrigin(), c),
                         mc.getTarget().getName()));
             }
         }
         for (JavaConstructorCall cc : c.getConstructorCallsFromSelf()) {
-            if (isRelevantDep(cc.getTargetOwner().getName(), c.getName(), basePath)) {
+            if (isRelevantDep(cc.getTargetOwner().getName(), cc.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
                 res.addConstructorCall(new JsonConstructorCall(cc.getTargetOwner().getName(),
                         getStartCodeUnit(cc.getOrigin(), c), cc.getTargetOwner().getSimpleName()));
             }
