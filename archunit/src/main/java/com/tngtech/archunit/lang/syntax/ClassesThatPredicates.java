@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang.syntax;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaModifier;
@@ -19,16 +18,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class ClassesThatPredicates {
-    static DescribedPredicate<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
-        return not(JavaClass.Predicates.resideInPackage(packageIdentifier))
-                .as("reside outside of package '%s'", packageIdentifier);
-    }
-
-    static DescribedPredicate<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
-        return not(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers))
-                .as("reside outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
-    }
-
     static DescribedPredicate<HasName> haveNameNotMatching(String regex) {
         return have(not(nameMatching(regex)).as("name not matching '%s'", regex));
     }

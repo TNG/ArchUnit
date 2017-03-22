@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.properties.HasName;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.Functions.SIMPLE_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
@@ -633,13 +634,13 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
          * @return A {@link DescribedPredicate} returning true iff the package of the
          * tested {@link JavaClass} matches the identifier
          */
-        public static DescribedPredicate<JavaClass> resideInPackage(final String packageIdentifier) {
+        public static DescribedPredicate<JavaClass> resideInAPackage(final String packageIdentifier) {
             return resideInAnyPackage(new String[]{packageIdentifier},
-                    String.format("reside in package '%s'", packageIdentifier));
+                    String.format("reside in a package '%s'", packageIdentifier));
         }
 
         /**
-         * @see #resideInPackage(String)
+         * @see #resideInAPackage(String)
          */
         public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers,
@@ -662,6 +663,16 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                     return false;
                 }
             };
+        }
+
+        public static DescribedPredicate<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
+            return not(resideInAPackage(packageIdentifier))
+                    .as("reside outside of package '%s'", packageIdentifier);
+        }
+
+        public static DescribedPredicate<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
+            return not(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers))
+                    .as("reside outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
         }
     }
 

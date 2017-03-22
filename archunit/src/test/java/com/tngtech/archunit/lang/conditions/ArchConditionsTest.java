@@ -31,24 +31,17 @@ import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owne
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.getFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
     @Test
-    public void never_call_method_in_hierarchy_of() throws NoSuchMethodException {
+    public void never_call_method_where_target_owner_is_assignable_to() throws NoSuchMethodException {
         JavaClass callingClass = javaClassViaReflection(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
         JavaMethod dontCallMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
@@ -80,7 +73,7 @@ public class ArchConditionsTest {
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(nameMatching(".*Wong.*"))), clazz);
+        events = check(never(accessClass(nameMatching(".*Wrong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }
@@ -96,32 +89,11 @@ public class ArchConditionsTest {
         assertThat(onlyBeAccessedByAnyPackage("..one..", "..two..").getDescription())
                 .isEqualTo("only be accessed by any package ['..one..', '..two..']");
 
-        assertThat(getField(System.class, "out").getDescription())
-                .isEqualTo("get field System.out");
-
-        assertThat(getFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("get field where something");
-
-        assertThat(setField(System.class, "out").getDescription())
-                .isEqualTo("set field System.out");
-
-        assertThat(setFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("set field where something");
-
-        assertThat(accessField(System.class, "out").getDescription())
-                .isEqualTo("access field System.out");
-
-        assertThat(accessFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("access field where something");
-
         assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
                 .isEqualTo("call method where something");
 
         assertThat(accessClass(predicateWithDescription("something")).getDescription())
                 .isEqualTo("access class something");
-
-        assertThat(resideInAPackage("..any..").getDescription())
-                .isEqualTo("reside in a package '..any..'");
 
         assertThat(never(conditionWithDescription("something")).getDescription())
                 .isEqualTo("never something");

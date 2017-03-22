@@ -42,8 +42,8 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
-    public ClassesShouldConjunction resideInPackage(String packageIdentifier) {
-        return shouldWith(JavaClass.Predicates.resideInPackage(packageIdentifier));
+    public ClassesShouldConjunction resideInAPackage(String packageIdentifier) {
+        return shouldWith(JavaClass.Predicates.resideInAPackage(packageIdentifier));
     }
 
     @Override
@@ -53,12 +53,12 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier) {
-        return shouldWith(ClassesThatPredicates.resideOutsideOfPackage(packageIdentifier));
+        return shouldWith(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @Override
     public ClassesShouldConjunction resideOutsideOfPackages(String... packageIdentifiers) {
-        return shouldWith(ClassesThatPredicates.resideOutsideOfPackages(packageIdentifiers));
+        return shouldWith(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @Override

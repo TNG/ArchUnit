@@ -98,6 +98,7 @@ public class ClassCacheTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void non_existing_packages_are_ignored() {
         JavaClasses first = cache.getClassesToAnalyseFor(TestClassWithNonExistingPackage.class);
         JavaClasses second = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);

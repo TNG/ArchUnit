@@ -95,7 +95,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void resideInPackage() {
-        List<JavaClass> classes = filterResultOf(classes().that().resideInPackage("..tngtech.."))
+        List<JavaClass> classes = filterResultOf(classes().that().resideInAPackage("..tngtech.."))
                 .on(getClass(), String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(getClass());

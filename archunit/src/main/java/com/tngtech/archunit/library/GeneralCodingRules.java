@@ -9,7 +9,7 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
@@ -67,7 +67,7 @@ public class GeneralCodingRules {
             noClasses().should(THROW_GENERIC_EXCEPTIONS);
 
     public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
-            setFieldWhere(resideInPackage("java.util.logging..")
+            setFieldWhere(resideInAPackage("java.util.logging..")
                     .onResultOf(Get.<JavaFieldAccess, FieldAccessTarget>target().then(GET_TYPE)))
                     .as("use java.util.logging");
 

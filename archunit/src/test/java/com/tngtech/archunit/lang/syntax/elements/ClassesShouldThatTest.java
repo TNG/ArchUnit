@@ -93,7 +93,7 @@ public class ClassesShouldThatTest {
     @Test
     public void resideInPackage() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().resideInPackage("..tngtech.."))
+                noClasses().should().access().classesThat().resideInAPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class);

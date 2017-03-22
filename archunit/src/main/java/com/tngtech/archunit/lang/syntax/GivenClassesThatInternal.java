@@ -29,8 +29,8 @@ class GivenClassesThatInternal implements GivenClassesThat {
     }
 
     @Override
-    public GivenClassesConjunction resideInPackage(String packageIdentifier) {
-        return givenWith(JavaClass.Predicates.resideInPackage(packageIdentifier));
+    public GivenClassesConjunction resideInAPackage(String packageIdentifier) {
+        return givenWith(JavaClass.Predicates.resideInAPackage(packageIdentifier));
     }
 
     @Override
@@ -40,12 +40,12 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction resideOutsideOfPackage(String packageIdentifier) {
-        return givenWith(ClassesThatPredicates.resideOutsideOfPackage(packageIdentifier));
+        return givenWith(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @Override
     public GivenClassesConjunction resideOutsideOfPackages(String... packageIdentifiers) {
-        return givenWith(ClassesThatPredicates.resideOutsideOfPackages(packageIdentifiers));
+        return givenWith(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @Override

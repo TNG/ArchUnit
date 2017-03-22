@@ -57,4 +57,15 @@ public class ArchPredicates {
     public static <T> DescribedPredicate<T> have(DescribedPredicate<T> predicate) {
         return predicate.as("have " + predicate.getDescription());
     }
+
+    /**
+     * This method is just syntactic sugar, e.g. to write classes.should(be(public()))
+     *
+     * @param predicate The original predicate
+     * @param <T>       The type of the object to decide on
+     * @return The original predicate with adjusted description
+     */
+    public static <T> DescribedPredicate<T> be(DescribedPredicate<T> predicate) {
+        return predicate.as("be " + predicate.getDescription());
+    }
 }

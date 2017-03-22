@@ -16,8 +16,8 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.core.JavaClass.Predicates.resideInPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
@@ -253,17 +253,17 @@ public class JavaClassTest {
     }
 
     @Test
-    public void predicate_reside_in_package() {
+    public void predicate_reside_in_a_package() {
         JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
 
-        assertThat(resideInPackage("some..pkg").apply(clazz)).as("package matches").isTrue();
+        assertThat(resideInAPackage("some..pkg").apply(clazz)).as("package matches").isTrue();
 
         clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
 
-        assertThat(resideInPackage("some..pkg").apply(clazz)).as("package matches").isFalse();
+        assertThat(resideInAPackage("some..pkg").apply(clazz)).as("package matches").isFalse();
 
-        assertThat(resideInPackage("..any..").getDescription())
-                .isEqualTo("reside in package '..any..'");
+        assertThat(resideInAPackage("..any..").getDescription())
+                .isEqualTo("reside in a package '..any..'");
     }
 
     @Test
