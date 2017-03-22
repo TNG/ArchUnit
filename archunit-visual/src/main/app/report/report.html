@@ -51,7 +51,9 @@
   //must match the fontsize in the CSS-declaration
   const FONTSIZE = 12;
   //defines how exact the font-size of the circle-text is adapted to the radius of the circle
-  const UNIT = 2;
+  const FONTSIZEUNIT = 2;
+  const RADIUSUNIT = 2;
+  const ALLOWLINEBREAK = false;
   const MINFONTSIZE = 10;
   //defines after which proportion of the circle the text is positioned; only affects nodes
   const TEXTPOSITION = 0.8;
@@ -104,13 +106,14 @@
 
     let drag = d3.drag().on("drag", d => {
       d.drag(d3.event.dx, d3.event.dy);
-      this.updateAfterDragging(d);
+      updateAfterDragging(d);
     });
 
     nodes.filter(d => !d.isRoot())
         .on("click", d => {
-          d.changeFold();
-          updateAfterFold(d);
+          if (d.changeFold()) {
+            updateAfterFold(d);
+          }
         })
         .call(drag);
 
@@ -123,13 +126,17 @@
         .append("text")
         .text(d => d.projectData.name);
 
+    nodes
+        .append("title")
+        .text(d => d.projectData.name);
+
     nodes.each(function (d) {
       let group = d3.select(this);
       let text = group.select("text");
       if (d.isRoot()) {
         text.attr("dy", -d.visualData.r + FONTSIZE);
       }
-      else positionAndResizeText(text, group.select("circle"), d);
+      else positionAndResizeTextAndRadius(text, group.select("circle"), d);
     });
   }
 
@@ -199,26 +206,56 @@
         .attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
   }
 
-  function positionAndResizeText(text, circ, d) {
+  function positionAndResizeTextAndRadiusWithd3plus(text, circ, d) {
+    d3plus.textwrap()
+        .container(text)
+        .draw();
+
+    if (!d.isCurrentlyLeaf()) {
+      text.attr("dy", computeTextShift(d.projectData.r, textDom.getBBox().width, actFontSize));
+    }
+    else {
+      text.attr("dy", 0);
+    }
+  }
+
+  function positionAndResizeTextAndRadius(text, circ, d) {
     let textDom = text.node();
     let radius = circ.attr("r");
+    let r = d.visualData.r;
     let transform = circ.attr("transform");
     if (transform) {
-      var scale = transform.split("(")[1].split(")")[0]
-      radius *= scale;
+      let scale = transform.split("(")[1].split(")")[0];
+      //radius *= scale;
+      r *= scale;
     }
     let actFontSize = FONTSIZE;
     text.style("font-size", actFontSize);
-    while (textDom.getBBox().width >= 2 * radius) {
-      actFontSize -= UNIT;
+    while (textDom.getBBox().width >= 2 * r) { //ursprünglich radius
+      //ursprünglich hier: 1)
       if (actFontSize < MINFONTSIZE) {
         //TODO: in der Mitte des Textes Zeichen durch ... ersetzen
+        if (ALLOWLINEBREAK) {
+        }
+        else {
+          r += RADIUSUNIT;
+        }
       }
-      text.style("font-size", actFontSize);
+      else { //ursprünglich kein else
+        actFontSize -= FONTSIZEUNIT; //1)
+        text.style("font-size", actFontSize);
+      }
     }
-    if (!d.isCurrentlyLeaf())
-      text.attr("dy", computeTextShift(radius, textDom.getBBox().width, actFontSize));
-    else text.attr("dy", 0);
+
+    d.changeRadius(r);
+    circ.attr("r", d.visualData.r);
+
+    if (!d.isCurrentlyLeaf()) {
+      text.attr("dy", computeTextShift(r, textDom.getBBox().width, actFontSize));
+    }
+    else {
+      text.attr("dy", 0);
+    }
   }
 
 
@@ -259,7 +296,7 @@
     nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
     nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
       let group = d3.select(this);
-      positionAndResizeText(group.select("text"), group.select("circle"), d);
+      positionAndResizeTextAndRadius(group.select("text"), group.select("circle"), d);
     });
   }
 

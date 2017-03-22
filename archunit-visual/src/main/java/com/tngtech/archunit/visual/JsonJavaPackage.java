@@ -31,14 +31,17 @@ class JsonJavaPackage extends JsonElement {
         children.add(el);
     }
 
-    private static JsonJavaPackage createNewPackage(String pathParent, String newPath) {
+    private static JsonJavaPackage createPackage(String pathParent, String newPath) {
+        System.out.println(pathParent + "----" + newPath);
         int end = newPath.indexOf(".", pathParent.length() + 1);
+        end = end == -1 ? newPath.length() : end;
         String fullName = newPath.substring(0, end);
-        String name = newPath.substring(pathParent.length() + 1, end);
+        int start = pathParent.length() == 0 ? 0 : pathParent.length() + 1;
+        String name = newPath.substring(start, end);
         return new JsonJavaPackage(name, fullName, false);
     }
 
-    void insertPackage(String pkg) {
+    private void insertPackage(String pkg) {
         if (!fullname.equals(pkg)) {
             for (JsonJavaPackage c : subPackages) {
                 if (pkg.startsWith(c.fullname)) {
@@ -46,7 +49,7 @@ class JsonJavaPackage extends JsonElement {
                     return;
                 }
             }
-            JsonJavaPackage newPkg = createNewPackage(fullname, pkg);
+            JsonJavaPackage newPkg = createPackage(fullname, pkg);
             addPackage(newPkg);
             newPkg.insertPackage(pkg);
         }
@@ -70,6 +73,7 @@ class JsonJavaPackage extends JsonElement {
                 if (isDefault) {
                     fullname = c.fullname;
                     name = c.name;
+                    isDefault = false;
                 } else {
                     fullname = c.fullname;
                     name += "." + c.name;
@@ -80,17 +84,20 @@ class JsonJavaPackage extends JsonElement {
                 break;
             }
             normalizeForExport();
-        }
-        for (JsonJavaPackage c : subPackages) {
-            c.normalizeForExport();
+        } else {
+            for (JsonJavaPackage c : subPackages) {
+                c.normalizeForExport();
+            }
         }
     }
 
     static JsonJavaPackage createTreeStructure(Set<String> pkgs) {
-        JsonJavaPackage root = new JsonJavaPackage(DEFAULTROOT, DEFAULTROOT, true);
+        JsonJavaPackage root = new JsonJavaPackage("", "", true);
         for (String p : pkgs) {
             root.insertPackage(p);
         }
+        root.name = DEFAULTROOT;
+        root.fullname = DEFAULTROOT;
         return root;
     }
 

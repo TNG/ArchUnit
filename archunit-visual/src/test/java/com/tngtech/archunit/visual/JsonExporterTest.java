@@ -35,7 +35,8 @@ public class JsonExporterTest {
         JavaClasses classes = importClasses(EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, "com.tngtech.archunit.visual.testjson");
+        jsonExporter.export(classes, target,
+                new VisualizationContextBuilder().includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = new File(getClass().getResource("./testjson/empty-class.json").getFile());
         assertThat(importJson(target)).as("exported json").isEqualTo(importJson(expectedJson));
@@ -46,7 +47,8 @@ public class JsonExporterTest {
         JavaClasses classes = importClasses(Class1.class, Class2.class, Class3.class, Interface1.class, EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, "com.tngtech.archunit.visual.testjson");
+        jsonExporter.export(classes, target,
+                new VisualizationContextBuilder().includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = new File(getClass().getResource("./testjson/simpleinheritstructure.json").getFile());
         assertThat(importJson(target)).as("exported json").isEqualTo(importJson(expectedJson));
@@ -62,7 +64,8 @@ public class JsonExporterTest {
                 com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface2.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, "com.tngtech.archunit.visual.testjson");
+        jsonExporter.export(classes, target,
+                new VisualizationContextBuilder().includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = new File(getClass().getResource("./testjson/complexinheritstructure.json").getFile());
         assertThat(importJson(target)).as("exported json").isEqualTo(importJson(expectedJson));

@@ -42,7 +42,8 @@ let Dependency = class {
   calcEndCoordinates() {
     let startNode = this.getStartNode();
     let endNode = this.getEndNode();
-    this.angleRad = Math.atan((endNode.visualData.y - startNode.visualData.y) / (endNode.visualData.x - startNode.visualData.x));
+    //let targetIsWithinStart = Math.sqrt(Math.pow(endNode.visualData.y - startNode.visualData.y))
+    this.angleRad = Math.atan((endNode.visualData.y - startNode.visualData.y) / ((endNode.visualData.x - startNode.visualData.x) || 0.01));
     this.angleDeg = Math.round(this.angleRad * (180 / Math.PI));
     let startAngle, endAngle;
     let angleDiff = Math.asin(this.lineDiff / startNode.visualData.r);
@@ -54,10 +55,10 @@ let Dependency = class {
       startAngle = this.angleRad;
       endAngle = this.angleRad;
     }
-    let startDX = Math.abs(Math.cos(startAngle) * startNode.visualData.r);
-    let startDY = Math.abs(Math.sin(startAngle) * startNode.visualData.r);
-    let endDX = Math.abs(Math.cos(endAngle) * endNode.visualData.r);
-    let endDY = Math.abs(Math.sin(endAngle) * endNode.visualData.r);
+    let startDX = Math.abs(Math.cos(startAngle) * startNode.visualData.r),
+        startDY = Math.abs(Math.sin(startAngle) * startNode.visualData.r),
+        endDX = Math.abs(Math.cos(endAngle) * endNode.visualData.r),
+        endDY = Math.abs(Math.sin(endAngle) * endNode.visualData.r);
 
     let startdirX, startdirY, enddirX, enddirY;
     if (this.mustShareNodes) {
@@ -84,11 +85,11 @@ let Dependency = class {
   }
 
   hasDescription() {
-    return this.startCodeUnit && this.targetElement;
+    return this.startCodeUnit || this.targetElement; //TODO: besser && statt || ????
   }
 
   getDescriptionString() {
-    return this.startCodeUnit + "->" + this.targetElement;
+    return (this.startCodeUnit || "") + "->" + (this.targetElement || "");
   }
 
   getTitleOffset(TEXTPADDING) {

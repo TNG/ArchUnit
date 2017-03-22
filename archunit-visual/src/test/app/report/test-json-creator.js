@@ -32,6 +32,7 @@ module.exports = {
       fullname: simpleName,
       name: simpleName,
       type: type,
+      children: [],
       interfaces: [],
       fieldAccesses: [],
       methodCalls: [],
@@ -56,6 +57,10 @@ module.exports = {
       },
       accessingField: function (to, startCodeUnit, targetElement) {
         res.fieldAccesses.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+        return builder;
+      },
+      havingInnerClass: function (innerClass) {
+        res.children.push(innerClass);
         return builder;
       },
       build: function () {

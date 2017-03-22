@@ -25,7 +25,7 @@ let VisualData = class {
   move(dx, dy, parent, callback, addToProtocol) {
     let newX = this.x + dx;
     let newY = this.y + dy;
-    if (parent.isRoot() || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
+    if ((parent.isRoot() && true) || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -63,7 +63,7 @@ let predecessors = node => {
   return res;
 };
 
-let isLeaf = d => d.origChildren.length === 0;
+let isLeaf = d => d.filteredChildren.length === 0;
 
 let isOnlyChild = d => d.parent && d.parent.origChildren.length === 1;
 
@@ -116,7 +116,9 @@ let fold = (d, folded) => {
   if (!isLeaf(d)) {
     setIsFolded(d, folded);
     d.deps.changeFold(d.projectData.fullname, d.isFolded);
+    return true;
   }
+  return false;
 };
 
 let filterAll = (n, filterFun) => {
@@ -163,6 +165,14 @@ let Node = class {
     this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
   }
 
+  changeRadius(newR) {
+    this.visualData.r = newR;
+    if (!this.isRoot()) {
+      checkAndCorrectPosition(this);
+    }
+    this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
+  }
+
   isRoot() {
     return !this.parent;
   }
@@ -176,7 +186,7 @@ let Node = class {
   }
 
   changeFold() {
-    fold(this, !this.isFolded);
+    return fold(this, !this.isFolded);
   }
 
   getClass() {

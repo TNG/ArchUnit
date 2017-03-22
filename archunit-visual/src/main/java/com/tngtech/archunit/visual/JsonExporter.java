@@ -1,32 +1,46 @@
 package com.tngtech.archunit.visual;
 
-import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.*;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class JsonExporter {
 
     /**
      * export the given Java-classes to a JSON-file, ignoring all dependencies to classes not being in the basePath
-     *
-     * @param classes
-     * @param file
-     * @param basePath
      */
     public void export(JavaClasses classes, File file, VisualizationContext context) {
-        final List<JsonJavaElement> elements = new ArrayList<>();
-        parseJavaClasses(classesToList(classes), "", new Consumer<JsonJavaElement>() {
-            @Override
-            public void accept(JsonJavaElement j) {
-                elements.add(j);
+        Set<String> pkgs = new HashSet<>();
+        for (JavaClass c : classes) {
+            if (context.isIncluded(c.getName())) {
+                pkgs.add(c.getPackage());
             }
-        }, basePath);
-        JsonJavaElement root = getOrCreateRoot(elements, "root");
-        Gson gson = new Gson();
+        }
+        JsonJavaPackage root = JsonJavaPackage.createTreeStructure(pkgs);
+        List<JavaClass> innerClasses = new LinkedList<>();
+        for (JavaClass c : classes) {
+            if (c.getName().contains("$")) {
+                innerClasses.add(c);
+            } else if (!c.getSimpleName().isEmpty() && context.isIncluded(c.getName())) {
+                root.insertJavaElement(parseJavaElement(c, context));
+            }
+        }
+        for (JavaClass c : innerClasses) {
+            if (!c.getSimpleName().isEmpty() && context.isIncluded(c.getName())) {
+                root.insertJavaElement(parseJavaElement(c, context));
+            }
+        }
+        root.normalizeForExport();
+
+        final GsonBuilder builder = new GsonBuilder();
+        builder.excludeFieldsWithoutExposeAnnotation();
+        Gson gson = builder.create();
         try {
             String jsonString = gson.toJson(root);
             gson.toJson(root, new FileWriter(file));
@@ -41,106 +55,33 @@ public class JsonExporter {
         }
     }
 
-    private JsonJavaElement getOrCreateRoot(List<JsonJavaElement> list, String newRootName) {
-        if (list.size() == 0) return null;
-        if (list.size() == 1) {
-            return list.get(0);
-        } else {
-            JsonJavaElement root = new JsonJavaPackage(newRootName, newRootName);
-            for (JsonJavaElement e : list) {
-                root.addChild(e);
-            }
-            return root;
-        }
-    }
-
-    private List<JavaClass> classesToList(JavaClasses classes) {
-        return ImmutableList.copyOf(classes);
-    }
-
-    private String expandPath(String partialPath, String fullPath, String sep) {
-        return fullPath.indexOf(sep, partialPath.length() + 1) == -1 ?
-                fullPath : fullPath.substring(0, fullPath.indexOf(sep, partialPath.length() + 1));
-    }
-
-    private void parseJavaClasses(List<JavaClass> classes, String parent, Consumer<JsonJavaElement> insert,
-                                  String basePath) {
-        String path = parent;
-        String commonPath = parent;
-        if (classes.isEmpty()) return;
-        JavaClass c = classes.get(0);
-        for (JavaClass cur : classes) {
-            //c = classes.get(0);
-            c = cur;
-            if (c.getName().startsWith(basePath)) {
-                break;
-            }
-        }
-        boolean fullPathNotReached = true;
-        while (eachStartsWith(classes, path, basePath) && (fullPathNotReached = path.length() < c.getPackage().length())) {
-            commonPath = path;
-            path = expandPath(path, c.getPackage(), ".");
-        }
-        if (!fullPathNotReached) {
-            commonPath = path;
-        }
-        if (!commonPath.equals(parent)) {
-            int start = parent.isEmpty() ? 0 : parent.length() + 1;
-            final JsonJavaPackage jpkg = new JsonJavaPackage(commonPath.substring(start), commonPath);
-            insert.accept(jpkg);
-            parseJavaClasses(classes, commonPath, new Consumer<JsonJavaElement>() {
-                @Override
-                public void accept(JsonJavaElement j) {
-                    jpkg.addChild(j);
-                }
-            }, basePath);
-        } else {
-            if (fullPathNotReached) {
-                SeparatedClasses s = SeparatedClasses.separate(classes, path);
-                parseJavaClasses(s.matching, parent, insert, basePath);
-                parseJavaClasses(s.notMatching, parent, insert, basePath);
-            } else {
-                if (c.getSimpleName().isEmpty() || c.getName().contains("$")) {
-                    System.out.println("innere Klasse????" + c.getName());
-                }
-                if (!c.getSimpleName().isEmpty() && c.getName().startsWith(basePath)) {
-                    insert.accept(parseJavaFile(c, basePath));
-                }
-                parseJavaClasses(classes.subList(1, classes.size()), parent, insert, basePath);
-            }
-        }
-
-    }
-
-    private boolean eachStartsWith(Iterable<JavaClass> classes, String prefix, String basePath) {
-        for (JavaClass c : classes) {
-            if (c.getName().startsWith(basePath) && !c.getPackage().startsWith(prefix)) return false;
-        }
-        return true;
-    }
-
-    private JsonJavaElement parseJavaFile(JavaClass c, String basePath) {
+    private JsonJavaElement parseJavaElement(JavaClass c, VisualizationContext context) {
         if (c.isInterface()) {
-            return parseJavaInterface(c, basePath);
+            return parseJavaInterface(c, context);
         } else {
-            return parseJavaClass(c, basePath);
+            return parseJavaClass(c, context);
         }
     }
 
-    private String getSuperClass(JavaClass c, String basePath) {
-        return c.getSuperClass().isPresent() && c.getSuperClass().get().getName().startsWith(basePath) ?
+    private String getSuperClass(JavaClass c, VisualizationContext context) {
+        return c.getSuperClass().isPresent() && context.isIncluded(c.getSuperClass().get().getName()) ?
                 c.getSuperClass().get().getName() : "";
     }
 
-    private JsonJavaElement parseJavaClass(final JavaClass c, String basePath) {
-        final JsonJavaClazz res = new JsonJavaClazz(c.getSimpleName(), c.getName(), "class", getSuperClass(c, basePath));
-        parseJavaElementsToJavaFile(c, basePath, res);
+    private String getCleanedFullname(String fullname) {
+        return fullname.replaceAll("§", ".");
+    }
+
+    private JsonJavaElement parseJavaClass(final JavaClass c, VisualizationContext context) {
+        final JsonJavaClazz res = new JsonJavaClazz(c.getSimpleName(), getCleanedFullname(c.getName()),
+                "class", getSuperClass(c, context));
+        parseToJavaElement(c, context, res);
         return res;
     }
 
-    private JsonJavaElement parseJavaInterface(JavaClass c, String basePath) {
-        JsonJavaInterface res = new JsonJavaInterface(c.getSimpleName(), c.getName());
-        parseJavaElementsToJavaFile(c, basePath, res);
+    private JsonJavaElement parseJavaInterface(JavaClass c, VisualizationContext context) {
+        JsonJavaInterface res = new JsonJavaInterface(c.getSimpleName(), getCleanedFullname(c.getName()));
+        parseToJavaElement(c, context, res);
         return res;
     }
 
@@ -148,54 +89,38 @@ public class JsonExporter {
         return origin.isConstructor() ? c.getSimpleName() : origin.getName();
     }
 
-    private boolean isRelevantDep(String targetOwner, String targetOwnerSimpleName, String origOwner, String basePath) {
-        return !targetOwnerSimpleName.isEmpty() && targetOwner.startsWith(basePath) && !targetOwner.equals(origOwner);
+    private boolean isRelevantDep(String targetOwner, String targetOwnerSimpleName, String origOwner,
+                                  VisualizationContext context) {
+        return !targetOwnerSimpleName.isEmpty() && context.isIncluded(targetOwner) &&
+                !targetOwner.equals(origOwner);
     }
 
-    private void parseJavaElementsToJavaFile(JavaClass c, String basePath, JsonJavaElement res) {
-        if (c.getEnclosingClass().isPresent()) {
-            res.addChild(parseJavaClass(c.getEnclosingClass().get(), basePath));
-        }
+    private void parseToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
+        /**if (c.getEnclosingClass().isPresent()) {
+         res.addChild(parseJavaClass(c.getEnclosingClass().get(), basePath));
+         }*/
         for (JavaClass i : c.getAllInterfaces()) {
-            if (i.getName().startsWith(basePath)) {
+            if (context.isIncluded(i.getName())) {
                 res.addInterface(i.getName());
             }
         }
         for (JavaFieldAccess fa : c.getFieldAccessesFromSelf()) {
-            if (isRelevantDep(fa.getTargetOwner().getName(), fa.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
+            if (isRelevantDep(fa.getTargetOwner().getName(), fa.getTargetOwner().getSimpleName(), c.getName(), context)) {
                 res.addFieldAccess(new JsonFieldAccess(fa.getTargetOwner().getName(), getStartCodeUnit(fa.getOrigin(), c),
                         fa.getTarget().getName()));
             }
         }
         for (JavaMethodCall mc : c.getMethodCallsFromSelf()) {
-            if (isRelevantDep(mc.getTargetOwner().getName(), mc.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
+            if (isRelevantDep(mc.getTargetOwner().getName(), mc.getTargetOwner().getSimpleName(), c.getName(), context)) {
                 res.addMethodCall(new JsonMethodCall(mc.getTargetOwner().getName(), getStartCodeUnit(mc.getOrigin(), c),
                         mc.getTarget().getName()));
             }
         }
         for (JavaConstructorCall cc : c.getConstructorCallsFromSelf()) {
-            if (isRelevantDep(cc.getTargetOwner().getName(), cc.getTargetOwner().getSimpleName(), c.getName(), basePath)) {
+            if (isRelevantDep(cc.getTargetOwner().getName(), cc.getTargetOwner().getSimpleName(), c.getName(), context)) {
                 res.addConstructorCall(new JsonConstructorCall(cc.getTargetOwner().getName(),
                         getStartCodeUnit(cc.getOrigin(), c), cc.getTargetOwner().getSimpleName()));
             }
         }
     }
-
-    static class SeparatedClasses {
-        private List<JavaClass> matching = new ArrayList<>();
-        private List<JavaClass> notMatching = new ArrayList<>();
-
-        public static SeparatedClasses separate(Iterable<JavaClass> classes, String prefix) {
-            SeparatedClasses res = new SeparatedClasses();
-            for (JavaClass c : classes) {
-                if (c.getPackage().startsWith(prefix)) {
-                    res.matching.add(c);
-                } else {
-                    res.notMatching.add(c);
-                }
-            }
-            return res;
-        }
-    }
-
 }
