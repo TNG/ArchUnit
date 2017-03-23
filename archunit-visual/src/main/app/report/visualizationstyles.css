@@ -58,7 +58,7 @@ line.implements {
     stroke-dasharray: 2, 2;
 }
 
-line.anonImpl {
+line.implementsAnonymous {
     stroke-dasharray: 1, 1;
     stroke: #00FFCC;
 }

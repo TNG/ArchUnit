@@ -16,13 +16,30 @@ public class JsonExporter {
      * export the given Java-classes to a JSON-file, ignoring all dependencies to classes not being in the basePath
      */
     public void export(JavaClasses classes, File file, VisualizationContext context) {
-        Set<String> pkgs = new HashSet<>();
-        for (JavaClass c : classes) {
-            if (context.isElementIncluded(c.getName())) {
-                pkgs.add(c.getPackage());
+        JsonJavaPackage root = createStructure(classes, context);
+        writeToFile(file, root);
+    }
+
+    private JsonJavaPackage createStructure(JavaClasses classes, VisualizationContext context) {
+        Set<String> pkgs = collectPackages(classes, context);
+        JsonJavaPackage root = JsonJavaPackage.createTreeStructure(pkgs);
+        List<JavaClass> innerClasses = collectInnerClasses(classes, context, root);
+        handleInnerClasses(context, root, innerClasses);
+        root.normalizeForExport();
+        return root;
+    }
+
+    private void handleInnerClasses(VisualizationContext context, JsonJavaPackage root, List<JavaClass> innerClasses) {
+        for (JavaClass c : innerClasses) {
+            if (c.getSimpleName().isEmpty()) {
+                addDependenciesOfAnonymousInnerClassToParent(context, root, c);
+            } else {
+                root.insertJavaElement(parseJavaElement(c, context));
             }
         }
-        JsonJavaPackage root = JsonJavaPackage.createTreeStructure(pkgs);
+    }
+
+    private List<JavaClass> collectInnerClasses(JavaClasses classes, VisualizationContext context, JsonJavaPackage root) {
         List<JavaClass> innerClasses = new LinkedList<>();
         for (JavaClass c : classes) {
             if (context.isElementIncluded(c.getName())) {
@@ -33,16 +50,20 @@ public class JsonExporter {
                 }
             }
         }
-        for (JavaClass c : innerClasses) {
-            if (c.getSimpleName().isEmpty()) {
-                System.out.println(c.getName());
-                addDependenciesOfAnonymousInnerClassToParent(context, root, c);
-            } else {
-                root.insertJavaElement(parseJavaElement(c, context));
+        return innerClasses;
+    }
+
+    private Set<String> collectPackages(JavaClasses classes, VisualizationContext context) {
+        Set<String> pkgs = new HashSet<>();
+        for (JavaClass c : classes) {
+            if (context.isElementIncluded(c.getName())) {
+                pkgs.add(c.getPackage());
             }
         }
-        root.normalizeForExport();
+        return pkgs;
+    }
 
+    private void writeToFile(File file, JsonJavaPackage root) {
         final GsonBuilder builder = new GsonBuilder();
         builder.excludeFieldsWithoutExposeAnnotation();
         Gson gson = builder.create();
@@ -60,10 +81,12 @@ public class JsonExporter {
         }
     }
 
+
     private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass c) {
         Optional<? extends JsonElement> parent = root.getChild(getFullnameOfParentClass(c.getName()));
         if (parent.isPresent() && parent.get() instanceof JsonJavaElement) {
             JsonJavaElement el = (JsonJavaElement) parent.get();
+            parseAnonymousImplemenationToJavaElement(c, context, el);
             parseAccessesToJavaElement(c, context, el);
         }
     }
@@ -119,11 +142,10 @@ public class JsonExporter {
         }
     }
 
-    ////////
     private void parseAnonymousImplemenationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass i : c.getAllInterfaces()) {
             if (context.isElementIncluded(i.getName())) {
-                res.addInterface(i.getName());
+                res.addAnonImpl(i.getName());
             }
         }
     }

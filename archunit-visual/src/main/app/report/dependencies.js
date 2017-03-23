@@ -321,6 +321,7 @@ let addSubTreeDeps = (arr, jsonEl) => {
     addDeps(arr, jsonEl, "methodCalls", "methodCall");
     addDeps(arr, jsonEl, "fieldAccesses", "fieldAccess");
     addDeps(arr, jsonEl, "constructorCalls", "constructorCall");
+    addDeps(arr, jsonEl, "anonImpl", "implementsAnonymous")
   }
 
   if (jsonEl.hasOwnProperty("children")) {

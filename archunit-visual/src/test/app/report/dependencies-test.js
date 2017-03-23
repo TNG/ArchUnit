@@ -68,6 +68,7 @@ let setupSimpleTestTree2 = () => {
               .callingMethod("com.tngtech.class2", "testclass1()", "targetMethod()")
               .accessingField("com.tngtech.main.class1", "startMethod1()", "field1")
               .accessingField("com.tngtech.main.class1", "startMethod2()", "field1")
+              .implementingAnonymous("com.tngtech.interface1")
               .build())
           .add(testJson.package("subtest")
               .add(testJson.clazz("subtestclass1", "class")
@@ -99,6 +100,7 @@ let allDeps2 = [
   "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
   "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
@@ -110,7 +112,7 @@ let testFoldedDeps = [
   "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
   "com.tngtech.test->com.tngtech.class2(several several several)",
   "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-  "com.tngtech.test->com.tngtech.interface1(subtest.subtestclass1 implements )",
+  "com.tngtech.test->com.tngtech.interface1(several several )", //subtest.subtestclass1
   "com.tngtech.class2->com.tngtech.main.class1( extends )",
   "com.tngtech.class2->com.tngtech.interface1( implements )"
 ];
@@ -119,6 +121,7 @@ let mainFoldedDeps = [
   "com.tngtech.main->com.tngtech.interface1(class1.several several several)",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
   "com.tngtech.test.testclass1->com.tngtech.main(several fieldAccess class1.field1)",
+  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
@@ -130,7 +133,7 @@ let testmainFoldedDeps = [
   "com.tngtech.main->com.tngtech.interface1(class1.several several several)",
   "com.tngtech.test->com.tngtech.class2(several several several)",
   "com.tngtech.test->com.tngtech.main(testclass1.several fieldAccess class1.field1)",
-  "com.tngtech.test->com.tngtech.interface1(subtest.subtestclass1 implements )",
+  "com.tngtech.test->com.tngtech.interface1(several several )", //subtest.subtestclass1
   "com.tngtech.class2->com.tngtech.main( extends class1)",
   "com.tngtech.class2->com.tngtech.interface1( implements )"
 ];
@@ -231,6 +234,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
       "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -303,6 +307,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
       "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -324,6 +329,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
       "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -334,6 +340,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
       "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -352,6 +359,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
       "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -362,6 +370,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
       "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];
@@ -380,6 +389,7 @@ describe("Dependencies", () => {
       "com.tngtech.main.class1->com.tngtech.interface1(several several several)",
       "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
       "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
+      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
       "com.tngtech.class2->com.tngtech.main.class1( extends )",
       "com.tngtech.class2->com.tngtech.interface1( implements )"
     ];

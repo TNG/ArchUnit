@@ -15,6 +15,8 @@ abstract class JsonJavaElement extends JsonElement {
     @Expose
     private Set<JsonConstructorCall> constructorCalls = new HashSet<>();
     @Expose
+    private Set<String> anonImpl = new HashSet<>();
+    @Expose
     protected Set<JsonJavaElement> children = new HashSet<>();
 
     JsonJavaElement(String name, String fullname, String type) {
@@ -49,6 +51,10 @@ abstract class JsonJavaElement extends JsonElement {
 
     void addConstructorCall(JsonConstructorCall c) {
         constructorCalls.add(c);
+    }
+
+    void addAnonImpl(String i) {
+        anonImpl.add(i);
     }
 
     @Override

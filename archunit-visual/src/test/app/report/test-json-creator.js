@@ -34,7 +34,8 @@ module.exports = {
       interfaces: [],
       fieldAccesses: [],
       methodCalls: [],
-      constructorCalls: []
+      constructorCalls: [],
+      anonImpl: []
     };
     let builder = {
       extending: function (superclassfullname) {
@@ -60,6 +61,10 @@ module.exports = {
       havingInnerClass: function (innerClass) {
         changeFullName(innerClass, res.fullname);
         res.children.push(innerClass);
+        return builder;
+      },
+      implementingAnonymous: function (interfacefullname) {
+        res.anonImpl.push(interfacefullname);
         return builder;
       },
       build: function () {

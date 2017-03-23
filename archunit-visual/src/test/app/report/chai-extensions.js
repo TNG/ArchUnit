@@ -98,9 +98,6 @@ Assertion.addMethod('containExactlyDependencies', function () {
     let incorrectDeps = [];
     let correct = true;
     deps.forEach(d => {
-      if (d.from === "com.tngtech.class2.InnerClass2" || d.to === "com.tngtech.class2.InnerClass2") {
-        console.log("reached");
-      }
       if (distanceIsNotCorrect(d) || endPositionsAreNotCorrect(d)) {
         correct = false;
         incorrectDeps.push(d);
