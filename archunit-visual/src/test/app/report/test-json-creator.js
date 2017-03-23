@@ -1,17 +1,15 @@
 'use strict';
 
-let simpleName = fullname => fullname.substring(fullname.lastIndexOf(".") + 1, fullname.length);
-
 let changeFullName = (node, path) => {
   node.fullname = path + "." + node.fullname;
   if (node.children) node.children.forEach(n => changeFullName(n, path));
 };
 
 module.exports = {
-  package: function (pgkname) {
+  package: function (pkgname) {
     let res = {
-      fullname: pgkname,
-      name: simpleName(pgkname),
+      fullname: pkgname,
+      name: pkgname,
       type: "package",
       children: []
     };
@@ -60,6 +58,7 @@ module.exports = {
         return builder;
       },
       havingInnerClass: function (innerClass) {
+        changeFullName(innerClass, res.fullname);
         res.children.push(innerClass);
         return builder;
       },

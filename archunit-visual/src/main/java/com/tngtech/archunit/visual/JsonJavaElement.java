@@ -26,6 +26,11 @@ abstract class JsonJavaElement extends JsonElement {
         insertInnerClass(el);
     }
 
+    @Override
+    Set<? extends JsonElement> getChildren() {
+        return children;
+    }
+
     void insertInnerClass(JsonJavaElement el) {
         this.children.add(el);
     }

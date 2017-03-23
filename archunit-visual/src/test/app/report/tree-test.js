@@ -213,7 +213,7 @@ describe("Tree", () => {
 
   it("can traverse", () => {
     let root = setupSimpleTestTree1();
-    expect(root.traverseTree()).to.equal("tngtech(main(class1, ), class2, class3, )");
+    expect(root.traverseTree()).to.equal("com.tngtech(main(class1, ), class2, class3, )");
   });
 
   it("can inclusively filter classes by name", function () {

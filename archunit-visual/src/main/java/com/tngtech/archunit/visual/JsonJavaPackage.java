@@ -21,6 +21,11 @@ class JsonJavaPackage extends JsonElement {
         this.isDefault = isDefault;
     }
 
+    @Override
+    Set<? extends JsonElement> getChildren() {
+        return children;
+    }
+
     private void addPackage(JsonJavaPackage pkg) {
         subPackages.add(pkg);
         children.add(pkg);
@@ -32,7 +37,6 @@ class JsonJavaPackage extends JsonElement {
     }
 
     private static JsonJavaPackage createPackage(String pathParent, String newPath) {
-        System.out.println(pathParent + "----" + newPath);
         int end = newPath.indexOf(".", pathParent.length() + 1);
         end = end == -1 ? newPath.length() : end;
         String fullName = newPath.substring(0, end);

@@ -18,21 +18,26 @@ public class JsonExporter {
     public void export(JavaClasses classes, File file, VisualizationContext context) {
         Set<String> pkgs = new HashSet<>();
         for (JavaClass c : classes) {
-            if (context.isIncluded(c.getName())) {
+            if (context.isElementIncluded(c.getName())) {
                 pkgs.add(c.getPackage());
             }
         }
         JsonJavaPackage root = JsonJavaPackage.createTreeStructure(pkgs);
         List<JavaClass> innerClasses = new LinkedList<>();
         for (JavaClass c : classes) {
-            if (c.getName().contains("$")) {
-                innerClasses.add(c);
-            } else if (!c.getSimpleName().isEmpty() && context.isIncluded(c.getName())) {
-                root.insertJavaElement(parseJavaElement(c, context));
+            if (context.isElementIncluded(c.getName())) {
+                if (c.getName().contains("$")) {
+                    innerClasses.add(c);
+                } else if (!c.getSimpleName().isEmpty()) {
+                    root.insertJavaElement(parseJavaElement(c, context));
+                }
             }
         }
         for (JavaClass c : innerClasses) {
-            if (!c.getSimpleName().isEmpty() && context.isIncluded(c.getName())) {
+            if (c.getSimpleName().isEmpty()) {
+                System.out.println(c.getName());
+                addDependenciesOfAnonymousInnerClassToParent(context, root, c);
+            } else {
                 root.insertJavaElement(parseJavaElement(c, context));
             }
         }
@@ -55,6 +60,18 @@ public class JsonExporter {
         }
     }
 
+    private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass c) {
+        Optional<? extends JsonElement> parent = root.getChild(getFullnameOfParentClass(c.getName()));
+        if (parent.isPresent() && parent.get() instanceof JsonJavaElement) {
+            JsonJavaElement el = (JsonJavaElement) parent.get();
+            parseAccessesToJavaElement(c, context, el);
+        }
+    }
+
+    private String getFullnameOfParentClass(String innerClass) {
+        return innerClass.substring(0, innerClass.indexOf("$"));
+    }
+
     private JsonJavaElement parseJavaElement(JavaClass c, VisualizationContext context) {
         if (c.isInterface()) {
             return parseJavaInterface(c, context);
@@ -64,7 +81,7 @@ public class JsonExporter {
     }
 
     private String getSuperClass(JavaClass c, VisualizationContext context) {
-        return c.getSuperClass().isPresent() && context.isIncluded(c.getSuperClass().get().getName()) ?
+        return c.getSuperClass().isPresent() && context.isElementIncluded(c.getSuperClass().get().getName()) ?
                 c.getSuperClass().get().getName() : "";
     }
 
@@ -89,35 +106,43 @@ public class JsonExporter {
         return origin.isConstructor() ? c.getSimpleName() : origin.getName();
     }
 
-    private boolean isRelevantDep(String targetOwner, String targetOwnerSimpleName, String origOwner,
-                                  VisualizationContext context) {
-        return !targetOwnerSimpleName.isEmpty() && context.isIncluded(targetOwner) &&
-                !targetOwner.equals(origOwner);
+    private void parseToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
+        parseImplementationToJavaElement(c, context, res);
+        parseAccessesToJavaElement(c, context, res);
     }
 
-    private void parseToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
-        /**if (c.getEnclosingClass().isPresent()) {
-         res.addChild(parseJavaClass(c.getEnclosingClass().get(), basePath));
-         }*/
+    private void parseImplementationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass i : c.getAllInterfaces()) {
-            if (context.isIncluded(i.getName())) {
+            if (context.isElementIncluded(i.getName())) {
                 res.addInterface(i.getName());
             }
         }
+    }
+
+    ////////
+    private void parseAnonymousImplemenationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
+        for (JavaClass i : c.getAllInterfaces()) {
+            if (context.isElementIncluded(i.getName())) {
+                res.addInterface(i.getName());
+            }
+        }
+    }
+
+    private void parseAccessesToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaFieldAccess fa : c.getFieldAccessesFromSelf()) {
-            if (isRelevantDep(fa.getTargetOwner().getName(), fa.getTargetOwner().getSimpleName(), c.getName(), context)) {
+            if (!fa.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, fa.getTargetOwner().getName(), false)) {
                 res.addFieldAccess(new JsonFieldAccess(fa.getTargetOwner().getName(), getStartCodeUnit(fa.getOrigin(), c),
                         fa.getTarget().getName()));
             }
         }
         for (JavaMethodCall mc : c.getMethodCallsFromSelf()) {
-            if (isRelevantDep(mc.getTargetOwner().getName(), mc.getTargetOwner().getSimpleName(), c.getName(), context)) {
+            if (!mc.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, mc.getTargetOwner().getName(), false)) {
                 res.addMethodCall(new JsonMethodCall(mc.getTargetOwner().getName(), getStartCodeUnit(mc.getOrigin(), c),
                         mc.getTarget().getName()));
             }
         }
         for (JavaConstructorCall cc : c.getConstructorCallsFromSelf()) {
-            if (isRelevantDep(cc.getTargetOwner().getName(), cc.getTargetOwner().getSimpleName(), c.getName(), context)) {
+            if (!cc.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, cc.getTargetOwner().getName(), true)) {
                 res.addConstructorCall(new JsonConstructorCall(cc.getTargetOwner().getName(),
                         getStartCodeUnit(cc.getOrigin(), c), cc.getTargetOwner().getSimpleName()));
             }

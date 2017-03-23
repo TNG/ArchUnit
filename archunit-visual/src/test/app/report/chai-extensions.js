@@ -2,6 +2,45 @@
 
 const Assertion = require("chai").Assertion;
 
+const MAXPOSITIONDIFF = 0.005;
+const MAXLENGTHDIFF = 0.05;
+
+let endPositionsAreNotCorrect = d => {
+  let start = d.getStartNode(), end = d.getEndNode();
+  let startDiff = Math.sqrt(Math.pow(d.startPoint[1] - start.visualData.y, 2)
+          + Math.pow(d.startPoint[0] - start.visualData.x, 2)),
+      endDiff = Math.sqrt(Math.pow(d.endPoint[1] - end.visualData.y, 2)
+          + Math.pow(d.endPoint[0] - end.visualData.x, 2));
+  return Math.abs(startDiff - start.visualData.r) > MAXPOSITIONDIFF ||
+      Math.abs(endDiff - end.visualData.r) > MAXPOSITIONDIFF;
+};
+
+let distanceIsNotCorrect = d => {
+  let start = d.getStartNode(), end = d.getEndNode();
+  let expDistance = Math.sqrt(Math.pow(end.visualData.x - start.visualData.x, 2)
+      + Math.pow(end.visualData.y - start.visualData.y, 2));
+  let actDistance;
+  let edgeLength = Math.sqrt(Math.pow(d.endPoint[0] - d.startPoint[0], 2)
+      + Math.pow(d.endPoint[1] - d.startPoint[1], 2));
+  if (d.endNodesAreOverlapping()) {
+    let biggerRadius, smallerRadius;
+    if (end.visualData.r >= start.visualData.r) {
+      biggerRadius = end.visualData.r,
+          smallerRadius = start.visualData.r;
+    }
+    else {
+      biggerRadius = start.visualData.r,
+          smallerRadius = end.visualData.r;
+    }
+    actDistance = edgeLength - biggerRadius + smallerRadius;
+  }
+  else {
+    actDistance = start.visualData.r + end.visualData.r + edgeLength;
+  }
+  return (d.mustShareNodes && Math.abs(actDistance - expDistance) > 2 * d.lineDiff)
+      || (!d.mustShareNodes && Math.abs(actDistance - expDistance) > MAXLENGTHDIFF);
+};
+
 Assertion.addMethod('containExactlyNodes', function () {
   let actual = Array.from(this._obj);
   let expectedNodeFullNames = arguments[0]; //Array.from(arguments);
@@ -58,15 +97,11 @@ Assertion.addMethod('containExactlyDependencies', function () {
     let deps = Array.from(this._obj);
     let incorrectDeps = [];
     let correct = true;
-    //check if the length of the dependency-line is equal to the distance between the two nodes of the dependency
     deps.forEach(d => {
-      let start = d.getStartNode();
-      let end = d.getEndNode();
-      let expDistance = Math.sqrt(Math.pow(end.visualData.x - start.visualData.x, 2)
-          + Math.pow(end.visualData.y - start.visualData.y, 2));
-      let actDistance = start.visualData.r + end.visualData.r + Math.sqrt(Math.pow(d.endPoint[0] - d.startPoint[0], 2)
-              + Math.pow(d.endPoint[1] - d.startPoint[1], 2));
-      if (Math.abs(actDistance - expDistance) > 0.05) {
+      if (d.from === "com.tngtech.class2.InnerClass2" || d.to === "com.tngtech.class2.InnerClass2") {
+        console.log("reached");
+      }
+      if (distanceIsNotCorrect(d) || endPositionsAreNotCorrect(d)) {
         correct = false;
         incorrectDeps.push(d);
       }

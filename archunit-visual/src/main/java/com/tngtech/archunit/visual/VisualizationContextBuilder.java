@@ -26,6 +26,11 @@ public class VisualizationContextBuilder {
         return this;
     }
 
+    public VisualizationContextBuilder ignoreAccessToSuperConstructor() {
+        context.setIgnoreAccessToSuperConstructor(true);
+        return this;
+    }
+
     public VisualizationContext build() {
         return context;
     }

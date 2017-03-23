@@ -11,6 +11,10 @@ class JsonJavaClazz extends JsonJavaElement {
         this.superclass = superclass;
     }
 
+    boolean hasAsSuperClass(String fullname) {
+        return superclass.equals(fullname);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

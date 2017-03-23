@@ -135,6 +135,48 @@ let testmainFoldedDeps = [
   "com.tngtech.class2->com.tngtech.interface1( implements )"
 ];
 
+let setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps = () => {
+  let simpleJsonTree = testJson.package("com.tngtech")
+      .add(testJson.package("main")
+          .add(testJson.clazz("class1", "abstractclass")
+              .callingMethod("com.tngtech.interface1", "startMethod(arg1, arg2)", "targetMethod()")
+              .build())
+          .build())
+      .add(testJson.package("test")
+          .add(testJson.clazz("testclass1", "class")
+              .havingInnerClass(testJson.clazz("InnerTestClass1", "class").build())
+              .accessingField("com.tngtech.class2", "testclass1()", "field1")
+              .build())
+          .add(testJson.package("subtest")
+              .add(testJson.clazz("subtestclass1", "class")
+                  .implementing("com.tngtech.interface1")
+                  .callingConstructor("com.tngtech.test.testclass1", "startMethod(arg)", "testclass1()")
+                  .build())
+              .build())
+          .build())
+      .add(testJson.clazz("class2", "class")
+          .extending("com.tngtech.main.class1")
+          .implementing("com.tngtech.interface1")
+          .havingInnerClass(testJson.clazz("InnerClass2", "class")
+              .accessingField("com.tngtech.class2", "startCodeUnit()", "targetField")
+              .build())
+          .accessingField("com.tngtech.class2.InnerClass2", "startCodeUnit()", "innerTargetField")
+          .build())
+      .add(testJson.clazz("interface1", "interface")
+          .callingMethod("com.tngtech.test.subtest.subtestclass1", "startMethod()", "targetMethod()")
+          .build())
+      .build();
+  let root = jsonToRoot(simpleJsonTree);
+  let d3root = hierarchy(root, d => d.currentChildren)
+      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
+      .sort((a, b) => b.value - a.value);
+  d3root = pack(d3root);
+  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
+  root.setDepsForAll(deps);
+  return root;
+};
+
 describe("Dependencies", () => {
   it("are created correctly", () => {
     let root = setupSimpleTestTree1();
@@ -148,6 +190,11 @@ describe("Dependencies", () => {
 
   it("calc their end positions correctly", () => {
     let root = setupSimpleTestTree2();
+    expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
+  });
+
+  it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
+    let root = setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps();
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 

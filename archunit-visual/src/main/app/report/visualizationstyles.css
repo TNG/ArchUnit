@@ -51,11 +51,16 @@ line.constructorCall {
 }
 
 line.extends {
-    stroke-dasharray: 10, 10;
+    stroke-dasharray: 5, 5;
 }
 
 line.implements {
     stroke-dasharray: 2, 2;
+}
+
+line.anonImpl {
+    stroke-dasharray: 1, 1;
+    stroke: #00FFCC;
 }
 
 text.access {

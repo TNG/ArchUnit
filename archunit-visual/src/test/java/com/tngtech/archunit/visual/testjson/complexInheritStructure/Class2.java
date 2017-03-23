@@ -12,5 +12,12 @@ public class Class2 {
         c.sayHello();
         c.sayHi();
         System.out.println("Bye" + " " + name);
+        Interface1 i = new Interface1() {
+            @Override
+            public void sayHello() {
+
+            }
+        };
+        //i.sayHello();
     }
 }
