@@ -42,14 +42,57 @@ let Dependency = class {
   calcEndCoordinates() {
     let startNode = this.getStartNode();
     let endNode = this.getEndNode();
-    //let targetIsWithinStart = Math.sqrt(Math.pow(endNode.visualData.y - startNode.visualData.y))
-    this.angleRad = Math.atan((endNode.visualData.y - startNode.visualData.y) / ((endNode.visualData.x - startNode.visualData.x) || 0.01));
+
+    let middleDiff = Math.sqrt(Math.pow(endNode.visualData.y - startNode.visualData.y, 2) +
+            Math.pow(endNode.visualData.x - startNode.visualData.x, 2)),
+        areOverlapping = middleDiff < startNode.visualData.r + endNode.visualData.r;
+
+    if (endNode.visualData.x === startNode.visualData.x) {
+      this.angleRad = Math.PI / 2;
+    }
+    else {
+      this.angleRad = Math.atan((endNode.visualData.y - startNode.visualData.y)
+          / (endNode.visualData.x - startNode.visualData.x));
+    }
+
     this.angleDeg = Math.round(this.angleRad * (180 / Math.PI));
+
+    if (areOverlapping) {
+      //console.log("1." + this.getDescriptionString() + ":::" + this.angleDeg);
+    }
+
     let startAngle, endAngle;
     let angleDiff = Math.asin(this.lineDiff / startNode.visualData.r);
     if (this.mustShareNodes) {
-      startAngle = this.angleRad - angleDiff;
-      endAngle = this.angleRad + angleDiff;
+      /*startAngle = this.angleRad - angleDiff;
+       endAngle = this.angleRad + angleDiff;*/
+
+      ////
+      if (areOverlapping) {
+        if (endNode.visualData.r >= startNode.visualData.r) {
+          //let x = this.angleRad - endAngle;
+          //endAngle = - (Math.PI - this.angleRad) + x;
+          endAngle = -(Math.PI - this.angleRad) - angleDiff;
+
+          startAngle = this.angleRad - angleDiff;
+        }
+        else {
+          // let x = this.angleRad - startAngle;
+          //startAngle = - (Math.PI - this.angleRad) + x;
+          startAngle = -(Math.PI - this.angleRad) + angleDiff;
+
+          endAngle = this.angleRad + angleDiff;
+        }
+      }
+      else {
+        startAngle = this.angleRad - angleDiff;
+        endAngle = this.angleRad + angleDiff;
+      }
+      ////
+
+      if (areOverlapping) {
+        //console.log("2." + this.getDescriptionString() + ":::" + Math.round(startAngle * (180 / Math.PI)) + "-" + Math.round(endAngle * (180 / Math.PI)));
+      }
     }
     else {
       startAngle = this.angleRad;
@@ -63,17 +106,48 @@ let Dependency = class {
     let startdirX, startdirY, enddirX, enddirY;
     if (this.mustShareNodes) {
       let s = Math.sign(endNode.visualData.x - startNode.visualData.x);
+
       startdirX = (startAngle >= -Math.PI / 2 && startAngle <= Math.PI / 2 ? 1 : -1) * s;
       startdirY = (startAngle >= -Math.PI && startAngle <= 0 ? -1 : 1) * s;
-      enddirX = (endAngle >= -Math.PI / 2 && endAngle <= Math.PI / 2 ? -1 : 1) * s;
+      enddirX = ((endAngle >= -Math.PI / 2 && endAngle <= Math.PI / 2) ||
+          (endAngle <= -3 * Math.PI / 2 && endAngle >= -5 * Math.PI / 2) ? -1 : 1) * s;
       enddirY = (endAngle >= -Math.PI && endAngle <= 0 ? 1 : -1) * s;
+
+      if (areOverlapping) {
+        //console.log("3." + this.getDescriptionString() + ":::" + enddirX + "-" + enddirY);
+      }
+
+      if (areOverlapping) {
+
+      }
     }
     else {
       startdirX = Math.sign(endNode.visualData.x - startNode.visualData.x);
       startdirY = Math.sign(endNode.visualData.y - startNode.visualData.y);
       enddirY = -Math.sign(endNode.visualData.y - startNode.visualData.y);
       enddirX = -Math.sign(endNode.visualData.x - startNode.visualData.x);
+
+      ////
+      if (areOverlapping) {
+        if (endNode.visualData.r >= startNode.visualData.r) {
+          enddirX = -enddirX;
+          enddirY = -enddirY;
+        }
+        else {
+          startdirX = -startdirX;
+          startdirY = -startdirY;
+        }
+      }
+      ////
     }
+
+    if (startdirX === 0 && startdirY === 0) {
+      startdirX = 1;
+      startdirY = 1;
+      enddirX = 1;
+      enddirY = 1;
+    }
+
     this.startPoint = [startNode.visualData.x + startdirX * startDX, startNode.visualData.y + startdirY * startDY];
     this.endPoint = [endNode.visualData.x + enddirX * endDX, endNode.visualData.y + enddirY * endDY];
     this.middlePoint = [(this.endPoint[0] + this.startPoint[0]) / 2, (this.endPoint[1] + this.startPoint[1]) / 2];

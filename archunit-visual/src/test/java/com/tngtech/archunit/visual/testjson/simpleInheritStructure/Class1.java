@@ -10,8 +10,8 @@ public class Class1 implements Interface1 {
     @Override
     public void sayHello() {
         System.out.println(this.s);
-        //InnerClass1 c = new InnerClass1();
-        //c.sayHello();
+        InnerClass1 c = new InnerClass1();
+        c.sayHello();
     }
 
     public void sayHi() {
