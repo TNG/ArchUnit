@@ -333,7 +333,8 @@ public class RandomSyntaxTest {
 
         private final List<SpecificParametersProvider> parametersProvider = ImmutableList.of(
                 new FieldMethodParametersProvider(),
-                new CallMethodParametersProvider(),
+                new CallMethodClassParametersProvider(),
+                new CallMethodStringParametersProvider(),
                 new SingleParametersProvider()
         );
 
@@ -422,70 +423,51 @@ public class RandomSyntaxTest {
                     ensureSimpleName((String) classOrString);
         }
 
-        private class CallMethodParametersProvider extends SpecificParametersProvider {
+        private abstract class CallMethodParametersProvider extends SpecificParametersProvider {
             @Override
             boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
-                return methodName.toLowerCase().contains("method");
+                boolean dealsWithMethods = methodName.toLowerCase().contains("method");
+                boolean threeParameters = parameterTypes.size() == 3;
+                return dealsWithMethods && threeParameters && canHandleParameterTypes(parameterTypes);
+            }
+
+            abstract boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes);
+
+            Parameters getParameters(String methodName, Parameters parameters, List<String> simpleParamTypeNames) {
+                String first = simpleNameFrom(parameters.parameters.get(0).value);
+                String params = String.format("%s.%s(%s)", first, parameters.parameters.get(1).value, Joiner.on(", ").join(simpleParamTypeNames));
+                return parameters.withDescription(verbalize(methodName) + " " + params);
+            }
+        }
+
+        private class CallMethodClassParametersProvider extends CallMethodParametersProvider {
+            @Override
+            boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes) {
+                return Class.class.isAssignableFrom(parameterTypes.get(0).getRawType());
             }
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
-                if (parameterTypes.size() == 3) {
-                    return specificHandlingOfThreeParameterMethods(methodName, parameterTypes, parameters);
-                }
-                return parameters;
-            }
-
-            private Parameters specificHandlingOfThreeParameterMethods(String methodName, List<TypeToken<?>> parameterTypes, Parameters parameters) {
-                if (Class.class.isAssignableFrom(parameterTypes.get(0).getRawType())) {
-                    return handleClassParameters(methodName, parameterTypes, parameters);
-                } else {
-                    return handleStringParameters(methodName, parameterTypes, parameters);
-                }
-            }
-
-            private Parameters handleClassParameters(String methodName, List<TypeToken<?>> parameterTypes, Parameters parameters) {
-                checkKnownClassCase(parameterTypes);
                 List<String> simpleParamTypeNames = new ArrayList<>();
                 for (Class param : (Class[]) parameters.parameters.get(2).value) {
                     simpleParamTypeNames.add(param.getSimpleName());
                 }
                 return getParameters(methodName, parameters, simpleParamTypeNames);
             }
+        }
 
-            private Parameters handleStringParameters(String methodName, List<TypeToken<?>> parameterTypes, Parameters parameters) {
-                checkKnownStringCase(parameterTypes);
-                List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(2).value); // NOTE: For now strings are always simple word-like values, adjust this when/if necessary
+        private class CallMethodStringParametersProvider extends CallMethodParametersProvider {
+            @Override
+            boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes) {
+                return String.class.isAssignableFrom(parameterTypes.get(0).getRawType());
+            }
+
+            @Override
+            Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
+                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(2).value); // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
                 return getParameters(methodName, parameters, simpleParamTypeNames);
-            }
-
-            private Parameters getParameters(String methodName, Parameters parameters, List<String> simpleParamTypeNames) {
-                String first = simpleNameFrom(parameters.parameters.get(0).value);
-                String params = String.format("%s.%s(%s)", first, parameters.parameters.get(1).value, Joiner.on(", ").join(simpleParamTypeNames));
-                return parameters.withDescription(verbalize(methodName) + " " + params);
-            }
-
-            private void checkKnownClassCase(List<TypeToken<?>> parameterTypes) {
-                validateParameters(parameterTypes, Class.class, Class[].class);
-            }
-
-            private void checkKnownStringCase(List<TypeToken<?>> parameterTypes) {
-                validateParameters(parameterTypes, String.class, String[].class);
-            }
-
-            private void validateParameters(List<TypeToken<?>> parameterTypes, Class<?> firstParamType, Class<?> thirdParamType) {
-                boolean firstParameterInvalid = !firstParamType.isAssignableFrom(parameterTypes.get(0).getRawType());
-                boolean secondParameterInvalid = !String.class.isAssignableFrom(parameterTypes.get(1).getRawType());
-                boolean thirdParameterInvalid = !thirdParamType.isAssignableFrom(parameterTypes.get(2).getRawType());
-
-                if (firstParameterInvalid || secondParameterInvalid || thirdParameterInvalid) {
-                    throw new UnsupportedOperationException(String.format("Up to now all methods with three parameters " +
-                                    "dealing with methods have either %s or %s as their first parameter type, " +
-                                    "%s as their second parameter type and either %s or %s as their third parameter type. " +
-                                    "If this doesn't hold anymore, please replace this with something more sophisticated",
-                            Class.class.getName(), String.class.getName(), String.class.getName(), Class[].class.getName(), String[].class.getName()));
-                }
             }
         }
 
