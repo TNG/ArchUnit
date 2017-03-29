@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 class JsonJavaPackage extends JsonElement {
+    private static final String TYPE = "package";
+
     private boolean isDefault;
 
     @Expose
@@ -15,7 +17,7 @@ class JsonJavaPackage extends JsonElement {
     private Set<JsonJavaElement> classes = new HashSet<>();
 
     JsonJavaPackage(String name, String fullname, boolean isDefault) {
-        super(name, fullname, "package");
+        super(name, fullname, TYPE);
         this.isDefault = isDefault;
     }
 

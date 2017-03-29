@@ -32,9 +32,12 @@ public class PackageStructureCreatorTest {
 
     @Test
     public void testCreatePackageStructure() throws Exception {
+        Method createPackageStructure = PackageStructureCreator.class.getDeclaredMethod("createPackageStructure", Set.class);
+        createPackageStructure.setAccessible(true);
+
         Set<String> pkgs = new HashSet<>(Arrays.asList("com.tngtech.pkg1", "com.tngtech.pkg1.subpkg1",
                 "com.tngtech.pkg2", "java.lang"));
-        JsonJavaPackage act = PackageStructureCreator.createPackageStructure(pkgs);
+        JsonJavaPackage act = (JsonJavaPackage) createPackageStructure.invoke(null, pkgs);
         File expectedJson = JsonConverter.getJsonFile("/testcreatepackagestructure.json");
         assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(act)))
                 .as("created package structure")

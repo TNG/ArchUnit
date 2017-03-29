@@ -5,26 +5,20 @@ import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.*;
 
 import java.io.*;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-public class JsonExporter {
+class JsonExporter {
+    private static final String INNERCLASSSEP = "$";
 
-    /**
-     * export the given Java-classes to a JSON-file, ignoring all dependencies to classes not being in the basePath
-     */
-    public void export(JavaClasses classes, File file, VisualizationContext context) {
+    void export(JavaClasses classes, File file, VisualizationContext context) {
         JsonJavaPackage root = createStructure(classes, context);
         writeToFile(file, root);
     }
 
     private JsonJavaPackage createStructure(JavaClasses classes, VisualizationContext context) {
-        Set<String> pkgs = collectPackages(classes, context);
-        JsonJavaPackage root = PackageStructureCreator.createPackageStructure(pkgs);
-        List<JavaClass> innerClasses = insertClassesAndCollectInnerClasses(classes, context, root);
-        handleInnerClasses(context, root, innerClasses);
+        JsonJavaPackage root = PackageStructureCreator.createPackageStructure(classes, context);
+        insertClassesToRoot(classes, context, root);
         root.normalize();
         return root;
     }
@@ -39,28 +33,18 @@ public class JsonExporter {
         }
     }
 
-    private List<JavaClass> insertClassesAndCollectInnerClasses(JavaClasses classes, VisualizationContext context, JsonJavaPackage root) {
+    private void insertClassesToRoot(JavaClasses classes, VisualizationContext context, JsonJavaPackage root) {
         List<JavaClass> innerClasses = new LinkedList<>();
         for (JavaClass c : classes) {
             if (context.isElementIncluded(c.getName())) {
-                if (c.getName().contains("$")) {
+                if (c.getName().contains(INNERCLASSSEP)) {
                     innerClasses.add(c);
                 } else if (!c.getSimpleName().isEmpty()) {
                     root.insertJavaElement(parseJavaElement(c, context));
                 }
             }
         }
-        return innerClasses;
-    }
-
-    private Set<String> collectPackages(JavaClasses classes, VisualizationContext context) {
-        Set<String> pkgs = new HashSet<>();
-        for (JavaClass c : classes) {
-            if (context.isElementIncluded(c.getName())) {
-                pkgs.add(c.getPackage());
-            }
-        }
-        return pkgs;
+        handleInnerClasses(context, root, innerClasses);
     }
 
     private void writeToFile(File file, JsonJavaPackage root) {
@@ -86,13 +70,13 @@ public class JsonExporter {
         Optional<? extends JsonElement> parent = root.getChild(getFullnameOfParentClass(c.getName()));
         if (parent.isPresent() && parent.get() instanceof JsonJavaElement) {
             JsonJavaElement el = (JsonJavaElement) parent.get();
-            parseAnonymousImplemenationToJavaElement(c, context, el);
+            parseAnonymousImplementationToJavaElement(c, context, el);
             parseAccessesToJavaElement(c, context, el);
         }
     }
 
     private String getFullnameOfParentClass(String innerClass) {
-        return innerClass.substring(0, innerClass.indexOf("$"));
+        return innerClass.substring(0, innerClass.indexOf(INNERCLASSSEP));
     }
 
     private JsonJavaElement parseJavaElement(JavaClass c, VisualizationContext context) {
@@ -109,7 +93,7 @@ public class JsonExporter {
     }
 
     private String getCleanedFullname(String fullname) {
-        return fullname.replace('$', '.');
+        return fullname.replace(INNERCLASSSEP, PackageStructureCreator.PACKAGESEP);
     }
 
     private JsonJavaElement parseJavaClass(final JavaClass c, VisualizationContext context) {
@@ -142,7 +126,7 @@ public class JsonExporter {
         }
     }
 
-    private void parseAnonymousImplemenationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
+    private void parseAnonymousImplementationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass i : c.getAllInterfaces()) {
             if (context.isElementIncluded(i.getName())) {
                 res.addAnonImpl(getCleanedFullname(i.getName()));
