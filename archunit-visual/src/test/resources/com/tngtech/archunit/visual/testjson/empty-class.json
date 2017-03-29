@@ -12,7 +12,8 @@
       "interfaces": [],
       "fieldAccesses": [],
       "methodCalls": [],
-      "constructorCalls": []
+      "constructorCalls": [],
+      "anonImpl": []
     }
   ]
 }

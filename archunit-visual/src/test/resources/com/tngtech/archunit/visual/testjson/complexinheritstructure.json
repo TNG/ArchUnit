@@ -12,7 +12,8 @@
       "interfaces": [],
       "fieldAccesses": [],
       "methodCalls": [],
-      "constructorCalls": []
+      "constructorCalls": [],
+      "anonImpl": []
     },
     {
       "name": "simpleInheritStructure",
@@ -30,10 +31,19 @@
               "type": "class",
               "children": [],
               "superclass": "",
-              "interfaces": [],
+              "interfaces": [
+                "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1"
+              ],
               "fieldAccesses": [],
-              "methodCalls": [],
-              "constructorCalls": []
+              "methodCalls": [
+                {
+                  "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+                  "startCodeUnit": "sayHello",
+                  "targetElement": "sayHello"
+                }
+              ],
+              "constructorCalls": [],
+              "anonImpl": []
             }
           ],
           "superclass": "",
@@ -41,8 +51,21 @@
             "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1"
           ],
           "fieldAccesses": [],
-          "methodCalls": [],
-          "constructorCalls": []
+          "methodCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "startCodeUnit": "sayHello",
+              "targetElement": "sayHello"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "startCodeUnit": "sayHello",
+              "targetElement": "InnerClass1"
+            }
+          ],
+          "anonImpl": []
         },
         {
           "name": "Class2",
@@ -70,7 +93,8 @@
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "Class1"
             }
-          ]
+          ],
+          "anonImpl": []
         },
         {
           "name": "Class3",
@@ -80,20 +104,9 @@
           "superclass": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
           "interfaces": [],
           "fieldAccesses": [],
-          "methodCalls": [
-            {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
-              "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHelloAndBye"
-            }
-          ],
-          "constructorCalls": [
-            {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
-              "startCodeUnit": "Class3",
-              "targetElement": "Class2"
-            }
-          ]
+          "methodCalls": [],
+          "constructorCalls": [],
+          "anonImpl": []
         },
         {
           "name": "Interface1",
@@ -103,7 +116,8 @@
           "interfaces": [],
           "fieldAccesses": [],
           "methodCalls": [],
-          "constructorCalls": []
+          "constructorCalls": [],
+          "anonImpl": []
         }
       ]
     },
@@ -146,7 +160,8 @@
               "startCodeUnit": "sayHi",
               "targetElement": "Class1"
             }
-          ]
+          ],
+          "anonImpl": []
         },
         {
           "name": "Class2",
@@ -174,6 +189,9 @@
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "Class1"
             }
+          ],
+          "anonImpl": [
+            "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1"
           ]
         },
         {
@@ -191,13 +209,8 @@
               "targetElement": "sayHelloAndBye"
             }
           ],
-          "constructorCalls": [
-            {
-              "to": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class2",
-              "startCodeUnit": "Class3",
-              "targetElement": "Class2"
-            }
-          ]
+          "constructorCalls": [],
+          "anonImpl": []
         },
         {
           "name": "Interface1",
@@ -207,7 +220,8 @@
           "interfaces": [],
           "fieldAccesses": [],
           "methodCalls": [],
-          "constructorCalls": []
+          "constructorCalls": [],
+          "anonImpl": []
         },
         {
           "name": "Interface2",
@@ -217,7 +231,8 @@
           "interfaces": [],
           "fieldAccesses": [],
           "methodCalls": [],
-          "constructorCalls": []
+          "constructorCalls": [],
+          "anonImpl": []
         }
       ]
     }

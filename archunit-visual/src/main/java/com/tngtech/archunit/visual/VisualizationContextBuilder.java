@@ -9,7 +9,6 @@ public class VisualizationContextBuilder {
     private VisualizationContext context = new VisualizationContext();
 
     public VisualizationContextBuilder() {
-
     }
 
     public VisualizationContextBuilder includeOnly(String... basePkgs) {
@@ -23,11 +22,12 @@ public class VisualizationContextBuilder {
 
     public VisualizationContextBuilder includeEverything() {
         context.setBasePkgs(new HashSet<String>());
+        context.setIncludeEverything();
         return this;
     }
 
     public VisualizationContextBuilder ignoreAccessToSuperConstructor() {
-        context.setIgnoreAccessToSuperConstructor(true);
+        context.setIgnoreAccessToSuperConstructorFromConstructor(true);
         return this;
     }
 

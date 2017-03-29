@@ -19,9 +19,9 @@ public class Class1 implements Interface1 {
     }
 
     class InnerClass1 implements com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1 {
-
         @Override
         public void sayHello() {
+            //sayHi();
             Class1.this.sayHello();
         }
     }

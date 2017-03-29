@@ -14,22 +14,4 @@ class JsonJavaClazz extends JsonJavaElement {
     boolean hasAsSuperClass(String fullname) {
         return superclass.equals(fullname);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        JsonJavaClazz that = (JsonJavaClazz) o;
-
-        return superclass != null ? superclass.equals(that.superclass) : that.superclass == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (superclass != null ? superclass.hashCode() : 0);
-        return result;
-    }
 }

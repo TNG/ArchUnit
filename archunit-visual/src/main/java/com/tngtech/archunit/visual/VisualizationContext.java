@@ -4,20 +4,28 @@ import java.util.Set;
 
 class VisualizationContext {
     private Set<String> basePkgs;
-    private boolean ignoreAccessToSuperConstructor = false;
+    private boolean includeEverything = false;
+    private boolean ignoreAccessToSuperConstructorFromConstructor = false;
 
     void setBasePkgs(Set<String> basePkgs) {
         this.basePkgs = basePkgs;
     }
 
-    public void setIgnoreAccessToSuperConstructor(boolean ignoreAccessToSuperConstructor) {
-        this.ignoreAccessToSuperConstructor = ignoreAccessToSuperConstructor;
+    void setIgnoreAccessToSuperConstructorFromConstructor(boolean ignoreAccessToSuperConstructorFromConstructor) {
+        this.ignoreAccessToSuperConstructorFromConstructor = ignoreAccessToSuperConstructorFromConstructor;
+    }
+
+    void setIncludeEverything() {
+        this.includeEverything = true;
     }
 
     VisualizationContext() {
     }
 
     boolean isElementIncluded(String fullname) {
+        if (includeEverything) {
+            return true;
+        }
         for (String s : basePkgs) {
             if (fullname.startsWith(s)) {
                 return true;
@@ -33,7 +41,7 @@ class VisualizationContext {
     }
 
     private boolean isIncludedConstructorCall(JsonJavaElement origin, String targetOwner) {
-        return !ignoreAccessToSuperConstructor || !(origin instanceof JsonJavaClazz)
+        return !ignoreAccessToSuperConstructorFromConstructor || !(origin instanceof JsonJavaClazz)
                 || !((JsonJavaClazz) origin).hasAsSuperClass(targetOwner);
     }
 }

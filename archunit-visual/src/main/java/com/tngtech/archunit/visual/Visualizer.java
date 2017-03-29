@@ -13,14 +13,9 @@ public class Visualizer {
 
     }
 
-    public void visualize(JavaClasses classes, final File targetDir) {
+    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
-        new JsonExporter().export(classes,
-                new File(targetDir, "classes.json"),
-                new VisualizationContextBuilder()
-                        .ignoreAccessToSuperConstructor()
-                        .includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io")
-                        .build());
+        new JsonExporter().export(classes, new File(targetDir, "classes.json"), context);
 
         try {
             Files.walkFileTree(Paths.get(getClass().getResource("./report").toURI()), new SimpleFileVisitor<Path>() {

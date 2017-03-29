@@ -1,0 +1,53 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "subpkg1",
+                  "fullname": "com.tngtech.pkg1.subpkg1",
+                  "type": "package"
+                }
+              ],
+              "name": "pkg1",
+              "fullname": "com.tngtech.pkg1",
+              "type": "package"
+            },
+            {
+              "children": [],
+              "name": "pkg2",
+              "fullname": "com.tngtech.pkg2",
+              "type": "package"
+            }
+          ],
+          "name": "tngtech",
+          "fullname": "com.tngtech",
+          "type": "package"
+        }
+      ],
+      "name": "com",
+      "fullname": "com",
+      "type": "package"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "name": "lang",
+          "fullname": "java.lang",
+          "type": "package"
+        }
+      ],
+      "name": "java",
+      "fullname": "java",
+      "type": "package"
+    }
+  ],
+  "name": "default",
+  "fullname": "default",
+  "type": "package"
+}

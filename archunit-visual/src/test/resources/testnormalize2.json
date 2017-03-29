@@ -1,0 +1,38 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "name": "subpkg",
+          "fullname": "com.tngtech.pkg1.subpkg",
+          "type": "package"
+        },
+        {
+          "superclass": "",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": [],
+          "anonImpl": [],
+          "children": [],
+          "name": "class1",
+          "fullname": "com.tngtech.pkg1.class1",
+          "type": "class"
+        }
+      ],
+      "name": "pkg1",
+      "fullname": "com.tngtech.pkg1",
+      "type": "package"
+    },
+    {
+      "children": [],
+      "name": "pkg2.subpkg2",
+      "fullname": "com.tngtech.pkg2.subpkg2",
+      "type": "package"
+    }
+  ],
+  "name": "com.tngtech",
+  "fullname": "com.tngtech",
+  "type": "package"
+}
