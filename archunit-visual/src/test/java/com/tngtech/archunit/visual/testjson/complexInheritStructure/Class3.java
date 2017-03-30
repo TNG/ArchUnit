@@ -8,6 +8,5 @@ public class Class3 extends Class2 {
     @Override
     public void sayHelloAndBye() {
         super.sayHelloAndBye();
-        System.out.println(name);
     }
 }

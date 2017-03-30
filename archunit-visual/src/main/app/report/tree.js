@@ -25,7 +25,7 @@ let VisualData = class {
   move(dx, dy, parent, callback, addToProtocol) {
     let newX = this.x + dx;
     let newY = this.y + dy;
-    if ((parent.isRoot() && true) || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
+    if (parent.isRoot() || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -104,11 +104,8 @@ let setIsFolded = (d, isFolded) => {
     d.currentChildren = [];
   }
   else {
-    d.visualData.r = d.visualData.origR;
     d.currentChildren = d.filteredChildren;
-    if (!d.isRoot()) {
-      checkAndCorrectPosition(d);
-    }
+    d.changeRadius(d.visualData.origR);
   }
 };
 
@@ -121,22 +118,12 @@ let fold = (d, folded) => {
   return false;
 };
 
-let filterAll = (n, filterFun) => {
-  if (!isLeaf(n)) {
-    n.filteredChildren = n.origChildren.filter(filterFun);
-    n.filteredChildren.forEach(c => filterAll(c, filterFun));
+let reapplyFilters = (n, filters) => {
+  n.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), n.origChildren);
+  n.filteredChildren.forEach(c => reapplyFilters(c, filters));
     if (!n.isFolded) {
       n.currentChildren = n.filteredChildren;
     }
-  }
-};
-
-let resetFilter = n => {
-  n.filteredChildren = n.origChildren;
-  n.filteredChildren.forEach(c => resetFilter(c));
-  if (!n.isFolded) {
-    n.currentChildren = n.filteredChildren;
-  }
 };
 
 let Node = class {
@@ -148,6 +135,7 @@ let Node = class {
     this.filteredChildren = this.origChildren;
     this.currentChildren = this.filteredChildren;
     this.isFolded = false;
+    this.filters = new Map();
   }
 
   initVisual(x, y, r) {
@@ -158,7 +146,6 @@ let Node = class {
    * moves this node by the given values
    * @param dx
    * @param dy
-   * @param force defines whether the node should be moved even if the new position is invalid
    */
   drag(dx, dy) {
     this.visualData.move(dx, dy, this.parent, () => this.origChildren.forEach(d => d.drag(dx, dy)), true);
@@ -167,7 +154,7 @@ let Node = class {
 
   changeRadius(newR) {
     this.visualData.r = newR;
-    if (!this.isRoot()) {
+    if (!this.isRoot() && !this.parent.isRoot()) {
       checkAndCorrectPosition(this);
     }
     this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
@@ -219,7 +206,7 @@ let Node = class {
   }
 
   setDepsForAll(deps) {
-    descendants(this, true).forEach(d => d.deps = deps);
+    descendants(this, false).forEach(d => d.deps = deps);
   }
 
   getVisibleEdges() {
@@ -238,16 +225,37 @@ let Node = class {
    * @param filterClasses true, if classes should be filtered
    * @param inclusive true, if packages resp. classes not matching the filter should be eliminated, otherwise true
    */
-  filterAll(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase) {
-    let filterFun = filterFunction(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
+  filterByName(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase) {
+    let filter = filterFunction(str, filterByFullname, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
         inclusive, matchCase);
-    filterAll(this, filterFun);
-    this.deps.filter(filterFun);
+    this.filters.set("namefilter", filter);
+    reapplyFilters(this, this.filters);
+    this.deps.setNodeFilters(this.filters);
   }
 
-  resetFilter() {
-    resetFilter(this);
-    this.deps.resetFilter();
+  resetFilterByName() {
+    this.filters.delete("namefilter");
+    reapplyFilters(this, this.filters);
+    this.deps.setNodeFilters(this.filters);
+  }
+
+  filterByType(interfaces, classes, eliminatePkgs) {
+    let classfilter =
+        c => (c.projectData.type !== "package")
+        && (c.projectData.type !== "interface" || interfaces)
+        && (!c.projectData.type.endsWith("class") || classes);
+    let pkgfilter =
+        c => (c.projectData.type === "package")
+        && (!eliminatePkgs || descendants(c, false).reduce((acc, n) => acc || classfilter(n), false));
+    this.filters.set("typefilter", c => classfilter(c) || pkgfilter(c));
+    reapplyFilters(this, this.filters);
+    this.deps.setNodeFilters(this.filters);
+  }
+
+  resetFilterByType() {
+    this.filters.delete("typefilter");
+    reapplyFilters(this, this.filters);
+    this.deps.setNodeFilters(this.filters);
   }
 };
 

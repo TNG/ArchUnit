@@ -17,10 +17,12 @@ let normalizeAngle = angleRad => {
 };
 
 let Dependency = class {
-  constructor(from, to, kind, startCodeUnit, targetElement) {
+  constructor(from, to, kind, inheritanceKind, accessKind, startCodeUnit, targetElement) {
     this.from = from;
     this.to = to;
     this.kind = kind;
+    this.inheritanceKind = inheritanceKind;
+    this.accessKind = accessKind;
     this.startCodeUnit = startCodeUnit;
     this.targetElement = targetElement;
     this.startPoint = [];
@@ -142,6 +144,9 @@ let Dependency = class {
   }
 
   hasDescription() {
+    if (this.from.endsWith("JsonJavaPackage") && this.to.endsWith("JsonElement")) {
+      console.log(this.startCodeUnit || this.targetElement);
+    }
     return this.startCodeUnit || this.targetElement; //TODO: besser && statt || ????
   }
 
@@ -167,24 +172,64 @@ let filter = dependencies => ({
   })
 });
 
+let containsPackage = dep => {
+  return nodes.get(dep.from).projectData.type === "package" || nodes.get(dep.to).projectData.type === "package";
+};
+
+let groupAccessKindOfDifferentDepsBetweenSameClasses = (accessKind1, accessKind2) => {
+  if (!accessKind1) {
+    return accessKind2;
+  }
+  else if (!accessKind2) {
+    return accessKind1;
+  }
+  else {
+    return accessKind1 === accessKind2 ? accessKind1 : "several";
+  }
+};
+
+let groupKindOfDepsBetweenSameElements = (dep1, dep2) => {
+  let res = {};
+  if (dep1.kind === dep2.kind) {
+    res.kind = dep1.kind;
+    res.inheritanceKind = dep1.inheritanceKind;
+    res.accessKind = dep1.accessKind;
+  }
+  else if (containsPackage(dep1)) {
+    res.kind = "several";
+    res.accessKind = "";
+    res.inheritanceKind = "";
+  }
+  else {
+    res.inheritanceKind = dep1.inheritanceKind;
+    res.accessKind = groupAccessKindOfDifferentDepsBetweenSameClasses(dep1.accessKind, dep2.accessKind);
+    res.kind = res.inheritanceKind + (res.inheritanceKind ? " " : "") + res.accessKind;
+  }
+  return res;
+};
+
+let groupEndElements = (element1, element2) => {
+  if (!element1) {
+    return element2;
+  }
+  if (!element2) {
+    return element1;
+  }
+  return element1 === element2 ? element1 : "several";
+};
+
 let unique = dependencies => {
   let tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
   let m = new Map();
   tmp.forEach(e => {
     if (m.has(e[0])) {
-      /**TODO: evtl. diese Bedingung hinzufuegen -> bewirkt, dass nur Duplikate entfernt werden,
-       * die Packages betreffen; möchte man zwischen zwei Klassen evtl. zwei Pfeile haben, so muss man
-       * neben Map extra Array verwalten, da bei der else-Zuweisung sonst das Duplikat überschrieben wird
-       **/
-          //(nodes.get(e[0].substring(0, i)).data.type === "package"
-          //|| nodes.get(e[0].substring(i + 2)).data.type === "package")
-
       let i = e[0].indexOf("->");
       let old = m.get(e[0]);
-      //TODO: evtl. several durch alle Elemente ersetzen
-      let newDep = new Dependency(e[1].from, e[1].to, old.kind === e[1].kind ? e[1].kind : "several",
-          old.startCodeUnit === e[1].startCodeUnit ? e[1].startCodeUnit : "several",
-          old.targetElement === e[1].targetElement ? e[1].targetElement : "several");
+      let newKinds = groupKindOfDepsBetweenSameElements(old, e[1]);
+      let newstartCodeUnit = groupEndElements(old.startCodeUnit, e[1].startCodeUnit);
+      let newtargetElement = groupEndElements(old.targetElement, e[1].targetElement);
+      let newDep = new Dependency(e[1].from, e[1].to, newKinds.kind, newKinds.inheritanceKind, newKinds.accessKind,
+          newstartCodeUnit, newtargetElement);
       m.set(e[0], newDep);
     }
     else m.set(e[0], e[1]);
@@ -223,10 +268,10 @@ let getExtendedStartTargetName = (element, base, foldedPkg) => {
 let foldTransformer = pkg => {
   return dependencies => {
     let targetFolded = transform(dependencies).where(r => r.to).startsWith(pkg).eliminateSelfDeps(false)
-        .to(r => (new Dependency(r.from, pkg, r.kind, r.startCodeUnit,
+        .to(r => (new Dependency(r.from, pkg, r.kind, r.inheritanceKind, r.accessKind, r.startCodeUnit,
             getExtendedStartTargetName(r.targetElement, r.to, pkg))));
     return transform(targetFolded).where(r => r.from).startsWith(pkg).eliminateSelfDeps(true)
-        .to(r => (new Dependency(pkg, r.to, r.kind,
+        .to(r => (new Dependency(pkg, r.to, r.kind, r.inheritanceKind, r.accessKind,
             getExtendedStartTargetName(r.startCodeUnit, r.from, pkg), r.targetElement)));
   }
 };
@@ -235,15 +280,13 @@ let recalculateVisible = (transformers, dependencies) => Array.from(transformers
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
 let recreateVisible = dependencies => {
-  let after = recalculateVisible(dependencies._transformers.values(), dependencies._filtered); //_all
+  let after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
   dependencies.setVisibleDependencies(after);
 };
 
 let changeFold = (dependencies, type, callback) => {
-  //let before = dependencies._visibleDependencies;
   callback(dependencies);
   recreateVisible(dependencies);
-  //dependencies.getVisible().forEach(e => e.calcEndCoordinates());
 };
 
 let setForAllMustShareNodes = visDeps => {
@@ -251,20 +294,38 @@ let setForAllMustShareNodes = visDeps => {
       visDeps.filter(e => e.from === d.to && e.to === d.from).length > 0);
 };
 
+let reapplyFilters = (dependencies, filters) => {
+  dependencies._filtered = Array.from(filters.values()).reduce((filtered_deps, filter) => filter(filtered_deps),
+      dependencies._all);
+  dependencies._uniqued = unique(Array.from(dependencies._filtered));
+  recreateVisible(dependencies);
+};
+
+let getKindFilter = (implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed) => d => {
+  return (d.kind !== "implements" || implementing)
+      && (d.kind !== "extends" || extending)
+      && (d.kind !== "constructorCall" || constructorCall)
+      && (d.kind !== "methodCall" || methodCall)
+      && (d.kind !== "fieldAccess" || fieldAccess)
+      && (d.kind !== "implementsAnonymous" || anonImpl)
+      && (d.kind !== "several" || mixed);
+};
+
 let Dependencies = class {
   constructor(all, nodeMap) {
+    this._filters = new Map();
     this._transformers = new Map();
     nodes = nodeMap;
-    this._all = unique(Array.from(all));
+    this._all = all;
     this._filtered = this._all;
-    this.setVisibleDependencies(this._filtered); //this._all
-    //this._all.forEach(e => e.calcEndCoordinates());
+    this._uniqued = unique(Array.from(this._filtered));
+    this.setVisibleDependencies(this._uniqued);
   }
 
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
     setForAllMustShareNodes(this._visibleDependencies);
-    this._visibleDependencies.forEach(e => e.calcEndCoordinates()); //new
+    this._visibleDependencies.forEach(e => e.calcEndCoordinates());
   }
 
   /**
@@ -280,18 +341,21 @@ let Dependencies = class {
     else changeFold(this, 'unfold', dependencies => dependencies._transformers.delete(pkg));
   }
 
-  /**
-   * filters the dependencies: only dependencies, whose start and target pass the filterFunction, are taken over
-   * @param filterFunction
-   */
-  filter(filterFunction) {
-    this._filtered = this._all.filter(d => filterFunction(nodes.get(d.from)) && filterFunction(nodes.get(d.to)));
-    recreateVisible(this);
+  setNodeFilters(filters) {
+    this._filters.set("nodefilter", filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
+        deps.filter(d => filter(nodes.get(d.from)) && filter(nodes.get(d.to))), filtered_deps));
+    reapplyFilters(this, this._filters);
   }
 
-  resetFilter() {
-    this._filtered = this._all;
-    recreateVisible(this);
+  filterByKind(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed) {
+    let kindFilter = getKindFilter(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed);
+    this._filters.set("kindfilter", filtered_deps => filtered_deps.filter(kindFilter));
+    reapplyFilters(this, this._filters);
+  }
+
+  resetFilterByKind() {
+    this._filters.delete("kindfilter");
+    reapplyFilters(this, this._filters);
   }
 
   recalcEndCoordinatesOf(node) {
@@ -303,10 +367,10 @@ let Dependencies = class {
   }
 };
 
-let addDeps = (arr, jsonEl, dep, kind) => {
+let addDeps = (arr, jsonEl, dep, kind, inheritanceKind, accessKind) => {
   if (jsonEl.hasOwnProperty(dep) && jsonEl[dep].length !== 0) {
     jsonEl[dep].forEach(i => arr.push(
-        new Dependency(jsonEl.fullname, i.to || i, kind, i.startCodeUnit, i.targetElement)))
+        new Dependency(jsonEl.fullname, i.to || i, kind, inheritanceKind, accessKind, i.startCodeUnit, i.targetElement)));
   }
 };
 
@@ -315,13 +379,13 @@ let addSubTreeDeps = (arr, jsonEl) => {
     let from = jsonEl.fullname;
     //add super class, if there is one
     if (jsonEl.hasOwnProperty("superclass") && jsonEl.superclass !== "") {
-      arr.push(new Dependency(from, jsonEl.superclass, "extends"));
+      arr.push(new Dependency(from, jsonEl.superclass, "extends", "extends", ""));
     }
-    addDeps(arr, jsonEl, "interfaces", "implements");
-    addDeps(arr, jsonEl, "methodCalls", "methodCall");
-    addDeps(arr, jsonEl, "fieldAccesses", "fieldAccess");
-    addDeps(arr, jsonEl, "constructorCalls", "constructorCall");
-    addDeps(arr, jsonEl, "anonImpl", "implementsAnonymous")
+    addDeps(arr, jsonEl, "interfaces", "implements", "implements", "");
+    addDeps(arr, jsonEl, "methodCalls", "methodCall", "", "methodCall");
+    addDeps(arr, jsonEl, "fieldAccesses", "fieldAccess", "", "fieldAccess");
+    addDeps(arr, jsonEl, "constructorCalls", "constructorCall", "", "constructorCall");
+    addDeps(arr, jsonEl, "anonImpl", "implementsAnonymous", "", "implementsAnonymous");
   }
 
   if (jsonEl.hasOwnProperty("children")) {

@@ -18,6 +18,5 @@ public class Class2 {
 
             }
         };
-        //i.sayHello();
     }
 }
