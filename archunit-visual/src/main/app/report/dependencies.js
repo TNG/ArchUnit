@@ -301,14 +301,13 @@ let reapplyFilters = (dependencies, filters) => {
   recreateVisible(dependencies);
 };
 
-let getKindFilter = (implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed) => d => {
+let getKindFilter = (implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl) => d => {
   return (d.kind !== "implements" || implementing)
       && (d.kind !== "extends" || extending)
       && (d.kind !== "constructorCall" || constructorCall)
       && (d.kind !== "methodCall" || methodCall)
       && (d.kind !== "fieldAccess" || fieldAccess)
-      && (d.kind !== "implementsAnonymous" || anonImpl)
-      && (d.kind !== "several" || mixed);
+      && (d.kind !== "implementsAnonymous" || anonImpl);
 };
 
 let Dependencies = class {
@@ -348,7 +347,7 @@ let Dependencies = class {
   }
 
   filterByKind(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed) {
-    let kindFilter = getKindFilter(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed);
+    let kindFilter = getKindFilter(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl);
     this._filters.set("kindfilter", filtered_deps => filtered_deps.filter(kindFilter));
     reapplyFilters(this, this._filters);
   }

@@ -539,10 +539,9 @@ describe("Dependencies", () => {
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
-  /**
-   it("does the filtering by kind correctly", () => {
+  it("does the filtering by kind correctly", () => {
     let root = setupSimpleTestTree2();
-    root.deps.filterByKind(true, true, false, false, false, false, false);
+    root.deps.filterByKind(true, true, false, false, false, false);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1( implements )",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
@@ -552,19 +551,16 @@ describe("Dependencies", () => {
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
 
     root = setupSimpleTestTree3();
-    root.deps.filterByKind(false, false, true, true, true, true, true);
+    root.deps.filterByKind(false, false, true, true, true, true);
     exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
       "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several several)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
       "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
       "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
-  });*/
+  });
 });

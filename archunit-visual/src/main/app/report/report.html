@@ -74,8 +74,6 @@
                 field access<br>
                 <input type="checkbox" name="showAnonImpl" value="anonImpl" checked>
                 anonymous implementation<br>
-                <input type="checkbox" name="showGrouped" value="grouped" checked>
-                grouped dependencies<br>
             </fieldset>
             <br>
             <input type="submit" value="Submit">
@@ -227,20 +225,10 @@
         .attr("y1", e => e.startPoint[1])
         .attr("x2", e => e.endPoint[0])
         .attr("y2", e => e.endPoint[1]);
-      /*.on("click", function (e) {
-       let t = d3.select(this); //.select("text");
-       t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
-       });*/
 
-      /* TODO:
-       * am besten auch entfernen, nachdem Menueleiste mit der Auswahloption der automatischen Einblendung
-       * der Beschriftung existiert
-       * */
-    ///
     newEdges
         .append("title")
         .text(e => e.getDescriptionString());
-    ///
 
     newEdges
         .filter(e => e.hasDescription())
@@ -369,17 +357,14 @@
     edges.select("#area").style("pointer-events", "all");
     edges.select("line").attr("class", e => e.getClass());
 
-    edges.style("pointer-events", e => e.hasDescription() ? "all" : "none"); //select("#area")
+    edges.style("pointer-events", e => e.hasDescription() ? "all" : "none");
     edges.select("#area").style("pointer-events", e => e.hasDescription() ? "all" : "none");
-    let t = edges.selectAll("g").select("text");
-    //iwie so: edges.select("g").each(g => g.select("text").style("visibility", ))
-    t.style("visibility", e => {
+    let t = edges.select("text");
+    t.style("visibility", function (e) {
       if (e.hasDescription()) {
-        console.log(t.style("visibility"));
-        return (t.style("visibility") === "hidden") ? "hidden" : "inherit";
+        return (d3.select(this).style("visibility") === "hidden") ? "hidden" : "inherit";
       }
       else {
-        console.log("else...hidden");
         return "hidden";
       }
     });
@@ -436,7 +421,7 @@
 
   function filterDepsByKind(form) {
     root.deps.filterByKind(form.showImplementing.checked, form.showExtending.checked, form.showConstructorCall.checked,
-        form.showMethodCall.checked, form.showFieldAccess.checked, form.showAnonImpl.checked, form.showGrouped.checked);
+        form.showMethodCall.checked, form.showFieldAccess.checked, form.showAnonImpl.checked);
     updateEdges();
     return false;
   }
