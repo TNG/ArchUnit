@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <title>Visualization</title>
 </head>
-<link rel="stylesheet" href="visualizationstyles.css">
+<link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
 <link rel="stylesheet" href="styles.css">
+<script src="jscolor.js"></script>
 <body>
-<div id="form">
-    <div>
+<svg id="tester"> <!-- style="display: none">-->
+    <text></text>
+</svg>
+<div>
+    <button id="showHideFilter" onclick="changeFilterVisibility()">Show filter</button>
+    <button id="showHideMenu" onclick="changeMenuVisibility()">Show menu</button>
+</div>
+<div id="filters">
+    <div class="show">
         <form action="#" onsubmit="return filterByName(this);" onreset="return resetFilterByName();" class="inputarea">
             <fieldset class="inputs">
                 <legend>Filter-String:</legend>
@@ -43,8 +51,9 @@
             <input type="reset" value="Reset">
         </form>
     </div>
-    <div>
-        <form action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();" class="inputarea">
+    <div class="show">
+        <form action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();"
+              class="inputarea">
             <fieldset class="inputs">
                 <legend>Show classes:</legend>
                 <input type="checkbox" name="showInterfaces" value="interfaces" checked>
@@ -57,7 +66,7 @@
             <input type="reset" value="Reset">
         </form>
     </div>
-    <div>
+    <div class="show">
         <form action="#" onsubmit="return filterDepsByKind(this);" onreset="return resetFilterDepsByKind();"
               class="inputarea">
             <fieldset class="inputs">
@@ -78,53 +87,145 @@
             <br>
             <input type="submit" value="Submit">
             <input type="reset" value="Reset">
+            <button type="button" onclick="hideAllDeps()">Hide all</button>
         </form>
     </div>
 </div>
-<svg width="960" height="960"></svg>
+<div id="menu">
+    <div class="menu">
+        <form action="#" onsubmit="return applyColorMenu(this);" class="inputarea">
+            <fieldset class="inputs">
+                <legend>Colors and styles:</legend>
+                package color:
+                <input class="jscolor" name="pkgColor" value="FF0000"><br>
+                package opacity:
+                <input type="number" name="pkgOpacity" value="0.25" min="0" max="1" step="0.01"><br>
+                class color:
+                <input class="jscolor" name="classColor" value="98AFC7"><br>
+                class opacity:
+                <input type="number" name="classOpacity" value="1" min="0" max="1" step="0.01"><br>
+                method call:
+                <input class="jscolor" name="methodcallColor" value="0000FF"><br>
+                field access:
+                <input class="jscolor" name="fieldaccessColor" value="FFFF00"><br>
+                constructor call:
+                <input class="jscolor" name="constructorcallColor" value="FF0000"><br>
+                anonymous implementation:
+                <input class="jscolor" name="anonimplColor" value="00FFCC">
+                dashed line:
+                <input class="number" name="anonimplDashed" value="1" min="1" max="10" step="1"><br>
+                grouped accesses:
+                <input class="jscolor" name="severalColor" value="808080"><br>
+            </fieldset>
+            <br>
+            <input type="submit" value="submit">
+            <input type="reset" value="reset">
+        </form>
+    </div>
+    <div class="menu">
+        <form action="#" onsubmit="return applyOtherMenu(this);" class="inputarea">
+            <fieldset class="inputs">
+                <legend>Other settings:</legend>
+                Click-area width for edges:
+                <input class="number" name="clickareaWidth" value="20" min="0" max="50" step="1"><br>
+                Font-size for circle text:
+                <input class="number" name="fontsize" value="12" min="0" max="50" step="1"><br>
+            </fieldset>
+            <br>
+            <input type="submit" value="submit">
+            <input type="reset" value="reset">
+        </form>
+    </div>
+</div>
+<svg width="960" height="960" id="visualization"></svg>
 <script src="d3.js"></script>
 <script src="tree-bundle.js"></script>
 <script src="dependencies-bundle.js"></script>
 <script>
-  const PADDING = 100;
+  const PADDING = 10;
   //must match the fontsize in the CSS-declaration
-  const FONTSIZE = 12;
+  let FONTSIZE = 12;
+  let MINFONTSIZE = 10;
   //defines how exact the font-size of the circle-text is adapted to the radius of the circle
   const FONTSIZEUNIT = 2;
   const RADIUSUNIT = 2;
-  const ALLOWLINEBREAK = false;
-  const MINFONTSIZE = 10;
+  //padding between the text in a circle and the rim of the circle
+  const CIRCLETEXTPADDING = 5;
+
+  let reduceCircRadiusToText = true;
+  let increaseCircRadiusToText = true;
+
   //defines after which proportion of the circle the text is positioned; only affects nodes
   const TEXTPOSITION = 0.8;
   //padding between a line and its title
   const TEXTPADDING = 5;
   //the width of the click area of the lines
-  const CLICKAREAWIDTH = 20;
+  let CLICKAREAWIDTH = 20;
 
   const jsonToRoot = require('tree').jsonToRoot;
   const jsonToDependencies = require('dependencies').jsonToDependencies;
 
-  var root;
+  let root;
 
-  const svg = d3.select("svg"),
+  const svg = d3.select("#visualization"),
       diameter = +svg.attr("width"),
       gTree = svg.append("g").attr("transform", "translate(2,2)"),
       gEdges = svg.append("g").attr("transform", "translate(2,2)");
-  const pack = d3.pack().size([diameter - 4, diameter - 4]).padding(PADDING);
+  const pack = d3.pack()
+      .size([diameter - 4, diameter - 4])
+      .padding(PADDING)
+      .radius(n => {
+        let text = d3.select("#tester").select("text");
+        text.text(n.data.projectData.name);
+        text.style("font-size", FONTSIZE);
+        //console.log(n.data.projectData.fullname + "->" + text.node().getBBox().width);
+        return text.node().getBBox().width / 2 + CIRCLETEXTPADDING;
+      });
 
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
 
     root = jsonToRoot(jsonroot);
-    let d3root = d3.hierarchy(root, d => d.currentChildren)
+    let d3root = d3.hierarchy(root, d => d.currentChildren) //besser filteredChildren??
         .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
         .sort((a, b) => b.value - a.value);
     d3root = pack(d3root);
-    d3root.descendants().forEach(d => {
-      d.data.initVisual(d.x, d.y, d.r);
+
+    //Neuversuch:
+    root.setTextWidthFunction(text => {
+      d3.select("#tester").style("display", "inline");
+      let tester = d3.select("#tester").select("text");
+      tester.text(text);
+      tester.style("font-size", FONTSIZE);
+      let halfwidth = tester.node().getBBox().width / 2;
+      d3.select("#tester").style("display", "none");
+      return halfwidth + CIRCLETEXTPADDING;
     });
+    let radius = n => {
+      let text = d3.select("#tester").select("text");
+      text.text(n.projectData.name);
+      text.style("font-size", FONTSIZE);
+      let halfwidth = text.node().getBBox().width / 2;
+      if (n.isOrigLeaf()) {
+        return halfwidth + CIRCLETEXTPADDING;
+      }
+      else {
+        return halfwidth / Math.sqrt(1 - TEXTPOSITION * TEXTPOSITION);
+      }
+    };
+    root.layout(d3.packSiblings, d3.packEnclose, radius);
+    //Ende Neuversuch
+
+    d3.select("#tester").style("display", "none");
+      /*d3root.descendants().forEach(d => {
+      d.data.initVisual(d.x, d.y, d.r);
+       });*/
     let deps = jsonToDependencies(jsonroot, root.nodeMap);
     root.setDepsForAll(deps);
+
+    svg.attr("width", 2 * root.visualData.r + 4);
+    svg.attr("height", 2 * root.visualData.r + 4);
+
     initializeGraph();
     root.foldAllExceptRoot();
     updateAfterFold(root);
@@ -169,14 +270,7 @@
         .append("title")
         .text(d => d.projectData.name);
 
-    nodes.each(function (d) {
-      let group = d3.select(this);
-      let text = group.select("text");
-      if (d.isRoot()) {
-        text.attr("dy", -d.visualData.r + FONTSIZE);
-      }
-      else positionAndResizeTextAndRadius(text, group.select("circle"), d);
-    });
+    positionAndResizeTextAndRadiusOfAllNodes(nodes);
   }
 
   function initializeDeps() {
@@ -239,55 +333,78 @@
         .attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
   }
 
-  function positionAndResizeTextAndRadiusWithd3plus(text, circ, d) {
-    d3plus.textwrap()
-        .container(text)
-        .draw();
+  /*function positionAndResizeTextAndRadiusWithd3plus(text, circ, d) {
+   d3plus.textwrap()
+   .container(text)
+   .draw();
 
-    if (!d.isCurrentlyLeaf()) {
-      text.attr("dy", computeTextShift(d.projectData.r, textDom.getBBox().width, actFontSize));
-    }
-    else {
-      text.attr("dy", 0);
-    }
+   if (!d.isCurrentlyLeaf()) {
+   text.attr("dy", computeTextShift(d.projectData.r, textDom.getBBox().width, actFontSize));
+   }
+   else {
+   text.attr("dy", 0);
+   }
+   }*/
+
+  function positionAndResizeTextAndRadiusOfAllNodes(nodes) {
+    nodes.each(function (d) {
+      let group = d3.select(this);
+      let text = group.select("text");
+      if (d.isRoot()) {
+        text.style("font-size", FONTSIZE);
+        text.attr("dy", -d.visualData.r + FONTSIZE);
+      }
+      else {
+        positionAndResizeTextAndRadius(text, group.select("circle"), d);
+      }
+    });
   }
 
   function positionAndResizeTextAndRadius(text, circ, d) {
+    text.attr("dy", 0); //TODO: neu
     let textDom = text.node();
-    let radius = circ.attr("r");
     let r = d.visualData.r;
+    let rHasChanged = false;
+    let radiusToBig = true;
     let transform = circ.attr("transform");
     if (transform) {
-      let scale = transform.split("(")[1].split(")")[0];
-      //radius *= scale;
+      let scale = parseInt(transform.split("(")[1].split(")")[0]);
       r *= scale;
     }
     let actFontSize = FONTSIZE;
-    text.style("font-size", actFontSize);
-    while (textDom.getBBox().width >= 2 * r) { //ursprünglich radius
-      //ursprünglich hier: 1)
-      if (actFontSize < MINFONTSIZE) {
-        //TODO: in der Mitte des Textes Zeichen durch ... ersetzen
-        if (ALLOWLINEBREAK) {
-        }
-        else {
-          r += RADIUSUNIT;
-        }
-      }
-      else { //ursprünglich kein else
-        actFontSize -= FONTSIZEUNIT; //1)
-        text.style("font-size", actFontSize);
-      }
-    }
+    //text.style("font-size", actFontSize);
+      /*while (textDom.getBBox().width >= 2 * r - CIRCLETEXTPADDING) {
+       radiusToBig = false;
+       if (actFontSize < MINFONTSIZE) {
+       //TODO: in der Mitte des Textes Zeichen durch ... ersetzen
+       if (!increaseCircRadiusToText) {
+       }
+       else {
+       r += RADIUSUNIT;
+       rHasChanged = true;
+       }
+       }
+       else {
+       actFontSize -= FONTSIZEUNIT;
+       text.style("font-size", actFontSize);
+       }
+       }*/
 
-    d.changeRadius(r);
-    circ.attr("r", d.visualData.r);
-
-    if (!d.isCurrentlyLeaf()) {
-      text.attr("dy", computeTextShift(r, textDom.getBBox().width, actFontSize));
+      /*
+       if (rHasChanged) { //TODO: neu
+       d.changeRadius(r, false);
+       circ.attr("r", d.visualData.r);
+       }
+       */
+    if (d.isCurrentlyLeaf()) {
+      text.attr("dy", 0);
+        /*if (reduceCircRadiusToText && radiusToBig) {
+         d.changeRadius(textDom.getBBox().width / 2 + CIRCLETEXTPADDING, false); //TODO: neu
+         //circ.attr("r", d.visualData.r);
+         }*/
     }
     else {
-      text.attr("dy", 0);
+      text.attr("dy", computeTextShift(r, textDom.getBBox().width, actFontSize));
     }
   }
 
@@ -308,12 +425,12 @@
 
   function updateAfterDragging(node) {
     gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    let edges = gEdges.selectAll("g");
-    updateEdgePosition(edges);
+    updateEdgePosition(gEdges.selectAll("g"));
   }
 
   function updateAfterFold(node) {
     updateVisualization(d => d.isChildOf(node));
+    updateAfterDragging(node); //TODO: neu
   }
 
   function updateWholeVisualization() {
@@ -330,15 +447,19 @@
     nodes.exit().style("visibility", "hidden");
     nodes.style("visibility", "visible");
     nodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
+    //nodes.filter(filter).select("circle").attr("r", d => d.visualData.r); //TODO: alt
+    nodes.filter(n => true).select("circle").attr("r", d => d.visualData.r); //TODO: neu
     nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
       let group = d3.select(this);
       positionAndResizeTextAndRadius(group.select("text"), group.select("circle"), d);
+
+      //TODO:neu
+      //nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
+      nodes.filter(n => true).select("circle").attr("r", d => d.visualData.r);
     });
   }
 
   function updateEdges() {
-    console.log("update edges...");
     let visEdges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
     hideEdges(visEdges.exit());
     showEdges(visEdges);
@@ -399,24 +520,24 @@
     root.filterByName(form.filter.value, form.filterBy.value === "fullname",
         form.whatToFilter.value === "filterClassesAndEliminatePkgs", form.filterPackages.checked,
         form.filterClasses.checked, form.howToFilter.value === "inclusively", form.matchCase.checked);
-    updateVisualization(d => true);
+    updateWholeVisualization();
     return false;
   }
 
   function resetFilterByName() {
     root.resetFilterByName();
-    updateVisualization(d => true);
+    updateWholeVisualization();
   }
 
   function filterByType(form) {
     root.filterByType(form.showInterfaces.checked, form.showClasses.checked);
-    updateVisualization(d => true);
+    updateWholeVisualization();
     return false;
   }
 
   function resetFilterByType() {
     root.resetFilterByType();
-    updateVisualization(d => true);
+    updateWholeVisualization();
   }
 
   function filterDepsByKind(form) {
@@ -426,9 +547,71 @@
     return false;
   }
 
+  function hideAllDeps() {
+    root.deps.filterByKind(false, false, false, false, false, false);
+    updateEdges();
+    return false;
+  }
+
   function resetFilterDepsByKind() {
     root.deps.resetFilterByKind();
     updateEdges();
+  }
+
+  function changeFilterVisibility() {
+    let filters = d3.select("#filters");
+    filters.style("display", () => filters.style("display") === "none" ? "inline" : "none");
+    d3.select("#showHideFilter").text(() => filters.style("display") === "none" ? "Show filter" : "Hide filter");
+  }
+
+  function changeMenuVisibility() {
+    let menu = d3.select("#menu");
+    menu.style("display", () => menu.style("display") === "none" ? "inline" : "none");
+    d3.select("#showHideMenu").text(() => menu.style("display") === "none" ? "Show menu" : "Hide menu");
+  }
+
+  function getRule(sheet, selectorText) {
+    for (let i = 0; i < sheet.cssRules.length; i++) {
+      if (sheet.cssRules[i].selectorText === selectorText) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function setRule(sheet, selectorText, value) {
+    let res = selectorText + " " + value;
+    let index = getRule(sheet, selectorText);
+    sheet.deleteRule(index);
+    sheet.insertRule(selectorText + " " + value, index);
+  }
+
+  function applyColorMenu(form) {
+    let visstyles = document.getElementById("visstyles");
+    let sheet = visstyles.sheet || visstyles.stylesheet;
+    setRule(sheet, '.package circle', '{ fill: #' + form.pkgColor.value + '; fill-opacity: ' + form.pkgOpacity.value + ';}');
+    setRule(sheet, '.class circle, .abstractclass circle, .interface circle', '{ fill: #' + form.classColor.value
+        + '; fill-opacity: ' + form.classOpacity.value + ';}');
+    setRule(sheet, 'line.methodCall', '{ stroke: #' + form.methodcallColor.value + ';}');
+    setRule(sheet, 'line.fieldAccess', '{ stroke: #' + form.fieldaccessColor.value + ';}');
+    setRule(sheet, 'line.constructorCall', '{ stroke: #' + form.constructorcallColor.value + ';}');
+    setRule(sheet, 'line.implementsAnonymous', '{  stroke-dasharray: ' + form.anonimplDashed.value + ', '
+        + form.anonimplDashed.value + '; stroke: #' + form.anonimplColor.value + ';}');
+    setRule(sheet, 'line.several', '{ stroke: #' + form.severalColor.value + ';}');
+    return false;
+  }
+
+  function applyOtherMenu(form) {
+    CLICKAREAWIDTH = form.clickareaWidth.value;
+    gEdges.selectAll("g").select("#area").style("stroke-width", CLICKAREAWIDTH);
+
+    //MINFONTSIZE = parseInt(form.minFontsize.value);
+    FONTSIZE = parseInt(form.fontsize.value);
+    //FONTSIZE = FONTSIZE < MINFONTSIZE ? MINFONTSIZE : FONTSIZE;
+
+    positionAndResizeTextAndRadiusOfAllNodes(gTree.selectAll("g").filter(n => n.isChildOf(root)));
+    updateAfterFold(root);
+    return false;
   }
 </script>
 </body>

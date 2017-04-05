@@ -81,6 +81,7 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
 task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     from 'src/main/app/report/lib'
     include 'd3.js'
+    include 'jscolor.js'
     into "${reportOutputDir}/lib"
 }
 

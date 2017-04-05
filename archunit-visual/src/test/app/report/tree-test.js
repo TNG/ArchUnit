@@ -9,6 +9,8 @@ const testJson = require("./test-json-creator");
 
 let allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
 
+let textwidth = n => n.length * 6;
+
 let emptyDeps = {
   changeFold: () => {
   },
@@ -27,6 +29,7 @@ let setupSimpleTestTree1 = () => {
       .add(testJson.clazz("class3", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -47,6 +50,7 @@ let setupSimpleTestTree2 = () => {
       .add(testJson.clazz("class3", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -68,6 +72,7 @@ let setupSimpleTestTree3 = () => {
           .build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -136,6 +141,7 @@ describe("Node", () => {
     let expRadius = Math.min.apply(Math, [getNode(root, "com.tngtech.class2").visualData.r,
       getNode(root, "com.tngtech.class3").visualData.r, getNode(root, "com.tngtech.test").visualData.r]);
     toFold.changeFold();
+    expRadius = Math.max(textwidth(toFold.projectData.name), expRadius);
     expect(toFold.visualData.r).to.equal(expRadius);
   });
 

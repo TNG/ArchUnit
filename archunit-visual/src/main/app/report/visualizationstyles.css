@@ -1,11 +1,15 @@
 circle {
-    fill: rgb(152, 175, 199);
     stroke: black;
     stroke-width: 1px;
 }
 
+.class circle, .abstractclass circle, .interface circle {
+    fill: #98AFC7;
+    fill-opacity: 1;
+}
+
 .package circle {
-    fill: red;
+    fill: #FF0000;
     fill-opacity: 0.25;
 }
 
@@ -34,25 +38,29 @@ text {
 }
 
 line.access {
-    stroke: black;
     marker-end: url(#end_arrow);
+    stroke: black;
 }
 
 line.methodCall {
-    stroke: blue;
+    stroke: #0000FF;
 }
 
 line.fieldAccess {
-    stroke: yellow;
+    stroke: #FFFF00;
 }
 
 line.constructorCall {
-    stroke: red;
+    stroke: #FF0000;
 }
 
 line.implementsAnonymous {
     stroke-dasharray: 1, 1;
     stroke: #00FFCC;
+}
+
+line.several {
+    stroke: #808080;
 }
 
 line.extends {
@@ -61,10 +69,6 @@ line.extends {
 
 line.implements {
     stroke-dasharray: 2, 2;
-}
-
-line.several {
-    stroke: grey;
 }
 
 text.access {

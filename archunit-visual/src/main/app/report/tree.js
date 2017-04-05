@@ -1,5 +1,7 @@
 'use strict';
 
+let textwidth;
+
 let ProjectData = class {
   constructor(name, fullname, type) {
     this.name = name;
@@ -25,7 +27,8 @@ let VisualData = class {
   move(dx, dy, parent, callback, addToProtocol) {
     let newX = this.x + dx;
     let newY = this.y + dy;
-    if (parent.isRoot() || parent.isFolded || spaceFromPointToNodeBorder(newX, newY, parent.visualData) >= this.r) {
+    let space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
+    if (parent.isRoot() || parent.isFolded || space >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -63,7 +66,7 @@ let predecessors = node => {
   return res;
 };
 
-let isLeaf = d => d.filteredChildren.length === 0;
+let isLeaf = d => d.filteredChildren.length === 0; //!d.filteredChildren ||
 
 let isOnlyChild = d => d.parent && d.parent.origChildren.length === 1;
 
@@ -94,7 +97,9 @@ let getFoldedR = d => {
   if (!d.isRoot()) {
     d.parent.origChildren.forEach(e => foldedR = e.visualData.r < foldedR ? e.visualData.r : foldedR);
   }
-  return foldedR;
+  let w = textwidth(d.projectData.name);
+  console.log(d.projectData.fullname + ": " + foldedR + "/" + w);
+  return Math.max(foldedR, w);
 };
 
 let setIsFolded = (d, isFolded) => {
@@ -105,7 +110,7 @@ let setIsFolded = (d, isFolded) => {
   }
   else {
     d.currentChildren = d.filteredChildren;
-    d.changeRadius(d.visualData.origR);
+    d.changeRadius(d.visualData.origR, false);
   }
 };
 
@@ -131,15 +136,61 @@ let Node = class {
   constructor(projectData, parent) {
     this.projectData = projectData;
     this.parent = parent;
-    this.origChildren = [];
+    this.origChildren = []; //null
     this.filteredChildren = this.origChildren;
     this.currentChildren = this.filteredChildren;
     this.isFolded = false;
     this.filters = new Map();
   }
 
+  //Neuversuch:
+  layout(packSiblings, packEnclose, radius) {
+    this.reclayout(packSiblings, packEnclose, radius);
+    this.calcPos();
+  }
+
+  reclayout(packSiblings, packEnclose, radius) {
+    if (this.isOrigLeaf()) {
+      this.initVisual(0, 0, radius(this));
+    }
+    else {
+      this.origChildren.forEach(c => c.reclayout(packSiblings, packEnclose, radius));
+      let children = this.origChildren.map(c => c.visualData);
+      packSiblings(children);
+      let circ = packEnclose(children);
+      let childradius = children.length === 1 ? children[0].r : 0;
+      this.initVisual(circ.x, circ.y, Math.max(circ.r + 10, radius(this), childradius / 0.8));
+      children.forEach(n => {
+        n.dx = n.x - this.visualData.x;
+        n.dy = n.y - this.visualData.y;
+      });
+    }
+  }
+
+  calcPos() {
+    console.log(this.projectData.fullname + "->" + this.visualData.x + "/" + this.visualData.y);
+    if (this.isRoot()) {
+      this.visualData.x = this.visualData.r;
+      this.visualData.y = this.visualData.r;
+    }
+    if (!this.isOrigLeaf()) {
+      this.origChildren.forEach(n => {
+        n.visualData.x = this.visualData.x + n.visualData.dx;
+        n.visualData.y = this.visualData.y + n.visualData.dy;
+        n.calcPos();
+      });
+    }
+  }
+
+  setTextWidthFunction(textWidthFunction) {
+    textwidth = textWidthFunction;
+  }
+
+  ///Ende Neuversuch
+
+
   initVisual(x, y, r) {
-    this.visualData = new VisualData(x, y, isOnlyChild(this) ? r / 2 : r);
+    this.visualData = new VisualData(x, y, r); //TODO: statt r ursprünglich: isOnlyChild(this) ? r / 2 : r
   }
 
   /**
@@ -152,11 +203,22 @@ let Node = class {
     this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
   }
 
-  changeRadius(newR) {
+  changeRadius(newR, permamently) {
     this.visualData.r = newR;
+    if (permamently) {
+      this.visualData.origR = newR;
+    }
     if (!this.isRoot() && !this.parent.isRoot()) {
       checkAndCorrectPosition(this);
     }
+    /*
+     if (!this.isRoot() && !this.parent.isRoot()
+     && this.visualData.r >= MINPROPORTIONOFCHILDANDPARENTRADIUS * this.parent.visualData.r) {
+     this.parent.changeRadius(this.visualData.r / MINPROPORTIONOFCHILDANDPARENTRADIUS, true);
+
+     //console.log(new Error().stack);
+     }
+     */
     this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
   }
 
@@ -166,6 +228,12 @@ let Node = class {
 
   isCurrentlyLeaf() {
     return isLeaf(this) || this.isFolded;
+  }
+
+  isOrigLeaf() {
+    return this.origChildren.length === 0; //!this.origChildren ||
+    //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die
+    //wenigen übrigen Klassen größer werden
   }
 
   isChildOf(d) {

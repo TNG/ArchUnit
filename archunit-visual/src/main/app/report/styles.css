@@ -1,16 +1,22 @@
-#form {
+#filters {
     position: relative;
+    display: none;
+}
+
+#menu {
+    position: relative;
+    display: none;
+}
+
+div.show, div.menu {
+    display: inline-block;
+    vertical-align: top;
 }
 
 form.inputarea {
     border-color: black;
     border-width: 1px;
     border-style: solid;
-}
-
-div.try {
-    display: inline-block;
-    vertical-align: top;
 }
 
 fieldset.inputs {

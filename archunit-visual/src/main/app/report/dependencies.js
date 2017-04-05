@@ -144,9 +144,6 @@ let Dependency = class {
   }
 
   hasDescription() {
-    if (this.from.endsWith("JsonJavaPackage") && this.to.endsWith("JsonElement")) {
-      console.log(this.startCodeUnit || this.targetElement);
-    }
     return this.startCodeUnit || this.targetElement; //TODO: besser && statt || ????
   }
 
@@ -346,7 +343,7 @@ let Dependencies = class {
     reapplyFilters(this, this._filters);
   }
 
-  filterByKind(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl, mixed) {
+  filterByKind(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl) {
     let kindFilter = getKindFilter(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl);
     this._filters.set("kindfilter", filtered_deps => filtered_deps.filter(kindFilter));
     reapplyFilters(this, this._filters);

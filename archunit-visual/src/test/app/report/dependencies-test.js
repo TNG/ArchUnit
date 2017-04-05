@@ -10,6 +10,8 @@ const testJson = require("./test-json-creator");
 
 let getNode = (root, fullname) => root.nodeMap.get(fullname);
 
+let textwidth = n => n.length * 6;
+
 let setupSimpleTestTree1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
@@ -35,6 +37,7 @@ let setupSimpleTestTree1 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -86,6 +89,7 @@ let setupSimpleTestTree2 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -170,6 +174,7 @@ let setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps = () => {
           .build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -217,6 +222,7 @@ let setupSimpleTestTree3 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
+  root.setTextWidthFunction(textwidth);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
