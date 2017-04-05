@@ -27,9 +27,12 @@ circle {
 
 text {
     font-family: sans-serif;
-    font-size: 12px;
     text-anchor: middle;
     font-weight: bold;
+}
+
+.package text, .interface text, .abstractclass text, .class text {
+    font-size: 12px;
 }
 
 .package text {
@@ -73,4 +76,5 @@ line.implements {
 
 text.access {
     font-weight: normal;
+    font-size: 8px;
 }

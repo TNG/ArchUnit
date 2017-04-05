@@ -29,7 +29,7 @@ let setupSimpleTestTree1 = () => {
       .add(testJson.clazz("class3", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -50,7 +50,7 @@ let setupSimpleTestTree2 = () => {
       .add(testJson.clazz("class3", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -72,7 +72,7 @@ let setupSimpleTestTree3 = () => {
           .build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -230,47 +230,6 @@ describe("Node", () => {
 
     expect(toDrag.visualData.x).to.be.within(newX - 2, newX + 2);
     expect(toDrag.visualData.y).to.be.within(newY - 2, newY + 2);
-  });
-
-
-  it("is dragged automatically back into its parent on changing radius, so that it is completely within its parent", () => {
-    let root = setupSimpleTestTree2();
-    let toChangeRadius = getNode(root, "com.tngtech.test.subtest");
-    let parent = getNode(root, "com.tngtech.test");
-
-    let newRadius = (toChangeRadius.visualData.r + parent.visualData.r) / 2;
-    let newDelta = (parent.visualData.r - newRadius) / Math.sqrt(2);
-
-    moveToMiddleOfParent(toChangeRadius, parent);
-
-    let newX = toChangeRadius.visualData.x + newDelta, newY = toChangeRadius.visualData.y - newDelta;
-
-    let delta = calcDeltaToRightUpperCornerOfParent(toChangeRadius, parent);
-    toChangeRadius.drag(delta, -delta);
-
-    toChangeRadius.changeRadius(newRadius);
-
-    expect(toChangeRadius.visualData.x).to.be.within(newX - 2, newX + 2);
-    expect(toChangeRadius.visualData.y).to.be.within(newY - 2, newY + 2);
-  });
-
-  it("is not dragged automatically back into its parent on changing radius if its parent is the root", () => {
-    let root = setupSimpleTestTree2();
-    let toChangeRadius = getNode(root, "com.tngtech.test");
-    let parent = getNode(root, "com.tngtech");
-
-    let newRadius = (toChangeRadius.visualData.r + parent.visualData.r) / 2;
-
-    moveToMiddleOfParent(toChangeRadius, parent);
-
-    let delta = calcDeltaToRightUpperCornerOfParent(toChangeRadius, parent);
-    let newX = toChangeRadius.visualData.x + delta, newY = toChangeRadius.visualData.y - delta;
-    toChangeRadius.drag(delta, -delta);
-
-    toChangeRadius.changeRadius(newRadius);
-
-    expect(toChangeRadius.visualData.x).to.be.within(newX - 2, newX + 2);
-    expect(toChangeRadius.visualData.y).to.be.within(newY - 2, newY + 2);
   });
 });
 

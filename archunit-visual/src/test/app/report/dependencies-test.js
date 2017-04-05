@@ -37,7 +37,7 @@ let setupSimpleTestTree1 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -89,7 +89,7 @@ let setupSimpleTestTree2 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -174,7 +174,7 @@ let setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps = () => {
           .build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
@@ -222,7 +222,7 @@ let setupSimpleTestTree3 = () => {
       .add(testJson.clazz("interface1", "interface").build())
       .build();
   let root = jsonToRoot(simpleJsonTree);
-  root.setTextWidthFunction(textwidth);
+  root.initialize(textwidth, 0.8, 5);
   let d3root = hierarchy(root, d => d.currentChildren)
       .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
       .sort((a, b) => b.value - a.value);
