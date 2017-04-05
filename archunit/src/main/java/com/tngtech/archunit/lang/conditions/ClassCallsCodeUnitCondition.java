@@ -8,7 +8,7 @@ import com.tngtech.archunit.core.JavaClass;
 
 class ClassCallsCodeUnitCondition extends AnyAttributeMatchesCondition<JavaCall<?>> {
     ClassCallsCodeUnitCondition(DescribedPredicate<? super JavaCall<?>> predicate) {
-        super(new MethodCallCondition(predicate));
+        super(new CodeUnitCallCondition(predicate));
     }
 
     @Override

@@ -21,7 +21,7 @@ import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGE
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Theories.class)
-public class MethodCallConditionTest {
+public class CodeUnitCallConditionTest {
 
     @DataPoint
     public static final MethodCallToAnalyse methodCall = methodCallToTargetFrom(CALLER_CLASS);
@@ -31,9 +31,9 @@ public class MethodCallConditionTest {
 
     @Theory
     public void condition_is_satisfied_by_matching_call(MethodCallToAnalyse callToAnalyse) {
-        MethodCallCondition targetMethodCallCondition = callConditionBuilderMatching(callToAnalyse).build();
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse).build();
         ConditionEvents events = new ConditionEvents();
-        targetMethodCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isTrue();
@@ -43,11 +43,11 @@ public class MethodCallConditionTest {
 
     @Theory
     public void condition_is_not_satisfied_on_target_mismatch(MethodCallToAnalyse callToAnalyse) {
-        MethodCallCondition targetMethodCallCondition = callConditionBuilderMatching(callToAnalyse)
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withTarget(getClass())
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetMethodCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
@@ -57,11 +57,11 @@ public class MethodCallConditionTest {
 
     @Theory
     public void condition_is_not_satisfied_on_name_mismatch(MethodCallToAnalyse callToAnalyse) {
-        MethodCallCondition targetMethodCallCondition = callConditionBuilderMatching(callToAnalyse)
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withName("wrong")
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetMethodCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
@@ -71,11 +71,11 @@ public class MethodCallConditionTest {
 
     @Theory
     public void condition_is_not_satisfied_on_parameter_type_mismatch(MethodCallToAnalyse callToAnalyse) {
-        MethodCallCondition targetMethodCallCondition = callConditionBuilderMatching(callToAnalyse)
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withParameters(getClass())
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetMethodCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
@@ -167,8 +167,8 @@ public class MethodCallConditionTest {
             return this;
         }
 
-        private MethodCallCondition build() {
-            return new MethodCallCondition(callTarget().matches(targetClass, methodName, paramTypes));
+        private CodeUnitCallCondition build() {
+            return new CodeUnitCallCondition(callTarget().matches(targetClass, methodName, paramTypes));
         }
     }
 }

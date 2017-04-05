@@ -10,8 +10,8 @@ import com.tngtech.archunit.lang.conditions.testobjects.CallerClass;
 import com.tngtech.archunit.lang.conditions.testobjects.TargetClass;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.parameterTypes;

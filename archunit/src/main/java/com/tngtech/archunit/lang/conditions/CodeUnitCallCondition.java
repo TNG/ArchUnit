@@ -6,11 +6,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
-class MethodCallCondition extends ArchCondition<JavaCall<?>> {
+class CodeUnitCallCondition extends ArchCondition<JavaCall<?>> {
     private final DescribedPredicate<? super JavaCall<?>> callIdentifier;
 
-    MethodCallCondition(DescribedPredicate<? super JavaCall<?>> callIdentifier) {
-        super("call method where " + callIdentifier.getDescription());
+    CodeUnitCallCondition(DescribedPredicate<? super JavaCall<?>> callIdentifier) {
+        super("call code unit where " + callIdentifier.getDescription());
         this.callIdentifier = callIdentifier;
     }
 

@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -13,8 +14,9 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaAnnotation;
+import com.tngtech.archunit.core.JavaCall;
+import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -28,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.JavaModifier.PUBLIC;
@@ -47,12 +48,14 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.notHaveModifie
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static java.util.regex.Pattern.MULTILINE;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
+
+    public static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
+
     @DataProvider
     public static Object[][] beNamed_rules() {
         return $$(
@@ -676,8 +679,60 @@ public class ClassesShouldTest {
                         ClassWithMethod.class, "method", String.class));
     }
 
+    @DataProvider
+    public static Object[][] callConstructor_rules() {
+        return $$(
+                $(classes().should().callConstructor(ClassWithConstructor.class, String.class)),
+                $(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class, String.class))),
+                $(classes().should().callConstructor(ClassWithConstructor.class.getName(), String.class.getName())),
+                $(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class.getName(), String.class.getName())))
+        );
+    }
+
+    @Test
+    @UseDataProvider("callConstructor_rules")
+    public void callConstructor(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should call constructor %s.<init>(%s)",
+                        ClassWithConstructor.class.getSimpleName(), String.class.getSimpleName()))
+                .containsPattern(callConstructorRegex(
+                        ClassCallingWrongConstructor.class,
+                        ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(callConstructorRegex(
+                        ClassCallingConstructor.class,
+                        ClassWithConstructor.class, String.class));
+    }
+
+    @DataProvider
+    public static Object[][] callConstructorWhere_rules() {
+        return $$(
+                $(classes().should().callConstructorWhere(callTargetIs(ClassWithConstructor.class))),
+                $(classes().should(ArchConditions.callConstructorWhere(callTargetIs(ClassWithConstructor.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("callConstructorWhere_rules")
+    public void callConstructorWhere(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should call constructor where target is %s",
+                        ClassWithConstructor.class.getSimpleName()))
+                .containsPattern(callConstructorRegex(
+                        ClassCallingWrongConstructor.class,
+                        ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(callConstructorRegex(
+                        ClassCallingConstructor.class,
+                        ClassWithConstructor.class, String.class));
+    }
+
     private String singleLineFailureReportOf(EvaluationResult result) {
-        return result.getFailureReport().toString().replaceAll("\\s+", " ");
+        return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
 
     private static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
@@ -713,8 +768,8 @@ public class ClassesShouldTest {
                 clazz.getName(), Joiner.on("', '").join(packageIdentifiers));
     }
 
-    private static DescribedPredicate<JavaMethodCall> callTargetIs(Class<?> type) {
-        return target(owner(type(type))).as("target is " + type.getSimpleName());
+    private static DescribedPredicate<JavaCall<?>> callTargetIs(Class<?> type) {
+        return JavaCall.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
     }
 
     private static DescribedPredicate<HasName> getNameIsEqualToNameOf(Class<?> type) {
@@ -757,12 +812,21 @@ public class ClassesShouldTest {
     }
 
     private Pattern accessesFieldRegex(Class<?> origin, String accessType, Class<?> targetClass, String fieldName) {
-        return Pattern.compile(String.format(".*%s.*%s field.*%s\\.%s.*",
-                quote(origin.getName()), accessType, quote(targetClass.getName()), fieldName), MULTILINE);
+        String originAccesses = String.format("%s[^%s]* %s", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER, accessType);
+        String target = String.format("[^%s]*%s\\.%s", FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), fieldName);
+        return Pattern.compile(String.format(".*%s field %s.*", originAccesses, target));
     }
 
     private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, Class<?> paramType) {
         return callMethodRegex(origin, targetClass, methodName, paramType.getName());
+    }
+
+    private Pattern callConstructorRegex(Class<?> origin, Class<?> targetClass, Class<?>... paramTypes) {
+        List<String> paramTypeNames = JavaClass.namesOf(paramTypes);
+        String originCalls = String.format("%s[^%s]* calls", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
+        String target = String.format("[^%s]*%s\\.<init>\\(%s\\)",
+                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), quote(Joiner.on(", ").join(paramTypeNames)));
+        return Pattern.compile(String.format(".*%s constructor %s.*", originCalls, target));
     }
 
     private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName) {
@@ -770,8 +834,10 @@ public class ClassesShouldTest {
     }
 
     private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, String paramTypeName) {
-        return Pattern.compile(String.format(".*%s.* method.*%s\\.%s\\(%s\\).*",
-                quote(origin.getName()), quote(targetClass.getName()), methodName, quote(paramTypeName)));
+        String originCalls = String.format("%s[^%s]* calls", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
+        String target = String.format("[^%s]*%s\\.%s\\(%s\\)",
+                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), methodName, quote(paramTypeName));
+        return Pattern.compile(String.format(".*%s method %s.*", originCalls, target));
     }
 
     private static class RightNamedClass {
@@ -820,6 +886,26 @@ public class ClassesShouldTest {
 
         void callWrong() {
             classCallingMethod.call();
+        }
+    }
+
+    private static class ClassWithConstructor {
+        ClassWithConstructor(String param) {
+        }
+    }
+
+    private static class ClassCallingConstructor {
+        ClassCallingConstructor(int number, Date date) {
+        }
+
+        void call() {
+            new ClassWithConstructor("param");
+        }
+    }
+
+    private static class ClassCallingWrongConstructor {
+        void callWrong() {
+            new ClassCallingConstructor(0, null);
         }
     }
 

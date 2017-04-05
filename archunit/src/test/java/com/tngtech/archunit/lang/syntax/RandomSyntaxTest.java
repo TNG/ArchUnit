@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,20 +58,20 @@ public class RandomSyntaxTest {
 
     @Test
     @UseDataProvider("random_rules")
-    public void rule_has_expected_description_and_can_be_evaluated_without_error(DescribedRule describedRule, String expectedDescription) {
+    public void rule_has_expected_description_and_can_be_evaluated_without_error(DescribedRule describedRule,
+                                                                                 String expectedDescription) {
         ArchRule archRule = describedRule.archRule;
 
-        assertThat(archRule.getDescription())
-                .as("description of constructed ArchRule")
-                .isEqualTo(expectedDescription);
+        assertThat(archRule.getDescription()).as("description of constructed ArchRule").isEqualTo(expectedDescription);
 
         archRule.evaluate(JavaClasses.of(Collections.<JavaClass>emptySet()));
         archRule.check(JavaClasses.of(Collections.<JavaClass>emptySet()));
 
         ArchRule overriddenText = archRule.as("overridden rule text");
         assertThat(overriddenText.getDescription()).isEqualTo("overridden rule text");
-        assertThat(overriddenText.evaluate(JavaClasses.of(Collections.<JavaClass>emptySet())).getFailureReport().toString())
-                .contains("overridden rule text");
+        assertThat(overriddenText.evaluate(
+                JavaClasses.of(Collections.<JavaClass>emptySet())).getFailureReport().toString()).contains(
+                "overridden rule text");
     }
 
     private static class SyntaxSpec {
@@ -86,7 +87,8 @@ public class RandomSyntaxTest {
                 LastStep result = firstStep.continueSteps(0, MAX_STEPS);
                 actualArchRule = result.getResult();
             } catch (Exception e) {
-                throw new AssertionError("Failed while building rule, expected description so far: " + expectedDescription, e);
+                throw new AssertionError(
+                        "Failed while building rule, expected description so far: " + expectedDescription, e);
             }
         }
 
@@ -101,8 +103,7 @@ public class RandomSyntaxTest {
         }
 
         String getExpectedDescription() {
-            return Joiner.on(" ").join(expectedDescription)
-                    .replace("dont", "don't");
+            return Joiner.on(" ").join(expectedDescription).replace("dont", "don't");
         }
 
         DescribedRule getActualArchRule() {
@@ -142,14 +143,16 @@ public class RandomSyntaxTest {
         final Parameters parameters;
 
         <T> PartialStep(List<String> expectedDescription, Class<T> type, T currentValue) {
-            this(expectedDescription, new TypedValue(type, currentValue), chooseRandomMethod(currentValue.getClass()).get());
+            this(expectedDescription, new TypedValue(type, currentValue),
+                    chooseRandomMethod(currentValue.getClass()).get());
         }
 
         private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method) {
             this(expectedDescription, currentValue, method, getParametersFor(method));
         }
 
-        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method, Parameters parameters) {
+        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method,
+                            Parameters parameters) {
             super(expectedDescription, currentValue);
             this.method = method;
             this.parameters = parameters;
@@ -177,9 +180,9 @@ public class RandomSyntaxTest {
                     method.getName(), currentValue.value, currentValue.value.getClass().getSimpleName());
 
             Optional<Method> method = chooseRandomMethod(nextValue.type);
-            Step nextStep = method.isPresent() && shouldNotFinish(nextValue) ?
-                    new PartialStep(expectedDescription, nextValue, method.get(), getParametersFor(method.get())) :
-                    new LastStep(expectedDescription, nextValue);
+            Step nextStep = method.isPresent() && shouldNotFinish(nextValue)
+                    ? new PartialStep(expectedDescription, nextValue, method.get(), getParametersFor(method.get()))
+                    : new LastStep(expectedDescription, nextValue);
             LOG.debug("Next step is {}", nextStep);
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
         }
@@ -194,12 +197,10 @@ public class RandomSyntaxTest {
 
         private static Optional<Method> chooseRandomMethod(Class<?> clazz) {
             List<Method> methods = getPossibleMethodCandidates(clazz);
-            for (Method method : ArchRule.class.getMethods()) {
-                methods.remove(method);
-            }
-            return !methods.isEmpty() ?
-                    Optional.of(methods.get(random.nextInt(methods.size()))) :
-                    Optional.<Method>absent();
+            methods.removeAll(asList(ArchRule.class.getMethods()));
+            return !methods.isEmpty()
+                    ? Optional.of(methods.get(random.nextInt(methods.size())))
+                    : Optional.<Method>absent();
         }
 
         private static List<Method> getPossibleMethodCandidates(Class<?> clazz) {
@@ -293,9 +294,9 @@ public class RandomSyntaxTest {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
                         TypeToken<?> typeParam = type.resolveType(Class.class.getTypeParameters()[0]);
-                        String description = Annotation.class.isAssignableFrom(typeParam.getRawType()) ?
-                                "@" + Deprecated.class.getSimpleName() :
-                                Deprecated.class.getName();
+                        String description = Annotation.class.isAssignableFrom(typeParam.getRawType())
+                                ? "@" + Deprecated.class.getSimpleName()
+                                : Deprecated.class.getName();
                         return new Parameter(Deprecated.class, description);
                     }
                 })
@@ -335,9 +336,9 @@ public class RandomSyntaxTest {
                 new FieldMethodParametersProvider(),
                 new CallMethodClassParametersProvider(),
                 new CallMethodStringParametersProvider(),
-                new SingleParametersProvider()
-        );
-
+                new CallConstructorClassParametersProvider(),
+                new CallConstructorStringParametersProvider(),
+                new SingleParametersProvider());
 
         Parameters get(String methodName, List<TypeToken<?>> types) {
             for (SpecificParametersProvider provider : parametersProvider) {
@@ -345,8 +346,8 @@ public class RandomSyntaxTest {
                     return provider.get(methodName, types);
                 }
             }
-            throw new IllegalStateException(String.format("No ParametersProvider found for %s with parameterTypes %s",
-                    methodName, types));
+            throw new IllegalStateException(String.format(
+                    "No ParametersProvider found for %s with parameterTypes %s", methodName, types));
         }
 
         @SuppressWarnings("unchecked")
@@ -402,73 +403,139 @@ public class RandomSyntaxTest {
             }
 
             private void checkKnownCase(List<TypeToken<?>> parameterTypes) {
-                boolean firstParameterInvalid = !Class.class.isAssignableFrom(parameterTypes.get(0).getRawType()) &&
-                        !String.class.isAssignableFrom(parameterTypes.get(0).getRawType());
+                boolean firstParameterInvalid = !Class.class.isAssignableFrom(parameterTypes.get(0).getRawType())
+                        && !String.class.isAssignableFrom(parameterTypes.get(0).getRawType());
 
                 boolean secondParameterInvalid = !String.class.isAssignableFrom(parameterTypes.get(1).getRawType());
 
                 if (firstParameterInvalid || secondParameterInvalid) {
-                    throw new UnsupportedOperationException(String.format("Up to now all methods with two parameters " +
-                                    "dealing with fields have either %s or %s as their first parameter type and" +
-                                    "%s as their second parameter type. " +
-                                    "If this doesn't hold anymore, please replace this with something more sophisticated",
+                    throw new UnsupportedOperationException(String.format(
+                            "Up to now all methods with two parameters "
+                                    + "dealing with fields have either %s or %s as their first parameter type and"
+                                    + "%s as their second parameter type. "
+                                    + "If this doesn't hold anymore, please replace this with something more sophisticated",
                             Class.class.getName(), String.class.getName(), String.class.getName()));
                 }
             }
         }
 
         private String simpleNameFrom(Object classOrString) {
-            return Class.class.isAssignableFrom(classOrString.getClass()) ?
-                    ((Class) classOrString).getSimpleName() :
-                    ensureSimpleName((String) classOrString);
+            return Class.class.isAssignableFrom(classOrString.getClass())
+                    ? ((Class) classOrString).getSimpleName()
+                    : ensureSimpleName((String) classOrString);
         }
 
-        private abstract class CallMethodParametersProvider extends SpecificParametersProvider {
-            @Override
-            boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
-                boolean dealsWithMethods = methodName.toLowerCase().contains("method");
-                boolean threeParameters = parameterTypes.size() == 3;
-                return dealsWithMethods && threeParameters && canHandleParameterTypes(parameterTypes);
+        private static class CanHandlePredicate {
+            private final String methodNamePart;
+            private final int numberOfParameters;
+            private final Class<?> typeOfFirstParameter;
+
+            private CanHandlePredicate(String methodNamePart, int numberOfParameters, Class<?> typeOfFirstParameter) {
+                this.methodNamePart = methodNamePart;
+                this.numberOfParameters = numberOfParameters;
+                this.typeOfFirstParameter = typeOfFirstParameter;
             }
 
-            abstract boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes);
+            public boolean apply(String methodName, List<TypeToken<?>> parameterTypes) {
+                return nameMatches(methodName) && numberOfParamsMatches(parameterTypes)
+                        && firstParameterTypeMatches(parameterTypes);
+            }
 
-            Parameters getParameters(String methodName, Parameters parameters, List<String> simpleParamTypeNames) {
-                String first = simpleNameFrom(parameters.parameters.get(0).value);
-                String params = String.format("%s.%s(%s)", first, parameters.parameters.get(1).value, Joiner.on(", ").join(simpleParamTypeNames));
+            private boolean nameMatches(String methodName) {
+                return methodName.toLowerCase().contains(methodNamePart);
+            }
+
+            private boolean numberOfParamsMatches(List<TypeToken<?>> parameterTypes) {
+                return parameterTypes.size() == numberOfParameters;
+            }
+
+            private boolean firstParameterTypeMatches(List<TypeToken<?>> parameterTypes) {
+                return typeOfFirstParameter.isAssignableFrom(parameterTypes.get(0).getRawType());
+            }
+        }
+
+        private abstract class CallCodeUnitParametersProvider extends SpecificParametersProvider {
+            private final CanHandlePredicate predicate;
+
+            CallCodeUnitParametersProvider(CanHandlePredicate predicate) {
+                this.predicate = predicate;
+            }
+
+            @Override
+            boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
+                return predicate.apply(methodName, parameterTypes);
+            }
+        }
+
+        private class CallMethodClassParametersProvider extends CallCodeUnitParametersProvider {
+            CallMethodClassParametersProvider() {
+                super(new CanHandlePredicate("method", 3, Class.class));
+            }
+
+            @Override
+            Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
+                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                String params = createCallDetailsForClassArrayAtIndex(2, parameters.parameters.get(1).value, parameters);
                 return parameters.withDescription(verbalize(methodName) + " " + params);
             }
         }
 
-        private class CallMethodClassParametersProvider extends CallMethodParametersProvider {
-            @Override
-            boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes) {
-                return Class.class.isAssignableFrom(parameterTypes.get(0).getRawType());
+        private class CallMethodStringParametersProvider extends CallCodeUnitParametersProvider {
+            CallMethodStringParametersProvider() {
+                super(new CanHandlePredicate("method", 3, String.class));
             }
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
-                List<String> simpleParamTypeNames = new ArrayList<>();
-                for (Class param : (Class[]) parameters.parameters.get(2).value) {
-                    simpleParamTypeNames.add(param.getSimpleName());
-                }
-                return getParameters(methodName, parameters, simpleParamTypeNames);
+                String params = createCallDetailsForStringArrayAtIndex(2, parameters.parameters.get(1).value, parameters);
+                return parameters.withDescription(verbalize(methodName) + " " + params);
             }
         }
 
-        private class CallMethodStringParametersProvider extends CallMethodParametersProvider {
-            @Override
-            boolean canHandleParameterTypes(List<TypeToken<?>> parameterTypes) {
-                return String.class.isAssignableFrom(parameterTypes.get(0).getRawType());
+        private class CallConstructorClassParametersProvider extends CallCodeUnitParametersProvider {
+            CallConstructorClassParametersProvider() {
+                super(new CanHandlePredicate("constructor", 2, Class.class));
             }
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
-                List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(2).value); // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
-                return getParameters(methodName, parameters, simpleParamTypeNames);
+                String params = createCallDetailsForClassArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
+                return parameters.withDescription(verbalize(methodName) + " " + params);
             }
+        }
+
+        private class CallConstructorStringParametersProvider extends CallCodeUnitParametersProvider {
+            CallConstructorStringParametersProvider() {
+                super(new CanHandlePredicate("constructor", 2, String.class));
+            }
+
+            @Override
+            Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
+                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                String params = createCallDetailsForStringArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
+                return parameters.withDescription(verbalize(methodName) + " " + params);
+            }
+        }
+
+        private String createCallDetailsForClassArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
+            List<String> simpleParamTypeNames = new ArrayList<>();
+            for (Class param : (Class[]) parameters.parameters.get(index).value) {
+                simpleParamTypeNames.add(param.getSimpleName());
+            }
+            return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
+        }
+
+        private String createCallDetailsForStringArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
+            List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(index).value); // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
+            return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
+        }
+
+        private String createCallDetails(Object callTargetName, List<String> simpleParamTypeNames, Parameters parameters) {
+            String first = simpleNameFrom(parameters.parameters.get(0).value);
+            return String.format("%s.%s(%s)", first, callTargetName,
+                    Joiner.on(", ").join(simpleParamTypeNames));
         }
 
         private class SingleParametersProvider extends SpecificParametersProvider {

@@ -6,6 +6,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaConstructorCall;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
@@ -298,6 +299,21 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethodWhere(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction callConstructor(Class<?> owner, Class<?>[] parameterTypes) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructor(owner, parameterTypes)));
+    }
+
+    @Override
+    public ClassesShouldConjunction callConstructor(String ownerName, String... parameterTypeNames) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructor(ownerName, parameterTypeNames)));
+    }
+
+    @Override
+    public ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructorWhere(predicate)));
     }
 
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {

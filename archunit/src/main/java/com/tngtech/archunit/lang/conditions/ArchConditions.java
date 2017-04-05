@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaConstructorCall;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
@@ -31,7 +32,7 @@ import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
-import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
@@ -112,29 +113,54 @@ public final class ArchConditions {
                 .as("access field where " + predicate.getDescription());
     }
 
-    public static ArchCondition<JavaClass> callMethod(String ownerName, String methodName, String... parameterTypeNames) {
-        return callMethodWhere(target(With.<JavaClass>owner(name(ownerName)))
-                .and(target(name(methodName)))
-                .and(target(parameterTypes(parameterTypeNames))))
-                .as("call method %s", Formatters.formatMethodSimple(
-                        ensureSimpleName(ownerName), methodName, asList(parameterTypeNames)));
-    }
-
     public static ArchCondition<JavaClass> callMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
-        return callMethodWhere(target(owner(type(owner)))
-                .and(target(name(methodName)))
-                .and(target(parameterTypes(parameterTypes))))
+        return callMethodWhere(JavaCall.Predicates.target(owner(type(owner)))
+                .and(JavaCall.Predicates.target(name(methodName)))
+                .and(JavaCall.Predicates.target(parameterTypes(parameterTypes))))
                 .as("call method %s", Formatters.formatMethodSimple(
                         owner.getSimpleName(), methodName, namesOf(parameterTypes)));
     }
 
+    public static ArchCondition<JavaClass> callMethod(String ownerName, String methodName, String... parameterTypeNames) {
+        return callMethodWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+                .and(JavaCall.Predicates.target(name(methodName)))
+                .and(JavaCall.Predicates.target(parameterTypes(parameterTypeNames))))
+                .as("call method %s", Formatters.formatMethodSimple(
+                        ensureSimpleName(ownerName), methodName, asList(parameterTypeNames)));
+    }
+
     public static ArchCondition<JavaClass> callMethodWhere(final DescribedPredicate<? super JavaMethodCall> predicate) {
-        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>(predicate.getDescription()) {
+        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>("") {
             @Override
             public boolean apply(JavaCall<?> input) {
                 return input instanceof JavaMethodCall && predicate.apply((JavaMethodCall) input);
             }
-        });
+        }).as("call method where " + predicate.getDescription());
+    }
+
+    public static ArchCondition<JavaClass> callConstructor(Class<?> owner, Class<?>... parameterTypes) {
+        return callConstructorWhere(JavaCall.Predicates.target(owner(type(owner)))
+                .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
+                .and(JavaCall.Predicates.target(parameterTypes(parameterTypes))))
+                .as("call constructor %s", Formatters.formatMethodSimple(
+                        owner.getSimpleName(), CONSTRUCTOR_NAME, namesOf(parameterTypes)));
+    }
+
+    public static ArchCondition<JavaClass> callConstructor(String ownerName, String... parameterTypeNames) {
+        return callConstructorWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+                .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
+                .and(JavaCall.Predicates.target(parameterTypes(parameterTypeNames))))
+                .as("call constructor %s", Formatters.formatMethodSimple(
+                        ensureSimpleName(ownerName), CONSTRUCTOR_NAME, asList(parameterTypeNames)));
+    }
+
+    public static ArchCondition<JavaClass> callConstructorWhere(final DescribedPredicate<? super JavaConstructorCall> predicate) {
+        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>("") {
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return input instanceof JavaConstructorCall && predicate.apply((JavaConstructorCall) input);
+            }
+        }).as("call constructor where " + predicate.getDescription());
     }
 
     public static ArchCondition<JavaClass> callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {

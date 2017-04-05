@@ -18,9 +18,9 @@ import org.assertj.core.api.iterable.Extractor;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.JavaMethodCall.Predicates.target;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
@@ -90,7 +90,7 @@ public class ArchConditionsTest {
                 .isEqualTo("only be accessed by any package ['..one..', '..two..']");
 
         assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("call method where something");
+                .isEqualTo("call code unit where something");
 
         assertThat(accessClass(predicateWithDescription("something")).getDescription())
                 .isEqualTo("access class something");

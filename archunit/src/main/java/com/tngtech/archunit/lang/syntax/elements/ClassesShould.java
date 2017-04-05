@@ -6,6 +6,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaConstructorCall;
 import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
@@ -465,4 +466,31 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate);
+
+    /**
+     * Matches against a constructor call to a specific constructor (e.g. <code><b>new SomeClass()</b>;</code>).
+     *
+     * @param owner          Class declaring the constructor
+     * @param parameterTypes The parameter types of the respective constructor
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction callConstructor(Class<?> owner, Class<?>... parameterTypes);
+
+    /**
+     * Matches against constructor call to a specific constructor (e.g. <code><b>new SomeClass()</b>;</code>).
+     *
+     * @param ownerName          The fully qualified class name declaring the constructor
+     * @param parameterTypeNames The fully qualified parameter type names
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction callConstructor(String ownerName, String... parameterTypeNames);
+
+    /**
+     * Matches against constructor calls where origin (a method or constructor) and target (a constructor)
+     * can be freely restricted by the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaConstructorCall JavaConstructorCalls} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
 }
