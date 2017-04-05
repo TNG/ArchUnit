@@ -124,6 +124,15 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
                 }
             };
         }
+
+        public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
+            return new DescribedPredicate<JavaAccess<?>>("target " + predicate.getDescription()) {
+                @Override
+                public boolean apply(JavaAccess<?> input) {
+                    return predicate.apply(input.getTarget());
+                }
+            };
+        }
     }
 
     public static class Functions {

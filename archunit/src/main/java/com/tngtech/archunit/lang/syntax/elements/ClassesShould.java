@@ -4,7 +4,9 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAnnotation;
+import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaConstructorCall;
 import com.tngtech.archunit.core.JavaFieldAccess;
@@ -493,4 +495,23 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
+
+    /**
+     * Matches against access of arbitrary targets (compare {@link com.tngtech.archunit.core.AccessTarget})
+     * where origin (a method or constructor) and target (a field, method or constructor) can be freely restricted
+     * by the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaAccess JavaAccesses} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate);
+
+    /**
+     * Matches against code unit calls (compare {@link com.tngtech.archunit.core.JavaCodeUnit}) where origin (a code unit)
+     * and target (a code unit) can be freely restricted by the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaCall JavaCalls} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
 }

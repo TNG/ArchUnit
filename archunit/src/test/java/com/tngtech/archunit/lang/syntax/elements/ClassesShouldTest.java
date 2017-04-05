@@ -13,10 +13,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.JavaModifier.PUBLIC;
@@ -606,10 +607,6 @@ public class ClassesShouldTest {
         );
     }
 
-    private static DescribedPredicate<JavaFieldAccess> accessTargetIs(final Class<?> targetType) {
-        return JavaFieldAccess.Predicates.target(owner(type(targetType))).as("target owner is " + targetType.getSimpleName());
-    }
-
     @Test
     @UseDataProvider("accessFieldWhere_rules")
     public void accessFieldWhere(ArchRule rule, String accessTypePlural, String accessTypeSingular) {
@@ -617,7 +614,7 @@ public class ClassesShouldTest {
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should %s field where target owner is %s",
+                .contains(String.format("classes should %s field where target is %s",
                         accessTypePlural, ClassWithField.class.getSimpleName()))
                 .containsPattern(accessesFieldRegex(
                         ClassAccessingWrongField.class, accessTypeSingular,
@@ -731,6 +728,70 @@ public class ClassesShouldTest {
                         ClassWithConstructor.class, String.class));
     }
 
+    @DataProvider
+    public static Object[][] accessTargetWhere_rules() {
+        return $$(
+                $(classes().should().accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
+                $(classes().should(ArchConditions.accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("accessTargetWhere_rules")
+    public void accessTargetWhere(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should access target where target is %s",
+                        ClassWithFieldMethodAndConstructor.class.getSimpleName()))
+                .containsPattern(accessTargetRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .containsPattern(accessTargetRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME))
+                .containsPattern(accessTargetRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(accessTargetRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
+    @DataProvider
+    public static Object[][] callCodeUnitWhere_rules() {
+        return $$(
+                $(classes().should().callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
+                $(classes().should(ArchConditions.callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("callCodeUnitWhere_rules")
+    public void callCodeUnitWhere(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should call code unit where target is %s",
+                        ClassWithFieldMethodAndConstructor.class.getSimpleName()))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME, int.class, Date.class))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
     private String singleLineFailureReportOf(EvaluationResult result) {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
@@ -770,6 +831,10 @@ public class ClassesShouldTest {
 
     private static DescribedPredicate<JavaCall<?>> callTargetIs(Class<?> type) {
         return JavaCall.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
+    }
+
+    private static DescribedPredicate<JavaAccess<?>> accessTargetIs(Class<?> type) {
+        return JavaAccess.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
     }
 
     private static DescribedPredicate<HasName> getNameIsEqualToNameOf(Class<?> type) {
@@ -817,27 +882,32 @@ public class ClassesShouldTest {
         return Pattern.compile(String.format(".*%s field %s.*", originAccesses, target));
     }
 
-    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, Class<?> paramType) {
-        return callMethodRegex(origin, targetClass, methodName, paramType.getName());
-    }
-
     private Pattern callConstructorRegex(Class<?> origin, Class<?> targetClass, Class<?>... paramTypes) {
-        List<String> paramTypeNames = JavaClass.namesOf(paramTypes);
-        String originCalls = String.format("%s[^%s]* calls", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
-        String target = String.format("[^%s]*%s\\.<init>\\(%s\\)",
-                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), quote(Joiner.on(", ").join(paramTypeNames)));
-        return Pattern.compile(String.format(".*%s constructor %s.*", originCalls, target));
+        return callRegex(origin, targetClass, "constructor", CONSTRUCTOR_NAME, paramTypes);
     }
 
-    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName) {
-        return callMethodRegex(origin, targetClass, methodName, "");
+    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, Class<?>... paramTypes) {
+        return callRegex(origin, targetClass, "method", methodName, paramTypes);
     }
 
-    private Pattern callMethodRegex(Class<?> origin, Class<?> targetClass, String methodName, String paramTypeName) {
+    private Pattern callCodeUnitRegex(Class<?> origin, Class<?> targetClass, String methodName, Class<?>... paramTypes) {
+        return callRegex(origin, targetClass, "(method|constructor)", methodName, paramTypes);
+    }
+
+    private Pattern callRegex(Class<?> origin, Class<?> targetClass, String targetType, String methodName, Class<?>... paramTypes) {
+        String params = Joiner.on(", ").join(JavaClass.namesOf(paramTypes));
         String originCalls = String.format("%s[^%s]* calls", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
         String target = String.format("[^%s]*%s\\.%s\\(%s\\)",
-                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), methodName, quote(paramTypeName));
-        return Pattern.compile(String.format(".*%s method %s.*", originCalls, target));
+                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), methodName, quote(params));
+        return Pattern.compile(String.format(".*%s %s %s.*", originCalls, targetType, target));
+    }
+
+    private Pattern accessTargetRegex(Class<?> origin, Class<?> targetClass, String memberName) {
+        String originAccesses = String.format("%s[^%s]* (accesses|calls|sets|gets)",
+                quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
+        String target = String.format("[^%s]*%s\\.%s",
+                FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), memberName);
+        return Pattern.compile(String.format(".*%s (field|method|constructor) %s.*", originAccesses, target));
     }
 
     private static class RightNamedClass {
@@ -906,6 +976,37 @@ public class ClassesShouldTest {
     private static class ClassCallingWrongConstructor {
         void callWrong() {
             new ClassCallingConstructor(0, null);
+        }
+    }
+
+    private static class ClassWithFieldMethodAndConstructor {
+        String field;
+
+        ClassWithFieldMethodAndConstructor(String param) {
+        }
+
+        void method(String param) {
+        }
+    }
+
+    private static class ClassAccessingFieldMethodAndConstructor {
+        String wrongField;
+
+        ClassAccessingFieldMethodAndConstructor(int number, Date date) {
+        }
+
+        void call() {
+            ClassWithFieldMethodAndConstructor instance = new ClassWithFieldMethodAndConstructor("param");
+            instance.field = "field";
+            instance.method("param");
+        }
+    }
+
+    private static class ClassAccessingWrongFieldMethodAndConstructor {
+        void callWrong() {
+            ClassAccessingFieldMethodAndConstructor instance = new ClassAccessingFieldMethodAndConstructor(0, null);
+            instance.wrongField = "field";
+            instance.call();
         }
     }
 

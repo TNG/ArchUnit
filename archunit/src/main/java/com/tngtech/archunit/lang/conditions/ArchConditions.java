@@ -167,6 +167,10 @@ public final class ArchConditions {
         return new ClassCallsCodeUnitCondition(predicate);
     }
 
+    public static ArchCondition<JavaClass> accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate) {
+        return new ClassAccessesTargetCondition(predicate);
+    }
+
     public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<? super JavaClass> predicate) {
         return new ClassAccessesCondition(predicate);
     }

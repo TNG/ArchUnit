@@ -499,12 +499,17 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(messagesOf(actual.getViolating())).as("Violating messages").isEmpty();
         }
 
-        public void haveOneViolationMessageContaining(Set<String> messageParts) {
+        public ConditionEventsAssert haveOneViolationMessageContaining(String... messageParts) {
+            return haveOneViolationMessageContaining(ImmutableSet.copyOf(messageParts));
+        }
+
+        public ConditionEventsAssert haveOneViolationMessageContaining(Set<String> messageParts) {
             assertThat(messagesOf(actual.getViolating())).as("Number of violations").hasSize(1);
             AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(messagesOf(actual.getViolating())));
             for (String part : messageParts) {
                 assertion.as("Violation message").contains(part);
             }
+            return this;
         }
     }
 }

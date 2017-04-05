@@ -8,28 +8,33 @@ import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
-import org.junit.experimental.theories.DataPoint;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.JavaClass.namesOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Theories.class)
+@RunWith(DataProviderRunner.class)
 public class CodeUnitCallConditionTest {
 
-    @DataPoint
-    public static final MethodCallToAnalyse methodCall = methodCallToTargetFrom(CALLER_CLASS);
+    @DataProvider
+    public static Object[][] calls_to_analyse() {
+        return $$(
+                $(methodCallToTargetFrom(CALLER_CLASS)),
+                $(constructorCallToTargetFrom(CALLER_CLASS)));
+    }
 
-    @DataPoint
-    public static final MethodCallToAnalyse constructorCall = constructorCallToTargetFrom(CALLER_CLASS);
-
-    @Theory
+    @Test
+    @UseDataProvider("calls_to_analyse")
     public void condition_is_satisfied_by_matching_call(MethodCallToAnalyse callToAnalyse) {
         CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse).build();
         ConditionEvents events = new ConditionEvents();
@@ -41,7 +46,8 @@ public class CodeUnitCallConditionTest {
         assertThat(events.getAllowed()).is(containingMessageFor(callToAnalyse));
     }
 
-    @Theory
+    @Test
+    @UseDataProvider("calls_to_analyse")
     public void condition_is_not_satisfied_on_target_mismatch(MethodCallToAnalyse callToAnalyse) {
         CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withTarget(getClass())
@@ -55,7 +61,8 @@ public class CodeUnitCallConditionTest {
         assertThat(events.getAllowed()).isEmpty();
     }
 
-    @Theory
+    @Test
+    @UseDataProvider("calls_to_analyse")
     public void condition_is_not_satisfied_on_name_mismatch(MethodCallToAnalyse callToAnalyse) {
         CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withName("wrong")
@@ -69,7 +76,8 @@ public class CodeUnitCallConditionTest {
         assertThat(events.getAllowed()).isEmpty();
     }
 
-    @Theory
+    @Test
+    @UseDataProvider("calls_to_analyse")
     public void condition_is_not_satisfied_on_parameter_type_mismatch(MethodCallToAnalyse callToAnalyse) {
         CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
                 .withParameters(getClass())
@@ -138,6 +146,11 @@ public class CodeUnitCallConditionTest {
                 }
             }
             throw new RuntimeException("Couldn't find any matching call to " + TARGET_CLASS + " in " + calls);
+        }
+
+        @Override
+        public String toString() {
+            return call.getDescription();
         }
     }
 
