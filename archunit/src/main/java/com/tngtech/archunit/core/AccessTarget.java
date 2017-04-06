@@ -13,10 +13,12 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
 import com.tngtech.archunit.core.properties.HasType;
 
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
@@ -263,6 +265,23 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public Set<JavaMethod> resolve() {
             return methods.get();
+        }
+    }
+
+    public static class Predicates {
+        public static DescribedPredicate<AccessTarget> declaredIn(Class<?> clazz) {
+            return Get.<JavaClass>owner().is(equivalentTo(clazz))
+                    .as("declared in %s", clazz.getName())
+                    .forSubType();
+        }
+
+        public static DescribedPredicate<AccessTarget> constructor() {
+            return new DescribedPredicate<AccessTarget>("constructor") {
+                @Override
+                public boolean apply(AccessTarget input) {
+                    return CONSTRUCTOR_NAME.equals(input.getName()); // The constructor name is sufficiently unique
+                }
+            };
         }
     }
 }

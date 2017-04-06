@@ -35,6 +35,7 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
@@ -116,6 +117,10 @@ public class TestUtils {
 
     public static JavaClasses importClasses(Class<?>... classes) {
         return new ClassFileImporter().importClasses(classes);
+    }
+
+    public static ImportedContext withinImportedClasses(Class<?>... contextClasses) {
+        return new ImportedContext(importClasses(contextClasses));
     }
 
     private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
@@ -645,6 +650,53 @@ public class TestUtils {
         @Override
         public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
+        }
+    }
+
+    public static class ImportedContext {
+        private final JavaClasses classes;
+
+        private ImportedContext(JavaClasses classes) {
+            this.classes = classes;
+        }
+
+        public CallRetriever getCallFrom(Class<?> originClass, String codeUnitName, Class<?>... paramTypes) {
+            JavaClass owner = classes.get(originClass);
+            return new CallRetriever(owner.getCodeUnitWithParameterTypes(codeUnitName, paramTypes));
+        }
+    }
+
+    public static class CallRetriever {
+        private final JavaCodeUnit codeUnit;
+
+        private CallRetriever(JavaCodeUnit codeUnit) {
+            this.codeUnit = codeUnit;
+        }
+
+        public JavaConstructorCall toConstructor(Class<?> targetOwner, Class<?>... paramTypes) {
+            return findMethod(codeUnit.getConstructorCallsFromSelf(), targetOwner, CONSTRUCTOR_NAME, paramTypes);
+        }
+
+        public JavaMethodCall toMethod(Class<?> targetOwner, String methodName, Class<?>... paramTypes) {
+            return findMethod(codeUnit.getMethodCallsFromSelf(), targetOwner, methodName, paramTypes);
+        }
+
+        private <T extends JavaCall<?>> T findMethod(Set<T> callsFromSelf,
+                                                     Class<?> targetOwner,
+                                                     String methodName,
+                                                     Class<?>[] paramTypes) {
+
+            List<String> paramNames = JavaClass.namesOf(paramTypes);
+            for (T call : callsFromSelf) {
+                if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
+                        call.getTarget().getName().equals(methodName) &&
+                        call.getTarget().getParameters().getNames().equals(paramNames)) {
+                    return call;
+                }
+            }
+            throw new IllegalStateException(
+                    "Couldn't find any call with target " +
+                            formatMethod(targetOwner.getName(), methodName, paramNames));
         }
     }
 }

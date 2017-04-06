@@ -7,6 +7,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.properties.HasDescription;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -112,6 +113,10 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     protected abstract String descriptionTemplate();
 
     public static class Predicates {
+        public static DescribedPredicate<JavaAccess<?>> originOwner(DescribedPredicate<? super JavaClass> predicate) {
+            return origin(Get.<JavaClass>owner().is(predicate));
+        }
+
         public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
             return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
         }
@@ -123,6 +128,10 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
                     return input.getOriginOwner().equals(input.getTargetOwner());
                 }
             };
+        }
+
+        public static DescribedPredicate<JavaAccess<?>> targetOwner(final DescribedPredicate<? super JavaClass> predicate) {
+            return target(Get.<JavaClass>owner().is(predicate));
         }
 
         public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {

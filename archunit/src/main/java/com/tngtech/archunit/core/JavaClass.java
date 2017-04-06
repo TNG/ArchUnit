@@ -424,8 +424,12 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                 .build();
     }
 
-    public boolean isEquivalentTo(Class<?> type) {
-        return getName().equals(type.getName());
+    /**
+     * @param clazz An arbitrary type
+     * @return true, if this {@link JavaClass} represents the same class as the supplied {@link Class}, otherwise false
+     */
+    public boolean isEquivalentTo(Class<?> clazz) {
+        return getName().equals(clazz.getName());
     }
 
     public boolean isAssignableFrom(Class<?> type) {
@@ -673,6 +677,18 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         public static DescribedPredicate<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
             return not(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers))
                     .as("reside outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
+        }
+
+        /**
+         * @see JavaClass#isEquivalentTo(Class)
+         */
+        public static DescribedPredicate<JavaClass> equivalentTo(final Class<?> clazz) {
+            return new DescribedPredicate<JavaClass>("equivalent to %s", clazz.getName()) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.isEquivalentTo(clazz);
+                }
+            };
         }
     }
 

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -15,8 +16,15 @@ import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.JavaAccess.Predicates.target;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.targetOwner;
+import static com.tngtech.archunit.core.JavaCall.Predicates.target;
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -181,7 +189,9 @@ public class CodeUnitCallConditionTest {
         }
 
         private CodeUnitCallCondition build() {
-            return new CodeUnitCallCondition(callTarget().matches(targetClass, methodName, paramTypes));
+            DescribedPredicate<JavaCall<?>> ownerAndNameMatch = targetOwner(is(equivalentTo(targetClass)))
+                    .and(target(has(name(methodName)))).forSubType();
+            return new CodeUnitCallCondition(ownerAndNameMatch.and(target(has(parameterTypes(paramTypes)))));
         }
     }
 }

@@ -16,11 +16,13 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.TestUtils.importClasses;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
@@ -278,6 +280,18 @@ public class JavaClassTest {
 
         assertThat(resideInAnyPackage("any.thing", "..any..").getDescription())
                 .isEqualTo("reside in any package ['any.thing', '..any..']");
+    }
+
+    @Test
+    public void predicate_equivalentTo() {
+        JavaClass javaClass = importClasses(SuperClassWithFieldAndMethod.class, Parent.class).get(SuperClassWithFieldAndMethod.class);
+
+        assertThat(equivalentTo(SuperClassWithFieldAndMethod.class).apply(javaClass))
+                .as("predicate matches").isTrue();
+        assertThat(equivalentTo(Parent.class).apply(javaClass))
+                .as("predicate matches").isFalse();
+        assertThat(equivalentTo(Parent.class).getDescription())
+                .as("description").isEqualTo("equivalent to " + Parent.class.getName());
     }
 
     static JavaClass fakeClassWithPackage(String pkg) {

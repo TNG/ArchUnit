@@ -11,17 +11,20 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
-import com.tngtech.archunit.lang.conditions.CallPredicate;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.target;
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
@@ -61,8 +64,8 @@ public class ArchUnitArchitectureTest {
 
     private DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
-                callOrigin().is(annotatedWith(MayResolveTypesViaReflection.class))
-                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class));
+                origin(is(annotatedWith(MayResolveTypesViaReflection.class)))
+                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class)).forSubType();
 
         return classIsResolvedViaReflection().and(not(explicitlyAllowedUsage));
     }
@@ -87,7 +90,11 @@ public class ArchUnitArchitectureTest {
     }
 
     private DescribedPredicate<JavaCall<?>> classIsResolvedViaReflection() {
-        CallPredicate defaultClassForName = callTarget().isDeclaredIn(Class.class).hasName("forName");
+        DescribedPredicate<JavaCall<?>> defaultClassForName =
+                target(HasOwner.Functions.Get.<JavaClass>owner()
+                        .is(equivalentTo(Class.class)))
+                        .and(target(has(name("forName"))))
+                        .forSubType();
         DescribedPredicate<JavaCall<?>> targetIsMarked =
                 annotatedWith(ResolvesTypesViaReflection.class).onResultOf(Get.target());
 

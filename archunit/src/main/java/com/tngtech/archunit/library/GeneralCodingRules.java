@@ -8,6 +8,9 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.AccessTarget.Predicates.constructor;
+import static com.tngtech.archunit.core.AccessTarget.Predicates.declaredIn;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.originOwner;
 import static com.tngtech.archunit.core.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAPackage;
@@ -18,8 +21,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class GeneralCodingRules {
@@ -48,13 +50,13 @@ public class GeneralCodingRules {
 
     private static ArchCondition<JavaClass> throwGenericExceptions() {
         ArchCondition<JavaClass> creationOfThrowable =
-                callCodeUnitWhere(callTarget().isDeclaredIn(Throwable.class).isConstructor());
+                callCodeUnitWhere(target(is(constructor()).and(is(declaredIn(Throwable.class)))));
         ArchCondition<JavaClass> creationOfException =
-                callCodeUnitWhere(callTarget().isDeclaredIn(Exception.class).isConstructor()
-                        .and(not(callOrigin().isAssignableTo(Exception.class))));
+                callCodeUnitWhere(target(is(constructor()).and(is(declaredIn(Exception.class))))
+                        .and(not(originOwner(is(assignableTo(Exception.class))))));
         ArchCondition<JavaClass> creationOfRuntimeException =
-                callCodeUnitWhere(callTarget().isDeclaredIn(RuntimeException.class).isConstructor()
-                        .and(not(callOrigin().isAssignableTo(RuntimeException.class))));
+                callCodeUnitWhere(target(is(constructor()).and(is(declaredIn(RuntimeException.class))))
+                        .and(not(originOwner(is(assignableTo(RuntimeException.class))))));
 
         return creationOfThrowable.or(creationOfException).or(creationOfRuntimeException).as("throw generic exceptions");
     }

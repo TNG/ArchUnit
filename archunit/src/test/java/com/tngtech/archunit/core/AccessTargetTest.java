@@ -6,7 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.AccessTarget.Predicates.constructor;
+import static com.tngtech.archunit.core.AccessTarget.Predicates.declaredIn;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.TestUtils.withinImportedClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccessTargetTest {
@@ -61,15 +64,50 @@ public class AccessTargetTest {
                 .isFalse();
     }
 
+    @Test
+    public void predicate_declaredIn() {
+        JavaCall<?> call = simulateCall().from(Origin.class, "call").to(Target.class, "called");
+
+        assertThat(declaredIn(Target.class).apply(call.getTarget()))
+                .as("predicate matches").isTrue();
+        assertThat(declaredIn(Origin.class).apply(call.getTarget()))
+                .as("predicate matches").isFalse();
+        assertThat(declaredIn(Target.class).getDescription())
+                .as("description").isEqualTo("declared in " + Target.class.getName());
+    }
+
+    @Test
+    public void predicate_constructor() {
+        JavaCall<?> constructorCall = withinImportedClasses(Origin.class, Target.class)
+                .getCallFrom(Origin.class, "call")
+                .toConstructor(Target.class);
+        JavaCall<?> methodCall = withinImportedClasses(Origin.class, Target.class)
+                .getCallFrom(Origin.class, "call")
+                .toMethod(Target.class, "called");
+
+        simulateCall().from(Origin.class, "call").to(Target.class, "called");
+
+        assertThat(constructor().apply(constructorCall.getTarget()))
+                .as("predicate matches").isTrue();
+        assertThat(constructor().apply(methodCall.getTarget()))
+                .as("predicate matches").isFalse();
+        assertThat(constructor().getDescription())
+                .as("description").isEqualTo("constructor");
+    }
+
     private static class Origin {
         private Target target;
 
         void call() {
+            target = new Target();
             target.called();
         }
     }
 
     private static class Target {
+        Target() {
+        }
+
         @QueriedAnnotation
         void called() {
         }

@@ -6,14 +6,6 @@ public class ArchPredicates {
     private ArchPredicates() {
     }
 
-    public static CallPredicate callTarget() {
-        return CallPredicate.target();
-    }
-
-    public static CallPredicate callOrigin() {
-        return CallPredicate.origin();
-    }
-
     /**
      * This method is just syntactic sugar, e.g. to write aClass.that(is(special))
      *
