@@ -279,6 +279,7 @@ let recalculateVisible = (transformers, dependencies) => Array.from(transformers
 let recreateVisible = dependencies => {
   let after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
   dependencies.setVisibleDependencies(after);
+  dependencies.calcEndCoordinatesForVisibleDependencies();
 };
 
 let changeFold = (dependencies, type, callback) => {
@@ -321,6 +322,9 @@ let Dependencies = class {
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
     setForAllMustShareNodes(this._visibleDependencies);
+  }
+
+  calcEndCoordinatesForVisibleDependencies() {
     this._visibleDependencies.forEach(e => e.calcEndCoordinates());
   }
 

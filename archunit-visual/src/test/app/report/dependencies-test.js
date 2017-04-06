@@ -2,11 +2,15 @@
 
 require('./chai-extensions');
 const expect = require("chai").expect;
-const hierarchy = require("../../../main/app/report/lib/d3.js").hierarchy;
-const pack = require("../../../main/app/report/lib/d3.js").pack().size([500, 500]).padding(100);
+const packSiblings = require("../../../main/app/report/lib/d3.js").packSiblings;
+const packEnclose = require("../../../main/app/report/lib/d3.js").packEnclose;
 const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
 const jsonToDependencies = require("../../../main/app/report/dependencies.js").jsonToDependencies;
 const testJson = require("./test-json-creator");
+
+const CIRCLETEXTPADDING = 5;
+const CIRCLEPADDING = 10;
+const TEXTPOSITION = 0.8;
 
 let getNode = (root, fullname) => root.nodeMap.get(fullname);
 
@@ -36,14 +40,10 @@ let setupSimpleTestTree1 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
-  let d3root = hierarchy(root, d => d.currentChildren)
-      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
-      .sort((a, b) => b.value - a.value);
-  d3root = pack(d3root);
-  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
+  root.layout(packSiblings, packEnclose, CIRCLEPADDING, TEXTPOSITION);
   let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
+  deps.calcEndCoordinatesForVisibleDependencies();
   root.setDepsForAll(deps);
   return root;
 };
@@ -88,14 +88,10 @@ let setupSimpleTestTree2 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
-  let d3root = hierarchy(root, d => d.currentChildren)
-      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
-      .sort((a, b) => b.value - a.value);
-  d3root = pack(d3root);
-  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
+  root.layout(packSiblings, packEnclose, CIRCLEPADDING, TEXTPOSITION);
   let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
+  deps.calcEndCoordinatesForVisibleDependencies();
   root.setDepsForAll(deps);
   return root;
 };
@@ -173,14 +169,10 @@ let setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps = () => {
           .callingMethod("com.tngtech.test.subtest.subtestclass1", "startMethod()", "targetMethod()")
           .build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
-  let d3root = hierarchy(root, d => d.currentChildren)
-      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
-      .sort((a, b) => b.value - a.value);
-  d3root = pack(d3root);
-  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
+  root.layout(packSiblings, packEnclose, CIRCLEPADDING, TEXTPOSITION);
   let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
+  deps.calcEndCoordinatesForVisibleDependencies();
   root.setDepsForAll(deps);
   return root;
 };
@@ -221,14 +213,10 @@ let setupSimpleTestTree3 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
-  let d3root = hierarchy(root, d => d.currentChildren)
-      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
-      .sort((a, b) => b.value - a.value);
-  d3root = pack(d3root);
-  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
+  root.layout(packSiblings, packEnclose, CIRCLEPADDING, TEXTPOSITION);
   let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
+  deps.calcEndCoordinatesForVisibleDependencies();
   root.setDepsForAll(deps);
   return root;
 };

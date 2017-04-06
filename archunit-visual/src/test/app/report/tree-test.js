@@ -2,14 +2,20 @@
 
 require('./chai-extensions');
 const expect = require("chai").expect;
-const hierarchy = require("../../../main/app/report/lib/d3.js").hierarchy;
-const pack = require("../../../main/app/report/lib/d3.js").pack().size([500, 500]).padding(100);
+const packSiblings = require("../../../main/app/report/lib/d3.js").packSiblings;
+const packEnclose = require("../../../main/app/report/lib/d3.js").packEnclose;
 const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
 const testJson = require("./test-json-creator");
+
+const CIRCLETEXTPADDING = 5;
+const CIRCLEPADDING = 10;
+const TEXTPOSITION = 0.8;
 
 let allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
 
 let textwidth = n => n.length * 6;
+
+let radiusofleaf = leaf => textwidth(leaf.projectData.name) / 2 + CIRCLETEXTPADDING;
 
 let emptyDeps = {
   changeFold: () => {
@@ -28,8 +34,7 @@ let setupSimpleTestTree1 = () => {
       .add(testJson.clazz("class2", "class").build())
       .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -49,13 +54,8 @@ let setupSimpleTestTree2 = () => {
       .add(testJson.clazz("class2", "class").build())
       .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
-  let d3root = hierarchy(root, d => d.currentChildren)
-      .sum(d => d.currentChildren.length === 0 ? 10 : d.currentChildren.length)
-      .sort((a, b) => b.value - a.value);
-  d3root = pack(d3root);
-  d3root.descendants().forEach(d => d.data.initVisual(d.x, d.y, d.r));
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
+  root.layout(packSiblings, packEnclose, CIRCLEPADDING, TEXTPOSITION);
   root.setDepsForAll(emptyDeps);
   return root;
 };
@@ -71,8 +71,7 @@ let setupSimpleTestTree3 = () => {
           .add(testJson.clazz("subclass1", "interface").build())
           .build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.initialize(textwidth, 0.8, 5);
+  let root = jsonToRoot(simpleJsonTree, textwidth, CIRCLETEXTPADDING);
   root.getVisibleDescendants().forEach(n => n.initVisual(0, 0, 0));
   root.setDepsForAll(emptyDeps);
   return root;
@@ -138,10 +137,10 @@ describe("Node", () => {
   it("adapts radius on folding to minimum radius on the same level", () => {
     let root = setupSimpleTestTree2();
     let toFold = getNode(root, "com.tngtech.main");
-    let expRadius = Math.min.apply(Math, [getNode(root, "com.tngtech.class2").visualData.r,
+    let expRadius = Math.min.apply(Math, [toFold.visualData.r, getNode(root, "com.tngtech.class2").visualData.r,
       getNode(root, "com.tngtech.class3").visualData.r, getNode(root, "com.tngtech.test").visualData.r]);
     toFold.changeFold();
-    expRadius = Math.max(textwidth(toFold.projectData.name), expRadius);
+    expRadius = Math.max(radiusofleaf(toFold), expRadius);
     expect(toFold.visualData.r).to.equal(expRadius);
   });
 
@@ -234,6 +233,19 @@ describe("Node", () => {
 });
 
 describe("Tree", () => {
+  it("does the initial layout correct", () => {
+    let root = setupSimpleTestTree2();
+    let checkLayout = node => {
+      expect(node).to.haveTextWithinCircle(textwidth, CIRCLETEXTPADDING, TEXTPOSITION);
+      expect(node).to.haveChildrenWithinCircle(CIRCLEPADDING);
+      expect(node.origChildren).to.notOverlap(CIRCLEPADDING);
+      node.origChildren.forEach(c => {
+        checkLayout(c);
+      });
+    };
+    checkLayout(root);
+  });
+
   it("creates a correct node map", () => {
     let root = setupSimpleTestTree1();
     let allNodes1 = allNodes(root);
@@ -279,7 +291,6 @@ describe("Tree", () => {
     root.filterByName("test", false, false, false, true, false, true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.subtest"];
-    console.log(root.traverseTree());
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
 

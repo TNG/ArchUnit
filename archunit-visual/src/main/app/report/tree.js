@@ -1,7 +1,6 @@
 'use strict';
 
-let radiustotext;
-let TEXTPOSITION;
+let textwidth;
 let CIRCLETEXTPADDING;
 
 let ProjectData = class {
@@ -99,7 +98,7 @@ let getFoldedR = d => {
   if (!d.isRoot()) {
     d.parent.origChildren.forEach(e => foldedR = e.visualData.r < foldedR ? e.visualData.r : foldedR);
   }
-  let width = radiustotext(d.projectData.name);
+  let width = radiusofleaf(d.projectData.name);
   return Math.max(foldedR, width);
 };
 
@@ -127,9 +126,9 @@ let fold = (d, folded) => {
 let reapplyFilters = (n, filters) => {
   n.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), n.origChildren);
   n.filteredChildren.forEach(c => reapplyFilters(c, filters));
-    if (!n.isFolded) {
-      n.currentChildren = n.filteredChildren;
-    }
+  if (!n.isFolded) {
+    n.currentChildren = n.filteredChildren;
+  }
 };
 
 let changeRadius = (n, newR) => {
@@ -140,17 +139,33 @@ let changeRadius = (n, newR) => {
   n.deps.recalcEndCoordinatesOf(n.projectData.fullname);
 };
 
-let reclayout = (n, packSiblings, packEnclose, radius) => {
+let radiusofleaf = name => {
+  return textwidth(name) / 2 + CIRCLETEXTPADDING;
+};
+
+let radiusofanynode = (n, TEXTPOSITION) => {
+  let radius = radiusofleaf(n.projectData.name);
   if (n.isOrigLeaf()) {
-    n.initVisual(0, 0, radius(n));
+    return radius;
   }
   else {
-    n.origChildren.forEach(c => reclayout(c, packSiblings, packEnclose, radius));
+    return radius / Math.sqrt(1 - TEXTPOSITION * TEXTPOSITION);
+  }
+};
+
+let reclayout = (n, packSiblings, packEnclose, circpadding, textposition) => {
+  if (n.isOrigLeaf()) {
+    n.initVisual(0, 0, radiusofanynode(n, textposition));
+  }
+  else {
+    n.origChildren.forEach(c => reclayout(c, packSiblings, packEnclose, circpadding, textposition));
     let children = n.origChildren.map(c => c.visualData);
+    children.forEach(c => c.r += circpadding / 2);
     packSiblings(children);
     let circ = packEnclose(children);
+    children.forEach(c => c.r -= circpadding / 2);
     let childradius = children.length === 1 ? children[0].r : 0;
-    n.initVisual(circ.x, circ.y, Math.max(circ.r + CIRCLETEXTPADDING, radius(n), childradius / TEXTPOSITION));
+    n.initVisual(circ.x, circ.y, Math.max(circ.r, radiusofanynode(n, textposition), childradius / textposition));
     children.forEach(c => {
       c.dx = c.x - n.visualData.x;
       c.dy = c.y - n.visualData.y;
@@ -158,7 +173,7 @@ let reclayout = (n, packSiblings, packEnclose, radius) => {
   }
 };
 
-let calcPos = n => {
+let calcPosAndSetRadius = n => {
   if (n.isRoot()) {
     n.visualData.x = n.visualData.r;
     n.visualData.y = n.visualData.r;
@@ -169,8 +184,12 @@ let calcPos = n => {
       c.visualData.y = n.visualData.y + c.visualData.dy;
       c.visualData.dx = undefined;
       c.visualData.dy = undefined;
-      calcPos(c);
+      calcPosAndSetRadius(c);
     });
+  }
+
+  if (n.isFolded) {
+    n.visualData.r = getFoldedR(n);
   }
 };
 
@@ -186,15 +205,9 @@ let Node = class {
     this.filters = new Map();
   }
 
-  layout(packSiblings, packEnclose, radius) {
-    reclayout(this, packSiblings, packEnclose, radius);
-    calcPos(this);
-  }
-
-  initialize(radiustotextfunction, textposition, circletextpadding) {
-    radiustotext = radiustotextfunction;
-    TEXTPOSITION = textposition;
-    CIRCLETEXTPADDING = circletextpadding;
+  layout(packSiblings, packEnclose, circpadding, textposition) {
+    reclayout(this, packSiblings, packEnclose, circpadding, textposition);
+    calcPosAndSetRadius(this);
   }
 
   initVisual(x, y, r) {
@@ -379,7 +392,9 @@ let jsonToNode = (parent, jsonNode) => {
   return node;
 };
 
-let jsonToRoot = (jsonRoot) => {
+let jsonToRoot = (jsonRoot, textwidthfunction, circletextpadding) => {
+  textwidth = textwidthfunction;
+  CIRCLETEXTPADDING = circletextpadding;
   let root = jsonToNode(null, jsonRoot);
   initNodeMap(root);
   return root;

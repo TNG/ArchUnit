@@ -137,15 +137,18 @@
         </form>
     </div>
     <div class="menu">
-        <form action="#" onsubmit="return applyFontsizeMenu(this);" class="inputarea">
+        <form action="#" onsubmit="return applyOtherMenu(this);" class="inputarea">
             <fieldset class="inputs">
-                <legend>Fontsize settings (relayout on submit!):</legend>
+                <legend>Other settings (relayout on submit!):</legend>
                 Font-size for circle text:
                 <input class="number" name="circfontsize" value="12" min="0" max="50" step="1"><br>
+                Padding between circles:
+                <input class="number" name="circpadding" value="10" min="0" step="1"><br>
             </fieldset>
             <br>
             <input type="submit" value="submit">
             <input type="reset" value="reset">
+            <button type="button" onclick="relayout()">Relayout</button>
         </form>
     </div>
 </div>
@@ -158,6 +161,8 @@
   let FONTSIZE = 12;
   //padding between the text in a circle and the rim of the circle
   const CIRCLETEXTPADDING = 5;
+  //minimum padding between the circles
+  let CIRCLEPADDING = 10;
 
   //defines after which proportion of the circle the text is positioned; only affects nodes
   const TEXTPOSITION = 0.8;
@@ -174,46 +179,36 @@
       gTree = svg.append("g").attr("transform", "translate(2,2)"),
       gEdges = svg.append("g").attr("transform", "translate(2,2)");
 
+  let textwidth = text => {
+    d3.select("#tester").style("display", "inline");
+    let tester = d3.select("#tester").select("text");
+    tester.text(text);
+    tester.style("font-size", FONTSIZE);
+    let width = tester.node().getBBox().width;
+    d3.select("#tester").style("display", "none");
+    return width;
+  };
+
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
 
-    root = jsonToRoot(jsonroot);
-
-    let textwidth = text => {
-      d3.select("#tester").style("display", "inline");
-      let tester = d3.select("#tester").select("text");
-      tester.text(text);
-      tester.style("font-size", FONTSIZE);
-      let width = tester.node().getBBox().width;
-      d3.select("#tester").style("display", "none");
-      return width;
-    };
-
-    root.initialize(text => {
-      let halfwidth = textwidth(text) / 2;
-      return halfwidth + CIRCLETEXTPADDING;
-    }, TEXTPOSITION, CIRCLETEXTPADDING);
-    let radius = n => {
-      let halfwidth = textwidth(n.projectData.name) / 2;
-      if (n.isOrigLeaf()) {
-        return halfwidth + CIRCLETEXTPADDING;
-      }
-      else {
-        return halfwidth / Math.sqrt(1 - TEXTPOSITION * TEXTPOSITION);
-      }
-    };
-    root.layout(d3.packSiblings, d3.packEnclose, radius);
-
+    root = jsonToRoot(jsonroot, textwidth, CIRCLETEXTPADDING);
     let deps = jsonToDependencies(jsonroot, root.nodeMap);
     root.setDepsForAll(deps);
 
-    svg.attr("width", 2 * root.visualData.r + 4);
-    svg.attr("height", 2 * root.visualData.r + 4);
+    layout();
 
     initializeGraph();
     root.foldAllExceptRoot();
     updateVisualizationAfterFold(root);
   });
+
+  function layout() {
+    root.layout(d3.packSiblings, d3.packEnclose, CIRCLEPADDING, TEXTPOSITION);
+    root.deps.calcEndCoordinatesForVisibleDependencies();
+    svg.attr("width", 2 * root.visualData.r + 4);
+    svg.attr("height", 2 * root.visualData.r + 4);
+  }
 
   function initializeGraph() {
     initializeTree();
@@ -258,8 +253,8 @@
   }
 
   function initializeDeps() {
-    var defs = svg.append("defs");
-    var marker = defs.append("marker")
+    const defs = svg.append("defs");
+    const marker = defs.append("marker")
         .attr("id", "end_arrow")
         .attr("viewBox", '0 -5 10 10')
         .attr("refX", 10)
@@ -274,12 +269,6 @@
 
   function createNewEdges(selection) {
     let newEdges = selection.append("g");
-
-    newEdges.filter(e => e.hasDescription())
-        .on("click", function (e) {
-          let t = d3.select(this).select("text");
-          t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
-        });
 
     newEdges
         .append("line")
@@ -302,7 +291,11 @@
         .attr("x1", e => e.startPoint[0])
         .attr("y1", e => e.startPoint[1])
         .attr("x2", e => e.endPoint[0])
-        .attr("y2", e => e.endPoint[1]);
+        .attr("y2", e => e.endPoint[1])
+        .on("click", function (e) {
+          let t = d3.select(d3.select(this).node().parentNode).select("text");
+          t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
+        });
 
     newEdges
         .append("title")
@@ -322,7 +315,6 @@
       let group = d3.select(this);
       let text = group.select("text");
       if (d.isRoot()) {
-        //text.style("font-size", FONTSIZE);
         text.attr("dy", -d.visualData.r + FONTSIZE);
       }
       else {
@@ -332,9 +324,9 @@
   }
 
   function positionText(text, circ, d) {
-    //text.attr("dy", 0); //TODO: neu
     let textDom = text.node();
     let r = d.visualData.r;
+    //mit transform wsl überflüssig
     let transform = circ.attr("transform");
     if (transform) {
       let scale = parseInt(transform.split("(")[1].split(")")[0]);
@@ -381,10 +373,11 @@
     nodes.style("visibility", "visible");
     nodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
     nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
-    nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
+      /*nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
       let group = d3.select(this);
       positionText(group.select("text"), group.select("circle"), d)
-    });
+       });*/
+    positionTextOfAllNodes(nodes.filter(filter));
   }
 
   function updateEdges() {
@@ -397,16 +390,12 @@
 
   function hideEdges(edges) {
     edges.style("visibility", "hidden");
-    edges.style("pointer-events", "none");
     edges.select("#area").style("pointer-events", "none");
   }
 
   function showEdges(edges) {
     edges.style("visibility", "visible");
-    edges.select("#area").style("pointer-events", "all");
     edges.select("line").attr("class", e => e.getClass());
-
-    edges.style("pointer-events", e => e.hasDescription() ? "all" : "none");
     edges.select("#area").style("pointer-events", e => e.hasDescription() ? "all" : "none");
     let t = edges.select("text");
     t.style("visibility", function (e) {
@@ -538,14 +527,20 @@
     return false;
   }
 
-  function applyFontsizeMenu(form) {
+  function applyOtherMenu(form) {
     FONTSIZE = parseInt(form.circfontsize.value);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
     setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + FONTSIZE + 'px; }');
-    //positionTextOfAllNodes(gTree.selectAll("g").filter(n => n.isChildOf(root)));
-    //updateVisualizationAfterFold(root);
+    CIRCLEPADDING = parseInt(form.circpadding.value);
+    layout();
+    updateWholeVisualization();
     return false;
+  }
+
+  function relayout() {
+    layout();
+    updateWholeVisualization();
   }
 </script>
 </body>
