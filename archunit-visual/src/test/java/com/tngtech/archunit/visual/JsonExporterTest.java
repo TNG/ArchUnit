@@ -29,7 +29,7 @@ public class JsonExporterTest {
         JavaClasses classes = importClasses(EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContextBuilder()
+        jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = JsonConverter.getJsonFile("./testjson/empty-class.json");
@@ -42,7 +42,7 @@ public class JsonExporterTest {
         JavaClasses classes = importClasses(EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContextBuilder()
+        jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .includeEverything().build());
 
         File expectedJson = JsonConverter.getJsonFile("./testjson/empty-class-everything.json");
@@ -56,7 +56,7 @@ public class JsonExporterTest {
                 EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContextBuilder()
+        jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .ignoreAccessToSuperConstructor()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
@@ -71,7 +71,7 @@ public class JsonExporterTest {
                 EmptyClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContextBuilder()
+        jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = JsonConverter.getJsonFile("./testjson/simpleinheritstructure2.json");
@@ -86,7 +86,7 @@ public class JsonExporterTest {
                 .getFile()).getParentFile().toPath().toUri().toURL());
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContextBuilder()
+        jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson")
                 .ignoreAccessToSuperConstructor().build());
 

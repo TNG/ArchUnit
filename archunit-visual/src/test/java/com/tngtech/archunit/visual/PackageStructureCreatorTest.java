@@ -1,12 +1,12 @@
 package com.tngtech.archunit.visual;
 
-import org.junit.Test;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -14,24 +14,22 @@ import static org.junit.Assert.assertTrue;
 public class PackageStructureCreatorTest {
     @Test
     public void testCreatePackage() throws Exception {
-        Method createPackage = PackageStructureCreator.class.getDeclaredMethod("createPackage", String.class, boolean.class, String.class);
-        createPackage.setAccessible(true);
-
-        JsonJavaPackage act = (JsonJavaPackage) createPackage.invoke(null, "com", false, "com.tngtech");
+        JsonJavaPackage act = PackageStructureCreator.createPackage("com", false, "com.tngtech");
         assertTrue("creating new package not working for one subpackage",
                 hasNameAndFullname(act, "tngtech", "com.tngtech"));
 
-        act = (JsonJavaPackage) createPackage.invoke(null, "com", false, "com.tngtech.pkg.subpkg");
+        act = PackageStructureCreator.createPackage("com", false, "com.tngtech.pkg.subpkg");
         assertTrue("creating new package not working for several subpackages",
                 hasNameAndFullname(act, "tngtech", "com.tngtech"));
 
-        act = (JsonJavaPackage) createPackage.invoke(null, "default", true, "com.tngtech");
+        act = PackageStructureCreator.createPackage("default", true, "com.tngtech");
         assertTrue("creating new package not working for several subpackages and default root",
                 hasNameAndFullname(act, "com", "com"));
     }
 
     @Test
     public void testCreatePackageStructure() throws Exception {
+        // FIXME: Don't test private methods, it's shady ;-)
         Method createPackageStructure = PackageStructureCreator.class.getDeclaredMethod("createPackageStructure", Set.class);
         createPackageStructure.setAccessible(true);
 
