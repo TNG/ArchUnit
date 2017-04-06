@@ -9,6 +9,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyFirstClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyFirstClass;
@@ -57,6 +58,17 @@ public class ArchitecturesTest {
                 .as("overridden");
 
         assertThat(architecture.getDescription()).isEqualTo("overridden");
+    }
+
+    @Test
+    public void because_clause_on_layered_architecture() {
+        ArchRule architecture = layeredArchitecture()
+                .layer("One").definedBy("some.pkg..")
+                .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                .as("overridden")
+                .because("some reason");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
     }
 
     @Test

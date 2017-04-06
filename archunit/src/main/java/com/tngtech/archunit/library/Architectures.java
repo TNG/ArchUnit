@@ -130,6 +130,11 @@ public class Architectures {
         }
 
         @Override
+        public ArchRule because(String reason) {
+            return ArchRule.Factory.withBecause(this, reason);
+        }
+
+        @Override
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(layerDefinitions, dependencySpecifications, Optional.of(newDescription));
         }

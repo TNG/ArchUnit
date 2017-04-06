@@ -280,6 +280,11 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
+    public ArchRule because(String reason) {
+        return ArchRule.Factory.withBecause(this, reason);
+    }
+
+    @Override
     public ArchRule as(String description) {
         return finishedRule.get().as(description);
     }

@@ -61,6 +61,11 @@ class ObjectsShouldInternal<T> implements ArchRule {
     }
 
     @Override
+    public ArchRule because(String reason) {
+        return ArchRule.Factory.withBecause(this, reason);
+    }
+
+    @Override
     public ArchRule as(String newDescription) {
         return finishedRule.get().as(newDescription);
     }

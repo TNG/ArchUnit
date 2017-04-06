@@ -94,6 +94,23 @@ public class ArchRuleTest {
         assertThat(failures).contains("rule text overridden");
     }
 
+    @Test
+    public void because_clause_can_be_added_to_description() {
+        ArchRule rule = all(classes()).should(ALWAYS_BE_VIOLATED).because("this is the way");
+
+        assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
+
+        rule = ArchRule.Factory.create(classes(), ALWAYS_BE_VIOLATED, Priority.MEDIUM).because("this is the way");
+
+        assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
+
+        rule = ArchRuleDefinition.classes().should().access().classesThat().areNamed("foo")
+                .because("this is the way");
+
+        assertThat(rule.getDescription()).isEqualTo(
+                "classes should access classes that are named 'foo', because this is the way");
+    }
+
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {
         File ignoreFile = ignoreFile();
         ignoreFile.delete();

@@ -39,6 +39,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRule> {
     void check(JavaClasses classes);
 
+    ArchRule because(String reason);
+
     class Assertions {
         static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
 
@@ -98,6 +100,10 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>absent());
         }
 
+        public static ArchRule withBecause(ArchRule rule, String reason) {
+            return rule.as(rule.getDescription() + ", because " + reason);
+        }
+
         private static class SimpleArchRule<T> implements ArchRule {
             private final Priority priority;
             private final ClassesTransformer<T> classesTransformer;
@@ -121,6 +127,11 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             public void check(JavaClasses classes) {
                 EvaluationResult result = evaluate(classes);
                 Assertions.assertNoViolation(result, priority);
+            }
+
+            @Override
+            public ArchRule because(String reason) {
+                return withBecause(this, reason);
             }
 
             @Override
