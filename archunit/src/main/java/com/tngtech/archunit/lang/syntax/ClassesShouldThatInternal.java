@@ -16,11 +16,14 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 
+import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
+import static com.tngtech.archunit.lang.syntax.ClassesThatPredicates.implementPredicate;
 
 class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConjunction {
     private final ClassesShouldInternal classesShould;
@@ -89,6 +92,36 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     @Override
     public ClassesShouldConjunction areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return shouldWith(are(not(annotatedWith(predicate))));
+    }
+
+    @Override
+    public ClassesShouldConjunction implement(Class<?> type) {
+        return shouldWith(implementPredicate(assignableTo(type)));
+    }
+
+    @Override
+    public ClassesShouldConjunction dontImplement(Class<?> type) {
+        return shouldWith(dont(implementPredicate(assignableTo(type))));
+    }
+
+    @Override
+    public ClassesShouldConjunction implement(String typeName) {
+        return shouldWith(implementPredicate(assignableTo(typeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction dontImplement(String typeName) {
+        return shouldWith(dont(implementPredicate(assignableTo(typeName))));
+    }
+
+    @Override
+    public ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate) {
+        return shouldWith(implementPredicate(assignableTo(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction dontImplement(DescribedPredicate<? super JavaClass> predicate) {
+        return shouldWith(dont(implementPredicate(assignableTo(predicate))));
     }
 
     @Override

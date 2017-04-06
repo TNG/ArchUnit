@@ -367,8 +367,7 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> implement(Class<?> interfaceType) {
-        return createImplementsCondition(implementsPredicate(assignableTo(interfaceType))
-                .as("implement %s", interfaceType.getName()));
+        return createImplementsCondition(implementPredicate(assignableTo(interfaceType)));
     }
 
     public static ArchCondition<JavaClass> notImplement(Class<?> interfaceType) {
@@ -376,8 +375,7 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> implement(String interfaceTypeName) {
-        return createImplementsCondition(implementsPredicate(assignableTo(interfaceTypeName))
-                .as("implement %s", interfaceTypeName));
+        return createImplementsCondition(implementPredicate(assignableTo(interfaceTypeName)));
     }
 
     public static ArchCondition<JavaClass> notImplement(String interfaceTypeName) {
@@ -385,16 +383,17 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
-        return createImplementsCondition(implementsPredicate(assignableTo(predicate))
-                .as("implement %s", predicate.getDescription()));
+        return createImplementsCondition(implementPredicate(assignableTo(predicate)));
     }
 
     public static ArchCondition<JavaClass> notImplement(DescribedPredicate<? super JavaClass> predicate) {
         return not(implement(predicate));
     }
 
-    private static DescribedPredicate<JavaClass> implementsPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
-        return DescribedPredicate.not(INTERFACES).and(assignablePredicate);
+    // Conscious copy to keep visibility reduced -> ClassesThatPredicates
+    private static DescribedPredicate<JavaClass> implementPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
+        return DescribedPredicate.not(INTERFACES).and(assignablePredicate)
+                .as(assignablePredicate.getDescription().replace("assignable to", "implement"));
     }
 
     private static ArchCondition<JavaClass> createImplementsCondition(final DescribedPredicate<? super JavaClass> implement) {

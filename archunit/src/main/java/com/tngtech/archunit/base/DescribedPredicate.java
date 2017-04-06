@@ -104,6 +104,10 @@ public abstract class DescribedPredicate<T> {
         };
     }
 
+    public static <T> DescribedPredicate<T> dont(final DescribedPredicate<T> predicate) {
+        return not(predicate).as("don't %s", predicate.getDescription());
+    }
+
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<T> predicate) {
         checkNotNull(predicate);
         return new DescribedPredicate<T>("not " + predicate.getDescription()) {

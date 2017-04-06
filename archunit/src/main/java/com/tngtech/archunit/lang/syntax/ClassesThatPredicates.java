@@ -6,7 +6,9 @@ import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.core.properties.HasModifiers;
 import com.tngtech.archunit.core.properties.HasName;
 
+import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.JavaModifier.PROTECTED;
@@ -71,8 +73,7 @@ class ClassesThatPredicates {
     }
 
     static DescribedPredicate<JavaClass> dontHaveSimpleName(String name) {
-        DescribedPredicate<JavaClass> haveSimpleName = have(simpleName(name));
-        return not(haveSimpleName).as("don't " + haveSimpleName.getDescription());
+        return dont(have(simpleName(name)));
     }
 
     static DescribedPredicate<HasModifiers> haveModifier(JavaModifier modifier) {
@@ -80,7 +81,12 @@ class ClassesThatPredicates {
     }
 
     static DescribedPredicate<HasModifiers> dontHaveModifier(JavaModifier modifier) {
-        DescribedPredicate<HasModifiers> haveModifier = have(modifier(modifier));
-        return not(haveModifier).as("don't " + haveModifier.getDescription());
+        return dont(have(modifier(modifier)));
+    }
+
+    // Conscious copy to keep visibility reduced -> ArchConditions
+    static DescribedPredicate<JavaClass> implementPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
+        return not(INTERFACES).and(assignablePredicate)
+                .as(assignablePredicate.getDescription().replace("assignable to", "implement"));
     }
 }

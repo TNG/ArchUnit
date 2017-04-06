@@ -211,6 +211,60 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
+     * Matches classes that implement a certain interface.
+     *
+     * @param type An interface type matching classes must implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION implement(Class<?> type);
+
+    /**
+     * Matches classes that don't implement a certain interface. This is the negation of {@link #implement(Class)}.
+     *
+     * @param type An interface type matching classes must not implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION dontImplement(Class<?> type);
+
+    /**
+     * Matches classes that implement a certain interface with the given type name. This is equivalent to
+     * {@link #implement(Class)}, but doesn't depend on having a certain type on the classpath.
+     *
+     * @param typeName Name of an interface type matching classes must implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION implement(String typeName);
+
+    /**
+     * Matches classes that don't implement a certain interface with the given type name.
+     * This is equivalent to {@link #dontImplement(Class)}, but doesn't depend on having a certain
+     * type on the classpath.
+     *
+     * @param typeName Name of an interface type matching classes must not implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION dontImplement(String typeName);
+
+    /**
+     * Matches classes that implement a certain interface matching the given predicate. For example, a call with
+     * {@link HasName.Predicates#name(String)} would be equivalent to
+     * {@link #implement(String)}, but the approach is a lot more generic.
+     *
+     * @param predicate A predicate identifying interfaces matching classes must implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION implement(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Matches classes that don't implement a certain interface matching the given predicate.
+     * This is the negation of {@link #implement(DescribedPredicate)}.
+     *
+     * @param predicate A predicate identifying interfaces matching classes must not implement
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
      * Matches classes assignable to a certain type (compare {@link Class#isAssignableFrom(Class)} to terminology).
      * A simple example for this predicate would be
      * <pre><code>

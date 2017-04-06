@@ -22,6 +22,8 @@ import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 
+@Deprecated
+// FIXME: Now that we have the fluent API, we should just be consistent -> either use the API or build your predicates from elementary pieces
 public class CallPredicate extends DescribedPredicate<JavaCall<?>> {
     private final CombinedCallPredicate predicate;
     private Modification<?> modification;

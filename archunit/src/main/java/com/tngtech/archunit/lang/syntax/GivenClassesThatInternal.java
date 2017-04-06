@@ -9,11 +9,14 @@ import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
+import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
+import static com.tngtech.archunit.lang.syntax.ClassesThatPredicates.implementPredicate;
 
 class GivenClassesThatInternal implements GivenClassesThat {
     private final GivenClassesInternal givenClasses;
@@ -79,6 +82,36 @@ class GivenClassesThatInternal implements GivenClassesThat {
     }
 
     @Override
+    public GivenClassesConjunction implement(Class<?> type) {
+        return givenWith(implementPredicate(assignableTo(type)));
+    }
+
+    @Override
+    public GivenClassesConjunction dontImplement(Class<?> type) {
+        return givenWith(dont(implementPredicate(assignableTo(type))));
+    }
+
+    @Override
+    public GivenClassesConjunction implement(String typeName) {
+        return givenWith(implementPredicate(assignableTo(typeName)));
+    }
+
+    @Override
+    public GivenClassesConjunction dontImplement(String typeName) {
+        return givenWith(dont(implementPredicate(assignableTo(typeName))));
+    }
+
+    @Override
+    public GivenClassesConjunction implement(DescribedPredicate<? super JavaClass> predicate) {
+        return givenWith(implementPredicate(assignableTo(predicate)));
+    }
+
+    @Override
+    public GivenClassesConjunction dontImplement(DescribedPredicate<? super JavaClass> predicate) {
+        return givenWith(dont(implementPredicate(assignableTo(predicate))));
+    }
+
+    @Override
     public GivenClassesConjunction haveNameMatching(String regex) {
         return givenWith(have(nameMatching(regex)));
     }
@@ -90,32 +123,32 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction areAssignableTo(Class<?> type) {
-        return givenWith(are(JavaClass.Predicates.assignableTo(type)));
+        return givenWith(are(assignableTo(type)));
     }
 
     @Override
     public GivenClassesConjunction areNotAssignableTo(Class<?> type) {
-        return givenWith(are(not(JavaClass.Predicates.assignableTo(type))));
+        return givenWith(are(not(assignableTo(type))));
     }
 
     @Override
     public GivenClassesConjunction areAssignableTo(String typeName) {
-        return givenWith(are(JavaClass.Predicates.assignableTo(typeName)));
+        return givenWith(are(assignableTo(typeName)));
     }
 
     @Override
     public GivenClassesConjunction areNotAssignableTo(String typeName) {
-        return givenWith(are(not(JavaClass.Predicates.assignableTo(typeName))));
+        return givenWith(are(not(assignableTo(typeName))));
     }
 
     @Override
     public GivenClassesConjunction areAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return givenWith(are(JavaClass.Predicates.assignableTo(predicate)));
+        return givenWith(are(assignableTo(predicate)));
     }
 
     @Override
     public GivenClassesConjunction areNotAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return givenWith(are(not(JavaClass.Predicates.assignableTo(predicate))));
+        return givenWith(are(not(assignableTo(predicate))));
     }
 
     @Override

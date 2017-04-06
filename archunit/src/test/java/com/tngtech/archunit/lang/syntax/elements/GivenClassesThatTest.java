@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -257,6 +258,54 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void implement_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().implement(Collection.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+    }
+
+    @Test
+    public void dontImplement_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(Collection.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void implement_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().implement(Collection.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+    }
+
+    @Test
+    public void dontImplement_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(Collection.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void implement_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().implement(classWithNameOf(Collection.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+    }
+
+    @Test
+    public void dontImplement_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(classWithNameOf(Collection.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
     public void areAssignableTo_type() {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(Collection.class))
                 .on(List.class, String.class, Iterable.class);
@@ -290,8 +339,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areAssignableTo_predicate() {
-        DescribedPredicate<HasName> hasNamePredicate = GET_NAME.is(equalTo(Collection.class.getName()));
-        List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(hasNamePredicate))
+        List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
@@ -299,8 +347,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areNotAssignableTo_predicate() {
-        DescribedPredicate<HasName> hasNamePredicate = GET_NAME.is(equalTo(Collection.class.getName()));
-        List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableTo(hasNamePredicate))
+        List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableTo(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
@@ -340,8 +387,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areAssignableFrom_predicate() {
-        DescribedPredicate<HasName> predicate = GET_NAME.is(equalTo(Collection.class.getName()));
-        List<JavaClass> classes = filterResultOf(classes().that().areAssignableFrom(predicate))
+        List<JavaClass> classes = filterResultOf(classes().that().areAssignableFrom(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
@@ -349,11 +395,14 @@ public class GivenClassesThatTest {
 
     @Test
     public void areNotAssignableFrom_predicate() {
-        DescribedPredicate<HasName> predicate = GET_NAME.is(equalTo(Collection.class.getName()));
-        List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableFrom(predicate))
+        List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableFrom(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(List.class, String.class);
+    }
+
+    private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
+        return GET_NAME.is(equalTo(type.getName()));
     }
 
     private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
