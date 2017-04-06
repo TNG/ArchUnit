@@ -6,10 +6,51 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.properties.HasType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaAnnotation {
+/**
+ * Represents an imported annotation on an annotated object like a class or a method. To be
+ * independent of the classpath, all properties of this annotation are just stored as a simple
+ * key value pairs. I.e. if you consider
+ * <pre><code>
+ *  {@literal @}MyAnnotation(name = "some name", anAttribute = 7)
+ *   class MyClass {}
+ * </code></pre>
+ * this annotation will be imported storing the association
+ * <pre><code>
+ *   name -> "some name"
+ *   anAttribute -> 7
+ * </code></pre>
+ * Properties will be made available via {@link #get(String)}, e.g.
+ * <pre><code>
+ *   myAnnotation.get("anAttribute")
+ * </code></pre>
+ * will return the value 7. Since this behavior is inconvenient (loss of type safety),
+ * there is another approach to retrieve these values, if the annotation can
+ * be resolved on the classpath. It's then possible to access a simple proxy
+ * <pre><code>
+ *   MyAnnotation moreConvenient = myAnnotation.as(MyAnnotation.class);
+ *   moreConvenient.anAttribute(); // -> returns 7
+ * </code></pre>
+ * ----------<br>
+ * NOTE<br>
+ * ----------<br>
+ * ArchUnit holds the annotation in a classpath independent representation, i.e. some types will
+ * be mapped, when the access is proxied. Consider
+ * <pre><code>
+ *  {@literal @}SomeAnnotation(type = String.class)
+ *   class MyClass {}
+ * </code></pre>
+ * Accesses to 'type' will be different for the proxied version:
+ * <pre><code>
+ *   someAnnotation.get("type"); // -> returns JavaClass{String}
+ *   someAnnotation.as(SomeAnnotation.class).type(); // -> returns String.class
+ * </code></pre>
+ */
+public class JavaAnnotation implements HasType {
     private final JavaClass type;
     private final Map<String, Object> values;
 
@@ -18,6 +59,7 @@ public class JavaAnnotation {
         this.values = checkNotNull(values);
     }
 
+    @Override
     public JavaClass getType() {
         return type;
     }
@@ -30,7 +72,7 @@ public class JavaAnnotation {
      * </code></pre>
      * the results will be
      * <pre><code>       someAnnotation.get("value") -> "someString"
-     * someAnnotation.get("types") -> [TypeDetails{SomeType}, TypeDetails{AnotherType}]
+     * someAnnotation.get("types") -> [JavaClass{SomeType}, JavaClass{AnotherType}]
      * </code></pre>
      *
      * @param property The name of the annotation property, i.e. the declared method name
@@ -116,7 +158,7 @@ public class JavaAnnotation {
         }
     }
 
-    static abstract class ValueBuilder {
+    abstract static class ValueBuilder {
         abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
 
         static ValueBuilder ofFinished(final Object value) {

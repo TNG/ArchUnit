@@ -1,11 +1,12 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.base.Function;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.DescribedPredicate.alwaysFalse;
-import static com.tngtech.archunit.core.DescribedPredicate.alwaysTrue;
-import static com.tngtech.archunit.core.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class DescribedPredicateTest {

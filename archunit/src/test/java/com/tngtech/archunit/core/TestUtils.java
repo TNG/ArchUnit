@@ -4,7 +4,6 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,11 +15,14 @@ import java.util.Random;
 import java.util.Set;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
@@ -33,6 +35,7 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.Formatters.formatMethod;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
@@ -59,10 +62,11 @@ public class TestUtils {
         return folder;
     }
 
-    public static Object invoke(Method method, Object owner) {
+    public static Object invoke(Method method, Object owner, Object... params) {
         try {
-            return method.invoke(owner);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            method.setAccessible(true);
+            return method.invoke(owner, params);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -81,8 +85,8 @@ public class TestUtils {
 
     public static JavaMethod javaMethodViaReflection(JavaClass clazz, Method method) {
         return new JavaMethod.Builder()
-                .withReturnType(Type.getType(method.getReturnType()))
-                .withParameters(allTypesIn(method.getParameterTypes()))
+                .withReturnType(JavaType.From.name(method.getReturnType().getName()))
+                .withParameters(typesFrom(method.getParameterTypes()))
                 .withName(method.getName())
                 .withDescriptor(Type.getMethodDescriptor(method))
                 .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations()))
@@ -92,6 +96,31 @@ public class TestUtils {
 
     static ImportedTestClasses simpleImportedClasses() {
         return new ImportedTestClasses();
+    }
+
+    public static JavaClassList javaClassList(Class<?>... types) {
+        List<JavaClass> classes = new ArrayList<>();
+        for (Class<?> type : types) {
+            classes.add(javaClassViaReflection(type));
+        }
+        return new JavaClassList(classes);
+    }
+
+    public static FieldAccessTarget fieldAccessTarget(Class<?> ownerType, String fieldName, Class<?> fieldType) {
+        return fieldAccessTarget(ownerType, fieldName, javaClassViaReflection(fieldType));
+    }
+
+    public static FieldAccessTarget fieldAccessTarget(Class<?> ownerType, String fieldName, JavaClass fieldType) {
+        return new FieldAccessTarget(javaClassViaReflection(ownerType), fieldName, fieldType,
+                Suppliers.ofInstance(Optional.<JavaField>absent()));
+    }
+
+    public static JavaClasses importClasses(Class<?>... classes) {
+        return new ClassFileImporter().importClasses(classes);
+    }
+
+    public static ImportedContext withinImportedClasses(Class<?>... contextClasses) {
+        return new ImportedContext(importClasses(contextClasses));
     }
 
     private static class ImportedTestClasses implements ImportedClasses.ByTypeName {
@@ -130,14 +159,6 @@ public class TestUtils {
                 .build();
     }
 
-    private static Type[] allTypesIn(Class<?>[] types) {
-        Type[] result = new Type[types.length];
-        for (int i = 0; i < types.length; i++) {
-            result[i] = Type.getType(types[i]);
-        }
-        return result;
-    }
-
     public static JavaClass javaClassViaReflection(Class<?> owner) {
         return getOnlyElement(javaClassesViaReflection(owner));
     }
@@ -148,8 +169,12 @@ public class TestUtils {
                 .withDescriptor(Type.getDescriptor(field.getType()))
                 .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
                 .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                .withType(Type.getType(field.getType()))
+                .withType(JavaType.From.name(field.getType().getName()))
                 .build(owner, simpleImportedClasses());
+    }
+
+    public static JavaField javaFieldViaReflection(Class<?> owner, String name) {
+        return javaFieldViaReflection(javaClassViaReflection(owner), name);
     }
 
     public static JavaField javaFieldViaReflection(JavaClass owner, String name) {
@@ -172,9 +197,8 @@ public class TestUtils {
         ImportContext context = simulateContextForCompletion(importedClasses);
         for (JavaClass javaClass : result.values()) {
             javaClass.completeClassHierarchyFrom(context);
-            javaClass.completeFrom(context).completeCodeUnitsFrom(context);
         }
-        return new JavaClasses(result);
+        return JavaClasses.of(result, context);
     }
 
     private static ImportContext simulateContextForCompletion(final ImportedTestClasses importedClasses) {
@@ -268,7 +292,7 @@ public class TestUtils {
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), importedClasses))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(Type.getType(field.getType())));
+                    .withType(JavaType.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }
@@ -277,7 +301,7 @@ public class TestUtils {
         final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new JavaMethod.Builder()
-                    .withReturnType(Type.getType(method.getReturnType()))
+                    .withReturnType(JavaType.From.name(method.getReturnType().getName()))
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
@@ -291,7 +315,7 @@ public class TestUtils {
         final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new JavaConstructor.Builder()
-                    .withReturnType(Type.getType(void.class))
+                    .withReturnType(JavaType.From.name(void.class.getName()))
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
@@ -309,12 +333,12 @@ public class TestUtils {
         return result.build();
     }
 
-    private static Type[] typesFrom(Class<?>[] classes) {
-        ArrayList<Type> result = new ArrayList<>();
+    private static List<JavaType> typesFrom(Class<?>[] classes) {
+        List<JavaType> result = new ArrayList<>();
         for (Class<?> clazz : classes) {
-            result.add(Type.getType(clazz));
+            result.add(JavaType.From.name(clazz.getName()));
         }
-        return result.toArray(new Type[classes.length]);
+        return result;
     }
 
     public static AccessesSimulator simulateCall() {
@@ -341,16 +365,24 @@ public class TestUtils {
         return new ConstructorCallTarget(
                 target.getOwner(),
                 target.getParameters(),
-                Suppliers.ofInstance(Optional.of(target)));
+                target.getReturnType(), Suppliers.ofInstance(Optional.of(target)));
     }
 
-    static MethodCallTarget targetFrom(JavaMethod target) {
+    static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
+        return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.singleton(target)));
+    }
+
+    static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
+        return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
+    }
+
+    private static MethodCallTarget resolvedTargetFrom(JavaMethod target, Supplier<Set<JavaMethod>> resolveSupplier) {
         return new MethodCallTarget(
                 target.getOwner(),
                 target.getName(),
                 target.getParameters(),
                 target.getReturnType(),
-                Suppliers.ofInstance(Collections.singleton(target)));
+                resolveSupplier);
     }
 
     static Class[] asClasses(List<JavaClass> parameters) {
@@ -485,21 +517,29 @@ public class TestUtils {
         }
 
         public JavaMethodCall to(JavaMethod target) {
-            targets.add(new TestAccessRecord<>(targetFrom(target)));
+            return to(resolvedTargetFrom(target));
+        }
+
+        private JavaMethodCall to(MethodCallTarget methodCallTarget) {
+            targets.add(new TestAccessRecord<>(methodCallTarget));
             ClassGraphCreator context = mock(ClassGraphCreator.class);
             when(context.getMethodCallRecordsFor(method)).thenReturn(ImmutableSet.copyOf(targets));
             method.completeFrom(context);
-            return getCallToTarget(target);
+            return getCallToTarget(methodCallTarget);
         }
 
-        public JavaCall<?> to(Class<?> clazz, String methodName, Class<?>... params) {
-            return to(javaMethodViaReflection(clazz, methodName, params));
+        public JavaMethodCall to(Class<?> clazz, String methodName, Class<?>... params) {
+            return to(resolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
         }
 
-        private JavaMethodCall getCallToTarget(JavaMethod target) {
+        public JavaMethodCall toUnresolved(Class<?> clazz, String methodName, Class<?>... params) {
+            return to(unresolvedTargetFrom(javaMethodViaReflection(clazz, methodName, params)));
+        }
+
+        private JavaMethodCall getCallToTarget(MethodCallTarget callTarget) {
             Set<JavaMethodCall> matchingCalls = new HashSet<>();
             for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
-                if (call.getTarget().equals(targetFrom(target))) {
+                if (call.getTarget().equals(callTarget)) {
                     matchingCalls.add(call);
                 }
             }
@@ -610,6 +650,53 @@ public class TestUtils {
         @Override
         public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
+        }
+    }
+
+    public static class ImportedContext {
+        private final JavaClasses classes;
+
+        private ImportedContext(JavaClasses classes) {
+            this.classes = classes;
+        }
+
+        public CallRetriever getCallFrom(Class<?> originClass, String codeUnitName, Class<?>... paramTypes) {
+            JavaClass owner = classes.get(originClass);
+            return new CallRetriever(owner.getCodeUnitWithParameterTypes(codeUnitName, paramTypes));
+        }
+    }
+
+    public static class CallRetriever {
+        private final JavaCodeUnit codeUnit;
+
+        private CallRetriever(JavaCodeUnit codeUnit) {
+            this.codeUnit = codeUnit;
+        }
+
+        public JavaConstructorCall toConstructor(Class<?> targetOwner, Class<?>... paramTypes) {
+            return findMethod(codeUnit.getConstructorCallsFromSelf(), targetOwner, CONSTRUCTOR_NAME, paramTypes);
+        }
+
+        public JavaMethodCall toMethod(Class<?> targetOwner, String methodName, Class<?>... paramTypes) {
+            return findMethod(codeUnit.getMethodCallsFromSelf(), targetOwner, methodName, paramTypes);
+        }
+
+        private <T extends JavaCall<?>> T findMethod(Set<T> callsFromSelf,
+                                                     Class<?> targetOwner,
+                                                     String methodName,
+                                                     Class<?>[] paramTypes) {
+
+            List<String> paramNames = JavaClass.namesOf(paramTypes);
+            for (T call : callsFromSelf) {
+                if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
+                        call.getTarget().getName().equals(methodName) &&
+                        call.getTarget().getParameters().getNames().equals(paramNames)) {
+                    return call;
+                }
+            }
+            throw new IllegalStateException(
+                    "Couldn't find any call with target " +
+                            formatMethod(targetOwner.getName(), methodName, paramNames));
         }
     }
 }

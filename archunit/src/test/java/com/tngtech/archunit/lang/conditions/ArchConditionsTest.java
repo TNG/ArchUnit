@@ -1,6 +1,8 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.JavaCall;
@@ -9,40 +11,37 @@ import com.tngtech.archunit.core.JavaMethod;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.TestUtils.AccessesSimulator;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.FailureMessages;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Sets.newTreeSet;
+import static com.tngtech.archunit.core.JavaCall.Predicates.target;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethod;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.getField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.getFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.resideInAPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.setField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
     @Test
-    public void never_call_method_in_hierarchy_of() throws NoSuchMethodException {
+    public void never_call_method_where_target_owner_is_assignable_to() throws NoSuchMethodException {
         JavaClass callingClass = javaClassViaReflection(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
         JavaMethod dontCallMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
@@ -51,14 +50,17 @@ public class ArchConditionsTest {
         JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
         ConditionEvents events =
-                check(never(callMethod("dontCallMe").inHierarchyOf(SomeSuperClass.class)), callingClass);
+                check(never(callMethodWhere(target(name("dontCallMe"))
+                        .and(target(owner(assignableTo(SomeSuperClass.class)))))), callingClass);
 
         assertThat(events).containViolations(callToDontCallMe.getDescription());
 
         events = new ConditionEvents();
-        never(callMethod("dontCallMe").in(SomeSuperClass.class)).check(callingClass, events);
+        never(callMethodWhere(target(name("dontCallMe")).and(target(owner(type(SomeSuperClass.class))))))
+                .check(callingClass, events);
         assertThat(events).containNoViolation();
-        assertThat(getOnlyElement(events.getAllowed())).extracting("allowed").extracting(TO_STRING_LEXICOGRAPHICALLY)
+        assertThat(getOnlyElement(events.getAllowed())).extracting("allowed")
+                .extracting(TO_STRING_LEXICOGRAPHICALLY)
                 .containsOnly(callToCallMe.getDescription() + callToDontCallMe.getDescription());
     }
 
@@ -67,11 +69,11 @@ public class ArchConditionsTest {
         JavaClass clazz = javaClassViaReflection(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
-        ConditionEvents events = check(never(accessClass(named(".*Some.*"))), clazz);
+        ConditionEvents events = check(never(accessClass(nameMatching(".*Some.*"))), clazz);
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(named(".*Wong.*"))), clazz);
+        events = check(never(accessClass(nameMatching(".*Wrong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }
@@ -79,7 +81,7 @@ public class ArchConditionsTest {
     @Test
     public void descriptions() {
         assertThat(accessClassesThatResideIn("..any..").getDescription())
-                .isEqualTo("access classes that reside in '..any..'");
+                .isEqualTo("access classes that reside in package '..any..'");
 
         assertThat(accessClassesThatResideInAnyPackage("..one..", "..two..").getDescription())
                 .isEqualTo("access classes that reside in any package ['..one..', '..two..']");
@@ -87,32 +89,11 @@ public class ArchConditionsTest {
         assertThat(onlyBeAccessedByAnyPackage("..one..", "..two..").getDescription())
                 .isEqualTo("only be accessed by any package ['..one..', '..two..']");
 
-        assertThat(getField(System.class, "out").getDescription())
-                .isEqualTo("get field System.out");
-
-        assertThat(getFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("get field where something");
-
-        assertThat(setField(System.class, "out").getDescription())
-                .isEqualTo("set field System.out");
-
-        assertThat(setFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("set field where something");
-
-        assertThat(accessField(System.class, "out").getDescription())
-                .isEqualTo("access field System.out");
-
-        assertThat(accessFieldWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("access field where something");
-
-        assertThat(callMethodWhere(predicateWithDescription("something")).getDescription())
-                .isEqualTo("call method where something");
+        assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
+                .isEqualTo("call code unit where something");
 
         assertThat(accessClass(predicateWithDescription("something")).getDescription())
                 .isEqualTo("access class something");
-
-        assertThat(resideInAPackage("..any..").getDescription())
-                .isEqualTo("reside in a package '..any..'");
 
         assertThat(never(conditionWithDescription("something")).getDescription())
                 .isEqualTo("never something");
@@ -142,11 +123,17 @@ public class ArchConditionsTest {
         @SuppressWarnings("unchecked")
         @Override
         public String extract(Object input) {
-            FailureMessages messages = new FailureMessages();
+            final SortedSet<String> lines = new TreeSet<>();
+            CollectsLines messages = new CollectsLines() {
+                @Override
+                public void add(String message) {
+                    lines.add(message);
+                }
+            };
             for (ConditionEvent event : ((Collection<ConditionEvent>) input)) {
                 event.describeTo(messages);
             }
-            return Joiner.on("").join(newTreeSet(messages));
+            return Joiner.on("").join(lines);
         }
     };
 

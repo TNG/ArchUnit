@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import org.objectweb.asm.Opcodes;
@@ -32,7 +33,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + Objects.hash(accessType);
+        return 31 * super.hashCode() + accessType.hashCode();
     }
 
     @Override
@@ -80,6 +81,26 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             }
             throw new IllegalArgumentException(
                     "There is no " + AccessType.class.getSimpleName() + " registered for OpCode <" + opCode + ">");
+        }
+    }
+
+    public static class Predicates {
+        public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
+            return new DescribedPredicate<JavaFieldAccess>("access type " + accessType) {
+                @Override
+                public boolean apply(JavaFieldAccess input) {
+                    return accessType == input.getAccessType();
+                }
+            };
+        }
+
+        public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
+            return new DescribedPredicate<JavaFieldAccess>("target " + predicate.getDescription()) {
+                @Override
+                public boolean apply(JavaFieldAccess input) {
+                    return predicate.apply(input.getTarget());
+                }
+            };
         }
     }
 }

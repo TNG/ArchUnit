@@ -6,12 +6,12 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.tngtech.archunit.core.ArchUnitException.InconsistentClassPathException;
-import org.objectweb.asm.Type;
+import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.core.properties.HasType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class JavaField extends JavaMember {
+public class JavaField extends JavaMember implements HasType {
     private final JavaClass type;
     private final Supplier<Field> fieldSupplier;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
@@ -27,6 +27,7 @@ public class JavaField extends JavaMember {
         return getOwner().getName() + "." + getName();
     }
 
+    @Override
     public JavaClass getType() {
         return type;
     }
@@ -48,15 +49,15 @@ public class JavaField extends JavaMember {
     }
 
     static final class Builder extends JavaMember.Builder<JavaField, Builder> {
-        private Type type;
+        private JavaType type;
 
-        Builder withType(Type type) {
+        Builder withType(JavaType type) {
             this.type = type;
             return self();
         }
 
         public JavaClass getType() {
-            return get(type.getClassName());
+            return get(type.getName());
         }
 
         @Override

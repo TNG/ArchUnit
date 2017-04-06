@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -33,6 +33,7 @@ public class JavaTypeTest {
     public void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
         JavaType primitiveType = JavaType.From.name(name);
         assertThat(primitiveType.isPrimitive()).isTrue();
+        assertThat(primitiveType.isArray()).isFalse();
         assertThat(primitiveType.tryGetComponentType()).isAbsent();
 
         assertThat(primitiveType).isEquivalentTo(expected);
@@ -43,6 +44,7 @@ public class JavaTypeTest {
     public void array_types_by_name_and_canonical_name(String name, Class<?> expected) {
         JavaType arrayType = JavaType.From.name(name);
         assertThat(arrayType.isPrimitive()).isFalse();
+        assertThat(arrayType.isArray()).isTrue();
         assertThat(arrayType.tryGetComponentType()).contains(JavaType.From.name(expected.getComponentType().getName()));
 
         assertThat(arrayType).isEquivalentTo(expected);
@@ -52,6 +54,7 @@ public class JavaTypeTest {
     public void object_name() {
         JavaType objectType = JavaType.From.name(Object.class.getName());
         assertThat(objectType.isPrimitive()).isFalse();
+        assertThat(objectType.isArray()).isFalse();
         assertThat(objectType.tryGetComponentType()).isAbsent();
 
         assertThat(objectType).isEquivalentTo(Object.class);

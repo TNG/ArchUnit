@@ -8,12 +8,16 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
+import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -87,7 +91,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     }
                 };
                 JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
-                return new ConstructorCallTarget(targetOwner, paramTypes, constructorSupplier);
+                JavaClass returnType = classes.get(void.class.getName());
+                return new ConstructorCallTarget(targetOwner, paramTypes, returnType, constructorSupplier);
             }
 
             public int getLineNumber() {

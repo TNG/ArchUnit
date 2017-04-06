@@ -25,6 +25,6 @@ public class ServiceViolatingDaoRules {
         myEntityManager.persist(new OtherPersistentObject(2L)); // Violates rule not to use EntityManager outside of DAOs
     }
 
-    public static abstract class MyEntityManager implements EntityManager {
+    public abstract static class MyEntityManager implements EntityManager {
     }
 }

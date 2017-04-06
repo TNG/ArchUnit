@@ -20,6 +20,8 @@ import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -111,7 +113,18 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         if (name != null && outerName != null) {
-            declarationHandler.registerEnclosingClass(createTypeName(name), createTypeName(outerName));
+            String innerTypeName = createTypeName(name);
+            correctModifiersForNestedClass(innerTypeName, access);
+            declarationHandler.registerEnclosingClass(innerTypeName, createTypeName(outerName));
+        }
+    }
+
+    // Modifier handling is somewhat counter intuitive for nested classes, even though we 'visit' the nested class
+    // like any outer class in visit(..) before, the modifiers like 'PUBLIC' or 'PRIVATE'
+    // are found in the access flags of visitInnerClass(..)
+    private void correctModifiersForNestedClass(String innerTypeName, int access) {
+        if (innerTypeName.equals(className)) {
+            javaClassBuilder.withModifiers(JavaModifier.getModifiersForClass(access));
         }
     }
 
@@ -144,7 +157,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         JavaField.Builder fieldBuilder = new JavaField.Builder()
                 .withName(name)
-                .withType(Type.getType(desc))
+                .withType(JavaType.From.asmType(Type.getType(desc)))
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
@@ -165,11 +178,19 @@ class JavaClassProcessor extends ClassVisitor {
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
-                .withParameters(methodType.getArgumentTypes())
-                .withReturnType(methodType.getReturnType())
+                .withParameters(typesFrom(methodType.getArgumentTypes()))
+                .withReturnType(JavaType.From.asmType(methodType.getReturnType()))
                 .withDescriptor(desc);
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
+    }
+
+    private List<JavaType> typesFrom(Type[] asmTypes) {
+        List<JavaType> result = new ArrayList<>();
+        for (Type asmType : asmTypes) {
+            result.add(JavaType.From.asmType(asmType));
+        }
+        return result;
     }
 
     private JavaCodeUnit.Builder<?, ?> addCodeUnitBuilder(String name) {

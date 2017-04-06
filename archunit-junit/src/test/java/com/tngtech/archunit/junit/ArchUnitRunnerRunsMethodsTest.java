@@ -27,6 +27,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,6 +64,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     @Test
     public void executes_test_methods_and_supplies_JavaClasses() throws InitializationError {
         runner.runChild(getRule(testSomething, runner), runNotifier);
+        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
                 .contains(testSomething);

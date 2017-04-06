@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.ClassFileProcessor.ClassResolverFromClassPath;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import org.junit.Test;

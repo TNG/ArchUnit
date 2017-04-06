@@ -7,18 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.base.DescribedIterable;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.DescribedIterable;
+import com.tngtech.archunit.core.Guava;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.Optional;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
-import com.tngtech.archunit.lang.conditions.PackageMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.Dependency.toTargetClasses;
-import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
 
 /**
  * Basic collection of {@link Slice} for tests on dependencies of package slices, e.g. to avoid cycles.
@@ -40,10 +42,15 @@ import static com.tngtech.archunit.lang.conditions.PackageMatcher.TO_GROUPS;
  */
 public class Slices implements DescribedIterable<Slice> {
     private final Iterable<Slice> slices;
-    private String description = "Slices";
+    private final String description;
 
     private Slices(Iterable<Slice> slices) {
+        this(slices, "Slices");
+    }
+
+    private Slices(Iterable<Slice> slices, String description) {
         this.slices = slices;
+        this.description = description;
     }
 
     @Override
@@ -52,8 +59,7 @@ public class Slices implements DescribedIterable<Slice> {
     }
 
     public Slices as(String description) {
-        this.description = description;
-        return this;
+        return new Slices(slices, description);
     }
 
     @Override
@@ -78,7 +84,7 @@ public class Slices implements DescribedIterable<Slice> {
     }
 
     /**
-     * @see ClosedCreator#matching(String)
+     * @see Creator#matching(String)
      */
     public static Transformer matching(String packageIdentifier) {
         return new Transformer(packageIdentifier, String.format("slices matching '%s'", packageIdentifier));
@@ -90,23 +96,24 @@ public class Slices implements DescribedIterable<Slice> {
      *
      * @see Slices
      */
-    public static class Transformer extends ClassesTransformer<Slice> {
+    public static class Transformer implements ClassesTransformer<Slice> {
         private final String packageIdentifier;
+        private final String description;
         private Optional<String> namingPattern = Optional.absent();
 
         private Transformer(String packageIdentifier, String description) {
-            super(description);
             this.packageIdentifier = packageIdentifier;
+            this.description = description;
         }
 
         /**
-         * @see ClosedCreator#namingSlices(String)
+         * @see Slices#namingSlices(String)
          */
-        public Transformer namingSlices(String pattern) {
+        Transformer namingSlices(String pattern) {
             return namingSlices(Optional.of(pattern));
         }
 
-        Transformer namingSlices(Optional<String> pattern) {
+        private Transformer namingSlices(Optional<String> pattern) {
             this.namingPattern = checkNotNull(pattern);
             return this;
         }
@@ -116,16 +123,6 @@ public class Slices implements DescribedIterable<Slice> {
             return new Transformer(packageIdentifier, description).namingSlices(namingPattern);
         }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public Slices doTransform(JavaClasses classes) {
-            Slices slices = new ClosedCreator(classes).matching(packageIdentifier);
-            if (namingPattern.isPresent()) {
-                slices.namingSlices(namingPattern.get());
-            }
-            return slices.as(getDescription());
-        }
-
         public Slices of(JavaClasses classes) {
             return new Slices(transform(classes));
         }
@@ -133,18 +130,44 @@ public class Slices implements DescribedIterable<Slice> {
         public Slices transform(Iterable<Dependency> dependencies) {
             return new Slices(transform(toTargetClasses(dependencies)));
         }
+
+        @Override
+        public Slices transform(JavaClasses classes) {
+            Slices slices = new Creator(classes).matching(packageIdentifier);
+            if (namingPattern.isPresent()) {
+                slices.namingSlices(namingPattern.get());
+            }
+            return slices.as(getDescription());
+        }
+
+        @Override
+        public Slices.Transformer that(final DescribedPredicate<? super Slice> predicate) {
+            return new Transformer(packageIdentifier, getDescription()) {
+                @Override
+                public Slices transform(JavaClasses classes) {
+                    Slices transformed = super.transform(classes);
+                    Slices result = new Slices(Guava.Iterables.filter(transformed, predicate));
+                    return result.as(result.getDescription() + " that " + predicate.getDescription());
+                }
+            };
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
     }
 
-    public static class ClosedCreator {
+    public static class Creator {
         private final JavaClasses classes;
 
-        private ClosedCreator(JavaClasses classes) {
+        private Creator(JavaClasses classes) {
             this.classes = classes;
         }
 
         /**
          * Supports partitioning a set of {@link JavaClasses} into different slices by matching the supplied
-         * package identifier. For identifier syntax, see {@link com.tngtech.archunit.lang.conditions.PackageMatcher}.<br/>
+         * package identifier. For identifier syntax, see {@link PackageMatcher}.<br/>
          * The slicing is done according to capturing groups (thus if none are contained in the identifier, no more than
          * a single slice will be the result). For example
          * <p>

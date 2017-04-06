@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -71,8 +72,20 @@ public class ClassFileImporter {
     }
 
     public JavaClass importClass(Class<?> clazz) {
-        return getOnlyElement(importUrl(getClass().getResource(
-                "/" + clazz.getName().replace(".", "/") + ".class")));
+        return getOnlyElement(importClasses(clazz));
+    }
+
+    public JavaClasses importClasses(Class<?>... classes) {
+        return importClasses(Arrays.asList(classes));
+    }
+
+    public JavaClasses importClasses(Collection<Class<?>> classes) {
+        List<URL> urls = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            urls.add(getClass().getResource(
+                    "/" + clazz.getName().replace(".", "/") + ".class"));
+        }
+        return importUrls(urls);
     }
 
     public JavaClasses importUrl(URL url) {

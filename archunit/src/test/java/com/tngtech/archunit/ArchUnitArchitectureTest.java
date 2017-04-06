@@ -2,34 +2,31 @@ package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.DescribedPredicate;
+import com.tngtech.archunit.core.JavaAccess;
+import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.JavaCall;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaStaticInitializer;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.conditions.CallPredicate;
+import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
-import static com.tngtech.archunit.core.DescribedPredicate.not;
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessFieldWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.accessOrigin;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callOrigin;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.callTarget;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerAndNameAre;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.ownerIs;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
+import static com.tngtech.archunit.core.JavaAccess.Predicates.target;
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 public class ArchUnitArchitectureTest {
     private static final ClassFileImporter importer = new ClassFileImporter()
@@ -43,28 +40,42 @@ public class ArchUnitArchitectureTest {
     }
 
     @Test
+    public void layers_are_respected() {
+        layeredArchitecture()
+                .layer("Base").definedBy("com.tngtech.archunit.base..")
+                .layer("Core").definedBy("com.tngtech.archunit.core..")
+                .layer("Lang").definedBy("com.tngtech.archunit.lang..")
+                .layer("Library").definedBy("com.tngtech.archunit.library..")
+
+                .whereLayer("Library").mayNotBeAccessedByAnyLayer()
+                .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library")
+                .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library")
+                .whereLayer("Base").mayOnlyBeAccessedByLayers("Core", "Lang", "Library")
+
+                .check(archUnitClasses);
+    }
+
+    @Test
     public void types_are_only_resolved_via_reflection_in_allowed_places() {
-        all(classes()).should(notIllegallyResolveClassesViaReflection()).check(archUnitClasses);
+        noClasses().should().callMethodWhere(typeIsIllegallyResolvedViaReflection())
+                .as("no classes should illegally resolve classes via reflection")
+                .check(archUnitClasses);
     }
 
-    private ArchCondition<JavaClass> notIllegallyResolveClassesViaReflection() {
-        return never(callMethodWhere(targetResolvesTypesIllegallyViaReflection()))
-                .and(never(illegallyAccessReflectFunction()))
-                .as("not illegally resolve classes via reflection");
-    }
-
-    private DescribedPredicate<JavaCall<?>> targetResolvesTypesIllegallyViaReflection() {
+    private DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
-                callOrigin().is(annotatedWith(MayResolveTypesViaReflection.class))
-                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class));
+                origin(is(annotatedWith(MayResolveTypesViaReflection.class)))
+                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class)).forSubType();
 
         return classIsResolvedViaReflection().and(not(explicitlyAllowedUsage));
     }
 
-    private DescribedPredicate<JavaCall<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
-        return callOrigin(ownerIs(new DescribedPredicate<JavaClass>(
-                "annotated with @" + annotationType.getName()) {
+    private DescribedPredicate<JavaAccess<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
+        return origin(With.owner(withAnnotation(annotationType)));
+    }
 
+    private DescribedPredicate<JavaClass> withAnnotation(final Class<? extends Annotation> annotationType) {
+        return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getName()) {
             @Override
             public boolean apply(JavaClass input) {
                 return input.isAnnotatedWith(annotationType)
@@ -75,23 +86,18 @@ public class ArchUnitArchitectureTest {
                 return input.getEnclosingClass().isPresent() &&
                         input.getEnclosingClass().get().isAnnotatedWith(annotationType);
             }
-        }));
+        };
     }
 
     private DescribedPredicate<JavaCall<?>> classIsResolvedViaReflection() {
-        CallPredicate defaultClassForName = callTarget().isDeclaredIn(Class.class).hasName("forName");
-        DescribedPredicate<JavaCall<?>> targetIsMarked = callTarget(annotatedWith(ResolvesTypesViaReflection.class));
+        DescribedPredicate<JavaCall<?>> defaultClassForName =
+                target(HasOwner.Functions.Get.<JavaClass>owner()
+                        .is(equivalentTo(Class.class)))
+                        .and(target(has(name("forName"))))
+                        .forSubType();
+        DescribedPredicate<JavaCall<?>> targetIsMarked =
+                annotatedWith(ResolvesTypesViaReflection.class).onResultOf(Get.target());
 
         return defaultClassForName.or(targetIsMarked);
-    }
-
-    private ArchCondition<JavaClass> illegallyAccessReflectFunction() {
-        DescribedPredicate<JavaFieldAccess> targetIsReflectFunction = ownerAndNameAre(JavaClass.class, "REFLECT");
-        DescribedPredicate<JavaFieldAccess> notAllowedOrigin =
-                not(accessOrigin(named(JavaStaticInitializer.STATIC_INITIALIZER_NAME)))
-                        .and(not(accessOrigin(annotatedWith(MayResolveTypesViaReflection.class))))
-                        .and(not(accessOrigin(ownerIs(annotatedWith(MayResolveTypesViaReflection.class)))));
-
-        return accessFieldWhere(targetIsReflectFunction.and(notAllowedOrigin));
     }
 }

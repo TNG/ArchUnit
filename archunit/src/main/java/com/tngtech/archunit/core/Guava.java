@@ -3,6 +3,8 @@ package com.tngtech.archunit.core;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 
 /**
  * NOTE: We keep Google Guava out of the public API and use the Gradle Shadow plugin to repackage the internally

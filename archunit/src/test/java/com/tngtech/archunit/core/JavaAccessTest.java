@@ -1,6 +1,8 @@
 package com.tngtech.archunit.core;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.testexamples.SomeClass;
 import com.tngtech.archunit.core.testexamples.SomeEnum;
 import org.junit.Test;
@@ -8,8 +10,8 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.TestUtils.javaMethodViaReflection;
+import static com.tngtech.archunit.core.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
-import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaAccessTest {
@@ -34,11 +36,30 @@ public class JavaAccessTest {
     }
 
     @Test
-    public void get_target() {
+    public void get_functions() {
         JavaAccess<?> access = simulateCall().from(javaMethodViaReflection(getClass(), "toString"), 5)
                 .to(javaMethodViaReflection(getClass(), "hashCode"));
 
-        assertThat(JavaAccess.GET_TARGET.apply(access)).isEqualTo(access.getTarget());
+        assertThat(Get.origin().apply(access)).isEqualTo(access.getOrigin());
+        assertThat(Get.target().apply(access)).isEqualTo(access.getTarget());
+    }
+
+    @Test
+    public void origin_predicate() {
+        DescribedPredicate<JavaAccess<?>> predicate =
+                JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysTrue().as("some text"));
+
+        assertThat(predicate.getDescription()).isEqualTo("origin some text");
+        assertThat(predicate.apply(anyAccess())).as("predicate matches").isTrue();
+
+        predicate = JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysFalse());
+        assertThat(predicate.apply(anyAccess())).as("predicate matches").isFalse();
+    }
+
+    private TestJavaAccess anyAccess() {
+        return javaAccessFrom(javaClassViaReflection(SomeClass.Inner.class), "foo")
+                .to(SomeEnum.class, "bar")
+                .inLineNumber(7);
     }
 
     @Override
@@ -57,7 +78,7 @@ public class JavaAccessTest {
 
     private static class TestJavaAccess extends JavaAccess<MethodCallTarget> {
         TestJavaAccess(JavaMethod origin, JavaMethod target, int lineNumber) {
-            super(origin, targetFrom(target), lineNumber);
+            super(origin, resolvedTargetFrom(target), lineNumber);
         }
 
         @Override

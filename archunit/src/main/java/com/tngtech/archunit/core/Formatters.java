@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
+import com.tngtech.archunit.core.properties.HasName;
 
 public class Formatters {
     private Formatters() {
@@ -18,27 +19,31 @@ public class Formatters {
         return ownerName + "." + methodName + "(" + parameters + ")";
     }
 
+    public static String formatMethodSimple(String ownerName, String methodName, List<String> parameters) {
+        List<String> simpleParams = new ArrayList<>();
+        for (String parameter : parameters) {
+            simpleParams.add(ensureSimpleName(parameter));
+        }
+        return formatMethod(ensureSimpleName(ownerName), methodName, simpleParams);
+    }
+
     public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
         return format(ownerName, methodName, formatMethodParameterTypeNames(parameters));
     }
 
     private static String formatMethodParameters(List<? extends HasName> parameters) {
-        List<String> simpleNames = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         for (HasName type : parameters) {
-            simpleNames.add(type.getName());
+            names.add(type.getName());
         }
-        return formatMethodParameterTypeNames(simpleNames);
+        return formatMethodParameterTypeNames(names);
     }
 
     public static String formatMethodParameterTypeNames(List<String> typeNames) {
-        List<String> formatted = new ArrayList<>();
-        for (String name : typeNames) {
-            formatted.add(ensureSimpleName(name) + ".class");
-        }
-        return Joiner.on(", ").join(formatted);
+        return Joiner.on(", ").join(typeNames);
     }
 
-    static String ensureSimpleName(String name) {
+    public static String ensureSimpleName(String name) {
         int innerClassStart = name.lastIndexOf('$');
         int classStart = name.lastIndexOf('.');
         if (innerClassStart < 0 && classStart < 0) {

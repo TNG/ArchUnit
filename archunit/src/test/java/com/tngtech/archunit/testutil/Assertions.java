@@ -8,8 +8,10 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +23,9 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
@@ -30,15 +35,15 @@ import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
 import com.tngtech.archunit.core.JavaMember;
 import com.tngtech.archunit.core.JavaMethod;
-import com.tngtech.archunit.core.Optional;
+import com.tngtech.archunit.core.JavaModifier;
+import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.FailureMessages;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.internal.cglib.asm.Type;
+import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
@@ -71,8 +76,12 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaClassAssertion(javaClass);
     }
 
-    public static JavaClassesAssertion assertThat(JavaClass[] javaClass) {
-        return new JavaClassesAssertion(javaClass);
+    public static JavaClassesAssertion assertThatClasses(Iterable<JavaClass> javaClasses) {
+        return new JavaClassesAssertion(javaClasses);
+    }
+
+    public static JavaClassesAssertion assertThat(JavaClass[] javaClasses) {
+        return new JavaClassesAssertion(javaClasses);
     }
 
     public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
@@ -80,7 +89,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static JavaFieldAssertion assertThat(FieldAccessTarget target) {
-        return assertThat(target.resolve().get());
+        return assertThat(target.resolveField().get());
     }
 
     public static JavaFieldAssertion assertThat(JavaField field) {
@@ -108,7 +117,37 @@ public class Assertions extends org.assertj.core.api.Assertions {
             super(actual, JavaClassesAssertion.class);
         }
 
-        public void matches(Class<?>... classes) {
+        private JavaClassesAssertion(Iterable<JavaClass> actual) {
+            super(sort(actual), JavaClassesAssertion.class);
+        }
+
+        private static JavaClass[] sort(Iterable<JavaClass> actual) {
+            JavaClass[] result = Iterables.toArray(actual, JavaClass.class);
+            Arrays.sort(result, new Comparator<JavaClass>() {
+                @Override
+                public int compare(JavaClass o1, JavaClass o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            return result;
+        }
+
+        public void matchInAnyOrder(Iterable<Class<?>> classes) {
+            Class<?>[] sorted = Iterables.toArray(classes, Class.class);
+            Arrays.sort(sorted, new Comparator<Class<?>>() {
+                @Override
+                public int compare(Class<?> o1, Class<?> o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            matchExactly(sorted);
+        }
+
+        public void matchInAnyOrder(Class<?>... classes) {
+            matchInAnyOrder(ImmutableSet.copyOf(classes));
+        }
+
+        public void matchExactly(Class<?>... classes) {
             assertThat((Object[]) actual).as("classes").hasSize(classes.length);
             for (int i = 0; i < actual.length; i++) {
                 assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
@@ -124,10 +163,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getName()).isEqualTo(clazz.getName());
-            assertThat(actual.getSimpleName()).isEqualTo(ensureArrayName(clazz.getSimpleName()));
-            assertThat(actual.getPackage()).isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
-            assertThat(propertiesOf(actual.getAnnotations())).isEqualTo(propertiesOf(clazz.getAnnotations()));
+            assertThat(actual.getName()).as("Name of " + actual)
+                    .isEqualTo(clazz.getName());
+            assertThat(actual.getSimpleName()).as("Simple name of " + actual)
+                    .isEqualTo(ensureArrayName(clazz.getSimpleName()));
+            assertThat(actual.getPackage()).as("Package of " + actual)
+                    .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+            assertThat(actual.getModifiers()).as("Modifiers of " + actual)
+                    .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
+            assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
+                    .isEqualTo(propertiesOf(clazz.getAnnotations()));
         }
 
         private String ensureArrayName(String name) {
@@ -409,7 +454,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(actual.containViolation()).as("Condition is violated").isTrue();
 
             List<String> expected = concat(violation, additional);
-            if (!sorted(violatingMessages()).equals(sorted(expected))) {
+            if (!sorted(messagesOf(actual.getViolating())).equals(sorted(expected))) {
                 failWithMessage("Expected %s to contain only violations %s", actual, expected);
             }
         }
@@ -423,16 +468,18 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
         }
 
-        private List<String> violatingMessages() {
-            return messagesOf(actual.getViolating());
-        }
-
         private List<String> messagesOf(Collection<ConditionEvent> events) {
-            FailureMessages messages = new FailureMessages();
+            final List<String> result = new ArrayList<>();
+            CollectsLines messages = new CollectsLines() {
+                @Override
+                public void add(String message) {
+                    result.add(message);
+                }
+            };
             for (ConditionEvent event : events) {
                 event.describeTo(messages);
             }
-            return newArrayList(messages);
+            return result;
         }
 
         private List<String> concat(String violation, String[] additional) {
@@ -449,15 +496,20 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         public void containNoViolation() {
             assertThat(actual.containViolation()).as("Condition is violated").isFalse();
-            assertThat(violatingMessages()).as("No violating messages").isEmpty();
+            assertThat(messagesOf(actual.getViolating())).as("Violating messages").isEmpty();
         }
 
-        public void haveOneViolationMessageContaining(Set<String> messageParts) {
-            assertThat(violatingMessages()).as("Number of violations").hasSize(1);
-            AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(violatingMessages()));
+        public ConditionEventsAssert haveOneViolationMessageContaining(String... messageParts) {
+            return haveOneViolationMessageContaining(ImmutableSet.copyOf(messageParts));
+        }
+
+        public ConditionEventsAssert haveOneViolationMessageContaining(Set<String> messageParts) {
+            assertThat(messagesOf(actual.getViolating())).as("Number of violations").hasSize(1);
+            AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(messagesOf(actual.getViolating())));
             for (String part : messageParts) {
-                assertion.as("violation message containing " + part).contains(part);
+                assertion.as("Violation message").contains(part);
             }
+            return this;
         }
     }
 }

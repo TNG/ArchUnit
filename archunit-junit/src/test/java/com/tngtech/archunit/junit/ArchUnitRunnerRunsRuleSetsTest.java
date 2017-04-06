@@ -24,8 +24,8 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.so
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -99,7 +99,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         public static final String someOtherMethodRuleName = "someOtherMethodRule";
 
         @ArchTest
-        public static final ArchRules<JavaClass> rules = ArchRules.in(ArchTestWithRuleSet.class);
+        public static final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
 
         @ArchTest
         public static void someOtherMethodRule(JavaClasses classes) {
@@ -109,7 +109,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyseClasses(packages = "some.pkg")
     public static class ArchTestWithRuleSet {
         @ArchTest
-        public static final ArchRules<JavaClass> rules = ArchRules.in(Rules.class);
+        public static final ArchRules rules = ArchRules.in(Rules.class);
     }
 
     public static class Rules {
@@ -117,7 +117,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         public static final String someMethodRuleName = "someMethodRule";
 
         @ArchTest
-        public static final ArchRule<JavaClass> someFieldRule = all(classes())
+        public static final ArchRule someFieldRule = all(classes())
                 .should(new ArchCondition<JavaClass>("satisfy something") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {

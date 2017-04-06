@@ -7,10 +7,12 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
-import org.objectweb.asm.Type;
+import com.tngtech.archunit.core.properties.HasParameterTypes;
+import com.tngtech.archunit.core.properties.HasReturnType;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 
@@ -24,7 +26,7 @@ import static com.tngtech.archunit.core.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
+public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType {
     private final JavaClass returnType;
     private final List<JavaClass> parameters;
     private final String fullName;
@@ -50,6 +52,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
         return new JavaClassList(parameters);
     }
 
+    @Override
     public JavaClass getReturnType() {
         return returnType;
     }
@@ -102,28 +105,39 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameters {
         return result.toArray(new Class<?>[result.size()]);
     }
 
-    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
-        private Type returnType;
-        private Type[] parameters;
+    public static class Predicates {
+        public static DescribedPredicate<JavaCodeUnit> constructor() {
+            return new DescribedPredicate<JavaCodeUnit>("constructor") {
+                @Override
+                public boolean apply(JavaCodeUnit input) {
+                    return input.isConstructor();
+                }
+            };
+        }
+    }
 
-        SELF withReturnType(Type type) {
+    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
+        private JavaType returnType;
+        private List<JavaType> parameters;
+
+        SELF withReturnType(JavaType type) {
             returnType = type;
             return self();
         }
 
-        SELF withParameters(Type[] parameters) {
+        SELF withParameters(List<JavaType> parameters) {
             this.parameters = parameters;
             return self();
         }
 
         JavaClass getReturnType() {
-            return get(returnType.getClassName());
+            return get(returnType.getName());
         }
 
         public List<JavaClass> getParameters() {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            for (Type parameter : parameters) {
-                result.add(get(parameter.getClassName()));
+            for (JavaType parameter : parameters) {
+                result.add(get(parameter.getName()));
             }
             return result.build();
         }

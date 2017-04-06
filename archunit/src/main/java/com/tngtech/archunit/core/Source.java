@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.Optional;
 
 /**
  * Contains information about an imported class, i.e. the URI from where the class was imported and an md5 sum

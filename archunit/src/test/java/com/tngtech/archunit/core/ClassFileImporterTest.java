@@ -28,12 +28,16 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.Source.Md5sum;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
 import com.tngtech.archunit.core.testexamples.annotatedclassimport.ClassWithAnnotationWithEmptyArrays;
@@ -97,6 +101,10 @@ import com.tngtech.archunit.core.testexamples.fieldaccessimport.ForeignStaticFie
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.MultipleFieldAccessInSameMethod;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnFieldAccess;
 import com.tngtech.archunit.core.testexamples.fieldaccessimport.OwnStaticFieldAccess;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.ClassAccessingInterfaceFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.InterfaceWithFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.OtherInterfaceWithFields;
+import com.tngtech.archunit.core.testexamples.fieldaccesstointerfaces.ParentInterfaceWithFields;
 import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithIntAndObjectFields;
 import com.tngtech.archunit.core.testexamples.fieldimport.ClassWithStringField;
 import com.tngtech.archunit.core.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubClassField;
@@ -133,7 +141,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.tngtech.archunit.core.JavaClass.withType;
+import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
@@ -148,6 +156,7 @@ import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER
 import static com.tngtech.archunit.core.SourceTest.bytesAt;
 import static com.tngtech.archunit.core.SourceTest.urlOf;
 import static com.tngtech.archunit.core.TestUtils.asClasses;
+import static com.tngtech.archunit.core.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.testexamples.SomeEnum.SOME_VALUE;
@@ -157,6 +166,7 @@ import static com.tngtech.archunit.core.testexamples.annotationmethodimport.Clas
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
 import static com.tngtech.archunit.core.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
@@ -212,15 +222,13 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_nested_classes() throws Exception {
-        Set<String> expectedClassNames = Sets.newHashSet(
-                ClassWithNestedClass.class.getName(),
-                ClassWithNestedClass.NestedClass.class.getName(),
-                ClassWithNestedClass.StaticNestedClass.class.getName(),
-                ClassWithNestedClass.class.getName() + "$PrivateNestedClass");
+        JavaClasses classes = classesIn("testexamples/nestedimport").classes;
 
-        Iterable<JavaClass> classes = classesIn("testexamples/nestedimport");
-
-        assertThat(namesOf(classes)).isEqualTo(expectedClassNames);
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassWithNestedClass.class,
+                ClassWithNestedClass.NestedClass.class,
+                ClassWithNestedClass.StaticNestedClass.class,
+                Class.forName(ClassWithNestedClass.class.getName() + "$PrivateNestedClass"));
     }
 
     @Test
@@ -319,7 +327,7 @@ public class ClassFileImporterTest {
                 .as("default of clazzWithDefault()").matches(String.class);
         assertThat((JavaClass[]) annotationType.getMethod("classesWithDefault")
                 .getDefaultValue().get())
-                .as("default of clazzWithDefault()").matches(Serializable.class, List.class);
+                .as("default of clazzWithDefault()").matchExactly(Serializable.class, List.class);
     }
 
     @Test
@@ -380,8 +388,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Object.class, Serializable.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("enumAndArrayAnnotatedField"));
     }
@@ -521,8 +529,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Object.class, Serializable.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(enumAndArrayAnnotatedMethod));
     }
@@ -607,8 +615,8 @@ public class ClassFileImporterTest {
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Serializable.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
-        assertThat((JavaClass[]) annotation.get("classes").get()).matches(Serializable.class, String.class);
-        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matches(Serializable.class, List.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Serializable.class, String.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
         assertThat(clazz).matches(ClassWithComplexAnnotations.class);
     }
@@ -1085,6 +1093,25 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_field_accesses_to_fields_from_interfaces() throws Exception {
+        Set<JavaFieldAccess> accesses = classesIn("testexamples/fieldaccesstointerfaces")
+                .get(ClassAccessingInterfaceFields.class).getFieldAccessesFromSelf();
+
+        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldOne));
+        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldTwo));
+        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldOne));
+        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldTwo));
+        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldOne).getTarget().resolveField().get())
+                .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldOne));
+        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldTwo).getTarget().resolveField().get())
+                .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldTwo));
+    }
+
+    @Test
     public void imports_shadowed_and_superclass_method_calls() throws Exception {
         ImportedClasses classes = classesIn("testexamples/hierarchicalmethodcall");
         JavaClass classThatCallsMethodOfSuperClass = classes.get(CallOfSuperAndSubClassMethod.class);
@@ -1515,7 +1542,7 @@ public class ClassFileImporterTest {
                 "jar".equals(urls.iterator().next().getProtocol()));
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls)
-                .that(DescribedPredicate.not(withType(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
+                .that(DescribedPredicate.not(type(Annotation.class))); // NOTE @Test and @RunWith implement Annotation.class
 
         assertThat(classes).as("Number of classes at the given URLs").hasSize(2);
     }
@@ -1543,7 +1570,7 @@ public class ClassFileImporterTest {
         assertThat(middleClass.isInterface()).as("is interface").isFalse();
         assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "println"))
                 .isFrom(middleClass.getMethod("overrideMe"))
-                .isTo(targetWithFullName(PrintStream.class.getName() + ".println(String.class)"))
+                .isTo(targetWithFullName(String.format("%s.println(%s)", PrintStream.class.getName(), String.class.getName())))
                 .inLineNumber(12);
         assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "getSomeString"))
                 .isFrom(middleClass.getMethod("overrideMe"))
@@ -1590,6 +1617,13 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_class_objects() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassToImportOne.class, ClassToImportTwo.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
+    }
+
+    @Test
     public void ImportOptions_are_respected() throws Exception {
         ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
 
@@ -1624,7 +1658,7 @@ public class ClassFileImporterTest {
     }
 
     private Constructor<?> reflect(ConstructorCallTarget target) {
-        return reflect(target.tryResolve().get());
+        return reflect(target.resolveConstructor().get());
     }
 
     private Constructor<?> reflect(JavaConstructor javaConstructor) {
@@ -1770,7 +1804,7 @@ public class ClassFileImporterTest {
 
     private class ImportedClasses implements Iterable<JavaClass> {
         private final ClassFileImporter importer = new ClassFileImporter();
-        private final Iterable<JavaClass> classes;
+        private final JavaClasses classes;
 
         private ImportedClasses(String path) throws Exception {
             classes = importer.importPath(Paths.get(ClassFileImporterTest.this.getClass().getResource(path).toURI()));
@@ -1895,7 +1929,7 @@ public class ClassFileImporterTest {
         }
 
         MethodCallAssertion isTo(JavaMethod target) {
-            return isTo(targetFrom(target));
+            return isTo(resolvedTargetFrom(target));
         }
 
         @Override

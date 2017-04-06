@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.Function;
 
 public class JavaClassList extends ForwardingList<JavaClass> {
     private final ImmutableList<JavaClass> elements;
@@ -24,4 +25,11 @@ public class JavaClassList extends ForwardingList<JavaClass> {
         }
         return result.build();
     }
+
+    public static final Function<JavaClassList, List<String>> GET_NAMES = new Function<JavaClassList, List<String>>() {
+        @Override
+        public List<String> apply(JavaClassList input) {
+            return input.getNames();
+        }
+    };
 }

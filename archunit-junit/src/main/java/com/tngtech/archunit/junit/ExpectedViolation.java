@@ -2,22 +2,27 @@ package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
-import org.hamcrest.core.StringContains;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.junit.MessageAssertionChain.containsConsecutiveLines;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
 import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
+import static java.lang.System.lineSeparator;
 import static java.util.Collections.singleton;
 import static java.util.regex.Pattern.quote;
 
@@ -37,9 +42,26 @@ public class ExpectedViolation implements TestRule {
     }
 
     public ExpectedViolation ofRule(String ruleText) {
+        LinkedList<String> ruleLines = new LinkedList<>(Splitter.on(lineSeparator()).splitToList(ruleText));
+        checkArgument(!ruleLines.isEmpty(), "Rule text may not be empty");
+        if (ruleLines.size() == 1) {
+            addSingleLineRuleAssertion(getOnlyElement(ruleLines));
+        } else {
+            addMultiLineRuleAssertion(ruleLines);
+        }
+        return this;
+    }
+
+    private void addSingleLineRuleAssertion(String ruleText) {
         assertionChain.add(matchesLine(String.format(
                 "Architecture Violation .* Rule '%s' was violated.*", quote(ruleText))));
-        return this;
+    }
+
+    private void addMultiLineRuleAssertion(LinkedList<String> ruleLines) {
+        assertionChain.add(matchesLine(String.format(
+                "Architecture Violation .* Rule '%s", quote(ruleLines.pollFirst()))));
+        assertionChain.add(matchesLine(String.format("%s' was violated.*", quote(ruleLines.pollLast()))));
+        assertionChain.add(containsConsecutiveLines(ruleLines));
     }
 
     public ExpectedViolation byAccess(ExpectedFieldAccess access) {
@@ -64,19 +86,19 @@ public class ExpectedViolation implements TestRule {
     public static class PackageAssertionCreator {
         private final Class<?> clazz;
 
-        public PackageAssertionCreator(Class<?> clazz) {
+        private PackageAssertionCreator(Class<?> clazz) {
             this.clazz = clazz;
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return containsLine("Class %s does not reside in a package that matches '%s'", clazz.getName(), packageIdentifier);
+            return containsLine("Class %s doesn't reside in a package '%s'", clazz.getName(), packageIdentifier);
         }
     }
 
     private class ExpectedViolationStatement extends Statement {
         private final Statement base;
 
-        public ExpectedViolationStatement(Statement base) {
+        private ExpectedViolationStatement(Statement base) {
             this.base = base;
         }
 
@@ -91,8 +113,8 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static class NoExpectedViolationException extends RuntimeException {
-        public NoExpectedViolationException(MessageAssertionChain assertionChain) {
+    private static class NoExpectedViolationException extends RuntimeException {
+        private NoExpectedViolationException(MessageAssertionChain assertionChain) {
             super("Rule was not violated in the expected way: Expected " + assertionChain);
         }
     }
@@ -131,9 +153,9 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    private static abstract class ExpectedAccessViolationBuilder {
-        protected final Origin origin;
-        protected final Target target;
+    private abstract static class ExpectedAccessViolationBuilder {
+        final Origin origin;
+        final Target target;
 
         private ExpectedAccessViolationBuilder(Origin origin, Target target) {
             this.origin = origin;
@@ -145,7 +167,7 @@ public class ExpectedViolation implements TestRule {
         private final Origin origin;
         private final ImmutableSet<AccessType> accessType;
 
-        public ExpectedFieldAccessViolationBuilderStep1(Origin origin, AccessType... accessType) {
+        private ExpectedFieldAccessViolationBuilderStep1(Origin origin, AccessType... accessType) {
             this.origin = origin;
             this.accessType = ImmutableSet.copyOf(accessType);
         }
@@ -176,7 +198,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static abstract class ExpectedAccess {
+    public abstract static class ExpectedAccess {
         private final Origin origin;
         private final Target target;
         private final int lineNumber;
@@ -197,32 +219,32 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    public static class ExpectedFieldAccess extends ExpectedAccess {
+    static class ExpectedFieldAccess extends ExpectedAccess {
         private ExpectedFieldAccess(Origin origin, Target target, int lineNumber) {
             super(origin, target, lineNumber);
         }
     }
 
-    public static class ExpectedMethodCall extends ExpectedAccess {
+    static class ExpectedMethodCall extends ExpectedAccess {
         private ExpectedMethodCall(Origin origin, Target target, int lineNumber) {
             super(origin, target, lineNumber);
         }
     }
 
-    private static abstract class Member {
+    private abstract static class Member {
         private final Class<?> clazz;
         private final String memberName;
-        protected final List<String> params = new ArrayList<>();
+        final List<String> params = new ArrayList<>();
 
         private Member(Class<?> clazz, String memberName, Class<?>[] paramTypes) {
             this.clazz = clazz;
             this.memberName = memberName;
             for (Class<?> paramType : paramTypes) {
-                params.add(String.format("%s.class", paramType.getSimpleName()));
+                params.add(paramType.getName());
             }
         }
 
-        protected String lineMessage(int number) {
+        String lineMessage(int number) {
             return String.format("(%s.java:%d)", clazz.getSimpleName(), number);
         }
 
@@ -243,7 +265,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
-    private static abstract class Target extends Member {
+    private abstract static class Target extends Member {
         private Target(Class<?> clazz, String memberName, Class<?>[] paramTypes) {
             super(clazz, memberName, paramTypes);
         }
@@ -300,21 +322,6 @@ public class ExpectedViolation implements TestRule {
         @Override
         String template() {
             return "Method <%s> calls constructor <%s> in %s";
-        }
-    }
-
-    private static ContainsStringWithBetterMessage containsString(String string) {
-        return new ContainsStringWithBetterMessage(string);
-    }
-
-    private static class ContainsStringWithBetterMessage extends StringContains {
-        public ContainsStringWithBetterMessage(String substring) {
-            super(substring);
-        }
-
-        @Override
-        public void describeTo(org.hamcrest.Description description) {
-            description.appendText(String.format("containing \"%s\"", substring));
         }
     }
 }

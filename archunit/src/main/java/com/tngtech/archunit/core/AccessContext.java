@@ -9,6 +9,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.base.Function;
 
 class AccessContext {
     final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();
@@ -72,7 +73,7 @@ class AccessContext {
                 public Set<JavaFieldAccess> apply(JavaClass input) {
                     Set<JavaFieldAccess> result = new HashSet<>();
                     for (JavaFieldAccess access : fieldAccessesByTarget.get(input)) {
-                        if (access.getTarget().resolve().asSet().contains(field)) {
+                        if (access.getTarget().resolveField().asSet().contains(field)) {
                             result.add(access);
                         }
                     }

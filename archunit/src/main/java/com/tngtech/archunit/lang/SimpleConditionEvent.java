@@ -1,0 +1,82 @@
+package com.tngtech.archunit.lang;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.transform;
+
+public class SimpleConditionEvent<T> implements ConditionEvent<T> {
+    private final T correspondingObject;
+    private final boolean conditionSatisfied;
+    private final String message;
+
+    public SimpleConditionEvent(T correspondingObject, boolean conditionSatisfied, String message) {
+        this.correspondingObject = correspondingObject;
+        this.conditionSatisfied = conditionSatisfied;
+        this.message = message;
+        checkArgument(conditionSatisfied || !this.message.trim().isEmpty(), "Message may not be empty for violation");
+    }
+
+    @Override
+    public boolean isViolation() {
+        return !conditionSatisfied;
+    }
+
+    @Override
+    public void addInvertedTo(ConditionEvents events) {
+        events.add(new SimpleConditionEvent<>(correspondingObject, !conditionSatisfied, message));
+    }
+
+    @Override
+    public void describeTo(CollectsLines messages) {
+        messages.add(message);
+    }
+
+    @Override
+    public T getCorrespondingObject() {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("correspondingObject", correspondingObject)
+                .add("conditionSatisfied", conditionSatisfied)
+                .add("message", message)
+                .toString();
+    }
+
+    protected static String joinMessages(Collection<ConditionEvent> violating) {
+        Iterable<String> lines = concat(transform(violating, TO_MESSAGES));
+        return Joiner.on(System.lineSeparator()).join(lines);
+    }
+
+    private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = new Function<ConditionEvent, Iterable<String>>() {
+        @Override
+        public Iterable<String> apply(ConditionEvent input) {
+            final List<String> result = new ArrayList<>();
+            input.describeTo(new CollectsLines() {
+                @Override
+                public void add(String line) {
+                    result.add(line);
+                }
+            });
+            return result;
+        }
+    };
+
+    public static <T> ConditionEvent<T> violated(T correspondingObject, String message) {
+        return new SimpleConditionEvent<>(correspondingObject, false, message);
+    }
+
+    public static <T> ConditionEvent<T> satisfied(T correspondingObject, String message) {
+        return new SimpleConditionEvent<>(correspondingObject, true, message);
+    }
+}

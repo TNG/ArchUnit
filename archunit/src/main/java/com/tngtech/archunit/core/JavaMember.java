@@ -8,11 +8,20 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.properties.HasAnnotations;
+import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasModifiers;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 
-public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, HasAnnotations, HasOwner<JavaClass> {
+public abstract class JavaMember implements
+        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass> {
     private final String name;
     private final String descriptor;
     private final Supplier<Map<String, JavaAnnotation>> annotations;
@@ -61,7 +70,17 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
 
     @Override
     public boolean isAnnotatedWith(Class<? extends Annotation> type) {
-        return annotations.get().containsKey(type.getName());
+        return isAnnotatedWith(type.getName());
+    }
+
+    @Override
+    public boolean isAnnotatedWith(String typeName) {
+        return annotations.get().containsKey(typeName);
+    }
+
+    @Override
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
     @Override
@@ -69,6 +88,7 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
         return owner;
     }
 
+    @Override
     public Set<JavaModifier> getModifiers() {
         return modifiers;
     }
@@ -89,23 +109,6 @@ public abstract class JavaMember implements HasName.AndFullName, HasDescriptor, 
     public String toString() {
         return getClass().getSimpleName() + '{' + getFullName() + '}';
     }
-
-    public static DescribedPredicate<JavaMember> modifier(final JavaModifier modifier) {
-        return new DescribedPredicate<JavaMember>("modifier " + modifier) {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.getModifiers().contains(modifier);
-            }
-        };
-    }
-
-    public static final ChainableFunction<HasOwner<JavaClass>, JavaClass> GET_OWNER =
-            new ChainableFunction<HasOwner<JavaClass>, JavaClass>() {
-                @Override
-                public JavaClass apply(HasOwner<JavaClass> input) {
-                    return input.getOwner();
-                }
-            };
 
 
     /**

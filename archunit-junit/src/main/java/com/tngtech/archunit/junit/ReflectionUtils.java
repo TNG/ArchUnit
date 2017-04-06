@@ -56,7 +56,7 @@ class ReflectionUtils {
         return collector.collected;
     }
 
-    private static abstract class Collector<T> {
+    private abstract static class Collector<T> {
         private final List<T> collected = new ArrayList<>();
 
         void collectFrom(Class<?> type) {

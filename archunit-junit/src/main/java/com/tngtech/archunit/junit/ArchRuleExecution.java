@@ -3,7 +3,6 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
@@ -38,7 +37,7 @@ public class ArchRuleExecution extends ArchTestExecution {
         return ruleField.getAnnotation(type);
     }
 
-    private static abstract class RuleToEvaluate {
+    private abstract static class RuleToEvaluate {
         static RuleToEvaluate retrievalFailedWith(RuleEvaluationException exception) {
             return new FailedToRetrieve(exception);
         }
@@ -56,13 +55,13 @@ public class ArchRuleExecution extends ArchTestExecution {
         }
 
         @SuppressWarnings("unchecked")
-        private static ArchRule<JavaClass> asArchRule(Object ruleCandidate) {
-            return (ArchRule<JavaClass>) ruleCandidate;
+        private static ArchRule asArchRule(Object ruleCandidate) {
+            return (ArchRule) ruleCandidate;
         }
 
         private static RuleEvaluationException fieldTypeFailure(Field ruleField) {
             String hint = String.format("Only fields of type %s may be annotated with @%s",
-                    ArchRule.class.getName(), ArchTest.class.getName());
+                    ArchRule.class.getSimpleName(), ArchTest.class.getSimpleName());
             String problem = String.format("Cannot evaluate @%s on field %s.%s",
                     ArchTest.class.getSimpleName(), ruleField.getDeclaringClass().getName(), ruleField.getName());
             return new RuleEvaluationException(hint + problem);
@@ -71,9 +70,9 @@ public class ArchRuleExecution extends ArchTestExecution {
         abstract Evaluation evaluateOn(JavaClasses classes);
 
         private static class Retrieved extends RuleToEvaluate {
-            private ArchRule<JavaClass> rule;
+            private ArchRule rule;
 
-            Retrieved(ArchRule<JavaClass> rule) {
+            Retrieved(ArchRule rule) {
                 this.rule = rule;
             }
 
@@ -97,15 +96,15 @@ public class ArchRuleExecution extends ArchTestExecution {
         }
     }
 
-    private static abstract class Evaluation {
+    private abstract static class Evaluation {
         abstract Result asResult(Description description);
     }
 
     private static class RetrievalEvaluation extends Evaluation {
-        private final ArchRule<JavaClass> rule;
+        private final ArchRule rule;
         private final JavaClasses classes;
 
-        public RetrievalEvaluation(ArchRule<JavaClass> rule, JavaClasses classes) {
+        RetrievalEvaluation(ArchRule rule, JavaClasses classes) {
             this.rule = rule;
             this.classes = classes;
         }

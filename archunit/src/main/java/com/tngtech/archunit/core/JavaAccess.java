@@ -2,6 +2,13 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
@@ -105,11 +112,57 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     protected abstract String descriptionTemplate();
 
-    public static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET =
-            new ChainableFunction<JavaAccess<?>, AccessTarget>() {
+    public static class Predicates {
+        public static DescribedPredicate<JavaAccess<?>> originOwner(DescribedPredicate<? super JavaClass> predicate) {
+            return origin(Get.<JavaClass>owner().is(predicate));
+        }
+
+        public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
+            return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
+        }
+
+        public static DescribedPredicate<JavaAccess<?>> originOwnerEqualsTargetOwner() {
+            return new DescribedPredicate<JavaAccess<?>>("origin owner equals target owner") {
                 @Override
-                public AccessTarget apply(JavaAccess<?> input) {
-                    return input.getTarget();
+                public boolean apply(JavaAccess<?> input) {
+                    return input.getOriginOwner().equals(input.getTargetOwner());
                 }
             };
+        }
+
+        public static DescribedPredicate<JavaAccess<?>> targetOwner(final DescribedPredicate<? super JavaClass> predicate) {
+            return target(Get.<JavaClass>owner().is(predicate));
+        }
+
+        public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
+            return new DescribedPredicate<JavaAccess<?>>("target " + predicate.getDescription()) {
+                @Override
+                public boolean apply(JavaAccess<?> input) {
+                    return predicate.apply(input.getTarget());
+                }
+            };
+        }
+    }
+
+    public static class Functions {
+        public static class Get {
+            public static ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin() {
+                return new ChainableFunction<JavaAccess<?>, JavaCodeUnit>() {
+                    @Override
+                    public JavaCodeUnit apply(JavaAccess<?> input) {
+                        return input.getOrigin();
+                    }
+                };
+            }
+
+            public static <A extends JavaAccess<? extends T>, T extends AccessTarget> ChainableFunction<A, T> target() {
+                return new ChainableFunction<A, T>() {
+                    @Override
+                    public T apply(A input) {
+                        return input.getTarget();
+                    }
+                };
+            }
+        }
+    }
 }

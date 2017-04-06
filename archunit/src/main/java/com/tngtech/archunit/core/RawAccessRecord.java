@@ -9,11 +9,16 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.properties.HasDescriptor;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.named;
+import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
@@ -114,7 +119,7 @@ class RawAccessRecord {
         }
     }
 
-    static abstract class TargetInfo {
+    abstract static class TargetInfo {
         final JavaType owner;
         final String name;
         final String desc;
@@ -176,7 +181,7 @@ class RawAccessRecord {
 
             private ClassHierarchyPath(JavaType childType, JavaClass parent) {
                 Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
-                Optional<JavaClass> child = tryFind(classesToSearchForChild, named(quote(childType.getName())));
+                Optional<JavaClass> child = tryFind(classesToSearchForChild, nameMatching(quote(childType.getName())));
                 if (child.isPresent()) {
                     createPath(child.get(), parent);
                 }

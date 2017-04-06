@@ -6,12 +6,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
-import static com.tngtech.archunit.lang.ArchRule.classes;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.resideIn;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class LayerDependencyRulesTest {
     private JavaClasses classes;
@@ -24,21 +20,21 @@ public class LayerDependencyRulesTest {
     @Ignore
     @Test
     public void services_should_not_access_controllers() {
-        all(classes().that(resideIn("..service..")))
-                .should(never(accessClassesThatResideIn("..controller.."))).check(classes);
+        noClasses().that().resideInAPackage("..service..")
+                .should().access().classesThat().resideInAPackage("..controller..").check(classes);
     }
 
     @Ignore
     @Test
     public void persistence_should_not_access_services() {
-        all(classes().that(resideIn("..persistence..")))
-                .should(never(accessClassesThatResideIn("..service.."))).check(classes);
+        noClasses().that().resideInAPackage("..persistence..")
+                .should().access().classesThat().resideInAPackage("..service..").check(classes);
     }
 
     @Ignore
     @Test
     public void services_should_only_be_accessed_by_controllers_or_other_services() {
-        all(classes().that(resideIn("..service..")))
-                .should(onlyBeAccessedByAnyPackage("..controller..", "..service..")).check(classes);
+        classes().that().resideInAPackage("..service..")
+                .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..").check(classes);
     }
 }

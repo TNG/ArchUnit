@@ -5,10 +5,11 @@ import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class AccessPackageCondition extends ArchCondition<JavaAccess<?>> {
     private final List<PackageMatcher> packageMatchers = new ArrayList<>();
@@ -46,7 +47,7 @@ class AccessPackageCondition extends ArchCondition<JavaAccess<?>> {
         for (PackageMatcher matcher : packageMatchers) {
             matches = matches || matcher.matches(getPackage.apply(item));
         }
-        events.add(new ConditionEvent(matches, item.getDescription()));
+        events.add(new SimpleConditionEvent<>(item, matches, item.getDescription()));
     }
 
     static class Creator {

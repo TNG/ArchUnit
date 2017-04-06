@@ -16,6 +16,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

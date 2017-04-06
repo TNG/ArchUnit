@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 
-public class ArchRules<T> {
+public class ArchRules {
     private final Collection<Field> fields;
     private final Collection<Method> methods;
 
@@ -34,8 +34,8 @@ public class ArchRules<T> {
         };
     }
 
-    public static <T> ArchRules<T> in(Class<?> definitionLocation) {
-        return new ArchRules<>(definitionLocation);
+    public static ArchRules in(Class<?> definitionLocation) {
+        return new ArchRules(definitionLocation);
     }
 
     public Set<ArchTestExecution> asTestExecutions() {
@@ -55,7 +55,7 @@ public class ArchRules<T> {
                 Collections.<ArchTestExecution>singleton(new ArchRuleExecution(field.getDeclaringClass(), field));
     }
 
-    private ArchRules<?> getArchRulesIn(Field field) {
+    private ArchRules getArchRulesIn(Field field) {
         try {
             ArchRules value = (ArchRules) field.get(null);
             return checkNotNull(value, "Field %s.%s is not initialized",

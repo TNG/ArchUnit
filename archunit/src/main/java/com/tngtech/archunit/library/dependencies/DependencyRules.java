@@ -8,29 +8,35 @@ import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
-import static com.tngtech.archunit.lang.ArchRule.all;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 
-public class DependencyRules {
-    public static ArchCondition<Slice> beFreeOfCycles() {
+class DependencyRules {
+    static ArchCondition<Slice> beFreeOfCycles() {
         return new SliceCycleArchCondition();
     }
 
-    public static ArchRule<Slice> slicesShouldOnlyDependOnTheirOwnSliceIn(Slices.Transformer inputTransformer) {
-        return all(inputTransformer).should(onlyDependOnTheirOwnSlice(inputTransformer));
+    static ArchRule slicesShouldNotDependOnEachOtherIn(Slices.Transformer inputTransformer) {
+        return all(inputTransformer).should(notDependOnEachOther(inputTransformer));
     }
 
-    private static ArchCondition<Slice> onlyDependOnTheirOwnSlice(final Slices.Transformer inputTransformer) {
-        return new ArchCondition<Slice>("only depend on their own slice") {
+    private static ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer) {
+        return new ArchCondition<Slice>("not depend on each other") {
             @Override
             public void check(Slice slice, ConditionEvents events) {
                 Slices dependencySlices = inputTransformer.transform(slice.getDependencies());
                 for (Slice dependencySlice : dependencySlices) {
-                    events.add(ConditionEvent.violated("%s calls %s:%n%s",
-                            slice.getDescription(), dependencySlice.getDescription(), joinDependencies(slice, dependencySlice)));
+                    events.add(SimpleConditionEvent.violated(slice, describe(slice, dependencySlice)));
                 }
+            }
+
+            private String describe(Slice slice, Slice dependencySlice) {
+                return String.format("%s calls %s:%n%s",
+                        slice.getDescription(),
+                        dependencySlice.getDescription(),
+                        joinDependencies(slice, dependencySlice));
             }
 
             private String joinDependencies(Slice from, Slice to) {

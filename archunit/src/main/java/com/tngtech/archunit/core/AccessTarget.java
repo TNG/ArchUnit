@@ -4,13 +4,24 @@ import java.lang.annotation.Annotation;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
+import com.tngtech.archunit.core.properties.HasParameterTypes;
+import com.tngtech.archunit.core.properties.HasReturnType;
+import com.tngtech.archunit.core.properties.HasType;
 
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
-public abstract class AccessTarget implements HasName.AndFullName, HasOwner<JavaClass> {
+public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
     private final String name;
     private final JavaClass owner;
     private final String fullName;
@@ -41,6 +52,17 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         return Objects.hash(fullName);
     }
 
+    /**
+     * Tries to resolve the targeted members (methods, fields or constructors). In most cases this will be a
+     * single element, if the target was imported, or an empty set, if the target was not imported. However,
+     * for {@link MethodCallTarget MethodCallTargets}, there can be multiple possible targets.
+     *
+     * @see MethodCallTarget#resolve()
+     * @see FieldAccessTarget#resolve()
+     * @see ConstructorCallTarget#resolve()
+     */
+    public abstract Set<? extends JavaMember> resolve();
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -58,7 +80,58 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         return "target{" + fullName + '}';
     }
 
-    public static class FieldAccessTarget extends AccessTarget {
+    /**
+     * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param annotationType The type of the annotation to check for
+     * @return true if one of the resolved targets is annotated with the given type
+     */
+    @Override
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return isAnnotatedWith(annotationType.getName());
+    }
+
+    /**
+     * @see AccessTarget#isAnnotatedWith(Class)
+     */
+    @Override
+    public boolean isAnnotatedWith(final String annotationTypeName) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isAnnotatedWith(annotationTypeName);
+            }
+        });
+    }
+
+    /**
+     * Returns true, if one of the resolved targets is annotated with an annotation matching the predicate.<br/>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param predicate Qualifies matching annotations
+     * @return true if one of the resolved targets is annotated with an annotation matching the predicate
+     */
+    @Override
+    public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isAnnotatedWith(predicate);
+            }
+        });
+    }
+
+    private boolean anyMember(Predicate<JavaMember> predicate) {
+        for (final JavaMember member : resolve()) {
+            if (predicate.apply(member)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
@@ -68,6 +141,7 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
             this.field = Suppliers.memoize(field);
         }
 
+        @Override
         public JavaClass getType() {
             return type;
         }
@@ -75,17 +149,28 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
         /**
          * @return A field that matches this target, or {@link Optional#absent()} if no matching field was imported.
          */
-        public Optional<JavaField> resolve() {
+        public Optional<JavaField> resolveField() {
             return field.get();
+        }
+
+        /**
+         * @return Fields that match the target, this will always be either one field, or no field
+         * @see #resolveField()
+         */
+        @Override
+        public Set<JavaField> resolve() {
+            return resolveField().asSet();
         }
     }
 
-    public static abstract class CodeUnitCallTarget extends AccessTarget implements HasParameters, CanBeAnnotated {
+    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
         private final ImmutableList<JavaClass> parameters;
+        private final JavaClass returnType;
 
-        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters) {
+        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters, JavaClass returnType) {
             super(owner, name, Formatters.formatMethod(owner.getName(), name, parameters));
             this.parameters = ImmutableList.copyOf(parameters);
+            this.returnType = returnType;
         }
 
         @Override
@@ -93,30 +178,26 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
             return new JavaClassList(parameters);
         }
 
+        @Override
+        public JavaClass getReturnType() {
+            return returnType;
+        }
+
         /**
          * Tries to resolve the targeted method or constructor.
          *
-         * @see ConstructorCallTarget#tryResolve()
+         * @see ConstructorCallTarget#resolveConstructor()
          * @see MethodCallTarget#resolve()
          */
-        public abstract Set<? extends JavaCodeUnit> resolve();
-
         @Override
-        public boolean isAnnotatedWith(Class<? extends Annotation> annotation) {
-            for (JavaCodeUnit codeUnit : resolve()) {
-                if (codeUnit.isAnnotatedWith(annotation)) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        public abstract Set<? extends JavaCodeUnit> resolve();
     }
 
     public static class ConstructorCallTarget extends CodeUnitCallTarget {
         private final Supplier<Optional<JavaConstructor>> constructor;
 
-        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, Supplier<Optional<JavaConstructor>> constructor) {
-            super(owner, CONSTRUCTOR_NAME, parameters);
+        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, JavaClass returnType, Supplier<Optional<JavaConstructor>> constructor) {
+            super(owner, CONSTRUCTOR_NAME, parameters, returnType);
             this.constructor = Suppliers.memoize(constructor);
         }
 
@@ -124,24 +205,26 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          * @return A constructor that matches this target, or {@link Optional#absent()} if no matching constructor
          * was imported.
          */
-        public Optional<JavaConstructor> tryResolve() {
+        public Optional<JavaConstructor> resolveConstructor() {
             return constructor.get();
         }
 
+        /**
+         * @return constructors that match the target, this will always be either one constructor, or no constructor
+         * @see #resolveConstructor()
+         */
         @Override
-        public Set<? extends JavaCodeUnit> resolve() {
-            return tryResolve().asSet();
+        public Set<JavaConstructor> resolve() {
+            return resolveConstructor().asSet();
         }
     }
 
     public static class MethodCallTarget extends CodeUnitCallTarget {
-        private final JavaClass returnType;
         private final Supplier<Set<JavaMethod>> methods;
 
         MethodCallTarget(JavaClass owner, String name, JavaClassList parameters,
                          JavaClass returnType, Supplier<Set<JavaMethod>> methods) {
-            super(owner, name, parameters);
-            this.returnType = returnType;
+            super(owner, name, parameters, returnType);
             this.methods = Suppliers.memoize(methods);
         }
 
@@ -179,12 +262,26 @@ public abstract class AccessTarget implements HasName.AndFullName, HasOwner<Java
          *
          * @return Set of matching methods, usually a single target
          */
+        @Override
         public Set<JavaMethod> resolve() {
             return methods.get();
         }
+    }
 
-        public JavaClass getReturnType() {
-            return returnType;
+    public static class Predicates {
+        public static DescribedPredicate<AccessTarget> declaredIn(Class<?> clazz) {
+            return Get.<JavaClass>owner().is(equivalentTo(clazz))
+                    .as("declared in %s", clazz.getName())
+                    .forSubType();
+        }
+
+        public static DescribedPredicate<AccessTarget> constructor() {
+            return new DescribedPredicate<AccessTarget>("constructor") {
+                @Override
+                public boolean apply(AccessTarget input) {
+                    return CONSTRUCTOR_NAME.equals(input.getName()); // The constructor name is sufficiently unique
+                }
+            };
         }
     }
 }
