@@ -277,7 +277,8 @@ public class RandomSyntaxTest {
                     Parameter get(String methodName, TypeToken<?> type) {
                         if (methodName.toLowerCase().contains("annotat")) {
                             return new Parameter("AnnotationType", "@AnnotationType");
-                        } else if (methodName.toLowerCase().contains("assign")) {
+                        } else if (methodName.toLowerCase().contains("assign")
+                                || methodName.toLowerCase().contains("implement")) {
                             return new Parameter("some.Type", "some.Type");
                         } else {
                             return new Parameter("string", "'string'");

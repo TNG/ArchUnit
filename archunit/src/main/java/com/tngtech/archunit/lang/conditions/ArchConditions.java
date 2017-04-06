@@ -29,6 +29,8 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.JavaClass.namesOf;
@@ -359,6 +361,51 @@ public final class ArchConditions {
                 boolean satisfied = annotatedWith.apply(item);
                 String message = String.format("class %s is %s%s",
                         item.getName(), satisfied ? "" : "not ", annotatedWith.getDescription());
+                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+            }
+        };
+    }
+
+    public static ArchCondition<JavaClass> implement(Class<?> interfaceType) {
+        return createImplementsCondition(implementsPredicate(assignableTo(interfaceType))
+                .as("implement %s", interfaceType.getName()));
+    }
+
+    public static ArchCondition<JavaClass> notImplement(Class<?> interfaceType) {
+        return not(implement(interfaceType));
+    }
+
+    public static ArchCondition<JavaClass> implement(String interfaceTypeName) {
+        return createImplementsCondition(implementsPredicate(assignableTo(interfaceTypeName))
+                .as("implement %s", interfaceTypeName));
+    }
+
+    public static ArchCondition<JavaClass> notImplement(String interfaceTypeName) {
+        return not(implement(interfaceTypeName));
+    }
+
+    public static ArchCondition<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
+        return createImplementsCondition(implementsPredicate(assignableTo(predicate))
+                .as("implement %s", predicate.getDescription()));
+    }
+
+    public static ArchCondition<JavaClass> notImplement(DescribedPredicate<? super JavaClass> predicate) {
+        return not(implement(predicate));
+    }
+
+    private static DescribedPredicate<JavaClass> implementsPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
+        return DescribedPredicate.not(INTERFACES).and(assignablePredicate);
+    }
+
+    private static ArchCondition<JavaClass> createImplementsCondition(final DescribedPredicate<? super JavaClass> implement) {
+        return new ArchCondition<JavaClass>(implement.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = implement.apply(item);
+                String description = satisfied
+                        ? implement.getDescription().replace("implement", "implements")
+                        : implement.getDescription().replace("implement", "doesn't implement");
+                String message = String.format("class %s %s", item.getName(), description);
                 events.add(new SimpleConditionEvent<>(item, satisfied, message));
             }
         };

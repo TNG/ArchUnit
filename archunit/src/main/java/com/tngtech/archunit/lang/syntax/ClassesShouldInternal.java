@@ -184,6 +184,36 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction implement(Class<?> type) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(type)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notImplement(Class<?> type) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(type)));
+    }
+
+    @Override
+    public ClassesShouldConjunction implement(String typeName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(typeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notImplement(String typeName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(typeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notImplement(DescribedPredicate<? super JavaClass> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(predicate)));
+    }
+
+    @Override
     public ClassesShouldConjunction beAssignableTo(Class<?> type) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableTo(type)));
     }

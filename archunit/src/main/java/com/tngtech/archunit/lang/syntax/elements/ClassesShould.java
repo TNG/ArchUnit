@@ -234,6 +234,60 @@ public interface ClassesShould {
     ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
+     * Asserts that classes implement a certain interface.
+     *
+     * @param type An interface imported classes should implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction implement(Class<?> type);
+
+    /**
+     * Asserts that classes don't implement a certain interface. This is the negation of {@link #implement(Class)}.
+     *
+     * @param type An interface imported classes should NOT implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction notImplement(Class<?> type);
+
+    /**
+     * Asserts that classes implement a certain interface with the given type name. This is equivalent to
+     * {@link #implement(Class)}, but doesn't depend on having a certain type on the classpath.
+     *
+     * @param typeName Name of an interface imported classes should implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction implement(String typeName);
+
+    /**
+     * Asserts that classes don't implement a certain interface with the given type name.
+     * This is equivalent to {@link #notImplement(Class)}, but doesn't depend on having a certain
+     * type on the classpath.
+     *
+     * @param typeName Name of an interface imported classes should NOT implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction notImplement(String typeName);
+
+    /**
+     * Asserts that classes implement a certain interface matching the given predicate. For example, a call with
+     * {@link HasName.Predicates#name(String)} would be equivalent to
+     * {@link #implement(String)}, but the approach is a lot more generic.
+     *
+     * @param predicate A predicate identifying an interface imported classes should implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that classes don't implement a certain interface matching the given predicate.
+     * This is the negation of {@link #implement(DescribedPredicate)}.
+     *
+     * @param predicate A predicate identifying an interface imported classes should NOT implement
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction notImplement(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
      * Asserts that classes are assignable to a certain type (compare {@link Class#isAssignableFrom(Class)} to terminology).
      * A simple example for this predicate would be
      * <pre><code>

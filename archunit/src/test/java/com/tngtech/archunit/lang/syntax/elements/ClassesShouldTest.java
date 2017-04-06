@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -466,6 +467,52 @@ public class ClassesShouldTest {
                 .contains(String.format("class %s is annotated with @%s",
                         wrongClass.getName(), SomeAnnotation.class.getSimpleName()))
                 .doesNotMatch(String.format(".*%s.*annotated.*", quote(correctClass.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] implement_rules() {
+        return $$(
+                $(classes().should().implement(Collection.class), ArrayList.class, List.class),
+                $(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class, List.class),
+                $(classes().should().implement(Collection.class.getName()), ArrayList.class, List.class),
+                $(classes().should(ArchConditions.implement(Collection.class.getName())), ArrayList.class, List.class),
+                $(classes().should().implement(getNameIsEqualToNameOf(Collection.class)), ArrayList.class, List.class),
+                $(classes().should(ArchConditions.implement(getNameIsEqualToNameOf(Collection.class))),
+                        ArrayList.class, List.class));
+    }
+
+    @Test
+    @UseDataProvider("implement_rules")
+    public void implement(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should implement %s", Collection.class.getName()))
+                .contains(String.format("class %s doesn't implement %s", violated.getName(), Collection.class.getName()))
+                .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notImplement_rules() {
+        return $$(
+                $(classes().should().notImplement(Collection.class), List.class, ArrayList.class),
+                $(classes().should(ArchConditions.notImplement(Collection.class)), List.class, ArrayList.class),
+                $(classes().should().notImplement(Collection.class.getName()), List.class, ArrayList.class),
+                $(classes().should(ArchConditions.notImplement(Collection.class.getName())), List.class, ArrayList.class),
+                $(classes().should().notImplement(getNameIsEqualToNameOf(Collection.class)), List.class, ArrayList.class),
+                $(classes().should(ArchConditions.notImplement(getNameIsEqualToNameOf(Collection.class))),
+                        List.class, ArrayList.class));
+    }
+
+    @Test
+    @UseDataProvider("notImplement_rules")
+    public void notImplement(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should not implement %s", Collection.class.getName()))
+                .contains(String.format("class %s implements %s", violated.getName(), Collection.class.getName()))
+                .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
     }
 
     @DataProvider
