@@ -191,16 +191,13 @@
 
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
-
     root = jsonToRoot(jsonroot, textwidth, CIRCLETEXTPADDING);
     let deps = jsonToDependencies(jsonroot, root.nodeMap);
     root.setDepsForAll(deps);
-
     layout();
-
     initializeGraph();
     root.foldAllExceptRoot();
-    updateVisualizationAfterFold(root);
+    updateWholeVisualization();
   });
 
   function layout() {
@@ -224,7 +221,7 @@
         .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
 
     let drag = d3.drag().on("drag", d => {
-      d.drag(d3.event.dx, d3.event.dy);
+      d.drag(d3.event.dx, d3.event.dy, false);
       updateAfterDragging(d);
     });
 
@@ -236,8 +233,7 @@
         })
         .call(drag);
 
-    nodes
-        .filter(d => !d.isRoot())
+    nodes.filter(d => !d.isRoot())
         .append("circle")
         .attr("r", d => d.visualData.r);
 
@@ -373,19 +369,15 @@
     nodes.style("visibility", "visible");
     nodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
     nodes.filter(filter).select("circle").attr("r", d => d.visualData.r);
-      /*nodes.filter(d => !d.isRoot() && filter(d)).each(function (d) {
-      let group = d3.select(this);
-      positionText(group.select("text"), group.select("circle"), d)
-       });*/
     positionTextOfAllNodes(nodes.filter(filter));
   }
 
   function updateEdges() {
-    let visEdges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
-    hideEdges(visEdges.exit());
-    showEdges(visEdges);
-    createNewEdges(visEdges.enter());
-    updateEdgePosition(visEdges);
+    let edges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
+    hideEdges(edges.exit());
+    showEdges(edges);
+    createNewEdges(edges.enter());
+    updateEdgePosition(edges);
   }
 
   function hideEdges(edges) {

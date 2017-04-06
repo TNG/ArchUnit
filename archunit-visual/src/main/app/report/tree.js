@@ -25,11 +25,11 @@ let VisualData = class {
     //this.dragPro = new DragProtocol(this.x, this.y);
   }
 
-  move(dx, dy, parent, callback, addToProtocol) {
+  move(dx, dy, parent, callback, addToProtocol, force) {
     let newX = this.x + dx;
     let newY = this.y + dy;
     let space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
-    if (parent.isRoot() || parent.isFolded || space >= this.r) {
+    if (force || parent.isRoot() || parent.isFolded || space >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -84,7 +84,7 @@ let checkAndCorrectPosition = d => {
     let dx = Math.abs(Math.cos(alpha) * dr);
     dy = Math.sign(d.parent.visualData.y - d.visualData.y) * dy;
     dx = Math.sign(d.parent.visualData.x - d.visualData.x) * dx;
-    d.drag(dx, dy);
+    d.drag(dx, dy, false);
   }
 };
 
@@ -123,12 +123,17 @@ let fold = (d, folded) => {
   return false;
 };
 
-let reapplyFilters = (n, filters) => {
+let recreapplyFilters = (n, filters) => {
   n.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), n.origChildren);
   n.filteredChildren.forEach(c => reapplyFilters(c, filters));
   if (!n.isFolded) {
     n.currentChildren = n.filteredChildren;
   }
+};
+
+let reapplyFilters = (root, filters) => {
+  recreapplyFilters(root, filters);
+  root.deps.setNodeFilters(root.filters);
 };
 
 let changeRadius = (n, newR) => {
@@ -219,8 +224,8 @@ let Node = class {
    * @param dx
    * @param dy
    */
-  drag(dx, dy) {
-    this.visualData.move(dx, dy, this.parent, () => this.origChildren.forEach(d => d.drag(dx, dy)), true);
+  drag(dx, dy, force) {
+    this.visualData.move(dx, dy, this.parent, () => this.origChildren.forEach(d => d.drag(dx, dy, true)), true, force);
     this.deps.recalcEndCoordinatesOf(this.projectData.fullname);
   }
 
@@ -299,13 +304,11 @@ let Node = class {
         inclusive, matchCase);
     this.filters.set("namefilter", filter);
     reapplyFilters(this, this.filters);
-    this.deps.setNodeFilters(this.filters);
   }
 
   resetFilterByName() {
     this.filters.delete("namefilter");
     reapplyFilters(this, this.filters);
-    this.deps.setNodeFilters(this.filters);
   }
 
   filterByType(interfaces, classes, eliminatePkgs) {
@@ -318,13 +321,11 @@ let Node = class {
         && (!eliminatePkgs || descendants(c, false).reduce((acc, n) => acc || classfilter(n), false));
     this.filters.set("typefilter", c => classfilter(c) || pkgfilter(c));
     reapplyFilters(this, this.filters);
-    this.deps.setNodeFilters(this.filters);
   }
 
   resetFilterByType() {
     this.filters.delete("typefilter");
     reapplyFilters(this, this.filters);
-    this.deps.setNodeFilters(this.filters);
   }
 };
 

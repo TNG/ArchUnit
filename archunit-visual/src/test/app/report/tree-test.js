@@ -80,7 +80,7 @@ let setupSimpleTestTree3 = () => {
 let getNode = (root, fullname) => root.nodeMap.get(fullname);
 
 let moveToMiddleOfParent = (node, parent) => {
-  node.drag(parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y);
+  node.drag(parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
 };
 
 let calcDeltaToRightUpperCornerOfParent = (node, parent) => {
@@ -158,7 +158,7 @@ describe("Node", () => {
     let toDrag = getNode(root, "com.tngtech.class2");
     let dx = 1, dy = -3;
     let newX = toDrag.visualData.x + dx, newY = toDrag.visualData.y + dy;
-    toDrag.drag(dx, dy);
+    toDrag.drag(dx, dy, false);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
@@ -178,7 +178,7 @@ describe("Node", () => {
       }
       exp.set(n, xy);
     });
-    toDrag.drag(dx, dy);
+    toDrag.drag(dx, dy, false);
     expect(root.getVisibleDescendants()).to.haveExactlyPositions(exp);
   });
 
@@ -188,7 +188,7 @@ describe("Node", () => {
     let parent = getNode(root, "com.tngtech.test.subtest");
     let dx = toDrag.visualData.x + parent.visualData.r, dy = 5;
     let newX = toDrag.visualData.x, newY = toDrag.visualData.y;
-    toDrag.drag(dx, dy);
+    toDrag.drag(dx, dy, false);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
@@ -206,7 +206,7 @@ describe("Node", () => {
 
     toDrag.changeFold();
     let delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
-    toDrag.drag(delta, -delta);
+    toDrag.drag(delta, -delta, false);
     toDrag.changeFold();
 
     expect(toDrag.visualData.x).to.be.within(newX - 2, newX + 2);
@@ -224,7 +224,7 @@ describe("Node", () => {
     let newX = toDrag.visualData.x + delta, newY = toDrag.visualData.y - delta;
 
     toDrag.changeFold();
-    toDrag.drag(delta, -delta);
+    toDrag.drag(delta, -delta, false);
     toDrag.changeFold();
 
     expect(toDrag.visualData.x).to.be.within(newX - 2, newX + 2);
