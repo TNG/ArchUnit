@@ -2,13 +2,14 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaClass;
 
-class ClassAccessesTargetCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
-    ClassAccessesTargetCondition(DescribedPredicate<? super JavaAccess<?>> predicate) {
-        super(new AccessTargetCondition(predicate));
+class AnyAccessFromClassCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
+    AnyAccessFromClassCondition(String prefix, DescribedPredicate<? super JavaAccess<?>> predicate) {
+        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition(predicate));
     }
 
     @Override

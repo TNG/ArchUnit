@@ -28,7 +28,7 @@ import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
@@ -69,11 +69,11 @@ public class ArchConditionsTest {
         JavaClass clazz = javaClassViaReflection(CallingClass.class);
         JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
 
-        ConditionEvents events = check(never(accessClass(nameMatching(".*Some.*"))), clazz);
+        ConditionEvents events = check(never(accessClassesThat(nameMatching(".*Some.*"))), clazz);
 
         assertThat(events).containViolations(call.getDescription());
 
-        events = check(never(accessClass(nameMatching(".*Wrong.*"))), clazz);
+        events = check(never(accessClassesThat(nameMatching(".*Wrong.*"))), clazz);
 
         assertThat(events).containNoViolation();
     }
@@ -92,8 +92,8 @@ public class ArchConditionsTest {
         assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
                 .isEqualTo("call code unit where something");
 
-        assertThat(accessClass(predicateWithDescription("something")).getDescription())
-                .isEqualTo("access class something");
+        assertThat(accessClassesThat(predicateWithDescription("something")).getDescription())
+                .isEqualTo("access classes that something");
 
         assertThat(never(conditionWithDescription("something")).getDescription())
                 .isEqualTo("never something");

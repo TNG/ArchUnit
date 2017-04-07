@@ -7,9 +7,9 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class JavaAccessCondition extends ArchCondition<JavaAccess<?>> {
-    private final DescribedPredicate<JavaAccess<?>> predicate;
+    private final DescribedPredicate<? super JavaAccess<?>> predicate;
 
-    JavaAccessCondition(DescribedPredicate<JavaAccess<?>> predicate) {
+    JavaAccessCondition(DescribedPredicate<? super JavaAccess<?>> predicate) {
         super(predicate.getDescription());
         this.predicate = predicate;
     }

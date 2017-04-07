@@ -3,10 +3,8 @@ package com.tngtech.archunit.lang.conditions;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
-import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.AccessTarget;
 import com.tngtech.archunit.core.Formatters;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAnnotation;
@@ -62,7 +60,8 @@ public final class ArchConditions {
      * @return A condition matching accesses to packages matching any of the identifiers
      */
     public static ArchCondition<JavaClass> accessClassesThatResideInAnyPackage(String... packageIdentifiers) {
-        return new ClassAccessesAnyPackageCondition(packageIdentifiers);
+        return new AnyAccessFromClassCondition("access classes that reside in",
+                JavaAccessPackagePredicate.forAccessTarget().matching(packageIdentifiers));
     }
 
     /**
@@ -70,7 +69,8 @@ public final class ArchConditions {
      * @return A condition matching accesses by packages matching any of the identifiers
      */
     public static ArchCondition<JavaClass> onlyBeAccessedByAnyPackage(String... packageIdentifiers) {
-        return new ClassIsOnlyAccessedByAnyPackageCondition(packageIdentifiers);
+        return new AllAccessesToClassCondition("only be accessed by",
+                JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
     }
 
     public static ArchCondition<JavaClass> getField(final Class<?> owner, final String fieldName) {
@@ -170,11 +170,12 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate) {
-        return new ClassAccessesTargetCondition(predicate);
+        return new AnyAccessFromClassCondition("access target where", predicate);
     }
 
-    public static ArchCondition<JavaClass> accessClass(final DescribedPredicate<? super JavaClass> predicate) {
-        return new ClassAccessesCondition(predicate);
+    public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        return new AnyAccessFromClassCondition("access classes that",
+                JavaAccess.Functions.Get.target().then(Get.<JavaClass>owner()).is(predicate));
     }
 
     public static <T> ArchCondition<T> never(ArchCondition<T> condition) {
@@ -468,22 +469,5 @@ public final class ArchConditions {
                 events.add(new SimpleConditionEvent<>(item, satisfied, message));
             }
         };
-    }
-
-    private static class ClassAccessesCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
-        ClassAccessesCondition(final DescribedPredicate<? super JavaClass> predicate) {
-            super(new JavaAccessCondition(accessWithOwnerWith(predicate)));
-        }
-
-        private static DescribedPredicate<JavaAccess<?>> accessWithOwnerWith(DescribedPredicate<? super JavaClass> predicate) {
-            ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
-            return predicate.onResultOf(Get.<JavaClass>owner().after(getTarget))
-                    .as("access class " + predicate.getDescription());
-        }
-
-        @Override
-        Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
-            return item.getAccessesFromSelf();
-        }
     }
 }
