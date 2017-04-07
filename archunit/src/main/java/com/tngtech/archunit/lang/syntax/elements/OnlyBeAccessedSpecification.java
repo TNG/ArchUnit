@@ -10,4 +10,6 @@ public interface OnlyBeAccessedSpecification<CONJUNCTION> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     CONJUNCTION byAnyPackage(String... packageIdentifiers);
+
+    ClassesShouldThat byClassesThat();
 }

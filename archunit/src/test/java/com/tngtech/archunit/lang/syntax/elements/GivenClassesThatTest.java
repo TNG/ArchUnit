@@ -95,7 +95,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void resideInPackage() {
+    public void resideInAPackage() {
         List<JavaClass> classes = filterResultOf(classes().that().resideInAPackage("..tngtech.."))
                 .on(getClass(), String.class, Iterable.class);
 

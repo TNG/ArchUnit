@@ -7,17 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasType;
-import com.tngtech.archunit.lang.FailureReport;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
@@ -29,17 +22,18 @@ import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldThatEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 
-public class ClassesShouldThatTest {
+public class ShouldAccessClassesThatTest {
 
     @Rule
     public final MockitoRule rule = MockitoJUnit.rule();
 
     @Test
     public void areNamed() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNamed(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -48,7 +42,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotNamed() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotNamed(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -57,7 +51,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void haveSimpleName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().haveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -66,7 +60,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void dontHaveSimpleName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().dontHaveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -75,7 +69,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void haveNameMatching() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().haveNameMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -84,7 +78,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void haveNameNotMatching() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().haveNameNotMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -92,8 +86,8 @@ public class ClassesShouldThatTest {
     }
 
     @Test
-    public void resideInPackage() {
-        List<JavaClass> classes = filterClassesHitBy(
+    public void resideInAPackage() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().resideInAPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -102,7 +96,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void resideOutsideOfPackage() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().resideOutsideOfPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -111,7 +105,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void resideInAnyPackage() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class, ClassAccessingConstructor.class);
@@ -119,7 +113,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void resideOutsideOfPackages() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
         ).on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class);
@@ -127,7 +121,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePublic() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePublic())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().arePublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -136,7 +130,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPublic() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPublic())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().areNotPublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -146,7 +140,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areProtected() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areProtected())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().areProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -155,7 +149,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotProtected() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotProtected())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().areNotProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -165,7 +159,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePackagePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePackagePrivate())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().arePackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -174,7 +168,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPackagePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPackagePrivate())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().areNotPackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -184,7 +178,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePrivate())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().arePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -193,7 +187,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPrivate())
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().areNotPrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -202,8 +196,8 @@ public class ClassesShouldThatTest {
     }
 
     @Test
-    public void haveModifiers() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().haveModifier(PRIVATE))
+    public void haveModifier() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().haveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -211,8 +205,8 @@ public class ClassesShouldThatTest {
     }
 
     @Test
-    public void dontHaveModifiers() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().dontHaveModifier(PRIVATE))
+    public void dontHaveModifier() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().dontHaveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -222,7 +216,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAnnotatedWith_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -231,7 +225,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAnnotatedWith_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -240,7 +234,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAnnotatedWith_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -249,7 +243,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAnnotatedWith_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -259,7 +253,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAnnotatedWith_predicate() {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -269,7 +263,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAnnotatedWith_predicate() {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -278,7 +272,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void implement_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().implement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -287,7 +281,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void dontImplement_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().dontImplement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -296,7 +290,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void implement_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().implement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -305,7 +299,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void dontImplement_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().dontImplement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -314,7 +308,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void implement_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().implement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -323,7 +317,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void dontImplement_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().dontImplement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -332,7 +326,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableTo_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -341,7 +335,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableTo_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -350,7 +344,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableTo_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -359,7 +353,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableTo_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -368,7 +362,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableTo_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -377,7 +371,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableTo_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -386,7 +380,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableFrom_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -396,7 +390,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableFrom_type() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -406,7 +400,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableFrom_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -416,7 +410,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableFrom_typeName() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -426,7 +420,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areAssignableFrom_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -436,7 +430,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotAssignableFrom_predicate() {
-        List<JavaClass> classes = filterClassesHitBy(
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -446,61 +440,6 @@ public class ClassesShouldThatTest {
 
     private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
-    }
-
-    private Evaluator filterClassesHitBy(ClassesShouldConjunction classesShould) {
-        return new Evaluator(classesShould);
-    }
-
-    private class Evaluator {
-        private final ClassesShouldConjunction classesShould;
-
-        Evaluator(ClassesShouldConjunction classesShould) {
-            this.classesShould = classesShould;
-        }
-
-        public List<JavaClass> on(Class<?>... toCheck) {
-            JavaClasses classes = importClasses(toCheck);
-            String report = getRelevantFailures(classes);
-            List<JavaClass> result = new ArrayList<>();
-            for (JavaClass clazz : classes) {
-                if (report.contains(clazz.getName())) {
-                    result.add(clazz);
-                }
-            }
-            return result;
-        }
-
-        private String getRelevantFailures(JavaClasses classes) {
-            List<String> relevant = new ArrayList<>();
-            for (String line : linesIn(classesShould.evaluate(classes).getFailureReport())) {
-                if (!isDefaultConstructor(line)) {
-                    relevant.add(line);
-                }
-            }
-            return Joiner.on(" ").join(relevant);
-        }
-
-        private boolean isDefaultConstructor(String line) {
-            return line.contains(Object.class.getName());
-        }
-
-        private List<String> linesIn(FailureReport failureReport) {
-            List<String> result = new ArrayList<>();
-            for (String details : failureReport.getDetails()) {
-                result.addAll(Splitter.on(System.lineSeparator()).splitToList(details));
-            }
-            return result;
-        }
-    }
-
-    private JavaClasses importClasses(Class<?>... classes) {
-        try {
-            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
-            return new ClassFileImporter().importClasses(ImmutableSet.copyOf(classes));
-        } finally {
-            ArchConfiguration.get().reset();
-        }
     }
 
     private static class ClassAccessingList {

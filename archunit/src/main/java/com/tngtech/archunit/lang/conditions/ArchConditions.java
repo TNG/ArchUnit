@@ -46,33 +46,6 @@ public final class ArchConditions {
     private ArchConditions() {
     }
 
-    /**
-     * @param packageIdentifier A String identifying a package according to {@link PackageMatcher}
-     * @return A condition matching accesses to packages matching the identifier
-     */
-    public static ArchCondition<JavaClass> accessClassesThatResideIn(String packageIdentifier) {
-        return accessClassesThatResideInAnyPackage(packageIdentifier).
-                as("access classes that reside in package '%s'", packageIdentifier);
-    }
-
-    /**
-     * @param packageIdentifiers Strings identifying a package according to {@link PackageMatcher}
-     * @return A condition matching accesses to packages matching any of the identifiers
-     */
-    public static ArchCondition<JavaClass> accessClassesThatResideInAnyPackage(String... packageIdentifiers) {
-        return new AnyAccessFromClassCondition("access classes that reside in",
-                JavaAccessPackagePredicate.forAccessTarget().matching(packageIdentifiers));
-    }
-
-    /**
-     * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
-     * @return A condition matching accesses by packages matching any of the identifiers
-     */
-    public static ArchCondition<JavaClass> onlyBeAccessedByAnyPackage(String... packageIdentifiers) {
-        return new AllAccessesToClassCondition("only be accessed by",
-                JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
-    }
-
     public static ArchCondition<JavaClass> getField(final Class<?> owner, final String fieldName) {
         return getField(owner.getName(), fieldName);
     }
@@ -177,6 +150,39 @@ public final class ArchConditions {
         return new AnyAccessFromClassCondition("access classes that",
                 JavaAccess.Functions.Get.target().then(Get.<JavaClass>owner()).is(predicate));
     }
+
+    public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return new AllAccessesToClassCondition("only be accessed by classes that",
+                JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate));
+    }
+
+    /**
+     * @param packageIdentifier A String identifying a package according to {@link PackageMatcher}
+     * @return A condition matching accesses to packages matching the identifier
+     */
+    public static ArchCondition<JavaClass> accessClassesThatResideIn(String packageIdentifier) {
+        return accessClassesThatResideInAnyPackage(packageIdentifier).
+                as("access classes that reside in package '%s'", packageIdentifier);
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying a package according to {@link PackageMatcher}
+     * @return A condition matching accesses to packages matching any of the identifiers
+     */
+    public static ArchCondition<JavaClass> accessClassesThatResideInAnyPackage(String... packageIdentifiers) {
+        return new AnyAccessFromClassCondition("access classes that reside in",
+                JavaAccessPackagePredicate.forAccessTarget().matching(packageIdentifiers));
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
+     * @return A condition matching accesses by packages matching any of the identifiers
+     */
+    public static ArchCondition<JavaClass> onlyBeAccessedByAnyPackage(String... packageIdentifiers) {
+        return new AllAccessesToClassCondition("only be accessed by",
+                JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
+    }
+
 
     public static <T> ArchCondition<T> never(ArchCondition<T> condition) {
         return new NeverCondition<>(condition);
