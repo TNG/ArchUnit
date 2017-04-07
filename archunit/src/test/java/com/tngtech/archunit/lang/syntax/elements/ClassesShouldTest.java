@@ -55,8 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
-
-    public static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
+    private static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
 
     @DataProvider
     public static Object[][] beNamed_rules() {

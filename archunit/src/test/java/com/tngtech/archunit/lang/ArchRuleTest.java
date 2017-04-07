@@ -104,7 +104,7 @@ public class ArchRuleTest {
 
         assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
 
-        rule = ArchRuleDefinition.classes().should().access().classesThat().areNamed("foo")
+        rule = ArchRuleDefinition.classes().should().accessClassesThat().areNamed("foo")
                 .because("this is the way");
 
         assertThat(rule.getDescription()).isEqualTo(

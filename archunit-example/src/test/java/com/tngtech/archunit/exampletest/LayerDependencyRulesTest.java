@@ -21,14 +21,14 @@ public class LayerDependencyRulesTest {
     @Test
     public void services_should_not_access_controllers() {
         noClasses().that().resideInAPackage("..service..")
-                .should().access().classesThat().resideInAPackage("..controller..").check(classes);
+                .should().accessClassesThat().resideInAPackage("..controller..").check(classes);
     }
 
     @Ignore
     @Test
     public void persistence_should_not_access_services() {
         noClasses().that().resideInAPackage("..persistence..")
-                .should().access().classesThat().resideInAPackage("..service..").check(classes);
+                .should().accessClassesThat().resideInAPackage("..service..").check(classes);
     }
 
     @Ignore

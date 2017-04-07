@@ -19,6 +19,6 @@ public class DaoRulesWithRunnerTest {
     @ArchTest
     public static final ArchRule only_DAOs_may_use_the_EntityManager =
             noClasses().that().resideOutsideOfPackage("..dao..")
-                    .should().access().classesThat().areAssignableTo(EntityManager.class)
+                    .should().accessClassesThat().areAssignableTo(EntityManager.class)
                     .as("Only DAOs may use the " + EntityManager.class.getSimpleName());
 }

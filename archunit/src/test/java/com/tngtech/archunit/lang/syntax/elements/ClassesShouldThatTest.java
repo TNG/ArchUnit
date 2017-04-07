@@ -40,7 +40,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNamed() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNamed(List.class.getName()))
+                noClasses().should().accessClassesThat().areNamed(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -49,7 +49,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotNamed() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotNamed(List.class.getName()))
+                noClasses().should().accessClassesThat().areNotNamed(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -58,7 +58,7 @@ public class ClassesShouldThatTest {
     @Test
     public void haveSimpleName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().haveSimpleName(List.class.getSimpleName()))
+                noClasses().should().accessClassesThat().haveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -67,7 +67,7 @@ public class ClassesShouldThatTest {
     @Test
     public void dontHaveSimpleName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().dontHaveSimpleName(List.class.getSimpleName()))
+                noClasses().should().accessClassesThat().dontHaveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -76,7 +76,7 @@ public class ClassesShouldThatTest {
     @Test
     public void haveNameMatching() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().haveNameMatching(".*\\.List"))
+                noClasses().should().accessClassesThat().haveNameMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -85,7 +85,7 @@ public class ClassesShouldThatTest {
     @Test
     public void haveNameNotMatching() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().haveNameNotMatching(".*\\.List"))
+                noClasses().should().accessClassesThat().haveNameNotMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -94,7 +94,7 @@ public class ClassesShouldThatTest {
     @Test
     public void resideInPackage() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().resideInAPackage("..tngtech.."))
+                noClasses().should().accessClassesThat().resideInAPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class);
@@ -103,7 +103,7 @@ public class ClassesShouldThatTest {
     @Test
     public void resideOutsideOfPackage() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().resideOutsideOfPackage("..tngtech.."))
+                noClasses().should().accessClassesThat().resideOutsideOfPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -111,8 +111,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void resideInAnyPackage() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access()
-                .classesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class, ClassAccessingConstructor.class);
@@ -120,8 +119,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void resideOutsideOfPackages() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access()
-                .classesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
         ).on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class);
@@ -129,7 +127,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePublic() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().arePublic())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -138,7 +136,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPublic() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().areNotPublic())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -148,7 +146,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areProtected() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().areProtected())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -157,7 +155,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotProtected() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().areNotProtected())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -167,7 +165,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePackagePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().arePackagePrivate())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -176,7 +174,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPackagePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().areNotPackagePrivate())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -186,7 +184,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void arePrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().arePrivate())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().arePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -195,7 +193,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void areNotPrivate() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().areNotPrivate())
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().areNotPrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -205,7 +203,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void haveModifiers() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().haveModifier(PRIVATE))
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().haveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -214,7 +212,7 @@ public class ClassesShouldThatTest {
 
     @Test
     public void dontHaveModifiers() {
-        List<JavaClass> classes = filterClassesHitBy(noClasses().should().access().classesThat().dontHaveModifier(PRIVATE))
+        List<JavaClass> classes = filterClassesHitBy(noClasses().should().accessClassesThat().dontHaveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -225,7 +223,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAnnotatedWith_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAnnotatedWith(SomeAnnotation.class))
+                noClasses().should().accessClassesThat().areAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
@@ -234,7 +232,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAnnotatedWith_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAnnotatedWith(SomeAnnotation.class))
+                noClasses().should().accessClassesThat().areNotAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
@@ -243,7 +241,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAnnotatedWith_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAnnotatedWith(SomeAnnotation.class.getName()))
+                noClasses().should().accessClassesThat().areAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
@@ -252,7 +250,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAnnotatedWith_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAnnotatedWith(SomeAnnotation.class.getName()))
+                noClasses().should().accessClassesThat().areNotAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
@@ -262,7 +260,7 @@ public class ClassesShouldThatTest {
     public void areAnnotatedWith_predicate() {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAnnotatedWith(hasNamePredicate))
+                noClasses().should().accessClassesThat().areAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
@@ -272,7 +270,7 @@ public class ClassesShouldThatTest {
     public void areNotAnnotatedWith_predicate() {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAnnotatedWith(hasNamePredicate))
+                noClasses().should().accessClassesThat().areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
@@ -281,7 +279,7 @@ public class ClassesShouldThatTest {
     @Test
     public void implement_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().implement(Collection.class))
+                noClasses().should().accessClassesThat().implement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
@@ -290,7 +288,7 @@ public class ClassesShouldThatTest {
     @Test
     public void dontImplement_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().dontImplement(Collection.class))
+                noClasses().should().accessClassesThat().dontImplement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
@@ -299,7 +297,7 @@ public class ClassesShouldThatTest {
     @Test
     public void implement_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().implement(Collection.class.getName()))
+                noClasses().should().accessClassesThat().implement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
@@ -308,7 +306,7 @@ public class ClassesShouldThatTest {
     @Test
     public void dontImplement_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().dontImplement(Collection.class.getName()))
+                noClasses().should().accessClassesThat().dontImplement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
@@ -317,7 +315,7 @@ public class ClassesShouldThatTest {
     @Test
     public void implement_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().implement(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().implement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
@@ -326,7 +324,7 @@ public class ClassesShouldThatTest {
     @Test
     public void dontImplement_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().dontImplement(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().dontImplement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
@@ -335,7 +333,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableTo_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableTo(Collection.class))
+                noClasses().should().accessClassesThat().areAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -344,7 +342,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableTo_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableTo(Collection.class))
+                noClasses().should().accessClassesThat().areNotAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -353,7 +351,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableTo_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableTo(Collection.class.getName()))
+                noClasses().should().accessClassesThat().areAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -362,7 +360,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableTo_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableTo(Collection.class.getName()))
+                noClasses().should().accessClassesThat().areNotAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -371,7 +369,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableTo_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableTo(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().areAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
@@ -380,7 +378,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableTo_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableTo(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().areNotAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
@@ -389,7 +387,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableFrom_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableFrom(Collection.class))
+                noClasses().should().accessClassesThat().areAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -399,7 +397,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableFrom_type() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableFrom(Collection.class))
+                noClasses().should().accessClassesThat().areNotAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -409,7 +407,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableFrom_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableFrom(Collection.class.getName()))
+                noClasses().should().accessClassesThat().areAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -419,7 +417,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableFrom_typeName() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableFrom(Collection.class.getName()))
+                noClasses().should().accessClassesThat().areNotAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -429,7 +427,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areAssignableFrom_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areAssignableFrom(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().areAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -439,7 +437,7 @@ public class ClassesShouldThatTest {
     @Test
     public void areNotAssignableFrom_predicate() {
         List<JavaClass> classes = filterClassesHitBy(
-                noClasses().should().access().classesThat().areNotAssignableFrom(classWithNameOf(Collection.class)))
+                noClasses().should().accessClassesThat().areNotAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 

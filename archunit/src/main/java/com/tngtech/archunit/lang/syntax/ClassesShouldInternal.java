@@ -18,7 +18,10 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
+import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
+
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClass;
 
 class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         implements ClassesShould, ClassesShouldConjunction {
@@ -44,8 +47,13 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public AccessSpecificationInternal access() {
-        return new AccessSpecificationInternal(this);
+    public ClassesShouldThat accessClassesThat() {
+        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+            @Override
+            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> input) {
+                return accessClass(input).as("access classes that " + input.getDescription());
+            }
+        });
     }
 
     @Override

@@ -13,25 +13,9 @@ import com.tngtech.archunit.core.JavaFieldAccess;
 import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 public interface ClassesShould {
-    /**
-     * @return A syntax element that allows restricting how classes should access other (classes/fields/methods/...)
-     * <br>E.g.
-     * <pre><code>
-     *   {@link #access()}.{@link AccessSpecification#classesThat() classesThat()}.{@link ClassesShouldThat#areNamed(String) areNamed(String)}
-     * </code></pre>
-     */
-    AccessSpecification access();
-
-    /**
-     * @return A syntax element that allows restricting how classes should be accessed
-     * <br>E.g.
-     * <pre><code>
-     *   {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byAnyPackage(String...) byAnyPackage(String...)}
-     * </code></pre>
-     */
-    OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
 
     /**
      * Asserts that classes have a certain fully qualified class name.
@@ -568,4 +552,25 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule access certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesShouldThat#areNamed(String) areNamed(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing which classes should be accessed
+     */
+    ClassesShouldThat accessClassesThat();
+
+    /**
+     * @return A syntax element that allows restricting how classes should be accessed
+     * <br>E.g.
+     * <pre><code>
+     * {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byAnyPackage(String...) byAnyPackage(String...)}
+     * </code></pre>
+     */
+    OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
 }

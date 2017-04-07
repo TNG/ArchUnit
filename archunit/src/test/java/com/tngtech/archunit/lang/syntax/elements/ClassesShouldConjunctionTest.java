@@ -54,10 +54,10 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ORed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().access().classesThat().areNamed(Wrong.class.getName())
+                        .should().accessClassesThat().areNamed(Wrong.class.getName())
                         .orShould(ArchConditions.beNamed(Wrong.class.getName()))),
                 $(noClasses()
-                        .should().access().classesThat().areNamed(Wrong.class.getName())
+                        .should().accessClassesThat().areNamed(Wrong.class.getName())
                         .orShould().beNamed(Wrong.class.getName())));
     }
 
@@ -114,10 +114,10 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ANDed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().access().classesThat().areNamed(Wrong.class.getName())
+                        .should().accessClassesThat().areNamed(Wrong.class.getName())
                         .andShould(ArchConditions.beNamed(OtherWrong.class.getName()))),
                 $(noClasses()
-                        .should().access().classesThat().areNamed(Wrong.class.getName())
+                        .should().accessClassesThat().areNamed(Wrong.class.getName())
                         .andShould().beNamed(OtherWrong.class.getName())));
     }
 
