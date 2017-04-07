@@ -3,8 +3,10 @@ package com.tngtech.archunit.lang.conditions;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.AccessTarget;
 import com.tngtech.archunit.core.Formatters;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAnnotation;
@@ -147,8 +149,10 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        ChainableFunction<JavaAccess, AccessTarget> getTarget =
+                JavaAccess.Functions.Get.<JavaAccess, AccessTarget>target(); // This seems to be a compiler nightmare...
         return new AnyAccessFromClassCondition("access classes that",
-                JavaAccess.Functions.Get.target().then(Get.<JavaClass>owner()).is(predicate));
+                getTarget.then(Get.<JavaClass>owner()).is(predicate));
     }
 
     public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {

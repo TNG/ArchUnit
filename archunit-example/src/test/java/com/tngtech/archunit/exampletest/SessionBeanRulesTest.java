@@ -84,7 +84,7 @@ public class SessionBeanRulesTest {
                 //       one type, otherwise this would need to be more sophisticated
                 private boolean isLocalBeanImplementation(JavaClass bean, JavaClass businessInterfaceType) {
                     return bean.isAnnotatedWith(Local.class) &&
-                            bean.getReflectionAnnotation(Local.class).value()[0].getName()
+                            bean.getAnnotationOfType(Local.class).value()[0].getName()
                                     .equals(businessInterfaceType.getName());
                 }
             };

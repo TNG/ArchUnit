@@ -9,11 +9,11 @@ import com.tngtech.archunit.core.JavaAnnotation;
 public interface HasAnnotations extends CanBeAnnotated {
     Set<JavaAnnotation> getAnnotations();
 
-    JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type);
+    <A extends Annotation> A getAnnotationOfType(Class<A> type);
 
     JavaAnnotation getAnnotationOfType(String typeName);
 
-    Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type);
+    <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type);
 
     Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName);
 }

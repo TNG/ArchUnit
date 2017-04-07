@@ -29,6 +29,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.JavaClass.Functions.SIMPLE_NAME;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 
 public class JavaClass implements HasName, HasAnnotations, HasModifiers {
@@ -102,26 +103,15 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     /**
-     * @param type The type of the {@link Annotation} to retrieve
-     * @return The {@link Annotation} representing the given annotation type
-     * @throws IllegalArgumentException if the class is note annotated with the given type
-     * @see #isAnnotatedWith(Class)
-     * @see #getAnnotationOfType(Class)
-     */
-    public <A extends Annotation> A getReflectionAnnotation(Class<A> type) {
-        return getAnnotationOfType(type).as(type);
-    }
-
-    /**
      * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
-     * @return The {@link JavaAnnotation} representing the given annotation type
+     * @return An {@link Annotation} of the given annotation type
      * @throws IllegalArgumentException if the class is note annotated with the given type
      * @see #isAnnotatedWith(Class)
      * @see #tryGetAnnotationOfType(Class)
      */
     @Override
-    public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
-        return getAnnotationOfType(type.getName());
+    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+        return getAnnotationOfType(type.getName()).as(type);
     }
 
     @Override
@@ -137,14 +127,14 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     /**
      * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
-     * @return An {@link Optional} containing a {@link JavaAnnotation} representing the given annotation type,
+     * @return An {@link Optional} containing an {@link Annotation} of the given annotation type,
      * if this class is annotated with the given type, otherwise Optional.absent()
      * @see #isAnnotatedWith(Class)
      * @see #getAnnotationOfType(Class)
      */
     @Override
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
-        return tryGetAnnotationOfType(type.getName());
+    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+        return tryGetAnnotationOfType(type.getName()).transform(toAnnotationOfType(type));
     }
 
     /**

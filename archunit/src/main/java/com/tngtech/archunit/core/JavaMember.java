@@ -19,6 +19,7 @@ import com.tngtech.archunit.core.properties.HasOwner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
+import static com.tngtech.archunit.core.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 
 public abstract class JavaMember implements
         HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass> {
@@ -42,13 +43,13 @@ public abstract class JavaMember implements
     }
 
     /**
-     * Returns the {@link JavaAnnotation} of this field for the given {@link java.lang.annotation.Annotation} type.
+     * Returns the {@link Annotation} of this member of the given {@link Annotation} type.
      *
      * @throws IllegalArgumentException if there is no annotation of the respective reflection type
      */
     @Override
-    public JavaAnnotation getAnnotationOfType(Class<? extends Annotation> type) {
-        return getAnnotationOfType(type.getName());
+    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+        return getAnnotationOfType(type.getName()).as(type);
     }
 
     @Override
@@ -59,8 +60,8 @@ public abstract class JavaMember implements
     }
 
     @Override
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(Class<? extends Annotation> type) {
-        return tryGetAnnotationOfType(type.getName());
+    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+        return tryGetAnnotationOfType(type.getName()).transform(toAnnotationOfType(type));
     }
 
     @Override

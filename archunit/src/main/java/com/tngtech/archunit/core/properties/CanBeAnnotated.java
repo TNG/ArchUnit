@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.JavaAnnotation;
 
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
@@ -48,6 +49,15 @@ public interface CanBeAnnotated {
                 }
             }
             return false;
+        }
+
+        public static <A extends Annotation> Function<JavaAnnotation, A> toAnnotationOfType(final Class<A> type) {
+            return new Function<JavaAnnotation, A>() {
+                @Override
+                public A apply(JavaAnnotation input) {
+                    return input.as(type);
+                }
+            };
         }
     }
 }
