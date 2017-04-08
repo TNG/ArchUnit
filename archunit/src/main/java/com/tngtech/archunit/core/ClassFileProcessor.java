@@ -152,15 +152,13 @@ class ClassFileProcessor {
         boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
         return resolveFromClasspath ?
                 new ClassResolverFromClassPath(classDetailsRecorder) :
-                new SimpleClassResolver();
+                new NoOpClassResolver();
     }
 
-    static class SimpleClassResolver implements ClassResolver {
+    static class NoOpClassResolver implements ClassResolver {
         @Override
-        public Optional<JavaClass> tryResolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
-            return importedClasses.contain(typeName) ?
-                    Optional.of(importedClasses.get(typeName)) :
-                    Optional.<JavaClass>absent();
+        public Optional<JavaClass> tryResolve(String typeName) {
+            return Optional.absent();
         }
     }
 
@@ -173,15 +171,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public Optional<JavaClass> tryResolve(String typeName, ImportedClasses.ByTypeName importedClasses) {
-            if (importedClasses.contain(typeName)) {
-                return Optional.of(importedClasses.get(typeName));
-            }
-
-            return tryResolve(typeName);
-        }
-
-        private Optional<JavaClass> tryResolve(String typeName) {
+        public Optional<JavaClass> tryResolve(String typeName) {
             String typeFile = "/" + typeName.replace(".", "/") + ".class";
 
             try (InputStream inputStream = getClass().getResourceAsStream(typeFile)) {

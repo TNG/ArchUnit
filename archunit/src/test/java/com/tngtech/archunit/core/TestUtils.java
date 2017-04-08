@@ -130,18 +130,9 @@ public class TestUtils {
             imported.put(clazz.getName(), clazz);
         }
 
-        Set<JavaClass> getAll() {
-            return ImmutableSet.copyOf(imported.values());
-        }
-
-        @Override
-        public boolean contain(String typeName) {
-            return imported.containsKey(typeName);
-        }
-
         @Override
         public JavaClass get(String typeName) {
-            return contain(typeName) ? imported.get(typeName) : importNew(classForName(typeName));
+            return imported.containsKey(typeName) ? imported.get(typeName) : importNew(classForName(typeName));
         }
 
         private JavaClass importNew(Class<?> owner) {

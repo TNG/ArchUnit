@@ -12,7 +12,7 @@ public class ClassFileProcessorTest {
     @Test
     public void ClassResolverFromClassPath_resolves_robustly() {
         Optional<JavaClass> resolved = new ClassResolverFromClassPath(mock(DeclarationHandler.class))
-                .tryResolve("not.There", mock(ImportedClasses.ByTypeName.class));
+                .tryResolve("not.There");
 
         assertThat(resolved).isAbsent();
     }

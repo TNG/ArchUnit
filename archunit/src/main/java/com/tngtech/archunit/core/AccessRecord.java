@@ -73,7 +73,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawConstructorCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.get(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
                 callerSupplier = createCallerSupplier(record, classes);
             }
 
@@ -91,10 +91,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     }
                 };
                 JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
-                JavaClass returnType = classes.get(void.class.getName());
+                JavaClass returnType = classes.getOrResolve(void.class.getName());
                 return new ConstructorCallTarget(targetOwner, paramTypes, returnType, constructorSupplier);
             }
 
+            @Override
             public int getLineNumber() {
                 return record.lineNumber;
             }
@@ -109,7 +110,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawMethodCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.get(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
                 callerSupplier = createCallerSupplier(record, classes);
             }
 
@@ -127,10 +128,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     }
                 };
                 JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
-                JavaClass returnType = classes.get(Type.getReturnType(record.target.desc).getClassName());
+                JavaClass returnType = classes.getOrResolve(Type.getReturnType(record.target.desc).getClassName());
                 return new MethodCallTarget(targetOwner, record.target.name, parameters, returnType, methodsSupplier);
             }
 
+            @Override
             public int getLineNumber() {
                 return record.lineNumber;
             }
@@ -145,7 +147,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.get(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
                 callerSupplier = createCallerSupplier(record, classes);
             }
 
@@ -167,10 +169,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllFields(), record.target));
                     }
                 };
-                JavaClass fieldType = classes.get(Type.getType(record.target.desc).getClassName());
+                JavaClass fieldType = classes.getOrResolve(Type.getType(record.target.desc).getClassName());
                 return new FieldAccessTarget(targetOwner, record.target.name, fieldType, fieldSupplier);
             }
 
+            @Override
             public int getLineNumber() {
                 return record.lineNumber;
             }
@@ -186,7 +189,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static JavaCodeUnit getCaller(CodeUnit caller, ImportedClasses classes) {
-            for (JavaCodeUnit method : classes.get(caller.getDeclaringClassName()).getCodeUnits()) {
+            for (JavaCodeUnit method : classes.getOrResolve(caller.getDeclaringClassName()).getCodeUnits()) {
                 if (caller.is(method)) {
                     return method;
                 }
@@ -213,7 +216,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         private static JavaClassList getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
             List<JavaClass> paramTypes = new ArrayList<>();
             for (Type type : Type.getArgumentTypes(descriptor)) {
-                paramTypes.add(classes.get(type.getClassName()));
+                paramTypes.add(classes.getOrResolve(type.getClassName()));
             }
             return new JavaClassList(paramTypes);
         }

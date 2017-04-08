@@ -94,12 +94,8 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void resolveInheritance(String currentTypeName, Function<JavaClass, Set<String>> inheritanceStrategy) {
-        Optional<JavaClass> resolved = classResolver.tryResolve(currentTypeName, classes.byType());
-        if (resolved.isPresent() && !classes.contain(resolved.get().getName())) {
-            classes.add(resolved.get());
-            for (String parent : inheritanceStrategy.apply(resolved.get())) {
-                resolveInheritance(parent, interfaceStrategy);
-            }
+        for (String parent : inheritanceStrategy.apply(classes.getOrResolve(currentTypeName))) {
+            resolveInheritance(parent, interfaceStrategy);
         }
     }
 
@@ -135,14 +131,14 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public JavaClass getJavaClassWithType(String typeName) {
-        return classes.get(typeName);
+        return classes.getOrResolve(typeName);
     }
 
     @Override
     public Optional<JavaClass> createSuperClass(JavaClass owner) {
         Optional<String> superClassName = importRecord.getSuperClassFor(owner.getName());
         return superClassName.isPresent() ?
-                Optional.of(classes.get(superClassName.get())) :
+                Optional.of(classes.getOrResolve(superClassName.get())) :
                 Optional.<JavaClass>absent();
     }
 
@@ -150,44 +146,44 @@ class ClassGraphCreator implements ImportContext {
     public Set<JavaClass> createInterfaces(JavaClass owner) {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
         for (String interfaceName : importRecord.getInterfaceNamesFor(owner.getName())) {
-            result.add(classes.get(interfaceName));
+            result.add(classes.getOrResolve(interfaceName));
         }
         return result.build();
     }
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byType());
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
     }
 
     @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
-        return build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byType());
+        return build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byTypeName());
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byType());
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
     }
 
     @Override
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
         Optional<JavaStaticInitializer.Builder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
         return builder.isPresent() ?
-                Optional.of(builder.get().build(owner, classes.byType())) :
+                Optional.of(builder.get().build(owner, classes.byTypeName())) :
                 Optional.<JavaStaticInitializer>absent();
     }
 
     @Override
     public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
-        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byType());
+        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
     }
 
     @Override
     public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
         Optional<String> enclosingClassName = importRecord.getEnclosingClassFor(owner.getName());
         return enclosingClassName.isPresent() ?
-                Optional.of(classes.get(enclosingClassName.get())) :
+                Optional.of(classes.getOrResolve(enclosingClassName.get())) :
                 Optional.<JavaClass>absent();
     }
 }

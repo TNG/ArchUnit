@@ -29,16 +29,43 @@ class ImportedClasses {
         return directlyImported;
     }
 
-    boolean contain(String name) {
-        return directlyImported.containsKey(name) || additionalClasses.containsKey(name);
+    void add(JavaClass clazz) {
+        additionalClasses.put(clazz.getName(), clazz);
+    }
+
+    JavaClass getOrResolve(String typeName) {
+        ensurePresent(typeName);
+        return directlyImported.containsKey(typeName) ?
+                directlyImported.get(typeName) :
+                additionalClasses.get(typeName);
     }
 
     void ensurePresent(String typeName) {
         if (!contain(typeName)) {
-            Optional<JavaClass> resolved = resolver.tryResolve(typeName, byType());
+            Optional<JavaClass> resolved = resolver.tryResolve(typeName);
             JavaClass newClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
             additionalClasses.put(typeName, newClass);
         }
+    }
+
+    private boolean contain(String name) {
+        return directlyImported.containsKey(name) || additionalClasses.containsKey(name);
+    }
+
+    Map<String, JavaClass> getAll() {
+        return ImmutableMap.<String, JavaClass>builder()
+                .putAll(directlyImported)
+                .putAll(additionalClasses)
+                .build();
+    }
+
+    ByTypeName byTypeName() {
+        return new ByTypeName() {
+            @Override
+            public JavaClass get(String typeName) {
+                return ImportedClasses.this.getOrResolve(typeName);
+            }
+        };
     }
 
     private static JavaClass simpleClassOf(String typeName) {
@@ -54,41 +81,7 @@ class ImportedClasses {
         }
     }
 
-    void add(JavaClass clazz) {
-        additionalClasses.put(clazz.getName(), clazz);
-    }
-
-    JavaClass get(String typeName) {
-        ensurePresent(typeName);
-        return directlyImported.containsKey(typeName) ?
-                directlyImported.get(typeName) :
-                additionalClasses.get(typeName);
-    }
-
-    Map<String, JavaClass> getAll() {
-        return ImmutableMap.<String, JavaClass>builder()
-                .putAll(directlyImported)
-                .putAll(additionalClasses)
-                .build();
-    }
-
-    ByTypeName byType() {
-        return new ByTypeName() {
-            @Override
-            public boolean contain(String typeName) {
-                return ImportedClasses.this.contain(typeName);
-            }
-
-            @Override
-            public JavaClass get(String typeName) {
-                return ImportedClasses.this.get(typeName);
-            }
-        };
-    }
-
     interface ByTypeName {
-        boolean contain(String typeName);
-
         JavaClass get(String typeName);
     }
 }
