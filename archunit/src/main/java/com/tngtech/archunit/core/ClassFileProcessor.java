@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.core.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
@@ -26,6 +28,8 @@ class ClassFileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
 
     static final int ASM_API_VERSION = ASM5;
+
+    private final ClassResolverFactory classResolverFactory = new ClassResolverFactory();
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
@@ -149,13 +153,16 @@ class ClassFileProcessor {
     }
 
     private ClassResolver getClassResolver(ClassDetailsRecorder classDetailsRecorder) {
-        boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
-        return resolveFromClasspath ?
-                new ClassResolverFromClassPath(classDetailsRecorder) :
-                new NoOpClassResolver();
+        ClassResolver classResolver = classResolverFactory.create();
+        classResolver.setClassUriImporter(new UriImporterOfProcessor(classDetailsRecorder));
+        return classResolver;
     }
 
     static class NoOpClassResolver implements ClassResolver {
+        @Override
+        public void setClassUriImporter(ClassUriImporter classUriImporter) {
+        }
+
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
             return Optional.absent();
@@ -164,38 +171,61 @@ class ClassFileProcessor {
 
     @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
     static class ClassResolverFromClassPath implements ClassResolver {
-        private final DeclarationHandler declarationHandler;
+        private ClassUriImporter classUriImporter;
 
-        ClassResolverFromClassPath(DeclarationHandler declarationHandler) {
-            this.declarationHandler = declarationHandler;
+        @Override
+        public void setClassUriImporter(ClassUriImporter classUriImporter) {
+            this.classUriImporter = classUriImporter;
         }
 
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
             String typeFile = "/" + typeName.replace(".", "/") + ".class";
 
-            try (InputStream inputStream = getClass().getResourceAsStream(typeFile)) {
-                if (inputStream == null) {
-                    LOG.debug("Couldn't resolve class {} from classpath, falling back to simple import", typeFile);
-                    return Optional.absent();
-                }
+            Optional<URI> uri = tryGetUriOf(typeFile);
 
-                JavaClassProcessor classProcessor = new JavaClassProcessor(uriOf(typeFile), declarationHandler);
-                new ClassReader(inputStream).accept(classProcessor, 0);
-                return classProcessor.createJavaClass();
-            } catch (Exception e) {
-                LOG.warn(String.format(
-                        "Error during import of %s from classpath, falling back to simple import", typeFile), e);
-                return Optional.absent();
-            }
+            return uri.isPresent() ? classUriImporter.tryImport(uri.get()) : Optional.<JavaClass>absent();
         }
 
-        private URI uriOf(String typeFile) {
+        private Optional<URI> tryGetUriOf(String typeFile) {
+            URL resource = getClass().getResource(typeFile);
+            if (resource == null) {
+                return Optional.absent();
+            }
             try {
-                return getClass().getResource(typeFile).toURI();
+                return Optional.of(resource.toURI());
             } catch (URISyntaxException e) {
                 throw new LocationException(e);
             }
+        }
+    }
+
+    private static class UriImporterOfProcessor implements ClassUriImporter {
+        private final DeclarationHandler declarationHandler;
+
+        UriImporterOfProcessor(DeclarationHandler declarationHandler) {
+            this.declarationHandler = declarationHandler;
+        }
+
+        @Override
+        public Optional<JavaClass> tryImport(URI uri) {
+            try (InputStream inputStream = uri.toURL().openStream()) {
+                JavaClassProcessor classProcessor = new JavaClassProcessor(uri, declarationHandler);
+                new ClassReader(inputStream).accept(classProcessor, 0);
+                return classProcessor.createJavaClass();
+            } catch (Exception e) {
+                LOG.warn(String.format("Error during import from %s, falling back to simple import", uri), e);
+                return Optional.absent();
+            }
+        }
+    }
+
+    private static class ClassResolverFactory {
+        public ClassResolver create() {
+            boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
+            return resolveFromClasspath ?
+                    new ClassResolverFromClassPath() :
+                    new NoOpClassResolver();
         }
     }
 }
