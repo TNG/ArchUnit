@@ -1,6 +1,6 @@
 package com.tngtech.archunit.base;
 
-import java.net.URL;
+import java.net.URI;
 
 public class ArchUnitException extends RuntimeException {
     ArchUnitException(String message, Throwable cause) {
@@ -27,9 +27,9 @@ public class ArchUnitException extends RuntimeException {
         }
     }
 
-    public static class UnsupportedUrlProtocolException extends ArchUnitException {
-        public UnsupportedUrlProtocolException(URL url) {
-            super("The protocol of the following URL is not (yet) supported: " + url);
+    public static class UnsupportedUriSchemeException extends ArchUnitException {
+        public UnsupportedUriSchemeException(URI uri) {
+            super("The scheme of the following URI is not (yet) supported: " + uri);
         }
     }
 

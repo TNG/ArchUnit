@@ -3,6 +3,7 @@ package com.tngtech.archunit.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -10,12 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.primitives.Bytes.asList;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class LocationTest {
     @Test
     public void file_resources_are_not_detected_as_JARs() throws Exception {
@@ -47,12 +55,17 @@ public class LocationTest {
         assertThat(location).isNotEqualTo(new Object());
     }
 
+    @DataProvider
+    public static Object[][] file_locations_pointing_to_jar() throws MalformedURLException {
+        JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(LocationTest.class)).create();
+        return $$(
+                $(Location.of(new URL("file://" + jarFile.getName()))),
+                $(Location.of(URI.create("file://" + jarFile.getName()))));
+    }
+
     @Test
-    public void JAR_protocol_is_added_to_file_urls_that_point_to_JARs() throws MalformedURLException {
-        JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(getClass())).create();
-
-        Location location = Location.of(new URL("file://" + jarFile.getName()));
-
+    @UseDataProvider("file_locations_pointing_to_jar")
+    public void JAR_protocol_is_added_to_file_urls_that_point_to_JARs(Location location) throws MalformedURLException {
         assertThat(location.uri.toString()).startsWith("jar:");
         assertThat(location.uri.toString()).endsWith("!/");
         assertThat(location.uri.toURL().getProtocol()).isEqualTo("jar");
@@ -78,7 +91,7 @@ public class LocationTest {
                 .withEntry(fullClassFileName(getClass()))
                 .withEntry(fullClassFileName(Location.class))
                 .create();
-        ClassFileSource source = Location.of(new URL("file:///" + jar.getName())).asClassFileSource();
+        ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource();
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (ClassFileLocation location : source) {
@@ -92,10 +105,16 @@ public class LocationTest {
                         asList(toByteArray(streamOfClass(Location.class))));
     }
 
-    @Test
-    public void contains_works() {
-        Location location = Location.of(urlOfOwnClass());
+    @DataProvider
+    public static Object[][] locations_of_own_class() throws URISyntaxException {
+        return $$(
+                $(Location.of(urlOfClass(LocationTest.class))),
+                $(Location.of(urlOfClass(LocationTest.class).toURI())));
+    }
 
+    @Test
+    @UseDataProvider("locations_of_own_class")
+    public void contains(Location location) {
         assertThat(location.contains("archunit")).as("location contains 'archunit'").isTrue();
         assertThat(location.contains("/archunit/")).as("location contains '/archunit/'").isTrue();
         assertThat(location.contains(getClass().getSimpleName())).as("location contains own simple class name").isTrue();
@@ -103,15 +122,33 @@ public class LocationTest {
     }
 
     @Test
-    public void asUri_works() throws URISyntaxException {
+    public void asUri() throws URISyntaxException {
         URL url = getClass().getResource(".");
         assertThat(Location.of(url).asURI()).isEqualTo(url.toURI());
     }
 
     @Test
-    public void location_of_path_works() throws URISyntaxException {
+    public void location_of_path() throws URISyntaxException {
         URL url = getClass().getResource(".");
-        Location.of(Paths.get(url.toURI())).asURI().getPath().equals(url.getFile());
+        assertThat(Location.of(Paths.get(url.toURI())).asURI().getPath()).isEqualTo(url.getFile());
+    }
+
+    @DataProvider
+    public static Object[][] base_locations() {
+        return $$(
+                $(Location.of(URI.create("file:///some/path"))),
+                $(Location.of(URI.create("file:///some/path/"))));
+    }
+
+    @Test
+    @UseDataProvider("base_locations")
+    public void append(Location location) {
+        Location appendAbsolute = location.append("/bar/baz");
+        Location appendRelative = location.append("bar/baz");
+
+        Location expected = Location.of(Paths.get("/some/path/bar/baz"));
+        assertThat(appendAbsolute).isEqualTo(expected);
+        assertThat(appendRelative).isEqualTo(expected);
     }
 
     private URL urlOfOwnClass() {

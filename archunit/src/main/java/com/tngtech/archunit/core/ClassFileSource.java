@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -23,9 +22,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
-import com.tngtech.archunit.base.ArchUnitException.LocationException;
-
-import static com.tngtech.archunit.core.Location.newJarUrl;
 
 interface ClassFileSource extends Iterable<ClassFileLocation> {
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
@@ -95,7 +91,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
             return new Function<JarEntry, ClassFileLocation>() {
                 @Override
                 public ClassFileLocation apply(final JarEntry input) {
-                    return new InputStreamSupplierClassFileLocation(makeJarUrl(input), new InputStreamSupplier() {
+                    return new InputStreamSupplierClassFileLocation(makeJarUri(input), new InputStreamSupplier() {
                         @Override
                         InputStream getInputStream() throws IOException {
                             return connection.getJarFile().getInputStream(input);
@@ -103,12 +99,8 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
                     });
                 }
 
-                private URI makeJarUrl(JarEntry input) {
-                    try {
-                        return new URI(newJarUrl(connection.getJarFileURL()) + input.getName());
-                    } catch (URISyntaxException e) {
-                        throw new LocationException(e);
-                    }
+                private URI makeJarUri(JarEntry input) {
+                    return Location.of(connection.getJarFileURL()).append(input.getName()).asURI();
                 }
             };
         }

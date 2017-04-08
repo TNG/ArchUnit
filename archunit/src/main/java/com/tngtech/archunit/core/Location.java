@@ -2,7 +2,6 @@ package com.tngtech.archunit.core;
 
 import java.io.IOException;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -12,14 +11,14 @@ import java.util.Objects;
 import java.util.jar.JarFile;
 
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
-import com.tngtech.archunit.base.ArchUnitException.UnsupportedUrlProtocolException;
+import com.tngtech.archunit.base.ArchUnitException.UnsupportedUriSchemeException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class Location {
-    private static final String FILE_PROTOCOL = "file";
-    private static final String JAR_PROTOCOL = "jar";
+    private static final String FILE_SCHEME = "file";
+    private static final String JAR_SCHEME = "jar";
 
     final URI uri;
 
@@ -27,16 +26,24 @@ public abstract class Location {
         this.uri = checkNotNull(uri);
     }
 
-    private Location(URL url) {
-        this(toUri(url));
+    public URI asURI() {
+        return uri;
     }
 
-    private static URI toUri(URL url) {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new LocationException(e);
-        }
+    public abstract ClassFileSource asClassFileSource();
+
+    public boolean contains(String part) {
+        return uri.toString().contains(part);
+    }
+
+    public boolean isJar() {
+        return JAR_SCHEME.equals(uri.getScheme());
+    }
+
+    void checkScheme(String scheme, URI uri) {
+        checkArgument(scheme.equals(uri.getScheme()),
+                "URI %s of %s must have scheme %s, but has %s",
+                uri, getClass().getSimpleName(), scheme, uri.getScheme());
     }
 
     @Override
@@ -56,68 +63,69 @@ public abstract class Location {
         return Objects.equals(this.uri, other.uri);
     }
 
-    public URI asURI() {
-        return uri;
-    }
-
     @Override
     public String toString() {
         return "Location{uri=" + uri + '}';
     }
 
     public static Location of(URL url) {
-        url = ensureJarProtocol(url);
-        if (FILE_PROTOCOL.equals(url.getProtocol())) {
-            return new FilePathLocation(url);
+        return of(toURI(url));
+    }
+
+    public static Location of(URI uri) {
+        uri = ensureJarProtocol(uri);
+        if (FILE_SCHEME.equals(uri.getScheme())) {
+            return new FilePathLocation(uri);
         }
-        if (JAR_PROTOCOL.equals(url.getProtocol())) {
-            return new JarFileLocation(url);
+        if (JAR_SCHEME.equals(uri.getScheme())) {
+            return new JarFileLocation(uri);
         }
-        throw new UnsupportedUrlProtocolException(url);
+        throw new UnsupportedUriSchemeException(uri);
     }
 
-    private static URL ensureJarProtocol(URL url) {
-        return !JAR_PROTOCOL.equals(url.getProtocol()) && url.getFile().endsWith(".jar") ? newJarUrl(url) : url;
+    private static URI toURI(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new LocationException(e);
+        }
     }
 
-    public abstract ClassFileSource asClassFileSource();
-
-    public boolean contains(String part) {
-        return uri.toString().contains(part);
-    }
-
-    public boolean isJar() {
-        return JAR_PROTOCOL.equals(uri.getScheme());
+    private static URI ensureJarProtocol(URI uri) {
+        return !JAR_SCHEME.equals(uri.getScheme()) && uri.getPath().endsWith(".jar") ? newJarUri(uri) : uri;
     }
 
     public static Location of(JarFile jar) {
-        return new JarFileLocation(newJarUrl(newURL(String.format("%s:%s", FILE_PROTOCOL, jar.getName()))));
+        return new JarFileLocation(newJarUri(newFileUri(jar.getName())));
     }
 
-    static URL newJarUrl(URL url) {
-        try {
-            return new URL(String.format("%s:%s!/", JAR_PROTOCOL, url.toExternalForm()));
-        } catch (MalformedURLException e) {
-            throw new LocationException(e);
-        }
+    private static URI newFileUri(String fileName) {
+        return URI.create(String.format("%s:%s", FILE_SCHEME, fileName));
     }
 
-    private static URL newURL(String url) {
-        try {
-            return new URL(url);
-        } catch (MalformedURLException e) {
-            throw new LocationException(e);
-        }
+    private static URI newJarUri(URI uri) {
+        return URI.create(String.format("%s:%s!/", JAR_SCHEME, uri));
     }
 
     public static Location of(Path path) {
         return new FilePathLocation(path.toUri());
     }
 
+    // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
+    public Location append(String relativeURI) {
+        if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {
+            relativeURI = relativeURI.substring(1);
+        }
+        if (!uri.toString().endsWith("/") && !relativeURI.startsWith("/")) {
+            relativeURI = "/" + relativeURI;
+        }
+        return Location.of(URI.create(uri + relativeURI));
+    }
+
     private static class JarFileLocation extends Location {
-        JarFileLocation(URL url) {
-            super(url);
-            checkArgument(JAR_PROTOCOL.equals(url.getProtocol()), "URL of %s must have protocol %s", getClass().getSimpleName(), JAR_PROTOCOL);
+        JarFileLocation(URI uri) {
+            super(uri);
+            checkScheme(JAR_SCHEME, uri);
         }
 
         @Override
@@ -128,24 +136,17 @@ public abstract class Location {
                 throw new LocationException(e);
             }
         }
-
     }
 
     private static class FilePathLocation extends Location {
-        FilePathLocation(URL url) {
-            super(url);
-            checkArgument(FILE_PROTOCOL.equals(url.getProtocol()), "URL of %s must have protocol %s", getClass().getSimpleName(), FILE_PROTOCOL);
-        }
-
         FilePathLocation(URI uri) {
             super(uri);
-            checkArgument(FILE_PROTOCOL.equals(uri.getScheme()), "URL of %s must have scheme %s", getClass().getSimpleName(), FILE_PROTOCOL);
+            checkScheme(FILE_SCHEME, uri);
         }
 
         @Override
         public ClassFileSource asClassFileSource() {
             return new ClassFileSource.FromFilePath(Paths.get(uri));
         }
-
     }
 }
