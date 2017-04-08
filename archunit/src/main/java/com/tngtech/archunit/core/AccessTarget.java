@@ -18,8 +18,9 @@ import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
 import com.tngtech.archunit.core.properties.HasType;
 
-import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 
 public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
     private final String name;
@@ -270,8 +271,16 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     public static class Predicates {
         public static DescribedPredicate<AccessTarget> declaredIn(Class<?> clazz) {
-            return Get.<JavaClass>owner().is(equivalentTo(clazz))
-                    .as("declared in %s", clazz.getName())
+            return declaredIn(clazz.getName());
+        }
+
+        public static DescribedPredicate<AccessTarget> declaredIn(String className) {
+            return declaredIn(GET_NAME.is(equalTo(className)).as(className));
+        }
+
+        public static DescribedPredicate<AccessTarget> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
+            return Get.<JavaClass>owner().is(predicate)
+                    .as("declared in %s", predicate.getDescription())
                     .forSubType();
         }
 

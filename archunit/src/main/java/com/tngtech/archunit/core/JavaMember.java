@@ -16,10 +16,13 @@ import com.tngtech.archunit.core.properties.HasDescriptor;
 import com.tngtech.archunit.core.properties.HasModifiers;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
+import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Utils.toAnnotationOfType;
+import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
 
 public abstract class JavaMember implements
         HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass> {
@@ -120,6 +123,22 @@ public abstract class JavaMember implements
      * @return The {@link Member} equivalent to this {@link JavaMember}
      */
     public abstract Member reflect();
+
+    public static class Predicates {
+        public static DescribedPredicate<JavaMember> declaredIn(Class<?> clazz) {
+            return declaredIn(clazz.getName());
+        }
+
+        public static DescribedPredicate<JavaMember> declaredIn(String className) {
+            return declaredIn(GET_NAME.is(equalTo(className)).as(className));
+        }
+
+        public static DescribedPredicate<JavaMember> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
+            return Get.<JavaClass>owner().is(predicate)
+                    .as("declared in %s", predicate.getDescription())
+                    .forSubType();
+        }
+    }
 
     abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         private String name;

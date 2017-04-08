@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.AccessTarget.Predicates.constructor;
 import static com.tngtech.archunit.core.AccessTarget.Predicates.declaredIn;
+import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.TestUtils.withinImportedClasses;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,10 +71,24 @@ public class AccessTargetTest {
 
         assertThat(declaredIn(Target.class).apply(call.getTarget()))
                 .as("predicate matches").isTrue();
+        assertThat(declaredIn(Target.class.getName()).apply(call.getTarget()))
+                .as("predicate matches").isTrue();
+        assertThat(declaredIn(equivalentTo(Target.class)).apply(call.getTarget()))
+                .as("predicate matches").isTrue();
+
         assertThat(declaredIn(Origin.class).apply(call.getTarget()))
                 .as("predicate matches").isFalse();
+        assertThat(declaredIn(Origin.class.getName()).apply(call.getTarget()))
+                .as("predicate matches").isFalse();
+        assertThat(declaredIn(equivalentTo(Origin.class)).apply(call.getTarget()))
+                .as("predicate matches").isFalse();
+
         assertThat(declaredIn(Target.class).getDescription())
                 .as("description").isEqualTo("declared in " + Target.class.getName());
+        assertThat(declaredIn(Target.class.getName()).getDescription())
+                .as("description").isEqualTo("declared in " + Target.class.getName());
+        assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
+                .as("description").isEqualTo("declared in custom");
     }
 
     @Test
