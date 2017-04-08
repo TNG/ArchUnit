@@ -73,7 +73,7 @@ public class LocationTest {
 
     @Test
     public void File_location_as_ClassFileSource() throws IOException {
-        ClassFileSource source = Location.of(urlOfOwnClass()).asClassFileSource();
+        ClassFileSource source = Location.of(urlOfOwnClass()).asClassFileSource(new ImportOptions());
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (ClassFileLocation location : source) {
@@ -91,7 +91,7 @@ public class LocationTest {
                 .withEntry(fullClassFileName(getClass()))
                 .withEntry(fullClassFileName(Location.class))
                 .create();
-        ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource();
+        ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource(new ImportOptions());
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (ClassFileLocation location : source) {

@@ -1,6 +1,6 @@
 package com.tngtech.archunit.maventest;
 
-import com.tngtech.archunit.core.ClassFileImporter;
+import com.tngtech.archunit.core.ImportOption;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;
@@ -28,7 +28,7 @@ public class ArchUnitSmokeTest {
         assertEquals("Number of methods in ClassTwo", classes.get(ClassTwo.class).getMethods().size(), 1);
     }
 
-    public static class NoTests implements ClassFileImporter.ImportOption {
+    public static class NoTests implements ImportOption {
         public boolean includes(Location location) {
             return !location.asURI().toString().contains("test-classes");
         }

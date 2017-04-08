@@ -30,7 +30,7 @@ public abstract class Location {
         return uri;
     }
 
-    public abstract ClassFileSource asClassFileSource();
+    public abstract ClassFileSource asClassFileSource(ImportOptions importOptions);
 
     public boolean contains(String part) {
         return uri.toString().contains(part);
@@ -38,6 +38,17 @@ public abstract class Location {
 
     public boolean isJar() {
         return JAR_SCHEME.equals(uri.getScheme());
+    }
+
+    // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
+    public Location append(String relativeURI) {
+        if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {
+            relativeURI = relativeURI.substring(1);
+        }
+        if (!uri.toString().endsWith("/") && !relativeURI.startsWith("/")) {
+            relativeURI = "/" + relativeURI;
+        }
+        return Location.of(URI.create(uri + relativeURI));
     }
 
     void checkScheme(String scheme, URI uri) {
@@ -111,17 +122,6 @@ public abstract class Location {
         return new FilePathLocation(path.toUri());
     }
 
-    // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
-    public Location append(String relativeURI) {
-        if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {
-            relativeURI = relativeURI.substring(1);
-        }
-        if (!uri.toString().endsWith("/") && !relativeURI.startsWith("/")) {
-            relativeURI = "/" + relativeURI;
-        }
-        return Location.of(URI.create(uri + relativeURI));
-    }
-
     private static class JarFileLocation extends Location {
         JarFileLocation(URI uri) {
             super(uri);
@@ -129,9 +129,9 @@ public abstract class Location {
         }
 
         @Override
-        public ClassFileSource asClassFileSource() {
+        public ClassFileSource asClassFileSource(ImportOptions importOptions) {
             try {
-                return new ClassFileSource.FromJar((JarURLConnection) uri.toURL().openConnection());
+                return new ClassFileSource.FromJar((JarURLConnection) uri.toURL().openConnection(), importOptions);
             } catch (IOException e) {
                 throw new LocationException(e);
             }
@@ -145,8 +145,8 @@ public abstract class Location {
         }
 
         @Override
-        public ClassFileSource asClassFileSource() {
-            return new ClassFileSource.FromFilePath(Paths.get(uri));
+        public ClassFileSource asClassFileSource(ImportOptions importOptions) {
+            return new ClassFileSource.FromFilePath(Paths.get(uri), importOptions);
         }
     }
 }

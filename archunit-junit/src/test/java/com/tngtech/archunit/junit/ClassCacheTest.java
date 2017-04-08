@@ -1,24 +1,36 @@
 package com.tngtech.archunit.junit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
+import com.tngtech.archunit.core.ImportOption;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;
+import com.tngtech.archunit.junit.ClassCache.ClassFileImporterFactory;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unchecked")
 public class ClassCacheTest {
 
     @Rule
@@ -27,11 +39,31 @@ public class ClassCacheTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    @Spy
-    private ClassFileImporter classFileImporter = new ClassFileImporter();
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule()
+            .resolveAdditionalDependenciesFromClassPath(false);
+
+    @Mock
+    private ClassFileImporterFactory classFileImporterFactory;
 
     @InjectMocks
     private ClassCache cache = new ClassCache();
+
+    private final List<ClassFileImporter> importersUsedForImport = new ArrayList<>();
+
+    @Before
+    public void setUp() {
+        ClassFileImporter originalImporter = spy(new ClassFileImporter());
+        when(classFileImporterFactory.create()).thenReturn(originalImporter);
+        doAnswer(new Answer() {
+            @Override
+            public ClassFileImporter answer(InvocationOnMock invocation) throws Throwable {
+                ClassFileImporter withImportOption = (ClassFileImporter) spy(invocation.callRealMethod());
+                importersUsedForImport.add(withImportOption);
+                return withImportOption;
+            }
+        }).when(originalImporter).withImportOption(any(ImportOption.class));
+    }
 
     @Test
     public void loads_classes() {
@@ -46,8 +78,7 @@ public class ClassCacheTest {
         cache.getClassesToAnalyseFor(TestClass.class);
         cache.getClassesToAnalyseFor(TestClass.class);
 
-        verify(classFileImporter, times(1)).importLocations(anyCollection());
-        verifyNoMoreInteractions(classFileImporter);
+        verifyNumberOfImports(1);
     }
 
     @Test
@@ -56,8 +87,7 @@ public class ClassCacheTest {
         cache.getClassesToAnalyseFor(TestClass.class);
         cache.getClassesToAnalyseFor(EquivalentTestClass.class);
 
-        verify(classFileImporter, times(1)).importLocations(anyCollection());
-        verifyNoMoreInteractions(classFileImporter);
+        verifyNumberOfImports(1);
     }
 
     @Test
@@ -89,23 +119,44 @@ public class ClassCacheTest {
 
     @Test
     public void filters_urls() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithImportOption.class);
+        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJars.class);
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
             assertThat(clazz.getPackage()).doesNotContain(ClassCache.class.getSimpleName());
+            assertThat(clazz.getPackage()).contains("junit");
         }
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void non_existing_packages_are_ignored() {
         JavaClasses first = cache.getClassesToAnalyseFor(TestClassWithNonExistingPackage.class);
         JavaClasses second = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(first).isEqualTo(second);
-        verify(classFileImporter, times(1)).importLocations(anyCollection());
-        verifyNoMoreInteractions(classFileImporter);
+        verifyNumberOfImports(1);
+    }
+
+    @Test
+    public void distinguishes_import_option_when_caching() {
+        JavaClasses importingWholeClasspathWithFilter =
+                cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJars.class);
+        JavaClasses importingWholeClasspathWithEquivalentButDifferentFilter =
+                cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJarsWithDifferentFilter.class);
+
+        assertThat(importingWholeClasspathWithFilter)
+                .as("number of classes imported")
+                .hasSameSizeAs(importingWholeClasspathWithEquivalentButDifferentFilter);
+
+        verifyNumberOfImports(2);
+    }
+
+    private void verifyNumberOfImports(int number) {
+        assertThat(importersUsedForImport).as("Number of created importers").hasSize(number);
+        for (ClassFileImporter importer : importersUsedForImport) {
+            verify(importer).importLocations(anyCollection());
+            verifyNoMoreInteractions(importer);
+        }
     }
 
     @AnalyseClasses(packages = "com.tngtech.archunit.junit")
@@ -124,14 +175,27 @@ public class ClassCacheTest {
     public static class TestClassWithNonExistingPackage {
     }
 
-    @AnalyseClasses(importOption = TestFilter.class)
-    public static class TestClassWithImportOption {
+    @AnalyseClasses(importOption = TestFilterForJUnitJars.class)
+    public static class TestClassFilteringJustJUnitJars {
     }
 
-    public static class TestFilter implements ImportOption {
+    @AnalyseClasses(importOption = AnotherTestFilterForJUnitJars.class)
+    public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
+    }
+
+    public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return location.contains("junit") && location.contains(".jar");
+        }
+    }
+
+    public static class AnotherTestFilterForJUnitJars implements ImportOption {
+        private TestFilterForJUnitJars filter = new TestFilterForJUnitJars();
+
+        @Override
+        public boolean includes(Location location) {
+            return filter.includes(location);
         }
     }
 }

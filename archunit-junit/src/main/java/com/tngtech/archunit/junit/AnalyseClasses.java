@@ -3,7 +3,7 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.tngtech.archunit.core.ClassFileImporter.ImportOption;
+import com.tngtech.archunit.core.ImportOption;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;

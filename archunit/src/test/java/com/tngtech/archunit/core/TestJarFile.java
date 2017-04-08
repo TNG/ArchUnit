@@ -12,7 +12,7 @@ import java.util.zip.ZipEntry;
 import static com.google.common.io.ByteStreams.toByteArray;
 
 class TestJarFile {
-    Set<String> entries = new HashSet<>();
+    private final Set<String> entries = new HashSet<>();
 
     TestJarFile withEntry(String entry) {
         entries.add(entry);
@@ -35,7 +35,9 @@ class TestJarFile {
 
     private void write(JarOutputStream jarOut, String entry) throws IOException {
         jarOut.putNextEntry(new ZipEntry(entry));
-        jarOut.write(toByteArray(getClass().getResourceAsStream(entry)));
+        if (getClass().getResource(entry) != null) {
+            jarOut.write(toByteArray(getClass().getResourceAsStream(entry)));
+        }
         jarOut.closeEntry();
     }
 

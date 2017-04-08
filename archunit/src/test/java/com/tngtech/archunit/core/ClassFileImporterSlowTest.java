@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.ClassFileImporter.ImportOptions;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.junit.Rule;
 import org.junit.Test;

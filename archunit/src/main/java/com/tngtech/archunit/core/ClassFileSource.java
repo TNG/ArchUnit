@@ -27,8 +27,10 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
         private static final PathMatcher classMatcher = FileSystems.getDefault().getPathMatcher("glob:**/*.class");
         private final Set<ClassFileLocation> classFileLocations = new HashSet<>();
+        private final ImportOptions importOptions;
 
-        FromFilePath(Path path) {
+        FromFilePath(Path path, ImportOptions importOptions) {
+            this.importOptions = importOptions;
             if (path.toFile().exists()) {
                 try {
                     Files.walkFileTree(path, this);
@@ -45,7 +47,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (classMatcher.matches(file)) {
+            if (classMatcher.matches(file) && importOptions.include(Location.of(file))) {
                 classFileLocations.add(new InputStreamSupplierClassFileLocation(file.toUri(), newInputStreamSupplierFor(file)));
             }
             return super.visitFile(file, attrs);
@@ -59,19 +61,20 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
                 }
             };
         }
-
     }
 
     class FromJar implements ClassFileSource {
         private final FluentIterable<ClassFileLocation> classFileLocations;
 
-        FromJar(JarURLConnection connection) {
+        FromJar(JarURLConnection connection, ImportOptions importOptions) {
             try {
                 JarFile jarFile = connection.getJarFile();
                 String prefix = connection.getJarEntry() != null ? connection.getJarEntry().getName() : "";
                 classFileLocations = FluentIterable.from(Collections.list(jarFile.entries()))
                         .filter(classFilesBeneath(prefix))
-                        .transform(toInputStreamSupplierFrom(connection));
+                        .transform(toClassFilesInJarOf(connection))
+                        .filter(by(importOptions))
+                        .transform(toInputStreamSupplier());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -87,20 +90,34 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
             };
         }
 
-        private Function<JarEntry, ClassFileLocation> toInputStreamSupplierFrom(final JarURLConnection connection) {
-            return new Function<JarEntry, ClassFileLocation>() {
+        private Function<JarEntry, ClassFileInJar> toClassFilesInJarOf(final JarURLConnection connection) {
+            return new Function<JarEntry, ClassFileInJar>() {
                 @Override
-                public ClassFileLocation apply(final JarEntry input) {
-                    return new InputStreamSupplierClassFileLocation(makeJarUri(input), new InputStreamSupplier() {
+                public ClassFileInJar apply(JarEntry input) {
+                    return new ClassFileInJar(connection, input);
+                }
+            };
+        }
+
+        private Predicate<ClassFileInJar> by(final ImportOptions importOptions) {
+            return new Predicate<ClassFileInJar>() {
+                @Override
+                public boolean apply(ClassFileInJar input) {
+                    return input.isIncludedIn(importOptions);
+                }
+            };
+        }
+
+        private Function<ClassFileInJar, ClassFileLocation> toInputStreamSupplier() {
+            return new Function<ClassFileInJar, ClassFileLocation>() {
+                @Override
+                public ClassFileLocation apply(final ClassFileInJar input) {
+                    return new InputStreamSupplierClassFileLocation(input.getUri(), new InputStreamSupplier() {
                         @Override
                         InputStream getInputStream() throws IOException {
-                            return connection.getJarFile().getInputStream(input);
+                            return input.openStream();
                         }
                     });
-                }
-
-                private URI makeJarUri(JarEntry input) {
-                    return Location.of(connection.getJarFileURL()).append(input.getName()).asURI();
                 }
             };
         }
@@ -108,6 +125,34 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         @Override
         public Iterator<ClassFileLocation> iterator() {
             return classFileLocations.iterator();
+        }
+
+        private static class ClassFileInJar {
+            private final JarURLConnection connection;
+            private final JarEntry jarEntry;
+            private final URI uri;
+
+            private ClassFileInJar(JarURLConnection connection, JarEntry jarEntry) {
+                this.connection = connection;
+                this.jarEntry = jarEntry;
+                this.uri = makeJarUri(jarEntry);
+            }
+
+            private URI makeJarUri(JarEntry input) {
+                return Location.of(connection.getJarFileURL()).append(input.getName()).asURI();
+            }
+
+            URI getUri() {
+                return uri;
+            }
+
+            InputStream openStream() throws IOException {
+                return connection.getJarFile().getInputStream(jarEntry);
+            }
+
+            public boolean isIncludedIn(ImportOptions importOptions) {
+                return importOptions.include(Location.of(uri));
+            }
         }
     }
 

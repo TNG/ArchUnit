@@ -1,21 +1,23 @@
 package com.tngtech.archunit.junit;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.ClassFileImporter;
+import com.tngtech.archunit.core.ImportOption;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.Location;
 import com.tngtech.archunit.core.Locations;
 
 class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Set<Location>, LazyJavaClasses> cachedByLocations = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<LocationsKey, LazyJavaClasses> cachedByLocations = new ConcurrentHashMap<>();
 
-    private ClassFileImporter classFileImporter = new ClassFileImporter();
+    private ClassFileImporterFactory classFileImporterFactory = new ClassFileImporterFactory();
 
     JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
         checkArgument(testClass);
@@ -24,20 +26,20 @@ class ClassCache {
             return cachedByTest.get(testClass);
         }
 
-        Set<Location> locations = locationsToImport(testClass);
+        LocationsKey locations = locationsToImport(testClass);
         cachedByLocations.putIfAbsent(locations, new LazyJavaClasses(locations));
         cachedByTest.put(testClass, cachedByLocations.get(locations).get());
         return cachedByLocations.get(locations).get();
     }
 
-    private Set<Location> locationsToImport(Class<?> testClass) {
+    private LocationsKey locationsToImport(Class<?> testClass) {
         AnalyseClasses analyseClasses = testClass.getAnnotation(AnalyseClasses.class);
         Set<String> packages = ImmutableSet.<String>builder()
                 .add(analyseClasses.packages())
                 .addAll(toPackageStrings(analyseClasses.packagesOf()))
                 .build();
-        Set<Location> result = packages.isEmpty() ? Locations.inClassPath() : locationsOf(packages);
-        return filter(result, analyseClasses.importOption());
+        Set<Location> locations = packages.isEmpty() ? Locations.inClassPath() : locationsOf(packages);
+        return new LocationsKey(analyseClasses.importOption(), locations);
     }
 
     private Set<String> toPackageStrings(Class[] classes) {
@@ -58,8 +60,8 @@ class ClassCache {
 
     // Would be great, if we could just pass the import option on to the ClassFileImporter, but this would be
     // problematic with respect to caching classes for certain Location combinations
-    private Set<Location> filter(Set<Location> locations, Class<? extends ClassFileImporter.ImportOption> importOption) {
-        ClassFileImporter.ImportOption option = newInstanceOf(importOption);
+    private Set<Location> filter(Set<Location> locations, Class<? extends ImportOption> importOption) {
+        ImportOption option = newInstanceOf(importOption);
         Set<Location> result = new HashSet<>();
         for (Location location : locations) {
             if (option.includes(location)) {
@@ -85,11 +87,11 @@ class ClassCache {
     }
 
     private class LazyJavaClasses {
-        private final Set<Location> locations;
+        private final LocationsKey locationsKey;
         private volatile JavaClasses javaClasses;
 
-        private LazyJavaClasses(Set<Location> locations) {
-            this.locations = locations;
+        private LazyJavaClasses(LocationsKey locationsKey) {
+            this.locationsKey = locationsKey;
         }
 
         public JavaClasses get() {
@@ -101,8 +103,46 @@ class ClassCache {
 
         private synchronized void initialize() {
             if (javaClasses == null) {
-                javaClasses = classFileImporter.importLocations(locations);
+                ImportOption importOption = newInstanceOf(locationsKey.importOptionClass);
+                javaClasses = classFileImporterFactory.create()
+                        .withImportOption(importOption)
+                        .importLocations(locationsKey.locations);
             }
+        }
+    }
+
+    // Used for testing -> that's also the reason it's declared top level
+    static class ClassFileImporterFactory {
+        ClassFileImporter create() {
+            return new ClassFileImporter();
+        }
+    }
+
+    private static class LocationsKey {
+        private final Class<? extends ImportOption> importOptionClass;
+        private final Set<Location> locations;
+
+        private LocationsKey(Class<? extends ImportOption> importOptionClass, Set<Location> locations) {
+            this.importOptionClass = importOptionClass;
+            this.locations = locations;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(importOptionClass, locations);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final LocationsKey other = (LocationsKey) obj;
+            return Objects.equals(this.importOptionClass, other.importOptionClass)
+                    && Objects.equals(this.locations, other.locations);
         }
     }
 }

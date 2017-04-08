@@ -17,7 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.ClassFileImporter.PredefinedImportOption.DONT_INCLUDE_TESTS;
+import static com.tngtech.archunit.core.ImportOption.Predefined.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.target;
 import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
