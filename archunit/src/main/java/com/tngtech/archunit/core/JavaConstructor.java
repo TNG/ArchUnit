@@ -9,6 +9,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.tngtech.archunit.core.Formatters.formatMethod;
 
@@ -18,7 +19,7 @@ public class JavaConstructor extends JavaCodeUnit {
 
     public static final String CONSTRUCTOR_NAME = "<init>";
 
-    public JavaConstructor(JavaConstructorBuilder builder) {
+    public JavaConstructor(DomainBuilders.JavaConstructorBuilder builder) {
         super(builder);
         constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
     }

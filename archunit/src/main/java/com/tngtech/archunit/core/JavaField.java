@@ -7,6 +7,7 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -16,7 +17,7 @@ public class JavaField extends JavaMember implements HasType {
     private final Supplier<Field> fieldSupplier;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
-    public JavaField(JavaFieldBuilder builder) {
+    public JavaField(DomainBuilders.JavaFieldBuilder builder) {
         super(builder);
         type = builder.getType();
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());

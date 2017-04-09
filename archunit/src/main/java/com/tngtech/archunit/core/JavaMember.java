@@ -9,6 +9,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasAnnotations;
 import com.tngtech.archunit.core.properties.HasDescriptor;
@@ -30,7 +31,7 @@ public abstract class JavaMember implements
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
-    JavaMember(JavaMemberBuilder<?, ?> builder) {
+    JavaMember(DomainBuilders.JavaMemberBuilder<?, ?> builder) {
         this.name = checkNotNull(builder.getName());
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations();

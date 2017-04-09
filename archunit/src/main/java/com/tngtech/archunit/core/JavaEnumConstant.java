@@ -2,11 +2,13 @@ package com.tngtech.archunit.core;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.core.importer.DomainBuilders;
+
 public class JavaEnumConstant {
     private final JavaClass declaringClass;
     private final String name;
 
-    public JavaEnumConstant(JavaEnumConstantBuilder builder) {
+    public JavaEnumConstant(DomainBuilders.JavaEnumConstantBuilder builder) {
         this.declaringClass = builder.getDeclaringClass();
         this.name = builder.getName();
     }

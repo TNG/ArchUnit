@@ -2,10 +2,9 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -53,7 +52,7 @@ public class JavaAnnotation implements HasType {
     private final JavaClass type;
     private final Map<String, Object> values;
 
-    public JavaAnnotation(JavaAnnotationBuilder builder) {
+    public JavaAnnotation(DomainBuilders.JavaAnnotationBuilder builder) {
         this.type = checkNotNull(builder.getType());
         this.values = checkNotNull(builder.getValues());
     }
@@ -97,15 +96,6 @@ public class JavaAnnotation implements HasType {
 
     public <A extends Annotation> A as(Class<A> annotationType) {
         return AnnotationProxy.of(annotationType, this);
-    }
-
-    static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ImportedClasses.ByTypeName importedClasses) {
-        ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
-        for (JavaAnnotationBuilder annotationBuilder : annotations) {
-            JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
-            result.put(javaAnnotation.getType().getName(), javaAnnotation);
-        }
-        return result.build();
     }
 
 }

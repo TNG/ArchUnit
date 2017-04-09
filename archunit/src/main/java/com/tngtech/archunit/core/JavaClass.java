@@ -18,6 +18,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasAnnotations;
 import com.tngtech.archunit.core.properties.HasModifiers;
@@ -53,7 +54,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
 
-    public JavaClass(JavaClassBuilder builder) {
+    public JavaClass(DomainBuilders.JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
         javaType = checkNotNull(builder.getJavaType());
         isInterface = builder.isInterface();

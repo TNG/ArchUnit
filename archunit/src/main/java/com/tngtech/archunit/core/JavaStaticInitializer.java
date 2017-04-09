@@ -3,12 +3,14 @@ package com.tngtech.archunit.core;
 import java.lang.reflect.Member;
 import java.util.Set;
 
+import com.tngtech.archunit.core.importer.DomainBuilders;
+
 import static java.util.Collections.emptySet;
 
 public class JavaStaticInitializer extends JavaCodeUnit {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
-    public JavaStaticInitializer(JavaStaticInitializerBuilder builder) {
+    public JavaStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder builder) {
         super(builder);
     }
 

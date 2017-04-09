@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.tngtech.archunit.core.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.JavaModifier.FINAL;
@@ -59,8 +60,8 @@ class ImportedClasses {
                 .build();
     }
 
-    ByTypeName byTypeName() {
-        return new ByTypeName() {
+    ClassesByTypeName byTypeName() {
+        return new ClassesByTypeName() {
             @Override
             public JavaClass get(String typeName) {
                 return ImportedClasses.this.getOrResolve(typeName);
@@ -70,18 +71,15 @@ class ImportedClasses {
 
     private static JavaClass simpleClassOf(String typeName) {
         JavaType type = JavaType.From.name(typeName);
-        JavaClassBuilder builder = new JavaClassBuilder().withType(type);
+        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withType(type);
         addModifiersIfPossible(builder, type);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(JavaClassBuilder builder, JavaType type) {
+    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaType type) {
         if (type.isPrimitive() || type.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
     }
 
-    interface ByTypeName {
-        JavaClass get(String typeName);
-    }
 }

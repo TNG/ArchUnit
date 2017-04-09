@@ -10,6 +10,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
 
@@ -34,7 +35,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
     private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
 
-    JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
+    JavaCodeUnit(DomainBuilders.JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();

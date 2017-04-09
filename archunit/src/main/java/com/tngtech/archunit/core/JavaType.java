@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
 
-interface JavaType {
+public interface JavaType {
     String getName();
 
     String getSimpleName();
@@ -57,7 +57,7 @@ interface JavaType {
                         .putAll(primitiveClassesByDescriptor)
                         .build();
 
-        static JavaType name(String typeName) {
+        public static JavaType name(String typeName) {
             if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
                 return new PrimitiveType(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
             }

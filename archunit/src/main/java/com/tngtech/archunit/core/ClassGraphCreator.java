@@ -12,9 +12,10 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 
-import static com.tngtech.archunit.core.BuilderWithBuildParameter.BuildFinisher.build;
-import static com.tngtech.archunit.core.JavaAnnotation.buildAnnotations;
+import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
+import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
 
 class ClassGraphCreator implements ImportContext {
     private final ImportedClasses classes;
@@ -168,7 +169,7 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
-        Optional<JavaStaticInitializerBuilder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
+        Optional<DomainBuilders.JavaStaticInitializerBuilder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
         return builder.isPresent() ?
                 Optional.of(builder.get().build(owner, classes.byTypeName())) :
                 Optional.<JavaStaticInitializer>absent();

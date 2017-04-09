@@ -8,6 +8,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.Formatters.formatMethod;
@@ -17,7 +18,7 @@ public class JavaMethod extends JavaCodeUnit {
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
     private final Supplier<Optional<Object>> annotationDefaultValue;
 
-    public JavaMethod(JavaMethodBuilder builder) {
+    public JavaMethod(DomainBuilders.JavaMethodBuilder builder) {
         super(builder);
         methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
         annotationDefaultValue = builder.getAnnotationDefaultValue();

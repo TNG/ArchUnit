@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.RawAccessRecord.MethodTargetInfo;
 import com.tngtech.archunit.core.RawAccessRecord.TargetInfo;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,27 +72,27 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredField(JavaFieldBuilder fieldBuilder) {
+        public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
 
         @Override
-        public void onDeclaredConstructor(JavaConstructorBuilder builder) {
+        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder builder) {
             importRecord.addConstructor(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredMethod(JavaMethodBuilder builder) {
+        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder builder) {
             importRecord.addMethod(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(JavaStaticInitializerBuilder builder) {
+        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder builder) {
             importRecord.setStaticInitializer(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredAnnotations(Set<JavaAnnotationBuilder> annotations) {
+        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
             importRecord.addAnnotations(ownerName, annotations);
         }
 
