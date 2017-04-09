@@ -71,27 +71,27 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredField(JavaField.Builder fieldBuilder) {
+        public void onDeclaredField(JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
 
         @Override
-        public void onDeclaredConstructor(JavaConstructor.Builder builder) {
+        public void onDeclaredConstructor(JavaConstructorBuilder builder) {
             importRecord.addConstructor(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredMethod(JavaMethod.Builder builder) {
+        public void onDeclaredMethod(JavaMethodBuilder builder) {
             importRecord.addMethod(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(JavaStaticInitializer.Builder builder) {
+        public void onDeclaredStaticInitializer(JavaStaticInitializerBuilder builder) {
             importRecord.setStaticInitializer(ownerName, builder);
         }
 
         @Override
-        public void onDeclaredAnnotations(Set<JavaAnnotation.Builder> annotations) {
+        public void onDeclaredAnnotations(Set<JavaAnnotationBuilder> annotations) {
             importRecord.addAnnotations(ownerName, annotations);
         }
 

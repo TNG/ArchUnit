@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
@@ -35,7 +34,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
     private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
 
-    JavaCodeUnit(Builder<?, ?> builder) {
+    JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
@@ -116,30 +115,4 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         }
     }
 
-    abstract static class Builder<OUTPUT, SELF extends Builder<OUTPUT, SELF>> extends JavaMember.Builder<OUTPUT, SELF> {
-        private JavaType returnType;
-        private List<JavaType> parameters;
-
-        SELF withReturnType(JavaType type) {
-            returnType = type;
-            return self();
-        }
-
-        SELF withParameters(List<JavaType> parameters) {
-            this.parameters = parameters;
-            return self();
-        }
-
-        JavaClass getReturnType() {
-            return get(returnType.getName());
-        }
-
-        public List<JavaClass> getParameters() {
-            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            for (JavaType parameter : parameters) {
-                result.add(get(parameter.getName()));
-            }
-            return result.build();
-        }
-    }
 }

@@ -17,7 +17,7 @@ public class JavaMethod extends JavaCodeUnit {
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
     private final Supplier<Optional<Object>> annotationDefaultValue;
 
-    private JavaMethod(Builder builder) {
+    public JavaMethod(JavaMethodBuilder builder) {
         super(builder);
         methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
         annotationDefaultValue = builder.getAnnotationDefaultValue();
@@ -69,30 +69,4 @@ public class JavaMethod extends JavaCodeUnit {
         }
     }
 
-    static class Builder extends JavaCodeUnit.Builder<JavaMethod, Builder> {
-        private Optional<JavaAnnotation.Builder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
-        private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
-
-        Builder withAnnotationDefaultValue(JavaAnnotation.Builder.ValueBuilder defaultValue) {
-            annotationDefaultValueBuilder = Optional.of(defaultValue);
-            return this;
-        }
-
-        Supplier<Optional<Object>> getAnnotationDefaultValue() {
-            return annotationDefaultValue;
-        }
-
-        @Override
-        JavaMethod construct(Builder builder, final ImportedClasses.ByTypeName importedClasses) {
-            if (annotationDefaultValueBuilder.isPresent()) {
-                annotationDefaultValue = Suppliers.memoize(new Supplier<Optional<Object>>() {
-                    @Override
-                    public Optional<Object> get() {
-                        return annotationDefaultValueBuilder.get().build(importedClasses);
-                    }
-                });
-            }
-            return new JavaMethod(builder);
-        }
-    }
 }

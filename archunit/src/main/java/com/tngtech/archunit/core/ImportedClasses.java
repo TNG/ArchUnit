@@ -70,12 +70,12 @@ class ImportedClasses {
 
     private static JavaClass simpleClassOf(String typeName) {
         JavaType type = JavaType.From.name(typeName);
-        JavaClass.Builder builder = new JavaClass.Builder().withType(type);
+        JavaClassBuilder builder = new JavaClassBuilder().withType(type);
         addModifiersIfPossible(builder, type);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(JavaClass.Builder builder, JavaType type) {
+    private static void addModifiersIfPossible(JavaClassBuilder builder, JavaType type) {
         if (type.isPrimitive() || type.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }

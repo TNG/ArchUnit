@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.lang.reflect.Member;
-import java.util.Collections;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -9,7 +8,7 @@ import static java.util.Collections.emptySet;
 public class JavaStaticInitializer extends JavaCodeUnit {
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 
-    private JavaStaticInitializer(Builder builder) {
+    public JavaStaticInitializer(JavaStaticInitializerBuilder builder) {
         super(builder);
     }
 
@@ -23,19 +22,4 @@ public class JavaStaticInitializer extends JavaCodeUnit {
         throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
 
-    static class Builder extends JavaCodeUnit.Builder<JavaStaticInitializer, Builder> {
-        public Builder() {
-            withReturnType(JavaType.From.name(void.class.getName()));
-            withParameters(Collections.<JavaType>emptyList());
-            withName(STATIC_INITIALIZER_NAME);
-            withDescriptor("()V");
-            withAnnotations(Collections.<JavaAnnotation.Builder>emptySet());
-            withModifiers(Collections.<JavaModifier>emptySet());
-        }
-
-        @Override
-        JavaStaticInitializer construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
-            return new JavaStaticInitializer(builder);
-        }
-    }
 }

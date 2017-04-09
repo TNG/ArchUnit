@@ -18,7 +18,7 @@ public class JavaConstructor extends JavaCodeUnit {
 
     public static final String CONSTRUCTOR_NAME = "<init>";
 
-    private JavaConstructor(Builder builder) {
+    public JavaConstructor(JavaConstructorBuilder builder) {
         super(builder);
         constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
     }
@@ -46,13 +46,6 @@ public class JavaConstructor extends JavaCodeUnit {
 
     void registerCallsToConstructor(Collection<JavaConstructorCall> calls) {
         this.callsToSelf = ImmutableSet.copyOf(calls);
-    }
-
-    static final class Builder extends JavaCodeUnit.Builder<JavaConstructor, Builder> {
-        @Override
-        JavaConstructor construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
-            return new JavaConstructor(builder);
-        }
     }
 
     @ResolvesTypesViaReflection

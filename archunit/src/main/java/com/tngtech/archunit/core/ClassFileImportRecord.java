@@ -22,11 +22,11 @@ class ClassFileImportRecord {
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
-    private final SetMultimap<String, JavaField.Builder> fieldBuildersByOwner = HashMultimap.create();
-    private final SetMultimap<String, JavaMethod.Builder> methodBuildersByOwner = HashMultimap.create();
-    private final SetMultimap<String, JavaConstructor.Builder> constructorBuildersByOwner = HashMultimap.create();
-    private final Map<String, JavaStaticInitializer.Builder> staticInitializerBuildersByOwner = new HashMap<>();
-    private final SetMultimap<String, JavaAnnotation.Builder> annotationsByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
+    private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
+    private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
     private final EnclosingClassesByInnerClasses enclosingClassNamesByOwner = new EnclosingClassesByInnerClasses();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
@@ -44,26 +44,26 @@ class ClassFileImportRecord {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
-    void addField(String ownerName, JavaField.Builder fieldBuilder) {
+    void addField(String ownerName, JavaFieldBuilder fieldBuilder) {
         fieldBuildersByOwner.put(ownerName, fieldBuilder);
     }
 
-    void addMethod(String ownerName, JavaMethod.Builder methodBuilder) {
+    void addMethod(String ownerName, JavaMethodBuilder methodBuilder) {
         methodBuildersByOwner.put(ownerName, methodBuilder);
     }
 
-    void addConstructor(String ownerName, JavaConstructor.Builder constructorBuilder) {
+    void addConstructor(String ownerName, JavaConstructorBuilder constructorBuilder) {
         constructorBuildersByOwner.put(ownerName, constructorBuilder);
     }
 
-    void setStaticInitializer(String ownerName, JavaStaticInitializer.Builder builder) {
+    void setStaticInitializer(String ownerName, JavaStaticInitializerBuilder builder) {
         checkState(!staticInitializerBuildersByOwner.containsKey(ownerName),
                 "Tried to add a second static initializer to %s, this is most likely a bug",
                 ownerName);
         staticInitializerBuildersByOwner.put(ownerName, builder);
     }
 
-    void addAnnotations(String ownerName, Set<JavaAnnotation.Builder> annotations) {
+    void addAnnotations(String ownerName, Set<JavaAnnotationBuilder> annotations) {
         this.annotationsByOwner.putAll(ownerName, annotations);
     }
 
@@ -79,23 +79,23 @@ class ClassFileImportRecord {
         return interfaceNamesByOwner.get(ownerName);
     }
 
-    Set<JavaField.Builder> getFieldBuildersFor(String ownerName) {
+    Set<JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
         return fieldBuildersByOwner.get(ownerName);
     }
 
-    Set<JavaMethod.Builder> getMethodBuildersFor(String ownerName) {
+    Set<JavaMethodBuilder> getMethodBuildersFor(String ownerName) {
         return methodBuildersByOwner.get(ownerName);
     }
 
-    Set<JavaConstructor.Builder> getConstructorBuildersFor(String ownerName) {
+    Set<JavaConstructorBuilder> getConstructorBuildersFor(String ownerName) {
         return constructorBuildersByOwner.get(ownerName);
     }
 
-    Optional<JavaStaticInitializer.Builder> getStaticInitializerBuilderFor(String ownerName) {
+    Optional<JavaStaticInitializerBuilder> getStaticInitializerBuilderFor(String ownerName) {
         return Optional.fromNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
-    Set<JavaAnnotation.Builder> getAnnotationsFor(String ownerName) {
+    Set<JavaAnnotationBuilder> getAnnotationsFor(String ownerName) {
         return annotationsByOwner.get(ownerName);
     }
 

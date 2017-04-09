@@ -168,7 +168,7 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
-        Optional<JavaStaticInitializer.Builder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
+        Optional<JavaStaticInitializerBuilder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
         return builder.isPresent() ?
                 Optional.of(builder.get().build(owner, classes.byTypeName())) :
                 Optional.<JavaStaticInitializer>absent();

@@ -6,9 +6,9 @@ public class JavaEnumConstant {
     private final JavaClass declaringClass;
     private final String name;
 
-    JavaEnumConstant(JavaClass declaringClass, String name) {
-        this.declaringClass = declaringClass;
-        this.name = name;
+    public JavaEnumConstant(JavaEnumConstantBuilder builder) {
+        this.declaringClass = builder.getDeclaringClass();
+        this.name = builder.getName();
     }
 
     public JavaClass getDeclaringClass() {

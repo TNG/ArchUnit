@@ -53,11 +53,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
 
-    private JavaClass(Builder builder) {
-        source = checkNotNull(builder.source);
-        javaType = checkNotNull(builder.javaType);
-        isInterface = builder.isInterface;
-        modifiers = checkNotNull(builder.modifiers);
+    public JavaClass(JavaClassBuilder builder) {
+        source = checkNotNull(builder.getSource());
+        javaType = checkNotNull(builder.getJavaType());
+        isInterface = builder.isInterface();
+        modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
@@ -689,38 +689,6 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                 part.mergeWith(codeUnit.completeFrom(context));
             }
             return part;
-        }
-    }
-
-    static final class Builder {
-        private Optional<Source> source = Optional.absent();
-        private JavaType javaType;
-        private boolean isInterface;
-        private Set<JavaModifier> modifiers = new HashSet<>();
-
-        Builder withSource(Source source) {
-            this.source = Optional.of(source);
-            return this;
-        }
-
-        @SuppressWarnings("unchecked")
-        Builder withType(JavaType javaType) {
-            this.javaType = javaType;
-            return this;
-        }
-
-        Builder withInterface(boolean isInterface) {
-            this.isInterface = isInterface;
-            return this;
-        }
-
-        Builder withModifiers(Set<JavaModifier> modifiers) {
-            this.modifiers = modifiers;
-            return this;
-        }
-
-        JavaClass build() {
-            return new JavaClass(this);
         }
     }
 

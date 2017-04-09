@@ -84,7 +84,7 @@ public class TestUtils {
     }
 
     public static JavaMethod javaMethodViaReflection(JavaClass clazz, Method method) {
-        return new JavaMethod.Builder()
+        return new JavaMethodBuilder()
                 .withReturnType(JavaType.From.name(method.getReturnType().getName()))
                 .withParameters(typesFrom(method.getParameterTypes()))
                 .withName(method.getName())
@@ -143,7 +143,7 @@ public class TestUtils {
     }
 
     private static JavaClass javaClassFor(Class<?> owner) {
-        return new JavaClass.Builder()
+        return new JavaClassBuilder()
                 .withType(JavaType.From.name(owner.getName()))
                 .withInterface(owner.isInterface())
                 .withModifiers(JavaModifier.getModifiersForClass(owner.getModifiers()))
@@ -155,7 +155,7 @@ public class TestUtils {
     }
 
     public static JavaField javaFieldViaReflection(Field field, JavaClass owner) {
-        return new JavaField.Builder()
+        return new JavaFieldBuilder()
                 .withName(field.getName())
                 .withDescriptor(Type.getDescriptor(field.getType()))
                 .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
@@ -278,7 +278,7 @@ public class TestUtils {
     private static Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass, ImportedClasses.ByTypeName importedClasses) {
         final Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         for (Field field : inputClass.getDeclaredFields()) {
-            fieldBuilders.add(new JavaField.Builder()
+            fieldBuilders.add(new JavaFieldBuilder()
                     .withName(field.getName())
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), importedClasses))
@@ -291,7 +291,7 @@ public class TestUtils {
     private static Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass, ImportedClasses.ByTypeName importedClasses) {
         final Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
-            methodBuilders.add(new JavaMethod.Builder()
+            methodBuilders.add(new JavaMethodBuilder()
                     .withReturnType(JavaType.From.name(method.getReturnType().getName()))
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
@@ -305,7 +305,7 @@ public class TestUtils {
     private static Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass, ImportedClasses.ByTypeName importedClasses) {
         final Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
-            constructorBuilders.add(new JavaConstructor.Builder()
+            constructorBuilders.add(new JavaConstructorBuilder()
                     .withReturnType(JavaType.From.name(void.class.getName()))
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
@@ -341,7 +341,10 @@ public class TestUtils {
     }
 
     public static <E extends Enum<?>> JavaEnumConstant enumConstant(E value) {
-        return new JavaEnumConstant(simulateImport(value.getDeclaringClass(), simpleImportedClasses()), value.name());
+        return new JavaEnumConstantBuilder()
+                .withDeclaringClass(simulateImport(value.getDeclaringClass(), simpleImportedClasses()))
+                .withName(value.name())
+                .build();
     }
 
     static FieldAccessTarget targetFrom(JavaField field) {
@@ -388,12 +391,12 @@ public class TestUtils {
         return JavaType.From.name(name).resolveClass();
     }
 
-    private static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
+    private static Set<JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
         return javaAnnotationBuildersFrom(reflectionAnnotations, simpleImportedClasses());
     }
 
-    private static Set<JavaAnnotation.Builder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations, ImportedClasses.ByTypeName importedClasses) {
-        ImmutableSet.Builder<JavaAnnotation.Builder> result = ImmutableSet.builder();
+    private static Set<JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations, ImportedClasses.ByTypeName importedClasses) {
+        ImmutableSet.Builder<JavaAnnotationBuilder> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
             result.add(javaAnnotationBuilderFrom(annotation, importedClasses));
         }
@@ -460,10 +463,10 @@ public class TestUtils {
         return javaAnnotationBuilderFrom(annotation, importedClasses).build(importedClasses);
     }
 
-    private static JavaAnnotation.Builder javaAnnotationBuilderFrom(Annotation annotation, ImportedClasses.ByTypeName importedClasses) {
-        JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(JavaType.From.name(annotation.annotationType().getName()));
+    private static JavaAnnotationBuilder javaAnnotationBuilderFrom(Annotation annotation, ImportedClasses.ByTypeName importedClasses) {
+        JavaAnnotationBuilder builder = new JavaAnnotationBuilder().withType(JavaType.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, importedClasses).entrySet()) {
-            builder.addProperty(entry.getKey(), JavaAnnotation.Builder.ValueBuilder.ofFinished(entry.getValue()));
+            builder.addProperty(entry.getKey(), JavaAnnotationBuilder.ValueBuilder.ofFinished(entry.getValue()));
         }
         return builder;
     }

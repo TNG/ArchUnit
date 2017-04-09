@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,9 +53,9 @@ public class JavaAnnotation implements HasType {
     private final JavaClass type;
     private final Map<String, Object> values;
 
-    private JavaAnnotation(JavaClass type, Map<String, Object> values) {
-        this.type = checkNotNull(type);
-        this.values = checkNotNull(values);
+    public JavaAnnotation(JavaAnnotationBuilder builder) {
+        this.type = checkNotNull(builder.getType());
+        this.values = checkNotNull(builder.getValues());
     }
 
     @Override
@@ -100,84 +99,13 @@ public class JavaAnnotation implements HasType {
         return AnnotationProxy.of(annotationType, this);
     }
 
-    static Map<String, JavaAnnotation> buildAnnotations(Set<Builder> annotations, ImportedClasses.ByTypeName importedClasses) {
+    static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ImportedClasses.ByTypeName importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
-        for (Builder annotationBuilder : annotations) {
+        for (JavaAnnotationBuilder annotationBuilder : annotations) {
             JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
             result.put(javaAnnotation.getType().getName(), javaAnnotation);
         }
         return result.build();
-    }
-
-    static class Builder {
-        private JavaType type;
-        private Map<String, ValueBuilder> values = new HashMap<>();
-        private ImportedClasses.ByTypeName importedClasses;
-
-        Builder withType(JavaType type) {
-            this.type = type;
-            return this;
-        }
-
-        JavaType getType() {
-            return type;
-        }
-
-        Builder addProperty(String key, ValueBuilder valueBuilder) {
-            values.put(key, valueBuilder);
-            return this;
-        }
-
-        JavaAnnotation build(ImportedClasses.ByTypeName importedClasses) {
-            this.importedClasses = importedClasses;
-            return new JavaAnnotation(createFinalType(), getValues(importedClasses));
-        }
-
-        private JavaClass createFinalType() {
-            return importedClasses.get(type.getName());
-        }
-
-        private Map<String, Object> getValues(ImportedClasses.ByTypeName importedClasses) {
-            ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
-            for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                Optional<Object> value = entry.getValue().build(importedClasses);
-                if (value.isPresent()) {
-                    result.put(entry.getKey(), value.get());
-                }
-            }
-            addDefaultValues(result, importedClasses);
-            return result.build();
-        }
-
-        private void addDefaultValues(ImmutableMap.Builder<String, Object> result, ImportedClasses.ByTypeName importedClasses) {
-            for (JavaMethod method : importedClasses.get(type.getName()).getMethods()) {
-                if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
-                    result.put(method.getName(), method.getDefaultValue().get());
-                }
-            }
-        }
-
-        abstract static class ValueBuilder {
-            abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
-
-            static ValueBuilder ofFinished(final Object value) {
-                return new ValueBuilder() {
-                    @Override
-                    Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
-                        return Optional.of(value);
-                    }
-                };
-            }
-
-            static ValueBuilder from(final Builder builder) {
-                return new ValueBuilder() {
-                    @Override
-                    Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
-                        return Optional.<Object>of(builder.build(importedClasses));
-                    }
-                };
-            }
-        }
     }
 
 }

@@ -16,7 +16,7 @@ public class JavaField extends JavaMember implements HasType {
     private final Supplier<Field> fieldSupplier;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
-    private JavaField(Builder builder) {
+    public JavaField(JavaFieldBuilder builder) {
         super(builder);
         type = builder.getType();
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
@@ -46,24 +46,6 @@ public class JavaField extends JavaMember implements HasType {
 
     void registerAccessesToField(Supplier<Set<JavaFieldAccess>> accesses) {
         this.accessesToSelf = checkNotNull(accesses);
-    }
-
-    static final class Builder extends JavaMember.Builder<JavaField, Builder> {
-        private JavaType type;
-
-        Builder withType(JavaType type) {
-            this.type = type;
-            return self();
-        }
-
-        public JavaClass getType() {
-            return get(type.getName());
-        }
-
-        @Override
-        JavaField construct(Builder builder, ImportedClasses.ByTypeName importedClasses) {
-            return new JavaField(builder);
-        }
     }
 
     @ResolvesTypesViaReflection
