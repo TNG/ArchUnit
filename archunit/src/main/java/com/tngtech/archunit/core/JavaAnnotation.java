@@ -156,27 +156,28 @@ public class JavaAnnotation implements HasType {
                 }
             }
         }
+
+        abstract static class ValueBuilder {
+            abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
+
+            static ValueBuilder ofFinished(final Object value) {
+                return new ValueBuilder() {
+                    @Override
+                    Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                        return Optional.of(value);
+                    }
+                };
+            }
+
+            static ValueBuilder from(final Builder builder) {
+                return new ValueBuilder() {
+                    @Override
+                    Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
+                        return Optional.<Object>of(builder.build(importedClasses));
+                    }
+                };
+            }
+        }
     }
 
-    abstract static class ValueBuilder {
-        abstract Optional<Object> build(ImportedClasses.ByTypeName importedClasses);
-
-        static ValueBuilder ofFinished(final Object value) {
-            return new ValueBuilder() {
-                @Override
-                Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
-                    return Optional.of(value);
-                }
-            };
-        }
-
-        static ValueBuilder from(final JavaAnnotation.Builder builder) {
-            return new ValueBuilder() {
-                @Override
-                Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
-                    return Optional.<Object>of(builder.build(importedClasses));
-                }
-            };
-        }
-    }
 }

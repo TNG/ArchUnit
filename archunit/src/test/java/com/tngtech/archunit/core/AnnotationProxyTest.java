@@ -237,9 +237,9 @@ public class AnnotationProxyTest {
     public void array_is_converted_to_the_correct_type() {
         JavaAnnotation annotation = new JavaAnnotation.Builder()
                 .withType(JavaType.From.name(TestAnnotation.class.getName()))
-                .addProperty("types", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
-                .addProperty("enumConstants", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
-                .addProperty("subAnnotations", JavaAnnotation.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("types", JavaAnnotation.Builder.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("enumConstants", JavaAnnotation.Builder.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("subAnnotations", JavaAnnotation.Builder.ValueBuilder.ofFinished(new Object[0]))
                 .build(simpleImportedClasses());
 
         TestAnnotation reflected = annotation.as(TestAnnotation.class);

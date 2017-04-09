@@ -70,10 +70,10 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     static class Builder extends JavaCodeUnit.Builder<JavaMethod, Builder> {
-        private Optional<JavaAnnotation.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
+        private Optional<JavaAnnotation.Builder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
         private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
 
-        Builder withAnnotationDefaultValue(JavaAnnotation.ValueBuilder defaultValue) {
+        Builder withAnnotationDefaultValue(JavaAnnotation.Builder.ValueBuilder defaultValue) {
             annotationDefaultValueBuilder = Optional.of(defaultValue);
             return this;
         }

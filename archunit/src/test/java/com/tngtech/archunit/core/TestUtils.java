@@ -463,7 +463,7 @@ public class TestUtils {
     private static JavaAnnotation.Builder javaAnnotationBuilderFrom(Annotation annotation, ImportedClasses.ByTypeName importedClasses) {
         JavaAnnotation.Builder builder = new JavaAnnotation.Builder().withType(JavaType.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, importedClasses).entrySet()) {
-            builder.addProperty(entry.getKey(), JavaAnnotation.ValueBuilder.ofFinished(entry.getValue()));
+            builder.addProperty(entry.getKey(), JavaAnnotation.Builder.ValueBuilder.ofFinished(entry.getValue()));
         }
         return builder;
     }

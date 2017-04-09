@@ -337,7 +337,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void add(JavaAnnotation.Builder annotation) {
-            setArrayResult(JavaAnnotation.ValueBuilder.from(annotation));
+            setArrayResult(JavaAnnotation.Builder.ValueBuilder.from(annotation));
         }
 
         @Override
@@ -351,7 +351,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder) {
+        public void setArrayResult(JavaAnnotation.Builder.ValueBuilder valueBuilder) {
             methodBuilder.withAnnotationDefaultValue(valueBuilder);
         }
     }
@@ -466,7 +466,7 @@ class JavaClassProcessor extends ClassVisitor {
                 }
 
                 @Override
-                public void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder) {
+                public void setArrayResult(JavaAnnotation.Builder.ValueBuilder valueBuilder) {
                     annotationBuilder.addProperty(name, valueBuilder);
                 }
             });
@@ -491,7 +491,7 @@ class JavaClassProcessor extends ClassVisitor {
         return new TakesAnnotationBuilder() {
             @Override
             public void add(JavaAnnotation.Builder builder) {
-                annotationBuilder.addProperty(name, JavaAnnotation.ValueBuilder.from(builder));
+                annotationBuilder.addProperty(name, JavaAnnotation.Builder.ValueBuilder.from(builder));
             }
         };
     }
@@ -503,7 +503,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
         private final AnnotationArrayContext annotationArrayContext;
         private Class<?> derivedComponentType;
-        private final List<JavaAnnotation.ValueBuilder> values = new ArrayList<>();
+        private final List<JavaAnnotation.Builder.ValueBuilder> values = new ArrayList<>();
 
         private AnnotationArrayProcessor(AnnotationArrayContext annotationArrayContext) {
             super(ASM_API_VERSION);
@@ -522,7 +522,7 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationProcessor(new TakesAnnotationBuilder() {
                 @Override
                 public void add(JavaAnnotation.Builder annotationBuilder) {
-                    values.add(JavaAnnotation.ValueBuilder.from(annotationBuilder));
+                    values.add(JavaAnnotation.Builder.ValueBuilder.from(annotationBuilder));
                 }
             }, annotationBuilderFor(desc));
         }
@@ -554,7 +554,7 @@ class JavaClassProcessor extends ClassVisitor {
             annotationArrayContext.setArrayResult(new ArrayValueBuilder());
         }
 
-        private class ArrayValueBuilder extends JavaAnnotation.ValueBuilder {
+        private class ArrayValueBuilder extends JavaAnnotation.Builder.ValueBuilder {
             @Override
             Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
                 Optional<Class<?>> componentType = determineComponentType(importedClasses);
@@ -589,7 +589,7 @@ class JavaClassProcessor extends ClassVisitor {
 
             private List<Object> buildValues(ImportedClasses.ByTypeName importedClasses) {
                 List<Object> result = new ArrayList<>();
-                for (JavaAnnotation.ValueBuilder value : values) {
+                for (JavaAnnotation.Builder.ValueBuilder value : values) {
                     result.addAll(value.build(importedClasses).asSet());
                 }
                 return result;
@@ -654,11 +654,11 @@ class JavaClassProcessor extends ClassVisitor {
 
         String getDeclaringAnnotationMemberName();
 
-        void setArrayResult(JavaAnnotation.ValueBuilder valueBuilder);
+        void setArrayResult(JavaAnnotation.Builder.ValueBuilder valueBuilder);
     }
 
-    private static JavaAnnotation.ValueBuilder javaEnumBuilder(final String desc, final String value) {
-        return new JavaAnnotation.ValueBuilder() {
+    private static JavaAnnotation.Builder.ValueBuilder javaEnumBuilder(final String desc, final String value) {
+        return new JavaAnnotation.Builder.ValueBuilder() {
             @Override
             Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
                 return Optional.<Object>of(
@@ -673,12 +673,12 @@ class JavaClassProcessor extends ClassVisitor {
                 Class.class.getName(), JavaClass.class,
                 Class[].class.getName(), JavaClass[].class
         );
-        private static final Map<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>> importedValueToInternalValue =
-                ImmutableMap.<Class<?>, Function<Object, JavaAnnotation.ValueBuilder>>of(
-                        Type.class, new Function<Object, JavaAnnotation.ValueBuilder>() {
+        private static final Map<Class<?>, Function<Object, JavaAnnotation.Builder.ValueBuilder>> importedValueToInternalValue =
+                ImmutableMap.<Class<?>, Function<Object, JavaAnnotation.Builder.ValueBuilder>>of(
+                        Type.class, new Function<Object, JavaAnnotation.Builder.ValueBuilder>() {
                             @Override
-                            public JavaAnnotation.ValueBuilder apply(final Object input) {
-                                return new JavaAnnotation.ValueBuilder() {
+                            public JavaAnnotation.Builder.ValueBuilder apply(final Object input) {
+                                return new JavaAnnotation.Builder.ValueBuilder() {
                                     @Override
                                     Optional<Object> build(ImportedClasses.ByTypeName importedClasses) {
                                         return Optional.<Object>of(importedClasses.get(((Type) input).getClassName()));
@@ -700,10 +700,10 @@ class JavaClassProcessor extends ClassVisitor {
                     Optional.<Class<?>>absent();
         }
 
-        static JavaAnnotation.ValueBuilder convert(Object value) {
+        static JavaAnnotation.Builder.ValueBuilder convert(Object value) {
             return importedValueToInternalValue.containsKey(value.getClass()) ?
                     importedValueToInternalValue.get(value.getClass()).apply(value) :
-                    JavaAnnotation.ValueBuilder.ofFinished(value);
+                    JavaAnnotation.Builder.ValueBuilder.ofFinished(value);
         }
     }
 }
