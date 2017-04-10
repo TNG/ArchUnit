@@ -18,6 +18,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.core.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasAnnotations;

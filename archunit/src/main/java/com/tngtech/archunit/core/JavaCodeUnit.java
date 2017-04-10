@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
