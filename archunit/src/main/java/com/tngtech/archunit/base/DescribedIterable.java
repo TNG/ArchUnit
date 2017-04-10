@@ -2,7 +2,7 @@ package com.tngtech.archunit.base;
 
 import java.util.Iterator;
 
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 public interface DescribedIterable<T> extends Iterable<T>, HasDescription {
     class From {

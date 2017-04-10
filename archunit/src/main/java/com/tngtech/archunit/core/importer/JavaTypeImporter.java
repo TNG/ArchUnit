@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.importer;
 
-import com.tngtech.archunit.core.JavaType;
+import com.tngtech.archunit.core.domain.JavaType;
 import org.objectweb.asm.Type;
 
 class JavaTypeImporter {

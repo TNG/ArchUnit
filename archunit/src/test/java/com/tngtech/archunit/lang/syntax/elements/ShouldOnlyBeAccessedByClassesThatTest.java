@@ -5,9 +5,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.properties.HasName;
-import com.tngtech.archunit.core.properties.HasType;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
@@ -18,9 +18,9 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
-import static com.tngtech.archunit.core.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldThatEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;

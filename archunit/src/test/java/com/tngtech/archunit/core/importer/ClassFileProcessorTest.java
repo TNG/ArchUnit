@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileProcessor.ClassResolverFromClassPath;
 import org.junit.Test;
 

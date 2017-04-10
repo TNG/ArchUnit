@@ -4,10 +4,10 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 public interface ClassesThat<CONJUNCTION> {
     /**

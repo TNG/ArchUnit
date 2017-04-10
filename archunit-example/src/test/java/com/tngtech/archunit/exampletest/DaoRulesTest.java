@@ -2,7 +2,7 @@ package com.tngtech.archunit.exampletest;
 
 import javax.persistence.Entity;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;

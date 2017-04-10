@@ -1,22 +1,22 @@
 package com.tngtech.archunit.library;
 
-import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.JavaAccess.Functions.Get;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.AccessTarget.Predicates.constructor;
-import static com.tngtech.archunit.core.AccessTarget.Predicates.declaredIn;
-import static com.tngtech.archunit.core.JavaAccess.Predicates.originOwner;
-import static com.tngtech.archunit.core.JavaCall.Predicates.target;
-import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.Predicates.resideInAPackage;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.core.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
+import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.originOwner;
+import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;

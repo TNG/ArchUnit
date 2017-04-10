@@ -2,8 +2,8 @@ package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 public interface ClassesTransformer<T> extends HasDescription {
     /**

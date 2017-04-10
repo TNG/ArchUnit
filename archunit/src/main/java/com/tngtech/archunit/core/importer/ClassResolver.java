@@ -3,7 +3,7 @@ package com.tngtech.archunit.core.importer;
 import java.net.URI;
 
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 /**
  * The {@link ClassFileImporter} will use the configured {@link ClassResolver}, to determine how to

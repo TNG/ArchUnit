@@ -4,15 +4,17 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.JavaAccess;
-import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.JavaCall;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaConstructorCall;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodCall;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 public interface ClassesShould {
@@ -535,7 +537,7 @@ public interface ClassesShould {
     ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
 
     /**
-     * Matches against access of arbitrary targets (compare {@link com.tngtech.archunit.core.AccessTarget})
+     * Matches against access of arbitrary targets (compare {@link AccessTarget})
      * where origin (a method or constructor) and target (a field, method or constructor) can be freely restricted
      * by the supplied predicate.
      *
@@ -545,7 +547,7 @@ public interface ClassesShould {
     ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate);
 
     /**
-     * Matches against code unit calls (compare {@link com.tngtech.archunit.core.JavaCodeUnit}) where origin (a code unit)
+     * Matches against code unit calls (compare {@link JavaCodeUnit}) where origin (a code unit)
      * and target (a code unit) can be freely restricted by the supplied predicate.
      *
      * @param predicate Determines which {@link JavaCall JavaCalls} match the rule

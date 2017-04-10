@@ -8,9 +8,9 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

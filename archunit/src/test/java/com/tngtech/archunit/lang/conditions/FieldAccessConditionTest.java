@@ -3,18 +3,18 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldGetAccessCondition;
 import com.tngtech.archunit.lang.conditions.FieldAccessCondition.FieldSetAccessCondition;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
-import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.target;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.target;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.TARGET_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;

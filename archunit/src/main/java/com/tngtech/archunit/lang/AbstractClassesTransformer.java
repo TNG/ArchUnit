@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 
 public abstract class AbstractClassesTransformer<T> implements ClassesTransformer<T> {
     private String description;

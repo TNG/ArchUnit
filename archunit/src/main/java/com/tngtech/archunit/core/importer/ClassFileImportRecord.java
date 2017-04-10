@@ -10,7 +10,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

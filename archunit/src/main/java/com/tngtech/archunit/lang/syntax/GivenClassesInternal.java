@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.syntax;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;

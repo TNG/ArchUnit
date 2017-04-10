@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.properties.CanOverrideDescription;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.io.Resources.readLines;

@@ -4,14 +4,14 @@ import java.io.File;
 import java.io.IOException;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static com.tngtech.archunit.core.SourceTest.urlOf;
+import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 @Category(Slow.class)

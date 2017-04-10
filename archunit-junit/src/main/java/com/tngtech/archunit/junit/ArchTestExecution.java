@@ -4,14 +4,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public abstract class ArchTestExecution {
+abstract class ArchTestExecution {
     final Class<?> testClass;
 
     ArchTestExecution(Class<?> testClass) {
@@ -24,7 +24,7 @@ public abstract class ArchTestExecution {
         return member;
     }
 
-    public abstract Result evaluateOn(JavaClasses classes);
+    abstract Result evaluateOn(JavaClasses classes);
 
     abstract Description describeSelf();
 
@@ -33,11 +33,11 @@ public abstract class ArchTestExecution {
         return describeSelf().toString();
     }
 
-    public abstract String getName();
+    abstract String getName();
 
-    public abstract <T extends Annotation> T getAnnotation(Class<T> type);
+    abstract <T extends Annotation> T getAnnotation(Class<T> type);
 
-    public boolean ignore() {
+    boolean ignore() {
         return testClass.getAnnotation(ArchIgnore.class) != null || getAnnotation(ArchIgnore.class) != null;
     }
 

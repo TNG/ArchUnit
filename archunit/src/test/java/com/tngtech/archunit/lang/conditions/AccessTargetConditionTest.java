@@ -3,16 +3,16 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.tngtech.archunit.core.JavaAccess;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.Assertions;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.TestUtils.importClasses;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class AccessTargetConditionTest {

@@ -38,7 +38,7 @@ public class ArchRules {
         return new ArchRules(definitionLocation);
     }
 
-    public Set<ArchTestExecution> asTestExecutions() {
+    Set<ArchTestExecution> asTestExecutions() {
         ImmutableSet.Builder<ArchTestExecution> result = ImmutableSet.builder();
         for (Field field : fields) {
             result.addAll(archRuleExecutionsOf(field));

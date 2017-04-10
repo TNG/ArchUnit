@@ -12,15 +12,15 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
-import static com.tngtech.archunit.core.Dependency.toTargetClasses;
+import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
 
 /**
  * Basic collection of {@link Slice} for tests on dependencies of package slices, e.g. to avoid cycles.

@@ -3,11 +3,11 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
-public class ArchRuleExecution extends ArchTestExecution {
+class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
 
     ArchRuleExecution(Class<?> testClass, Field ruleField) {
@@ -16,24 +16,24 @@ public class ArchRuleExecution extends ArchTestExecution {
     }
 
     @Override
-    public Result evaluateOn(JavaClasses classes) {
+    Result evaluateOn(JavaClasses classes) {
         return RuleToEvaluate.from(testClass, ruleField)
                 .evaluateOn(classes)
                 .asResult(describeSelf());
     }
 
     @Override
-    public Description describeSelf() {
+    Description describeSelf() {
         return Description.createTestDescription(testClass, ruleField.getName());
     }
 
     @Override
-    public String getName() {
+    String getName() {
         return ruleField.getName();
     }
 
     @Override
-    public <T extends Annotation> T getAnnotation(Class<T> type) {
+    <T extends Annotation> T getAnnotation(Class<T> type) {
         return ruleField.getAnnotation(type);
     }
 
@@ -77,7 +77,7 @@ public class ArchRuleExecution extends ArchTestExecution {
             }
 
             @Override
-            public Evaluation evaluateOn(JavaClasses classes) {
+            Evaluation evaluateOn(JavaClasses classes) {
                 return new RetrievalEvaluation(rule, classes);
             }
         }
@@ -90,7 +90,7 @@ public class ArchRuleExecution extends ArchTestExecution {
             }
 
             @Override
-            public Evaluation evaluateOn(JavaClasses classes) {
+            Evaluation evaluateOn(JavaClasses classes) {
                 return new FailureEvaluation(failure);
             }
         }

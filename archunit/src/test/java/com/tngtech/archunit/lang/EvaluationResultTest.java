@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,6 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 

@@ -22,14 +22,14 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaEnumConstant;
-import com.tngtech.archunit.core.JavaMethod;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.JavaType;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.Source;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaEnumConstant;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -43,8 +43,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
 class JavaClassProcessor extends ClassVisitor {

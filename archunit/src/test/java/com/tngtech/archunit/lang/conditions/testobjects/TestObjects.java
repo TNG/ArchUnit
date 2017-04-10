@@ -2,8 +2,8 @@ package com.tngtech.archunit.lang.conditions.testobjects;
 
 import java.nio.file.Paths;
 
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 
 public class TestObjects {

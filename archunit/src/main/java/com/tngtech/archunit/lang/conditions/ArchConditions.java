@@ -6,40 +6,40 @@ import java.util.Collection;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.AccessTarget;
-import com.tngtech.archunit.core.Formatters;
-import com.tngtech.archunit.core.JavaAccess;
-import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.JavaCall;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaConstructorCall;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaMethodCall;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.properties.CanBeAnnotated;
-import com.tngtech.archunit.core.properties.HasAnnotations;
-import com.tngtech.archunit.core.properties.HasModifiers;
-import com.tngtech.archunit.core.properties.HasName;
-import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
-import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
+import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.Formatters;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
+import com.tngtech.archunit.core.domain.properties.HasModifiers;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
+import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGetsFieldCondition;
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
-import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
-import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
-import static com.tngtech.archunit.core.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.JavaClass.namesOf;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.modifier;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.be;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
@@ -149,6 +149,7 @@ public final class ArchConditions {
     }
 
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        @SuppressWarnings({"RedundantTypeArguments", "unchecked"})
         ChainableFunction<JavaAccess, AccessTarget> getTarget =
                 JavaAccess.Functions.Get.<JavaAccess, AccessTarget>target(); // This seems to be a compiler nightmare...
         return new AnyAccessFromClassCondition("access classes that",

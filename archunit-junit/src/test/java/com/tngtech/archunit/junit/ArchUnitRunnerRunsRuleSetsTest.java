@@ -1,11 +1,15 @@
 package com.tngtech.archunit.junit;
 
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import java.lang.reflect.Method;
+import java.util.Collection;
+
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,7 +22,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
+import static com.google.common.base.Preconditions.checkState;
+import static com.tngtech.archunit.core.domain.TestUtils.invoke;
+import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.ArchTestWithRuleLibrary.someOtherMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
@@ -63,14 +69,18 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void should_find_children_in_rule_set() throws Exception {
         assertThat(runnerForRuleSet.getChildren()).as("Rules defined in Test Class").hasSize(2);
-        assertThat(runnerForRuleSet.getChildren()).extractingResultOf("describeSelf").extractingResultOf("getMethodName")
+        assertThat(runnerForRuleSet.getChildren())
+                .extracting(resultOf("describeSelf"))
+                .extractingResultOf("getMethodName")
                 .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName);
     }
 
     @Test
     public void should_find_children_in_rule_library() throws Exception {
         assertThat(runnerForRuleLibrary.getChildren()).as("Rules defined in Library").hasSize(3);
-        assertThat(runnerForRuleLibrary.getChildren()).extractingResultOf("describeSelf").extractingResultOf("getMethodName")
+        assertThat(runnerForRuleLibrary.getChildren())
+                .extracting(resultOf("describeSelf"))
+                .extractingResultOf("getMethodName")
                 .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName, someOtherMethodRuleName);
     }
 
@@ -82,6 +92,25 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void can_run_rule_method() throws Exception {
         run(someMethodRuleName);
+    }
+
+    // extractingResultOf(..) only looks for public methods
+    private Extractor<Object, Object> resultOf(final String methodName) {
+        return new Extractor<Object, Object>() {
+            @Override
+            public Object extract(Object input) {
+                Collection<Method> candidates = ReflectionUtils.getAllMethods(input.getClass(), new ReflectionUtils.Predicate<Method>() {
+                    @Override
+                    public boolean apply(Method input) {
+                        return input.getName().equals(methodName);
+                    }
+                });
+                checkState(!candidates.isEmpty(),
+                        "Couldn't find any method named '%s' with hierarchy of %s",
+                        methodName, input.getClass().getName());
+                return invoke(candidates.iterator().next(), input);
+            }
+        };
     }
 
     private void run(String ruleName) {

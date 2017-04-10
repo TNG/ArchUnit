@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.core.Dependency;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;

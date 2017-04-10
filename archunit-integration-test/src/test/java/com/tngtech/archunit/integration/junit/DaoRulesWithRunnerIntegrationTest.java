@@ -7,6 +7,7 @@ import com.tngtech.archunit.example.service.ServiceViolatingDaoRules.MyEntityMan
 import com.tngtech.archunit.exampletest.junit.DaoRulesWithRunnerTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;

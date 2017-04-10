@@ -32,11 +32,12 @@ import com.tngtech.archunit.example.cycle.simplescenario.report.ReportService;
 import com.tngtech.archunit.exampletest.junit.CyclicDependencyRulesTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.integration.junit.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 

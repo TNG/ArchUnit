@@ -1,10 +1,10 @@
 package com.tngtech.archunit.core.importer;
 
-import com.tngtech.archunit.core.JavaType;
+import com.tngtech.archunit.core.domain.JavaType;
 import org.junit.Test;
 import org.objectweb.asm.Type;
 
-import static com.tngtech.archunit.core.Assertions.assertThat;
+import static com.tngtech.archunit.core.domain.Assertions.assertThat;
 
 public class JavaTypeImporterTest {
 

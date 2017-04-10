@@ -1,21 +1,21 @@
 package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.properties.HasModifiers;
-import com.tngtech.archunit.core.properties.HasName;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.HasModifiers;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.JavaClass.Predicates.INTERFACES;
-import static com.tngtech.archunit.core.JavaClass.Predicates.simpleName;
-import static com.tngtech.archunit.core.JavaModifier.PRIVATE;
-import static com.tngtech.archunit.core.JavaModifier.PROTECTED;
-import static com.tngtech.archunit.core.JavaModifier.PUBLIC;
-import static com.tngtech.archunit.core.properties.HasModifiers.Predicates.modifier;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
+import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
+import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 

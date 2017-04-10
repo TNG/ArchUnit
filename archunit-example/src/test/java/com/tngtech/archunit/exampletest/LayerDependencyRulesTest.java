@@ -1,6 +1,6 @@
 package com.tngtech.archunit.exampletest;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
 import org.junit.Before;
 import org.junit.Ignore;

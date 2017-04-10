@@ -7,13 +7,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaModifier;
-import com.tngtech.archunit.core.JavaType;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaType;
 
-import static com.tngtech.archunit.core.JavaModifier.ABSTRACT;
-import static com.tngtech.archunit.core.JavaModifier.FINAL;
-import static com.tngtech.archunit.core.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
+import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 
 class ImportedClasses {
     private static final ImmutableSet<JavaModifier> PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS =
