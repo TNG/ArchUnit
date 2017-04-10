@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.ImportOption;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.Location;
-import com.tngtech.archunit.core.Locations;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.Locations;
 
 class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();

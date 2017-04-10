@@ -26,7 +26,7 @@ public class Source {
     private final URI uri;
     private final Md5sum md5sum;
 
-    Source(URI uri) {
+    public Source(URI uri) {
         this.uri = uri;
         md5sum = Md5sum.of(uri);
     }

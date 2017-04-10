@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasDescription;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
@@ -21,14 +22,10 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     private final int lineNumber;
     private final int hashCode;
 
-    JavaAccess(AccessRecord<TARGET> record) {
-        this(record.getCaller(), record.getTarget(), record.getLineNumber());
-    }
-
-    JavaAccess(JavaCodeUnit origin, TARGET target, int lineNumber) {
-        this.origin = checkNotNull(origin);
-        this.target = checkNotNull(target);
-        this.lineNumber = lineNumber;
+    JavaAccess(DomainBuilders.JavaAccessBuilder<TARGET, ?> builder) {
+        this.origin = checkNotNull(builder.getOrigin());
+        this.target = checkNotNull(builder.getTarget());
+        this.lineNumber = builder.getLineNumber();
         this.hashCode = Objects.hash(origin.getFullName(), target.getFullName(), lineNumber);
     }
 

@@ -3,8 +3,9 @@ package com.tngtech.archunit.core;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaAccess.Functions.Get;
-import com.tngtech.archunit.core.testexamples.SomeClass;
-import com.tngtech.archunit.core.testexamples.SomeEnum;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
+import com.tngtech.archunit.core.importer.testexamples.SomeClass;
+import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.TestUtils.javaClassViaReflection;
@@ -78,7 +79,7 @@ public class JavaAccessTest {
 
     private static class TestJavaAccess extends JavaAccess<MethodCallTarget> {
         TestJavaAccess(JavaMethod origin, JavaMethod target, int lineNumber) {
-            super(origin, resolvedTargetFrom(target), lineNumber);
+            super(new Builder(origin, resolvedTargetFrom(target), lineNumber));
         }
 
         @Override
@@ -101,6 +102,12 @@ public class JavaAccessTest {
 
             TestJavaAccess inLineNumber(int lineNumber) {
                 return new TestJavaAccess(origin, target, lineNumber);
+            }
+        }
+
+        private static class Builder extends JavaAccessBuilder<MethodCallTarget, Builder> {
+            public Builder(JavaMethod origin, MethodCallTarget methodCallTarget, int lineNumber) {
+                withOrigin(origin).withTarget(methodCallTarget).withLineNumber(lineNumber);
             }
         }
     }

@@ -22,13 +22,6 @@ public class JavaTypeTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void asm_object_type() {
-        JavaType objectType = JavaType.From.fromAsmObjectTypeName("java/lang/Object");
-
-        assertThat(objectType).isEquivalentTo(Object.class);
-    }
-
-    @Test
     @UseDataProvider("primitives")
     public void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
         JavaType primitiveType = JavaType.From.name(name);

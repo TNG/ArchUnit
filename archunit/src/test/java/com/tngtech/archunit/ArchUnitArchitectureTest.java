@@ -3,7 +3,6 @@ package com.tngtech.archunit;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaAccess;
 import com.tngtech.archunit.core.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.JavaCall;
@@ -11,16 +10,17 @@ import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasOwner.Predicates.With;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.ImportOption.Predefined.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.origin;
 import static com.tngtech.archunit.core.JavaAccess.Predicates.target;
 import static com.tngtech.archunit.core.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;

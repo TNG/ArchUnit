@@ -1,10 +1,11 @@
 package com.tngtech.archunit.core;
 
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 
 public class JavaMethodCall extends JavaCall<MethodCallTarget> {
-    JavaMethodCall(AccessRecord<MethodCallTarget> methodAccessRecord) {
-        super(methodAccessRecord);
+    public JavaMethodCall(JavaMethodCallBuilder builder) {
+        super(builder);
     }
 
     @Override

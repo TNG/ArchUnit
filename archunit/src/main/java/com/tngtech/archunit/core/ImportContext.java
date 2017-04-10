@@ -3,11 +3,11 @@ package com.tngtech.archunit.core;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 
-interface ImportContext {
+@Internal
+public interface ImportContext {
     JavaClass getJavaClassWithType(String name);
 
     Optional<JavaClass> createSuperClass(JavaClass owner);
@@ -26,9 +26,9 @@ interface ImportContext {
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
-    Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit);
+    Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit);
 
-    Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit);
+    Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit);
 
-    Set<AccessRecord<AccessTarget.ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit);
+    Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit);
 }

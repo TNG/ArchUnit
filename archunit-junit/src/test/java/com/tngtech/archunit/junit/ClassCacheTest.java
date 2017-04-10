@@ -3,11 +3,11 @@ package com.tngtech.archunit.junit;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.ImportOption;
 import com.tngtech.archunit.core.JavaClass;
 import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.Location;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.ClassCache.ClassFileImporterFactory;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Before;

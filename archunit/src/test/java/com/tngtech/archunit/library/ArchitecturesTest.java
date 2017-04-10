@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.ClassFileImporter;
 import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyFirstClass;

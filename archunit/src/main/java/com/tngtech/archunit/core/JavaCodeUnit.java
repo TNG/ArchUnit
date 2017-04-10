@@ -5,11 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
-import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
@@ -74,23 +70,9 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     }
 
     AccessContext.Part completeFrom(ImportContext context) {
-        ImmutableSet.Builder<JavaFieldAccess> fieldAccessesBuilder = ImmutableSet.builder();
-        for (FieldAccessRecord record : context.getFieldAccessRecordsFor(this)) {
-            fieldAccessesBuilder.add(new JavaFieldAccess(record));
-        }
-        fieldAccesses = fieldAccessesBuilder.build();
-
-        ImmutableSet.Builder<JavaMethodCall> methodCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<MethodCallTarget> record : context.getMethodCallRecordsFor(this)) {
-            methodCallsBuilder.add(new JavaMethodCall(record));
-        }
-        methodCalls = methodCallsBuilder.build();
-
-        ImmutableSet.Builder<JavaConstructorCall> constructorCallsBuilder = ImmutableSet.builder();
-        for (AccessRecord<ConstructorCallTarget> record : context.getConstructorCallRecordsFor(this)) {
-            constructorCallsBuilder.add(new JavaConstructorCall(record));
-        }
-        constructorCalls = constructorCallsBuilder.build();
+        fieldAccesses = context.getFieldAccessesFor(this);
+        methodCalls = context.getMethodCallsFor(this);
+        constructorCalls = context.getConstructorCallsFor(this);
 
         return new AccessContext.Part(this);
     }

@@ -23,12 +23,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.Source.Md5sum;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ClassesByTypeName;
 import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -46,6 +53,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
+    public static final Md5sum MD5_SUM_DISABLED = Md5sum.DISABLED;
+
     private static final Random random = new Random();
 
     /**
@@ -112,8 +121,11 @@ public class TestUtils {
     }
 
     public static FieldAccessTarget fieldAccessTarget(Class<?> ownerType, String fieldName, JavaClass fieldType) {
-        return new FieldAccessTarget(javaClassViaReflection(ownerType), fieldName, fieldType,
-                Suppliers.ofInstance(Optional.<JavaField>absent()));
+        return new FieldAccessTarget(new FieldAccessTargetBuilder()
+                .withOwner(javaClassViaReflection(ownerType))
+                .withName(fieldName)
+                .withType(fieldType)
+                .withField(Suppliers.ofInstance(Optional.<JavaField>absent())));
     }
 
     public static JavaClasses importClasses(Class<?>... classes) {
@@ -122,6 +134,10 @@ public class TestUtils {
 
     public static ImportedContext withinImportedClasses(Class<?>... contextClasses) {
         return new ImportedContext(importClasses(contextClasses));
+    }
+
+    public static Md5sum md5sumOf(byte[] bytes) {
+        return Md5sum.of(bytes);
     }
 
     private static class ImportedTestClasses implements ClassesByTypeName {
@@ -348,39 +364,40 @@ public class TestUtils {
                 .build();
     }
 
-    static FieldAccessTarget targetFrom(JavaField field) {
-        return new FieldAccessTarget(
-                field.getOwner(),
-                field.getName(),
-                field.getType(),
-                Suppliers.ofInstance(Optional.of(field)));
+    public static FieldAccessTarget targetFrom(JavaField field) {
+        return new FieldAccessTarget(new FieldAccessTargetBuilder()
+                .withOwner(field.getOwner())
+                .withName(field.getName())
+                .withType(field.getType())
+                .withField(Suppliers.ofInstance(Optional.of(field))));
     }
 
-    static ConstructorCallTarget targetFrom(JavaConstructor target) {
-        return new ConstructorCallTarget(
-                target.getOwner(),
-                target.getParameters(),
-                target.getReturnType(), Suppliers.ofInstance(Optional.of(target)));
+    public static ConstructorCallTarget targetFrom(JavaConstructor target) {
+        return new ConstructorCallTarget(new ConstructorCallTargetBuilder()
+                .withOwner(target.getOwner())
+                .withParameters(target.getParameters())
+                .withReturnType(target.getReturnType())
+                .withConstructor(Suppliers.ofInstance(Optional.of(target))));
     }
 
-    static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
+    public static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
         return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.singleton(target)));
     }
 
-    static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
+    public static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
         return resolvedTargetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
     }
 
     private static MethodCallTarget resolvedTargetFrom(JavaMethod target, Supplier<Set<JavaMethod>> resolveSupplier) {
-        return new MethodCallTarget(
-                target.getOwner(),
-                target.getName(),
-                target.getParameters(),
-                target.getReturnType(),
-                resolveSupplier);
+        return new MethodCallTarget(new MethodCallTargetBuilder()
+                .withOwner(target.getOwner())
+                .withName(target.getName())
+                .withParameters(target.getParameters())
+                .withReturnType(target.getReturnType())
+                .withMethods(resolveSupplier));
     }
 
-    static Class[] asClasses(List<JavaClass> parameters) {
+    public static Class[] asClasses(List<JavaClass> parameters) {
         List<Class> result = new ArrayList<>();
         for (JavaClass javaClass : parameters) {
             result.add(javaClass.reflect());
@@ -485,7 +502,7 @@ public class TestUtils {
     }
 
     public static class AccessesSimulator {
-        private final Set<AccessRecord<MethodCallTarget>> targets = new HashSet<>();
+        private final Set<MethodCallTarget> targets = new HashSet<>();
 
         public AccessSimulator from(JavaMethod method, int lineNumber) {
             return new AccessSimulator(targets, method, lineNumber);
@@ -501,11 +518,11 @@ public class TestUtils {
     }
 
     public static class AccessSimulator {
-        private final Set<AccessRecord<MethodCallTarget>> targets;
+        private final Set<MethodCallTarget> targets;
         private final JavaMethod method;
         private final int lineNumber;
 
-        private AccessSimulator(Set<AccessRecord<MethodCallTarget>> targets, JavaMethod method, int lineNumber) {
+        private AccessSimulator(Set<MethodCallTarget> targets, JavaMethod method, int lineNumber) {
             this.targets = targets;
             this.method = method;
             this.lineNumber = lineNumber;
@@ -516,9 +533,17 @@ public class TestUtils {
         }
 
         private JavaMethodCall to(MethodCallTarget methodCallTarget) {
-            targets.add(new TestAccessRecord<>(methodCallTarget));
-            ClassGraphCreator context = mock(ClassGraphCreator.class);
-            when(context.getMethodCallRecordsFor(method)).thenReturn(ImmutableSet.copyOf(targets));
+            targets.add(methodCallTarget);
+            ImportContext context = mock(ImportContext.class);
+            Set<JavaMethodCall> calls = new HashSet<>();
+            for (MethodCallTarget target : targets) {
+                calls.add(new JavaMethodCallBuilder()
+                        .withOrigin(method)
+                        .withTarget(target)
+                        .withLineNumber(lineNumber)
+                        .build());
+            }
+            when(context.getMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
             method.completeFrom(context);
             return getCallToTarget(methodCallTarget);
         }
@@ -542,47 +567,17 @@ public class TestUtils {
         }
 
         public void to(JavaField target, AccessType accessType) {
-            ClassGraphCreator context = mock(ClassGraphCreator.class);
-            when(context.getFieldAccessRecordsFor(method))
-                    .thenReturn(ImmutableSet.<FieldAccessRecord>of(new TestFieldAccessRecord(target, accessType)));
+            ImportContext context = mock(ImportContext.class);
+            when(context.getFieldAccessesFor(method))
+                    .thenReturn(ImmutableSet.of(
+                            new JavaFieldAccessBuilder()
+                                    .withOrigin(method)
+                                    .withTarget(targetFrom(target))
+                                    .withLineNumber(lineNumber)
+                                    .withAccessType(accessType)
+                                    .build()
+                    ));
             method.completeFrom(context);
-        }
-
-        private class TestFieldAccessRecord extends TestAccessRecord<FieldAccessTarget> implements FieldAccessRecord {
-            private final AccessType accessType;
-
-            private TestFieldAccessRecord(JavaField target, AccessType accessType) {
-                super(targetFrom(target));
-                this.accessType = accessType;
-            }
-
-            @Override
-            public AccessType getAccessType() {
-                return accessType;
-            }
-        }
-
-        private class TestAccessRecord<T extends AccessTarget> implements AccessRecord<T> {
-            private final T target;
-
-            TestAccessRecord(T target) {
-                this.target = target;
-            }
-
-            @Override
-            public JavaCodeUnit getCaller() {
-                return method;
-            }
-
-            @Override
-            public T getTarget() {
-                return target;
-            }
-
-            @Override
-            public int getLineNumber() {
-                return lineNumber;
-            }
         }
     }
 
@@ -633,17 +628,17 @@ public class TestUtils {
         }
 
         @Override
-        public Set<FieldAccessRecord> getFieldAccessRecordsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<AccessRecord<MethodCallTarget>> getMethodCallRecordsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<AccessRecord<ConstructorCallTarget>> getConstructorCallRecordsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
     }

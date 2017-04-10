@@ -151,7 +151,7 @@ public class SourceTest {
         return MessageDigest.getInstance("MD5").digest(bytes);
     }
 
-    static byte[] bytesAt(URL url) throws IOException {
+    public static byte[] bytesAt(URL url) throws IOException {
         return ByteStreams.toByteArray(url.openStream());
     }
 

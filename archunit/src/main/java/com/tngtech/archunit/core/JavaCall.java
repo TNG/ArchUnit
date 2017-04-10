@@ -2,10 +2,11 @@ package com.tngtech.archunit.core;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.CodeUnitCallTarget;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaAccess<T> {
-    JavaCall(AccessRecord<T> accessRecord) {
-        super(accessRecord);
+    JavaCall(JavaAccessBuilder<T, ?> builder) {
+        super(builder);
     }
 
     public static class Predicates {

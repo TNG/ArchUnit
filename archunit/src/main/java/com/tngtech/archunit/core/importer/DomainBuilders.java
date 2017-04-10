@@ -13,22 +13,33 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.ClassesByTypeName;
+import com.tngtech.archunit.core.AccessTarget;
+import com.tngtech.archunit.core.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.Formatters;
 import com.tngtech.archunit.core.JavaAnnotation;
 import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.JavaClassList;
+import com.tngtech.archunit.core.JavaCodeUnit;
 import com.tngtech.archunit.core.JavaConstructor;
+import com.tngtech.archunit.core.JavaConstructorCall;
 import com.tngtech.archunit.core.JavaEnumConstant;
 import com.tngtech.archunit.core.JavaField;
+import com.tngtech.archunit.core.JavaFieldAccess;
+import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.JavaMethod;
+import com.tngtech.archunit.core.JavaMethodCall;
 import com.tngtech.archunit.core.JavaModifier;
 import com.tngtech.archunit.core.JavaStaticInitializer;
 import com.tngtech.archunit.core.JavaType;
 import com.tngtech.archunit.core.Source;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class DomainBuilders {
-    public static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+    static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
             JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
@@ -75,7 +86,7 @@ public class DomainBuilders {
         private Optional<JavaAnnotationBuilder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
         private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
 
-        public JavaMethodBuilder withAnnotationDefaultValue(JavaAnnotationBuilder.ValueBuilder defaultValue) {
+        JavaMethodBuilder withAnnotationDefaultValue(JavaAnnotationBuilder.ValueBuilder defaultValue) {
             annotationDefaultValueBuilder = Optional.of(defaultValue);
             return this;
         }
@@ -221,7 +232,7 @@ public class DomainBuilders {
         private boolean isInterface;
         private Set<JavaModifier> modifiers = new HashSet<>();
 
-        public JavaClassBuilder withSource(Source source) {
+        JavaClassBuilder withSource(Source source) {
             this.source = Optional.of(source);
             return this;
         }
@@ -273,7 +284,7 @@ public class DomainBuilders {
             return this;
         }
 
-        public JavaType getJavaType() {
+        JavaType getJavaType() {
             return type;
         }
 
@@ -335,7 +346,7 @@ public class DomainBuilders {
     }
 
     public static class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
-        public JavaStaticInitializerBuilder() {
+        JavaStaticInitializerBuilder() {
             withReturnType(JavaType.From.name(void.class.getName()));
             withParameters(Collections.<JavaType>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
@@ -367,6 +378,198 @@ public class DomainBuilders {
                 }
                 return result.build();
             }
+        }
+    }
+
+    public abstract static class JavaAccessBuilder<TARGET extends AccessTarget, SELF extends JavaAccessBuilder<TARGET, SELF>> {
+        private JavaCodeUnit origin;
+        private TARGET target;
+        private int lineNumber;
+
+        public SELF withOrigin(final JavaCodeUnit origin) {
+            this.origin = origin;
+            return self();
+        }
+
+        public SELF withTarget(final TARGET target) {
+            this.target = target;
+            return self();
+        }
+
+        public SELF withLineNumber(final int lineNumber) {
+            this.lineNumber = lineNumber;
+            return self();
+        }
+
+        public JavaCodeUnit getOrigin() {
+            return origin;
+        }
+
+        public TARGET getTarget() {
+            return target;
+        }
+
+        public int getLineNumber() {
+            return lineNumber;
+        }
+
+        @SuppressWarnings("unchecked")
+        private SELF self() {
+            return (SELF) this;
+        }
+    }
+
+    public static class JavaFieldAccessBuilder extends JavaAccessBuilder<FieldAccessTarget, JavaFieldAccessBuilder> {
+        private AccessType accessType;
+
+        public JavaFieldAccessBuilder withAccessType(final AccessType accessType) {
+            this.accessType = accessType;
+            return this;
+        }
+
+        public AccessType getAccessType() {
+            return accessType;
+        }
+
+        public JavaFieldAccess build() {
+            return new JavaFieldAccess(this);
+        }
+    }
+
+    public static class JavaMethodCallBuilder extends JavaAccessBuilder<MethodCallTarget, JavaMethodCallBuilder> {
+        public JavaMethodCall build() {
+            return new JavaMethodCall(this);
+        }
+    }
+
+    public static class JavaConstructorCallBuilder extends JavaAccessBuilder<ConstructorCallTarget, JavaConstructorCallBuilder> {
+        public JavaConstructorCall build() {
+            return new JavaConstructorCall(this);
+        }
+    }
+
+    protected abstract static class AccessTargetBuilder<SELF extends AccessTargetBuilder<SELF>> {
+        private JavaClass owner;
+        private String name;
+
+        public SELF withOwner(final JavaClass owner) {
+            this.owner = owner;
+            return self();
+        }
+
+        public SELF withName(final String name) {
+            this.name = name;
+            return self();
+        }
+
+        public JavaClass getOwner() {
+            return owner;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @SuppressWarnings("unchecked")
+        SELF self() {
+            return (SELF) this;
+        }
+    }
+
+    public static class FieldAccessTargetBuilder extends AccessTargetBuilder<FieldAccessTargetBuilder> {
+        private JavaClass type;
+        private Supplier<Optional<JavaField>> field;
+
+        public FieldAccessTargetBuilder withType(final JavaClass type) {
+            this.type = type;
+            return this;
+        }
+
+        public FieldAccessTargetBuilder withField(final Supplier<Optional<JavaField>> field) {
+            this.field = field;
+            return this;
+        }
+
+        public JavaClass getType() {
+            return type;
+        }
+
+        public Supplier<Optional<JavaField>> getField() {
+            return field;
+        }
+
+        public String getFullName() {
+            return getOwner().getName() + "." + getName();
+        }
+
+        public FieldAccessTarget build() {
+            return new FieldAccessTarget(this);
+        }
+    }
+
+    public abstract static class CodeUnitCallTargetBuilder<SELF extends CodeUnitCallTargetBuilder<SELF>>
+            extends AccessTargetBuilder<SELF> {
+        private JavaClassList parameters;
+        private JavaClass returnType;
+
+        public SELF withParameters(final JavaClassList parameters) {
+            this.parameters = parameters;
+            return self();
+        }
+
+        public SELF withReturnType(final JavaClass returnType) {
+            this.returnType = returnType;
+            return self();
+        }
+
+        public JavaClassList getParameters() {
+            return parameters;
+        }
+
+        public JavaClass getReturnType() {
+            return returnType;
+        }
+
+        public String getFullName() {
+            return Formatters.formatMethod(getOwner().getName(), getName(), parameters);
+        }
+    }
+
+    public static class ConstructorCallTargetBuilder extends CodeUnitCallTargetBuilder<ConstructorCallTargetBuilder> {
+        private Supplier<Optional<JavaConstructor>> constructor;
+
+        public ConstructorCallTargetBuilder() {
+            withName(CONSTRUCTOR_NAME);
+        }
+
+        public ConstructorCallTargetBuilder withConstructor(Supplier<Optional<JavaConstructor>> constructor) {
+            this.constructor = constructor;
+            return self();
+        }
+
+        public Supplier<Optional<JavaConstructor>> getConstructor() {
+            return constructor;
+        }
+
+        public ConstructorCallTarget build() {
+            return new ConstructorCallTarget(this);
+        }
+    }
+
+    public static class MethodCallTargetBuilder extends CodeUnitCallTargetBuilder<MethodCallTargetBuilder> {
+        private Supplier<Set<JavaMethod>> methods;
+
+        public MethodCallTargetBuilder withMethods(final Supplier<Set<JavaMethod>> methods) {
+            this.methods = methods;
+            return this;
+        }
+
+        public Supplier<Set<JavaMethod>> getMethods() {
+            return methods;
+        }
+
+        public MethodCallTarget build() {
+            return new MethodCallTarget(this);
         }
     }
 }

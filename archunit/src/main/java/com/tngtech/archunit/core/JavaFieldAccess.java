@@ -6,8 +6,8 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import org.objectweb.asm.Opcodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -22,9 +22,9 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
     private final AccessType accessType;
 
-    JavaFieldAccess(FieldAccessRecord record) {
-        super(record);
-        accessType = checkNotNull(record.getAccessType());
+    public JavaFieldAccess(JavaFieldAccessBuilder builder) {
+        super(builder);
+        accessType = checkNotNull(builder.getAccessType());
     }
 
     public AccessType getAccessType() {
@@ -73,7 +73,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             this.asmOpCodes = asmOpCodes;
         }
 
-        static AccessType forOpCode(int opCode) {
+        public static AccessType forOpCode(int opCode) {
             for (AccessType accessType : values()) {
                 if ((accessType.asmOpCodes & opCode) == opCode) {
                     return accessType;

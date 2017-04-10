@@ -10,13 +10,16 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 import com.tngtech.archunit.core.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.properties.HasName;
 import com.tngtech.archunit.core.properties.HasOwner;
 import com.tngtech.archunit.core.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.properties.HasParameterTypes;
 import com.tngtech.archunit.core.properties.HasReturnType;
-import com.tngtech.archunit.core.properties.HasType;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
@@ -132,14 +135,15 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return false;
     }
 
-    public static class FieldAccessTarget extends AccessTarget implements HasType {
+    // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
+    public static class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.properties.HasType {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
-        FieldAccessTarget(JavaClass owner, String name, JavaClass type, Supplier<Optional<JavaField>> field) {
-            super(owner, name, owner.getName() + "." + name);
-            this.type = type;
-            this.field = Suppliers.memoize(field);
+        public FieldAccessTarget(FieldAccessTargetBuilder builder) {
+            super(builder.getOwner(), builder.getName(), builder.getFullName());
+            this.type = builder.getType();
+            this.field = Suppliers.memoize(builder.getField());
         }
 
         @Override
@@ -168,10 +172,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
-        CodeUnitCallTarget(JavaClass owner, String name, JavaClassList parameters, JavaClass returnType) {
-            super(owner, name, Formatters.formatMethod(owner.getName(), name, parameters));
-            this.parameters = ImmutableList.copyOf(parameters);
-            this.returnType = returnType;
+        CodeUnitCallTarget(CodeUnitCallTargetBuilder builder) {
+            super(builder.getOwner(), builder.getName(), builder.getFullName());
+            this.parameters = ImmutableList.copyOf(builder.getParameters());
+            this.returnType = builder.getReturnType();
         }
 
         @Override
@@ -197,9 +201,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     public static class ConstructorCallTarget extends CodeUnitCallTarget {
         private final Supplier<Optional<JavaConstructor>> constructor;
 
-        ConstructorCallTarget(JavaClass owner, JavaClassList parameters, JavaClass returnType, Supplier<Optional<JavaConstructor>> constructor) {
-            super(owner, CONSTRUCTOR_NAME, parameters, returnType);
-            this.constructor = Suppliers.memoize(constructor);
+        public ConstructorCallTarget(ConstructorCallTargetBuilder builder) {
+            super(builder);
+            constructor = builder.getConstructor();
         }
 
         /**
@@ -223,10 +227,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     public static class MethodCallTarget extends CodeUnitCallTarget {
         private final Supplier<Set<JavaMethod>> methods;
 
-        MethodCallTarget(JavaClass owner, String name, JavaClassList parameters,
-                         JavaClass returnType, Supplier<Set<JavaMethod>> methods) {
-            super(owner, name, parameters, returnType);
-            this.methods = Suppliers.memoize(methods);
+        public MethodCallTarget(MethodCallTargetBuilder builder) {
+            super(builder);
+            this.methods = Suppliers.memoize(builder.getMethods());
         }
 
         /**

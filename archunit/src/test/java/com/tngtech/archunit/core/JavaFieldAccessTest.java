@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -29,33 +30,33 @@ public class JavaFieldAccessTest {
     @Test
     public void equals_should_work() throws Exception {
         JavaClass clazz = javaClassViaReflection(SomeClass.class);
-        JavaFieldAccess access = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(accessFieldMethod(clazz))
-                .build());
-        JavaFieldAccess equalAccess = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(accessFieldMethod(clazz))
-                .build());
+        JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(accessFieldMethod(clazz))
+                .build();
+        JavaFieldAccess equalAccess = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(accessFieldMethod(clazz))
+                .build();
 
         assertThat(access).isEqualTo(access);
         assertThat(access.hashCode()).isEqualTo(access.hashCode());
         assertThat(access).isEqualTo(equalAccess);
         assertThat(access.hashCode()).isEqualTo(equalAccess.hashCode());
 
-        JavaFieldAccess otherAccessType = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
+        JavaFieldAccess otherAccessType = stringFieldAccessRecordBuilder(clazz)
                 .withAccessType(SET)
-                .withCaller(accessFieldMethod(clazz))
-                .build());
-        JavaFieldAccess otherLineNumber = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(accessFieldMethod(clazz))
+                .withOrigin(accessFieldMethod(clazz))
+                .build();
+        JavaFieldAccess otherLineNumber = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(accessFieldMethod(clazz))
                 .withLineNumber(999)
-                .build());
-        JavaFieldAccess otherTarget = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(accessFieldMethod(clazz))
-                .withField(javaFieldViaReflection(clazz, "intField"))
-                .build());
-        JavaFieldAccess otherCaller = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(javaMethodViaReflection(clazz, "accessInt"))
-                .build());
+                .build();
+        JavaFieldAccess otherTarget = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(accessFieldMethod(clazz))
+                .withTarget(targetFrom(clazz.getField("intField")))
+                .build();
+        JavaFieldAccess otherCaller = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(javaMethodViaReflection(clazz, "accessInt"))
+                .build();
 
         assertThat(access).isNotEqualTo(otherAccessType);
         assertThat(access).isNotEqualTo(otherLineNumber);
@@ -68,9 +69,9 @@ public class JavaFieldAccessTest {
 
         JavaClass clazz = javaClassViaReflection(SomeClass.class);
 
-        JavaFieldAccess access = new JavaFieldAccess(stringFieldAccessRecordBuilder(clazz)
-                .withCaller(accessFieldMethod(clazz))
-                .build());
+        JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
+                .withOrigin(accessFieldMethod(clazz))
+                .build();
 
         assertThat(access.getName()).isEqualTo(access.getTarget().getName());
     }
@@ -107,34 +108,26 @@ public class JavaFieldAccessTest {
         return getOnlyElement(EnumSet.complementOf(EnumSet.of(accessType)));
     }
 
-    private TestFieldAccessRecord.Builder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
+    private JavaFieldAccessBuilder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
         return stringFieldAccessBuilder(clazz, "stringField");
     }
 
     private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
         JavaClass clazz = javaClassViaReflection(SomeClass.class);
-        return new JavaFieldAccess(
-                new TestFieldAccessRecord.Builder()
-                        .withCaller(accessFieldMethod(clazz))
-                        .withTarget(targetFrom(javaFieldViaReflection(clazz, "stringField")))
-                        .withAccessType(accessType)
-                        .withLineNumber(31)
-                        .build());
+        return new JavaFieldAccessBuilder()
+                .withOrigin(accessFieldMethod(clazz))
+                .withTarget(targetFrom(javaFieldViaReflection(clazz, "stringField")))
+                .withAccessType(accessType)
+                .withLineNumber(31)
+                .build();
     }
 
-    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
+    private JavaFieldAccessBuilder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
         return stringFieldAccessBuilder(targetFrom(javaFieldViaReflection(clazz, name)));
     }
 
-    private JavaFieldAccess defaultFieldAccessTo(FieldAccessTarget target) throws Exception {
-        return new JavaFieldAccess(stringFieldAccessBuilder(target)
-                .withCaller(accessFieldMethod(javaClassViaReflection(SomeClass.class)))
-                .withAccessType(GET)
-                .build());
-    }
-
-    private TestFieldAccessRecord.Builder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
-        return new TestFieldAccessRecord.Builder()
+    private JavaFieldAccessBuilder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
+        return new JavaFieldAccessBuilder()
                 .withTarget(target)
                 .withAccessType(GET)
                 .withLineNumber(31);
@@ -154,75 +147,6 @@ public class JavaFieldAccessTest {
 
         private int accessInt() {
             return intField;
-        }
-    }
-
-    private static class TestFieldAccessRecord implements AccessRecord.FieldAccessRecord {
-        private final AccessType accessType;
-        private final JavaCodeUnit caller;
-        private FieldAccessTarget fieldAccessTarget;
-        private final int lineNumber;
-
-        private TestFieldAccessRecord(Builder builder) {
-            accessType = builder.accessType;
-            caller = builder.caller;
-            fieldAccessTarget = builder.target;
-            lineNumber = builder.lineNumber;
-        }
-
-        @Override
-        public AccessType getAccessType() {
-            return accessType;
-        }
-
-        @Override
-        public JavaCodeUnit getCaller() {
-            return caller;
-        }
-
-        @Override
-        public FieldAccessTarget getTarget() {
-            return fieldAccessTarget;
-        }
-
-        @Override
-        public int getLineNumber() {
-            return lineNumber;
-        }
-
-        static final class Builder {
-            private AccessType accessType;
-            private JavaCodeUnit caller;
-            public FieldAccessTarget target;
-            private int lineNumber;
-
-            Builder withAccessType(AccessType accessType) {
-                this.accessType = accessType;
-                return this;
-            }
-
-            Builder withCaller(JavaCodeUnit caller) {
-                this.caller = caller;
-                return this;
-            }
-
-            Builder withField(JavaField field) {
-                return withTarget(targetFrom(field));
-            }
-
-            Builder withTarget(FieldAccessTarget target) {
-                this.target = target;
-                return this;
-            }
-
-            Builder withLineNumber(int lineNumber) {
-                this.lineNumber = lineNumber;
-                return this;
-            }
-
-            TestFieldAccessRecord build() {
-                return new TestFieldAccessRecord(this);
-            }
         }
     }
 }

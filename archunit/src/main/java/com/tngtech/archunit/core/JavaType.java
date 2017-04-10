@@ -101,18 +101,6 @@ public interface JavaType {
             return "L" + componentTypeName + ";";
         }
 
-        /**
-         * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
-         * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
-         */
-        static JavaType fromAsmObjectTypeName(String objectTypeName) {
-            return asmType(Type.getObjectType(objectTypeName));
-        }
-
-        static JavaType asmType(Type type) {
-            return name(type.getClassName());
-        }
-
         static JavaType javaClass(JavaClass javaClass) {
             return name(javaClass.getName());
         }
