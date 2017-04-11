@@ -1,6 +1,6 @@
 package com.tngtech.archunit.exampletest.junit;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;

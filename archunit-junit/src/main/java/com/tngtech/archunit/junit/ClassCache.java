@@ -7,17 +7,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.ImportOption;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.Location;
-import com.tngtech.archunit.core.Locations;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.Locations;
 
 class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<LocationsKey, LazyJavaClasses> cachedByLocations = new ConcurrentHashMap<>();
 
-    private ClassFileImporterFactory classFileImporterFactory = new ClassFileImporterFactory();
+    private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
     JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
         checkArgument(testClass);
@@ -104,17 +104,15 @@ class ClassCache {
         private synchronized void initialize() {
             if (javaClasses == null) {
                 ImportOption importOption = newInstanceOf(locationsKey.importOptionClass);
-                javaClasses = classFileImporterFactory.create()
-                        .withImportOption(importOption)
-                        .importLocations(locationsKey.locations);
+                javaClasses = cacheClassFileImporter.importClasses(importOption, locationsKey.locations);
             }
         }
     }
 
     // Used for testing -> that's also the reason it's declared top level
-    static class ClassFileImporterFactory {
-        ClassFileImporter create() {
-            return new ClassFileImporter();
+    static class CacheClassFileImporter {
+        JavaClasses importClasses(ImportOption importOption, Set<Location> locations) {
+            return new ClassFileImporter().withImportOption(importOption).importLocations(locations);
         }
     }
 

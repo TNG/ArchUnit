@@ -4,20 +4,20 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 
-public class ArchTestMethodExecution extends ArchTestExecution {
+class ArchTestMethodExecution extends ArchTestExecution {
     private final Method testMethod;
 
-    public ArchTestMethodExecution(Class<?> testClass, Method testMethod) {
+    ArchTestMethodExecution(Class<?> testClass, Method testMethod) {
         super(testClass);
         this.testMethod = validate(testMethod);
     }
 
     @Override
-    public Result evaluateOn(JavaClasses classes) {
+    Result evaluateOn(JavaClasses classes) {
         try {
             executeTestMethod(classes);
             return new PositiveResult();
@@ -37,17 +37,17 @@ public class ArchTestMethodExecution extends ArchTestExecution {
     }
 
     @Override
-    public Description describeSelf() {
+    Description describeSelf() {
         return Description.createTestDescription(testClass, testMethod.getName());
     }
 
     @Override
-    public String getName() {
+    String getName() {
         return testMethod.getName();
     }
 
     @Override
-    public <T extends Annotation> T getAnnotation(Class<T> type) {
+    <T extends Annotation> T getAnnotation(Class<T> type) {
         return testMethod.getAnnotation(type);
     }
 }

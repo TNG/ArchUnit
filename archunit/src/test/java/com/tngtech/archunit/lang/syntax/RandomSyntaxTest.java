@@ -5,7 +5,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -18,8 +17,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -34,9 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.core.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.TestUtils.invoke;
+import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.TestUtils.invoke;
+import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,13 +62,13 @@ public class RandomSyntaxTest {
 
         assertThat(archRule.getDescription()).as("description of constructed ArchRule").isEqualTo(expectedDescription);
 
-        archRule.evaluate(JavaClasses.of(Collections.<JavaClass>emptySet()));
-        archRule.check(JavaClasses.of(Collections.<JavaClass>emptySet()));
+        archRule.evaluate(javaClassesViaReflection());
+        archRule.check(javaClassesViaReflection());
 
         ArchRule overriddenText = archRule.as("overridden rule text");
         assertThat(overriddenText.getDescription()).isEqualTo("overridden rule text");
         assertThat(overriddenText.evaluate(
-                JavaClasses.of(Collections.<JavaClass>emptySet())).getFailureReport().toString()).contains(
+                javaClassesViaReflection()).getFailureReport().toString()).contains(
                 "overridden rule text");
     }
 

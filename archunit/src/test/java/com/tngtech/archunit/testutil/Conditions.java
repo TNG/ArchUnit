@@ -1,9 +1,9 @@
 package com.tngtech.archunit.testutil;
 
-import com.tngtech.archunit.core.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import org.assertj.core.api.Condition;
 
-import static com.tngtech.archunit.core.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 
 public final class Conditions {
     private Conditions() {}

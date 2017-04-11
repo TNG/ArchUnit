@@ -9,11 +9,13 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.tngtech.archunit.Internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.MessageAssertionChain.Link.Result.difference;
 import static java.util.Collections.singletonList;
 
+@Internal
 public class MessageAssertionChain {
     private final List<Link> links = new ArrayList<>();
 
@@ -117,11 +119,13 @@ public class MessageAssertionChain {
         return message;
     }
 
+    @Internal
     public interface Link {
         Result filterMatching(List<String> lines);
 
         String getDescription();
 
+        @Internal
         class Result {
             private final boolean matches;
             private final List<String> remainingLines;
@@ -163,6 +167,7 @@ public class MessageAssertionChain {
                 return result;
             }
 
+            @Internal
             public static class Builder {
                 private final List<Link> subLinks = new ArrayList<>();
 

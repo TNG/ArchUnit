@@ -2,6 +2,8 @@ package com.tngtech.archunit.core;
 
 import java.lang.annotation.Retention;
 
+import com.tngtech.archunit.Internal;
+
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
@@ -11,6 +13,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * the predefined conditions and predicates.
  */
 @Retention(CLASS)
+@Internal
 public @interface MayResolveTypesViaReflection {
     String reason();
 }

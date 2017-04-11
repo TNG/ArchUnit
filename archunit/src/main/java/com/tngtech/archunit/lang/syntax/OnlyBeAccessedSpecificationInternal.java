@@ -2,7 +2,7 @@ package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;

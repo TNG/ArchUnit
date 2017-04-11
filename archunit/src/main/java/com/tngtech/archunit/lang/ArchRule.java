@@ -8,13 +8,16 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.properties.CanOverrideDescription;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.io.Resources.readLines;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -37,18 +40,21 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @see com.tngtech.archunit.library.dependencies.Slices.Transformer
  */
 public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRule> {
+    @PublicAPI(usage = ACCESS)
     void check(JavaClasses classes);
 
+    @PublicAPI(usage = ACCESS)
     ArchRule because(String reason);
 
-    class Assertions {
-        static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
-
-        public static void assertNoViolation(EvaluationResult result) {
-            assertNoViolation(result, Priority.MEDIUM);
+    @PublicAPI(usage = ACCESS)
+    final class Assertions {
+        private Assertions() {
         }
 
-        public static void assertNoViolation(EvaluationResult result, Priority priority) {
+        static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
+
+        @PublicAPI(usage = ACCESS)
+        public static void assertNoViolation(EvaluationResult result) {
             FailureReport report = result.getFailureReport();
 
             Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
@@ -95,6 +101,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
     }
 
+    @Internal
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
             return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>absent());
@@ -126,7 +133,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             @Override
             public void check(JavaClasses classes) {
                 EvaluationResult result = evaluate(classes);
-                Assertions.assertNoViolation(result, priority);
+                Assertions.assertNoViolation(result);
             }
 
             @Override

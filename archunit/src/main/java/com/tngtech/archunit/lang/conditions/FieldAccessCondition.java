@@ -4,16 +4,16 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaFieldAccess;
-import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
-import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.GET;
-import static com.tngtech.archunit.core.JavaFieldAccess.AccessType.SET;
-import static com.tngtech.archunit.core.JavaFieldAccess.Predicates.accessType;
-import static com.tngtech.archunit.core.JavaFieldAccess.getDescriptionTemplateFor;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.accessType;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.getDescriptionTemplateFor;
 import static java.util.Collections.singleton;
 
 class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {

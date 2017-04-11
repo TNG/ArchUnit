@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
@@ -14,6 +16,8 @@ import org.junit.runners.ParentRunner;
 import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -34,9 +38,11 @@ import org.junit.runners.model.InitializationError;
  *    }
  * </code></pre>
  */
+@PublicAPI(usage = ACCESS)
 public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static reference
 
+    @Internal
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
     }

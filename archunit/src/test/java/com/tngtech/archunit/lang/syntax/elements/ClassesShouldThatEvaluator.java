@@ -7,9 +7,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.FailureReport;
 

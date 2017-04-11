@@ -11,11 +11,11 @@ import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
-import com.tngtech.archunit.core.SourceTest;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.SourceTest;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;

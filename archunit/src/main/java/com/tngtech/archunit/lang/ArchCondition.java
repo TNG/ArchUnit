@@ -9,9 +9,12 @@ import java.util.TreeSet;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
+@PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
     private String description;
 

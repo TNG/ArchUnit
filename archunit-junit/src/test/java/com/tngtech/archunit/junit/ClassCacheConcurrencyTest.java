@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;

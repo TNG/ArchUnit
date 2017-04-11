@@ -3,47 +3,67 @@ package com.tngtech.archunit.base;
 import java.util.Objects;
 import java.util.Set;
 
+import com.tngtech.archunit.PublicAPI;
+
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
+@PublicAPI(usage = ACCESS)
 public abstract class Optional<T> {
-    private static final Absent<Object> ABSENT = new Absent<>();
-
     private Optional() {
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T> Optional<T> of(T object) {
         checkNotNull(object, "Object may not be null");
         return new Present<>(object);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T> Optional<T> fromNullable(T object) {
         return object == null ? new Absent<T>() : new Present<>(object);
     }
 
+    @PublicAPI(usage = ACCESS)
     @SuppressWarnings("unchecked")
     public static <T> Optional<T> absent() {
-        return (Optional<T>) ABSENT;
+        return Absent.getInstance();
     }
 
+    @PublicAPI(usage = ACCESS)
     public abstract boolean isPresent();
 
+    @PublicAPI(usage = ACCESS)
     public abstract T get();
 
+    @PublicAPI(usage = ACCESS)
     public abstract T getOrThrow(RuntimeException e);
 
+    @PublicAPI(usage = ACCESS)
     public abstract <U> Optional<U> transform(Function<? super T, U> function);
 
+    @PublicAPI(usage = ACCESS)
     public abstract T orNull();
 
+    @PublicAPI(usage = ACCESS)
     public abstract T or(T value);
 
+    @PublicAPI(usage = ACCESS)
     public abstract Optional<T> or(Optional<T> value);
 
+    @PublicAPI(usage = ACCESS)
     public abstract Set<T> asSet();
 
     private static class Absent<T> extends Optional<T> {
+        private static final Absent<Object> INSTANCE = new Absent<>();
+
+        @SuppressWarnings("unchecked")
+        private static <T> Absent<T> getInstance() {
+            return (Absent<T>) INSTANCE;
+        }
+
         @Override
         public boolean isPresent() {
             return false;
@@ -98,7 +118,7 @@ public abstract class Optional<T> {
     private static class Present<T> extends Optional<T> {
         private final T object;
 
-        public Present(T object) {
+        private Present(T object) {
             this.object = object;
         }
 

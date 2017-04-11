@@ -11,7 +11,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-@interface ExpectedViolationFrom {
+public @interface ExpectedViolationFrom {
     Class<?> location();
 
     String method();

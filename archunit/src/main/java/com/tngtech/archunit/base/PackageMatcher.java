@@ -7,6 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
@@ -31,7 +34,7 @@ import com.google.common.collect.ImmutableSet;
  * </ul>
  * Create via {@link PackageMatcher#of(String) PackageMatcher.of(packageIdentifier)}
  */
-public class PackageMatcher {
+public final class PackageMatcher {
     private static final String OPT_LETTERS_AT_START = "(?:^\\w*)?";
     private static final String OPT_LETTERS_AT_END = "(?:\\w*$)?";
     private static final String ARBITRARY_PACKAGES = "\\.(?:\\w+\\.)*";
@@ -91,10 +94,12 @@ public class PackageMatcher {
      * @return {@link PackageMatcher} to match packages against the supplied literal
      * supporting AspectJ syntax
      */
+    @PublicAPI(usage = ACCESS)
     public static PackageMatcher of(String packageIdentifier) {
         return new PackageMatcher(packageIdentifier);
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean matches(String aPackage) {
         return packagePattern.matcher(aPackage).matches();
     }
@@ -108,6 +113,7 @@ public class PackageMatcher {
      * @return A {@link PackageMatcher.Result Result} if the package name matches,
      * otherwise {@link Optional#absent()}
      */
+    @PublicAPI(usage = ACCESS)
     public Optional<Result> match(String aPackage) {
         Matcher matcher = packagePattern.matcher(aPackage);
         return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.<Result>absent();
@@ -118,22 +124,25 @@ public class PackageMatcher {
         return "PackageMatcher{" + packageIdentifier + '}';
     }
 
-    public static class Result {
+    public static final class Result {
         private final Matcher matcher;
 
-        public Result(Matcher matcher) {
+        private Result(Matcher matcher) {
             this.matcher = matcher;
         }
 
+        @PublicAPI(usage = ACCESS)
         public int getNumberOfGroups() {
             return matcher.groupCount();
         }
 
+        @PublicAPI(usage = ACCESS)
         public String getGroup(int number) {
             return matcher.group(number);
         }
     }
 
+    @PublicAPI(usage = ACCESS)
     public static final Function<Result, List<String>> TO_GROUPS = new Function<Result, List<String>>() {
         @Override
         public List<String> apply(Result input) {

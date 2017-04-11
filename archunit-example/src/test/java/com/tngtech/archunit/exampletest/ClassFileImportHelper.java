@@ -4,8 +4,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 
 class ClassFileImportHelper {
     private final ClassFileImporter importer = new ClassFileImporter();

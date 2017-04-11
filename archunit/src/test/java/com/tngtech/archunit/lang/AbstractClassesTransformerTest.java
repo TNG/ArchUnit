@@ -5,11 +5,11 @@ import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractClassesTransformerTest {

@@ -4,6 +4,7 @@ import com.tngtech.archunit.exampletest.junit.LayerDependencyRulesWithRunnerTest
 import com.tngtech.archunit.integration.LayerDependencyRulesIntegrationTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 

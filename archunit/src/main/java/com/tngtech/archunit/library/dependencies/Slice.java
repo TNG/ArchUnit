@@ -8,13 +8,16 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.Dependency;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
+public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
     private final List<String> matchingGroups;
     private Description description;
     private final Set<JavaClass> classes;
@@ -52,11 +55,13 @@ public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
      * @param pattern The description pattern with numbered references of the form $i
      * @return Same slice with different description
      */
+    @Override
     public Slice as(String pattern) {
         description = new Description(pattern);
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDependencies() {
         Set<Dependency> result = new HashSet<>();
         for (JavaClass javaClass : this) {
@@ -82,6 +87,7 @@ public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
      * @param index The index of the matched group
      * @return The part of the matched package name.
      */
+    @PublicAPI(usage = ACCESS)
     public String getNamePart(int index) {
         checkArgument(index > 0 && index <= matchingGroups.size(), "Found no name part with index %d", index);
         return matchingGroups.get(index - 1);
@@ -103,7 +109,7 @@ public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
         }
     }
 
-    public static class Builder {
+    static class Builder {
         private final List<String> matchingGroups;
         private Set<JavaClass> classes = new HashSet<>();
 
@@ -115,12 +121,12 @@ public class Slice extends ForwardingSet<JavaClass> implements HasDescription {
             return new Builder(matchingGroups);
         }
 
-        public Builder addClass(JavaClass clazz) {
+        Builder addClass(JavaClass clazz) {
             classes.add(clazz);
             return this;
         }
 
-        public Slice build() {
+        Slice build() {
             return new Slice(matchingGroups, classes);
         }
     }

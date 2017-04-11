@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang;
 import java.util.Collection;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.core.properties.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 class ConfiguredMessageFormat {
     private static final ConfiguredMessageFormat instance = new ConfiguredMessageFormat();

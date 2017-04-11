@@ -5,6 +5,7 @@ import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.exampletest.junit.SlicesIsolationTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;

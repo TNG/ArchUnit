@@ -5,7 +5,7 @@ import com.google.common.base.Suppliers;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;

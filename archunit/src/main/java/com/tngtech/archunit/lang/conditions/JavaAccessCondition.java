@@ -1,7 +1,7 @@
 package com.tngtech.archunit.lang.conditions;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;

@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaAccess;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 class AnyAccessFromClassCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
     AnyAccessFromClassCondition(String prefix, DescribedPredicate<? super JavaAccess<?>> predicate) {

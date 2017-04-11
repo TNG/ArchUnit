@@ -7,7 +7,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAccess;
 
 class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     private final Function<JavaAccess<?>, String> getPackage;

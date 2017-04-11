@@ -1,9 +1,10 @@
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -11,16 +12,18 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 
-public class ArchRuleDefinition<T> {
+public final class ArchRuleDefinition<T> {
     private ArchRuleDefinition() {
     }
 
     /**
      * @see Creator#all(ClassesTransformer)
      */
+    @PublicAPI(usage = ACCESS)
     public static <TYPE> GivenObjects<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
         return priority(MEDIUM).all(classesTransformer);
     }
@@ -28,33 +31,39 @@ public class ArchRuleDefinition<T> {
     /**
      * @see Creator#no(ClassesTransformer)
      */
+    @PublicAPI(usage = ACCESS)
     public static <TYPE> GivenObjects<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
         return priority(MEDIUM).no(classesTransformer);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static Creator priority(Priority priority) {
         return new Creator(priority);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClasses classes() {
         return priority(MEDIUM).classes();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClasses noClasses() {
         return priority(MEDIUM).noClasses();
     }
 
-    public static class Creator {
+    public static final class Creator {
         private final Priority priority;
 
         private Creator(Priority priority) {
             this.priority = priority;
         }
 
+        @PublicAPI(usage = ACCESS)
         public GivenClasses classes() {
             return new GivenClassesInternal(priority, ClassesIdentityTransformer.classes());
         }
 
+        @PublicAPI(usage = ACCESS)
         public GivenClasses noClasses() {
             return new GivenClassesInternal(
                     priority,
@@ -71,6 +80,7 @@ public class ArchRuleDefinition<T> {
          * @param classesTransformer Transformer specifying how the imported {@link JavaClasses} are to be transformed
          * @return {@link GivenObjects} to guide the creation of an {@link ArchRule}
          */
+        @PublicAPI(usage = ACCESS)
         public <TYPE> GivenObjects<TYPE> all(ClassesTransformer<TYPE> classesTransformer) {
             return new GivenObjectsInternal<>(priority, classesTransformer);
         }
@@ -78,6 +88,7 @@ public class ArchRuleDefinition<T> {
         /**
          * Same as {@link #all(ClassesTransformer)}, but negates the following condition.
          */
+        @PublicAPI(usage = ACCESS)
         public <TYPE> GivenObjects<TYPE> no(ClassesTransformer<TYPE> classesTransformer) {
             return new GivenObjectsInternal<>(
                     priority,

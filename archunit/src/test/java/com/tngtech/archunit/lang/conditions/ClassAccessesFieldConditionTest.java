@@ -2,7 +2,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Set;
 
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.testobjects.CallerClass;

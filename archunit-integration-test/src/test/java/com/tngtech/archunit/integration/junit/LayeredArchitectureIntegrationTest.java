@@ -8,6 +8,7 @@ import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.junit.LayeredArchitectureTest;
 import com.tngtech.archunit.junit.AnalyseClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;

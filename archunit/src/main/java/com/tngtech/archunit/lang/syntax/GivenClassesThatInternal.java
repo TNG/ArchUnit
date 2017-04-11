@@ -3,17 +3,17 @@ package com.tngtech.archunit.lang.syntax;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.JavaAnnotation;
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.properties.CanBeAnnotated.Predicates.annotatedWith;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ClassesThatPredicates.implementPredicate;

@@ -9,8 +9,10 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
-public class ArchConfiguration {
-    static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public final class ArchConfiguration {
+    private static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
     static final String RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH = "resolveMissingDependenciesFromClassPath";
     static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
 
@@ -26,6 +28,7 @@ public class ArchConfiguration {
         }
     });
 
+    @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {
         return INSTANCE.get();
     }
@@ -54,14 +57,17 @@ public class ArchConfiguration {
         set(properties);
     }
 
+    @PublicAPI(usage = ACCESS)
     public void reset() {
         readProperties(propertiesResourceName);
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean resolveMissingDependenciesFromClassPath() {
         return resolveMissingDependenciesFromClassPath;
     }
 
+    @PublicAPI(usage = ACCESS)
     public void setResolveMissingDependenciesFromClassPath(boolean newValue) {
         resolveMissingDependenciesFromClassPath = newValue;
     }
@@ -73,10 +79,12 @@ public class ArchConfiguration {
                 propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean md5InClassSourcesEnabled() {
         return enableMd5InClassSources;
     }
 
+    @PublicAPI(usage = ACCESS)
     public void setMd5InClassSourcesEnabled(boolean enabled) {
         this.enableMd5InClassSources = enabled;
     }

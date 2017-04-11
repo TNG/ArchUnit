@@ -11,14 +11,15 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsConsecutiveLines;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
 import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
@@ -26,6 +27,7 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.singleton;
 import static java.util.regex.Pattern.quote;
 
+@Internal
 public class ExpectedViolation implements TestRule {
     private final MessageAssertionChain assertionChain = new MessageAssertionChain();
 
@@ -83,6 +85,7 @@ public class ExpectedViolation implements TestRule {
         return new PackageAssertionCreator(clazz);
     }
 
+    @Internal
     public static class PackageAssertionCreator {
         private final Class<?> clazz;
 
@@ -123,6 +126,7 @@ public class ExpectedViolation implements TestRule {
         return new ExpectedAccessViolationCreationProcess(origin, method, paramTypes);
     }
 
+    @Internal
     public static class ExpectedAccessViolationCreationProcess {
         private Origin origin;
 
@@ -163,6 +167,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
+    @Internal
     public static class ExpectedFieldAccessViolationBuilderStep1 {
         private final Origin origin;
         private final ImmutableSet<AccessType> accessType;
@@ -178,6 +183,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
+    @Internal
     public static class ExpectedFieldAccessViolationBuilderStep2 extends ExpectedAccessViolationBuilder {
         private ExpectedFieldAccessViolationBuilderStep2(Origin origin, FieldTarget target) {
             super(origin, target);
@@ -188,6 +194,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
+    @Internal
     public static class ExpectedMethodCallViolationBuilder extends ExpectedAccessViolationBuilder {
         private ExpectedMethodCallViolationBuilder(Origin origin, MethodTarget target) {
             super(origin, target);
@@ -198,6 +205,7 @@ public class ExpectedViolation implements TestRule {
         }
     }
 
+    @Internal
     public abstract static class ExpectedAccess {
         private final Origin origin;
         private final Target target;

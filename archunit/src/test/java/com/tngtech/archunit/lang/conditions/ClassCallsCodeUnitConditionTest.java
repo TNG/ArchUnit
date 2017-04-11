@@ -3,18 +3,18 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.testobjects.CallerClass;
 import com.tngtech.archunit.lang.conditions.testobjects.TargetClass;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.JavaCall.Predicates.target;
-import static com.tngtech.archunit.core.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.core.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
