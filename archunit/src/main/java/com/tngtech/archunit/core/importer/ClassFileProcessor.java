@@ -3,23 +3,19 @@ package com.tngtech.archunit.core.importer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Set;
 
-import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.importer.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MethodTargetInfo;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +28,7 @@ class ClassFileProcessor {
 
     static final int ASM_API_VERSION = ASM5;
 
-    private final ClassResolverFactory classResolverFactory = new ClassResolverFactory();
+    private final ClassResolver.Factory classResolverFactory = new ClassResolver.Factory();
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
@@ -161,48 +157,6 @@ class ClassFileProcessor {
         return classResolver;
     }
 
-    static class NoOpClassResolver implements ClassResolver {
-        @Override
-        public void setClassUriImporter(ClassUriImporter classUriImporter) {
-        }
-
-        @Override
-        public Optional<JavaClass> tryResolve(String typeName) {
-            return Optional.absent();
-        }
-    }
-
-    @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
-    static class ClassResolverFromClassPath implements ClassResolver {
-        private ClassUriImporter classUriImporter;
-
-        @Override
-        public void setClassUriImporter(ClassUriImporter classUriImporter) {
-            this.classUriImporter = classUriImporter;
-        }
-
-        @Override
-        public Optional<JavaClass> tryResolve(String typeName) {
-            String typeFile = "/" + typeName.replace(".", "/") + ".class";
-
-            Optional<URI> uri = tryGetUriOf(typeFile);
-
-            return uri.isPresent() ? classUriImporter.tryImport(uri.get()) : Optional.<JavaClass>absent();
-        }
-
-        private Optional<URI> tryGetUriOf(String typeFile) {
-            URL resource = getClass().getResource(typeFile);
-            if (resource == null) {
-                return Optional.absent();
-            }
-            try {
-                return Optional.of(resource.toURI());
-            } catch (URISyntaxException e) {
-                throw new LocationException(e);
-            }
-        }
-    }
-
     private static class UriImporterOfProcessor implements ClassUriImporter {
         private final DeclarationHandler declarationHandler;
 
@@ -223,12 +177,4 @@ class ClassFileProcessor {
         }
     }
 
-    private static class ClassResolverFactory {
-        public ClassResolver create() {
-            boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
-            return resolveFromClasspath ?
-                    new ClassResolverFromClassPath() :
-                    new NoOpClassResolver();
-        }
-    }
 }

@@ -1,10 +1,13 @@
-package com.tngtech.archunit.core.importer;
+package com.tngtech.archunit.core.importer.resolvers;
 
 import java.net.URI;
 
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -61,5 +64,26 @@ public interface ClassResolver {
          */
         @PublicAPI(usage = ACCESS)
         Optional<JavaClass> tryImport(URI uri);
+    }
+
+    @Internal
+    final class Factory {
+        public ClassResolver create() {
+            boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
+            return resolveFromClasspath ?
+                    new ClassResolverFromClassPath() :
+                    new NoOpClassResolver();
+        }
+
+        static class NoOpClassResolver implements ClassResolver {
+            @Override
+            public void setClassUriImporter(ClassUriImporter classUriImporter) {
+            }
+
+            @Override
+            public Optional<JavaClass> tryResolve(String typeName) {
+                return Optional.absent();
+            }
+        }
     }
 }
