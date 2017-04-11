@@ -9,6 +9,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -19,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 
+@Internal
 public interface JavaType {
     String getName();
 
@@ -38,7 +40,8 @@ public interface JavaType {
 
     boolean isArray();
 
-    class From {
+    @Internal
+    final class From {
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
                     @Override

@@ -5,14 +5,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 /**
@@ -34,7 +36,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
     private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
 
-    JavaCodeUnit(DomainBuilders.JavaCodeUnitBuilder<?, ?> builder) {
+    JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
@@ -56,18 +58,22 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return returnType;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getFieldAccesses() {
         return fieldAccesses;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
         return methodCalls;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         return constructorCalls;
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isConstructor() {
         return false;
     }
@@ -90,7 +96,11 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return result.toArray(new Class<?>[result.size()]);
     }
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaCodeUnit> constructor() {
             return new DescribedPredicate<JavaCodeUnit>("constructor") {
                 @Override

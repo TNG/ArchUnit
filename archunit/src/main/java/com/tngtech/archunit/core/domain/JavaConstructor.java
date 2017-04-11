@@ -8,20 +8,23 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
-public class JavaConstructor extends JavaCodeUnit {
+public final class JavaConstructor extends JavaCodeUnit {
     private final Supplier<Constructor<?>> constructorSupplier;
     private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
+    @PublicAPI(usage = ACCESS)
     public static final String CONSTRUCTOR_NAME = "<init>";
 
-    public JavaConstructor(DomainBuilders.JavaConstructorBuilder builder) {
+    JavaConstructor(JavaConstructorBuilder builder) {
         super(builder);
         constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
     }
@@ -31,6 +34,7 @@ public class JavaConstructor extends JavaCodeUnit {
         return true;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getCallsOfSelf() {
         return getAccessesToSelf();
     }

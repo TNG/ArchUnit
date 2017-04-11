@@ -11,6 +11,7 @@ import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
@@ -19,6 +20,7 @@ import com.tngtech.archunit.lang.Priority;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
@@ -27,7 +29,13 @@ import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classe
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
 
-public class Architectures {
+/**
+ * Offers convenience to assert typical architectures, like a {@link #layeredArchitecture()}.
+ */
+public final class Architectures {
+    private Architectures() {
+    }
+
     /**
      * Can be used to assert a typical layered architecture, e.g. with an UI layer, a business logic layer and
      * a persistence layer, where specific access rules should be adhered to, like UI may not access persistence
@@ -54,11 +62,12 @@ public class Architectures {
      *
      * @return An {@link ArchRule} enforcing the specified layered architecture
      */
+    @PublicAPI(usage = ACCESS)
     public static LayeredArchitecture layeredArchitecture() {
         return new LayeredArchitecture();
     }
 
-    public static class LayeredArchitecture implements ArchRule {
+    public static final class LayeredArchitecture implements ArchRule {
         private final Map<String, LayerDefinition> layerDefinitions;
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final Optional<String> overriddenDescription;
@@ -87,6 +96,7 @@ public class Architectures {
             return this;
         }
 
+        @PublicAPI(usage = ACCESS)
         public LayerDefinition layer(String name) {
             return new LayerDefinition(name);
         }
@@ -155,12 +165,13 @@ public class Architectures {
             return packageIdentifiers;
         }
 
+        @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
             checkArgument(layerDefinitions.containsKey(name), "There is no layer named '%s'", name);
             return new LayerDependencySpecification(name);
         }
 
-        public class LayerDefinition {
+        public final class LayerDefinition {
             private final String name;
             private Set<String> packageIdentifiers;
 
@@ -168,6 +179,7 @@ public class Architectures {
                 this.name = name;
             }
 
+            @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(String... packageIdentifiers) {
                 this.packageIdentifiers = ImmutableSet.copyOf(packageIdentifiers);
                 return LayeredArchitecture.this.addLayerDefinition(this);
@@ -179,7 +191,7 @@ public class Architectures {
             }
         }
 
-        public class LayerDependencySpecification {
+        public final class LayerDependencySpecification {
             private final String layerName;
             private final Set<String> allowedAccessors = new LinkedHashSet<>();
             private String descriptionSuffix;
@@ -188,11 +200,13 @@ public class Architectures {
                 this.layerName = layerName;
             }
 
+            @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayNotBeAccessedByAnyLayer() {
                 descriptionSuffix = "may not be accessed by any layer";
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
+            @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
                 allowedAccessors.addAll(asList(layerNames));
                 descriptionSuffix = String.format("may only be accessed by layers ['%s']",

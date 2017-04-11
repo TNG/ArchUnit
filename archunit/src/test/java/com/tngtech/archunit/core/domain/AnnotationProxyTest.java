@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.JavaAnnotationTestBuilder;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
@@ -236,11 +236,11 @@ public class AnnotationProxyTest {
 
     @Test
     public void array_is_converted_to_the_correct_type() {
-        JavaAnnotation annotation = new DomainBuilders.JavaAnnotationBuilder()
+        JavaAnnotation annotation = new JavaAnnotationTestBuilder()
                 .withType(JavaType.From.name(TestAnnotation.class.getName()))
-                .addProperty("types", DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(new Object[0]))
-                .addProperty("enumConstants", DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(new Object[0]))
-                .addProperty("subAnnotations", DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(new Object[0]))
+                .addProperty("types", new Object[0])
+                .addProperty("enumConstants", new Object[0])
+                .addProperty("subAnnotations", new Object[0])
                 .build(simpleImportedClasses());
 
         TestAnnotation reflected = annotation.as(TestAnnotation.class);

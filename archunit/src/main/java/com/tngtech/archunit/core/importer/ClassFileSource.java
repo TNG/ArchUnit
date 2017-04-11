@@ -22,8 +22,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
+import com.tngtech.archunit.Internal;
 
 interface ClassFileSource extends Iterable<ClassFileLocation> {
+    @Internal
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
         private static final PathMatcher classMatcher = FileSystems.getDefault().getPathMatcher("glob:**/*.class");
         private final Set<ClassFileLocation> classFileLocations = new HashSet<>();
@@ -63,6 +65,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
     }
 
+    @Internal
     class FromJar implements ClassFileSource {
         private final FluentIterable<ClassFileLocation> classFileLocations;
 
@@ -156,6 +159,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
     }
 
+    @Internal
     class InputStreamSupplierClassFileLocation implements ClassFileLocation {
         private final URI uri;
         private final Supplier<InputStream> streamSupplier;
@@ -176,6 +180,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
     }
 
+    @Internal
     abstract class InputStreamSupplier implements Supplier<InputStream> {
         @Override
         public InputStream get() {

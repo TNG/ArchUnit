@@ -7,6 +7,8 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -16,9 +18,10 @@ import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -31,7 +34,7 @@ public abstract class JavaMember implements
     private final JavaClass owner;
     private final Set<JavaModifier> modifiers;
 
-    JavaMember(DomainBuilders.JavaMemberBuilder<?, ?> builder) {
+    JavaMember(JavaMemberBuilder<?, ?> builder) {
         this.name = checkNotNull(builder.getName());
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations();
@@ -102,10 +105,12 @@ public abstract class JavaMember implements
     }
 
     @Override
+    @Internal
     public String getDescriptor() {
         return descriptor;
     }
 
+    @PublicAPI(usage = ACCESS)
     public abstract Set<? extends JavaAccess<?>> getAccessesToSelf();
 
     @Override
@@ -121,22 +126,28 @@ public abstract class JavaMember implements
      *
      * @return The {@link Member} equivalent to this {@link JavaMember}
      */
+    @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaMember> declaredIn(Class<?> clazz) {
             return declaredIn(clazz.getName());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaMember> declaredIn(String className) {
             return declaredIn(GET_NAME.is(equalTo(className)).as(className));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaMember> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
             return Get.<JavaClass>owner().is(predicate)
                     .as("declared in %s", predicate.getDescription())
                     .forSubType();
         }
     }
-
 }

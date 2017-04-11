@@ -2,12 +2,15 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import java.lang.annotation.Annotation;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasName;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface ClassesThat<CONJUNCTION> {
     /**
@@ -16,6 +19,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param name The fully qualified class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNamed(String name);
 
     /**
@@ -24,6 +28,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param name The fully qualified class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotNamed(String name);
 
     /**
@@ -32,6 +37,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param name The simple class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION haveSimpleName(String name);
 
     /**
@@ -40,6 +46,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param name The simple class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION dontHaveSimpleName(String name);
 
     /**
@@ -48,6 +55,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param regex A regular expression
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION haveNameMatching(String regex);
 
     /**
@@ -56,6 +64,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param regex A regular expression
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION haveNameNotMatching(String regex);
 
     /**
@@ -64,6 +73,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION resideInAPackage(String packageIdentifier);
 
     /**
@@ -72,6 +82,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION resideInAnyPackage(String... packageIdentifiers);
 
     /**
@@ -80,6 +91,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION resideOutsideOfPackage(String packageIdentifier);
 
     /**
@@ -88,6 +100,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION resideOutsideOfPackages(String... packageIdentifiers);
 
     /**
@@ -95,6 +108,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION arePublic();
 
     /**
@@ -102,6 +116,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotPublic();
 
     /**
@@ -109,6 +124,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areProtected();
 
     /**
@@ -116,6 +132,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotProtected();
 
     /**
@@ -123,6 +140,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION arePackagePrivate();
 
     /**
@@ -130,6 +148,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotPackagePrivate();
 
     /**
@@ -137,6 +156,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION arePrivate();
 
     /**
@@ -144,6 +164,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotPrivate();
 
     /**
@@ -151,6 +172,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION haveModifier(JavaModifier modifier);
 
     /**
@@ -158,6 +180,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION dontHaveModifier(JavaModifier modifier);
 
     /**
@@ -166,6 +189,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAnnotatedWith(Class<? extends Annotation> annotationType);
 
     /**
@@ -174,6 +198,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAnnotatedWith(Class<? extends Annotation> annotationType);
 
     /**
@@ -182,6 +207,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAnnotatedWith(String annotationTypeName);
 
     /**
@@ -190,6 +216,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAnnotatedWith(String annotationTypeName);
 
     /**
@@ -199,6 +226,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
@@ -208,6 +236,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
@@ -216,6 +245,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type An interface type matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION implement(Class<?> type);
 
     /**
@@ -224,6 +254,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type An interface type matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION dontImplement(Class<?> type);
 
     /**
@@ -233,6 +264,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of an interface type matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION implement(String typeName);
 
     /**
@@ -243,6 +275,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of an interface type matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION dontImplement(String typeName);
 
     /**
@@ -253,6 +286,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate identifying interfaces matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION implement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -262,6 +296,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate identifying interfaces matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -276,6 +311,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type An upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableTo(Class<?> type);
 
     /**
@@ -284,6 +320,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type An upper type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableTo(Class<?> type);
 
     /**
@@ -293,6 +330,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableTo(String typeName);
 
     /**
@@ -303,6 +341,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of an upper type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableTo(String typeName);
 
     /**
@@ -314,6 +353,7 @@ public interface ClassesThat<CONJUNCTION> {
      *                  (imported subtypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableTo(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -323,6 +363,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate identifying an upper type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableTo(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -341,6 +382,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type A lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableFrom(Class<?> type);
 
     /**
@@ -349,6 +391,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param type A lower type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableFrom(Class<?> type);
 
     /**
@@ -358,6 +401,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableFrom(String typeName);
 
     /**
@@ -368,6 +412,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @param typeName Name of a lower type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableFrom(String typeName);
 
     /**
@@ -379,6 +424,7 @@ public interface ClassesThat<CONJUNCTION> {
      *                  (imported supertypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -388,5 +434,6 @@ public interface ClassesThat<CONJUNCTION> {
      * @param predicate A predicate identifying a lower type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
+    @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
 }

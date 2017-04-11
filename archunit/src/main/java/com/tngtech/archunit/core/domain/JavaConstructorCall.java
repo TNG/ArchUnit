@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 
 public class JavaConstructorCall extends JavaCall<ConstructorCallTarget> {
-    public JavaConstructorCall(JavaConstructorCallBuilder builder) {
+    JavaConstructorCall(JavaConstructorCallBuilder builder) {
         super(builder);
     }
 

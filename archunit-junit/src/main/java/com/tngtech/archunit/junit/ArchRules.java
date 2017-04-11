@@ -9,13 +9,15 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 
-public class ArchRules {
+public final class ArchRules {
     private final Collection<Field> fields;
     private final Collection<Method> methods;
 
@@ -34,6 +36,7 @@ public class ArchRules {
         };
     }
 
+    @PublicAPI(usage = ACCESS)
     public static ArchRules in(Class<?> definitionLocation) {
         return new ArchRules(definitionLocation);
     }

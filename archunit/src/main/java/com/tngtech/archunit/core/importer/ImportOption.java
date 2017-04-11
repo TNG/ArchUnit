@@ -1,5 +1,9 @@
 package com.tngtech.archunit.core.importer;
 
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+
 /**
  * Will be evaluated for every class location, to determine if the class should be imported.<br><br>
  * <b>IMPORTANT</b>: For things like caching to work, it's important, that the behavior of any implementation
@@ -11,6 +15,7 @@ package com.tngtech.archunit.core.importer;
  * cause wrong caching (i.e. the second run will assume, the classes are already cached, because it can't
  * be determined, that the {@link ImportOption} would choose different classes to be selected for this run)
  */
+@PublicAPI(usage = INHERITANCE)
 public interface ImportOption {
     boolean includes(Location location);
 
@@ -36,7 +41,7 @@ public interface ImportOption {
         }
     }
 
-    class Everything implements ImportOption {
+    final class Everything implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return true;
@@ -48,14 +53,14 @@ public interface ImportOption {
      * ../test-classes/.. (Maven/Gradle standard), so don't use this, if you have a package
      * test that you want to import.
      */
-    class DontIncludeTests implements ImportOption {
+    final class DontIncludeTests implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.contains("/test/") && !location.contains("/test-classes/");
         }
     }
 
-    class DontIncludeJars implements ImportOption {
+    final class DontIncludeJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isJar();

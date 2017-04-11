@@ -8,7 +8,10 @@ import java.util.Objects;
 
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Contains information about an imported class, i.e. the URI from where the class was imported and an md5 sum
@@ -26,15 +29,17 @@ public class Source {
     private final URI uri;
     private final Md5sum md5sum;
 
-    public Source(URI uri) {
+    Source(URI uri) {
         this.uri = uri;
         md5sum = Md5sum.of(uri);
     }
 
+    @PublicAPI(usage = ACCESS)
     public URI getUri() {
         return uri;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Md5sum getMd5sum() {
         return md5sum;
     }
@@ -101,6 +106,7 @@ public class Source {
 
         private static final char[] hexDigits = "0123456789abcdef".toCharArray();
 
+        @PublicAPI(usage = ACCESS)
         public byte[] asBytes() {
             return Arrays.copyOf(md5Bytes, md5Bytes.length);
         }

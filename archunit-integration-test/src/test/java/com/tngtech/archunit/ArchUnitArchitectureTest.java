@@ -18,10 +18,10 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.conditions.ArchConditions;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -31,6 +31,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_TESTS;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -41,6 +42,8 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
         packagesOf = ArchUnitArchitectureTest.class,
         importOption = ArchUnitArchitectureTest.ArchUnitProductionCode.class)
 public class ArchUnitArchitectureTest {
+    static final String THIRDPARTY_PACKAGE_IDENTIFIER = "..thirdparty..";
+
     @ArchTest
     public static final ArchRule layers_are_respected = layeredArchitecture()
             .layer("Base").definedBy("com.tngtech.archunit.base..")
@@ -59,7 +62,17 @@ public class ArchUnitArchitectureTest {
     public static final ArchRule domain_does_not_access_importer =
             noClasses().that().resideInAPackage("..core.domain..")
                     // FIXME: Add accessClassesThat(Predicate<JavaClass>) to syntax
-                    .should(ArchConditions.accessClassesThat(belong_to_the_import_context()));
+                    .should(accessClassesThat(belong_to_the_import_context()));
+
+    @ArchTest
+    public static final ArchRule types_are_only_resolved_via_reflection_in_allowed_places =
+            noClasses().that().resideOutsideOfPackage(THIRDPARTY_PACKAGE_IDENTIFIER)
+                    .should().callMethodWhere(typeIsIllegallyResolvedViaReflection())
+                    .as("no classes should illegally resolve classes via reflection");
+
+    @ArchTest
+    public static final ArchRules public_API_rules =
+            ArchRules.in(PublicAPIRules.class);
 
     private static DescribedPredicate<JavaClass> belong_to_the_import_context() {
         return new DescribedPredicate<JavaClass>("belong to the import context") {
@@ -70,12 +83,6 @@ public class ArchUnitArchitectureTest {
             }
         };
     }
-
-    @ArchTest
-    public static final ArchRule types_are_only_resolved_via_reflection_in_allowed_places =
-            noClasses().that().resideOutsideOfPackage("..thirdparty..")
-                    .should().callMethodWhere(typeIsIllegallyResolvedViaReflection())
-                    .as("no classes should illegally resolve classes via reflection");
 
     private static DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =

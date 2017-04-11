@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
+import com.tngtech.archunit.core.importer.JavaFieldAccessTestBuilder;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -108,13 +108,13 @@ public class JavaFieldAccessTest {
         return getOnlyElement(EnumSet.complementOf(EnumSet.of(accessType)));
     }
 
-    private JavaFieldAccessBuilder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
+    private JavaFieldAccessTestBuilder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
         return stringFieldAccessBuilder(clazz, "stringField");
     }
 
     private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
         JavaClass clazz = javaClassViaReflection(SomeClass.class);
-        return new JavaFieldAccessBuilder()
+        return new JavaFieldAccessTestBuilder()
                 .withOrigin(accessFieldMethod(clazz))
                 .withTarget(targetFrom(javaFieldViaReflection(clazz, "stringField")))
                 .withAccessType(accessType)
@@ -122,12 +122,12 @@ public class JavaFieldAccessTest {
                 .build();
     }
 
-    private JavaFieldAccessBuilder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
+    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
         return stringFieldAccessBuilder(targetFrom(javaFieldViaReflection(clazz, name)));
     }
 
-    private JavaFieldAccessBuilder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
-        return new JavaFieldAccessBuilder()
+    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
+        return new JavaFieldAccessTestBuilder()
                 .withTarget(target)
                 .withAccessType(GET)
                 .withLineNumber(31);

@@ -4,12 +4,15 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public class ImportOptions {
+public final class ImportOptions {
     private final Set<ImportOption> options;
 
+    @PublicAPI(usage = ACCESS)
     public ImportOptions() {
         this(Collections.<ImportOption>emptySet());
     }
@@ -18,6 +21,7 @@ public class ImportOptions {
         this.options = checkNotNull(options);
     }
 
+    @PublicAPI(usage = ACCESS)
     public ImportOptions with(ImportOption option) {
         return new ImportOptions(ImmutableSet.<ImportOption>builder().addAll(options).add(option).build());
     }

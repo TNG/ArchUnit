@@ -10,9 +10,16 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 
-public class Locations {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public final class Locations {
+    private Locations() {
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static Collection<Location> of(Collection<URL> urls) {
         Set<Location> result = new HashSet<>();
         for (URL url : urls) {
@@ -28,6 +35,7 @@ public class Locations {
      * @param pkg the package to look for within the classpath
      * @return Locations of all paths that match the supplied package
      */
+    @PublicAPI(usage = ACCESS)
     public static Set<Location> ofPackage(String pkg) {
         ImmutableSet.Builder<Location> result = ImmutableSet.builder();
         for (Location location : getLocationsOf(asResourceName(pkg))) {
@@ -36,8 +44,20 @@ public class Locations {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static Set<Location> ofClass(Class<?> clazz) {
         return getLocationsOf(asResourceName(clazz.getName()) + ".class");
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static Set<Location> inClassPath() {
+        Set<Location> result = new HashSet<>();
+        for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
+            for (URL url : loader.getURLs()) {
+                result.add(Location.of(url));
+            }
+        }
+        return result;
     }
 
     private static String asResourceName(String qualifiedName) {
@@ -60,16 +80,6 @@ public class Locations {
         } catch (IOException e) {
             throw new LocationException(e);
         }
-    }
-
-    public static Set<Location> inClassPath() {
-        Set<Location> result = new HashSet<>();
-        for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
-            for (URL url : loader.getURLs()) {
-                result.add(Location.of(url));
-            }
-        }
-        return result;
     }
 
     private static Set<URLClassLoader> findAllUrlClassLoadersInContext() {

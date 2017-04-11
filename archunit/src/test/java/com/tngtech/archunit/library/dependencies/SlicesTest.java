@@ -13,6 +13,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.TestUtils.dependencyFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.javaMethodViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
@@ -61,8 +62,8 @@ public class SlicesTest {
         simulateCall().from(methodThatCallsJavaUtil, 5).to(methodThatCallsJavaLang);
         simulateCall().from(methodThatCallsJavaLang, 1).to(methodThatCallsJavaUtil);
 
-        Dependency first = Dependency.from(getOnlyElement(methodThatCallsJavaUtil.getMethodCallsFromSelf()));
-        Dependency second = Dependency.from(getOnlyElement(methodThatCallsJavaLang.getMethodCallsFromSelf()));
+        Dependency first = dependencyFrom(getOnlyElement(methodThatCallsJavaUtil.getMethodCallsFromSelf()));
+        Dependency second = dependencyFrom(getOnlyElement(methodThatCallsJavaLang.getMethodCallsFromSelf()));
 
         Slices slices = Slices.matching("java.(*)..").transform(ImmutableSet.of(first, second));
 

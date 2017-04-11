@@ -66,8 +66,7 @@ class ReflectionUtils {
         protected abstract Collection<? extends T> extractFrom(Class<?> type);
     }
 
-    // NOTE: Don't use Guava classes in public API
-    public interface Predicate<T> {
+    interface Predicate<T> {
         boolean apply(T input);
     }
 

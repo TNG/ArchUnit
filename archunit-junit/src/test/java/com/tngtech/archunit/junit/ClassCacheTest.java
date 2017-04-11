@@ -1,34 +1,25 @@
 package com.tngtech.archunit.junit;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
-import com.tngtech.archunit.junit.ClassCache.ClassFileImporterFactory;
+import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Matchers.anySet;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class ClassCacheTest {
@@ -43,27 +34,11 @@ public class ClassCacheTest {
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule()
             .resolveAdditionalDependenciesFromClassPath(false);
 
-    @Mock
-    private ClassFileImporterFactory classFileImporterFactory;
+    @Spy
+    private CacheClassFileImporter cacheClassFileImporter;
 
     @InjectMocks
     private ClassCache cache = new ClassCache();
-
-    private final List<ClassFileImporter> importersUsedForImport = new ArrayList<>();
-
-    @Before
-    public void setUp() {
-        ClassFileImporter originalImporter = spy(new ClassFileImporter());
-        when(classFileImporterFactory.create()).thenReturn(originalImporter);
-        doAnswer(new Answer() {
-            @Override
-            public ClassFileImporter answer(InvocationOnMock invocation) throws Throwable {
-                ClassFileImporter withImportOption = (ClassFileImporter) spy(invocation.callRealMethod());
-                importersUsedForImport.add(withImportOption);
-                return withImportOption;
-            }
-        }).when(originalImporter).withImportOption(any(ImportOption.class));
-    }
 
     @Test
     public void loads_classes() {
@@ -152,11 +127,8 @@ public class ClassCacheTest {
     }
 
     private void verifyNumberOfImports(int number) {
-        assertThat(importersUsedForImport).as("Number of created importers").hasSize(number);
-        for (ClassFileImporter importer : importersUsedForImport) {
-            verify(importer).importLocations(anyCollection());
-            verifyNoMoreInteractions(importer);
-        }
+        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOption.class), anySet());
+        verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
     @AnalyseClasses(packages = "com.tngtech.archunit.junit")

@@ -5,7 +5,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ComparisonChain;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the
@@ -18,7 +21,7 @@ import com.tngtech.archunit.core.domain.properties.HasDescription;
  * </ul>
  */
 public class Dependency implements HasDescription, Comparable<Dependency> {
-    public static Dependency from(JavaAccess<?> access) {
+    static Dependency from(JavaAccess<?> access) {
         return new Dependency(access);
     }
 
@@ -28,8 +31,23 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
         this.access = access;
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClass getTargetClass() {
         return access.getTarget().getOwner();
+    }
+
+    @Override
+    public String getDescription() {
+        return access.getDescription();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public int compareTo(Dependency o) {
+        return ComparisonChain.start()
+                .compare(access.getLineNumber(), o.access.getLineNumber())
+                .compare(getDescription(), o.getDescription())
+                .result();
     }
 
     @Override
@@ -56,19 +74,7 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
                 "}";
     }
 
-    @Override
-    public String getDescription() {
-        return access.getDescription();
-    }
-
-    @Override
-    public int compareTo(Dependency o) {
-        return ComparisonChain.start()
-                .compare(access.getLineNumber(), o.access.getLineNumber())
-                .compare(getDescription(), o.getDescription())
-                .result();
-    }
-
+    @PublicAPI(usage = ACCESS)
     public static JavaClasses toTargetClasses(Iterable<Dependency> dependencies) {
         Set<JavaClass> classes = new HashSet<>();
         for (Dependency dependency : dependencies) {

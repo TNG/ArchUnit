@@ -2,6 +2,8 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Objects;
 
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
@@ -11,6 +13,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
         implements HasName, HasDescription, HasOwner<JavaCodeUnit> {
@@ -34,22 +37,27 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         return target.getName();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getOrigin() {
         return origin;
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClass getOriginOwner() {
         return getOrigin().getOwner();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClass getTargetOwner() {
         return getTarget().getOwner();
     }
 
+    @PublicAPI(usage = ACCESS)
     public TARGET getTarget() {
         return target;
     }
 
+    @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
         return lineNumber;
     }
@@ -93,6 +101,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         return getDescriptionWithTemplate(descriptionTemplate());
     }
 
+    @Internal
     public String getDescriptionWithTemplate(String template) {
         String description = String.format(template, getOwner().getFullName(), getTarget().getFullName());
         String location = String.format(LOCATION_TEMPLATE, getLocationClass().getSimpleName(), getLineNumber());
@@ -109,15 +118,21 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     protected abstract String descriptionTemplate();
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> originOwner(DescribedPredicate<? super JavaClass> predicate) {
             return origin(Get.<JavaClass>owner().is(predicate));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
             return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> originOwnerEqualsTargetOwner() {
             return new DescribedPredicate<JavaAccess<?>>("origin owner equals target owner") {
                 @Override
@@ -127,10 +142,12 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             };
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> targetOwner(final DescribedPredicate<? super JavaClass> predicate) {
             return target(Get.<JavaClass>owner().is(predicate));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
             return new DescribedPredicate<JavaAccess<?>>("target " + predicate.getDescription()) {
                 @Override
@@ -141,8 +158,16 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         }
     }
 
-    public static class Functions {
-        public static class Get {
+    @PublicAPI(usage = ACCESS)
+    public static final class Functions {
+        private Functions() {
+        }
+
+        public static final class Get {
+            private Get() {
+            }
+
+            @PublicAPI(usage = ACCESS)
             public static ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin() {
                 return new ChainableFunction<JavaAccess<?>, JavaCodeUnit>() {
                     @Override
@@ -152,6 +177,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
                 };
             }
 
+            @PublicAPI(usage = ACCESS)
             public static <A extends JavaAccess<? extends T>, T extends AccessTarget> ChainableFunction<A, T> target() {
                 return new ChainableFunction<A, T>() {
                     @Override

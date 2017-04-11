@@ -1,10 +1,14 @@
 package com.tngtech.archunit.lang;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
 
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+
+@PublicAPI(usage = INHERITANCE)
 public interface ClassesTransformer<T> extends HasDescription {
     /**
      * Defines how to transform imported {@link JavaClasses} to the respective objects to test.

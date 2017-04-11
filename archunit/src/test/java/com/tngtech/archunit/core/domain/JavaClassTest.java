@@ -8,9 +8,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import org.assertj.core.api.AbstractBooleanAssert;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.iterable.Extractor;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
@@ -106,6 +110,22 @@ public class JavaClassTest {
     }
 
     @Test
+    public void all_classes_self_is_assignable_to() {
+        JavaClass clazz = importClasses(
+                ChildWithFieldAndMethod.class,
+                ParentWithFieldAndMethod.class,
+                InterfaceWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+
+        assertThat(clazz.getAllClassesSelfIsAssignableTo())
+                .extracting("name")
+                .containsOnly(
+                        ChildWithFieldAndMethod.class.getName(),
+                        ParentWithFieldAndMethod.class.getName(),
+                        InterfaceWithFieldAndMethod.class.getName(),
+                        Object.class.getName());
+    }
+
+    @Test
     public void isAnnotatedWith_type() {
         assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
@@ -122,7 +142,7 @@ public class JavaClassTest {
     }
 
     @Test
-    public void isAnnotatedWith_predicate() {
+    public void predicate_isAnnotatedWith() {
         assertThat(javaClassViaReflection(Parent.class)
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
                 .as("predicate matches").isTrue();
@@ -150,6 +170,71 @@ public class JavaClassTest {
 
         assertThat(list.isEquivalentTo(List.class)).as("JavaClass is List.class").isTrue();
         assertThat(list.isEquivalentTo(Collection.class)).as("JavaClass is Collection.class").isFalse();
+    }
+
+    @Test
+    public void getMembers_and_getAllMembers() {
+        JavaClass clazz = importClasses(
+                ChildWithFieldAndMethod.class,
+                ParentWithFieldAndMethod.class,
+                InterfaceWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+
+        assertThat(clazz.getMembers())
+                .extracting(memberIdentifier())
+                .containsOnlyElementsOf(ChildWithFieldAndMethod.Members.MEMBERS);
+
+        assertThat(clazz.getAllMembers())
+                .filteredOn(isNotObject())
+                .extracting(memberIdentifier())
+                .containsOnlyElementsOf(ImmutableSet.<String>builder()
+                        .addAll(ChildWithFieldAndMethod.Members.MEMBERS)
+                        .addAll(ParentWithFieldAndMethod.Members.MEMBERS)
+                        .addAll(InterfaceWithFieldAndMethod.Members.MEMBERS)
+                        .build());
+    }
+
+    @Test
+    public void getCodeUnitWithName() {
+        final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+
+        assertIllegalArgumentException("childMethod", new Runnable() {
+            @Override
+            public void run() {
+                clazz.getCodeUnitWithParameterTypes("childMethod");
+            }
+        });
+        assertIllegalArgumentException("childMethod", new Runnable() {
+            @Override
+            public void run() {
+                clazz.getCodeUnitWithParameterTypes("childMethod", Object.class);
+            }
+        });
+        assertIllegalArgumentException("wrong", new Runnable() {
+            @Override
+            public void run() {
+                clazz.getCodeUnitWithParameterTypes("wrong", String.class);
+            }
+        });
+
+        assertThat(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.getCodeUnitWithParameterTypeNames("childMethod", String.class.getName()))
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Object.class))
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThat(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+    }
+
+    private Condition<JavaCodeUnit> equivalentCodeUnit(final Class<?> owner, final String methodName, final Class<?> paramType) {
+        return new Condition<JavaCodeUnit>() {
+            @Override
+            public boolean matches(JavaCodeUnit value) {
+                return value.getOwner().isEquivalentTo(owner) &&
+                        value.getName().equals(methodName) &&
+                        value.getParameters().getNames().equals(ImmutableList.of(paramType.getName()));
+            }
+        };
     }
 
     @Test
@@ -294,7 +379,36 @@ public class JavaClassTest {
                 .as("description").isEqualTo("equivalent to " + Parent.class.getName());
     }
 
-    static JavaClass fakeClassWithPackage(String pkg) {
+    private void assertIllegalArgumentException(String expectedMessagePart, Runnable runnable) {
+        try {
+            runnable.run();
+            Assert.fail("Should have thrown an " + IllegalArgumentException.class.getSimpleName());
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage())
+                    .as("Messagee of %s", IllegalArgumentException.class.getSimpleName())
+                    .contains(expectedMessagePart);
+        }
+    }
+
+    private Extractor<JavaMember, String> memberIdentifier() {
+        return new Extractor<JavaMember, String>() {
+            @Override
+            public String extract(JavaMember input) {
+                return input.getOwner().getSimpleName() + "#" + input.getName();
+            }
+        };
+    }
+
+    private Condition<JavaMember> isNotObject() {
+        return new Condition<JavaMember>() {
+            @Override
+            public boolean matches(JavaMember value) {
+                return !value.getOwner().isEquivalentTo(Object.class);
+            }
+        };
+    }
+
+    private static JavaClass fakeClassWithPackage(String pkg) {
         JavaClass javaClass = mock(JavaClass.class);
         when(javaClass.getPackage()).thenReturn(pkg);
         return javaClass;
@@ -430,5 +544,58 @@ public class JavaClassTest {
 
     @Retention(RUNTIME)
     @interface SomeAnnotation {
+    }
+
+    private static class ParentWithFieldAndMethod implements InterfaceWithFieldAndMethod {
+        static class Members {
+            // If we put this in the class, we affect tests for members
+            static final Set<String> MEMBERS = ImmutableSet.of(
+                    "ParentWithFieldAndMethod#parentField",
+                    "ParentWithFieldAndMethod#parentMethod",
+                    "ParentWithFieldAndMethod#" + CONSTRUCTOR_NAME);
+        }
+
+        Object parentField;
+
+        ParentWithFieldAndMethod(Object parentField) {
+            this.parentField = parentField;
+        }
+
+        @Override
+        public void parentMethod() {
+        }
+    }
+
+    private static class ChildWithFieldAndMethod extends ParentWithFieldAndMethod {
+        static class Members {
+            // If we put this in the class, we affect tests for members
+            static final Set<String> MEMBERS = ImmutableSet.of(
+                    "ChildWithFieldAndMethod#childField",
+                    "ChildWithFieldAndMethod#childMethod",
+                    "ChildWithFieldAndMethod#" + CONSTRUCTOR_NAME);
+        }
+
+        Object childField;
+
+        ChildWithFieldAndMethod(Object childField) {
+            super(childField);
+            this.childField = childField;
+        }
+
+        void childMethod(String param) {
+        }
+    }
+
+    private interface InterfaceWithFieldAndMethod {
+        class Members {
+            // If we put this in the class, we affect tests for members
+            static final Set<String> MEMBERS = ImmutableSet.of(
+                    "InterfaceWithFieldAndMethod#interfaceField",
+                    "InterfaceWithFieldAndMethod#parentMethod");
+        }
+
+        String interfaceField = "foo";
+
+        void parentMethod();
     }
 }

@@ -3,11 +3,13 @@ package com.tngtech.archunit.core.domain;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasType;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Represents an imported annotation on an annotated object like a class or a method. To be
@@ -48,11 +50,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *   someAnnotation.as(SomeAnnotation.class).type(); // -> returns String.class
  * </code></pre>
  */
-public class JavaAnnotation implements HasType {
+public final class JavaAnnotation implements HasType {
     private final JavaClass type;
     private final Map<String, Object> values;
 
-    public JavaAnnotation(DomainBuilders.JavaAnnotationBuilder builder) {
+    JavaAnnotation(JavaAnnotationBuilder builder) {
         this.type = checkNotNull(builder.getType());
         this.values = checkNotNull(builder.getValues());
     }
@@ -83,6 +85,7 @@ public class JavaAnnotation implements HasType {
      * <li>anyOtherType -> anyOtherType</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public Optional<Object> get(String property) {
         return Optional.fromNullable(values.get(property));
     }
@@ -90,12 +93,13 @@ public class JavaAnnotation implements HasType {
     /**
      * @return a map containing all [property -> value], where each value correlates to {@link #get(String property)}
      */
+    @PublicAPI(usage = ACCESS)
     public Map<String, Object> getProperties() {
         return values;
     }
 
+    @PublicAPI(usage = ACCESS)
     public <A extends Annotation> A as(Class<A> annotationType) {
         return AnnotationProxy.of(annotationType, this);
     }
-
 }

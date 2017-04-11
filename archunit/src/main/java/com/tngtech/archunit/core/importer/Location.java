@@ -10,11 +10,13 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.jar.JarFile;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.ArchUnitException.UnsupportedUriSchemeException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public abstract class Location {
     private static final String FILE_SCHEME = "file";
@@ -26,22 +28,25 @@ public abstract class Location {
         this.uri = checkNotNull(uri);
     }
 
+    @PublicAPI(usage = ACCESS)
     public URI asURI() {
         return uri;
     }
 
-    public abstract ClassFileSource asClassFileSource(ImportOptions importOptions);
+    abstract ClassFileSource asClassFileSource(ImportOptions importOptions);
 
+    @PublicAPI(usage = ACCESS)
     public boolean contains(String part) {
         return uri.toString().contains(part);
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isJar() {
         return JAR_SCHEME.equals(uri.getScheme());
     }
 
     // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
-    public Location append(String relativeURI) {
+    Location append(String relativeURI) {
         if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {
             relativeURI = relativeURI.substring(1);
         }
@@ -79,10 +84,12 @@ public abstract class Location {
         return "Location{uri=" + uri + '}';
     }
 
+    @PublicAPI(usage = ACCESS)
     public static Location of(URL url) {
         return of(toURI(url));
     }
 
+    @PublicAPI(usage = ACCESS)
     public static Location of(URI uri) {
         uri = ensureJarProtocol(uri);
         if (FILE_SCHEME.equals(uri.getScheme())) {
@@ -92,6 +99,16 @@ public abstract class Location {
             return new JarFileLocation(uri);
         }
         throw new UnsupportedUriSchemeException(uri);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static Location of(JarFile jar) {
+        return new JarFileLocation(newJarUri(newFileUri(jar.getName())));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static Location of(Path path) {
+        return new FilePathLocation(path.toUri());
     }
 
     private static URI toURI(URL url) {
@@ -106,20 +123,12 @@ public abstract class Location {
         return !JAR_SCHEME.equals(uri.getScheme()) && uri.getPath().endsWith(".jar") ? newJarUri(uri) : uri;
     }
 
-    public static Location of(JarFile jar) {
-        return new JarFileLocation(newJarUri(newFileUri(jar.getName())));
-    }
-
     private static URI newFileUri(String fileName) {
         return URI.create(String.format("%s:%s", FILE_SCHEME, fileName));
     }
 
     private static URI newJarUri(URI uri) {
         return URI.create(String.format("%s:%s!/", JAR_SCHEME, uri));
-    }
-
-    public static Location of(Path path) {
-        return new FilePathLocation(path.toUri());
     }
 
     private static class JarFileLocation extends Location {
@@ -129,7 +138,7 @@ public abstract class Location {
         }
 
         @Override
-        public ClassFileSource asClassFileSource(ImportOptions importOptions) {
+        ClassFileSource asClassFileSource(ImportOptions importOptions) {
             try {
                 return new ClassFileSource.FromJar((JarURLConnection) uri.toURL().openConnection(), importOptions);
             } catch (IOException e) {
@@ -145,7 +154,7 @@ public abstract class Location {
         }
 
         @Override
-        public ClassFileSource asClassFileSource(ImportOptions importOptions) {
+        ClassFileSource asClassFileSource(ImportOptions importOptions) {
             return new ClassFileSource.FromFilePath(Paths.get(uri), importOptions);
         }
     }

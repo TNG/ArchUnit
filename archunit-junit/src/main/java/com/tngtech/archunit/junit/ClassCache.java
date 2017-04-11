@@ -17,7 +17,7 @@ class ClassCache {
     private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<LocationsKey, LazyJavaClasses> cachedByLocations = new ConcurrentHashMap<>();
 
-    private ClassFileImporterFactory classFileImporterFactory = new ClassFileImporterFactory();
+    private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
     JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
         checkArgument(testClass);
@@ -104,17 +104,15 @@ class ClassCache {
         private synchronized void initialize() {
             if (javaClasses == null) {
                 ImportOption importOption = newInstanceOf(locationsKey.importOptionClass);
-                javaClasses = classFileImporterFactory.create()
-                        .withImportOption(importOption)
-                        .importLocations(locationsKey.locations);
+                javaClasses = cacheClassFileImporter.importClasses(importOption, locationsKey.locations);
             }
         }
     }
 
     // Used for testing -> that's also the reason it's declared top level
-    static class ClassFileImporterFactory {
-        ClassFileImporter create() {
-            return new ClassFileImporter();
+    static class CacheClassFileImporter {
+        JavaClasses importClasses(ImportOption importOption, Set<Location> locations) {
+            return new ClassFileImporter().withImportOption(importOption).importLocations(locations);
         }
     }
 

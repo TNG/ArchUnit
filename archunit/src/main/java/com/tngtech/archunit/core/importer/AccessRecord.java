@@ -8,6 +8,7 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -31,6 +32,7 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getCaller();
@@ -39,10 +41,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
     int getLineNumber();
 
+    @Internal
     interface FieldAccessRecord extends AccessRecord<FieldAccessTarget> {
         AccessType getAccessType();
     }
 
+    @Internal
     abstract class Factory<RAW_RECORD, PROCESSED_RECORD> {
 
         abstract PROCESSED_RECORD create(RAW_RECORD record, ImportedClasses classes);
@@ -244,7 +248,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             for (Type type : Type.getArgumentTypes(descriptor)) {
                 paramTypes.add(classes.getOrResolve(type.getClassName()));
             }
-            return new JavaClassList(paramTypes);
+            return createJavaClassList(paramTypes);
         }
     }
 }

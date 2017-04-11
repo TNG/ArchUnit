@@ -19,7 +19,7 @@ public class JavaField extends JavaMember implements HasType {
     private final Supplier<Field> fieldSupplier;
     private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
-    public JavaField(DomainBuilders.JavaFieldBuilder builder) {
+    JavaField(DomainBuilders.JavaFieldBuilder builder) {
         super(builder);
         type = builder.getType();
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());

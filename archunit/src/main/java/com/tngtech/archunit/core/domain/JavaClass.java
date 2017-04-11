@@ -14,6 +14,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
@@ -25,10 +26,11 @@ import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.SIMPLE_NAME;
@@ -45,6 +47,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Set<JavaField> fields = new HashSet<>();
     private Set<JavaCodeUnit> codeUnits = new HashSet<>();
     private Set<JavaMethod> methods = new HashSet<>();
+    private Set<JavaMember> members = new HashSet<>();
     private Set<JavaConstructor> constructors = new HashSet<>();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
@@ -56,8 +59,18 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
+    private Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
+        @Override
+        public Set<JavaMember> get() {
+            return ImmutableSet.<JavaMember>builder()
+                    .addAll(getAllFields())
+                    .addAll(getAllMethods())
+                    .addAll(getAllConstructors())
+                    .build();
+        }
+    });
 
-    public JavaClass(DomainBuilders.JavaClassBuilder builder) {
+    JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
         javaType = checkNotNull(builder.getJavaType());
         isInterface = builder.isInterface();
@@ -65,6 +78,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
 
+    @PublicAPI(usage = ACCESS)
     public Optional<Source> getSource() {
         return source;
     }
@@ -74,14 +88,17 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return javaType.getName();
     }
 
+    @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
         return javaType.getSimpleName();
     }
 
+    @PublicAPI(usage = ACCESS)
     public String getPackage() {
         return javaType.getPackage();
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isInterface() {
         return isInterface;
     }
@@ -149,6 +166,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return Optional.fromNullable(annotations.get().get(typeName));
     }
 
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getSuperClass() {
         return superClass;
     }
@@ -156,6 +174,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     /**
      * @return The complete class hierarchy, i.e. the class itself and the result of {@link #getAllSuperClasses()}
      */
+    @PublicAPI(usage = ACCESS)
     public List<JavaClass> getClassHierarchy() {
         ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
         result.add(this);
@@ -167,6 +186,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * @return All super classes sorted ascending by distance in the class hierarchy, i.e. first the direct super class,
      * then the super class of the super class and so on. Includes Object.class in the result.
      */
+    @PublicAPI(usage = ACCESS)
     public List<JavaClass> getAllSuperClasses() {
         ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
         JavaClass current = this;
@@ -177,14 +197,17 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getSubClasses() {
         return subClasses;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getInterfaces() {
         return interfaces;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllInterfaces() {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
         for (JavaClass i : interfaces) {
@@ -197,10 +220,29 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    /**
+     * @return All classes, this class is assignable to, in particular
+     * <ul>
+     * <li>self</li>
+     * <li>superclasses this class extends</li>
+     * <li>interfaces this class implements</li>
+     * </ul>
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllClassesSelfIsAssignableTo() {
+        return ImmutableSet.<JavaClass>builder()
+                .add(this)
+                .addAll(getAllSuperClasses())
+                .addAll(getAllInterfaces())
+                .build();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getEnclosingClass() {
         return enclosingClass;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllSubClasses() {
         Set<JavaClass> result = new HashSet<>();
         for (JavaClass subClass : subClasses) {
@@ -210,19 +252,33 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMember> getMembers() {
+        return members;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMember> getAllMembers() {
+        return allMembers.get();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFields() {
         return fields;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaField> getAllFields() {
         checkNotNull(allFields, "Method may not be called before construction of hierarchy is complete");
         return allFields.get();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaField getField(String name) {
         return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
     }
 
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaField> tryGetField(String name) {
         for (JavaField field : fields) {
             if (name.equals(field.getName())) {
@@ -232,6 +288,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return Optional.absent();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaCodeUnit> getCodeUnits() {
         return codeUnits;
     }
@@ -243,6 +300,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * @param parameters The parameter signature of the method specified as {@link Class Class} Objects
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypes(String name, Class<?>... parameters) {
         return getCodeUnitWithParameterTypes(name, ImmutableList.copyOf(parameters));
     }
@@ -250,6 +308,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     /**
      * Same as {@link #getCodeUnitWithParameterTypes(String, Class[])}, but with parameter signature specified as full class names
      */
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, String... parameters) {
         return getCodeUnitWithParameterTypeNames(name, ImmutableList.copyOf(parameters));
     }
@@ -257,6 +316,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     /**
      * @see #getCodeUnitWithParameterTypes(String, Class[])
      */
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
         return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
     }
@@ -264,6 +324,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     /**
      * @see #getCodeUnitWithParameterTypeNames(String, String...)
      */
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
@@ -282,40 +343,49 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return Optional.absent();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
         return findMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
         return tryFindMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethods() {
         return methods;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getAllMethods() {
         checkNotNull(allMethods, "Method may not be called before construction of hierarchy is complete");
         return allMethods.get();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
         return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructors() {
         return constructors;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getAllConstructors() {
         checkNotNull(allConstructors, "Method may not be called before construction of hierarchy is complete");
         return allConstructors.get();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaStaticInitializer> getStaticInitializer() {
         return staticInitializer;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaAccess<?>> getAccessesFromSelf() {
         return Sets.union(getFieldAccessesFromSelf(), getCallsFromSelf());
     }
@@ -323,6 +393,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     /**
      * @return Set of all {@link JavaAccess} in the class hierarchy, as opposed to the accesses this class directly performs.
      */
+    @PublicAPI(usage = ACCESS)
     public Set<JavaAccess<?>> getAllAccessesFromSelf() {
         ImmutableSet.Builder<JavaAccess<?>> result = ImmutableSet.builder();
         for (JavaClass clazz : getClassHierarchy()) {
@@ -331,6 +402,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getFieldAccessesFromSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {
@@ -345,10 +417,12 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * @see #getMethodCallsFromSelf()
      * @see #getConstructorCallsFromSelf()
      */
+    @PublicAPI(usage = ACCESS)
     public Set<JavaCall<?>> getCallsFromSelf() {
         return Sets.union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {
@@ -357,6 +431,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {
@@ -365,6 +440,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependencies() {
         Set<Dependency> result = new HashSet<>();
         for (JavaAccess<?> access : filterTargetNotSelf(getFieldAccessesFromSelf())) {
@@ -386,6 +462,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result;
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getFieldAccessesToSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaField field : fields) {
@@ -394,6 +471,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsToSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (JavaMethod method : methods) {
@@ -402,6 +480,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsToSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (JavaConstructor constructor : constructors) {
@@ -410,6 +489,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaAccess<?>> getAccessesToSelf() {
         return ImmutableSet.<JavaAccess<?>>builder()
                 .addAll(getFieldAccessesToSelf())
@@ -422,18 +502,22 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * @param clazz An arbitrary type
      * @return true, if this {@link JavaClass} represents the same class as the supplied {@link Class}, otherwise false
      */
+    @PublicAPI(usage = ACCESS)
     public boolean isEquivalentTo(Class<?> clazz) {
         return getName().equals(clazz.getName());
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableFrom(Class<?> type) {
         return isAssignableFrom(type.getName());
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableFrom(String typeName) {
         return isAssignableFrom(GET_NAME.is(equalTo(typeName)));
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
                 .add(this).addAll(getAllSubClasses()).build();
@@ -441,14 +525,17 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return anyMatches(possibleTargets, predicate);
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableTo(Class<?> type) {
         return isAssignableTo(type.getName());
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableTo(final String typeName) {
         return isAssignableTo(GET_NAME.is(equalTo(typeName)));
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
                 .addAll(getClassHierarchy()).addAll(getAllInterfaces()).build();
@@ -473,6 +560,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * @return The {@link Class} equivalent to this {@link JavaClass}
      */
     @ResolvesTypesViaReflection
+    @PublicAPI(usage = ACCESS)
     public Class<?> reflect() {
         return reflectSupplier.get();
     }
@@ -534,6 +622,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         codeUnits = ImmutableSet.<JavaCodeUnit>builder()
                 .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
                 .build();
+        members = ImmutableSet.<JavaMember>builder()
+                .addAll(fields)
+                .addAll(methods)
+                .addAll(constructors)
+                .build();
         this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
             @Override
             public Map<String, JavaAnnotation> get() {
@@ -552,10 +645,12 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return "JavaClass{name='" + javaType.getName() + "\'}";
     }
 
+    @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Class<?>... paramTypes) {
         return namesOf(ImmutableList.copyOf(paramTypes));
     }
 
+    @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(List<Class<?>> paramTypes) {
         ArrayList<String> result = new ArrayList<>();
         for (Class<?> paramType : paramTypes) {
@@ -564,7 +659,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result;
     }
 
-    public static class Functions {
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static final Function<JavaClass, String> SIMPLE_NAME = new Function<JavaClass, String>() {
             @Override
             public String apply(JavaClass input) {
@@ -573,7 +672,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         };
     }
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
             @Override
             public boolean apply(JavaClass input) {
@@ -581,30 +684,37 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             }
         };
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> type(final Class<?> type) {
             return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleName(final String name) {
             return equalTo(name).onResultOf(SIMPLE_NAME).as("simple name '%s'", name);
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
             return assignableTo(type.getName());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
             return assignableFrom(type.getName());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final String typeName) {
             return assignableTo(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final String typeName) {
             return assignableFrom(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final DescribedPredicate<? super JavaClass> predicate) {
             return new DescribedPredicate<JavaClass>("assignable to " + predicate.getDescription()) {
                 @Override
@@ -614,6 +724,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             };
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final DescribedPredicate<? super JavaClass> predicate) {
             return new DescribedPredicate<JavaClass>("assignable from " + predicate.getDescription()) {
                 @Override
@@ -632,6 +743,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
          * @return A {@link DescribedPredicate} returning true iff the package of the
          * tested {@link JavaClass} matches the identifier
          */
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideInAPackage(final String packageIdentifier) {
             return resideInAnyPackage(new String[]{packageIdentifier},
                     String.format("reside in a package '%s'", packageIdentifier));
@@ -640,6 +752,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         /**
          * @see #resideInAPackage(String)
          */
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers,
                     String.format("reside in any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
@@ -663,11 +776,13 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             };
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
             return not(resideInAPackage(packageIdentifier))
                     .as("reside outside of package '%s'", packageIdentifier);
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
             return not(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers))
                     .as("reside outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
@@ -676,6 +791,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         /**
          * @see JavaClass#isEquivalentTo(Class)
          */
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> equivalentTo(final Class<?> clazz) {
             return new DescribedPredicate<JavaClass>("equivalent to %s", clazz.getName()) {
                 @Override

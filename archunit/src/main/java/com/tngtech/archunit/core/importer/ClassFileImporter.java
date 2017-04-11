@@ -12,32 +12,39 @@ import java.util.Set;
 import java.util.jar.JarFile;
 
 import com.google.common.collect.Iterables;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
-public class ClassFileImporter {
+public final class ClassFileImporter {
     private final ImportOptions importOptions;
 
+    @PublicAPI(usage = ACCESS)
     public ClassFileImporter() {
         this(new ImportOptions());
     }
 
+    @PublicAPI(usage = ACCESS)
     public ClassFileImporter(ImportOptions importOptions) {
         this.importOptions = importOptions;
     }
 
+    @PublicAPI(usage = ACCESS)
     public ClassFileImporter withImportOption(ImportOption option) {
         return new ClassFileImporter(importOptions.with(option));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importPath(Path path) {
         return importLocations(singleton(Location.of(path)));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importJar(JarFile jar) {
         return importLocations(singleton(Location.of(jar)));
     }
@@ -45,6 +52,7 @@ public class ClassFileImporter {
     /**
      * Imports packages via {@link Locations#ofPackage(String)}
      */
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importPackages(String... packages) {
         Set<Location> locations = new HashSet<>();
         for (String pkg : packages) {
@@ -58,22 +66,27 @@ public class ClassFileImporter {
      *
      * @return Imported classes
      */
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
         return importClasspath(new ImportOptions().with(ImportOption.Predefined.DONT_INCLUDE_JARS));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath(ImportOptions options) {
         return new ClassFileImporter(options).importLocations(Locations.inClassPath());
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClass importClass(Class<?> clazz) {
         return getOnlyElement(importClasses(clazz));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importClasses(Class<?>... classes) {
         return importClasses(Arrays.asList(classes));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importClasses(Collection<Class<?>> classes) {
         List<URL> urls = new ArrayList<>();
         for (Class<?> clazz : classes) {
@@ -83,14 +96,17 @@ public class ClassFileImporter {
         return importUrls(urls);
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importUrl(URL url) {
         return importUrls(singletonList(url));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importUrls(Collection<URL> urls) {
         return importLocations(Locations.of(urls));
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importLocations(Collection<Location> locations) {
         List<ClassFileSource> sources = new ArrayList<>();
         for (Location location : locations) {

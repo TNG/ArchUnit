@@ -2,8 +2,12 @@ package com.tngtech.archunit.core.importer;
 
 import java.net.URI;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
  * The {@link ClassFileImporter} will use the configured {@link ClassResolver}, to determine how to
@@ -17,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
  * Thus the job of {@link ClassResolver} is just, to resolve the correct {@link URI}, where to locate the class.
  * The {@link ClassUriImporter ClassUriImporter} can then import any given {@link URI} as a {@link JavaClass}.
  */
+@PublicAPI(usage = INHERITANCE)
 public interface ClassResolver {
     /**
      * Always called BEFORE {@link #tryResolve(String)}.
@@ -40,6 +45,7 @@ public interface ClassResolver {
      *
      * @see #tryImport(URI)
      */
+    @PublicAPI(usage = ACCESS)
     interface ClassUriImporter {
         /**
          * Try to import a {@link JavaClass} from the given {@link URI}, i.e. open a stream and use the default
@@ -53,6 +59,7 @@ public interface ClassResolver {
          * @return Optional.of(importedClass), if the {@link JavaClass} could be successfully imported,
          * otherwise Optional.absent()
          */
+        @PublicAPI(usage = ACCESS)
         Optional<JavaClass> tryImport(URI uri);
     }
 }

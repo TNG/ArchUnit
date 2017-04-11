@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import java.lang.annotation.Annotation;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -17,6 +18,8 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
 public interface ClassesShould {
 
     /**
@@ -25,6 +28,7 @@ public interface ClassesShould {
      * @param name The fully qualified class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beNamed(String name);
 
     /**
@@ -33,6 +37,7 @@ public interface ClassesShould {
      * @param name The fully qualified class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeNamed(String name);
 
     /**
@@ -41,6 +46,7 @@ public interface ClassesShould {
      * @param name The simple class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction haveSimpleName(String name);
 
     /**
@@ -49,6 +55,7 @@ public interface ClassesShould {
      * @param name The simple class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveSimpleName(String name);
 
     /**
@@ -57,6 +64,7 @@ public interface ClassesShould {
      * @param regex A regular expression
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction haveNameMatching(String regex);
 
     /**
@@ -65,6 +73,7 @@ public interface ClassesShould {
      * @param regex A regular expression
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction haveNameNotMatching(String regex);
 
     /**
@@ -73,6 +82,7 @@ public interface ClassesShould {
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction resideInAPackage(String packageIdentifier);
 
     /**
@@ -81,6 +91,7 @@ public interface ClassesShould {
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction resideInAnyPackage(String... packageIdentifiers);
 
     /**
@@ -89,6 +100,7 @@ public interface ClassesShould {
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier);
 
     /**
@@ -97,6 +109,7 @@ public interface ClassesShould {
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction resideOutsideOfPackages(String... packageIdentifiers);
 
     /**
@@ -104,6 +117,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction bePublic();
 
     /**
@@ -111,6 +125,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBePublic();
 
     /**
@@ -118,6 +133,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beProtected();
 
     /**
@@ -125,6 +141,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeProtected();
 
     /**
@@ -132,6 +149,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction bePackagePrivate();
 
     /**
@@ -139,6 +157,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBePackagePrivate();
 
     /**
@@ -146,6 +165,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction bePrivate();
 
     /**
@@ -153,6 +173,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBePrivate();
 
     /**
@@ -160,6 +181,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction haveModifier(JavaModifier modifier);
 
     /**
@@ -167,6 +189,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveModifier(JavaModifier modifier);
 
     /**
@@ -175,6 +198,7 @@ public interface ClassesShould {
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAnnotatedWith(Class<? extends Annotation> annotationType);
 
     /**
@@ -183,6 +207,7 @@ public interface ClassesShould {
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAnnotatedWith(Class<? extends Annotation> annotationType);
 
     /**
@@ -191,6 +216,7 @@ public interface ClassesShould {
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAnnotatedWith(String annotationTypeName);
 
     /**
@@ -199,6 +225,7 @@ public interface ClassesShould {
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAnnotatedWith(String annotationTypeName);
 
     /**
@@ -208,6 +235,7 @@ public interface ClassesShould {
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
@@ -217,6 +245,7 @@ public interface ClassesShould {
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
@@ -225,6 +254,7 @@ public interface ClassesShould {
      * @param type An interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(Class<?> type);
 
     /**
@@ -233,6 +263,7 @@ public interface ClassesShould {
      * @param type An interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(Class<?> type);
 
     /**
@@ -242,6 +273,7 @@ public interface ClassesShould {
      * @param typeName Name of an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(String typeName);
 
     /**
@@ -252,6 +284,7 @@ public interface ClassesShould {
      * @param typeName Name of an interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(String typeName);
 
     /**
@@ -262,6 +295,7 @@ public interface ClassesShould {
      * @param predicate A predicate identifying an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -271,6 +305,7 @@ public interface ClassesShould {
      * @param predicate A predicate identifying an interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -285,6 +320,7 @@ public interface ClassesShould {
      * @param type An upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(Class<?> type);
 
     /**
@@ -293,6 +329,7 @@ public interface ClassesShould {
      * @param type An upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(Class<?> type);
 
     /**
@@ -302,6 +339,7 @@ public interface ClassesShould {
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(String typeName);
 
     /**
@@ -312,6 +350,7 @@ public interface ClassesShould {
      * @param typeName Name of an upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(String typeName);
 
     /**
@@ -323,6 +362,7 @@ public interface ClassesShould {
      *                  (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -332,6 +372,7 @@ public interface ClassesShould {
      * @param predicate A predicate identifying an upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -350,6 +391,7 @@ public interface ClassesShould {
      * @param type A lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(Class<?> type);
 
     /**
@@ -358,6 +400,7 @@ public interface ClassesShould {
      * @param type A lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(Class<?> type);
 
     /**
@@ -367,6 +410,7 @@ public interface ClassesShould {
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(String typeName);
 
     /**
@@ -377,6 +421,7 @@ public interface ClassesShould {
      * @param typeName Name of a lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(String typeName);
 
     /**
@@ -388,6 +433,7 @@ public interface ClassesShould {
      *                  (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -397,6 +443,7 @@ public interface ClassesShould {
      * @param predicate A predicate identifying a lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
 
     /**
@@ -406,6 +453,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessField(Class<?> owner, String fieldName);
 
     /**
@@ -415,6 +463,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessField(String ownerName, String fieldName);
 
     /**
@@ -424,6 +473,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
 
     /**
@@ -433,6 +483,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction getField(Class<?> owner, String fieldName);
 
     /**
@@ -442,6 +493,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction getField(String ownerName, String fieldName);
 
     /**
@@ -451,6 +503,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
 
     /**
@@ -460,6 +513,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction setField(Class<?> owner, String fieldName);
 
     /**
@@ -469,6 +523,7 @@ public interface ClassesShould {
      * @param fieldName The name of the field to match
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction setField(String ownerName, String fieldName);
 
     /**
@@ -478,6 +533,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
 
     /**
@@ -488,6 +544,7 @@ public interface ClassesShould {
      * @param parameterTypes The parameter types of the respective method
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callMethod(Class<?> owner, String methodName, Class<?>... parameterTypes);
 
     /**
@@ -498,6 +555,7 @@ public interface ClassesShould {
      * @param parameterTypeNames The fully qualified parameter type names
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callMethod(String ownerName, String methodName, String... parameterTypeNames);
 
     /**
@@ -507,6 +565,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaMethodCall JavaMethodCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate);
 
     /**
@@ -516,6 +575,7 @@ public interface ClassesShould {
      * @param parameterTypes The parameter types of the respective constructor
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callConstructor(Class<?> owner, Class<?>... parameterTypes);
 
     /**
@@ -525,6 +585,7 @@ public interface ClassesShould {
      * @param parameterTypeNames The fully qualified parameter type names
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callConstructor(String ownerName, String... parameterTypeNames);
 
     /**
@@ -534,6 +595,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaConstructorCall JavaConstructorCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
 
     /**
@@ -544,6 +606,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaAccess JavaAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate);
 
     /**
@@ -553,6 +616,7 @@ public interface ClassesShould {
      * @param predicate Determines which {@link JavaCall JavaCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
 
     /**
@@ -565,6 +629,7 @@ public interface ClassesShould {
      *
      * @return A syntax element that allows choosing which classes should be accessed
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldThat accessClassesThat();
 
     /**
@@ -574,5 +639,6 @@ public interface ClassesShould {
      * {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byAnyPackage(String...) byAnyPackage(String...)}
      * </code></pre>
      */
+    @PublicAPI(usage = ACCESS)
     OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
 }

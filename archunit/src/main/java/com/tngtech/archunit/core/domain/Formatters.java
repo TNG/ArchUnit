@@ -5,8 +5,10 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
+@Internal
 public class Formatters {
     private Formatters() {
     }

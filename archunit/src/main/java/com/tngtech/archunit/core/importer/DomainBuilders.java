@@ -12,11 +12,13 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -38,7 +40,11 @@ import com.tngtech.archunit.core.domain.Source;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
-public class DomainBuilders {
+@Internal
+public final class DomainBuilders {
+    private DomainBuilders() {
+    }
+
     static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
@@ -48,23 +54,20 @@ public class DomainBuilders {
         return result.build();
     }
 
-    public static final class JavaConstructorBuilder extends JavaCodeUnitBuilder<JavaConstructor, JavaConstructorBuilder> {
-        @Override
-        JavaConstructor construct(JavaConstructorBuilder builder, ClassesByTypeName importedClasses) {
-            return new JavaConstructor(builder);
-        }
-    }
-
-    public static class JavaEnumConstantBuilder {
+    @Internal
+    public static final class JavaEnumConstantBuilder {
         private JavaClass declaringClass;
         private String name;
 
-        public JavaEnumConstantBuilder withDeclaringClass(final JavaClass declaringClass) {
+        JavaEnumConstantBuilder() {
+        }
+
+        JavaEnumConstantBuilder withDeclaringClass(final JavaClass declaringClass) {
             this.declaringClass = declaringClass;
             return this;
         }
 
-        public JavaEnumConstantBuilder withName(final String name) {
+        JavaEnumConstantBuilder withName(final String name) {
             this.name = name;
             return this;
         }
@@ -77,38 +80,12 @@ public class DomainBuilders {
             return name;
         }
 
-        public JavaEnumConstant build() {
-            return new JavaEnumConstant(this);
+        JavaEnumConstant build() {
+            return DomainObjectCreationContext.createJavaEnumConstant(this);
         }
     }
 
-    public static class JavaMethodBuilder extends JavaCodeUnitBuilder<JavaMethod, JavaMethodBuilder> {
-        private Optional<JavaAnnotationBuilder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
-        private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
-
-        JavaMethodBuilder withAnnotationDefaultValue(JavaAnnotationBuilder.ValueBuilder defaultValue) {
-            annotationDefaultValueBuilder = Optional.of(defaultValue);
-            return this;
-        }
-
-        public Supplier<Optional<Object>> getAnnotationDefaultValue() {
-            return annotationDefaultValue;
-        }
-
-        @Override
-        JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
-            if (annotationDefaultValueBuilder.isPresent()) {
-                annotationDefaultValue = Suppliers.memoize(new Supplier<Optional<Object>>() {
-                    @Override
-                    public Optional<Object> get() {
-                        return annotationDefaultValueBuilder.get().build(importedClasses);
-                    }
-                });
-            }
-            return new JavaMethod(builder);
-        }
-    }
-
+    @Internal
     public abstract static class JavaMemberBuilder<OUTPUT, SELF extends JavaMemberBuilder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
         private String name;
         private String descriptor;
@@ -117,26 +94,25 @@ public class DomainBuilders {
         private JavaClass owner;
         private ClassesByTypeName importedClasses;
 
-        public SELF withName(String name) {
+        private JavaMemberBuilder() {
+        }
+
+        SELF withName(String name) {
             this.name = name;
             return self();
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public SELF withDescriptor(String descriptor) {
+        SELF withDescriptor(String descriptor) {
             this.descriptor = descriptor;
             return self();
         }
 
-        public SELF withAnnotations(Set<JavaAnnotationBuilder> annotations) {
+        SELF withAnnotations(Set<JavaAnnotationBuilder> annotations) {
             this.annotations = annotations;
             return self();
         }
 
-        public SELF withModifiers(Set<JavaModifier> modifiers) {
+        SELF withModifiers(Set<JavaModifier> modifiers) {
             this.modifiers = modifiers;
             return self();
         }
@@ -146,11 +122,15 @@ public class DomainBuilders {
             return (SELF) this;
         }
 
+        abstract OUTPUT construct(SELF self, ClassesByTypeName importedClasses);
+
         JavaClass get(String typeName) {
             return importedClasses.get(typeName);
         }
 
-        abstract OUTPUT construct(SELF self, ClassesByTypeName importedClasses);
+        public String getName() {
+            return name;
+        }
 
         public Supplier<Map<String, JavaAnnotation>> getAnnotations() {
             return Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
@@ -181,16 +161,42 @@ public class DomainBuilders {
         }
     }
 
+    @Internal
+    public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
+        private JavaType type;
+
+        JavaFieldBuilder() {
+        }
+
+        JavaFieldBuilder withType(JavaType type) {
+            this.type = type;
+            return self();
+        }
+
+        public JavaClass getType() {
+            return get(type.getName());
+        }
+
+        @Override
+        JavaField construct(JavaFieldBuilder builder, ClassesByTypeName importedClasses) {
+            return DomainObjectCreationContext.createJavaField(builder);
+        }
+    }
+
+    @Internal
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
         private JavaType returnType;
         private List<JavaType> parameters;
 
-        public SELF withReturnType(JavaType type) {
+        private JavaCodeUnitBuilder() {
+        }
+
+        SELF withReturnType(JavaType type) {
             returnType = type;
             return self();
         }
 
-        public SELF withParameters(List<JavaType> parameters) {
+        SELF withParameters(List<JavaType> parameters) {
             this.parameters = parameters;
             return self();
         }
@@ -208,29 +214,57 @@ public class DomainBuilders {
         }
     }
 
-    public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
-        private JavaType type;
+    @Internal
+    public static final class JavaMethodBuilder extends JavaCodeUnitBuilder<JavaMethod, JavaMethodBuilder> {
+        private Optional<JavaAnnotationBuilder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
+        private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
 
-        public JavaFieldBuilder withType(JavaType type) {
-            this.type = type;
-            return self();
+        JavaMethodBuilder() {
         }
 
-        public JavaClass getType() {
-            return get(type.getName());
+        JavaMethodBuilder withAnnotationDefaultValue(JavaAnnotationBuilder.ValueBuilder defaultValue) {
+            annotationDefaultValueBuilder = Optional.of(defaultValue);
+            return this;
+        }
+
+        public Supplier<Optional<Object>> getAnnotationDefaultValue() {
+            return annotationDefaultValue;
         }
 
         @Override
-        JavaField construct(JavaFieldBuilder builder, ClassesByTypeName importedClasses) {
-            return new JavaField(builder);
+        JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
+            if (annotationDefaultValueBuilder.isPresent()) {
+                annotationDefaultValue = Suppliers.memoize(new Supplier<Optional<Object>>() {
+                    @Override
+                    public Optional<Object> get() {
+                        return annotationDefaultValueBuilder.get().build(importedClasses);
+                    }
+                });
+            }
+            return DomainObjectCreationContext.createJavaMethod(builder);
         }
     }
 
+    @Internal
+    public static final class JavaConstructorBuilder extends JavaCodeUnitBuilder<JavaConstructor, JavaConstructorBuilder> {
+        JavaConstructorBuilder() {
+        }
+
+        @Override
+        JavaConstructor construct(JavaConstructorBuilder builder, ClassesByTypeName importedClasses) {
+            return DomainObjectCreationContext.createJavaConstructor(builder);
+        }
+    }
+
+    @Internal
     public static final class JavaClassBuilder {
         private Optional<Source> source = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
         private Set<JavaModifier> modifiers = new HashSet<>();
+
+        JavaClassBuilder() {
+        }
 
         JavaClassBuilder withSource(Source source) {
             this.source = Optional.of(source);
@@ -238,23 +272,23 @@ public class DomainBuilders {
         }
 
         @SuppressWarnings("unchecked")
-        public JavaClassBuilder withType(JavaType javaType) {
+        JavaClassBuilder withType(JavaType javaType) {
             this.javaType = javaType;
             return this;
         }
 
-        public JavaClassBuilder withInterface(boolean isInterface) {
+        JavaClassBuilder withInterface(boolean isInterface) {
             this.isInterface = isInterface;
             return this;
         }
 
-        public JavaClassBuilder withModifiers(Set<JavaModifier> modifiers) {
+        JavaClassBuilder withModifiers(Set<JavaModifier> modifiers) {
             this.modifiers = modifiers;
             return this;
         }
 
-        public JavaClass build() {
-            return new JavaClass(this);
+        JavaClass build() {
+            return DomainObjectCreationContext.createJavaClass(this);
         }
 
         public Optional<Source> getSource() {
@@ -274,12 +308,16 @@ public class DomainBuilders {
         }
     }
 
-    public static class JavaAnnotationBuilder {
+    @Internal
+    public static final class JavaAnnotationBuilder {
         private JavaType type;
         private Map<String, ValueBuilder> values = new HashMap<>();
         private ClassesByTypeName importedClasses;
 
-        public JavaAnnotationBuilder withType(JavaType type) {
+        JavaAnnotationBuilder() {
+        }
+
+        JavaAnnotationBuilder withType(JavaType type) {
             this.type = type;
             return this;
         }
@@ -288,14 +326,14 @@ public class DomainBuilders {
             return type;
         }
 
-        public JavaAnnotationBuilder addProperty(String key, ValueBuilder valueBuilder) {
+        JavaAnnotationBuilder addProperty(String key, ValueBuilder valueBuilder) {
             values.put(key, valueBuilder);
             return this;
         }
 
-        public JavaAnnotation build(ClassesByTypeName importedClasses) {
+        JavaAnnotation build(ClassesByTypeName importedClasses) {
             this.importedClasses = importedClasses;
-            return new JavaAnnotation(this);
+            return DomainObjectCreationContext.createJavaAnnotation(this);
         }
 
         public JavaClass getType() {
@@ -322,22 +360,22 @@ public class DomainBuilders {
             }
         }
 
-        public abstract static class ValueBuilder {
-            public abstract Optional<Object> build(ClassesByTypeName importedClasses);
+        abstract static class ValueBuilder {
+            abstract Optional<Object> build(ClassesByTypeName importedClasses);
 
-            public static ValueBuilder ofFinished(final Object value) {
+            static ValueBuilder ofFinished(final Object value) {
                 return new ValueBuilder() {
                     @Override
-                    public Optional<Object> build(ClassesByTypeName importedClasses) {
+                    Optional<Object> build(ClassesByTypeName importedClasses) {
                         return Optional.of(value);
                     }
                 };
             }
 
-            public static ValueBuilder from(final JavaAnnotationBuilder builder) {
+            static ValueBuilder from(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
-                    public Optional<Object> build(ClassesByTypeName importedClasses) {
+                    Optional<Object> build(ClassesByTypeName importedClasses) {
                         return Optional.<Object>of(builder.build(importedClasses));
                     }
                 };
@@ -345,7 +383,8 @@ public class DomainBuilders {
         }
     }
 
-    public static class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
+    @Internal
+    public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
             withReturnType(JavaType.From.name(void.class.getName()));
             withParameters(Collections.<JavaType>emptyList());
@@ -357,15 +396,17 @@ public class DomainBuilders {
 
         @Override
         JavaStaticInitializer construct(JavaStaticInitializerBuilder builder, ClassesByTypeName importedClasses) {
-            return new JavaStaticInitializer(builder);
+            return DomainObjectCreationContext.createJavaStaticInitializer(builder);
         }
     }
 
-    public interface BuilderWithBuildParameter<PARAMETER, VALUE> {
+    @Internal
+    interface BuilderWithBuildParameter<PARAMETER, VALUE> {
         VALUE build(PARAMETER parameter, ClassesByTypeName importedClasses);
 
+        @Internal
         class BuildFinisher {
-            public static <PARAMETER, VALUE> Set<VALUE> build(
+            static <PARAMETER, VALUE> Set<VALUE> build(
                     Set<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders,
                     PARAMETER parameter,
                     ClassesByTypeName importedClasses) {
@@ -381,22 +422,26 @@ public class DomainBuilders {
         }
     }
 
+    @Internal
     public abstract static class JavaAccessBuilder<TARGET extends AccessTarget, SELF extends JavaAccessBuilder<TARGET, SELF>> {
         private JavaCodeUnit origin;
         private TARGET target;
         private int lineNumber;
 
-        public SELF withOrigin(final JavaCodeUnit origin) {
+        private JavaAccessBuilder() {
+        }
+
+        SELF withOrigin(final JavaCodeUnit origin) {
             this.origin = origin;
             return self();
         }
 
-        public SELF withTarget(final TARGET target) {
+        SELF withTarget(final TARGET target) {
             this.target = target;
             return self();
         }
 
-        public SELF withLineNumber(final int lineNumber) {
+        SELF withLineNumber(final int lineNumber) {
             this.lineNumber = lineNumber;
             return self();
         }
@@ -419,10 +464,14 @@ public class DomainBuilders {
         }
     }
 
+    @Internal
     public static class JavaFieldAccessBuilder extends JavaAccessBuilder<FieldAccessTarget, JavaFieldAccessBuilder> {
         private AccessType accessType;
 
-        public JavaFieldAccessBuilder withAccessType(final AccessType accessType) {
+        JavaFieldAccessBuilder() {
+        }
+
+        JavaFieldAccessBuilder withAccessType(final AccessType accessType) {
             this.accessType = accessType;
             return this;
         }
@@ -431,33 +480,44 @@ public class DomainBuilders {
             return accessType;
         }
 
-        public JavaFieldAccess build() {
-            return new JavaFieldAccess(this);
+        JavaFieldAccess build() {
+            return DomainObjectCreationContext.createJavaFieldAccess(this);
         }
     }
 
-    public static class JavaMethodCallBuilder extends JavaAccessBuilder<MethodCallTarget, JavaMethodCallBuilder> {
-        public JavaMethodCall build() {
-            return new JavaMethodCall(this);
+    @Internal
+    public static final class JavaMethodCallBuilder extends JavaAccessBuilder<MethodCallTarget, JavaMethodCallBuilder> {
+        JavaMethodCallBuilder() {
+        }
+
+        JavaMethodCall build() {
+            return DomainObjectCreationContext.createJavaMethodCall(this);
         }
     }
 
+    @Internal
     public static class JavaConstructorCallBuilder extends JavaAccessBuilder<ConstructorCallTarget, JavaConstructorCallBuilder> {
-        public JavaConstructorCall build() {
-            return new JavaConstructorCall(this);
+        JavaConstructorCallBuilder() {
+        }
+
+        JavaConstructorCall build() {
+            return DomainObjectCreationContext.createJavaConstructorCall(this);
         }
     }
 
-    protected abstract static class AccessTargetBuilder<SELF extends AccessTargetBuilder<SELF>> {
+    abstract static class AccessTargetBuilder<SELF extends AccessTargetBuilder<SELF>> {
         private JavaClass owner;
         private String name;
 
-        public SELF withOwner(final JavaClass owner) {
+        private AccessTargetBuilder() {
+        }
+
+        SELF withOwner(final JavaClass owner) {
             this.owner = owner;
             return self();
         }
 
-        public SELF withName(final String name) {
+        SELF withName(final String name) {
             this.name = name;
             return self();
         }
@@ -476,16 +536,20 @@ public class DomainBuilders {
         }
     }
 
-    public static class FieldAccessTargetBuilder extends AccessTargetBuilder<FieldAccessTargetBuilder> {
+    @Internal
+    public static final class FieldAccessTargetBuilder extends AccessTargetBuilder<FieldAccessTargetBuilder> {
         private JavaClass type;
         private Supplier<Optional<JavaField>> field;
 
-        public FieldAccessTargetBuilder withType(final JavaClass type) {
+        FieldAccessTargetBuilder() {
+        }
+
+        FieldAccessTargetBuilder withType(final JavaClass type) {
             this.type = type;
             return this;
         }
 
-        public FieldAccessTargetBuilder withField(final Supplier<Optional<JavaField>> field) {
+        FieldAccessTargetBuilder withField(final Supplier<Optional<JavaField>> field) {
             this.field = field;
             return this;
         }
@@ -502,22 +566,26 @@ public class DomainBuilders {
             return getOwner().getName() + "." + getName();
         }
 
-        public FieldAccessTarget build() {
-            return new FieldAccessTarget(this);
+        FieldAccessTarget build() {
+            return DomainObjectCreationContext.createFieldAccessTarget(this);
         }
     }
 
+    @Internal
     public abstract static class CodeUnitCallTargetBuilder<SELF extends CodeUnitCallTargetBuilder<SELF>>
             extends AccessTargetBuilder<SELF> {
         private JavaClassList parameters;
         private JavaClass returnType;
 
-        public SELF withParameters(final JavaClassList parameters) {
+        private CodeUnitCallTargetBuilder() {
+        }
+
+        SELF withParameters(final JavaClassList parameters) {
             this.parameters = parameters;
             return self();
         }
 
-        public SELF withReturnType(final JavaClass returnType) {
+        SELF withReturnType(final JavaClass returnType) {
             this.returnType = returnType;
             return self();
         }
@@ -535,14 +603,15 @@ public class DomainBuilders {
         }
     }
 
-    public static class ConstructorCallTargetBuilder extends CodeUnitCallTargetBuilder<ConstructorCallTargetBuilder> {
+    @Internal
+    public static final class ConstructorCallTargetBuilder extends CodeUnitCallTargetBuilder<ConstructorCallTargetBuilder> {
         private Supplier<Optional<JavaConstructor>> constructor;
 
-        public ConstructorCallTargetBuilder() {
+        ConstructorCallTargetBuilder() {
             withName(CONSTRUCTOR_NAME);
         }
 
-        public ConstructorCallTargetBuilder withConstructor(Supplier<Optional<JavaConstructor>> constructor) {
+        ConstructorCallTargetBuilder withConstructor(Supplier<Optional<JavaConstructor>> constructor) {
             this.constructor = constructor;
             return self();
         }
@@ -551,15 +620,19 @@ public class DomainBuilders {
             return constructor;
         }
 
-        public ConstructorCallTarget build() {
-            return new ConstructorCallTarget(this);
+        ConstructorCallTarget build() {
+            return DomainObjectCreationContext.createConstructorCallTarget(this);
         }
     }
 
-    public static class MethodCallTargetBuilder extends CodeUnitCallTargetBuilder<MethodCallTargetBuilder> {
+    @Internal
+    public static final class MethodCallTargetBuilder extends CodeUnitCallTargetBuilder<MethodCallTargetBuilder> {
         private Supplier<Set<JavaMethod>> methods;
 
-        public MethodCallTargetBuilder withMethods(final Supplier<Set<JavaMethod>> methods) {
+        MethodCallTargetBuilder() {
+        }
+
+        MethodCallTargetBuilder withMethods(final Supplier<Set<JavaMethod>> methods) {
             this.methods = methods;
             return this;
         }
@@ -568,8 +641,8 @@ public class DomainBuilders {
             return methods;
         }
 
-        public MethodCallTarget build() {
-            return new MethodCallTarget(this);
+        MethodCallTarget build() {
+            return DomainObjectCreationContext.createMethodCallTarget(this);
         }
     }
 }

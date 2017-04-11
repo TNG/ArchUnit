@@ -1,13 +1,22 @@
 package com.tngtech.archunit.base;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
+import static com.tngtech.archunit.base.DescribedPredicate.doesnt;
+import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 
+@RunWith(DataProviderRunner.class)
 public class DescribedPredicateTest {
 
     @Test
@@ -49,15 +58,40 @@ public class DescribedPredicateTest {
         assertThat(equalTo(object).apply(object)).isTrue();
     }
 
+    @DataProvider
+    public static Object[][] not_scenarios() {
+        return $$(
+                $(new NotScenario("not") {
+                    @Override
+                    <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
+                        return not(input);
+                    }
+                }),
+                $(new NotScenario("don't") {
+                    @Override
+                    <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
+                        return dont(input);
+                    }
+                }),
+                $(new NotScenario("doesn't") {
+                    @Override
+                    <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
+                        return doesnt(input);
+                    }
+                })
+        );
+    }
+
     @Test
-    public void not_works() {
-        assertThat(not(equalTo(5)).apply(4)).isTrue();
-        assertThat(not(equalTo(5)).getDescription()).contains("not equal to '5'");
-        assertThat(not(equalTo(5)).apply(5)).isFalse();
-        assertThat(not(equalTo(5)).apply(6)).isTrue();
+    @UseDataProvider("not_scenarios")
+    public void not_works(NotScenario scenario) {
+        assertThat(scenario.apply(equalTo(5)).apply(4)).isTrue();
+        assertThat(scenario.apply(equalTo(5)).getDescription()).contains(scenario.expectedPrefix + " equal to '5'");
+        assertThat(scenario.apply(equalTo(5)).apply(5)).isFalse();
+        assertThat(scenario.apply(equalTo(5)).apply(6)).isTrue();
 
         Object object = new Object();
-        assertThat(not(equalTo(object)).apply(object)).isFalse();
+        assertThat(scenario.apply(equalTo(object)).apply(object)).isFalse();
     }
 
     @Test
@@ -74,5 +108,20 @@ public class DescribedPredicateTest {
                 return integer;
             }
         };
+    }
+
+    private abstract static class NotScenario {
+        private final String expectedPrefix;
+
+        NotScenario(String expectedPrefix) {
+            this.expectedPrefix = expectedPrefix;
+        }
+
+        abstract <T> DescribedPredicate<T> apply(DescribedPredicate<T> input);
+
+        @Override
+        public String toString() {
+            return expectedPrefix;
+        }
     }
 }

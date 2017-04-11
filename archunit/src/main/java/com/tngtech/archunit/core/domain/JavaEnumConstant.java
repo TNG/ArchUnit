@@ -2,21 +2,26 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Objects;
 
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaEnumConstantBuilder;
 
-public class JavaEnumConstant {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public final class JavaEnumConstant {
     private final JavaClass declaringClass;
     private final String name;
 
-    public JavaEnumConstant(DomainBuilders.JavaEnumConstantBuilder builder) {
+    JavaEnumConstant(JavaEnumConstantBuilder builder) {
         this.declaringClass = builder.getDeclaringClass();
         this.name = builder.getName();
     }
 
+    @PublicAPI(usage = ACCESS)
     public JavaClass getDeclaringClass() {
         return declaringClass;
     }
 
+    @PublicAPI(usage = ACCESS)
     public String name() {
         return name;
     }

@@ -1,14 +1,18 @@
 package com.tngtech.archunit.base;
 
 
+import com.tngtech.archunit.PublicAPI;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
  * A predicate holding a description.
  *
  * @param <T> The type of objects the predicate applies to
  */
+@PublicAPI(usage = INHERITANCE)
 public abstract class DescribedPredicate<T> {
     private String description;
 
@@ -105,6 +109,10 @@ public abstract class DescribedPredicate<T> {
                 return object.equals(input);
             }
         };
+    }
+
+    public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<T> predicate) {
+        return not(predicate).as("doesn't %s", predicate.getDescription());
     }
 
     public static <T> DescribedPredicate<T> dont(final DescribedPredicate<T> predicate) {

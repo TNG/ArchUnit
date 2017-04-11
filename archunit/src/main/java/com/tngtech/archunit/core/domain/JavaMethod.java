@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -13,6 +14,7 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public class JavaMethod extends JavaCodeUnit {
@@ -20,7 +22,7 @@ public class JavaMethod extends JavaCodeUnit {
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
     private final Supplier<Optional<Object>> annotationDefaultValue;
 
-    public JavaMethod(DomainBuilders.JavaMethodBuilder builder) {
+    JavaMethod(DomainBuilders.JavaMethodBuilder builder) {
         super(builder);
         methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
         annotationDefaultValue = builder.getAnnotationDefaultValue();
@@ -33,10 +35,12 @@ public class JavaMethod extends JavaCodeUnit {
      *
      * @return Optional.of(defaultValue) if applicable, otherwise Optional.absent()
      */
+    @PublicAPI(usage = ACCESS)
     public Optional<Object> getDefaultValue() {
         return annotationDefaultValue.get();
     }
 
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getCallsOfSelf() {
         return getAccessesToSelf();
     }

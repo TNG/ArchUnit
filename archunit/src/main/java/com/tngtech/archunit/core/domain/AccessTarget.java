@@ -8,6 +8,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -21,6 +22,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBu
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -65,6 +67,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @see FieldAccessTarget#resolve()
      * @see ConstructorCallTarget#resolve()
      */
+    @PublicAPI(usage = ACCESS)
     public abstract Set<? extends JavaMember> resolve();
 
     @Override
@@ -136,11 +139,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
-    public static class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
+    public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
-        public FieldAccessTarget(FieldAccessTargetBuilder builder) {
+        FieldAccessTarget(FieldAccessTargetBuilder builder) {
             super(builder.getOwner(), builder.getName(), builder.getFullName());
             this.type = builder.getType();
             this.field = Suppliers.memoize(builder.getField());
@@ -154,6 +157,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * @return A field that matches this target, or {@link Optional#absent()} if no matching field was imported.
          */
+        @PublicAPI(usage = ACCESS)
         public Optional<JavaField> resolveField() {
             return field.get();
         }
@@ -180,7 +184,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         public JavaClassList getParameters() {
-            return new JavaClassList(parameters);
+            return DomainObjectCreationContext.createJavaClassList(parameters);
         }
 
         @Override
@@ -198,10 +202,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public abstract Set<? extends JavaCodeUnit> resolve();
     }
 
-    public static class ConstructorCallTarget extends CodeUnitCallTarget {
+    public static final class ConstructorCallTarget extends CodeUnitCallTarget {
         private final Supplier<Optional<JavaConstructor>> constructor;
 
-        public ConstructorCallTarget(ConstructorCallTargetBuilder builder) {
+        ConstructorCallTarget(ConstructorCallTargetBuilder builder) {
             super(builder);
             constructor = builder.getConstructor();
         }
@@ -210,6 +214,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @return A constructor that matches this target, or {@link Optional#absent()} if no matching constructor
          * was imported.
          */
+        @PublicAPI(usage = ACCESS)
         public Optional<JavaConstructor> resolveConstructor() {
             return constructor.get();
         }
@@ -224,10 +229,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
-    public static class MethodCallTarget extends CodeUnitCallTarget {
+    public static final class MethodCallTarget extends CodeUnitCallTarget {
         private final Supplier<Set<JavaMethod>> methods;
 
-        public MethodCallTarget(MethodCallTargetBuilder builder) {
+        MethodCallTarget(MethodCallTargetBuilder builder) {
             super(builder);
             this.methods = Suppliers.memoize(builder.getMethods());
         }
@@ -272,21 +277,28 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<AccessTarget> declaredIn(Class<?> clazz) {
             return declaredIn(clazz.getName());
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<AccessTarget> declaredIn(String className) {
             return declaredIn(GET_NAME.is(equalTo(className)).as(className));
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<AccessTarget> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
             return Get.<JavaClass>owner().is(predicate)
                     .as("declared in %s", predicate.getDescription())
                     .forSubType();
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<AccessTarget> constructor() {
             return new DescribedPredicate<AccessTarget>("constructor") {
                 @Override

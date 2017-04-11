@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
@@ -19,6 +20,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
 
@@ -40,7 +42,7 @@ import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
  * in a different slice.<br/>
  * The resulting {@link ClassesTransformer} can be used to specify an {@link ArchRule} on slices.
  */
-public class Slices implements DescribedIterable<Slice> {
+public final class Slices implements DescribedIterable<Slice> {
     private final Iterable<Slice> slices;
     private final String description;
 
@@ -158,7 +160,7 @@ public class Slices implements DescribedIterable<Slice> {
         }
     }
 
-    public static class Creator {
+    public static final class Creator {
         private final JavaClasses classes;
 
         private Creator(JavaClasses classes) {
@@ -184,6 +186,7 @@ public class Slices implements DescribedIterable<Slice> {
          * @param packageIdentifier The identifier to match against
          * @return Slices partitioned according the supplied package identifier
          */
+        @PublicAPI(usage = ACCESS)
         public Slices matching(String packageIdentifier) {
             SliceBuilders sliceBuilders = new SliceBuilders();
             PackageMatcher matcher = PackageMatcher.of(packageIdentifier);

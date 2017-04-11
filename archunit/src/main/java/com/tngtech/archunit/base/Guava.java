@@ -3,13 +3,15 @@ package com.tngtech.archunit.base;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
+import com.tngtech.archunit.Internal;
 
 /**
  * NOTE: We keep Google Guava out of the public API and use the Gradle Shadow plugin to repackage the internally
  * used Guava classes. This ensures they don't clash with other versions of Guava we might encounter while
  * scanning classes from the classpath.
  */
-public class Guava {
+@Internal
+public final class Guava {
     private static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
         return new Predicate<T>() {
             @Override
@@ -28,13 +30,15 @@ public class Guava {
         };
     }
 
-    public static class Maps {
+    @Internal
+    public static final class Maps {
         public static <K, V> Map<K, V> filterValues(Map<K, V> map, DescribedPredicate<? super V> predicate) {
             return com.google.common.collect.Maps.filterValues(map, toGuava(predicate));
         }
     }
 
-    public static class Iterables {
+    @Internal
+    public static final class Iterables {
         public static <T> Iterable<T> filter(Iterable<T> iterable, DescribedPredicate<? super T> predicate) {
             return com.google.common.collect.Iterables.filter(iterable, toGuava(predicate));
         }

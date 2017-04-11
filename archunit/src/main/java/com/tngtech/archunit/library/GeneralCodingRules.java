@@ -1,5 +1,6 @@
 package com.tngtech.archunit.library;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -7,6 +8,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.declaredIn;
@@ -24,7 +26,11 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-public class GeneralCodingRules {
+public final class GeneralCodingRules {
+    private GeneralCodingRules() {
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> ACCESS_STANDARD_STREAMS = accessStandardStreams();
 
     private static ArchCondition<JavaClass> accessStandardStreams() {
@@ -43,9 +49,11 @@ public class GeneralCodingRules {
      * <li>Writing to the console is synchronized and can lead to bottle necks</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS =
             noClasses().should(ACCESS_STANDARD_STREAMS);
 
+    @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> THROW_GENERIC_EXCEPTIONS = throwGenericExceptions();
 
     private static ArchCondition<JavaClass> throwGenericExceptions() {
@@ -65,9 +73,11 @@ public class GeneralCodingRules {
      * It is generally good practice to throw specific exceptions like {@link java.lang.IllegalArgumentException}
      * or custom exceptions, instead of throwing generic exceptions like {@link java.lang.RuntimeException}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS =
             noClasses().should(THROW_GENERIC_EXCEPTIONS);
 
+    @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
             setFieldWhere(resideInAPackage("java.util.logging..")
                     .onResultOf(Get.<JavaFieldAccess, FieldAccessTarget>target().then(GET_TYPE)))
@@ -77,6 +87,7 @@ public class GeneralCodingRules {
      * Most projects use the more powerful LOG4J or Logback instead of java.util.logging, often hidden behind
      * SLF4J. In this case it's important to ensure consistent use of the agreed logging framework.
      */
+    @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING =
             noClasses().should(USE_JAVA_UTIL_LOGGING);
 }

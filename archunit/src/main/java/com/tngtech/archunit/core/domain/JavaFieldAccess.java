@@ -5,6 +5,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
@@ -12,6 +14,7 @@ import org.objectweb.asm.Opcodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 
@@ -22,11 +25,12 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
     private final AccessType accessType;
 
-    public JavaFieldAccess(JavaFieldAccessBuilder builder) {
+    JavaFieldAccess(JavaFieldAccessBuilder builder) {
         super(builder);
         accessType = checkNotNull(builder.getAccessType());
     }
 
+    @PublicAPI(usage = ACCESS)
     public AccessType getAccessType() {
         return accessType;
     }
@@ -58,6 +62,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         return MESSAGE_TEMPLATE.get(accessType);
     }
 
+    @Internal
     public static String getDescriptionTemplateFor(Set<AccessType> accessTypes) {
         return accessTypes.size() == 1
                 ? MESSAGE_TEMPLATE.get(getOnlyElement(accessTypes))
@@ -65,7 +70,10 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     }
 
     public enum AccessType {
-        GET(Opcodes.GETFIELD | Opcodes.GETSTATIC), SET(Opcodes.PUTFIELD | Opcodes.PUTSTATIC);
+        @PublicAPI(usage = ACCESS)
+        GET(Opcodes.GETFIELD | Opcodes.GETSTATIC),
+        @PublicAPI(usage = ACCESS)
+        SET(Opcodes.PUTFIELD | Opcodes.PUTSTATIC);
 
         private final int asmOpCodes;
 
@@ -73,6 +81,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             this.asmOpCodes = asmOpCodes;
         }
 
+        @PublicAPI(usage = ACCESS)
         public static AccessType forOpCode(int opCode) {
             for (AccessType accessType : values()) {
                 if ((accessType.asmOpCodes & opCode) == opCode) {
@@ -84,7 +93,11 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         }
     }
 
-    public static class Predicates {
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
             return new DescribedPredicate<JavaFieldAccess>("access type " + accessType) {
                 @Override
@@ -94,6 +107,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             };
         }
 
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
             return new DescribedPredicate<JavaFieldAccess>("target " + predicate.getDescription()) {
                 @Override
