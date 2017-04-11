@@ -8,7 +8,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -18,6 +19,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
@@ -34,7 +36,7 @@ public class ClassCacheConcurrencyTest {
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Spy
-    private ClassFileImporter classFileImporter = new ClassFileImporter();
+    private CacheClassFileImporter classFileImporter;
 
     @InjectMocks
     private ClassCache cache = new ClassCache();
@@ -51,7 +53,7 @@ public class ClassCacheConcurrencyTest {
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
         }
-        verify(classFileImporter, atMost(TEST_CLASSES.size())).importLocations(anyCollection());
+        verify(classFileImporter, atMost(TEST_CLASSES.size())).importClasses(any(ImportOption.class), anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 

@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -127,7 +127,7 @@ public class ClassCacheTest {
     }
 
     private void verifyNumberOfImports(int number) {
-        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOption.class), anySet());
+        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOption.class), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 

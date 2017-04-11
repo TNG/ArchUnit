@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -111,7 +112,7 @@ class ClassCache {
 
     // Used for testing -> that's also the reason it's declared top level
     static class CacheClassFileImporter {
-        JavaClasses importClasses(ImportOption importOption, Set<Location> locations) {
+        JavaClasses importClasses(ImportOption importOption, Collection<Location> locations) {
             return new ClassFileImporter().withImportOption(importOption).importLocations(locations);
         }
     }
