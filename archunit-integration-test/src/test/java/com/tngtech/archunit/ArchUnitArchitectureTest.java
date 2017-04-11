@@ -46,6 +46,7 @@ public class ArchUnitArchitectureTest {
 
     @ArchTest
     public static final ArchRule layers_are_respected = layeredArchitecture()
+            .layer("Root").definedBy("com.tngtech.archunit")
             .layer("Base").definedBy("com.tngtech.archunit.base..")
             .layer("Core").definedBy("com.tngtech.archunit.core..")
             .layer("Lang").definedBy("com.tngtech.archunit.lang..")
@@ -56,7 +57,7 @@ public class ArchUnitArchitectureTest {
             .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit")
             .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit")
             .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit")
-            .whereLayer("Base").mayOnlyBeAccessedByLayers("Core", "Lang", "Library", "JUnit");
+            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit");
 
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =

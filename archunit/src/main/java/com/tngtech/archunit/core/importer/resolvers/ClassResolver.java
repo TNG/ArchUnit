@@ -1,11 +1,16 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
+import java.lang.reflect.Constructor;
 import java.net.URI;
+import java.util.List;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 
@@ -69,10 +74,87 @@ public interface ClassResolver {
     @Internal
     final class Factory {
         public ClassResolver create() {
+            Optional<ClassResolver> resolver = getExplicitlyConfiguredClassResolver();
+            if (resolver.isPresent()) {
+                return resolver.get();
+            }
+
             boolean resolveFromClasspath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
             return resolveFromClasspath ?
-                    new ClassResolverFromClassPath() :
+                    new ClassResolverFromClasspath() :
                     new NoOpClassResolver();
+        }
+
+        private Optional<ClassResolver> getExplicitlyConfiguredClassResolver() {
+            Optional<String> resolverClassName = ArchConfiguration.get().getClassResolver();
+            if (!resolverClassName.isPresent()) {
+                return Optional.absent();
+            }
+
+            Class<?> resolverClass = classForName(resolverClassName);
+            List<String> args = ArchConfiguration.get().getClassResolverArguments();
+            ClassResolverProvider classResolverProvider = createProvider(resolverClass, args);
+            return Optional.of(classResolverProvider.get());
+        }
+
+        @MayResolveTypesViaReflection(reason = "Loading a ClassResolver implementation is independent of the actual import")
+        private Class<?> classForName(Optional<String> resolverClassName) {
+            try {
+                return Class.forName(resolverClassName.get());
+            } catch (ClassNotFoundException e) {
+                throw ClassResolverConfigurationException.onLoadingClass(resolverClassName.get(), e);
+            }
+        }
+
+        private ClassResolverProvider createProvider(final Class<?> resolverClass, final List<String> args) {
+            final Optional<Constructor<?>> listConstructor = tryGetListConstructor(resolverClass);
+            if (listConstructor.isPresent()) {
+                return new ClassResolverProvider(instantiationException(listConstructor.get(), args)) {
+                    @Override
+                    ClassResolver tryGet() throws Exception {
+                        return (ClassResolver) listConstructor.get().newInstance(args);
+                    }
+                };
+            }
+            if (!args.isEmpty()) {
+                throw ClassResolverConfigurationException.onWrongConstructor(resolverClass, args);
+            }
+            return tryCreateResolverProviderForDefaultConstructor(resolverClass, args);
+        }
+
+        private Function<Exception, ClassResolverConfigurationException> instantiationException(
+                final Constructor<?> constructor, final List<String> args) {
+
+            return new Function<Exception, ClassResolverConfigurationException>() {
+                @Override
+                public ClassResolverConfigurationException apply(Exception cause) {
+                    return ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
+                }
+            };
+        }
+
+        private Optional<Constructor<?>> tryGetListConstructor(Class<?> resolverClass) {
+            try {
+                return Optional.<Constructor<?>>of(resolverClass.getConstructor(List.class));
+            } catch (NoSuchMethodException e) {
+                return Optional.absent();
+            }
+        }
+
+        private ClassResolverProvider tryCreateResolverProviderForDefaultConstructor(final Class<?> resolverClass, final List<String> args) {
+            final Constructor<?> defaultConstructor;
+            try {
+                defaultConstructor = resolverClass.getConstructor();
+            } catch (NoSuchMethodException e) {
+                throw ClassResolverConfigurationException.onWrongArguments(resolverClass, e);
+            }
+
+            return new ClassResolverProvider(instantiationException(defaultConstructor, args)) {
+                @Override
+                ClassResolver tryGet() throws Exception {
+                    return (ClassResolver) resolverClass.newInstance();
+                }
+            };
         }
 
         static class NoOpClassResolver implements ClassResolver {
@@ -84,6 +166,24 @@ public interface ClassResolver {
             public Optional<JavaClass> tryResolve(String typeName) {
                 return Optional.absent();
             }
+        }
+
+        private abstract class ClassResolverProvider {
+            private final Function<Exception, ClassResolverConfigurationException> onFailure;
+
+            ClassResolverProvider(Function<Exception, ClassResolverConfigurationException> onFailure) {
+                this.onFailure = onFailure;
+            }
+
+            ClassResolver get() {
+                try {
+                    return tryGet();
+                } catch (Exception e) {
+                    throw onFailure.apply(e);
+                }
+            }
+
+            abstract ClassResolver tryGet() throws Exception;
         }
     }
 }

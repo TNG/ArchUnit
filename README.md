@@ -330,6 +330,21 @@ Supported configuration options are
 # default = false - This has an performance impact
 resolveMissingDependenciesFromClassPath=true
 
+# Extends the customizability of 'resolveMissingDependenciesFromClassPath' by allowing to specify
+# a custom implementation of ClassResolver. Such a custom implementation has full control, how
+# type names should be resolved against JavaClasses. SelectedClassResolverFromClasspath is one example,
+# it allows to resolve some types from the classpath (based on their package, while others are 
+# just stubbed. E.g. if you want to resolve classes from your own app, but not from java.util.. 
+# or similar.
+#
+# classResolver.args allows to configure constructor parameters, to be supplied to a constructor
+# accepting a single List<String> parameter. If no arguments are configured, a default constructor
+# is supported as well.
+#
+# default = absent - fall back to evaluating 'resolveMissingDependenciesFromClassPath'
+classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
+classResolver.args=com.tngtech.archunit.core,com.tngtech.archunit.base
+
 # Should ArchUnit include the MD5 sum of imported classes into the JavaClass#getSource()
 # This way failure tracking can be improved, if there are inconsistencies within the imported sources.
 # 

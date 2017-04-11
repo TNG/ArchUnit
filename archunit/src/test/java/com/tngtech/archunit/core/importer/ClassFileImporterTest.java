@@ -1607,6 +1607,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void resolve_missing_dependencies_from_classpath_can_be_toogled() throws Exception {
+        ArchConfiguration.get().unsetClassResolver();
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
         JavaClass clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 

@@ -9,13 +9,21 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * A {@link ClassResolver}, that tries to locate missing dependencies on the classpath.
+ * I.e. uses {@link Class#getResource(String)} to find the {@link URI} of the classfile for the missing
+ * type, then uses the supplied {@link ClassUriImporter} to import the type.
+ */
 @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
-public final class ClassResolverFromClassPath implements ClassResolver {
+public final class ClassResolverFromClasspath implements ClassResolver {
     private ClassUriImporter classUriImporter;
 
     @Override
     public void setClassUriImporter(ClassUriImporter classUriImporter) {
-        this.classUriImporter = classUriImporter;
+        this.classUriImporter = checkNotNull(classUriImporter,
+                "%s may not be null", ClassUriImporter.class.getSimpleName());
     }
 
     @Override

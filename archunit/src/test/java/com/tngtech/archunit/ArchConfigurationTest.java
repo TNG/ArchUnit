@@ -12,8 +12,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchConfigurationTest {
     private static final String PROPERTIES_FILE_NAME = "archconfigtest.properties";
@@ -45,7 +45,7 @@ public class ArchConfigurationTest {
     }
 
     @Test
-    public void properties_explicitly_set() {
+    public void simple_properties_explicitly_set() {
         writeProperties(ImmutableMap.of(
                 ArchConfiguration.RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, true,
                 ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, true
@@ -55,6 +55,21 @@ public class ArchConfigurationTest {
 
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
         assertThat(configuration.md5InClassSourcesEnabled()).isTrue();
+        assertThat(configuration.getClassResolver()).isAbsent();
+        assertThat(configuration.getClassResolverArguments()).isEmpty();
+    }
+
+    @Test
+    public void resolver_explicitly_set() {
+        writeProperties(ImmutableMap.of(
+                ArchConfiguration.CLASS_RESOLVER, "some.Resolver",
+                ArchConfiguration.CLASS_RESOLVER_ARGS, "one.foo,two.bar"
+        ));
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        assertThat(configuration.getClassResolver()).contains("some.Resolver");
+        assertThat(configuration.getClassResolverArguments()).containsExactly("one.foo", "two.bar");
     }
 
     @Test
