@@ -1,4 +1,4 @@
-package com.tngtech.archunit.lang.syntax;
+package com.tngtech.archunit.testutil.syntax;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
@@ -20,8 +21,6 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
-import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
@@ -39,16 +38,15 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
-public class RandomSyntaxTest {
-    private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTest.class);
-    private static final Random random = new Random();
+public abstract class RandomSyntaxTestBase {
+    private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTestBase.class);
+    protected static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
-    @DataProvider
-    public static List<List<?>> random_rules() {
+    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed, String... patternsExcludedFromDescription) {
         List<List<?>> result = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            SyntaxSpec spec = new SyntaxSpec();
+            SyntaxSpec spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, patternsExcludedFromDescription));
             result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
         }
         return result;
@@ -72,14 +70,15 @@ public class RandomSyntaxTest {
                 "overridden rule text");
     }
 
-    private static class SyntaxSpec {
+    private static class SyntaxSpec<T> {
         private static final int MAX_STEPS = 50;
 
-        private final List<String> expectedDescription = new ArrayList<>();
+        private final ExpectedDescription expectedDescription;
         private final ArchRule actualArchRule;
 
-        SyntaxSpec() {
-            Step firstStep = new PartialStep(expectedDescription, GivenClasses.class, initRuleDefinition());
+        SyntaxSpec(RandomSyntaxSeed<T> seed, ExpectedDescription expectedDescription) {
+            this.expectedDescription = expectedDescription;
+            Step firstStep = new PartialStep(expectedDescription, seed.getType(), seed.getValue());
             LOG.debug("Starting from {}", firstStep);
             try {
                 LastStep result = firstStep.continueSteps(0, MAX_STEPS);
@@ -90,22 +89,45 @@ public class RandomSyntaxTest {
             }
         }
 
-        private GivenClasses initRuleDefinition() {
-            if (random.nextBoolean()) {
-                expectedDescription.add("classes");
-                return ArchRuleDefinition.classes();
-            } else {
-                expectedDescription.add("no classes");
-                return ArchRuleDefinition.noClasses();
-            }
-        }
-
         String getExpectedDescription() {
-            return Joiner.on(" ").join(expectedDescription).replace("dont", "don't");
+            return expectedDescription.toString();
         }
 
         DescribedRule getActualArchRule() {
             return new DescribedRule(actualArchRule);
+        }
+    }
+
+    private static class ExpectedDescription {
+        private final Set<Pattern> patternsToExclude;
+        private final List<String> description = new ArrayList<>();
+
+        private ExpectedDescription(String[] patternsToExclude) {
+            ImmutableSet.Builder<Pattern> patterns = ImmutableSet.builder();
+            for (String p : patternsToExclude) {
+                patterns.add(Pattern.compile(p));
+            }
+            this.patternsToExclude = patterns.build();
+        }
+
+        public static ExpectedDescription from(RandomSyntaxSeed<?> seed, String[] patternsToExclude) {
+            return new ExpectedDescription(patternsToExclude).add(seed.getDescription());
+        }
+
+        private ExpectedDescription add(String expected) {
+            for (Pattern pattern : patternsToExclude) {
+                if (pattern.matcher(expected).matches()) {
+                    return this;
+                }
+            }
+
+            description.add(expected);
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return Joiner.on(" ").join(description).replace("dont", "don't");
         }
     }
 
@@ -123,10 +145,10 @@ public class RandomSyntaxTest {
     }
 
     private abstract static class Step {
-        final List<String> expectedDescription;
+        final ExpectedDescription expectedDescription;
         final TypedValue currentValue;
 
-        private Step(List<String> expectedDescription, TypedValue currentValue) {
+        private Step(ExpectedDescription expectedDescription, TypedValue currentValue) {
             this.expectedDescription = expectedDescription;
             this.currentValue = currentValue;
         }
@@ -140,16 +162,16 @@ public class RandomSyntaxTest {
         final Method method;
         final Parameters parameters;
 
-        <T> PartialStep(List<String> expectedDescription, Class<T> type, T currentValue) {
+        <T> PartialStep(ExpectedDescription expectedDescription, Class<T> type, T currentValue) {
             this(expectedDescription, new TypedValue(type, currentValue),
                     chooseRandomMethod(type).get());
         }
 
-        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method) {
+        private PartialStep(ExpectedDescription expectedDescription, TypedValue currentValue, Method method) {
             this(expectedDescription, currentValue, method, getParametersFor(method));
         }
 
-        private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method,
+        private PartialStep(ExpectedDescription expectedDescription, TypedValue currentValue, Method method,
                             Parameters parameters) {
             super(expectedDescription, currentValue);
             this.method = method;
@@ -226,7 +248,7 @@ public class RandomSyntaxTest {
     }
 
     private static class LastStep extends Step {
-        private LastStep(List<String> expectedDescription, TypedValue currentValue) {
+        private LastStep(ExpectedDescription expectedDescription, TypedValue currentValue) {
             super(expectedDescription, currentValue);
             checkArgument(ArchRule.class.isAssignableFrom(currentValue.type),
                     "Type %s must be assignable to ArchRule", currentValue.type.getName());

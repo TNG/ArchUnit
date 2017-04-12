@@ -16,5 +16,5 @@ public class SlicesIsolationTest {
     @ArchTest
     public static final ArchRule controllers_should_only_use_their_own_slice =
             slices().matching("..controller.(*)..").namingSlices("Controller $1")
-                    .as("Controllers").shouldNotDependOnEachOther();
+                    .as("Controllers").should().notDependOnEachOther();
 }

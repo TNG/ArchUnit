@@ -1,24 +1,25 @@
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 
-class PredicateAggregator<T> {
+@Internal
+public final class PredicateAggregator<T> {
+    private final AddMode<T> addMode;
     private final Optional<DescribedPredicate<T>> predicate;
 
-    PredicateAggregator() {
-        this(Optional.<DescribedPredicate<T>>absent());
+    public PredicateAggregator() {
+        this(AddMode.<T>and(), Optional.<DescribedPredicate<T>>absent());
     }
 
-    private PredicateAggregator(Optional<DescribedPredicate<T>> predicate) {
+    private PredicateAggregator(AddMode<T> addMode, Optional<DescribedPredicate<T>> predicate) {
+        this.addMode = addMode;
         this.predicate = predicate;
     }
 
-    PredicateAggregator<T> and(DescribedPredicate<? super T> furtherPredicate) {
-        DescribedPredicate<T> additional = furtherPredicate.forSubType();
-        return new PredicateAggregator<>(predicate.isPresent() ?
-                Optional.of(predicate.get().and(additional)) :
-                Optional.of(additional));
+    public PredicateAggregator<T> add(DescribedPredicate<? super T> other) {
+        return new PredicateAggregator<>(addMode, Optional.of(addMode.apply(predicate, other)));
     }
 
     public boolean isPresent() {
@@ -27,5 +28,37 @@ class PredicateAggregator<T> {
 
     public DescribedPredicate<T> get() {
         return predicate.get();
+    }
+
+    public PredicateAggregator<T> thatANDs() {
+        return new PredicateAggregator<>(AddMode.<T>and(), predicate);
+    }
+
+    public PredicateAggregator<T> thatORs() {
+        return new PredicateAggregator<>(AddMode.<T>or(), predicate);
+    }
+
+    private abstract static class AddMode<T> {
+        static <T> AddMode<T> and() {
+            return new AddMode<T>() {
+                @Override
+                DescribedPredicate<T> apply(Optional<DescribedPredicate<T>> first, DescribedPredicate<? super T> other) {
+                    DescribedPredicate<T> second = other.forSubType();
+                    return first.isPresent() ? first.get().and(second) : second;
+                }
+            };
+        }
+
+        static <T> AddMode<T> or() {
+            return new AddMode<T>() {
+                @Override
+                DescribedPredicate<T> apply(Optional<DescribedPredicate<T>> first, DescribedPredicate<? super T> other) {
+                    DescribedPredicate<T> second = other.forSubType();
+                    return first.isPresent() ? first.get().or(second) : second;
+                }
+            };
+        }
+
+        abstract DescribedPredicate<T> apply(Optional<DescribedPredicate<T>> first, DescribedPredicate<? super T> other);
     }
 }

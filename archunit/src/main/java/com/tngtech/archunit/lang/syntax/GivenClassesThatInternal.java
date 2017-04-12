@@ -22,11 +22,7 @@ class GivenClassesThatInternal implements GivenClassesThat {
     private final GivenClassesInternal givenClasses;
     private final PredicateAggregator<JavaClass> currentPredicate;
 
-    GivenClassesThatInternal(GivenClassesInternal givenClasses) {
-        this(givenClasses, new PredicateAggregator<JavaClass>());
-    }
-
-    private GivenClassesThatInternal(GivenClassesInternal givenClasses, PredicateAggregator<JavaClass> predicate) {
+    GivenClassesThatInternal(GivenClassesInternal givenClasses, PredicateAggregator<JavaClass> predicate) {
         this.givenClasses = givenClasses;
         this.currentPredicate = predicate;
     }
@@ -252,6 +248,6 @@ class GivenClassesThatInternal implements GivenClassesThat {
     }
 
     private GivenClassesInternal givenWith(DescribedPredicate<? super JavaClass> predicate) {
-        return givenClasses.with(currentPredicate.and(predicate).get());
+        return givenClasses.with(currentPredicate.add(predicate));
     }
 }

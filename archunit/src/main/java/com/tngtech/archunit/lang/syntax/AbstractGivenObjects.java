@@ -10,7 +10,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF>>
-        implements GivenObjects<T>, GivenConjunction<T>, HasPredicates<T, SELF> {
+        implements GivenObjects<T>, GivenConjunction<T> {
 
     private final Factory<T, SELF> factory;
     final Priority priority;
@@ -33,10 +33,8 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
         this.relevantObjectsPredicates = relevantObjectsPredicates;
     }
 
-    @Override
-    public SELF with(DescribedPredicate<? super T> predicate) {
-        PredicateAggregator<T> relevantObjectsPredicates = this.relevantObjectsPredicates.and(predicate);
-        return factory.create(priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
+    SELF with(PredicateAggregator<T> newPredicate) {
+        return factory.create(priority, classesTransformer, prepareCondition, newPredicate, overriddenDescription);
     }
 
     ClassesTransformer<T> finishedClassesTransformer() {
@@ -50,12 +48,21 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
 
     @Override
     public SELF that(DescribedPredicate<? super T> predicate) {
-        return with(predicate);
+        return with(currentPredicate().add(predicate));
     }
 
     @Override
     public SELF and(DescribedPredicate<? super T> predicate) {
-        return with(predicate);
+        return with(currentPredicate().thatANDs().add(predicate));
+    }
+
+    @Override
+    public SELF or(DescribedPredicate<? super T> predicate) {
+        return with(currentPredicate().thatORs().add(predicate));
+    }
+
+    PredicateAggregator<T> currentPredicate() {
+        return relevantObjectsPredicates;
     }
 
     interface Factory<T, GIVEN extends AbstractGivenObjects<T, GIVEN>> {

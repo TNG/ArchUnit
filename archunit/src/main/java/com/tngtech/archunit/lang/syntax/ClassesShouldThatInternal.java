@@ -291,7 +291,7 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     private ClassesShouldThatInternal shouldWith(DescribedPredicate<? super JavaClass> predicate) {
         return new ClassesShouldThatInternal(classesShould,
-                predicateAggregator.and(predicate),
+                predicateAggregator.add(predicate),
                 createCondition);
     }
 

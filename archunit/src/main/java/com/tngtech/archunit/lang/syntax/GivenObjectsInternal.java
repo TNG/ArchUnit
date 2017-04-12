@@ -9,8 +9,7 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
-class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>>
-        implements GivenObjects<T>, HasPredicates<T, GivenObjectsInternal<T>> {
+class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>> implements GivenObjects<T> {
 
     GivenObjectsInternal(Priority priority, ClassesTransformer<T> classesTransformer) {
         this(priority, classesTransformer, Functions.<ArchCondition<T>>identity());

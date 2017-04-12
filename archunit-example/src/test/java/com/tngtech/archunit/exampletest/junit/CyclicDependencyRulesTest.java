@@ -16,26 +16,26 @@ public class CyclicDependencyRulesTest {
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES =
-            slices().matching("..(simplecycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
+            slices().matching("..(simplecycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES =
-            slices().matching("..(constructorcycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
+            slices().matching("..(constructorcycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES =
-            slices().matching("..(inheritancecycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
+            slices().matching("..(inheritancecycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES =
-            slices().matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
+            slices().matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_IN_SIMPLE_SCENARIO =
-            slices().matching("..simplescenario.(*)..").namingSlices("$1").shouldBeFreeOfCycles();
+            slices().matching("..simplescenario.(*)..").namingSlices("$1").should().beFreeOfCycles();
 
     @ArchTest
     public static final ArchRule NO_CYCLES_IN_COMPLEX_SCENARIO =
-            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1").shouldBeFreeOfCycles();
+            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 }
 

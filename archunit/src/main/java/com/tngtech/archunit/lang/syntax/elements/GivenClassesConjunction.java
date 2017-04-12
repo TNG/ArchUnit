@@ -19,6 +19,19 @@ public interface GivenClassesConjunction extends GivenConjunction<JavaClass> {
     @PublicAPI(usage = ACCESS)
     GivenClassesConjunction and(DescribedPredicate<? super JavaClass> predicate);
 
+    /**
+     * @see #and(DescribedPredicate)
+     */
     @PublicAPI(usage = ACCESS)
     GivenClassesThat and();
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    GivenClassesConjunction or(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * @see #or(DescribedPredicate)
+     */
+    @PublicAPI(usage = ACCESS)
+    GivenClassesThat or();
 }

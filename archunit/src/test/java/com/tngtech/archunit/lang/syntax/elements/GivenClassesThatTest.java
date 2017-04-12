@@ -24,6 +24,7 @@ import org.mockito.junit.MockitoRule;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -34,7 +35,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 
 public class GivenClassesThatTest {
@@ -414,6 +415,43 @@ public class GivenClassesThatTest {
         assertThatClasses(classes).matchInAnyOrder(String.class);
     }
 
+    @Test
+    public void or_conjunction() {
+        List<JavaClass> classes = filterResultOf(
+                classes().that().haveSimpleName(List.class.getSimpleName())
+                        .or(have(simpleName(String.class.getSimpleName())))
+                        .or().haveSimpleName(Collection.class.getSimpleName()))
+                .on(List.class, String.class, Collection.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, String.class, Collection.class);
+    }
+
+    /**
+     * We don't support operator precedence, like && and || does, we just aggregate as the predicates come.
+     * If someone really needs such precedence, he has to use custom predicates, like a.and(b.or(c)).
+     */
+    @Test
+    public void conjunctions_aggregate_in_sequence_without_special_precedence() {
+        List<JavaClass> classes = filterResultOf(
+                // (List OR String) AND Collection => empty
+                classes().that().haveSimpleName(List.class.getSimpleName())
+                        .or(have(simpleName(String.class.getSimpleName())))
+                        .and().haveSimpleName(Collection.class.getSimpleName()))
+                .on(List.class, String.class, Collection.class, Iterable.class);
+
+        assertThat(classes).isEmpty();
+
+        classes = filterResultOf(
+                // (List AND String) OR Collection OR Iterable => [Collection, Iterable]
+                classes().that().haveSimpleName(List.class.getSimpleName())
+                        .and(have(simpleName(String.class.getSimpleName())))
+                        .or().haveSimpleName(Collection.class.getSimpleName())
+                        .or().haveSimpleName(Iterable.class.getSimpleName()))
+                .on(List.class, String.class, Collection.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
+    }
+
     private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
     }
@@ -433,7 +471,7 @@ public class GivenClassesThatTest {
             JavaClasses classes = javaClassesViaReflection(toCheck);
             givenClasses.should(condition).check(classes);
 
-            verify(condition, atLeastOnce()).check(classesCaptor.capture(), any(ConditionEvents.class));
+            verify(condition, atLeast(0)).check(classesCaptor.capture(), any(ConditionEvents.class));
 
             return classesCaptor.getAllValues();
         }

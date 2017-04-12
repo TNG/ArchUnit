@@ -18,6 +18,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
+import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -89,7 +90,7 @@ public final class Slices implements DescribedIterable<Slice> {
      * @see Creator#matching(String)
      */
     public static Transformer matching(String packageIdentifier) {
-        return new Transformer(packageIdentifier, String.format("slices matching '%s'", packageIdentifier));
+        return new Transformer(packageIdentifier, slicesMatchingDescription(packageIdentifier));
     }
 
     /**
@@ -101,11 +102,26 @@ public final class Slices implements DescribedIterable<Slice> {
     public static class Transformer implements ClassesTransformer<Slice> {
         private final String packageIdentifier;
         private final String description;
-        private Optional<String> namingPattern = Optional.absent();
+        private final Optional<String> namingPattern;
+        private final PredicateAggregator<Slice> predicate;
 
         private Transformer(String packageIdentifier, String description) {
-            this.packageIdentifier = packageIdentifier;
-            this.description = description;
+            this(packageIdentifier, description, new PredicateAggregator<Slice>());
+        }
+
+        private Transformer(String packageIdentifier, String description, PredicateAggregator<Slice> predicate) {
+            this(packageIdentifier, description, Optional.<String>absent(), predicate);
+        }
+
+        private Transformer(String packageIdentifier,
+                            String description,
+                            Optional<String> namingPattern,
+                            PredicateAggregator<Slice> predicate) {
+
+            this.packageIdentifier = checkNotNull(packageIdentifier);
+            this.description = checkNotNull(description);
+            this.namingPattern = checkNotNull(namingPattern);
+            this.predicate = checkNotNull(predicate);
         }
 
         /**
@@ -116,8 +132,7 @@ public final class Slices implements DescribedIterable<Slice> {
         }
 
         private Transformer namingSlices(Optional<String> pattern) {
-            this.namingPattern = checkNotNull(pattern);
-            return this;
+            return new Transformer(packageIdentifier, description, pattern, predicate);
         }
 
         @Override
@@ -136,6 +151,9 @@ public final class Slices implements DescribedIterable<Slice> {
         @Override
         public Slices transform(JavaClasses classes) {
             Slices slices = new Creator(classes).matching(packageIdentifier);
+            if (predicate.isPresent()) {
+                slices = new Slices(Guava.Iterables.filter(slices, predicate.get()));
+            }
             if (namingPattern.isPresent()) {
                 slices.namingSlices(namingPattern.get());
             }
@@ -144,14 +162,8 @@ public final class Slices implements DescribedIterable<Slice> {
 
         @Override
         public Slices.Transformer that(final DescribedPredicate<? super Slice> predicate) {
-            return new Transformer(packageIdentifier, getDescription()) {
-                @Override
-                public Slices transform(JavaClasses classes) {
-                    Slices transformed = super.transform(classes);
-                    Slices result = new Slices(Guava.Iterables.filter(transformed, predicate));
-                    return result.as(result.getDescription() + " that " + predicate.getDescription());
-                }
-            };
+            String newDescription = getDescription() + " that " + predicate.getDescription();
+            return new Transformer(packageIdentifier, newDescription, namingPattern, this.predicate.add(predicate));
         }
 
         @Override
@@ -194,8 +206,12 @@ public final class Slices implements DescribedIterable<Slice> {
                 Optional<List<String>> groups = matcher.match(clazz.getPackage()).transform(TO_GROUPS);
                 sliceBuilders.add(groups, clazz);
             }
-            return new Slices(sliceBuilders.build()).as(String.format("slices matching '%s'", packageIdentifier));
+            return new Slices(sliceBuilders.build()).as(slicesMatchingDescription(packageIdentifier));
         }
+    }
+
+    private static String slicesMatchingDescription(String packageIdentifier) {
+        return String.format("slices matching '%s'", packageIdentifier);
     }
 
     private static class SliceBuilders {
