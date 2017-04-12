@@ -43,6 +43,11 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
     }
 
     @Override
+    public GivenClassesThat and() {
+        return that();
+    }
+
+    @Override
     public GivenClassesThat that() {
         return new GivenClassesThatInternal(this);
     }

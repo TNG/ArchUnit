@@ -14,11 +14,10 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
         implements HasName, HasDescription, HasOwner<JavaCodeUnit> {
-
-    private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
 
     private final JavaCodeUnit origin;
     private final TARGET target;
@@ -104,7 +103,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @Internal
     public String getDescriptionWithTemplate(String template) {
         String description = String.format(template, getOwner().getFullName(), getTarget().getFullName());
-        String location = String.format(LOCATION_TEMPLATE, getLocationClass().getSimpleName(), getLineNumber());
+        String location = formatLocation(getLocationClass(), getLineNumber());
         return String.format("%s in %s", description, location);
     }
 

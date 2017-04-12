@@ -27,7 +27,9 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
@@ -399,6 +401,17 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(List.class, String.class);
+    }
+
+    @Test
+    public void and_conjunction() {
+        List<JavaClass> classes = filterResultOf(
+                classes().that().haveNameMatching(".*\\..*i.*")
+                        .and(have(nameMatching(".*\\..*(s|S).*")))
+                        .and().haveNameMatching(".*\\..*n.*"))
+                .on(List.class, String.class, Collection.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class);
     }
 
     private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {

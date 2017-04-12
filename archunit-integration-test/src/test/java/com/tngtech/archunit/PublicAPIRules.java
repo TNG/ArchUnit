@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
+import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -40,14 +41,15 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 public class PublicAPIRules {
     @ArchTest
     public static final ArchRule only_public_API_classes_or_classes_explicitly_marked_as_internal_are_accessible =
-            // FIXME: Support combining filter predicates within the fluent API
             classes()
-                    .that(are(not(publicAPI()))
-                            .and(are(not(internal())))
-                            .and(are(not(assignableTo(Annotation.class))))
-                            .and(are(not(enclosedInANonPublicClass())))
-                            .and(dont(resideInAPackage(THIRDPARTY_PACKAGE_IDENTIFIER))))
+                    .that(are(not(publicAPI())))
+                    .and(are(not(internal())))
+                    .and().areNotAssignableTo(Annotation.class)
+                    .and(are(not(enclosedInANonPublicClass())))
+                    .and().resideOutsideOfPackage(THIRDPARTY_PACKAGE_IDENTIFIER)
+
                     .should().notBePublic()
+
                     .as("classes that are not explicitly designed as API should not be public")
                     .because("we risk extensibility and maintainability of ArchUnit, if internal classes leak to users");
 
@@ -55,25 +57,29 @@ public class PublicAPIRules {
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
             // TODO: all(members()) should instead be members() and part of the fluent API
             all(members())
-                    .that(are(publicWithoutMarking())
-                            .and(dont(inheritPublicAPI()))
-                            .and(are(relevantArchUnitMembers())))
+                    .that(are(withoutAPIMarking()))
+                    .and(dont(inheritPublicAPI()))
+                    .and(are(relevantArchUnitMembers()))
+
                     .should(notBePublic())
-                    .because("users of ArchUnit should only inherit from intended classes, to preserve maintainability");
+
+                    .because("users of ArchUnit should only access intended members, to preserve maintainability");
 
     @ArchTest
     public static final ArchRule all_public_classes_that_are_not_meant_for_inheritance_or_internal_are_final =
-            // FIXME: Support combining filter predicates within the fluent API
             classes()
-                    .that(are(modifier(PUBLIC).as("public")).<JavaClass>forSubType()
-                            .and(haveAPublicConstructor())
-                            .and(are(not(internal())))
-                            .and(are(not(enclosedInANonPublicClass())))
-                            .and(dont(resideInAPackage(THIRDPARTY_PACKAGE_IDENTIFIER)))
-                            .and(are(not(equivalentTo(ArchUnitRunner.class)))))
+                    .that().arePublic()
+                    .and(haveAPublicConstructor())
+                    .and(are(not(internal())))
+                    .and(are(not(enclosedInANonPublicClass())))
+                    .and().resideOutsideOfPackage(THIRDPARTY_PACKAGE_IDENTIFIER)
+                    .and(are(not(equivalentTo(ArchUnitRunner.class))))
+
                     .should(bePublicAPIForInheritance())
                     .orShould(beInterfaces())
                     .orShould().haveModifier(FINAL)
+
+                    .as("all public classes not meant for inheritance should be final")
                     .because("users of ArchUnit should only inherit from intended classes, to preserve maintainability");
 
     private static DescribedPredicate<JavaClass> publicAPI() {
@@ -140,14 +146,18 @@ public class PublicAPIRules {
         return declaredIn(resideInAPackage(packageIdentifier).as("class in '%s'", packageIdentifier));
     }
 
+    // TODO: Would be a nice feature, to record the line numbers of members as well
     private static ArchCondition<JavaMember> notBePublic() {
         return new ArchCondition<JavaMember>("not be public") {
             @Override
             public void check(JavaMember item, ConditionEvents events) {
                 boolean satisfied = !item.getModifiers().contains(PUBLIC);
                 events.add(new SimpleConditionEvent<>(item, satisfied,
-                        String.format("member %s.%s is %spublic",
-                                item.getOwner().getName(), item.getName(), satisfied ? "not " : "")));
+                        String.format("member %s.%s is %spublic in %s",
+                                item.getOwner().getName(),
+                                item.getName(),
+                                satisfied ? "not " : "",
+                                Formatters.formatLocation(item.getOwner(), 0))));
             }
         };
     }
@@ -182,11 +192,11 @@ public class PublicAPIRules {
         };
     }
 
-    private static DescribedPredicate<JavaMember> publicWithoutMarking() {
+    private static DescribedPredicate<JavaMember> withoutAPIMarking() {
         return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubType()
                 .and(not(annotatedWith(Internal.class)).<JavaMember>forSubType())
                 .and(declaredIn(modifier(PUBLIC)))
-                .as("public without marking");
+                .as("without API marking");
     }
 
     private static DescribedPredicate<JavaMember> inheritPublicAPI() {

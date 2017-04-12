@@ -1,6 +1,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 
@@ -13,4 +14,11 @@ public interface GivenClassesConjunction extends GivenConjunction<JavaClass> {
 
     @PublicAPI(usage = ACCESS)
     ClassesShould should();
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    GivenClassesConjunction and(DescribedPredicate<? super JavaClass> predicate);
+
+    @PublicAPI(usage = ACCESS)
+    GivenClassesThat and();
 }

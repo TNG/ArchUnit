@@ -5,14 +5,24 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
-import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
-@Internal
-public class Formatters {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public final class Formatters {
+    private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
+
     private Formatters() {
     }
 
+    /**
+     * @param ownerName  Class name where the method is declared
+     * @param methodName Name of the method
+     * @param parameters Parameters of the method
+     * @return Arguments formatted as "ownerName.methodName(fqn.param1, fqn.param2, ...)"
+     */
+    @PublicAPI(usage = ACCESS)
     public static String formatMethod(String ownerName, String methodName, JavaClassList parameters) {
         return format(ownerName, methodName, formatMethodParameters(parameters));
     }
@@ -21,6 +31,14 @@ public class Formatters {
         return ownerName + "." + methodName + "(" + parameters + ")";
     }
 
+    /**
+     * @param ownerName  Class name where the method is declared (may be simple or fqn)
+     * @param methodName Name of the method
+     * @param parameters Names of parameter types (may be simple or fqn)
+     * @return Arguments formatted as "simple(ownerName).methodName(simple(param1), simple(param2), ...)",
+     * where simple(..) ensures the simple type name (compare {@link #ensureSimpleName(String)})
+     */
+    @PublicAPI(usage = ACCESS)
     public static String formatMethodSimple(String ownerName, String methodName, List<String> parameters) {
         List<String> simpleParams = new ArrayList<>();
         for (String parameter : parameters) {
@@ -29,6 +47,13 @@ public class Formatters {
         return formatMethod(ensureSimpleName(ownerName), methodName, simpleParams);
     }
 
+    /**
+     * @param ownerName  Class name where the method is declared
+     * @param methodName Name of the method
+     * @param parameters Names of parameter types
+     * @return Arguments formatted (as passed) as "ownerName.methodName(param1, param2, ...)"
+     */
+    @PublicAPI(usage = ACCESS)
     public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
         return format(ownerName, methodName, formatMethodParameterTypeNames(parameters));
     }
@@ -41,10 +66,21 @@ public class Formatters {
         return formatMethodParameterTypeNames(names);
     }
 
+    /**
+     * @param typeNames List of type names
+     * @return Arguments formatted as "param1, param2, ..."
+     */
+    @PublicAPI(usage = ACCESS)
     public static String formatMethodParameterTypeNames(List<String> typeNames) {
         return Joiner.on(", ").join(typeNames);
     }
 
+    /**
+     * @param name A possibly fully qualified class name
+     * @return A best guess of the simple name, i.e. prefixes like 'a.b.c.' cut off, 'Some$' of 'Some$Inner' as well.
+     * Returns an empty String, if the name belongs to an anonymous class (e.g. some.Type$1).
+     */
+    @PublicAPI(usage = ACCESS)
     public static String ensureSimpleName(String name) {
         int innerClassStart = name.lastIndexOf('$');
         int classStart = name.lastIndexOf('.');
@@ -60,5 +96,17 @@ public class Formatters {
     //       so we mimic this behavior
     private static boolean isAnonymousRest(String lastPart) {
         return Ints.tryParse(lastPart) != null;
+    }
+
+    /**
+     * @param clazz      Class determining the location
+     * @param lineNumber Line number of the location
+     * @return Arguments formatted as "(${clazz.getSimpleName()}.java:${lineNumber})". This format is (at least
+     * by IntelliJ Idea) recognized as location, if it's the end of a failure line, thus enabling IDE support,
+     * to jump to a violation.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static String formatLocation(JavaClass clazz, int lineNumber) {
+        return String.format(LOCATION_TEMPLATE, clazz.getSimpleName(), lineNumber);
     }
 }

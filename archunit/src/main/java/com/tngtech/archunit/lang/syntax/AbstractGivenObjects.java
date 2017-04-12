@@ -53,6 +53,11 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
         return with(predicate);
     }
 
+    @Override
+    public SELF and(DescribedPredicate<? super T> predicate) {
+        return with(predicate);
+    }
+
     interface Factory<T, GIVEN extends AbstractGivenObjects<T, GIVEN>> {
         GIVEN create(Priority priority,
                      ClassesTransformer<T> classesTransformer,

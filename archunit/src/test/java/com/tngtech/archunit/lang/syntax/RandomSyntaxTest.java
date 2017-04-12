@@ -142,7 +142,7 @@ public class RandomSyntaxTest {
 
         <T> PartialStep(List<String> expectedDescription, Class<T> type, T currentValue) {
             this(expectedDescription, new TypedValue(type, currentValue),
-                    chooseRandomMethod(currentValue.getClass()).get());
+                    chooseRandomMethod(type).get());
         }
 
         private PartialStep(List<String> expectedDescription, TypedValue currentValue, Method method) {

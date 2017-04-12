@@ -34,6 +34,11 @@ public final class GivenSlices implements GivenObjects<Slice>, GivenConjunction<
         return ArchRule.Factory.create(finishClassesTransformer(), condition, priority);
     }
 
+    @Override
+    public GivenSlices and(DescribedPredicate<? super Slice> predicate) {
+        return that(predicate);
+    }
+
     private Slices.Transformer finishClassesTransformer() {
         return overriddenDescription.isPresent() ?
                 classesTransformer.as(overriddenDescription.get()) :
