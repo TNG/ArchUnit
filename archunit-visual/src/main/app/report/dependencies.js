@@ -16,6 +16,11 @@ let normalizeAngle = angleRad => {
   return angleRad;
 };
 
+let getTitleOffset = (angleRad, TEXTPADDING) => {
+  return [Math.round(TEXTPADDING * Math.sin(angleRad)),
+    Math.round(TEXTPADDING * Math.cos(angleRad))];
+};
+
 let Dependency = class {
   constructor(from, to, kind, inheritanceKind, accessKind, startCodeUnit, targetElement) {
     this.from = from;
@@ -144,20 +149,23 @@ let Dependency = class {
   }
 
   hasDescription() {
-    return this.startCodeUnit || this.targetElement; //TODO: besser && statt || ????
+    return this.startCodeUnit || this.targetElement;
   }
 
-  getDescriptionString() {
+  getDescription() {
     return (this.startCodeUnit || "") + "->" + (this.targetElement || "");
   }
 
-  getTitleOffset(TEXTPADDING) {
-    return [Math.round(TEXTPADDING * Math.sin(this.angleRad)),
-      Math.round(TEXTPADDING * Math.cos(this.angleRad))];
+  getDescriptionWhenFolded(depFrom, depTo) {
+    let start = this.from.substring(depFrom.length + 1);
+    start += ((start && this.startCodeUnit) ? "." : "") + (this.startCodeUnit || "");
+    let end = this.to.substring(depTo.length + 1);
+    end += ((end && this.targetElement) ? "." : "") + (this.targetElement || "");
+    return start + "->" + end;
   }
 
   getEdgesTitleTranslation(TEXTPADDING) {
-    let offset = this.getTitleOffset(TEXTPADDING);
+    let offset = getTitleOffset(this.angleRad, TEXTPADDING);
     return "translate(" + (this.middlePoint[0] + offset[0]) + "," + (this.middlePoint[1] - offset[1]) + ") " +
         "rotate(" + this.angleDeg + ")";
   }
@@ -165,7 +173,16 @@ let Dependency = class {
 
 let filter = dependencies => ({
   by: propertyFunc => ({
-    startsWith: prefix => dependencies.filter(r => propertyFunc(r).startsWith(prefix))
+    startsWith: prefix => dependencies.filter(r => {
+      let property = propertyFunc(r);
+      if (property.startsWith(prefix)) {
+        let rest = property.substring(prefix.length);
+        return rest ? rest.startsWith(".") : true;
+      }
+      else {
+        return false;
+      }
+    })
   })
 });
 
@@ -198,7 +215,7 @@ let groupKindOfDepsBetweenSameElements = (dep1, dep2) => {
     res.inheritanceKind = "";
   }
   else {
-    res.inheritanceKind = dep1.inheritanceKind;
+    res.inheritanceKind = dep1.inheritanceKind || dep2.inheritanceKind;
     res.accessKind = groupAccessKindOfDifferentDepsBetweenSameClasses(dep1.accessKind, dep2.accessKind);
     res.kind = res.inheritanceKind + (res.inheritanceKind ? " " : "") + res.accessKind;
   }
@@ -364,6 +381,17 @@ let Dependencies = class {
 
   getVisible() {
     return this._visibleDependencies;
+  }
+
+  getDetailedDeps(from, to) {
+    let startMatching = filter(this._filtered).by(d => d.from).startsWith(from);
+    let targetMatching = filter(startMatching).by(d => d.to).startsWith(to);
+    return targetMatching.map(d => {
+      return {
+        description: d.getDescriptionWhenFolded(from, to),
+        cssClass: d.getClass()
+      }
+    });
   }
 };
 

@@ -14,6 +14,7 @@
 <div>
     <button id="showHideFilter" onclick="changeFilterVisibility()">Show filter</button>
     <button id="showHideMenu" onclick="changeMenuVisibility()">Show menu</button>
+    <button id="showHideDeps" onclick="changeDepsVisibility()">Show detailed dependencies</button>
 </div>
 <div id="filters">
     <div class="show">
@@ -153,6 +154,10 @@
     </div>
 </div>
 <svg width="960" height="960" id="visualization"></svg>
+<div id="detailedDeps">
+    <h2 style="font-size: 14px">Detailed dependencies:</h2>
+    <ul></ul>
+</div>
 <script src="d3.js"></script>
 <script src="tree-bundle.js"></script>
 <script src="dependencies-bundle.js"></script>
@@ -291,17 +296,23 @@
         .on("click", function (e) {
           let t = d3.select(d3.select(this).node().parentNode).select("text");
           t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
+          if (t.style("visibility") !== "hidden") {
+            let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(root.deps.getDetailedDeps(e.from, e.to));
+            detailedDeps.exit().remove();
+            detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
+            detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+          }
         });
 
     newEdges
         .append("title")
-        .text(e => e.getDescriptionString());
+        .text(e => e.getDescription());
 
     newEdges
         .filter(e => e.hasDescription())
         .append("text")
         .attr("class", e => e.getClass())
-        .text(e => e.getDescriptionString())
+        .text(e => e.getDescription())
         .style("visibility", "hidden")
         .attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
   }
@@ -479,6 +490,12 @@
     d3.select("#showHideMenu").text(() => menu.style("display") === "none" ? "Show menu" : "Hide menu");
   }
 
+  function changeDepsVisibility() {
+    let detailedDeps = d3.select("#detailedDeps");
+    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "inline" : "none");
+    d3.select("#showHideDeps").text(() => detailedDeps.style("display") === "none" ? "Show detailed dependencies" : "Hide detailed dependencies");
+  }
+
   function getRule(sheet, selectorText) {
     for (let i = 0; i < sheet.cssRules.length; i++) {
       if (sheet.cssRules[i].selectorText === selectorText) {
@@ -501,11 +518,19 @@
     setRule(sheet, '.package circle', '{ fill: #' + form.pkgColor.value + '; fill-opacity: ' + form.pkgOpacity.value + ';}');
     setRule(sheet, '.class circle, .abstractclass circle, .interface circle', '{ fill: #' + form.classColor.value
         + '; fill-opacity: ' + form.classOpacity.value + ';}');
+
     setRule(sheet, 'line.methodCall', '{ stroke: #' + form.methodcallColor.value + ';}');
     setRule(sheet, 'line.fieldAccess', '{ stroke: #' + form.fieldaccessColor.value + ';}');
     setRule(sheet, 'line.constructorCall', '{ stroke: #' + form.constructorcallColor.value + ';}');
     setRule(sheet, 'line.implementsAnonymous', '{  stroke-dasharray: ' + form.anonimplDashed.value + ', '
         + form.anonimplDashed.value + '; stroke: #' + form.anonimplColor.value + ';}');
+
+    setRule(sheet, 'li.methodCall', '{ background-color: #' + form.methodcallColor.value + ';}');
+    setRule(sheet, 'li.fieldAccess', '{ background-color: #' + form.fieldaccessColor.value + ';}');
+    setRule(sheet, 'li.constructorCall', '{ background-color: #' + form.constructorcallColor.value + ';}');
+    setRule(sheet, 'li.implementsAnonymous', '{  border: dotted ' + form.anonimplDashed.value + 'px black; ' +
+        'background-color: #' + form.anonimplColor.value + ';}');
+
     setRule(sheet, 'line.several', '{ stroke: #' + form.severalColor.value + ';}');
     return false;
   }

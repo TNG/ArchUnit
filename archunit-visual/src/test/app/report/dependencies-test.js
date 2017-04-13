@@ -557,4 +557,26 @@ describe("Dependencies", () => {
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
   });
+
+  it("lists correctly the detailed dependencies of class", () => {
+    let root = setupSimpleTestTree2();
+    let exp = [
+      "testclass1()->field1",
+      "testclass1()->targetMethod()"
+    ];
+    expect(root.deps.getDetailedDeps("com.tngtech.test.testclass1", "com.tngtech.class2").map(d => d.description))
+        .to.containExactlyDependencies(exp);
+  });
+
+  it("lists correctly the detailed dependencies of folded package", () => {
+    let root = setupSimpleTestTree2();
+    getNode(root, "com.tngtech.test").changeFold();
+    let exp = [
+      "testclass1.testclass1()->field1",
+      "testclass1.testclass1()->targetMethod()",
+      "subtest.subtestclass1.startMethod1()->targetMethod()",
+    ];
+    expect(root.deps.getDetailedDeps("com.tngtech.test", "com.tngtech.class2").map(d => d.description))
+        .to.containExactlyDependencies(exp);
+  });
 });

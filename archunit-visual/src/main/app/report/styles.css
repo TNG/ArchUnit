@@ -1,9 +1,4 @@
-#filters {
-    position: relative;
-    display: none;
-}
-
-#menu {
+#filters, #menu, #detailedDeps {
     position: relative;
     display: none;
 }
@@ -11,6 +6,11 @@
 div.show, div.menu {
     display: inline-block;
     vertical-align: top;
+}
+
+li {
+    float: left;
+    clear: left;
 }
 
 form.inputarea {

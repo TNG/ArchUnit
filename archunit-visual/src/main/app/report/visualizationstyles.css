@@ -49,17 +49,34 @@ line.methodCall {
     stroke: #0000FF;
 }
 
+li.methodCall {
+    background-color: #0000FF;
+}
+
 line.fieldAccess {
     stroke: #FFFF00;
+}
+
+li.fieldAccess {
+    background-color: #FFFF00;
 }
 
 line.constructorCall {
     stroke: #FF0000;
 }
 
+li.constructorCall {
+    background-color: #FF0000;
+}
+
 line.implementsAnonymous {
     stroke-dasharray: 1, 1;
     stroke: #00FFCC;
+}
+
+li.implementsAnonymous {
+    border: dotted 1px black;
+    background-color: #00FFCC;
 }
 
 line.several {
@@ -70,8 +87,16 @@ line.extends {
     stroke-dasharray: 5, 5;
 }
 
+li.extends {
+    border: dashed 1px black;
+}
+
 line.implements {
     stroke-dasharray: 2, 2;
+}
+
+li.implements {
+    border: dotted 1px black;
 }
 
 text.access {
