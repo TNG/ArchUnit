@@ -1,7 +1,7 @@
 'use strict';
 
-let textwidth;
-let CIRCLETEXTPADDING;
+let textWidth;
+let circleTextPadding;
 
 let ProjectData = class {
   constructor(name, fullname, type) {
@@ -12,16 +12,16 @@ let ProjectData = class {
 };
 
 let spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
-  let diff = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
-  return nodeVisualData.r - diff;
+  let spaceBetweenPoints = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
+  return nodeVisualData.r - spaceBetweenPoints;
 };
 
 let VisualData = class {
   constructor(x, y, r) {
     this.x = x;
     this.y = y;
-    this.origR = r;
-    this.r = this.origR;
+    this.origRadius = r;
+    this.r = this.origRadius;
     //this.dragPro = new DragProtocol(this.x, this.y);
   }
 
@@ -38,14 +38,10 @@ let VisualData = class {
   }
 };
 
-/**
- * Node functions
- */
-
 let recdescendants = (res, node, onlyVisible) => {
   res.push(node);
   let arr = onlyVisible ? node.currentChildren : node.origChildren;
-  arr.forEach(d => recdescendants(res, d, onlyVisible));
+  arr.forEach(n => recdescendants(res, n, onlyVisible));
 };
 
 let descendants = (node, onlyVisible) => {
@@ -67,67 +63,65 @@ let predecessors = node => {
   return res;
 };
 
-let isLeaf = d => d.filteredChildren.length === 0;
+let isLeaf = node => node.filteredChildren.length === 0;
 
-//let isOnlyChild = d => d.parent && d.parent.origChildren.length === 1;
 
-/**
- * corrects the position of the given node if it is not within its parent
- * @param d
- */
-let checkAndCorrectPosition = d => {
-  let space = spaceFromPointToNodeBorder(d.visualData.x, d.visualData.y, d.parent.visualData);
-  if (space < d.visualData.r) {
-    let dr = d.visualData.r - space + 0.5;
-    let alpha = Math.atan2(d.visualData.y - d.parent.visualData.y, d.visualData.x - d.parent.visualData.x);
+let isOrigLeaf = node => node.origChildren.length === 0;
+//TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die
+// wenigen übrigen Klassen größer werden
+
+let dragNodeBackIntoItsParent = node => {
+  let space = spaceFromPointToNodeBorder(node.visualData.x, node.visualData.y, node.parent.visualData);
+  if (space < node.visualData.r) {
+    let dr = node.visualData.r - space;
+    let alpha = Math.atan2(node.visualData.y - node.parent.visualData.y, node.visualData.x - node.parent.visualData.x);
     let dy = Math.abs(Math.sin(alpha) * dr);
     let dx = Math.abs(Math.cos(alpha) * dr);
-    dy = Math.sign(d.parent.visualData.y - d.visualData.y) * dy;
-    dx = Math.sign(d.parent.visualData.x - d.visualData.x) * dx;
-    d.drag(dx, dy, false);
+    dy = Math.sign(node.parent.visualData.y - node.visualData.y) * dy;
+    dx = Math.sign(node.parent.visualData.x - node.visualData.x) * dx;
+    node.drag(dx, dy, true);
   }
 };
 
-/**
- * gets the minimum radius of all nodes on the same level as the given node
- * @param d
- * @returns {*|formatRounded|number}
- */
-let getFoldedR = d => {
-  let foldedR = d.visualData.r;
-  if (!d.isRoot()) {
-    d.parent.origChildren.forEach(e => foldedR = e.visualData.r < foldedR ? e.visualData.r : foldedR);
+let getFoldedRadius = node => {
+  let foldedRadius = node.visualData.r;
+  if (!node.isRoot()) {
+    node.parent.origChildren.forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
   }
-  let width = radiusofleaf(d.projectData.name);
-  return Math.max(foldedR, width);
+  let width = radiusOfLeafWithTitle(node.projectData.name);
+  return Math.max(foldedRadius, width);
 };
 
-let setIsFolded = (d, isFolded) => {
-  d.isFolded = isFolded;
-  if (d.isFolded) {
-    d.visualData.r = getFoldedR(d);
-    d.currentChildren = [];
+let adaptRadiusAndPositionToFoldState = (node) => {
+  if (node.isFolded) {
+    node.visualData.r = getFoldedRadius(node);
+    node.currentChildren = [];
   }
   else {
-    d.currentChildren = d.filteredChildren;
-    changeRadius(d, d.visualData.origR);
+    node.currentChildren = node.filteredChildren;
+    node.visualData.r = node.visualData.origRadius;
+    if (!node.isRoot() && !node.parent.isRoot()) {
+      dragNodeBackIntoItsParent(node);
+    }
+    node.deps.recalcEndCoordinatesOf(node.projectData.fullname);
   }
 };
 
-let fold = (d, folded) => {
-  if (!isLeaf(d)) {
-    setIsFolded(d, folded);
-    d.deps.changeFold(d.projectData.fullname, d.isFolded);
+let fold = (node, folded) => {
+  if (!isLeaf(node)) {
+    node.isFolded = folded;
+    adaptRadiusAndPositionToFoldState(node);
+    node.deps.changeFold(node.projectData.fullname, node.isFolded);
     return true;
   }
   return false;
 };
 
-let recreapplyFilters = (n, filters) => {
-  n.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), n.origChildren);
-  n.filteredChildren.forEach(c => reapplyFilters(c, filters));
-  if (!n.isFolded) {
-    n.currentChildren = n.filteredChildren;
+let recreapplyFilters = (node, filters) => {
+  node.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), node.origChildren);
+  node.filteredChildren.forEach(c => recreapplyFilters(c, filters));
+  if (!node.isFolded) {
+    node.currentChildren = node.filteredChildren;
   }
 };
 
@@ -136,21 +130,13 @@ let reapplyFilters = (root, filters) => {
   root.deps.setNodeFilters(root.filters);
 };
 
-let changeRadius = (n, newR) => {
-  n.visualData.r = newR;
-  if (!n.isRoot() && !n.parent.isRoot()) {
-    checkAndCorrectPosition(n);
-  }
-  n.deps.recalcEndCoordinatesOf(n.projectData.fullname);
+let radiusOfLeafWithTitle = title => {
+  return textWidth(title) / 2 + circleTextPadding;
 };
 
-let radiusofleaf = name => {
-  return textwidth(name) / 2 + CIRCLETEXTPADDING;
-};
-
-let radiusofanynode = (n, TEXTPOSITION) => {
-  let radius = radiusofleaf(n.projectData.name);
-  if (n.isOrigLeaf()) {
+let radiusOfAnyNode = (node, TEXTPOSITION) => {
+  let radius = radiusOfLeafWithTitle(node.projectData.name);
+  if (isOrigLeaf(node)) {
     return radius;
   }
   else {
@@ -158,43 +144,43 @@ let radiusofanynode = (n, TEXTPOSITION) => {
   }
 };
 
-let reclayout = (n, packSiblings, packEnclose, circpadding, textposition) => {
-  if (n.isOrigLeaf()) {
-    n.initVisual(0, 0, radiusofanynode(n, textposition));
+let reclayout = (node, packSiblings, packEnclose, circpadding, textposition) => {
+  if (isOrigLeaf(node)) {
+    node.initVisual(0, 0, radiusOfAnyNode(node, textposition));
   }
   else {
-    n.origChildren.forEach(c => reclayout(c, packSiblings, packEnclose, circpadding, textposition));
-    let children = n.origChildren.map(c => c.visualData);
+    node.origChildren.forEach(c => reclayout(c, packSiblings, packEnclose, circpadding, textposition));
+    let children = node.origChildren.map(c => c.visualData);
     children.forEach(c => c.r += circpadding / 2);
     packSiblings(children);
     let circ = packEnclose(children);
     children.forEach(c => c.r -= circpadding / 2);
     let childradius = children.length === 1 ? children[0].r : 0;
-    n.initVisual(circ.x, circ.y, Math.max(circ.r, radiusofanynode(n, textposition), childradius / textposition));
+    node.initVisual(circ.x, circ.y, Math.max(circ.r, radiusOfAnyNode(node, textposition), childradius / textposition));
     children.forEach(c => {
-      c.dx = c.x - n.visualData.x;
-      c.dy = c.y - n.visualData.y;
+      c.dx = c.x - node.visualData.x;
+      c.dy = c.y - node.visualData.y;
     });
   }
 };
 
-let calcPosAndSetRadius = n => {
-  if (n.isRoot()) {
-    n.visualData.x = n.visualData.r;
-    n.visualData.y = n.visualData.r;
+let calcPositionAndSetRadius = node => {
+  if (node.isRoot()) {
+    node.visualData.x = node.visualData.r;
+    node.visualData.y = node.visualData.r;
   }
-  if (!n.isOrigLeaf()) {
-    n.origChildren.forEach(c => {
-      c.visualData.x = n.visualData.x + c.visualData.dx;
-      c.visualData.y = n.visualData.y + c.visualData.dy;
+  if (!isOrigLeaf(node)) {
+    node.origChildren.forEach(c => {
+      c.visualData.x = node.visualData.x + c.visualData.dx;
+      c.visualData.y = node.visualData.y + c.visualData.dy;
       c.visualData.dx = undefined;
       c.visualData.dy = undefined;
-      calcPosAndSetRadius(c);
+      calcPositionAndSetRadius(c);
     });
   }
 
-  if (n.isFolded) {
-    n.visualData.r = getFoldedR(n);
+  if (node.isFolded) {
+    node.visualData.r = getFoldedRadius(node);
   }
 };
 
@@ -212,7 +198,7 @@ let Node = class {
 
   layout(packSiblings, packEnclose, circpadding, textposition) {
     reclayout(this, packSiblings, packEnclose, circpadding, textposition);
-    calcPosAndSetRadius(this);
+    calcPositionAndSetRadius(this);
   }
 
   initVisual(x, y, r) {
@@ -235,12 +221,6 @@ let Node = class {
 
   isCurrentlyLeaf() {
     return isLeaf(this) || this.isFolded;
-  }
-
-  isOrigLeaf() {
-    return this.origChildren.length === 0;
-    //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die
-    //wenigen übrigen Klassen größer werden
   }
 
   isChildOf(d) {
@@ -272,9 +252,6 @@ let Node = class {
     }
   }
 
-  /**
-   * identifies the given node
-   */
   keyFunction() {
     return d => d.projectData.fullname;
   }
@@ -329,8 +306,8 @@ let Node = class {
   }
 };
 
-let isElementMatching = (c, str, filterByFullName, inclusive, matchCase) => {
-  let toFilter = filterByFullName ? c.projectData.fullname : c.projectData.name;
+let isElementMatching = (node, str, filterByFullName, inclusive, matchCase) => {
+  let toFilter = filterByFullName ? node.projectData.fullname : node.projectData.name;
   let res;
   if (matchCase) {
     res = toFilter.includes(str);
@@ -343,30 +320,30 @@ let isElementMatching = (c, str, filterByFullName, inclusive, matchCase) => {
 
 let filterFunction = (str, filterByFullName, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
                       inclusive, matchCase) => {
-  return c => {
+  return node => {
     if (filterClassesAndEliminatePkgs) {
-      if (c.projectData.type === "package") {
-        return descendants(c, false).reduce((acc, n) => acc || (n.projectData.type !== "package" &&
+      if (node.projectData.type === "package") {
+        return descendants(node, false).reduce((acc, d) => acc || (d.projectData.type !== "package" &&
         filterFunction(str, filterByFullName, filterClassesAndEliminatePkgs, filterPackages, filterClasses,
-            inclusive, matchCase)(n)), false);
+            inclusive, matchCase)(d)), false);
       }
       else {
-        return isElementMatching(c, str, filterByFullName, inclusive, matchCase);
+        return isElementMatching(node, str, filterByFullName, inclusive, matchCase);
       }
     }
     else {
       if (!filterPackages && !filterClasses) {
         return true;
       }
-      if (filterClasses && !filterPackages && c.projectData.type === "package") {
+      if (filterClasses && !filterPackages && node.projectData.type === "package") {
         return true;
       }
-      if (filterPackages && c.projectData.type !== "package") {
-        return (filterClasses ? isElementMatching(c, str, filterByFullName, inclusive, matchCase) : true)
-            && predecessors(c).reduce((acc, n) => acc && (n.isRoot() || filterFunction(str, filterByFullName,
-                filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase)(n)), true);
+      if (filterPackages && node.projectData.type !== "package") {
+        return (filterClasses ? isElementMatching(node, str, filterByFullName, inclusive, matchCase) : true)
+            && predecessors(node).reduce((acc, p) => acc && (p.isRoot() || filterFunction(str, filterByFullName,
+                filterClassesAndEliminatePkgs, filterPackages, filterClasses, inclusive, matchCase)(p)), true);
       }
-      return isElementMatching(c, str, filterByFullName, inclusive, matchCase);
+      return isElementMatching(node, str, filterByFullName, inclusive, matchCase);
     }
   }
 };
@@ -376,13 +353,13 @@ let initNodeMap = root => {
   descendants(root, true).forEach(d => root.nodeMap.set(d.projectData.fullname, d));
 };
 
-let addChild = (d, child) => {
-  d.origChildren.push(child);
-  d.currentChildren = d.origChildren;
+let addChild = (node, child) => {
+  node.origChildren.push(child);
+  node.currentChildren = node.origChildren;
 };
 
-let jsonToProjectData = jsonEl => {
-  return new ProjectData(jsonEl.name, jsonEl.fullname, jsonEl.type);
+let jsonToProjectData = jsonElement => {
+  return new ProjectData(jsonElement.name, jsonElement.fullname, jsonElement.type);
 };
 
 let jsonToNode = (parent, jsonNode) => {
@@ -394,8 +371,8 @@ let jsonToNode = (parent, jsonNode) => {
 };
 
 let jsonToRoot = (jsonRoot, textwidthfunction, circletextpadding) => {
-  textwidth = textwidthfunction;
-  CIRCLETEXTPADDING = circletextpadding;
+  textWidth = textwidthfunction;
+  circleTextPadding = circletextpadding;
   let root = jsonToNode(null, jsonRoot);
   initNodeMap(root);
   return root;

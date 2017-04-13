@@ -16,9 +16,17 @@ let normalizeAngle = angleRad => {
   return angleRad;
 };
 
-let getTitleOffset = (angleRad, TEXTPADDING) => {
-  return [Math.round(TEXTPADDING * Math.sin(angleRad)),
-    Math.round(TEXTPADDING * Math.cos(angleRad))];
+let getTitleOffset = (angleRad, textPadding) => {
+  return [Math.round(textPadding * Math.sin(angleRad)),
+    Math.round(textPadding * Math.cos(angleRad))];
+};
+
+let getDescriptionRelativeToPredecessors = (dep, from, to) => {
+  let start = dep.from.substring(from.length + 1);
+  start += ((start && dep.startCodeUnit) ? "." : "") + (dep.startCodeUnit || "");
+  let end = dep.to.substring(to.length + 1);
+  end += ((end && dep.targetElement) ? "." : "") + (dep.targetElement || "");
+  return start + "->" + end;
 };
 
 let Dependency = class {
@@ -156,16 +164,8 @@ let Dependency = class {
     return (this.startCodeUnit || "") + "->" + (this.targetElement || "");
   }
 
-  getDescriptionWhenFolded(depFrom, depTo) {
-    let start = this.from.substring(depFrom.length + 1);
-    start += ((start && this.startCodeUnit) ? "." : "") + (this.startCodeUnit || "");
-    let end = this.to.substring(depTo.length + 1);
-    end += ((end && this.targetElement) ? "." : "") + (this.targetElement || "");
-    return start + "->" + end;
-  }
-
-  getEdgesTitleTranslation(TEXTPADDING) {
-    let offset = getTitleOffset(this.angleRad, TEXTPADDING);
+  getEdgesTitleTranslation(textPadding) {
+    let offset = getTitleOffset(this.angleRad, textPadding);
     return "translate(" + (this.middlePoint[0] + offset[0]) + "," + (this.middlePoint[1] - offset[1]) + ") " +
         "rotate(" + this.angleDeg + ")";
   }
@@ -304,9 +304,9 @@ let changeFold = (dependencies, type, callback) => {
   recreateVisible(dependencies);
 };
 
-let setForAllMustShareNodes = visDeps => {
-  visDeps.forEach(d => d.mustShareNodes =
-      visDeps.filter(e => e.from === d.to && e.to === d.from).length > 0);
+let setForAllMustShareNodes = deps => {
+  deps.forEach(d => d.mustShareNodes =
+      deps.filter(e => e.from === d.to && e.to === d.from).length > 0);
 };
 
 let reapplyFilters = (dependencies, filters) => {
@@ -345,10 +345,6 @@ let Dependencies = class {
     this._visibleDependencies.forEach(e => e.calcEndCoordinates());
   }
 
-  /**
-   * identifies the given dependency
-   * @param d
-   */
   keyFunction() {
     return e => e.from + "->" + e.to;
   }
@@ -388,7 +384,7 @@ let Dependencies = class {
     let targetMatching = filter(startMatching).by(d => d.to).startsWith(to);
     return targetMatching.map(d => {
       return {
-        description: d.getDescriptionWhenFolded(from, to),
+        description: getDescriptionRelativeToPredecessors(d, from, to),
         cssClass: d.getClass()
       }
     });
