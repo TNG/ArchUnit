@@ -1,9 +1,9 @@
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-import com.tngtech.archunit.core.Optional;
-
 import java.util.Set;
+
+import com.google.gson.annotations.Expose;
+import com.tngtech.archunit.base.Optional;
 
 abstract class JsonElement {
     @Expose
@@ -20,8 +20,7 @@ abstract class JsonElement {
     }
 
     String getPath() {
-        String res = fullname.substring(0, fullname.length() - name.length() - 1);
-        return res;
+        return fullname.substring(0, fullname.length() - name.length() - 1);
     }
 
     abstract Set<? extends JsonElement> getChildren();

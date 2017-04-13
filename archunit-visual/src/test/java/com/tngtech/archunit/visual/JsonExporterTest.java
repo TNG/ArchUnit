@@ -1,7 +1,12 @@
 package com.tngtech.archunit.visual;
 
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClasses;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.visual.testjson.EmptyClass;
 import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1;
 import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2;
@@ -10,11 +15,6 @@ import com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

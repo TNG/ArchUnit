@@ -1,10 +1,10 @@
 package com.tngtech.archunit.visual;
 
-import com.tngtech.archunit.core.JavaClass;
-import com.tngtech.archunit.core.JavaClasses;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 
 public class PackageStructureCreator {
     static final String PACKAGESEP = ".";

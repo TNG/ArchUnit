@@ -1,11 +1,11 @@
 package com.tngtech.archunit.visual;
 
-import com.tngtech.archunit.core.Optional;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.tngtech.archunit.base.Optional;
+import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -57,6 +57,6 @@ public class JsonElementTest {
     }
 
     private static boolean hasFullname(Optional<? extends JsonElement> act, String expectedFullname) {
-        return act.isPresent() ? act.get().fullname.equals(expectedFullname) : false;
+        return act.isPresent() && act.get().fullname.equals(expectedFullname);
     }
 }

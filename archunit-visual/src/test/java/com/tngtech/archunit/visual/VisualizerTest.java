@@ -1,7 +1,11 @@
 package com.tngtech.archunit.visual;
 
-import com.tngtech.archunit.core.ClassFileImporter;
-import com.tngtech.archunit.core.JavaClasses;
+import java.io.File;
+import java.net.URL;
+import java.util.Arrays;
+
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
 
 import java.io.File;

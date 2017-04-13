@@ -1,12 +1,22 @@
 package com.tngtech.archunit.visual;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.tngtech.archunit.core.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
     private static final String INNERCLASSSEP = "$";
