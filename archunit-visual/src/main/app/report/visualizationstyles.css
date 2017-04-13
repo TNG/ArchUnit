@@ -50,7 +50,7 @@ line.methodCall {
 }
 
 li.methodCall {
-    background-color: #0000FF;
+    color: #0000FF;
 }
 
 line.fieldAccess {
@@ -58,7 +58,7 @@ line.fieldAccess {
 }
 
 li.fieldAccess {
-    background-color: #FFFF00;
+    color: #FFFF00;
 }
 
 line.constructorCall {
@@ -66,7 +66,7 @@ line.constructorCall {
 }
 
 li.constructorCall {
-    background-color: #FF0000;
+    color: #FF0000;
 }
 
 line.implementsAnonymous {
@@ -76,7 +76,7 @@ line.implementsAnonymous {
 
 li.implementsAnonymous {
     border: dotted 1px black;
-    background-color: #00FFCC;
+    border-color: #00FFCC;
 }
 
 line.several {

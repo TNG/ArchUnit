@@ -1,26 +1,55 @@
 #filters, #menu, #detailedDeps {
-    position: relative;
     display: none;
+    padding: 5px;
 }
 
-div.show, div.menu {
-    display: inline-block;
-    vertical-align: top;
+div {
+    font-family: Verdana;
+    font-size: 12px;
+}
+
+.jscolor, .number {
+    width: 50px;
+}
+
+div.submit {
+    display: table-cell;
+    border-left: solid 2px black;
+    border-right: solid 2px black;
+    border-bottom: solid 2px black;
+}
+
+.button {
+    float: right;
+    display: table-cell;
+}
+
+div.forms {
+    display: table-row;
+
+}
+
+div.submitbuttons {
+    display: table-row;
+}
+
+form {
+    display: table-cell;
+    border-right: solid 2px black;
+    border-left: solid 2px black;
+    border-top: solid 2px black;
 }
 
 li {
     float: left;
     clear: left;
-}
-
-form.inputarea {
-    border-color: black;
-    border-width: 1px;
-    border-style: solid;
+    margin: 3px;
 }
 
 fieldset.inputs {
-    margin: 0;
+    display: inline-block;
+    vertical-align: top;
+    margin: 5px;
     padding: 0;
     border: 0;
     padding-top: 5px;
@@ -31,19 +60,6 @@ fieldset.subinputs {
     padding: 0;
     border: 0;
     padding-left: 20px;
-}
-
-fieldset.inputs {
-    display: inline-block;
-    vertical-align: top;
-}
-
-label {
-    position: absolute;
-    top: 5px;
-    left: auto;
-    margin-left: 5px;
-    font-weight: bold;
 }
 
 legend {

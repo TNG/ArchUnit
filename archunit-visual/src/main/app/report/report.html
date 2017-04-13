@@ -17,20 +17,18 @@
     <button id="showHideDeps" onclick="changeDepsVisibility()">Show detailed dependencies</button>
 </div>
 <div id="filters">
-    <div class="show">
-        <form action="#" onsubmit="return filterByName(this);" onreset="return resetFilterByName();" class="inputarea">
+    <div class="forms">
+        <form id="filterbyname" action="#" onsubmit="return filterByName(this);" onreset="return resetFilterByName();">
             <fieldset class="inputs">
                 <legend>Filter-String:</legend>
                 <input type="text" name="filter"><br>
                 <input type="checkbox" name="matchCase">match case
             </fieldset>
-
             <fieldset class="inputs">
                 <legend>Filter by:</legend>
                 <input type="radio" name="filterBy" value="simplename" checked>simplename<br>
                 <input type="radio" name="filterBy" value="fullname">fullname
             </fieldset>
-
             <fieldset class="inputs">
                 <legend>What to filter:</legend>
                 <input type="radio" name="whatToFilter" value="filterClassesAndEliminatePkgs" checked>
@@ -41,20 +39,13 @@
                     <input type="checkbox" name="filterClasses" value="classes">classes
                 </fieldset>
             </fieldset>
-
             <fieldset class="inputs">
                 <legend>How to filter:</legend>
                 <input type="radio" name="howToFilter" value="inclusively" checked>inclusively<br>
                 <input type="radio" name="howToFilter" value="exclusively">exclusively<br>
             </fieldset>
-            <br>
-            <input type="submit" value="Submit">
-            <input type="reset" value="Reset">
         </form>
-    </div>
-    <div class="show">
-        <form action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();"
-              class="inputarea">
+        <form id="filterbytype" action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();">
             <fieldset class="inputs">
                 <legend>Show classes:</legend>
                 <input type="checkbox" name="showInterfaces" value="interfaces" checked>
@@ -62,14 +53,9 @@
                 <input type="checkbox" name="showClasses" value="classes" checked>
                 classes<br>
             </fieldset>
-            <br>
-            <input type="submit" value="Submit">
-            <input type="reset" value="Reset">
         </form>
-    </div>
-    <div class="show">
-        <form action="#" onsubmit="return filterDepsByKind(this);" onreset="return resetFilterDepsByKind();"
-              class="inputarea">
+        <form id="filterdepsbykind" action="#" onsubmit="return filterDepsByKind(this);"
+              onreset="return resetFilterDepsByKind();">
             <fieldset class="inputs">
                 <legend>Show dependencies:</legend>
                 <input type="checkbox" name="showImplementing" value="implementing" checked>
@@ -85,16 +71,27 @@
                 <input type="checkbox" name="showAnonImpl" value="anonImpl" checked>
                 anonymous implementation<br>
             </fieldset>
-            <br>
-            <input type="submit" value="Submit">
-            <input type="reset" value="Reset">
-            <button type="button" onclick="hideAllDeps()">Hide all</button>
         </form>
+    </div>
+    <div class="submitbuttons">
+        <div class="submit">
+            <input form="filterbyname" type="reset" value="Reset" class="button">
+            <input form="filterbyname" type="submit" value="Submit" class="button">
+        </div>
+        <div class="submit">
+            <input form="filterbytype" type="reset" value="Reset" class="button">
+            <input form="filterbytype" type="submit" value="Submit" class="button">
+        </div>
+        <div class="submit">
+            <button form="filterdepsbykind" type="button" onclick="hideAllDeps()" class="button">Hide all</button>
+            <input form="filterdepsbykind" type="reset" value="Reset" class="button">
+            <input form="filterdepsbykind" type="submit" value="Submit" class="button">
+        </div>
     </div>
 </div>
 <div id="menu">
-    <div class="menu">
-        <form action="#" onsubmit="return applyColorMenu(this);" class="inputarea">
+    <div class="forms">
+        <form id="colormenu" action="#" onsubmit="return applyColorMenu(this);">
             <fieldset class="inputs">
                 <legend>Colors and styles:</legend>
                 package color:
@@ -118,13 +115,8 @@
                 grouped accesses:
                 <input class="jscolor" name="severalColor" value="808080"><br>
             </fieldset>
-            <br>
-            <input type="submit" value="submit">
-            <input type="reset" value="reset">
         </form>
-    </div>
-    <div class="menu">
-        <form action="#" onsubmit="return applyDepMenu(this);" class="inputarea">
+        <form id="depmenu" action="#" onsubmit="return applyDepMenu(this);">
             <fieldset class="inputs">
                 <legend>Edge settings:</legend>
                 Click-area width for edges:
@@ -132,30 +124,36 @@
                 Font-size for edge titel:
                 <input class="number" name="edgefontsize" value="12" min="0" max="50" step="1"><br>
             </fieldset>
-            <br>
-            <input type="submit" value="submit">
-            <input type="reset" value="reset">
         </form>
-    </div>
-    <div class="menu">
-        <form action="#" onsubmit="return applyOtherMenu(this);" class="inputarea">
+        <form id="othermenu" action="#" onsubmit="return applyOtherMenu(this);">
             <fieldset class="inputs">
                 <legend>Other settings (relayout on submit!):</legend>
                 Font-size for circle text:
-                <input class="number" name="circfontsize" value="12" min="0" max="50" step="1"><br>
+                <input class="number" name="circfontsize" width="30" value="12" min="0" max="50" step="1"><br>
                 Padding between circles:
                 <input class="number" name="circpadding" value="10" min="0" step="1"><br>
             </fieldset>
-            <br>
-            <input type="submit" value="submit">
-            <input type="reset" value="reset">
-            <button type="button" onclick="relayout()">Relayout</button>
         </form>
+    </div>
+    <div class="submitbuttons">
+        <div class="submit">
+            <input form="colormenu" type="reset" value="reset" class="button">
+            <input form="colormenu" type="submit" value="submit" class="button">
+        </div>
+        <div class="submit">
+            <input form="depmenu" type="reset" value="reset" class="button">
+            <input form="depmenu" type="submit" value="submit" class="button">
+        </div>
+        <div class="submit">
+            <button form="othermenu" type="button" onclick="relayout()" class="button">Relayout</button>
+            <input form="othermenu" type="reset" value="reset" class="button">
+            <input form="othermenu" type="submit" value="submit" class="button">
+        </div>
     </div>
 </div>
 <svg width="960" height="960" id="visualization"></svg>
 <div id="detailedDeps">
-    <h2 style="font-size: 14px">Detailed dependencies:</h2>
+    <h2 style="font-size: inherit">Detailed dependencies:</h2>
     <ul></ul>
 </div>
 <script src="d3.js"></script>
@@ -297,6 +295,7 @@
           let t = d3.select(d3.select(this).node().parentNode).select("text");
           t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
           if (t.style("visibility") !== "hidden") {
+            d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + e.from + "->" + e.to);
             let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(root.deps.getDetailedDeps(e.from, e.to));
             detailedDeps.exit().remove();
             detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
@@ -480,13 +479,13 @@
 
   function changeFilterVisibility() {
     let filters = d3.select("#filters");
-    filters.style("display", () => filters.style("display") === "none" ? "inline" : "none");
+    filters.style("display", () => filters.style("display") === "none" ? "table" : "none");
     d3.select("#showHideFilter").text(() => filters.style("display") === "none" ? "Show filter" : "Hide filter");
   }
 
   function changeMenuVisibility() {
     let menu = d3.select("#menu");
-    menu.style("display", () => menu.style("display") === "none" ? "inline" : "none");
+    menu.style("display", () => menu.style("display") === "none" ? "table" : "none");
     d3.select("#showHideMenu").text(() => menu.style("display") === "none" ? "Show menu" : "Hide menu");
   }
 
@@ -525,11 +524,11 @@
     setRule(sheet, 'line.implementsAnonymous', '{  stroke-dasharray: ' + form.anonimplDashed.value + ', '
         + form.anonimplDashed.value + '; stroke: #' + form.anonimplColor.value + ';}');
 
-    setRule(sheet, 'li.methodCall', '{ background-color: #' + form.methodcallColor.value + ';}');
-    setRule(sheet, 'li.fieldAccess', '{ background-color: #' + form.fieldaccessColor.value + ';}');
-    setRule(sheet, 'li.constructorCall', '{ background-color: #' + form.constructorcallColor.value + ';}');
+    setRule(sheet, 'li.methodCall', '{ color: #' + form.methodcallColor.value + ';}');
+    setRule(sheet, 'li.fieldAccess', '{ color: #' + form.fieldaccessColor.value + ';}');
+    setRule(sheet, 'li.constructorCall', '{ color: #' + form.constructorcallColor.value + ';}');
     setRule(sheet, 'li.implementsAnonymous', '{  border: dotted ' + form.anonimplDashed.value + 'px black; ' +
-        'background-color: #' + form.anonimplColor.value + ';}');
+        'border-color: #' + form.anonimplColor.value + ';}');
 
     setRule(sheet, 'line.several', '{ stroke: #' + form.severalColor.value + ';}');
     return false;
