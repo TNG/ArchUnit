@@ -1,11 +1,13 @@
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.gson.annotations.Expose;
+
 class JsonJavaPackage extends JsonElement {
+    private static final String DEFAULTROOT = "default";
+
     private static final String TYPE = "package";
 
     private boolean isDefault;
@@ -13,10 +15,14 @@ class JsonJavaPackage extends JsonElement {
     @Expose
     private Set<JsonElement> children = new HashSet<>();
 
-    protected Set<JsonJavaPackage> subPackages = new HashSet<>();
+    private Set<JsonJavaPackage> subPackages = new HashSet<>();
     private Set<JsonJavaElement> classes = new HashSet<>();
 
-    JsonJavaPackage(String name, String fullname, boolean isDefault) {
+    JsonJavaPackage(String name, String fullname) {
+        this(name, fullname, false);
+    }
+
+    private JsonJavaPackage(String name, String fullname, boolean isDefault) {
         super(name, fullname, TYPE);
         this.isDefault = isDefault;
     }
@@ -84,6 +90,7 @@ class JsonJavaPackage extends JsonElement {
     }
 
     private void mergeWithSubpackages() {
+        // FIXME: For loop does not loop??
         for (JsonJavaPackage c : subPackages) {
             if (isDefault) {
                 fullname = c.fullname;
@@ -104,5 +111,9 @@ class JsonJavaPackage extends JsonElement {
         for (JsonJavaPackage c : subPackages) {
             c.normalize();
         }
+    }
+
+    static JsonJavaPackage getDefaultPackage() {
+        return new JsonJavaPackage(DEFAULTROOT, DEFAULTROOT, true);
     }
 }

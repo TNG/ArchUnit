@@ -6,16 +6,15 @@ import java.util.Set;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
-public class PackageStructureCreator {
+class PackageStructureCreator {
     static final String PACKAGESEP = ".";
-    private static final String DEFAULTROOT = "default";
 
     static JsonJavaPackage createPackageStructure(JavaClasses classes, VisualizationContext context) {
         return createPackageStructure(collectPackages(classes, context));
     }
 
     private static JsonJavaPackage createPackageStructure(Set<String> pkgs) {
-        JsonJavaPackage root = new JsonJavaPackage(DEFAULTROOT, DEFAULTROOT, true);
+        JsonJavaPackage root = JsonJavaPackage.getDefaultPackage();
         for (String p : pkgs) {
             root.insertPackage(p);
         }
@@ -32,7 +31,7 @@ public class PackageStructureCreator {
         String fullName = newFullname.substring(0, end);
         int start = parentIsDeafult || parentFullname.length() == 0 ? 0 : parentFullname.length() + 1;
         String name = newFullname.substring(start, end);
-        return new JsonJavaPackage(name, fullName, false);
+        return new JsonJavaPackage(name, fullName);
     }
 
     private static Set<String> collectPackages(JavaClasses classes, VisualizationContext context) {

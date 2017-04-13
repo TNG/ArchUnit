@@ -107,7 +107,7 @@ class JsonExporter {
     }
 
     private JsonJavaElement parseJavaClass(final JavaClass c, VisualizationContext context) {
-        final JsonJavaClazz res = new JsonJavaClazz(c.getSimpleName(), getCleanedFullname(c.getName()),
+        final JsonJavaClass res = new JsonJavaClass(c.getSimpleName(), getCleanedFullname(c.getName()),
                 "class", getSuperClass(c, context));
         parseToJavaElement(c, context, res);
         return res;

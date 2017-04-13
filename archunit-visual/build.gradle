@@ -1,5 +1,5 @@
 plugins {
-    id "com.moowork.node" version "0.13"
+    id "com.moowork.node" version "1.1.1"
 }
 
 dependencies {
@@ -13,6 +13,11 @@ dependencies {
     testCompile dependency.junit
     testCompile dependency.mockito
     testCompile dependency.assertj
+    testCompile(dependency.assertj_guava) {
+        exclude module: 'assertj-core'
+        exclude module: 'guava'
+    }
+    testCompile dependency.junit_dataprovider
     testCompile project(path: ':archunit', configuration: 'tests')
 }
 

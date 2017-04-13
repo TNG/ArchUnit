@@ -35,8 +35,8 @@ public class VisualizationContext {
     }
 
     private boolean isIncludedConstructorCall(JsonJavaElement origin, String targetOwner) {
-        return !ignoreAccessToSuperConstructorFromConstructor || !(origin instanceof JsonJavaClazz)
-                || !((JsonJavaClazz) origin).hasAsSuperClass(targetOwner);
+        return !ignoreAccessToSuperConstructorFromConstructor || !(origin instanceof JsonJavaClass)
+                || !((JsonJavaClass) origin).hasAsSuperClass(targetOwner);
     }
 
     public static class Builder {

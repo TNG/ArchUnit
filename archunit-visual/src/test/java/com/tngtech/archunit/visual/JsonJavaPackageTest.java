@@ -1,19 +1,24 @@
 package com.tngtech.archunit.visual;
 
-import org.junit.Test;
-
 import java.io.File;
 import java.lang.reflect.Method;
+
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
+import org.assertj.guava.api.Assertions;
+import org.assertj.guava.api.OptionalAssert;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonJavaPackageTest {
 
     @Test
-    public void testInsertPackage() throws Exception {
+    public void insertPackage() throws Exception {
+        // FIXME: Don't test private methods
         Method insertPackage = getInsertPackage();
 
-        JsonJavaPackage pkg = new JsonJavaPackage("com", "com", false);
+        JsonJavaPackage pkg = new JsonJavaPackage("com", "com");
 
         insertPackage.invoke(pkg, "com.tngtech");
         File expectedJson = JsonConverter.getJsonFile("/testinsertpackage1.json");
@@ -29,10 +34,11 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testNormalize() throws Exception {
+    public void normalize() throws Exception {
+        // FIXME: Don't test private methods
         Method insertPackage = getInsertPackage();
 
-        JsonJavaPackage pkg = new JsonJavaPackage("defaultroot", "defaultroot", true);
+        JsonJavaPackage pkg = JsonJavaPackage.getDefaultPackage();
         insertPackage.invoke(pkg, "com");
         pkg.normalize();
 
@@ -41,16 +47,43 @@ public class JsonJavaPackageTest {
                 .as("structure after normalizing with unnecessary default package and another package")
                 .isEqualTo(JsonConverter.jsonToMap(expectedJson));
 
-        pkg = new JsonJavaPackage("com", "com", false);
+        pkg = new JsonJavaPackage("com", "com");
         insertPackage.invoke(pkg, "com.tngtech.pkg1.subpkg");
         insertPackage.invoke(pkg, "com.tngtech.pkg2.subpkg2");
-        pkg.insertJavaElement(new JsonJavaClazz("class1", "com.tngtech.pkg1.class1", "class", ""));
+        pkg.insertJavaElement(new JsonJavaClass("class1", "com.tngtech.pkg1.class1", "class", ""));
         pkg.normalize();
 
         expectedJson = JsonConverter.getJsonFile("/testnormalize2.json");
         assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(pkg)))
                 .as("structure after normalizing with several packages with only one child")
                 .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+    }
+
+    @Test
+    public void getChild_returns_self_or_child_by_full_name() {
+        JsonJavaPackage javaPackage = new JsonJavaPackage("pkg", "com.tngtech.pkg");
+
+        javaPackage.insertPackage("com.tngtech.pkg.subpkg");
+        javaPackage.insertJavaElement(new JsonJavaClass("Class1", "com.tngtech.pkg.Class1", "class", ""));
+
+        assertThatOptional(fullNameOf(javaPackage.getChild("com.tngtech.pkg"))).contains("com.tngtech.pkg");
+        assertThatOptional(fullNameOf(javaPackage.getChild("com.tngtech.pkg.Class1"))).contains("com.tngtech.pkg.Class1");
+        assertThatOptional(fullNameOf(javaPackage.getChild("com.tngtech.pkg.subpkg"))).contains("com.tngtech.pkg.subpkg");
+        assertThatOptional(javaPackage.getChild("com.tngtech.pkg.NotExisting")).isAbsent();
+    }
+
+    // FIXME: We have to make a shadow Jar of archunit-visual to use the test support, but for that we need to refactor the shrinking process within archunit-junit and make it reusable
+    <T> OptionalAssert<T> assertThatOptional(Optional<T> optional) {
+        return Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    private Optional<String> fullNameOf(Optional<? extends JsonElement> element) {
+        return element.transform(new Function<JsonElement, String>() {
+            @Override
+            public String apply(JsonElement input) {
+                return input.fullname;
+            }
+        });
     }
 
     private Method getInsertPackage() throws NoSuchMethodException {
