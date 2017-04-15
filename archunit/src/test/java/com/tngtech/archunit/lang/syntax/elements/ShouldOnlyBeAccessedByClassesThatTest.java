@@ -18,9 +18,12 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldThatEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
@@ -509,6 +512,17 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     public void areNotAssignableFrom_predicate() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classes().should().onlyBeAccessed().byClassesThat().areNotAssignableFrom(classWithNameOf(ClassExtendingClass.class)))
+                .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
+                        ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassExtendingClass.class,
+                ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+    }
+
+    @Test
+    public void byClassesThat_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat(are(not(assignableFrom(classWithNameOf(ClassExtendingClass.class))))))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 

@@ -10,6 +10,7 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByClassesThat;
 
 class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification<ClassesShouldConjunction> {
     private final ClassesShouldInternal classesShould;
@@ -31,5 +32,10 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
                 return ArchConditions.onlyBeAccessedByClassesThat(predicate);
             }
         });
+    }
+
+    @Override
+    public ClassesShouldConjunction byClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return classesShould.addCondition(onlyBeAccessedByClassesThat(predicate));
     }
 }
