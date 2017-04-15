@@ -633,6 +633,20 @@ public interface ClassesShould {
     ClassesShouldThat accessClassesThat();
 
     /**
+     * Asserts that all classes selected by this rule access certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat(DescribedPredicate) accessClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
      * @return A syntax element that allows restricting how classes should be accessed
      * <br>E.g.
      * <pre><code>

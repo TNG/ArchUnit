@@ -18,9 +18,12 @@ import org.mockito.junit.MockitoRule;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldThatEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -432,6 +435,16 @@ public class ShouldAccessClassesThatTest {
     public void areNotAssignableFrom_predicate() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().areNotAssignableFrom(classWithNameOf(Collection.class)))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
+    }
+
+    @Test
+    public void accessClassesThat_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 

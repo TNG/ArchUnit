@@ -138,7 +138,7 @@ public abstract class ArchCondition<T> {
             this.evaluatedConditions = evaluatedConditions;
         }
 
-        Set<String> getUniqueLinesOfViolations() { // FIXME: Sort by line number, then lexicographically
+        Set<String> getUniqueLinesOfViolations() { // TODO: Sort by line number, then lexicographically
             final Set<String> result = new TreeSet<>();
             CollectsLines lines = new CollectsLines() {
                 @Override

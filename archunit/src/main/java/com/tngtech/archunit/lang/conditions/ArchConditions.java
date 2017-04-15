@@ -167,7 +167,6 @@ public final class ArchConditions {
         return new AnyAccessFromClassCondition("access target where", predicate);
     }
 
-    // FIXME: Is inheritance of an interface an access??
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
         @SuppressWarnings({"RedundantTypeArguments", "unchecked"})

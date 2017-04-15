@@ -45,21 +45,6 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldThat accessClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
-            @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> input) {
-                return ArchConditions.accessClassesThat(input);
-            }
-        });
-    }
-
-    @Override
-    public OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed() {
-        return new OnlyBeAccessedSpecificationInternal(this);
-    }
-
-    @Override
     public ClassesShouldConjunction beNamed(final String name) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.beNamed(name)));
     }
@@ -362,6 +347,26 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.callCodeUnitWhere(predicate)));
+    }
+
+    @Override
+    public ClassesShouldThat accessClassesThat() {
+        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+            @Override
+            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> input) {
+                return ArchConditions.accessClassesThat(input);
+            }
+        });
+    }
+
+    @Override
+    public ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessClassesThat(predicate)));
+    }
+
+    @Override
+    public OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed() {
+        return new OnlyBeAccessedSpecificationInternal(this);
     }
 
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {

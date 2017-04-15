@@ -31,7 +31,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_TESTS;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -62,8 +61,7 @@ public class ArchUnitArchitectureTest {
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =
             noClasses().that().resideInAPackage("..core.domain..")
-                    // FIXME: Add accessClassesThat(Predicate<JavaClass>) to syntax
-                    .should(accessClassesThat(belong_to_the_import_context()));
+                    .should().accessClassesThat(belong_to_the_import_context());
 
     @ArchTest
     public static final ArchRule types_are_only_resolved_via_reflection_in_allowed_places =
