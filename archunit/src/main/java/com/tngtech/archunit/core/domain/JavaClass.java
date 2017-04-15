@@ -659,6 +659,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnonymous() {
+        return getSimpleName().isEmpty(); // This is implemented the same way within java.lang.Class
+    }
+
     public static final class Functions {
         private Functions() {
         }

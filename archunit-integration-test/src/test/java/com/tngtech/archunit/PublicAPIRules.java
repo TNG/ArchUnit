@@ -137,7 +137,7 @@ public class PublicAPIRules {
         return new DescribedPredicate<JavaClass>("anonymous class") {
             @Override
             public boolean apply(JavaClass input) {
-                return input.getSimpleName().isEmpty(); // FIXME: isAnonymous() should be part of JavaClass!!!
+                return input.isAnonymous();
             }
         };
     }

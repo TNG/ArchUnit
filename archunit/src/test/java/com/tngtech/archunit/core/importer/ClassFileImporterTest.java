@@ -836,10 +836,14 @@ public class ClassFileImporterTest {
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
         JavaMethod calledTarget = getOnlyElement(classes.get(CalledClass.class).getMethods());
 
+        assertThat(classWithInnerClass.isAnonymous()).as("class is anonymous").isFalse();
+        assertThat(innerClass.isAnonymous()).as("class is anonymous").isFalse();
+
         assertThat(innerClass.getEnclosingClass()).contains(classWithInnerClass);
         assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
         assertThat(anonymousClass.getName()).isEqualTo(ClassWithInnerClass.class.getName() + "$1");
+        assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
         assertThat(anonymousClass.getSimpleName()).isEmpty();
         assertThat(anonymousClass.getPackage()).isEqualTo(ClassWithInnerClass.class.getPackage().getName());
 
