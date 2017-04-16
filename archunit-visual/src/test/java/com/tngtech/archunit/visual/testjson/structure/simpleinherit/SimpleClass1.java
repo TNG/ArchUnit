@@ -1,9 +1,9 @@
-package com.tngtech.archunit.visual.testjson.simpleInheritStructure;
+package com.tngtech.archunit.visual.testjson.structure.simpleinherit;
 
-public class Class1 implements Interface1 {
+public class SimpleClass1 implements SimpleInterface1 {
     private String s;
 
-    public Class1(String s) {
+    public SimpleClass1(String s) {
         this.s = s;
     }
 
@@ -18,11 +18,11 @@ public class Class1 implements Interface1 {
         System.out.println(this.s);
     }
 
-    class InnerClass1 implements com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1 {
+    class InnerClass1 implements SimpleInterface1 {
         @Override
         public void sayHello() {
             //sayHi();
-            Class1.this.sayHello();
+            SimpleClass1.this.sayHello();
         }
     }
 }

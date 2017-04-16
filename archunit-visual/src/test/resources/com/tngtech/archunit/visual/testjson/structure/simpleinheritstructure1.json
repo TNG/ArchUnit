@@ -1,0 +1,127 @@
+{
+  "name": "com.tngtech.archunit.visual.testjson.structure",
+  "fullname": "com.tngtech.archunit.visual.testjson.structure",
+  "type": "package",
+  "children": [
+    {
+      "name": "EmptyClass",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "type": "class",
+      "children": [],
+      "superclass": "",
+      "interfaces": [],
+      "fieldAccesses": [],
+      "methodCalls": [],
+      "constructorCalls": [],
+      "anonImpl": []
+    },
+    {
+      "name": "simpleinherit",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
+      "type": "package",
+      "children": [
+        {
+          "name": "SimpleClass1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+          "type": "class",
+          "children": [
+            {
+              "name": "InnerClass1",
+              "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "type": "class",
+              "children": [],
+              "superclass": "",
+              "interfaces": [
+                "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
+              ],
+              // FIXME: Why wasn't this here in the first place? This was [], but I don't think that's correct...
+              "fieldAccesses": [],
+              "methodCalls": [
+                {
+                  "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                  // FIXME: Why wasn't this here in the first place? This was [], but I don't think that's correct...
+                  "startCodeUnit": "sayHello",
+                  "targetElement": "sayHello"
+                }
+              ],
+              "constructorCalls": [],
+              "anonImpl": []
+            }
+          ],
+          "superclass": "",
+          "interfaces": [
+            "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
+          ],
+          "fieldAccesses": [],
+          "methodCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "startCodeUnit": "sayHello",
+              "targetElement": "sayHello"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "startCodeUnit": "sayHello",
+              "targetElement": "InnerClass1"
+            }
+          ],
+          "anonImpl": []
+        },
+        {
+          "name": "SimpleClass2",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+          "type": "class",
+          "children": [],
+          "superclass": "",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "sayHello"
+            },
+            {
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "sayHi"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "startCodeUnit": "sayHelloAndBye",
+              "targetElement": "SimpleClass1"
+            }
+          ],
+          "anonImpl": []
+        },
+        {
+          "name": "SimpleClass3",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+          "type": "class",
+          "children": [],
+          "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": [],
+          "anonImpl": []
+        },
+        {
+          "name": "SimpleInterface1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
+          "type": "interface",
+          "children": [],
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": [],
+          "anonImpl": []
+        }
+      ]
+    }
+  ]
+}

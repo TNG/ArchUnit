@@ -6,12 +6,12 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 public class VisualizationContext {
-    private final Set<String> basePkgs;
+    private final Set<String> rootPackages;
     private final boolean includeEverything;
     private final boolean ignoreAccessToSuperConstructorFromConstructor;
 
-    private VisualizationContext(Set<String> basePkgs, boolean includeEverything, boolean ignoreAccessToSuperConstructorFromConstructor) {
-        this.basePkgs = ImmutableSet.copyOf(basePkgs);
+    private VisualizationContext(Set<String> rootPackages, boolean includeEverything, boolean ignoreAccessToSuperConstructorFromConstructor) {
+        this.rootPackages = ImmutableSet.copyOf(rootPackages);
         this.includeEverything = includeEverything;
         this.ignoreAccessToSuperConstructorFromConstructor = ignoreAccessToSuperConstructorFromConstructor;
     }
@@ -20,7 +20,7 @@ public class VisualizationContext {
         if (includeEverything) {
             return true;
         }
-        for (String s : basePkgs) {
+        for (String s : rootPackages) {
             if (fullname.startsWith(s)) {
                 return true;
             }
@@ -29,6 +29,8 @@ public class VisualizationContext {
     }
 
     boolean isDependencyIncluded(JsonJavaElement origin, String targetOwner, boolean constructorCall) {
+        // FIXME: targetOwner.equals(origin.fullname) has nothing to do with VisualizationContext
+        // FIXME: constructorCall is redundant, at least it should be, i.e. target.isConstructor()
         return !targetOwner.equals(origin.fullname) &&
                 isElementIncluded(targetOwner) &&
                 (!constructorCall || isIncludedConstructorCall(origin, targetOwner));
@@ -40,24 +42,24 @@ public class VisualizationContext {
     }
 
     public static class Builder {
-        private Set<String> basePkgs;
+        private Set<String> rootPackages;
         private boolean includeEverything = false;
         private boolean ignoreAccessToSuperConstructorFromConstructor = false;
 
         public Builder() {
         }
 
-        public Builder includeOnly(String... basePkgs) {
-            return includeOnly(ImmutableSet.copyOf(basePkgs));
+        public Builder includeOnly(String... rootPackages) {
+            return includeOnly(ImmutableSet.copyOf(rootPackages));
         }
 
-        public Builder includeOnly(Set<String> basePkgs) {
-            this.basePkgs = basePkgs;
+        public Builder includeOnly(Set<String> rootPackages) {
+            this.rootPackages = rootPackages;
             return this;
         }
 
         public Builder includeEverything() {
-            basePkgs = new HashSet<>();
+            rootPackages = new HashSet<>();
             includeEverything = true;
             return this;
         }
@@ -68,7 +70,7 @@ public class VisualizationContext {
         }
 
         public VisualizationContext build() {
-            return new VisualizationContext(basePkgs, includeEverything, ignoreAccessToSuperConstructorFromConstructor);
+            return new VisualizationContext(rootPackages, includeEverything, ignoreAccessToSuperConstructorFromConstructor);
         }
     }
 }

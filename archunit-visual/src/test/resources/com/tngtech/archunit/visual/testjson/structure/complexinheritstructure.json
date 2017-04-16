@@ -1,11 +1,11 @@
 {
-  "name": "com.tngtech.archunit.visual.testjson",
-  "fullname": "com.tngtech.archunit.visual.testjson",
+  "name": "com.tngtech.archunit.visual.testjson.structure",
+  "fullname": "com.tngtech.archunit.visual.testjson.structure",
   "type": "package",
   "children": [
     {
       "name": "EmptyClass",
-      "fullname": "com.tngtech.archunit.visual.testjson.EmptyClass",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
       "type": "class",
       "children": [],
       "superclass": "",
@@ -16,28 +16,28 @@
       "anonImpl": []
     },
     {
-      "name": "simpleInheritStructure",
-      "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure",
+      "name": "simpleinherit",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
       "type": "package",
       "children": [
         {
-          "name": "Class1",
-          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+          "name": "SimpleClass1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
           "type": "class",
           "children": [
             {
               "name": "InnerClass1",
-              "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
               "type": "class",
               "children": [],
               "superclass": "",
               "interfaces": [
-                "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1"
+                "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
               ],
               "fieldAccesses": [],
               "methodCalls": [
                 {
-                  "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+                  "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
                   "startCodeUnit": "sayHello",
                   "targetElement": "sayHello"
                 }
@@ -48,19 +48,19 @@
           ],
           "superclass": "",
           "interfaces": [
-            "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1"
+            "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
           ],
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "sayHello"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1.InnerClass1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "InnerClass1"
             }
@@ -68,8 +68,8 @@
           "anonImpl": []
         },
         {
-          "name": "Class2",
-          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+          "name": "SimpleClass2",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
           "type": "class",
           "children": [],
           "superclass": "",
@@ -77,31 +77,31 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "sayHello"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "sayHi"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "Class1"
+              "targetElement": "SimpleClass1"
             }
           ],
           "anonImpl": []
         },
         {
-          "name": "Class3",
-          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class3",
+          "name": "SimpleClass3",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
           "type": "class",
           "children": [],
-          "superclass": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class2",
+          "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
           "interfaces": [],
           "fieldAccesses": [],
           "methodCalls": [],
@@ -109,8 +109,8 @@
           "anonImpl": []
         },
         {
-          "name": "Interface1",
-          "fullname": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Interface1",
+          "name": "SimpleInterface1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
           "type": "interface",
           "children": [],
           "interfaces": [],
@@ -122,50 +122,50 @@
       ]
     },
     {
-      "name": "complexInheritStructure",
-      "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure",
+      "name": "complexinherit",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit",
       "type": "package",
       "children": [
         {
-          "name": "Class1",
-          "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class1",
+          "name": "ComplexClass1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
           "type": "class",
           "children": [],
           "superclass": "",
           "interfaces": [
-            "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1",
-            "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface2"
+            "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1",
+            "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface2"
           ],
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "sayHi"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHi",
               "targetElement": "sayHello"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHello",
-              "targetElement": "Class1"
+              "targetElement": "SimpleClass1"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.simpleInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHi",
-              "targetElement": "Class1"
+              "targetElement": "SimpleClass1"
             }
           ],
           "anonImpl": []
         },
         {
-          "name": "Class2",
-          "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class2",
+          "name": "ComplexClass2",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
           "type": "class",
           "children": [],
           "superclass": "",
@@ -173,38 +173,38 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "sayHello"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "sayHi"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "Class1"
+              "targetElement": "ComplexClass1"
             }
           ],
           "anonImpl": [
-            "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1"
+            "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1"
           ]
         },
         {
-          "name": "Class3",
-          "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class3",
+          "name": "ComplexClass3",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass3",
           "type": "class",
           "children": [],
-          "superclass": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class2",
+          "superclass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
           "interfaces": [],
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Class2",
+              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
               "startCodeUnit": "sayHelloAndBye",
               "targetElement": "sayHelloAndBye"
             }
@@ -213,8 +213,8 @@
           "anonImpl": []
         },
         {
-          "name": "Interface1",
-          "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface1",
+          "name": "ComplexInterface1",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1",
           "type": "interface",
           "children": [],
           "interfaces": [],
@@ -224,8 +224,8 @@
           "anonImpl": []
         },
         {
-          "name": "Interface2",
-          "fullname": "com.tngtech.archunit.visual.testjson.complexInheritStructure.Interface2",
+          "name": "ComplexInterface2",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface2",
           "type": "interface",
           "children": [],
           "interfaces": [],

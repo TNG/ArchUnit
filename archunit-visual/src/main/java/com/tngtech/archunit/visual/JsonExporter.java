@@ -19,6 +19,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
+    // FIXME: By convention, several words in a constant are separated by '_' -> rename this to INNER_CLASS_SEPARATOR
     private static final String INNERCLASSSEP = "$";
 
     void export(JavaClasses classes, File file, VisualizationContext context) {
@@ -47,9 +48,10 @@ class JsonExporter {
         List<JavaClass> innerClasses = new LinkedList<>();
         for (JavaClass c : classes) {
             if (context.isElementIncluded(c.getName())) {
+                // FIXME: Test for being inner class as javaClass.getEnclosingClass().isPresent()
                 if (c.getName().contains(INNERCLASSSEP)) {
                     innerClasses.add(c);
-                } else if (!c.getSimpleName().isEmpty()) {
+                } else if (!c.getSimpleName().isEmpty()) { // FIXME: Test via javaClass.isAnonymous()
                     root.insertJavaElement(parseJavaElement(c, context));
                 }
             }
@@ -62,6 +64,7 @@ class JsonExporter {
         builder.excludeFieldsWithoutExposeAnnotation();
         Gson gson = builder.create();
         try {
+            // FIXME: Is there a less bloated way with Guava?
             String jsonString = gson.toJson(root);
             gson.toJson(root, new FileWriter(file));
             file.createNewFile();
@@ -71,7 +74,7 @@ class JsonExporter {
             myOutWriter.close();
             fOut.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // FIXME: Never just printStackTrace in production code, create dedicated RuntimeException for this, and propagate
         }
     }
 
@@ -85,6 +88,7 @@ class JsonExporter {
         }
     }
 
+    // FIXME: Operate on JavaClass, i.e. javaClass.getEnclosingClass.get().getName()
     private String getFullnameOfParentClass(String innerClass) {
         return innerClass.substring(0, innerClass.indexOf(INNERCLASSSEP));
     }
@@ -145,6 +149,7 @@ class JsonExporter {
     }
 
     private void parseAccessesToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
+        // FIXME: Don't use shortcuts like c, fa, etc., we're not writing Assembler ;-) The chars don't cost, rather make simpler if(..) expressions
         for (JavaFieldAccess fa : c.getFieldAccessesFromSelf()) {
             String targetOwner = getCleanedFullname(fa.getTargetOwner().getName());
             if (!fa.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, targetOwner, false)) {

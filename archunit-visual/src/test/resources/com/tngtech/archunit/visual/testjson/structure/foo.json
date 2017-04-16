@@ -1,0 +1,69 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "superclass": "java.lang.Object",
+          "interfaces": [],
+          "fieldAccesses": [
+            {
+              "to": "java.lang.System",
+              "startCodeUnit": "OtherClass",
+              "targetElement": "out"
+            }
+          ],
+          "methodCalls": [
+            {
+              "to": "java.io.PrintStream",
+              "startCodeUnit": "OtherClass",
+              "targetElement": "println"
+            }
+          ],
+          "constructorCalls": [
+            {
+              "to": "java.lang.Object",
+              "startCodeUnit": "OtherClass",
+              "targetElement": "Object"
+            }
+          ],
+          "anonImpl": [],
+          "children": [],
+          "name": "OtherClass",
+          "fullname": "some.other.OtherClass",
+          "type": "class"
+        }
+      ],
+      "name": "some.other",
+      "fullname": "some.other",
+      "type": "package"
+    },
+    {
+      "children": [
+        {
+          "superclass": "java.lang.Object",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": [
+            {
+              "to": "java.lang.Object",
+              "startCodeUnit": "EmptyClass",
+              "targetElement": "Object"
+            }
+          ],
+          "anonImpl": [],
+          "children": [],
+          "name": "EmptyClass",
+          "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+          "type": "class"
+        }
+      ],
+      "name": "com.tngtech.archunit.visual.testjson.structure",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure",
+      "type": "package"
+    }
+  ],
+  "name": "default",
+  "fullname": "default",
+  "type": "package"
+}

@@ -36,10 +36,10 @@ public class PackageStructureCreatorTest {
         Set<String> pkgs = new HashSet<>(Arrays.asList("com.tngtech.pkg1", "com.tngtech.pkg1.subpkg1",
                 "com.tngtech.pkg2", "java.lang"));
         JsonJavaPackage act = (JsonJavaPackage) createPackageStructure.invoke(null, pkgs);
-        File expectedJson = JsonConverter.getJsonFile("/testcreatepackagestructure.json");
-        assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(act)))
+        File expectedJson = JsonTestUtils.getJsonFile("/testcreatepackagestructure.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(act)))
                 .as("created package structure")
-                .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
     }
 
     private boolean hasNameAndFullname(JsonJavaPackage pkg, String name, String fullname) {

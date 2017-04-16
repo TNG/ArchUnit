@@ -1,9 +1,9 @@
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.gson.annotations.Expose;
 
 abstract class JsonJavaElement extends JsonElement {
     @Expose
@@ -14,6 +14,7 @@ abstract class JsonJavaElement extends JsonElement {
     private Set<JsonMethodCall> methodCalls = new HashSet<>();
     @Expose
     private Set<JsonConstructorCall> constructorCalls = new HashSet<>();
+    // FIXME: Don't use cryptic shortcuts like 'anonImpl', esp. within public API
     @Expose
     private Set<String> anonImpl = new HashSet<>();
     @Expose

@@ -1,17 +1,20 @@
 package com.tngtech.archunit.visual;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.*;
-
-final class JsonConverter {
-
+final class JsonTestUtils {
 
     static String getJsonStringOf(JsonElement element) {
         final GsonBuilder builder = new GsonBuilder();
@@ -40,7 +43,7 @@ final class JsonConverter {
         return ensureOrderIgnored(imported);
     }
 
-    //@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     private static <T> T ensureOrderIgnored(T imported) {
         if (imported instanceof Map) {
             return (T) makeHashMap((Map<?, ?>) imported);
@@ -67,6 +70,6 @@ final class JsonConverter {
     }
 
     static File getJsonFile(String name) {
-        return new File(JsonConverter.class.getResource(name).getFile());
+        return new File(JsonTestUtils.class.getResource(name).getFile());
     }
 }

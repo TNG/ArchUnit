@@ -1,18 +1,18 @@
-package com.tngtech.archunit.visual.testjson.complexInheritStructure;
+package com.tngtech.archunit.visual.testjson.structure.complexinherit;
 
-public class Class2 {
+public class ComplexClass2 {
     protected String name;
 
-    public Class2(String name) {
+    public ComplexClass2(String name) {
         this.name = name;
     }
 
     public void sayHelloAndBye() {
-        Class1 c = new Class1("Hi" + " " + name);
+        ComplexClass1 c = new ComplexClass1("Hi" + " " + name);
         c.sayHello();
         c.sayHi();
         System.out.println("Bye" + " " + name);
-        Interface1 i = new Interface1() {
+        ComplexInterface1 i = new ComplexInterface1() {
             @Override
             public void sayHello() {
 

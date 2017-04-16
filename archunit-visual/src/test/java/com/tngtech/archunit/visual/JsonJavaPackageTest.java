@@ -21,16 +21,16 @@ public class JsonJavaPackageTest {
         JsonJavaPackage pkg = new JsonJavaPackage("com", "com");
 
         insertPackage.invoke(pkg, "com.tngtech");
-        File expectedJson = JsonConverter.getJsonFile("/testinsertpackage1.json");
-        assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(pkg)))
+        File expectedJson = JsonTestUtils.getJsonFile("/testinsertpackage1.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
                 .as("structure after inserting a single package")
-                .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
 
         insertPackage.invoke(pkg, "com.tngtech.pkg.subpkg");
-        expectedJson = JsonConverter.getJsonFile("/testinsertpackage2.json");
-        assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(pkg)))
+        expectedJson = JsonTestUtils.getJsonFile("/testinsertpackage2.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
                 .as("structure after inserting a package with sub-package")
-                .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
     }
 
     @Test
@@ -42,10 +42,10 @@ public class JsonJavaPackageTest {
         insertPackage.invoke(pkg, "com");
         pkg.normalize();
 
-        File expectedJson = JsonConverter.getJsonFile("/testnormalize1.json");
-        assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(pkg)))
+        File expectedJson = JsonTestUtils.getJsonFile("/testnormalize1.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
                 .as("structure after normalizing with unnecessary default package and another package")
-                .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
 
         pkg = new JsonJavaPackage("com", "com");
         insertPackage.invoke(pkg, "com.tngtech.pkg1.subpkg");
@@ -53,10 +53,10 @@ public class JsonJavaPackageTest {
         pkg.insertJavaElement(new JsonJavaClass("class1", "com.tngtech.pkg1.class1", "class", ""));
         pkg.normalize();
 
-        expectedJson = JsonConverter.getJsonFile("/testnormalize2.json");
-        assertThat(JsonConverter.jsonToMap(JsonConverter.getJsonStringOf(pkg)))
+        expectedJson = JsonTestUtils.getJsonFile("/testnormalize2.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
                 .as("structure after normalizing with several packages with only one child")
-                .isEqualTo(JsonConverter.jsonToMap(expectedJson));
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
     }
 
     @Test

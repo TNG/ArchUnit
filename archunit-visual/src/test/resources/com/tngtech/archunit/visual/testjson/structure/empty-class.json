@@ -1,0 +1,27 @@
+{
+  "name": "com.tngtech.archunit.visual.testjson.structure",
+  "fullname": "com.tngtech.archunit.visual.testjson.structure",
+  "type": "package",
+  "children": [
+    {
+      "name": "EmptyClass",
+      "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "type": "class",
+      "children": [],
+      "superclass": "",
+      // FIXME: superclass wird auf '' gesetzt, wenn nicht included??? War vorm Rebase "java.lang.Object",
+      "interfaces": [],
+      "fieldAccesses": [],
+      "methodCalls": [],
+      "constructorCalls": [
+        // FIXME: This was part before rebasing current master, but isDependencyIncluded(..) checks if the target is included, which Object.class is not, and then excludes the call??
+        //        {
+        //          "to": "java.lang.Object",
+        //          "startCodeUnit": "EmptyClass",
+        //          "targetElement": "Object"
+        //        }
+      ],
+      "anonImpl": []
+    }
+  ]
+}
