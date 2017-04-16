@@ -2,6 +2,7 @@
 
 let nodes = new Map();
 
+// FIXME: Signature hard to read in code, what's -1 in isWithin(4, 3, 5, -1)? Whole expression is hard to read at any calling point
 let isWithin = (value, lowerLimit, upperLimit, trueSign) => {
   return (value >= lowerLimit && value <= upperLimit) ? trueSign : -trueSign;
 };
@@ -30,6 +31,7 @@ let getDescriptionRelativeToPredecessors = (dep, from, to) => {
 };
 
 let Dependency = class {
+  // FIXME: Too many parameters
   constructor(from, to, kind, inheritanceKind, accessKind, startCodeUnit, targetElement) {
     this.from = from;
     this.to = to;
@@ -338,7 +340,7 @@ let Dependencies = class {
 
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
-    setForAllMustShareNodes(this._visibleDependencies);
+    setForAllMustShareNodes(this._visibleDependencies); // FIXME: No test present?? Same for the interna of setFor... What are the semantics of the expression 'setForAllMustShareNodes' anyway??
   }
 
   calcEndCoordinatesForVisibleDependencies() {
@@ -349,6 +351,7 @@ let Dependencies = class {
     return e => e.from + "->" + e.to;
   }
 
+  // FIXME: Missing brackets, can change 'fold' to 'fold2' with all tests passing, same with 'unfold'
   changeFold(pkg, isFolded) {
     if (isFolded) changeFold(this, 'fold', dependencies => dependencies._transformers.set(pkg, foldTransformer(pkg)));
     else changeFold(this, 'unfold', dependencies => dependencies._transformers.delete(pkg));
@@ -360,12 +363,14 @@ let Dependencies = class {
     reapplyFilters(this, this._filters);
   }
 
+  // FIXME: Tooooo many parameters
   filterByKind(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl) {
     let kindFilter = getKindFilter(implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl);
     this._filters.set("kindfilter", filtered_deps => filtered_deps.filter(kindFilter));
     reapplyFilters(this, this._filters);
   }
 
+  // FIXME: Can change 'kindfilter' to 'kindfilter2', with all tests passing
   resetFilterByKind() {
     this._filters.delete("kindfilter");
     reapplyFilters(this, this._filters);
@@ -391,6 +396,7 @@ let Dependencies = class {
   }
 };
 
+// FIXME: Too many parameters, can change !== 0 to >= 0 with all tests passing
 let addDeps = (arr, jsonEl, dep, kind, inheritanceKind, accessKind) => {
   if (jsonEl.hasOwnProperty(dep) && jsonEl[dep].length !== 0) {
     jsonEl[dep].forEach(i => arr.push(
@@ -423,4 +429,5 @@ let jsonToDependencies = (jsonRoot, nodeMap) => {
   return new Dependencies(arr, nodeMap);
 };
 
+// FIXME: > 400 lines is too long, to be understandable
 module.exports.jsonToDependencies = jsonToDependencies;
