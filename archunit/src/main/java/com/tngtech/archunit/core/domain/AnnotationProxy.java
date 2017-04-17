@@ -188,7 +188,10 @@ class AnnotationProxy {
 
         @Override
         public Annotation convert(JavaAnnotation input, Class<?> returnType) {
-            Class type = JavaType.From.javaClass(input.getType()).resolveClass(classLoader);
+            // JavaAnnotation#getType() will return the type name of a Class<? extends Annotation>
+            @SuppressWarnings("unchecked")
+            Class<? extends Annotation> type = (Class<? extends Annotation>)
+                    JavaType.From.javaClass(input.getType()).resolveClass(classLoader);
             return AnnotationProxy.of(type, input);
         }
 
