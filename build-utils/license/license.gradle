@@ -1,0 +1,106 @@
+def addonFile = { rootProject.file("build-utils/license/${it}") }
+
+def fillTemplateFile = {
+    addonFile(it).text.
+            replace('${year}', year).
+            replace('${owner}', "${company.name}")
+}
+
+def parentPomOf = { String dep ->
+    dep.replaceAll(/(.*:)(.*)(:.*)/, /$1$2-parent$3@pom/)
+}
+
+configurations {
+    thirdpartyAsm
+    thirdpartyGuava
+}
+
+dependencies {
+    thirdpartyAsm parentPomOf(dependency.asm)
+    thirdpartyGuava parentPomOf(dependency.guava)
+}
+
+productionProjects*.with {
+    def installer = install.repositories.mavenInstaller
+    def deployer = uploadArchives.repositories.mavenDeployer
+
+    [installer, deployer]*.pom {
+        project {
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+
+            organization {
+                name "${company.name}"
+                url "${company.url}"
+            }
+        }
+    }
+
+    task addLicenseHeader {
+        doLast {
+            def headerText = fillTemplateFile('archunit.header.template')
+
+            sourceSets.main.allJava.each { sourceFile ->
+                if (!sourceFile.text.startsWith(headerText)) {
+                    sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
+                }
+            }
+        }
+    }
+    assemble.dependsOn addLicenseHeader
+}
+
+def parseLicenseUrlFrom = { config ->
+    def pom = config.resolve().find { it.name.endsWith('.pom') }
+
+    def projectNode = new XmlParser().parse(pom)
+    def address = projectNode.licenses.license.url*.text().find()
+
+    assert address: "Couldn't retrieve URl of license from ${pom} (checked project>licenses>license>url)"
+
+    new URL(address)
+}
+
+def createLicense = { url, preProcessClosure = null ->
+    def text = url.text
+    if (preProcessClosure) {
+        text = preProcessClosure(text)
+    }
+
+    def sourceHeader = "Source: ${url}"
+
+    """${sourceHeader}
+
+${'-'.multiply(sourceHeader.length())}
+
+${text}
+"""
+}
+
+// Pretty dirty, but I couldn't find an official plain text version online
+def unwrapHtml = { htmlInput ->
+    def html = htmlInput
+    while (!html.startsWith('Copyright (c)') && html.contains('<pre>')) {
+        html = html.substring(html.indexOf('<pre>') + 5, html.length()).trim()
+    }
+
+    assert html.startsWith('Copyright (c)'):
+            "Couldn't find license tag (looked for <pre>Copyright (c)...</pre> within ${html})"
+
+    html.substring(0, html.indexOf('</pre>'))
+}
+
+task updateLicenses {
+    doLast {
+        rootProject.file('licenses/archunit.license').text = fillTemplateFile('archunit.license.template')
+
+        rootProject.file('licenses/asm.license').text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyAsm), unwrapHtml)
+
+        rootProject.file('licenses/guava.license').text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyGuava))
+    }
+}

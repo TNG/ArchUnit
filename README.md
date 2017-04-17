@@ -352,6 +352,17 @@ classResolver.args=com.tngtech.archunit.core,com.tngtech.archunit.base
 enableMd5InClassSources=true
 ```
 
+## License
+
+ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
+
+Furthermore ArchUnit redistributes some third party libraries to avoid classpath collisions:
+
+* ASM (http://asm.ow2.org)
+* Google Guava (https://github.com/google/guava)
+
+All licenses for ArchUnit and redistributed libraries can be found within the `licenses` folder.
+
 ## Where to look next
 
 Further examples can be found inside of the project `archunit-example`, including some further predefined rules

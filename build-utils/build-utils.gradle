@@ -1,0 +1,4 @@
+def utilsPath = { "build-utils/${it}" }
+
+apply from: utilsPath('license/license.gradle')
+apply from: utilsPath('maven-smoke-test/maven-smoke-test.gradle')

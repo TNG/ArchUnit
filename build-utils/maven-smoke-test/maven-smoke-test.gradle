@@ -1,0 +1,33 @@
+import java.nio.file.Files
+
+task prepareMavenTest {
+    doLast {
+        def pom = rootProject.file('archunit-maven-test/pom.xml')
+        def pomBak = rootProject.file('archunit-maven-test/pom.xml.bak')
+        pomBak.delete()
+        Files.copy(pom.toPath(), pomBak.toPath())
+        pom.text = pom.text.replace('#{archunit.version}', "${version}")
+    }
+}
+
+task executeMavenTest(type: Exec) {
+    workingDir "$rootProject.projectDir/archunit-maven-test"
+
+    commandLine 'mvn', 'clean', 'test'
+}
+
+task cleanUpMavenTest {
+    doLast {
+        def pom = rootProject.file('archunit-maven-test/pom.xml')
+        def pomBak = rootProject.file('archunit-maven-test/pom.xml.bak')
+        pom.delete()
+        Files.copy(pomBak.toPath(), pom.toPath())
+        pomBak.delete()
+    }
+}
+
+cleanUpMavenTest.mustRunAfter executeMavenTest
+executeMavenTest.finalizedBy cleanUpMavenTest
+cleanUpMavenTest.mustRunAfter prepareMavenTest
+executeMavenTest.mustRunAfter prepareMavenTest
+task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])

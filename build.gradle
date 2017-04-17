@@ -1,7 +1,5 @@
 import proguard.gradle.ProGuardTask
 
-import java.nio.file.Files
-
 import static java.nio.charset.StandardCharsets.UTF_8
 
 buildscript {
@@ -18,21 +16,29 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
-ext.dependency = [
-        asm               : 'org.ow2.asm:asm:5.1',
-        guava             : 'com.google.guava:guava:19.0',
-        slf4j             : 'org.slf4j:slf4j-api:1.7.7',
-        log4j_api         : 'org.apache.logging.log4j:log4j-api:2.1',
-        log4j_core        : 'org.apache.logging.log4j:log4j-core:2.1',
-        log4j_slf4j       : 'org.apache.logging.log4j:log4j-slf4j-impl:2.1',
+ext {
+    year = "${Calendar.getInstance().get(Calendar.YEAR)}"
+    company = [
+            name: 'TNG Technology Consulting GmbH',
+            url : 'http://www.tngtech.com'
+    ]
 
-        junit             : 'junit:junit:4.12',
-        hamcrest          : 'org.hamcrest:hamcrest-core:1.3',
-        junit_dataprovider: 'com.tngtech.java:junit-dataprovider:1.10.0',
-        mockito           : 'org.mockito:mockito-core:1.10.19',
-        assertj           : 'org.assertj:assertj-core:2.4.1',
-        assertj_guava     : 'org.assertj:assertj-guava:2.0.0'
-]
+    dependency = [
+            asm               : 'org.ow2.asm:asm:5.1',
+            guava             : 'com.google.guava:guava:19.0',
+            slf4j             : 'org.slf4j:slf4j-api:1.7.7',
+            log4j_api         : 'org.apache.logging.log4j:log4j-api:2.1',
+            log4j_core        : 'org.apache.logging.log4j:log4j-core:2.1',
+            log4j_slf4j       : 'org.apache.logging.log4j:log4j-slf4j-impl:2.1',
+
+            junit             : 'junit:junit:4.12',
+            hamcrest          : 'org.hamcrest:hamcrest-core:1.3',
+            junit_dataprovider: 'com.tngtech.java:junit-dataprovider:1.10.0',
+            mockito           : 'org.mockito:mockito-core:1.10.19',
+            assertj           : 'org.assertj:assertj-core:2.4.1',
+            assertj_guava     : 'org.assertj:assertj-guava:2.0.0'
+    ]
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.4.1'
@@ -41,7 +47,14 @@ task wrapper(type: Wrapper) {
 allprojects {
     group = 'com.tngtech.archunit'
     version = '0.4.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
 }
+
+def productionProjectNames = ['archunit', 'archunit-junit']
+ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
 
 subprojects {
     apply plugin: 'java'
@@ -49,10 +62,6 @@ subprojects {
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
-
-    repositories {
-        mavenCentral()
-    }
 
     install.dependsOn(build)
     uploadArchives.dependsOn(build)
@@ -145,18 +154,16 @@ def configurePublish = {
     }
 }
 
-[':archunit', ':archunit-junit'].each {
-    project(it) {
-        apply plugin: 'com.github.johnrengelman.shadow'
-    }
+productionProjects*.with {
+    apply plugin: 'com.github.johnrengelman.shadow'
 
-    project(it, configureFindbugs)
-    project(it, configureShadow)
-    project(it, configureProGuard)
-    project(it, configurePublish)
+    delegate.with configureFindbugs
+    delegate.with configureShadow
+    delegate.with configureProGuard
+    delegate.with configurePublish
 
-    project(it).test {
-        if (!project.hasProperty('allTests')) {
+    test {
+        if (!it.hasProperty('allTests')) {
             it.useJUnit {
                 excludeCategories 'com.tngtech.archunit.Slow'
             }
@@ -164,34 +171,4 @@ def configurePublish = {
     }
 }
 
-task prepareMavenTest {
-    doLast {
-        def pom = file("$rootProject.projectDir/archunit-maven-test/pom.xml")
-        def pomBak = file("$rootProject.projectDir/archunit-maven-test/pom.xml.bak")
-        pomBak.delete()
-        Files.copy(pom.toPath(), pomBak.toPath())
-        pom.text = pom.text.replace('#{archunit.version}', version)
-    }
-}
-
-task executeMavenTest(type: Exec) {
-    workingDir "$rootProject.projectDir/archunit-maven-test"
-
-    commandLine 'mvn', 'clean', 'test'
-}
-
-task cleanUpMavenTest {
-    doLast {
-        def pom = file("$rootProject.projectDir/archunit-maven-test/pom.xml")
-        def pomBak = file("$rootProject.projectDir/archunit-maven-test/pom.xml.bak")
-        pom.delete()
-        Files.copy(pomBak.toPath(), pom.toPath())
-        pomBak.delete()
-    }
-}
-
-cleanUpMavenTest.mustRunAfter executeMavenTest
-executeMavenTest.finalizedBy cleanUpMavenTest
-cleanUpMavenTest.mustRunAfter prepareMavenTest
-executeMavenTest.mustRunAfter prepareMavenTest
-task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])
+apply from: 'build-utils/build-utils.gradle'
