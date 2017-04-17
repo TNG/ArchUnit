@@ -568,7 +568,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     /**
-     * Resolves the respective {@link Class} from the classpath.<br/>
+     * Resolves the respective {@link Class} from the classpath.<br>
      * NOTE: This method will throw an exception, if the respective {@link Class} or any of its dependencies
      * can't be found on the classpath.
      *

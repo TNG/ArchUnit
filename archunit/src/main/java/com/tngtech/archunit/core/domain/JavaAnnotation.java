@@ -32,12 +32,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * key value pairs. I.e. if you consider
  * <pre><code>
  *  {@literal @}MyAnnotation(name = "some name", anAttribute = 7)
- *   class MyClass {}
+ *  class MyClass {}
  * </code></pre>
  * this annotation will be imported storing the association
  * <pre><code>
- *   name -> "some name"
- *   anAttribute -> 7
+ *   name --&gt; "some name"
+ *   anAttribute --&gt; 7
  * </code></pre>
  * Properties will be made available via {@link #get(String)}, e.g.
  * <pre><code>
@@ -48,7 +48,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * be resolved on the classpath. It's then possible to access a simple proxy
  * <pre><code>
  *   MyAnnotation moreConvenient = myAnnotation.as(MyAnnotation.class);
- *   moreConvenient.anAttribute(); // -> returns 7
+ *   moreConvenient.anAttribute(); // --&gt; returns 7
  * </code></pre>
  * ----------<br>
  * NOTE<br>
@@ -57,12 +57,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * be mapped, when the access is proxied. Consider
  * <pre><code>
  *  {@literal @}SomeAnnotation(type = String.class)
- *   class MyClass {}
+ *  class MyClass {}
  * </code></pre>
  * Accesses to 'type' will be different for the proxied version:
  * <pre><code>
- *   someAnnotation.get("type"); // -> returns JavaClass{String}
- *   someAnnotation.as(SomeAnnotation.class).type(); // -> returns String.class
+ *   someAnnotation.get("type"); // --&gt; returns JavaClass{String}
+ *   someAnnotation.as(SomeAnnotation.class).type(); // --&gt; returns String.class
  * </code></pre>
  */
 public final class JavaAnnotation implements HasType {
@@ -86,18 +86,18 @@ public final class JavaAnnotation implements HasType {
      * class SomeAnnotatedClass {}
      * </code></pre>
      * the results will be
-     * <pre><code>       someAnnotation.get("value") -> "someString"
-     * someAnnotation.get("types") -> [JavaClass{SomeType}, JavaClass{AnotherType}]
+     * <pre><code>       someAnnotation.get("value") --&gt; "someString"
+     * someAnnotation.get("types") --&gt; [JavaClass{SomeType}, JavaClass{AnotherType}]
      * </code></pre>
      *
      * @param property The name of the annotation property, i.e. the declared method name
      * @return the value of the given property, where the result type is more precisely
      * <ul>
-     * <li>Class&lt;?&gt; -> TypeDetails{clazz}</li>
-     * <li>Class&lt;?&gt;[] -> [TypeDetails{clazz},...]</li>
-     * <li>Enum -> JavaEnumConstant</li>
-     * <li>Enum[] -> [JavaEnumConstant,...]</li>
-     * <li>anyOtherType -> anyOtherType</li>
+     * <li>Class&lt;?&gt; --&gt; TypeDetails{clazz}</li>
+     * <li>Class&lt;?&gt;[] --&gt; [TypeDetails{clazz},...]</li>
+     * <li>Enum --&gt; JavaEnumConstant</li>
+     * <li>Enum[] --&gt; [JavaEnumConstant,...]</li>
+     * <li>anyOtherType --&gt; anyOtherType</li>
      * </ul>
      */
     @PublicAPI(usage = ACCESS)
@@ -106,7 +106,7 @@ public final class JavaAnnotation implements HasType {
     }
 
     /**
-     * @return a map containing all [property -> value], where each value correlates to {@link #get(String property)}
+     * @return a map containing all [property --&gt; value], where each value correlates to {@link #get(String property)}
      */
     @PublicAPI(usage = ACCESS)
     public Map<String, Object> getProperties() {

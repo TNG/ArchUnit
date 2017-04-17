@@ -81,6 +81,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @see MethodCallTarget#resolve()
      * @see FieldAccessTarget#resolve()
      * @see ConstructorCallTarget#resolve()
+     *
+     * @return Set of all members that match the call target
      */
     @PublicAPI(usage = ACCESS)
     public abstract Set<? extends JavaMember> resolve();
@@ -103,7 +105,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     /**
-     * Returns true, if one of the resolved targets is annotated with the given annotation type.<br/>
+     * Returns true, if one of the resolved targets is annotated with the given annotation type.<br>
      * NOTE: If the target was not imported, this method will always return false.
      *
      * @param annotationType The type of the annotation to check for
@@ -128,7 +130,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     /**
-     * Returns true, if one of the resolved targets is annotated with an annotation matching the predicate.<br/>
+     * Returns true, if one of the resolved targets is annotated with an annotation matching the predicate.<br>
      * NOTE: If the target was not imported, this method will always return false.
      *
      * @param predicate Qualifies matching annotations

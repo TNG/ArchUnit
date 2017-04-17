@@ -80,7 +80,7 @@ public abstract class DescribedPredicate<T> {
     }
 
     /**
-     * Workaround for the limitations of the Java type system -> Can't specify this contravariant type at the language level
+     * Workaround for the limitations of the Java type system {@code ->} Can't specify this contravariant type at the language level
      */
     @SuppressWarnings("unchecked") // DescribedPredicate is contravariant
     public <U extends T> DescribedPredicate<U> forSubType() {

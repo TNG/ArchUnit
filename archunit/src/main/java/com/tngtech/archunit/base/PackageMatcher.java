@@ -28,7 +28,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
- * characters, '..' stands for any sequence of packages, including zero packages.<br/>
+ * characters, '..' stands for any sequence of packages, including zero packages.<br>
  * For example
  * <ul>
  * <li><b>{@code '..pack..'}</b> matches <b>{@code 'a.pack'}</b>, <b>{@code 'a.pack.b'}</b> or <b>{@code 'a.b.pack.c.d'}</b>,
@@ -39,7 +39,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * but neither <b>{@code 'a.packfix.b'}</b> nor <b>{@code 'a.b.prepack.d'}</b></li>
  * </ul>
  * Furthermore the use of capturing groups is supported. In this case '(*)' matches any sequence of characters,
- * but not the dot '.', while '(**)' matches any sequence including the dot. <br/>
+ * but not the dot '.', while '(**)' matches any sequence including the dot. <br>
  * For example
  * <ul>
  * <li><b>{@code '..service.(*)..'}</b> matches <b>{@code 'a.service.hello.b'}</b> and group 1 would be <b>{@code 'hello'}</b></li>
@@ -105,7 +105,7 @@ public final class PackageMatcher {
     /**
      * Creates a new {@link PackageMatcher}
      *
-     * @param packageIdentifier The package literal to match against (e.g. {@code 'some*..pk*'} -> {@code 'somewhere.in.some.pkg'})
+     * @param packageIdentifier The package literal to match against (e.g. {@code 'some*..pk*'} --&gt; {@code 'somewhere.in.some.pkg'})
      * @return {@link PackageMatcher} to match packages against the supplied literal
      * supporting AspectJ syntax
      */

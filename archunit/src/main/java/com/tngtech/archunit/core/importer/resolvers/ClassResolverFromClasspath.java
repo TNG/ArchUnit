@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A {@link ClassResolver}, that tries to locate missing dependencies on the classpath.
  * I.e. uses {@link Class#getResource(String)} to find the {@link URI} of the classfile for the missing
- * type, then uses the supplied {@link ClassUriImporter} to import the type.
+ * type, then uses the supplied {@link ClassResolver.ClassUriImporter} to import the type.
  */
 @MayResolveTypesViaReflection(reason = "This is a dedicated option to resolve further dependencies from the classpath")
 public final class ClassResolverFromClasspath implements ClassResolver {

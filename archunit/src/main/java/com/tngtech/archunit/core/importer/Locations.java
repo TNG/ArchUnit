@@ -44,7 +44,7 @@ public final class Locations {
     }
 
     /**
-     * All locations in the classpath that match the supplied package.<br/>
+     * All locations in the classpath that match the supplied package.<br>
      * NOTE: Only works, if the used ClassLoader extends {@link URLClassLoader} (which is true for normal settings)
      *
      * @param pkg the package to look for within the classpath

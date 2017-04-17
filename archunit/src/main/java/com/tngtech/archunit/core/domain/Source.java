@@ -32,11 +32,11 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * Contains information about an imported class, i.e. the URI from where the class was imported and an md5 sum
  * to compare different versions of the same class file at the same location.
  * <p>
- * <b>NOTE</b>: Since the generation of md5 sums has a performance impact, it is disabled by default.<br/>
+ * <b>NOTE</b>: Since the generation of md5 sums has a performance impact, it is disabled by default.<br>
  * To enable it, add
- * <br/><br/><code>
+ * <br><br><code>
  * {@value ArchConfiguration#ENABLE_MD5_IN_CLASS_SOURCES}=true
- * </code><br/><br/>
+ * </code><br><br>
  * to your <code>{@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>.
  * </p>
  */

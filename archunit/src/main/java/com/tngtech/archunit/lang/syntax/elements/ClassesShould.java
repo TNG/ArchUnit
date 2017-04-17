@@ -327,9 +327,9 @@ public interface ClassesShould {
      * Asserts that classes are assignable to a certain type (compare {@link Class#isAssignableFrom(Class)} to terminology).
      * A simple example for this predicate would be
      * <pre><code>
-     *   assignableTo(Object.class).apply(importedStringClass); // -> returns true
-     *   assignableTo(String.class).apply(importedStringClass); // -> returns true
-     *   assignableTo(List.class).apply(importedStringClass); // -> returns false
+     *   assignableTo(Object.class).apply(importedStringClass); // --&gt; returns true
+     *   assignableTo(String.class).apply(importedStringClass); // --&gt; returns true
+     *   assignableTo(List.class).apply(importedStringClass); // --&gt; returns false
      * </code></pre>
      *
      * @param type An upper type bound to match imported classes against (imported subtypes will match)
@@ -398,9 +398,9 @@ public interface ClassesShould {
      * </code></pre>
      * A simple example for this predicate would be
      * <pre><code>
-     *   assignableFrom(ArrayList.class).apply(importedArrayListClass); // -> returns true
-     *   assignableFrom(ArrayList.class).apply(importedListClass); // -> returns true
-     *   assignableFrom(ArrayList.class).apply(importedStringClass); // -> returns false
+     *   assignableFrom(ArrayList.class).apply(importedArrayListClass); // --&gt; returns true
+     *   assignableFrom(ArrayList.class).apply(importedListClass); // --&gt; returns true
+     *   assignableFrom(ArrayList.class).apply(importedStringClass); // --&gt; returns false
      * </code></pre>
      *
      * @param type A lower type bound to match imported classes against (imported supertypes will match)

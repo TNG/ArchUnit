@@ -135,7 +135,7 @@ public abstract class JavaMember implements
 
 
     /**
-     * Resolves the respective {@link Member} from the classpath.<br/>
+     * Resolves the respective {@link Member} from the classpath.<br>
      * NOTE: This method will throw an exception, if the owning {@link Class} or any of its dependencies
      * can't be found on the classpath.
      *

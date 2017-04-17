@@ -55,7 +55,7 @@ import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
  * <ul>
  * <li><code>some.pkg.two.any</code></li>
  * </ul>
- * in a different slice.<br/>
+ * in a different slice.<br>
  * The resulting {@link ClassesTransformer} can be used to specify an {@link ArchRule} on slices.
  */
 public final class Slices implements DescribedIterable<Slice> {
@@ -87,7 +87,7 @@ public final class Slices implements DescribedIterable<Slice> {
 
     /**
      * Allows the naming of single slices, where back references to the matching pattern can be denoted by '$' followed
-     * by capturing group number. <br/>
+     * by capturing group number. <br>
      * E.g. {@code namingSlices("Slice $1")} would name a slice matching {@code '*..service.(*)..*'}
      * against {@code 'com.some.company.service.hello.something'} as 'Slice hello'.
      *
@@ -196,16 +196,16 @@ public final class Slices implements DescribedIterable<Slice> {
 
         /**
          * Supports partitioning a set of {@link JavaClasses} into different slices by matching the supplied
-         * package identifier. For identifier syntax, see {@link PackageMatcher}.<br/>
+         * package identifier. For identifier syntax, see {@link PackageMatcher}.<br>
          * The slicing is done according to capturing groups (thus if none are contained in the identifier, no more than
          * a single slice will be the result). For example
          * <p>
-         * Suppose there are three classes:<br/><br/>
-         * {@code com.example.slice.one.SomeClass}<br/>
-         * {@code com.example.slice.one.AnotherClass}<br/>
-         * {@code com.example.slice.two.YetAnotherClass}<br/><br/>
-         * If slices are created by specifying<br/><br/>
-         * {@code Slices.of(classes).byMatching("..slice.(*)..")}<br/><br/>
+         * Suppose there are three classes:<br><br>
+         * {@code com.example.slice.one.SomeClass}<br>
+         * {@code com.example.slice.one.AnotherClass}<br>
+         * {@code com.example.slice.two.YetAnotherClass}<br><br>
+         * If slices are created by specifying<br><br>
+         * {@code Slices.of(classes).byMatching("..slice.(*)..")}<br><br>
          * then the result will be two slices, the slice where the capturing group is 'one' and the slice where the
          * capturing group is 'two'.
          * </p>
