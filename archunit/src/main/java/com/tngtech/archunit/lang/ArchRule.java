@@ -30,6 +30,10 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
+import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
+import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 
 import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -37,18 +41,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Represents a rule about a specified set of objects of interest (e.g. {@link JavaClass}).
- * To define a rule, use {@link ArchRuleDefinition#all(ClassesTransformer)}, for example
+ * To define a rule, use one of the factory methods within {@link ArchRuleDefinition}, for example
  * <br><br><pre><code>
- * ClassesTransformer services = classes().that(resideIn("..svc..")).as("Services");
- * ArchRule rule = all(services).should(never(accessClassesThatResideIn("..ui..")).as("access the UI"));
+ * ArchRule rule = {@link ArchRuleDefinition#noClasses()}.{@link GivenClasses#that() that()}.{@link ClassesThat#resideInAPackage(String) resideInAPackage("..svc..")}
+ *                     .{@link GivenClasses#should() should()}.{@link ClassesShould#accessClassesThat() accessClassesThat()}.{@link ClassesShouldThat#resideInAPackage(String) resideInAPackage("..ui..")};
  * rule.check(importedJavaClasses);
  * </code></pre>
- * where '<code>services</code>' is (in this case just) a filter denoting when a {@link JavaClass} counts as service
- * (e.g. package contains 'svc').
- * <br><br>
- * {@link ClassesTransformer} in general defines how the type of objects
- * can be created from imported {@link JavaClasses}. It can filter, like in the example, or completely transform,
- * e.g. if you want to define a rule on all imported methods you could specify a transformer to retrieve methods
+ * <br>
+ * To write rules on custom objects, you can use {@link ArchRuleDefinition#all(ClassesTransformer)}, where
+ * {@link ClassesTransformer} defines how the type of objects can be created from imported {@link JavaClasses}.
+ * E.g. if you want to define a rule on all imported methods you could specify a transformer to retrieve methods
  * from classes, or if you're interested in slices of packages, the input transformer would specify how to transform
  * the imported classes to those slices to run an {@link ArchCondition} against.
  *
