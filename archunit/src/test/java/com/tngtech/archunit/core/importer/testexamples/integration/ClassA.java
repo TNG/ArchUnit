@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.importer.testexamples.integration;
 
-public class ClassA {
+public class ClassA implements InterfaceOfClassA {
     private String init;
     private String state;
     int accessibleField = 5;

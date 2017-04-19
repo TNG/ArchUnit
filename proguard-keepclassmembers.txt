@@ -1,6 +1,7 @@
 com.google.common.base.Joiner
 com.google.common.base.Optional
 com.google.common.base.Preconditions
+com.google.common.base.Predicate
 com.google.common.base.Splitter
 com.google.common.collect.Collections2
 com.google.common.collect.ImmutableList

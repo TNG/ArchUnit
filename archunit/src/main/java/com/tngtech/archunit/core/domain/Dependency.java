@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
@@ -37,37 +38,49 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 public class Dependency implements HasDescription, Comparable<Dependency> {
     static Dependency from(JavaAccess<?> access) {
-        return new Dependency(access);
+        return new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
     }
 
-    private final JavaAccess<?> access;
+    static Dependency from(JavaClass origin, JavaClass target) {
+        String description = String.format("%s accesses %s in %s",
+                origin.getName(), target.getName(), Formatters.formatLocation(origin, 0));
+        return new Dependency(origin, target, 0, description);
+    }
 
-    private Dependency(JavaAccess<?> access) {
-        this.access = access;
+    private final JavaClass originClass;
+    private final JavaClass targetClass;
+    private final int lineNumber;
+    private final String description;
+
+    private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
+        this.originClass = originClass;
+        this.targetClass = targetClass;
+        this.lineNumber = lineNumber;
+        this.description = description;
     }
 
     @PublicAPI(usage = ACCESS)
     public JavaClass getTargetClass() {
-        return access.getTarget().getOwner();
+        return targetClass;
     }
 
     @Override
     public String getDescription() {
-        return access.getDescription();
+        return description;
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public int compareTo(Dependency o) {
         return ComparisonChain.start()
-                .compare(access.getLineNumber(), o.access.getLineNumber())
+                .compare(lineNumber, o.lineNumber)
                 .compare(getDescription(), o.getDescription())
                 .result();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(access);
+        return Objects.hash(originClass, targetClass, lineNumber, description);
     }
 
     @Override
@@ -79,14 +92,20 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
             return false;
         }
         final Dependency other = (Dependency) obj;
-        return Objects.equals(this.access, other.access);
+        return Objects.equals(this.originClass, other.originClass)
+                && Objects.equals(this.targetClass, other.targetClass)
+                && Objects.equals(this.lineNumber, other.lineNumber)
+                && Objects.equals(this.description, other.description);
     }
 
     @Override
     public String toString() {
-        return "Dependency{" +
-                "access=" + access +
-                "}";
+        return MoreObjects.toStringHelper(this)
+                .add("originClass", originClass)
+                .add("targetClass", targetClass)
+                .add("lineNumber", lineNumber)
+                .add("description", description)
+                .toString();
     }
 
     @PublicAPI(usage = ACCESS)

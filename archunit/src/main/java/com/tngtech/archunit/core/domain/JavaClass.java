@@ -458,11 +458,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependencies() {
         Set<Dependency> result = new HashSet<>();
-        for (JavaAccess<?> access : filterTargetNotSelf(getFieldAccessesFromSelf())) {
+        for (JavaAccess<?> access : filterTargetNotSelf(getAccessesFromSelf())) { // Includes direct super class due to super(..) call
             result.add(Dependency.from(access));
         }
-        for (JavaAccess<?> call : filterTargetNotSelf(getCallsFromSelf())) {
-            result.add(Dependency.from(call));
+        for (JavaClass i : getInterfaces()) {
+            result.add(Dependency.from(this, i));
         }
         return result;
     }

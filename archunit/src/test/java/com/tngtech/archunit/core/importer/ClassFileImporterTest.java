@@ -134,9 +134,10 @@ import com.tngtech.archunit.core.importer.testexamples.innerclassimport.CalledCl
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.ClassWithInnerClass;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassA;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassBDependingOnClassA;
-import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependingOnClassB;
+import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependingOnClassB_SuperClassOfX;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
+import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
@@ -1357,8 +1358,9 @@ public class ClassFileImporterTest {
         Set<JavaClass> expectedTargetClasses = ImmutableSet.of(
                 classes.get(ClassA.class),
                 classes.get(ClassBDependingOnClassA.class),
-                classes.get(ClassCDependingOnClassB.class),
-                classes.get(ClassD.class)
+                classes.get(ClassCDependingOnClassB_SuperClassOfX.class),
+                classes.get(ClassD.class),
+                classes.get(InterfaceOfClassX.class)
         );
 
         Set<JavaClass> targetClasses = new HashSet<>();
@@ -1372,7 +1374,7 @@ public class ClassFileImporterTest {
     @Test
     public void getDirectDependencies_does_not_return_transitive_dependencies() throws Exception {
         ImportedClasses classes = classesIn("testexamples/integration");
-        JavaClass javaClass = classes.get(ClassCDependingOnClassB.class);
+        JavaClass javaClass = classes.get(ClassCDependingOnClassB_SuperClassOfX.class);
         JavaClass expectedTargetClass = classes.get(ClassBDependingOnClassA.class);
 
         Set<JavaClass> targetClasses = new HashSet<>();

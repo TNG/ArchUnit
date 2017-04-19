@@ -1,10 +1,10 @@
 package com.tngtech.archunit.core.importer.testexamples.integration;
 
-public class ClassCDependingOnClassB {
+public class ClassCDependingOnClassB_SuperClassOfX {
     private ClassBDependingOnClassA classB;
     private int cState;
 
-    public ClassCDependingOnClassB(int a, int b, int c) {
+    public ClassCDependingOnClassB_SuperClassOfX(int a, int b, int c) {
         this.cState = a + b + c;
     }
 

@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.importer.testexamples.integration;
 
-public class ClassXDependingOnClassesABCD extends ClassCDependingOnClassB {
+public class ClassXDependingOnClassesABCD extends ClassCDependingOnClassB_SuperClassOfX implements InterfaceOfClassX {
     private ClassA classA;
     private ClassBDependingOnClassA classB;
 
