@@ -25,30 +25,35 @@ shadowJar {
     }
 }
 
-def proguardArchivePath
-
 shrinkDependencies {
     // NOTE: proguard will warn a lot about library classes depending on program classes due to the double
     //       repackaged third party libs. We filter those duplicated classes in the next step.
     dontwarn
     dontnote
-
-    proguardArchivePath = new File(jar.archivePath.parent, jar.archiveName.replace('.jar', '-proguard.jar'))
-    outjars proguardArchivePath
 }
 
 task removeDuplicateThirdParty(type: Jar, dependsOn: shrinkDependencies) {
-    from zipTree(proguardArchivePath)
-    archiveName jar.archivePath.name
-}
-removeDuplicateThirdParty.doFirst {
-    List repackagedFilesInArchUnit = zipTree(project(':archunit').jar.archivePath).filter {
-        it.absolutePath.contains('com/tngtech/archunit/thirdparty')
-    }.collect {
-        it.absolutePath.replaceAll('.*com/tngtech/archunit/thirdparty', '**')
+    doFirst {
+        List repackagedFilesInArchUnit = zipTree(project(':archunit').shrinkDependencies.archivePath).filter {
+            it.absolutePath.contains('com/tngtech/archunit/thirdparty')
+        }.collect {
+            it.absolutePath.replaceAll('.*com/tngtech/archunit/thirdparty', '**')
+        }
+
+        exclude repackagedFilesInArchUnit
     }
 
-    exclude repackagedFilesInArchUnit
+    File tempPath = tempJar(jar.archivePath)
+
+    from zipTree(shrinkDependencies.archivePath)
+    archiveName tempPath.name
+
+    doLast {
+        assert shrinkDependencies.archivePath.delete()
+        assert tempPath.renameTo(shrinkDependencies.archivePath)
+    }
+
+    finalizedBy finishArchive
 }
 assemble.dependsOn removeDuplicateThirdParty
 

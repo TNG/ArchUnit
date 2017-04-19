@@ -1,3 +1,7 @@
+String archUnitLicenseFile = 'licenses/archunit.license'
+String guavaLicenseFile = 'licenses/guava.license'
+String asmLicenseFile = 'licenses/asm.license'
+
 def addonFile = { rootProject.file("build-utils/license/${it}") }
 
 def fillTemplateFile = {
@@ -18,41 +22,6 @@ configurations {
 dependencies {
     thirdpartyAsm parentPomOf(dependency.asm)
     thirdpartyGuava parentPomOf(dependency.guava)
-}
-
-productionProjects*.with {
-    def installer = install.repositories.mavenInstaller
-    def deployer = uploadArchives.repositories.mavenDeployer
-
-    [installer, deployer]*.pom {
-        project {
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-
-            organization {
-                name "${company.name}"
-                url "${company.url}"
-            }
-        }
-    }
-
-    task addLicenseHeader {
-        doLast {
-            def headerText = fillTemplateFile('archunit.header.template')
-
-            sourceSets.main.allJava.each { sourceFile ->
-                if (!sourceFile.text.startsWith(headerText)) {
-                    sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
-                }
-            }
-        }
-    }
-    assemble.dependsOn addLicenseHeader
 }
 
 def parseLicenseUrlFrom = { config ->
@@ -97,10 +66,78 @@ def unwrapHtml = { htmlInput ->
 
 task updateLicenses {
     doLast {
-        rootProject.file('licenses/archunit.license').text = fillTemplateFile('archunit.license.template')
+        rootProject.file(archUnitLicenseFile).text = fillTemplateFile('archunit.license.template')
 
-        rootProject.file('licenses/asm.license').text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyAsm), unwrapHtml)
+        rootProject.file(asmLicenseFile).text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyAsm), unwrapHtml)
 
-        rootProject.file('licenses/guava.license').text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyGuava))
+        rootProject.file(guavaLicenseFile).text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyGuava))
     }
+}
+
+def configure3rdPartyLicenses = {
+    File jarPath = shrinkDependencies.archivePath
+    File jarTempPath = tempJar(jarPath)
+
+    task add3rdPartyLicenses(type: Zip, dependsOn: shrinkDependencies) {
+        onlyIf {
+            zipTree(jarPath).find { it.absolutePath.contains('thirdparty/org/objectweb/asm') }
+        }
+
+        from {
+            zipTree(jarPath)
+        }
+        from(rootProject.file(asmLicenseFile)) {
+            into "/${asmRelocationPackage.replace('.', '/')}"
+        }
+
+        destinationDir jarTempPath.parentFile
+        archiveName jarTempPath.name
+
+        doLast {
+            assert jarPath.delete()
+            assert jarTempPath.renameTo(jarPath)
+        }
+
+        mustRunAfter updateLicenses
+        finalizedBy finishArchive
+    }
+
+    assemble.dependsOn add3rdPartyLicenses
+}
+
+productionProjects*.with {
+    def installer = install.repositories.mavenInstaller
+    def deployer = uploadArchives.repositories.mavenDeployer
+
+    [installer, deployer]*.pom {
+        project {
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+
+            organization {
+                name "${company.name}"
+                url "${company.url}"
+            }
+        }
+    }
+
+    task addLicenseHeader {
+        doLast {
+            def headerText = fillTemplateFile('archunit.header.template')
+
+            sourceSets.main.allJava.each { sourceFile ->
+                if (!sourceFile.text.startsWith(headerText)) {
+                    sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
+                }
+            }
+        }
+    }
+    assemble.dependsOn addLicenseHeader
+
+    it.with configure3rdPartyLicenses
 }

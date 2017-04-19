@@ -1,5 +1,7 @@
 import proguard.gradle.ProGuardTask
 
+import java.nio.file.Files
+
 import static java.nio.charset.StandardCharsets.UTF_8
 
 buildscript {
@@ -8,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'net.sf.proguard:proguard-gradle:5.3.1'
+        classpath 'net.sf.proguard:proguard-gradle:5.3.3'
     }
 }
 
@@ -16,12 +18,16 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
+def thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
+
 ext {
     year = "${Calendar.getInstance().get(Calendar.YEAR)}"
     company = [
             name: 'TNG Technology Consulting GmbH',
             url : 'http://www.tngtech.com'
     ]
+    asmRelocationPackage = "${thirdPartyRelocationPackage}.org.objectweb.asm"
+    guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
             asm               : 'org.ow2.asm:asm:5.1',
@@ -38,6 +44,12 @@ ext {
             assertj           : 'org.assertj:assertj-core:2.4.1',
             assertj_guava     : 'org.assertj:assertj-guava:2.0.0'
     ]
+
+    postfixedJar = { File jarFile, String postfix ->
+        new File(jarFile.parentFile, jarFile.name.replaceAll(/\.jar$/, "-${postfix}.jar"))
+    }
+
+    tempJar = { File jarFile -> postfixedJar(jarFile, 'tmp') }
 }
 
 task wrapper(type: Wrapper) {
@@ -83,10 +95,6 @@ def configureFindbugs = {
     }
 }
 
-def thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
-def asmRelocationPackage = "${thirdPartyRelocationPackage}.org.objectweb"
-def guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
-
 ext.shadowConfig = { classifierName ->
     return {
         classifier = classifierName
@@ -95,13 +103,13 @@ ext.shadowConfig = { classifierName ->
         exclude 'Log4j*'
         exclude 'META-INF/**'
 
-        relocate 'org.objectweb', asmRelocationPackage
+        relocate 'org.objectweb.asm', asmRelocationPackage
         relocate 'com.google', guavaRelocationPackage
     }
 }
 
 def configureShadow = {
-    shadowJar shadowConfig('all')
+    shadowJar shadowConfig('shadow')
 }
 
 def configureProGuard = {
@@ -114,7 +122,10 @@ def configureProGuard = {
     }
 
     task shrinkDependencies(type: ProGuardTask, dependsOn: shadowJar) {
+        delegate.ext.archivePath = postfixedJar(jar.archivePath, 'proguard')
+
         injars shadowJar.archivePath
+        outjars archivePath
 
         libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
         libraryjars configurations.compile
@@ -132,8 +143,16 @@ def configureProGuard = {
             keepclassmembers "class ${thirdPartyRelocationPackage}.**${it}** {*;}"
         }
     }
-
     assemble.dependsOn(shrinkDependencies)
+
+    task finishArchive {
+        doLast {
+            assert jar.archivePath.delete()
+            Files.copy(shrinkDependencies.archivePath.toPath(), jar.archivePath.toPath())
+        }
+        mustRunAfter jar
+    }
+    build.dependsOn(finishArchive)
 }
 
 def configurePublish = {

@@ -24,10 +24,6 @@ shadowJar {
     }
 }
 
-shrinkDependencies {
-    outjars jar.archivePath
-}
-
 task testJar(type: ShadowJar) {
     from sourceSets.test.output
     configurations = [configurations.tests]
