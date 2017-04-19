@@ -24,28 +24,38 @@ dependencies {
     thirdpartyGuava parentPomOf(dependency.guava)
 }
 
-def parseLicenseUrlFrom = { config ->
+def parseLicenseInfoFrom = { config ->
     def pom = config.resolve().find { it.name.endsWith('.pom') }
 
     def projectNode = new XmlParser().parse(pom)
-    def address = projectNode.licenses.license.url*.text().find()
+    def licenses = projectNode.licenses.license
+    assert licenses.size() == 1: 'Can only handle one declared license at the moment'
 
+    def name = licenses.name*.text().find()
+    def address = licenses.url*.text().find()
+
+    assert name: "Couldn't retrieve name of license from ${pom} (checked project>licenses>license>name)"
     assert address: "Couldn't retrieve URl of license from ${pom} (checked project>licenses>license>url)"
 
-    new URL(address)
+    [
+            name: name,
+            url : new URL(address)
+    ]
 }
 
-def createLicense = { url, preProcessClosure = null ->
-    def text = url.text
-    if (preProcessClosure) {
-        text = preProcessClosure(text)
+def createLicense = { licenseInfo, preProcessLicenseText = null ->
+    def text = licenseInfo.url.text
+    if (preProcessLicenseText) {
+        text = preProcessLicenseText(text)
     }
 
-    def sourceHeader = "Source: ${url}"
+    def sourceName = "Name: ${licenseInfo.name}"
+    def sourceUrl = "Url : ${licenseInfo.url}"
 
-    """${sourceHeader}
+    """${sourceName}
+${sourceUrl}
 
-${'-'.multiply(sourceHeader.length())}
+${'-'.multiply(Math.max(sourceName.length(), sourceUrl.length()))}
 
 ${text}
 """
@@ -68,9 +78,9 @@ task updateLicenses {
     doLast {
         rootProject.file(archUnitLicenseFile).text = fillTemplateFile('archunit.license.template')
 
-        rootProject.file(asmLicenseFile).text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyAsm), unwrapHtml)
+        rootProject.file(asmLicenseFile).text = createLicense(parseLicenseInfoFrom(configurations.thirdpartyAsm), unwrapHtml)
 
-        rootProject.file(guavaLicenseFile).text = createLicense(parseLicenseUrlFrom(configurations.thirdpartyGuava))
+        rootProject.file(guavaLicenseFile).text = createLicense(parseLicenseInfoFrom(configurations.thirdpartyGuava))
     }
 }
 
@@ -80,7 +90,7 @@ def configure3rdPartyLicenses = {
 
     task add3rdPartyLicenses(type: Zip, dependsOn: shrinkDependencies) {
         onlyIf {
-            zipTree(jarPath).find { it.absolutePath.contains('thirdparty/org/objectweb/asm') }
+            ext.repackagesAsm = zipTree(jarPath).find { it.absolutePath.contains('thirdparty/org/objectweb/asm') }
         }
 
         from {
@@ -109,13 +119,21 @@ productionProjects*.with {
     def installer = install.repositories.mavenInstaller
     def deployer = uploadArchives.repositories.mavenDeployer
 
-    [installer, deployer]*.pom {
+    [installer, deployer]*.pom*.whenConfigured {
         project {
             licenses {
                 license {
                     name 'The Apache Software License, Version 2.0'
                     url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     distribution 'repo'
+                }
+                if (add3rdPartyLicenses.repackagesAsm) {
+                    def asmLicense = rootProject.file(asmLicenseFile).readLines() as Queue
+                    license {
+                        name asmLicense.poll().replaceAll(/^.*?: /, '')
+                        url asmLicense.poll().replaceAll(/^.*?: /, '')
+                        distribution 'repo'
+                    }
                 }
             }
 

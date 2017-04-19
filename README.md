@@ -361,7 +361,7 @@ Furthermore ArchUnit redistributes some third party libraries to avoid classpath
 * ASM (http://asm.ow2.org)
 * Google Guava (https://github.com/google/guava)
 
-All licenses for ArchUnit and redistributed libraries can be found within the `licenses` folder.
+All licenses for ArchUnit and redistributed libraries can be found within the [licenses](licenses) folder.
 
 ## Where to look next
 
