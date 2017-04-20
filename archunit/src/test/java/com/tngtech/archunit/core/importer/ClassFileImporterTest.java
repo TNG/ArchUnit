@@ -1660,6 +1660,24 @@ public class ClassFileImporterTest {
         assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
     }
 
+    @Test
+    public void imports_package() {
+        Set<Class<?>> expectedClasses = ImmutableSet.of(getClass(), Rule.class);
+        Set<String> packages = packagesOf(expectedClasses);
+
+        JavaClasses classes = new ClassFileImporter().importPackages(packages);
+
+        assertThatClasses(classes).contain(expectedClasses);
+    }
+
+    private Set<String> packagesOf(Set<Class<?>> classes) {
+        Set<String> result = new HashSet<>();
+        for (Class<?> c : classes) {
+            result.add(c.getPackage().getName());
+        }
+        return result;
+    }
+
     private JarFile jarFileOf(Class<Rule> clazzInJar) throws IOException {
         String fileName = urlOf(clazzInJar).getFile();
         checkArgument(fileName.contains(".jar!/"), "Class %s is not contained in a JAR", clazzInJar.getName());

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -68,12 +69,20 @@ public final class ClassFileImporter {
      * Imports packages via {@link Locations#ofPackage(String)}
      */
     @PublicAPI(usage = ACCESS)
-    public JavaClasses importPackages(String... packages) {
+    public JavaClasses importPackages(Collection<String> packages) {
         Set<Location> locations = new HashSet<>();
         for (String pkg : packages) {
             locations.addAll(Locations.ofPackage(pkg));
         }
         return importLocations(locations);
+    }
+
+    /**
+     * Imports packages via {@link Locations#ofPackage(String)}
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPackages(String... packages) {
+        return importPackages(ImmutableSet.copyOf(packages));
     }
 
     /**

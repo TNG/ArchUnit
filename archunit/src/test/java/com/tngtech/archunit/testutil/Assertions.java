@@ -25,6 +25,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -152,6 +153,15 @@ public class Assertions extends org.assertj.core.api.Assertions {
             for (int i = 0; i < actual.length; i++) {
                 assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
             }
+        }
+
+        public void contain(Iterable<Class<?>> classes) {
+            Set<String> actualNames = new HashSet<>();
+            for (JavaClass javaClass : actual) {
+                actualNames.add(javaClass.getName());
+            }
+            List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
+            assertThat(actualNames).as("actual classes").containsAll(expectedNames);
         }
     }
 
