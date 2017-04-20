@@ -10,9 +10,22 @@ class JsonMethodCall {
     @Expose
     private String targetElement;
 
-    JsonMethodCall(String to, String startCodeUnit, String targetElement) {
+    JsonMethodCall(String to, String startCodeUnit, String targetElement, String... params) {
         this.to = to;
         this.startCodeUnit = startCodeUnit;
-        this.targetElement = targetElement;
+        this.targetElement = targetElement; // + getParams(params);
+    }
+
+    private String getParams(String[] params) {
+        String res = "(";
+        boolean first = true;
+        for (String s : params) {
+            if (!first) {
+                res += ", ";
+            }
+            res += s;
+            first = false;
+        }
+        return res + ")";
     }
 }

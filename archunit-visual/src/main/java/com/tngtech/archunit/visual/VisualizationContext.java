@@ -1,50 +1,40 @@
 package com.tngtech.archunit.visual;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-
 public class VisualizationContext {
     private final Set<String> rootPackages;
-    private final boolean includeEverything;
-    private final boolean ignoreAccessToSuperConstructorFromConstructor;
 
-    private VisualizationContext(Set<String> rootPackages, boolean includeEverything, boolean ignoreAccessToSuperConstructorFromConstructor) {
+    private VisualizationContext(Set<String> rootPackages) {
         this.rootPackages = ImmutableSet.copyOf(rootPackages);
-        this.includeEverything = includeEverything;
-        this.ignoreAccessToSuperConstructorFromConstructor = ignoreAccessToSuperConstructorFromConstructor;
     }
 
+    //FIXME: Test fuer verschiedene Konfigurationen vom Context
     boolean isElementIncluded(String fullname) {
-        if (includeEverything) {
+        boolean tmp = false;
+        if (fullname.equals("java.io.File")) {
+            System.out.print("-----------java.io.File");
+            tmp = true;
+        }
+        if (rootPackages.isEmpty()) {
             return true;
         }
         for (String s : rootPackages) {
-            if (fullname.startsWith(s)) {
+            if (fullname.equals(s) || (fullname.startsWith(s) && fullname.substring(s.length()).startsWith("."))) {
+                if (tmp) {
+                    System.out.println(" wurde aufgenommen.");
+                }
                 return true;
             }
         }
         return false;
     }
 
-    boolean isDependencyIncluded(JsonJavaElement origin, String targetOwner, boolean constructorCall) {
-        // FIXME: targetOwner.equals(origin.fullname) has nothing to do with VisualizationContext
-        // FIXME: constructorCall is redundant, at least it should be, i.e. target.isConstructor()
-        return !targetOwner.equals(origin.fullname) &&
-                isElementIncluded(targetOwner) &&
-                (!constructorCall || isIncludedConstructorCall(origin, targetOwner));
-    }
-
-    private boolean isIncludedConstructorCall(JsonJavaElement origin, String targetOwner) {
-        return !ignoreAccessToSuperConstructorFromConstructor || !(origin instanceof JsonJavaClass)
-                || !((JsonJavaClass) origin).hasAsSuperClass(targetOwner);
-    }
-
     public static class Builder {
-        private Set<String> rootPackages;
-        private boolean includeEverything = false;
-        private boolean ignoreAccessToSuperConstructorFromConstructor = false;
+        private Set<String> rootPackages = new HashSet<>();
 
         public Builder() {
         }
@@ -58,19 +48,8 @@ public class VisualizationContext {
             return this;
         }
 
-        public Builder includeEverything() {
-            rootPackages = new HashSet<>();
-            includeEverything = true;
-            return this;
-        }
-
-        public Builder ignoreAccessToSuperConstructor() {
-            ignoreAccessToSuperConstructorFromConstructor = true;
-            return this;
-        }
-
         public VisualizationContext build() {
-            return new VisualizationContext(rootPackages, includeEverything, ignoreAccessToSuperConstructorFromConstructor);
+            return new VisualizationContext(rootPackages);
         }
     }
 }

@@ -1,9 +1,5 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -14,6 +10,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import some.other.OtherClass;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.tngtech.archunit.visual.JsonAssertions.assertThatJsonIn;
 
@@ -40,23 +40,9 @@ public class JsonExporterTest {
         JavaClasses classes = new ClassFileImporter().importClasses(EmptyClass.class, OtherClass.class);
         File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder()
-                .includeEverything().build());
+        jsonExporter.export(classes, target, new VisualizationContext.Builder().build());
 
         File expectedJson = expectJson("empty-class-everything.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
-    }
-
-    @Test
-    public void simple_inheritance_structure_ignoring_access_to_super_constructor() throws Exception {
-        JavaClasses classes = importClassesThatAreInPackagesOf(EmptyClass.class, SimpleClass1.class);
-        File target = tmpDir.newFile("test.json");
-
-        jsonExporter.export(classes, target, new VisualizationContext.Builder()
-                .ignoreAccessToSuperConstructor()
-                .includeOnly("com.tngtech.archunit.visual.testjson.structure").build());
-
-        File expectedJson = expectJson("simpleinheritstructure1.json");
         assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
     }
 
@@ -68,7 +54,7 @@ public class JsonExporterTest {
         jsonExporter.export(classes, target, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
-        File expectedJson = expectJson("simpleinheritstructure2.json");
+        File expectedJson = expectJson("simpleinheritstructure.json");
         assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
     }
 
@@ -78,8 +64,7 @@ public class JsonExporterTest {
         File target = tmpDir.newFile("test.json");
 
         jsonExporter.export(classes, target, new VisualizationContext.Builder()
-                .includeOnly("com.tngtech.archunit.visual.testjson")
-                .ignoreAccessToSuperConstructor().build());
+                .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = expectJson("complexinheritstructure.json");
         assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);

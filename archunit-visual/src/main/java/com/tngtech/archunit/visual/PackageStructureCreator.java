@@ -1,20 +1,18 @@
 package com.tngtech.archunit.visual;
 
+import com.tngtech.archunit.core.domain.JavaClass;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-
 class PackageStructureCreator {
-    static final String PACKAGESEP = ".";
+    static final String PACKAGE_SEPARATOR = ".";
 
-    static JsonJavaPackage createPackageStructure(JavaClasses classes, VisualizationContext context) {
-        return createPackageStructure(collectPackages(classes, context));
+    static JsonJavaPackage createPackageStructure(Iterable<JavaClass> classes) {
+        return createPackageStructure(collectPackages(classes), JsonJavaPackage.getDefaultPackage());
     }
 
-    private static JsonJavaPackage createPackageStructure(Set<String> pkgs) {
-        JsonJavaPackage root = JsonJavaPackage.getDefaultPackage();
+    private static JsonJavaPackage createPackageStructure(Set<String> pkgs, JsonJavaPackage root) {
         for (String p : pkgs) {
             root.insertPackage(p);
         }
@@ -26,7 +24,7 @@ class PackageStructureCreator {
      */
     static JsonJavaPackage createPackage(String parentFullname, boolean parentIsDeafult, String newFullname) {
         int length = parentIsDeafult ? 0 : parentFullname.length() + 1;
-        int end = newFullname.indexOf(PACKAGESEP, length);
+        int end = newFullname.indexOf(PACKAGE_SEPARATOR, length);
         end = end == -1 ? newFullname.length() : end;
         String fullName = newFullname.substring(0, end);
         int start = parentIsDeafult || parentFullname.length() == 0 ? 0 : parentFullname.length() + 1;
@@ -34,12 +32,10 @@ class PackageStructureCreator {
         return new JsonJavaPackage(name, fullName);
     }
 
-    private static Set<String> collectPackages(JavaClasses classes, VisualizationContext context) {
+    private static Set<String> collectPackages(Iterable<JavaClass> classes) {
         Set<String> pkgs = new HashSet<>();
         for (JavaClass c : classes) {
-            if (context.isElementIncluded(c.getName())) {
-                pkgs.add(c.getPackage());
-            }
+            pkgs.add(c.getPackage());
         }
         return pkgs;
     }

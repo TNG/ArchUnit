@@ -4,6 +4,63 @@
   "type": "package",
   "children": [
     {
+      "name": "java",
+      "fullname": "java",
+      "type": "package",
+      "children": [
+        {
+          "name": "io",
+          "fullname": "java.io",
+          "type": "package",
+          "children": [
+            {
+              "name": "PrintStream",
+              "fullname": "java.io.PrintStream",
+              "type": "class",
+              "children": [],
+              "superclass": "",
+              "interfaces": [],
+              "fieldAccesses": [],
+              "methodCalls": [],
+              "constructorCalls": [],
+              "anonImpl": []
+            }
+          ]
+        },
+        {
+          "name": "lang",
+          "fullname": "java.lang",
+          "type": "package",
+          "children": [
+            {
+              "name": "System",
+              "fullname": "java.lang.System",
+              "type": "class",
+              "children": [],
+              "superclass": "",
+              "interfaces": [],
+              "fieldAccesses": [],
+              "methodCalls": [],
+              "constructorCalls": [],
+              "anonImpl": []
+            },
+            {
+              "name": "Object",
+              "fullname": "java.lang.Object",
+              "type": "class",
+              "children": [],
+              "superclass": "",
+              "interfaces": [],
+              "fieldAccesses": [],
+              "methodCalls": [],
+              "constructorCalls": [],
+              "anonImpl": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "some.other",
       "fullname": "some.other",
       "type": "package",
@@ -18,22 +75,22 @@
           "fieldAccesses": [
             {
               "to": "java.lang.System",
-              "startCodeUnit": "OtherClass",
+              "startCodeUnit": "<init>",
               "targetElement": "out"
             }
           ],
           "methodCalls": [
             {
               "to": "java.io.PrintStream",
-              "startCodeUnit": "OtherClass",
+              "startCodeUnit": "<init>",
               "targetElement": "println"
             }
           ],
           "constructorCalls": [
             {
               "to": "java.lang.Object",
-              "startCodeUnit": "OtherClass",
-              "targetElement": "Object"
+              "startCodeUnit": "<init>",
+              "targetElement": "<init>"
             }
           ],
           "anonImpl": []
@@ -57,8 +114,8 @@
           "constructorCalls": [
             {
               "to": "java.lang.Object",
-              "startCodeUnit": "EmptyClass",
-              "targetElement": "Object"
+              "startCodeUnit": "<init>",
+              "targetElement": "<init>"
             }
           ],
           "anonImpl": []

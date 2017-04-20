@@ -1,40 +1,64 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.*;
+
+import java.io.*;
 
 class JsonExporter {
-    // FIXME: By convention, several words in a constant are separated by '_' -> rename this to INNER_CLASS_SEPARATOR
-    private static final String INNERCLASSSEP = "$";
+    private static final String INNER_CLASS_SEPARATOR = "$";
 
     void export(JavaClasses classes, File file, VisualizationContext context) {
-        JsonJavaPackage root = createStructure(classes, context);
+        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, context);
+        JsonJavaPackage root = createStructure(visualizedClasses, context);
         writeToFile(file, root);
     }
 
-    private JsonJavaPackage createStructure(JavaClasses classes, VisualizationContext context) {
-        JsonJavaPackage root = PackageStructureCreator.createPackageStructure(classes, context);
-        insertClassesToRoot(classes, context, root);
+    private JsonJavaPackage createStructure(VisualizedClasses visualizedClasses, VisualizationContext context) {
+        JsonJavaPackage root = PackageStructureCreator.createPackageStructure(visualizedClasses.getAll());
+        insertVisualizedClassesToRoot(visualizedClasses, context, root);
         root.normalize();
         return root;
     }
 
-    private void handleInnerClasses(VisualizationContext context, JsonJavaPackage root, List<JavaClass> innerClasses) {
+    /*private void handleInnerClasses(VisualizationContext context, JsonJavaPackage root, Collection<JavaClass> innerClasses) {
+        for (JavaClass c : innerClasses) {
+            if (c.getSimpleName().isEmpty()) {
+                addDependenciesOfAnonymousInnerClassToParent(context, root, c);
+            } else {
+                root.insertJavaElement(parseJavaElement(c, context));
+            }
+        }
+    }*/
+
+    private void insertVisualizedClassesToRoot(VisualizedClasses visualizedClasses, VisualizationContext context, JsonJavaPackage root) {
+        insertClassesToRoot(visualizedClasses.getClasses(), context, root);
+        insertInnerClassesToRoot(visualizedClasses.getInnerClasses(), context, root);
+        insertDependenciesToRoot(visualizedClasses.getDependencies(), root);
+
+        /*Collection<JavaClass> innerClasses = new LinkedList<>();
+        for (JavaClass c : classes.getClasses()) {
+            if (context.isElementIncluded(c.getName())) {
+                // FIXME: Test for being inner class as javaClass.getEnclosingClass().isPresent()
+                if (c.getName().contains(INNER_CLASS_SEPARATOR)) {
+                    innerClasses.add(c);
+                } else if (!c.getSimpleName().isEmpty()) { // FIXME: Test via javaClass.isAnonymous()
+                    root.insertJavaElement(parseJavaElement(c, context));
+                }
+            }
+        }
+        handleInnerClasses(context, root, innerClasses);*/
+    }
+
+    private void insertDependenciesToRoot(Iterable<JavaClass> dependencies, JsonJavaPackage root) {
+        for (JavaClass c : dependencies) {
+            root.insertJavaElement(parseJavaElementWithoutDependencies(c));
+        }
+    }
+
+    private void insertInnerClassesToRoot(Iterable<JavaClass> innerClasses, VisualizationContext context, JsonJavaPackage root) {
         for (JavaClass c : innerClasses) {
             if (c.getSimpleName().isEmpty()) {
                 addDependenciesOfAnonymousInnerClassToParent(context, root, c);
@@ -44,19 +68,10 @@ class JsonExporter {
         }
     }
 
-    private void insertClassesToRoot(JavaClasses classes, VisualizationContext context, JsonJavaPackage root) {
-        List<JavaClass> innerClasses = new LinkedList<>();
+    private void insertClassesToRoot(Iterable<JavaClass> classes, VisualizationContext context, JsonJavaPackage root) {
         for (JavaClass c : classes) {
-            if (context.isElementIncluded(c.getName())) {
-                // FIXME: Test for being inner class as javaClass.getEnclosingClass().isPresent()
-                if (c.getName().contains(INNERCLASSSEP)) {
-                    innerClasses.add(c);
-                } else if (!c.getSimpleName().isEmpty()) { // FIXME: Test via javaClass.isAnonymous()
-                    root.insertJavaElement(parseJavaElement(c, context));
-                }
-            }
+            root.insertJavaElement(parseJavaElement(c, context));
         }
-        handleInnerClasses(context, root, innerClasses);
     }
 
     private void writeToFile(File file, JsonJavaPackage root) {
@@ -74,7 +89,7 @@ class JsonExporter {
             myOutWriter.close();
             fOut.close();
         } catch (IOException e) {
-            e.printStackTrace(); // FIXME: Never just printStackTrace in production code, create dedicated RuntimeException for this, and propagate
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -90,7 +105,15 @@ class JsonExporter {
 
     // FIXME: Operate on JavaClass, i.e. javaClass.getEnclosingClass.get().getName()
     private String getFullnameOfParentClass(String innerClass) {
-        return innerClass.substring(0, innerClass.indexOf(INNERCLASSSEP));
+        return innerClass.substring(0, innerClass.indexOf(INNER_CLASS_SEPARATOR));
+    }
+
+    private JsonJavaElement parseJavaElementWithoutDependencies(JavaClass c) {
+        if (c.isInterface()) {
+            return new JsonJavaInterface(c.getSimpleName(), getCleanedFullname(c.getName()));
+        } else {
+            return new JsonJavaClass(c.getSimpleName(), getCleanedFullname(c.getName()), "class", "");
+        }
     }
 
     private JsonJavaElement parseJavaElement(JavaClass c, VisualizationContext context) {
@@ -102,12 +125,13 @@ class JsonExporter {
     }
 
     private String getSuperClass(JavaClass c, VisualizationContext context) {
-        return c.getSuperClass().isPresent() && context.isElementIncluded(c.getSuperClass().get().getName()) ?
-                c.getSuperClass().get().getName() : "";
+        String superClass;
+        return c.getSuperClass().isPresent() && context.isElementIncluded(superClass = getCleanedFullname(c.getSuperClass().get().getName())) ?
+                superClass : "";
     }
 
-    private String getCleanedFullname(String fullname) {
-        return fullname.replace(INNERCLASSSEP, PackageStructureCreator.PACKAGESEP);
+    static String getCleanedFullname(String fullname) {
+        return fullname.replace(INNER_CLASS_SEPARATOR, PackageStructureCreator.PACKAGE_SEPARATOR);
     }
 
     private JsonJavaElement parseJavaClass(final JavaClass c, VisualizationContext context) {
@@ -121,10 +145,6 @@ class JsonExporter {
         JsonJavaInterface res = new JsonJavaInterface(c.getSimpleName(), getCleanedFullname(c.getName()));
         parseToJavaElement(c, context, res);
         return res;
-    }
-
-    private String getStartCodeUnit(JavaCodeUnit origin, JavaClass c) {
-        return origin.isConstructor() ? c.getSimpleName() : origin.getName();
     }
 
     private void parseToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
@@ -152,25 +172,28 @@ class JsonExporter {
         // FIXME: Don't use shortcuts like c, fa, etc., we're not writing Assembler ;-) The chars don't cost, rather make simpler if(..) expressions
         for (JavaFieldAccess fa : c.getFieldAccessesFromSelf()) {
             String targetOwner = getCleanedFullname(fa.getTargetOwner().getName());
-            if (!fa.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, targetOwner, false)) {
-                res.addFieldAccess(new JsonFieldAccess(targetOwner, getStartCodeUnit(fa.getOrigin(), c),
+            if (isValidDependency(res.fullname, targetOwner, fa.getTargetOwner().getSimpleName()) && context.isElementIncluded(targetOwner)) {
+                res.addFieldAccess(new JsonFieldAccess(targetOwner, fa.getOrigin().getName(),
                         fa.getTarget().getName()));
             }
         }
         for (JavaMethodCall mc : c.getMethodCallsFromSelf()) {
             String targetOwner = getCleanedFullname(mc.getTargetOwner().getName());
-            if (!mc.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, targetOwner, false)) {
-                res.addMethodCall(new JsonMethodCall(targetOwner, getStartCodeUnit(mc.getOrigin(), c),
+            if (isValidDependency(res.fullname, targetOwner, mc.getTargetOwner().getSimpleName()) && context.isElementIncluded(targetOwner)) {
+                res.addMethodCall(new JsonMethodCall(targetOwner, mc.getOrigin().getName(),
                         mc.getTarget().getName()));
             }
         }
         for (JavaConstructorCall cc : c.getConstructorCallsFromSelf()) {
             String targetOwner = getCleanedFullname(cc.getTargetOwner().getName());
-            if (!cc.getTargetOwner().getSimpleName().isEmpty() && context.isDependencyIncluded(res, targetOwner,
-                    cc.getOrigin().isConstructor())) {
+            if (isValidDependency(res.fullname, targetOwner, cc.getTargetOwner().getSimpleName()) && context.isElementIncluded(targetOwner)) {
                 res.addConstructorCall(new JsonConstructorCall(targetOwner,
-                        getStartCodeUnit(cc.getOrigin(), c), cc.getTargetOwner().getSimpleName()));
+                        cc.getOrigin().getName(), cc.getTarget().getName()));
             }
         }
+    }
+
+    private boolean isValidDependency(String origin, String targetOwnerFullname, String targetOwnerSimplename) {
+        return !targetOwnerSimplename.isEmpty() && !targetOwnerFullname.equals(origin);
     }
 }
