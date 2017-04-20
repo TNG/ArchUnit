@@ -51,10 +51,10 @@ let setupSimpleTestTree1 = () => {
 let allDeps1 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() fieldAccess field1)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(startMethod(arg) constructorCall testclass1())",
-  "com.tngtech.class2->com.tngtech.main.class1( extends )",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.class2->com.tngtech.main.class1(extends)",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let setupSimpleTestTree2 = () => {
@@ -98,47 +98,47 @@ let setupSimpleTestTree2 = () => {
 
 let allDeps2 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-  "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
+  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+  "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+  "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-  "com.tngtech.class2->com.tngtech.main.class1( extends )",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+  "com.tngtech.class2->com.tngtech.main.class1(extends)",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let testFoldedDeps = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test->com.tngtech.class2(several several several)",
-  "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-  "com.tngtech.test->com.tngtech.interface1(several several )",
-  "com.tngtech.class2->com.tngtech.main.class1( extends )",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test->com.tngtech.class2()",
+  "com.tngtech.test->com.tngtech.main.class1()",
+  "com.tngtech.test->com.tngtech.interface1()",
+  "com.tngtech.class2->com.tngtech.main.class1(extends)",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let mainFoldedDeps = [
-  "com.tngtech.main->com.tngtech.interface1(class1.startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-  "com.tngtech.test.testclass1->com.tngtech.main(several fieldAccess class1.field1)",
-  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
+  "com.tngtech.main->com.tngtech.interface1()",
+  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+  "com.tngtech.test.testclass1->com.tngtech.main()",
+  "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-  "com.tngtech.class2->com.tngtech.main( extends class1)",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+  "com.tngtech.class2->com.tngtech.main()",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let testmainFoldedDeps = [
-  "com.tngtech.main->com.tngtech.interface1(class1.startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test->com.tngtech.class2(several several several)",
-  "com.tngtech.test->com.tngtech.main(testclass1.several fieldAccess class1.field1)",
-  "com.tngtech.test->com.tngtech.interface1(several several )", //subtest.subtestclass1
-  "com.tngtech.class2->com.tngtech.main( extends class1)",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.main->com.tngtech.interface1()",
+  "com.tngtech.test->com.tngtech.class2()",
+  "com.tngtech.test->com.tngtech.main()",
+  "com.tngtech.test->com.tngtech.interface1()",
+  "com.tngtech.class2->com.tngtech.main()",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-let setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps = () => {
+let setupSimpleTestTreeWithOverlappingNodesAndMutualDeps = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
@@ -224,36 +224,36 @@ let setupSimpleTestTree3 = () => {
 let allDeps3 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
   "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several several)",
-  "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
+  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several ...)",
+  "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+  "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-  "com.tngtech.class2->com.tngtech.main.class1( extends )",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+  "com.tngtech.class2->com.tngtech.main.class1(extends)",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let testFoldedDeps3 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
   "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-  "com.tngtech.test->com.tngtech.class2(several several several)",
-  "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-  "com.tngtech.test->com.tngtech.interface1(several several )",
-  "com.tngtech.class2->com.tngtech.main.class1( extends )",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test->com.tngtech.class2()",
+  "com.tngtech.test->com.tngtech.main.class1()",
+  "com.tngtech.test->com.tngtech.interface1()",
+  "com.tngtech.class2->com.tngtech.main.class1(extends)",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 let mainFoldedDeps3 = [
-  "com.tngtech.main->com.tngtech.interface1(several implements methodCall targetMethod())",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several several)",
-  "com.tngtech.test.testclass1->com.tngtech.main(several fieldAccess class1.field1)",
-  "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
+  "com.tngtech.main->com.tngtech.interface1()",
+  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several ...)",
+  "com.tngtech.test.testclass1->com.tngtech.main()",
+  "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-  "com.tngtech.class2->com.tngtech.main( extends class1)",
-  "com.tngtech.class2->com.tngtech.interface1( implements )"
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+  "com.tngtech.class2->com.tngtech.main()",
+  "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
 describe("Dependencies", () => {
@@ -279,13 +279,22 @@ describe("Dependencies", () => {
     expect(root.getVisibleEdges()).to.containExactlyDependencies(mainFoldedDeps3);
   });
 
+  it("know if they must share their at least one of their end nodes", () => {
+    let root = setupSimpleTestTreeWithOverlappingNodesAndMutualDeps();
+    let hasEndNodes = (from, to) => d => (d.from === from || d.to === from) && (d.from === to || d.to === to);
+    let filter = d => hasEndNodes("com.tngtech.test.subtest.subtestclass1", "com.tngtech.interface1")(d)
+    || hasEndNodes("com.tngtech.class2", "com.tngtech.class2.InnerClass2")(d);
+    root.getVisibleEdges().filter(filter).forEach(d => expect(d.mustShareNodes).to.equal(true));
+    root.getVisibleEdges().filter(d => !filter(d)).forEach(d => expect(d.mustShareNodes).to.equal(false));
+  });
+
   it("calc their end positions correctly", () => {
     let root = setupSimpleTestTree2();
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
   it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
-    let root = setupSimpleTestTreeWithOverlappingNodesAndDoubleDeps();
+    let root = setupSimpleTestTreeWithOverlappingNodesAndMutualDeps();
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
@@ -310,6 +319,7 @@ describe("Dependencies", () => {
     let root = setupSimpleTestTree2();
     getNode(root, "com.tngtech.test").changeFold();
     getNode(root, "com.tngtech.main").changeFold();
+
     expect(root.getVisibleEdges()).to.containExactlyDependencies(testmainFoldedDeps);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
@@ -320,11 +330,11 @@ describe("Dependencies", () => {
     root.filterByName("subtest", true, true, false, true, false, true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -339,8 +349,8 @@ describe("Dependencies", () => {
         root.filterByName("main", false, false, true, false, true, false);
         let exp = [
           "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-          "com.tngtech.class2->com.tngtech.main.class1( extends )",
-          "com.tngtech.class2->com.tngtech.interface1( implements )"
+          "com.tngtech.class2->com.tngtech.main.class1(extends)",
+          "com.tngtech.class2->com.tngtech.interface1(implements)"
         ];
         expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
         expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -354,9 +364,9 @@ describe("Dependencies", () => {
         let root = setupSimpleTestTree2();
         root.filterByName("i", false, false, true, true, false, false);
         let exp = [
-          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
+          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
           "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)"
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)"
         ];
         let desc = root.getVisibleDescendants();
         let act = root.getVisibleEdges();
@@ -372,11 +382,11 @@ describe("Dependencies", () => {
         let root = setupSimpleTestTree2();
         root.filterByName("i", false, false, false, true, false, false);
         let exp = [
-          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-          "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+          "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+          "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
           "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-          "com.tngtech.class2->com.tngtech.main.class1( extends )"
+          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+          "com.tngtech.class2->com.tngtech.main.class1(extends)"
         ];
         let desc = root.getVisibleDescendants();
         let act = root.getVisibleEdges();
@@ -393,11 +403,11 @@ describe("Dependencies", () => {
     root.filterByName("subtest", true, true, false, true, false, true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
-      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test->com.tngtech.class2()",
+      "com.tngtech.test->com.tngtech.main.class1()",
+      "com.tngtech.test->com.tngtech.interface1()",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -415,22 +425,22 @@ describe("Dependencies", () => {
     root.filterByName("subtest", true, true, false, true, false, true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
-      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test->com.tngtech.class2()",
+      "com.tngtech.test->com.tngtech.main.class1()",
+      "com.tngtech.test->com.tngtech.interface1()",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
     getNode(root, "com.tngtech.test").changeFold();
     exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -445,22 +455,22 @@ describe("Dependencies", () => {
     getNode(root, "com.tngtech.test").changeFold();
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
-      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test->com.tngtech.class2()",
+      "com.tngtech.test->com.tngtech.main.class1()",
+      "com.tngtech.test->com.tngtech.interface1()",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
     getNode(root, "com.tngtech.test").changeFold();
     exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -475,11 +485,11 @@ describe("Dependencies", () => {
     getNode(root, "com.tngtech.test").changeFold();
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test->com.tngtech.class2(testclass1.testclass1() several several)",
-      "com.tngtech.test->com.tngtech.main.class1(testclass1.several fieldAccess field1)",
-      "com.tngtech.test->com.tngtech.interface1(testclass1 implementsAnonymous )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.test->com.tngtech.class2()",
+      "com.tngtech.test->com.tngtech.main.class1()",
+      "com.tngtech.test->com.tngtech.interface1()",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -508,11 +518,11 @@ describe("Dependencies", () => {
     let root = setupSimpleTestTree2();
     root.filterByType(false, true, false);
     let exp = [
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )"
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
@@ -533,29 +543,34 @@ describe("Dependencies", () => {
     expect(root.getVisibleEdges()).to.haveCorrectEndPositions();
   });
 
-  it("does the filtering by kind correctly", () => {
+  it("does the filtering by kind correctly and resets it", () => {
     let root = setupSimpleTestTree2();
     root.deps.filterByKind(true, true, false, false, false, false);
     let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1( implements )",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1( implements )",
-      "com.tngtech.class2->com.tngtech.main.class1( extends )",
-      "com.tngtech.class2->com.tngtech.interface1( implements )"
+      "com.tngtech.main.class1->com.tngtech.interface1(implements)",
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
+      "com.tngtech.class2->com.tngtech.main.class1(extends)",
+      "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+
+    root.deps.resetFilterByKind();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps2);
 
     root = setupSimpleTestTree3();
     root.deps.filterByKind(false, false, true, true, true, true);
     exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
       "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(several fieldAccess field1)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1( implementsAnonymous )",
+      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several ...)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(... fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(several constructorCall several)"
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(... constructorCall ...)"
     ];
     expect(root.getVisibleEdges()).to.containExactlyDependencies(exp);
+    root.deps.resetFilterByKind();
+    expect(root.getVisibleEdges()).to.containExactlyDependencies(allDeps3);
   });
 
   it("lists correctly the detailed dependencies of class", () => {

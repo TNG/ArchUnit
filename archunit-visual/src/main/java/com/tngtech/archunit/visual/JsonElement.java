@@ -1,11 +1,13 @@
 package com.tngtech.archunit.visual;
 
-import java.util.Set;
-
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.base.Optional;
 
+import java.util.Set;
+
 abstract class JsonElement {
+    static final String DEFAULT_ROOT = "default";
+
     @Expose
     protected String name;
     @Expose
@@ -20,7 +22,7 @@ abstract class JsonElement {
     }
 
     String getPath() {
-        return fullname.substring(0, fullname.length() - name.length() - 1);
+        return fullname.equals(name) ? DEFAULT_ROOT : fullname.substring(0, fullname.length() - name.length() - 1);
     }
 
     abstract Set<? extends JsonElement> getChildren();

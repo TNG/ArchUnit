@@ -14,19 +14,11 @@ public class VisualizationContext {
 
     //FIXME: Test fuer verschiedene Konfigurationen vom Context
     boolean isElementIncluded(String fullname) {
-        boolean tmp = false;
-        if (fullname.equals("java.io.File")) {
-            System.out.print("-----------java.io.File");
-            tmp = true;
-        }
         if (rootPackages.isEmpty()) {
             return true;
         }
         for (String s : rootPackages) {
             if (fullname.equals(s) || (fullname.startsWith(s) && fullname.substring(s.length()).startsWith("."))) {
-                if (tmp) {
-                    System.out.println(" wurde aufgenommen.");
-                }
                 return true;
             }
         }

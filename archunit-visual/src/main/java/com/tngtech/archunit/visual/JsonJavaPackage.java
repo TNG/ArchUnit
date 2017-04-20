@@ -1,13 +1,11 @@
 package com.tngtech.archunit.visual;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.gson.annotations.Expose;
-
 class JsonJavaPackage extends JsonElement {
-    private static final String DEFAULTROOT = "default";
-
     private static final String TYPE = "package";
 
     private boolean isDefault;
@@ -114,6 +112,6 @@ class JsonJavaPackage extends JsonElement {
     }
 
     static JsonJavaPackage getDefaultPackage() {
-        return new JsonJavaPackage(DEFAULTROOT, DEFAULTROOT, true);
+        return new JsonJavaPackage(DEFAULT_ROOT, DEFAULT_ROOT, true);
     }
 }

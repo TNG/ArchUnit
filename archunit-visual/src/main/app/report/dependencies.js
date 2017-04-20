@@ -1,10 +1,11 @@
 'use strict';
 
+const dependencyGroups = require('./dependency-kinds.json');
+
 let nodes = new Map();
 
-// FIXME: Signature hard to read in code, what's -1 in isWithin(4, 3, 5, -1)? Whole expression is hard to read at any calling point
-let isWithin = (value, lowerLimit, upperLimit, trueSign) => {
-  return (value >= lowerLimit && value <= upperLimit) ? trueSign : -trueSign;
+let isWithin = (value, lowerLimit, upperLimit) => {
+  return (value >= lowerLimit && value <= upperLimit);
 };
 
 let normalizeAngle = angleRad => {
@@ -24,22 +25,154 @@ let getTitleOffset = (angleRad, textPadding) => {
 
 let getDescriptionRelativeToPredecessors = (dep, from, to) => {
   let start = dep.from.substring(from.length + 1);
-  start += ((start && dep.startCodeUnit) ? "." : "") + (dep.startCodeUnit || "");
+  start += ((start && dep.description.startCodeUnit.title) ? "." : "") + (dep.description.startCodeUnit.title || "");
   let end = dep.to.substring(to.length + 1);
-  end += ((end && dep.targetElement) ? "." : "") + (dep.targetElement || "");
+  end += ((end && dep.description.targetElement.title) ? "." : "") + (dep.description.targetElement.title || "");
   return start + "->" + end;
 };
 
+let groupCodeElements = (codeElement1, codeElement2) => {
+  if (CodeElement.areEqual(codeElement1, codeElement2)) {
+    return codeElement1;
+  }
+  else if (CodeElement.isAbsent(codeElement1)) {
+    return codeElement2;
+  }
+  else if (CodeElement.isAbsent(codeElement2)) {
+    return codeElement1;
+  }
+  else {
+    return CodeElement.several;
+  }
+};
+
+let buildDependency = (from, to) => {
+  let dependency = new Dependency(from, to);
+  let builder = {
+    withNewDescription: function () {
+      let descriptionBuilder = {
+        withKind: function (kindgroup, kind) {
+          dependency.description[kindgroup] = kind;
+          return descriptionBuilder;
+        },
+        withStartCodeUnit: function (startCodeUnit) {
+          dependency.description.startCodeUnit = startCodeUnit;
+          return descriptionBuilder;
+        },
+        withTargetElement: function (targetElement) {
+          dependency.description.targetElement = targetElement;
+          return descriptionBuilder;
+        },
+        build: function () {
+          return dependency;
+        }
+      };
+      return descriptionBuilder;
+    },
+    withMergedDescriptions: function (description1, description2) {
+      if (!containsPackage(from, to)) {
+        dependency.description.inheritanceKind = groupKindsOfDifferentDepsBetweenSameClasses(description1.inheritanceKind, description2.inheritanceKind); // description1.inheritanceKind || description2.inheritanceKind;
+        dependency.description.accessKind = groupKindsOfDifferentDepsBetweenSameClasses(description1.accessKind, description2.accessKind);
+        dependency.description.startCodeUnit = groupCodeElements(description1.startCodeUnit, description2.startCodeUnit);
+        dependency.description.targetElement = groupCodeElements(description1.targetElement, description2.targetElement);
+      }
+      return dependency;
+    },
+    withExistingDescription: function (description) {
+      let setKinds = () => {
+        dependency.description.inheritanceKind = description.inheritanceKind;
+        dependency.description.accessKind = description.accessKind;
+      };
+      return {
+        whenTargetIsFolded: function (foldedElement) {
+          if (!containsPackage(from, to)) {
+            setKinds();
+            dependency.description.startCodeUnit = description.startCodeUnit;
+            dependency.description.targetElement = getCodeElementWhenParentFolded(description.targetElement, to, foldedElement);
+            console.log(dependency.description.targetElement);
+          }
+          return dependency;
+        },
+        whenStartIsFolded: function (foldedElement) {
+          if (!containsPackage(from, to)) {
+            setKinds();
+            dependency.description.startCodeUnit = getCodeElementWhenParentFolded(description.startCodeUnit, from, foldedElement);
+            dependency.description.targetElement = description.targetElement;
+            console.log(dependency.description.startCodeUnit);
+          }
+          return dependency;
+        }
+      }
+    },
+    build: function () {
+      return dependency;
+    }
+  };
+  return builder;
+};
+
+/**
+ * @param codeElement the startCodeUnit or the targetELement of the dependency
+ * @param dependencyEnd the from- or to-element of the dependency
+ * @param foldedElement
+ * @returns {string} new startCodeUnit respectively targetElement with the classname before,
+ * that was hidden by folding the foldedPkg
+ */
+let getCodeElementWhenParentFolded = (codeElement, dependencyEnd, foldedElement) => {
+  return dependencyEnd === foldedElement ? codeElement : CodeElement.single(dependencyEnd.substring(foldedElement.length + 1) + (!CodeElement.isAbsent(codeElement) ? "." + codeElement.title : ""));
+};
+
+const CodeElement = {
+  absent: {
+    key: 0,
+    title: ""
+  },
+  single: function (name) {
+    if (name) {
+      return {
+        key: 1,
+        title: name
+      }
+    }
+    else {
+      return CodeElement.absent;
+    }
+  },
+  several: {
+    key: 2,
+    title: "..."
+  },
+  isAbsent: function (codeElement) {
+    return codeElement.key === CodeElement.absent.key;
+  },
+  areEqual: function (codeElement1, codeElement2) {
+    return codeElement1.key === codeElement2.key &&
+        codeElement1.title === codeElement2.title;
+  }
+};
+
+let DependencyDescription = class {
+  constructor() {
+    this.inheritanceKind = "";
+    this.accessKind = "";
+    this.startCodeUnit = CodeElement.absent;
+    this.targetElement = CodeElement.absent;
+  }
+
+  getAllKinds() {
+    return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
+  }
+
+  toString() {
+    let allKinds = this.getAllKinds();
+    return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
+  }
+};
+
 let Dependency = class {
-  // FIXME: Too many parameters
-  constructor(from, to, kind, inheritanceKind, accessKind, startCodeUnit, targetElement) {
+  constructor(from, to) {
     this.from = from;
     this.to = to;
-    this.kind = kind;
-    this.inheritanceKind = inheritanceKind;
-    this.accessKind = accessKind;
-    this.startCodeUnit = startCodeUnit;
-    this.targetElement = targetElement;
     this.startPoint = [];
     this.endPoint = [];
     this.middlePoint = [];
@@ -52,6 +185,7 @@ let Dependency = class {
      * @type {boolean}
      */
     this.mustShareNodes = false;
+    this.description = new DependencyDescription();
   }
 
   getStartNode() {
@@ -63,11 +197,11 @@ let Dependency = class {
   }
 
   toString() {
-    return this.from + "->" + this.to + "(" + (this.startCodeUnit || "") + " " + this.kind + " " + (this.targetElement || "") + ")";
+    return this.from + "->" + this.to + "(" + this.description.toString() + ")";
   }
 
   getClass() {
-    return "access " + this.kind;
+    return "access " + this.description.getAllKinds();
   }
 
   endNodesAreOverlapping() {
@@ -119,10 +253,10 @@ let Dependency = class {
       let s = Math.sign(endNode.visualData.x - startNode.visualData.x);
       startAngle = normalizeAngle(startAngle);
       endAngle = normalizeAngle(endAngle);
-      startdirX = isWithin(startAngle, -Math.PI / 2, Math.PI / 2, 1) * s;
-      startdirY = isWithin(startAngle, -Math.PI, 0, -1) * s;
-      enddirX = isWithin(endAngle, -Math.PI / 2, Math.PI / 2, -1) * s;
-      enddirY = isWithin(endAngle, -Math.PI, 0, 1) * s;
+      startdirX = (isWithin(startAngle, -Math.PI / 2, Math.PI / 2) ? 1 : -1) * s;
+      startdirY = (isWithin(startAngle, -Math.PI, 0) ? -1 : 1) * s;
+      enddirX = (isWithin(endAngle, -Math.PI / 2, Math.PI / 2) ? -1 : 1) * s;
+      enddirY = (isWithin(endAngle, -Math.PI, 0) ? 1 : -1) * s;
     }
     else {
       startdirX = Math.sign(endNode.visualData.x - startNode.visualData.x);
@@ -159,11 +293,11 @@ let Dependency = class {
   }
 
   hasDescription() {
-    return this.startCodeUnit || this.targetElement;
+    return !CodeElement.isAbsent(this.description.startCodeUnit) || !CodeElement.isAbsent(this.description.targetElement);
   }
 
   getDescription() {
-    return (this.startCodeUnit || "") + "->" + (this.targetElement || "");
+    return this.description.startCodeUnit.title + "->" + this.description.targetElement.title;
   }
 
   getEdgesTitleTranslation(textPadding) {
@@ -188,23 +322,24 @@ let filter = dependencies => ({
   })
 });
 
-let containsPackage = dep => {
-  return nodes.get(dep.from).projectData.type === "package" || nodes.get(dep.to).projectData.type === "package";
+let containsPackage = (from, to) => {
+  return nodes.get(from).projectData.type === "package" || nodes.get(to).projectData.type === "package";
 };
 
-let groupAccessKindOfDifferentDepsBetweenSameClasses = (accessKind1, accessKind2) => {
-  if (!accessKind1) {
-    return accessKind2;
+let groupKindsOfDifferentDepsBetweenSameClasses = (kind1, kind2) => {
+  //FIXME: wahrscheinlich kürzer schreibbar, indem letztes Statement an den Anfang gezogen wird
+  if (!kind1) {
+    return kind2;
   }
-  else if (!accessKind2) {
-    return accessKind1;
+  else if (!kind2) {
+    return kind1;
   }
   else {
-    return accessKind1 === accessKind2 ? accessKind1 : "several";
+    return kind1 === kind2 ? kind1 : "several";
   }
 };
 
-let groupKindOfDepsBetweenSameElements = (dep1, dep2) => {
+let oldgroupKindOfDepsBetweenSameElements = (dep1, dep2) => {
   let res = {};
   if (dep1.kind === dep2.kind) {
     res.kind = dep1.kind;
@@ -218,11 +353,12 @@ let groupKindOfDepsBetweenSameElements = (dep1, dep2) => {
   }
   else {
     res.inheritanceKind = dep1.inheritanceKind || dep2.inheritanceKind;
-    res.accessKind = groupAccessKindOfDifferentDepsBetweenSameClasses(dep1.accessKind, dep2.accessKind);
+    res.accessKind = groupKindsOfDifferentDepsBetweenSameClasses(dep1.accessKind, dep2.accessKind);
     res.kind = res.inheritanceKind + (res.inheritanceKind ? " " : "") + res.accessKind;
   }
   return res;
 };
+
 
 let groupEndElements = (element1, element2) => {
   if (!element1) {
@@ -236,21 +372,23 @@ let groupEndElements = (element1, element2) => {
 
 let unique = dependencies => {
   let tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
-  let m = new Map();
+  let map = new Map();
   tmp.forEach(e => {
-    if (m.has(e[0])) {
+    if (map.has(e[0])) {
       let i = e[0].indexOf("->");
-      let old = m.get(e[0]);
-      let newKinds = groupKindOfDepsBetweenSameElements(old, e[1]);
-      let newstartCodeUnit = groupEndElements(old.startCodeUnit, e[1].startCodeUnit);
-      let newtargetElement = groupEndElements(old.targetElement, e[1].targetElement);
-      let newDep = new Dependency(e[1].from, e[1].to, newKinds.kind, newKinds.inheritanceKind, newKinds.accessKind,
-          newstartCodeUnit, newtargetElement);
-      m.set(e[0], newDep);
+      let old = map.get(e[0]);
+      /*let newKinds = groupKindOfDepsBetweenSameElements(old, e[1]);
+       let newstartCodeUnit = groupEndElements(old.startCodeUnit, e[1].startCodeUnit);
+       let newtargetElement = groupEndElements(old.targetElement, e[1].targetElement);
+       let newDep = buildDependency(e[1].from, e[1].to).kind(dependencyGroups.inheritance.name, newKinds.inheritanceKind).kind(dependencyGroups.access.name, newKinds.accessKind).obskind(newKinds.kind).start(newstartCodeUnit).target(newtargetElement).build();
+       map.set(e[0], newDep);*/
+      //let newDescription = groupDependencyDescriptions(old.description, e[1].description).between(old.from, old.to);
+      let newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
+      map.set(e[0], newDep);
     }
-    else m.set(e[0], e[1]);
+    else map.set(e[0], e[1]);
   });
-  return [...m.values()];
+  return [...map.values()];
 };
 
 let transform = dependencies => ({
@@ -269,26 +407,15 @@ let transform = dependencies => ({
   })
 });
 
-/**
- *
- * @param element the startCodeUnit or the targetELement of the dependency
- * @param base the from- or to-element of the dependency
- * @param foldedPkg
- * @returns {string} new startCodeUnit respectively targetElement with the classname before,
- * that was hidden by folding the foldedPkg
- */
-let getExtendedStartTargetName = (element, base, foldedPkg) => {
-  return base !== foldedPkg ? (base.substring(foldedPkg.length + 1) + (element ? "." + element : "")) : element;
-};
 
 let foldTransformer = pkg => {
   return dependencies => {
     let targetFolded = transform(dependencies).where(r => r.to).startsWith(pkg).eliminateSelfDeps(false)
-        .to(r => (new Dependency(r.from, pkg, r.kind, r.inheritanceKind, r.accessKind, r.startCodeUnit,
-            getExtendedStartTargetName(r.targetElement, r.to, pkg))));
+        .to(r => (
+            buildDependency(r.from, pkg).withExistingDescription(r.description).whenTargetIsFolded(pkg))); //.obskind(r.kind).kind(dependencyGroups.inheritance.name, r.inheritanceKind).kind(dependencyGroups.access.name, r.accessKind).start(r.startCodeUnit).target(getCodeElementWhenParentFolded(r.targetElement, r.to, pkg)).build()));
     return transform(targetFolded).where(r => r.from).startsWith(pkg).eliminateSelfDeps(true)
-        .to(r => (new Dependency(pkg, r.to, r.kind, r.inheritanceKind, r.accessKind,
-            getExtendedStartTargetName(r.startCodeUnit, r.from, pkg), r.targetElement)));
+        .to(r => (
+            buildDependency(pkg, r.to).withExistingDescription(r.description).whenStartIsFolded(pkg))); //.obskind(r.kind).kind(dependencyGroups.inheritance.name, r.inheritanceKind).kind(dependencyGroups.access.name, r.accessKind).start(getCodeElementWhenParentFolded(r.startCodeUnit, r.from, pkg)).target(r.targetElement).build()));
   }
 };
 
@@ -301,14 +428,9 @@ let recreateVisible = dependencies => {
   dependencies.calcEndCoordinatesForVisibleDependencies();
 };
 
-let changeFold = (dependencies, type, callback) => {
+let changeFold = (dependencies, callback) => {
   callback(dependencies);
   recreateVisible(dependencies);
-};
-
-let setForAllMustShareNodes = deps => {
-  deps.forEach(d => d.mustShareNodes =
-      deps.filter(e => e.from === d.to && e.to === d.from).length > 0);
 };
 
 let reapplyFilters = (dependencies, filters) => {
@@ -319,12 +441,12 @@ let reapplyFilters = (dependencies, filters) => {
 };
 
 let getKindFilter = (implementing, extending, constructorCall, methodCall, fieldAccess, anonImpl) => d => {
-  return (d.kind !== "implements" || implementing)
-      && (d.kind !== "extends" || extending)
-      && (d.kind !== "constructorCall" || constructorCall)
-      && (d.kind !== "methodCall" || methodCall)
-      && (d.kind !== "fieldAccess" || fieldAccess)
-      && (d.kind !== "implementsAnonymous" || anonImpl);
+  return (d.description.getAllKinds() !== "implements" || implementing)
+      && (d.description.getAllKinds() !== "extends" || extending)
+      && (d.description.getAllKinds() !== "constructorCall" || constructorCall)
+      && (d.description.getAllKinds() !== "methodCall" || methodCall)
+      && (d.description.getAllKinds() !== "fieldAccess" || fieldAccess)
+      && (d.description.getAllKinds() !== "implementsAnonymous" || anonImpl);
 };
 
 let Dependencies = class {
@@ -340,7 +462,8 @@ let Dependencies = class {
 
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
-    setForAllMustShareNodes(this._visibleDependencies); // FIXME: No test present?? Same for the interna of setFor... What are the semantics of the expression 'setForAllMustShareNodes' anyway??
+    this._visibleDependencies.forEach(d => d.mustShareNodes =
+        this._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
   }
 
   calcEndCoordinatesForVisibleDependencies() {
@@ -351,10 +474,13 @@ let Dependencies = class {
     return e => e.from + "->" + e.to;
   }
 
-  // FIXME: Missing brackets, can change 'fold' to 'fold2' with all tests passing, same with 'unfold'
   changeFold(pkg, isFolded) {
-    if (isFolded) changeFold(this, 'fold', dependencies => dependencies._transformers.set(pkg, foldTransformer(pkg)));
-    else changeFold(this, 'unfold', dependencies => dependencies._transformers.delete(pkg));
+    if (isFolded) {
+      changeFold(this, dependencies => dependencies._transformers.set(pkg, foldTransformer(pkg)));
+    }
+    else {
+      changeFold(this, dependencies => dependencies._transformers.delete(pkg));
+    }
   }
 
   setNodeFilters(filters) {
@@ -370,7 +496,6 @@ let Dependencies = class {
     reapplyFilters(this, this._filters);
   }
 
-  // FIXME: Can change 'kindfilter' to 'kindfilter2', with all tests passing
   resetFilterByKind() {
     this._filters.delete("kindfilter");
     reapplyFilters(this, this._filters);
@@ -396,36 +521,54 @@ let Dependencies = class {
   }
 };
 
-// FIXME: Too many parameters, can change !== 0 to >= 0 with all tests passing
-let addDeps = (arr, jsonEl, dep, kind, inheritanceKind, accessKind) => {
-  if (jsonEl.hasOwnProperty(dep) && jsonEl[dep].length !== 0) {
-    jsonEl[dep].forEach(i => arr.push(
-        new Dependency(jsonEl.fullname, i.to || i, kind, inheritanceKind, accessKind, i.startCodeUnit, i.targetElement)));
-  }
+let collectDependencies = () => {
+  return {
+    ofDependencyGroup: dependencyGroup => {
+      return {
+        ofJsonElement: function (jsonElement) {
+          return {
+            inArray: function (arr) {
+              dependencyGroup.kinds.forEach(kind => {
+                if (jsonElement.hasOwnProperty(kind.name)) {
+                  if (kind.isUnique && jsonElement[kind.name] !== "") {
+                    arr.push(buildDependency(jsonElement.fullname, jsonElement[kind.name]).withNewDescription().withKind(dependencyGroup.name, kind.dependency).build());
+                  }
+                  else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
+                    jsonElement[kind.name].forEach(d => arr.push(
+                        buildDependency(jsonElement.fullname, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(CodeElement.single(d.startCodeUnit)).withTargetElement(CodeElement.single(d.targetElement)).build()));
+                  }
+                }
+              });
+            }
+          }
+        }
+      };
+    }
+  };
 };
 
-let addSubTreeDeps = (arr, jsonEl) => {
-  if (jsonEl.type !== "package") {
-    let from = jsonEl.fullname;
-    //add super class, if there is one
-    if (jsonEl.hasOwnProperty("superclass") && jsonEl.superclass !== "") {
-      arr.push(new Dependency(from, jsonEl.superclass, "extends", "extends", ""));
-    }
-    addDeps(arr, jsonEl, "interfaces", "implements", "implements", "");
-    addDeps(arr, jsonEl, "methodCalls", "methodCall", "", "methodCall");
-    addDeps(arr, jsonEl, "fieldAccesses", "fieldAccess", "", "fieldAccess");
-    addDeps(arr, jsonEl, "constructorCalls", "constructorCall", "", "constructorCall");
-    addDeps(arr, jsonEl, "anonImpl", "implementsAnonymous", "", "implementsAnonymous");
-  }
+let addAllDependencies = () => {
+  return {
+    ofJsonElement: function (jsonElement) {
+      return {
+        toArray: function (arr) {
+          if (jsonElement.type !== "package") {
+            collectDependencies().ofDependencyGroup(dependencyGroups.inheritance).ofJsonElement(jsonElement).inArray(arr);
+            collectDependencies().ofDependencyGroup(dependencyGroups.access).ofJsonElement(jsonElement).inArray(arr);
+          }
 
-  if (jsonEl.hasOwnProperty("children")) {
-    jsonEl.children.forEach(c => addSubTreeDeps(arr, c));
-  }
+          if (jsonElement.hasOwnProperty("children")) {
+            jsonElement.children.forEach(c => addAllDependencies().ofJsonElement(c).toArray(arr));
+          }
+        }
+      }
+    }
+  };
 };
 
 let jsonToDependencies = (jsonRoot, nodeMap) => {
   let arr = [];
-  addSubTreeDeps(arr, jsonRoot);
+  addAllDependencies().ofJsonElement(jsonRoot).toArray(arr);
   return new Dependencies(arr, nodeMap);
 };
 
