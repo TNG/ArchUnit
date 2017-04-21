@@ -3,7 +3,7 @@ package com.tngtech.archunit.integration.junit;
 import com.tngtech.archunit.example.controller.one.UseCaseOneController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.exampletest.junit.SlicesIsolationTest;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -16,7 +16,7 @@ import static com.tngtech.archunit.integration.junit.SliceDependencyErrorMatcher
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class SlicesIsolationIntegrationTest {
     @ArchTest
     @ExpectedViolationFrom(location = SlicesIsolationIntegrationTest.class, method = "expectViolationFromDependencies")

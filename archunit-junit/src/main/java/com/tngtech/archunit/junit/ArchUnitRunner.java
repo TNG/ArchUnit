@@ -37,14 +37,14 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
  * <p/>
- * {@link AnalyseClasses @AnalyseClasses} on the annotated test class.
+ * {@link AnalyzeClasses @AnalyzeClasses} on the annotated test class.
  * <p>
- * NOTE: The runner demands {@link AnalyseClasses @AnalyseClasses} to be present on the respective test class.
+ * NOTE: The runner demands {@link AnalyzeClasses @AnalyzeClasses} to be present on the respective test class.
  * </p>
  * Example
  * <pre><code>
  *    {@literal @}RunWith(ArchUnitRunner.class)
- *    {@literal @}AnalyseClasses(packages = "com.example")
+ *    {@literal @}AnalyzeClasses(packages = "com.example")
  *    public class SomeArchTest {
  *        {@literal @}ArchTest
  *        public final ArchRule&lt;JavaClass&gt; some_rule = rule(all(JavaClass.class))
@@ -113,7 +113,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
             notifier.fireTestIgnored(describeChild(child));
         } else {
             notifier.fireTestStarted(describeChild(child));
-            JavaClasses classes = cache.get().getClassesToAnalyseFor(getTestClass().getJavaClass());
+            JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
             child.evaluateOn(classes).notify(notifier);
             notifier.fireTestFinished(describeChild(child));
         }

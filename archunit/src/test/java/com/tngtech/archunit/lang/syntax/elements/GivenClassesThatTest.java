@@ -50,16 +50,16 @@ public class GivenClassesThatTest {
     private ArgumentCaptor<JavaClass> classesCaptor;
 
     @Test
-    public void areNamed() {
-        List<JavaClass> classes = filterResultOf(classes().that().areNamed(List.class.getName()))
+    public void haveFullyQualifiedName() {
+        List<JavaClass> classes = filterResultOf(classes().that().haveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
     }
 
     @Test
-    public void areNotNamed() {
-        List<JavaClass> classes = filterResultOf(classes().that().areNotNamed(List.class.getName()))
+    public void dontHaveFullyQualifiedName() {
+        List<JavaClass> classes = filterResultOf(classes().that().dontHaveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);

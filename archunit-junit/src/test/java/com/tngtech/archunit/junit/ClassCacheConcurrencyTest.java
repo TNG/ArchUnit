@@ -48,7 +48,7 @@ public class ClassCacheConcurrencyTest {
     public void concurrent_access() throws Exception {
         List<Future<?>> futures = new ArrayList<>();
         for (int i = 0; i < NUM_THREADS; i++) {
-            futures.add(executorService.submit(repeatGetClassesToAnalyse(1000)));
+            futures.add(executorService.submit(repeatGetClassesToAnalyze(1000)));
         }
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
@@ -57,38 +57,38 @@ public class ClassCacheConcurrencyTest {
         verifyNoMoreInteractions(classFileImporter);
     }
 
-    private Runnable repeatGetClassesToAnalyse(final int times) {
+    private Runnable repeatGetClassesToAnalyze(final int times) {
         return new Runnable() {
             @Override
             public void run() {
                 for (int j = 0; j < times; j++) {
-                    cache.getClassesToAnalyseFor(TEST_CLASSES.get(j % TEST_CLASSES.size()));
+                    cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()));
                 }
             }
         };
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.junit")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class TestClass1 {
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.example")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.example")
     public static class TestClass2 {
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.integration")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.integration")
     public static class TestClass3 {
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.core")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.core")
     public static class TestClass4 {
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit")
+    @AnalyzeClasses(packages = "com.tngtech.archunit")
     public static class TestClass5 {
     }
 
-    @AnalyseClasses(packages = "com.tngtech")
+    @AnalyzeClasses(packages = "com.tngtech")
     public static class TestClass6 {
     }
 }

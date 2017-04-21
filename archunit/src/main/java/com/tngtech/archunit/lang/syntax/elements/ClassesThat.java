@@ -35,7 +35,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areNamed(String name);
+    CONJUNCTION haveFullyQualifiedName(String name);
 
     /**
      * Matches classes that don't have a certain fully qualified class name.
@@ -44,7 +44,7 @@ public interface ClassesThat<CONJUNCTION> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areNotNamed(String name);
+    CONJUNCTION dontHaveFullyQualifiedName(String name);
 
     /**
      * Matches classes by their simple class name.

@@ -42,7 +42,7 @@ public class ClassCacheTest {
 
     @Test
     public void loads_classes() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class);
 
         assertThat(classes).as("Classes were found").isNotEmpty();
     }
@@ -50,8 +50,8 @@ public class ClassCacheTest {
     @Test
     @SuppressWarnings("unchecked")
     public void reuses_loaded_classes_by_test() {
-        cache.getClassesToAnalyseFor(TestClass.class);
-        cache.getClassesToAnalyseFor(TestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class);
 
         verifyNumberOfImports(1);
     }
@@ -59,25 +59,25 @@ public class ClassCacheTest {
     @Test
     @SuppressWarnings("unchecked")
     public void reuses_loaded_classes_by_urls() {
-        cache.getClassesToAnalyseFor(TestClass.class);
-        cache.getClassesToAnalyseFor(EquivalentTestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class);
+        cache.getClassesToAnalyzeFor(EquivalentTestClass.class);
 
         verifyNumberOfImports(1);
     }
 
     @Test
-    public void rejects_missing_analyse_annotation() {
+    public void rejects_missing_analyze_annotation() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Object.class.getSimpleName());
         thrown.expectMessage("must be annotated");
-        thrown.expectMessage(AnalyseClasses.class.getSimpleName());
+        thrown.expectMessage(AnalyzeClasses.class.getSimpleName());
 
-        cache.getClassesToAnalyseFor(Object.class);
+        cache.getClassesToAnalyzeFor(Object.class);
     }
 
     @Test
     public void filters_jars_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -87,14 +87,14 @@ public class ClassCacheTest {
 
     @Test
     public void gets_all_classes_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(classes).isNotEmpty();
     }
 
     @Test
     public void filters_urls() {
-        JavaClasses classes = cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJars.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -105,8 +105,8 @@ public class ClassCacheTest {
 
     @Test
     public void non_existing_packages_are_ignored() {
-        JavaClasses first = cache.getClassesToAnalyseFor(TestClassWithNonExistingPackage.class);
-        JavaClasses second = cache.getClassesToAnalyseFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses first = cache.getClassesToAnalyzeFor(TestClassWithNonExistingPackage.class);
+        JavaClasses second = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
 
         assertThat(first).isEqualTo(second);
         verifyNumberOfImports(1);
@@ -115,9 +115,9 @@ public class ClassCacheTest {
     @Test
     public void distinguishes_import_option_when_caching() {
         JavaClasses importingWholeClasspathWithFilter =
-                cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJars.class);
+                cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
         JavaClasses importingWholeClasspathWithEquivalentButDifferentFilter =
-                cache.getClassesToAnalyseFor(TestClassFilteringJustJUnitJarsWithDifferentFilter.class);
+                cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJarsWithDifferentFilter.class);
 
         assertThat(importingWholeClasspathWithFilter)
                 .as("number of classes imported")
@@ -131,27 +131,27 @@ public class ClassCacheTest {
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.junit")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class TestClass {
     }
 
-    @AnalyseClasses(packages = "com.tngtech.archunit.junit")
+    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class EquivalentTestClass {
     }
 
-    @AnalyseClasses(packagesOf = Rule.class)
+    @AnalyzeClasses(packagesOf = Rule.class)
     public static class TestClassWithFilterJustByPackageOfClass {
     }
 
-    @AnalyseClasses(packages = "something.that.doesnt.exist", packagesOf = Rule.class)
+    @AnalyzeClasses(packages = "something.that.doesnt.exist", packagesOf = Rule.class)
     public static class TestClassWithNonExistingPackage {
     }
 
-    @AnalyseClasses(importOption = TestFilterForJUnitJars.class)
+    @AnalyzeClasses(importOption = TestFilterForJUnitJars.class)
     public static class TestClassFilteringJustJUnitJars {
     }
 
-    @AnalyseClasses(importOption = AnotherTestFilterForJUnitJars.class)
+    @AnalyzeClasses(importOption = AnotherTestFilterForJUnitJars.class)
     public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
     }
 

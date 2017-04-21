@@ -66,7 +66,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     @Before
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
-        when(classCache.getClassesToAnalyseFor(any(Class.class))).thenReturn(cachedClasses);
+        when(classCache.getClassesToAnalyzeFor(any(Class.class))).thenReturn(cachedClasses);
     }
 
     @Test
@@ -153,7 +153,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         return ArchUnitRunnerTestUtils.getRule(name, runner);
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class SomeArchTest {
         static final String SATISFIED_FIELD_NAME = "someSatisfiedRule";
         static final String FAILING_FIELD_NAME = "someFailingRule";
@@ -170,7 +170,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         public static final ArchRule someIgnoredRule = all(classes()).should(NEVER_BE_SATISFIED);
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class WrongArchTestWrongModifier {
         static final String WRONG_MODIFIER_FIELD_NAME = "ruleWithWrongModifier";
 
@@ -178,7 +178,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         private ArchRule ruleWithWrongModifier = all(classes()).should(BE_SATISFIED);
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class WrongArchTestWrongFieldType {
         static final String NO_RULE_AT_ALL_FIELD_NAME = "noRuleAtAll";
 
@@ -187,7 +187,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @ArchIgnore
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class IgnoredArchTest {
         static final String RULE_ONE_IN_IGNORED_TEST = "someRuleOne";
         static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";

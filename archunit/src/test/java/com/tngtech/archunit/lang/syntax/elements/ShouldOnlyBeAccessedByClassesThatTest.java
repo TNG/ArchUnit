@@ -34,9 +34,9 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     public final MockitoRule rule = MockitoJUnit.rule();
 
     @Test
-    public void areNamed() {
+    public void haveFullyQualifiedName() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classes().should().onlyBeAccessed().byClassesThat().areNamed(Foo.class.getName()))
+                classes().should().onlyBeAccessed().byClassesThat().haveFullyQualifiedName(Foo.class.getName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
@@ -47,9 +47,9 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
-    public void areNotNamed() {
+    public void dontHaveFullyQualifiedName() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classes().should().onlyBeAccessed().byClassesThat().areNotNamed(Foo.class.getName()))
+                classes().should().onlyBeAccessed().byClassesThat().dontHaveFullyQualifiedName(Foo.class.getName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);

@@ -17,7 +17,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
@@ -37,7 +37,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(
+@AnalyzeClasses(
         packagesOf = ArchUnitArchitectureTest.class,
         importOption = ArchUnitArchitectureTest.ArchUnitProductionCode.class)
 public class ArchUnitArchitectureTest {

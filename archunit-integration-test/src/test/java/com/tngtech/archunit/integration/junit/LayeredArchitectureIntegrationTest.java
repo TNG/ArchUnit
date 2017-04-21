@@ -6,7 +6,7 @@ import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.junit.LayeredArchitectureTest;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -17,7 +17,7 @@ import static com.tngtech.archunit.junit.ExpectedViolation.from;
 import static java.lang.System.lineSeparator;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class LayeredArchitectureIntegrationTest {
     @ArchTest
     @ExpectedViolationFrom(location = LayeredArchitectureIntegrationTest.class, method = "expectLayerViolations")

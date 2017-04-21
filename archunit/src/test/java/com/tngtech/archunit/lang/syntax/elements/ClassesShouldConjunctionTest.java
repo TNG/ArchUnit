@@ -26,11 +26,11 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ORed_conditions() {
         return $$(
                 $(classes()
-                        .should().beNamed(RightOne.class.getName())
-                        .orShould(ArchConditions.beNamed(RightTwo.class.getName()))),
+                        .should().haveFullyQualifiedName(RightOne.class.getName())
+                        .orShould(ArchConditions.haveFullyQualifiedName(RightTwo.class.getName()))),
                 $(classes()
-                        .should().beNamed(RightOne.class.getName())
-                        .orShould().beNamed(RightTwo.class.getName())));
+                        .should().haveFullyQualifiedName(RightOne.class.getName())
+                        .orShould().haveFullyQualifiedName(RightTwo.class.getName())));
     }
 
     @Test
@@ -42,10 +42,10 @@ public class ClassesShouldConjunctionTest {
         FailureReport report = result.getFailureReport();
         assertThat(report.toString())
                 .contains(String.format(
-                        "classes should be named '%s' or should be named '%s'",
+                        "classes should have fully qualified name '%s' or should have fully qualified name '%s'",
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                String.format("class %s is not named '%s' and class %s is not named '%s'",
+                String.format("class %s doesn't have fully qualified name '%s' and class %s doesn't have fully qualified name '%s'",
                         Wrong.class.getName(), RightOne.class.getName(),
                         Wrong.class.getName(), RightTwo.class.getName()));
     }
@@ -54,11 +54,11 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ORed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().accessClassesThat().areNamed(Wrong.class.getName())
-                        .orShould(ArchConditions.beNamed(Wrong.class.getName()))),
+                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
+                        .orShould(ArchConditions.haveFullyQualifiedName(Wrong.class.getName()))),
                 $(noClasses()
-                        .should().accessClassesThat().areNamed(Wrong.class.getName())
-                        .orShould().beNamed(Wrong.class.getName())));
+                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
+                        .orShould().haveFullyQualifiedName(Wrong.class.getName())));
     }
 
     @Test
@@ -70,10 +70,10 @@ public class ClassesShouldConjunctionTest {
         FailureReport report = result.getFailureReport();
         assertThat(report.toString())
                 .contains(String.format(
-                        "no classes should access classes that are named '%s' or should be named '%s'",
+                        "no classes should access classes that have fully qualified name '%s' or should have fully qualified name '%s'",
                         Wrong.class.getName(), Wrong.class.getName()));
         assertThat(report.getDetails()).usingElementComparator(matchesRegex()).contains(
-                classIsNamedRegex(Wrong.class),
+                classHasFullNameRegex(Wrong.class),
                 otherWrongCallsWrongRegex());
     }
 
@@ -81,11 +81,11 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ANDed_conditions() {
         return $$(
                 $(classes()
-                        .should().beNamed(RightOne.class.getName())
-                        .andShould(ArchConditions.beNamed(RightTwo.class.getName()))),
+                        .should().haveFullyQualifiedName(RightOne.class.getName())
+                        .andShould(ArchConditions.haveFullyQualifiedName(RightTwo.class.getName()))),
                 $(classes()
-                        .should().beNamed(RightOne.class.getName())
-                        .andShould().beNamed(RightTwo.class.getName())));
+                        .should().haveFullyQualifiedName(RightOne.class.getName())
+                        .andShould().haveFullyQualifiedName(RightTwo.class.getName())));
     }
 
     @Test
@@ -97,16 +97,16 @@ public class ClassesShouldConjunctionTest {
         FailureReport report = result.getFailureReport();
         assertThat(report.toString())
                 .contains(String.format(
-                        "classes should be named '%s' and should be named '%s'",
+                        "classes should have fully qualified name '%s' and should have fully qualified name '%s'",
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                String.format("class %s is not named '%s'",
+                String.format("class %s doesn't have fully qualified name '%s'",
                         RightTwo.class.getName(), RightOne.class.getName()),
-                String.format("class %s is not named '%s'",
+                String.format("class %s doesn't have fully qualified name '%s'",
                         RightOne.class.getName(), RightTwo.class.getName()),
-                String.format("class %s is not named '%s'",
+                String.format("class %s doesn't have fully qualified name '%s'",
                         Wrong.class.getName(), RightOne.class.getName()),
-                String.format("class %s is not named '%s'",
+                String.format("class %s doesn't have fully qualified name '%s'",
                         Wrong.class.getName(), RightTwo.class.getName()));
     }
 
@@ -114,11 +114,11 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ANDed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().accessClassesThat().areNamed(Wrong.class.getName())
-                        .andShould(ArchConditions.beNamed(OtherWrong.class.getName()))),
+                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
+                        .andShould(ArchConditions.haveFullyQualifiedName(OtherWrong.class.getName()))),
                 $(noClasses()
-                        .should().accessClassesThat().areNamed(Wrong.class.getName())
-                        .andShould().beNamed(OtherWrong.class.getName())));
+                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
+                        .andShould().haveFullyQualifiedName(OtherWrong.class.getName())));
     }
 
     @Test
@@ -130,14 +130,14 @@ public class ClassesShouldConjunctionTest {
         FailureReport report = result.getFailureReport();
         assertThat(report.toString())
                 .contains(String.format(
-                        "no classes should access classes that are named '%s' and should be named '%s'",
+                        "no classes should access classes that have fully qualified name '%s' and should have fully qualified name '%s'",
                         Wrong.class.getName(), OtherWrong.class.getName()));
         assertThat(report.getDetails()).usingElementComparator(matchesRegex())
-                .containsOnly(otherWrongCallsWrongRegex() + " and " + classIsNamedRegex(OtherWrong.class));
+                .containsOnly(otherWrongCallsWrongRegex() + " and " + classHasFullNameRegex(OtherWrong.class));
     }
 
-    private String classIsNamedRegex(Class<?> clazz) {
-        return String.format("class %s is named '%s'",
+    private String classHasFullNameRegex(Class<?> clazz) {
+        return String.format("class %s has fully qualified name '%s'",
                 quote(clazz.getName()), quote(clazz.getName()));
     }
 

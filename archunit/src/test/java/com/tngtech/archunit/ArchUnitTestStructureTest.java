@@ -17,7 +17,7 @@ public class ArchUnitTestStructureTest {
 
     @Test
     public void only_TestUtils_accesses_ImportTestUtils() {
-        classes().that().areNamed(ImportTestUtils.class.getName())
+        classes().that().haveFullyQualifiedName(ImportTestUtils.class.getName())
                 .should(onlyBeAccessedByClassesThat(
                         have(nameMatching(TestUtils.class.getName() + ".*"))
                                 .or(have(nameMatching(ImportTestUtils.class.getName() + ".*")))))

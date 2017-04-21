@@ -127,7 +127,8 @@ public abstract class RandomSyntaxTestBase {
 
         @Override
         public String toString() {
-            return Joiner.on(" ").join(description).replace("dont", "don't");
+            return Joiner.on(" ").join(description)
+                    .replace("dont", "don't");
         }
     }
 

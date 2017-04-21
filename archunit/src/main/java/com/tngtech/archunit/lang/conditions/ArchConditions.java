@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.conditions;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -252,22 +253,28 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> beNamed(final String name) {
-        final DescribedPredicate<HasName> beNamed = name(name).as("be named '%s'", name);
-        return new ArchCondition<JavaClass>(beNamed.getDescription()) {
+    public static ArchCondition<JavaClass> haveFullyQualifiedName(final String name) {
+        final DescribedPredicate<HasName> haveFullyQualifiedName = have(fullyQualifiedName(name));
+        return new ArchCondition<JavaClass>(haveFullyQualifiedName.getDescription()) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = beNamed.apply(item);
-                String message = String.format("class %s is %snamed '%s'",
-                        item.getName(), satisfied ? "" : "not ", name);
+                boolean satisfied = haveFullyQualifiedName.apply(item);
+                String message = String.format("class %s %s fully qualified name '%s'",
+                        item.getName(), satisfied ? "has" : "doesn't have", name);
                 events.add(new SimpleConditionEvent<>(item, satisfied, message));
             }
         };
     }
 
+    @Internal
+    public static DescribedPredicate<HasName> fullyQualifiedName(String name) {
+        DescribedPredicate<HasName> predicate = name(name);
+        return predicate.as(predicate.getDescription().replace("name", "fully qualified name"));
+    }
+
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> notBeNamed(String name) {
-        return not(beNamed(name));
+    public static ArchCondition<JavaClass> notHaveFullyQualifiedName(String name) {
+        return not(haveFullyQualifiedName(name));
     }
 
     @PublicAPI(usage = ACCESS)

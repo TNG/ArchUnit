@@ -35,86 +35,86 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CodeUnitCallConditionTest {
 
     @DataProvider
-    public static Object[][] calls_to_analyse() {
+    public static Object[][] calls_to_analyze() {
         return $$(
                 $(methodCallToTargetFrom(CALLER_CLASS)),
                 $(constructorCallToTargetFrom(CALLER_CLASS)));
     }
 
     @Test
-    @UseDataProvider("calls_to_analyse")
-    public void condition_is_satisfied_by_matching_call(MethodCallToAnalyse callToAnalyse) {
-        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse).build();
+    @UseDataProvider("calls_to_analyze")
+    public void condition_is_satisfied_by_matching_call(MethodCallToAnalyze callToAnalyze) {
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyze).build();
         ConditionEvents events = new ConditionEvents();
-        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyze.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isTrue();
         assertThat(events.getViolating()).isEmpty();
-        assertThat(events.getAllowed()).is(containingMessageFor(callToAnalyse));
+        assertThat(events.getAllowed()).is(containingMessageFor(callToAnalyze));
     }
 
     @Test
-    @UseDataProvider("calls_to_analyse")
-    public void condition_is_not_satisfied_on_target_mismatch(MethodCallToAnalyse callToAnalyse) {
-        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
+    @UseDataProvider("calls_to_analyze")
+    public void condition_is_not_satisfied_on_target_mismatch(MethodCallToAnalyze callToAnalyze) {
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyze)
                 .withTarget(getClass())
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyze.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
-        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyse));
+        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyze));
         assertThat(events.getAllowed()).isEmpty();
     }
 
     @Test
-    @UseDataProvider("calls_to_analyse")
-    public void condition_is_not_satisfied_on_name_mismatch(MethodCallToAnalyse callToAnalyse) {
-        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
+    @UseDataProvider("calls_to_analyze")
+    public void condition_is_not_satisfied_on_name_mismatch(MethodCallToAnalyze callToAnalyze) {
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyze)
                 .withName("wrong")
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyze.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
-        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyse));
+        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyze));
         assertThat(events.getAllowed()).isEmpty();
     }
 
     @Test
-    @UseDataProvider("calls_to_analyse")
-    public void condition_is_not_satisfied_on_parameter_type_mismatch(MethodCallToAnalyse callToAnalyse) {
-        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyse)
+    @UseDataProvider("calls_to_analyze")
+    public void condition_is_not_satisfied_on_parameter_type_mismatch(MethodCallToAnalyze callToAnalyze) {
+        CodeUnitCallCondition targetCodeUnitCallCondition = callConditionBuilderMatching(callToAnalyze)
                 .withParameters(getClass())
                 .build();
         ConditionEvents events = new ConditionEvents();
-        targetCodeUnitCallCondition.check(callToAnalyse.call, events);
+        targetCodeUnitCallCondition.check(callToAnalyze.call, events);
         boolean satisfied = !events.containViolation();
 
         assertThat(satisfied).as("Condition is satisfied").isFalse();
-        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyse));
+        assertThat(events.getViolating()).is(containingMessageFor(callToAnalyze));
         assertThat(events.getAllowed()).isEmpty();
     }
 
-    private MethodCallConditionBuilder callConditionBuilderMatching(MethodCallToAnalyse callToAnalyse) {
-        return new MethodCallConditionBuilder(callToAnalyse);
+    private MethodCallConditionBuilder callConditionBuilderMatching(MethodCallToAnalyze callToAnalyze) {
+        return new MethodCallConditionBuilder(callToAnalyze);
     }
 
-    private static MethodCallToAnalyse methodCallToTargetFrom(JavaClass callerClass) {
-        return new MethodCallToAnalyse(callerClass.getMethodCallsFromSelf());
+    private static MethodCallToAnalyze methodCallToTargetFrom(JavaClass callerClass) {
+        return new MethodCallToAnalyze(callerClass.getMethodCallsFromSelf());
     }
 
-    private static MethodCallToAnalyse constructorCallToTargetFrom(JavaClass callerClass) {
-        return new MethodCallToAnalyse(callerClass.getConstructorCallsFromSelf());
+    private static MethodCallToAnalyze constructorCallToTargetFrom(JavaClass callerClass) {
+        return new MethodCallToAnalyze(callerClass.getConstructorCallsFromSelf());
     }
 
-    private static Condition<Iterable<? extends ConditionEvent>> containingMessageFor(final MethodCallToAnalyse callToAnalyse) {
-        final String originName = callToAnalyse.call.getOrigin().getFullName();
-        final String targetName = callToAnalyse.call.getTarget().getFullName();
-        final String ideJumpHook = ideJumpHookFor(callToAnalyse);
+    private static Condition<Iterable<? extends ConditionEvent>> containingMessageFor(final MethodCallToAnalyze callToAnalyze) {
+        final String originName = callToAnalyze.call.getOrigin().getFullName();
+        final String targetName = callToAnalyze.call.getTarget().getFullName();
+        final String ideJumpHook = ideJumpHookFor(callToAnalyze);
 
         return new Condition<Iterable<? extends ConditionEvent>>() {
             @Override
@@ -134,16 +134,16 @@ public class CodeUnitCallConditionTest {
         }.as(String.format("Event from call with origin %s, target %s and IDE Hook %s", originName, targetName, ideJumpHook));
     }
 
-    private static String ideJumpHookFor(MethodCallToAnalyse callToAnalyse) {
-        String simpleCallerName = callToAnalyse.call.getOriginOwner().getSimpleName();
-        int lineNumber = callToAnalyse.call.getLineNumber();
+    private static String ideJumpHookFor(MethodCallToAnalyze callToAnalyze) {
+        String simpleCallerName = callToAnalyze.call.getOriginOwner().getSimpleName();
+        int lineNumber = callToAnalyze.call.getLineNumber();
         return String.format("(%s.java:%d)", simpleCallerName, lineNumber);
     }
 
-    private static class MethodCallToAnalyse {
+    private static class MethodCallToAnalyze {
         private final JavaCall<?> call;
 
-        private MethodCallToAnalyse(Collection<? extends JavaCall<?>> calls) {
+        private MethodCallToAnalyze(Collection<? extends JavaCall<?>> calls) {
             call = callToTargetIn(calls);
         }
 
@@ -167,10 +167,10 @@ public class CodeUnitCallConditionTest {
         private String methodName;
         private List<String> paramTypes;
 
-        private MethodCallConditionBuilder(MethodCallToAnalyse callToAnalyse) {
-            targetClass = callToAnalyse.call.getTarget().getOwner().reflect();
-            methodName = callToAnalyse.call.getTarget().getName();
-            paramTypes = callToAnalyse.call.getTarget().getParameters().getNames();
+        private MethodCallConditionBuilder(MethodCallToAnalyze callToAnalyze) {
+            targetClass = callToAnalyze.call.getTarget().getOwner().reflect();
+            methodName = callToAnalyze.call.getTarget().getName();
+            paramTypes = callToAnalyze.call.getTarget().getParameters().getNames();
         }
 
         private MethodCallConditionBuilder withTarget(Class<?> targetClass) {

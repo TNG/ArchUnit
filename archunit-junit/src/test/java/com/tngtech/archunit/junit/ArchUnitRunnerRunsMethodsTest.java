@@ -58,7 +58,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     @Before
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
-        when(classCache.getClassesToAnalyseFor(any(Class.class))).thenReturn(cachedClasses);
+        when(classCache.getClassesToAnalyzeFor(any(Class.class))).thenReturn(cachedClasses);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         assertThat(descriptionCaptor.getValue().toString()).contains(toBeIgnored);
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithTestMethod {
         static final String testSomething = "testSomething";
 
@@ -124,7 +124,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         }
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithIllegalTestMethods {
         static final String noParams = "noParams";
         static final String tooManyParams = "tooManyParams";
@@ -139,7 +139,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     }
 
     @ArchIgnore
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class IgnoredArchTest {
         static final String toBeIgnoredOne = "toBeIgnoredOne";
         static final String toBeIgnoredTwo = "toBeIgnoredTwo";
@@ -153,7 +153,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         }
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithIgnoredMethod {
         static final String toBeIgnored = "toBeIgnored";
 

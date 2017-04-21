@@ -2,7 +2,7 @@ package com.tngtech.archunit.exampletest.junit;
 
 import javax.persistence.EntityManager;
 
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
@@ -14,7 +14,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class DaoRulesWithRunnerTest {
     @ArchTest
     public static final ArchRule only_DAOs_may_use_the_EntityManager =

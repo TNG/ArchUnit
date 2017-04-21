@@ -58,44 +58,44 @@ public class ClassesShouldTest {
     private static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
 
     @DataProvider
-    public static Object[][] beNamed_rules() {
+    public static Object[][] haveFullyQualifiedName_rules() {
         return $$(
-                $(classes().should().beNamed(RightNamedClass.class.getName())),
-                $(classes().should(ArchConditions.beNamed(RightNamedClass.class.getName())))
+                $(classes().should().haveFullyQualifiedName(RightNamedClass.class.getName())),
+                $(classes().should(ArchConditions.haveFullyQualifiedName(RightNamedClass.class.getName())))
         );
     }
 
     @Test
-    @UseDataProvider("beNamed_rules")
-    public void beNamed(ArchRule rule) {
+    @UseDataProvider("haveFullyQualifiedName_rules")
+    public void haveFullyQualifiedName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should be named '%s'", RightNamedClass.class.getName()))
-                .contains(String.format("class %s is not named '%s'",
+                .contains(String.format("classes should have fully qualified name '%s'", RightNamedClass.class.getName()))
+                .contains(String.format("class %s doesn't have fully qualified name '%s'",
                         WrongNamedClass.class.getName(), RightNamedClass.class.getName()))
-                .doesNotMatch(String.format("%s is", RightNamedClass.class.getName()));
+                .doesNotMatch(String.format("%s .*name", RightNamedClass.class.getName()));
     }
 
     @DataProvider
-    public static Object[][] notBeNamed_rules() {
+    public static Object[][] notHaveFullyQualifiedName_rules() {
         return $$(
-                $(classes().should().notBeNamed(WrongNamedClass.class.getName())),
-                $(classes().should(ArchConditions.notBeNamed(WrongNamedClass.class.getName())))
+                $(classes().should().notHaveFullyQualifiedName(WrongNamedClass.class.getName())),
+                $(classes().should(ArchConditions.notHaveFullyQualifiedName(WrongNamedClass.class.getName())))
         );
     }
 
     @Test
-    @UseDataProvider("notBeNamed_rules")
-    public void notBeNamed(ArchRule rule) {
+    @UseDataProvider("notHaveFullyQualifiedName_rules")
+    public void notHaveFullyQualifiedName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should not be named '%s'", WrongNamedClass.class.getName()))
-                .contains(String.format("%s is named '%s'", WrongNamedClass.class.getName(), WrongNamedClass.class.getName()))
-                .doesNotContain(String.format("%s is", RightNamedClass.class.getName()));
+                .contains(String.format("classes should not have fully qualified name '%s'", WrongNamedClass.class.getName()))
+                .contains(String.format("%s has fully qualified name '%s'", WrongNamedClass.class.getName(), WrongNamedClass.class.getName()))
+                .doesNotContain(String.format("%s .*name", RightNamedClass.class.getName()));
     }
 
     @DataProvider

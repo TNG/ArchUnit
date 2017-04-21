@@ -1,7 +1,7 @@
 package com.tngtech.archunit.exampletest.junit;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
@@ -12,7 +12,7 @@ import static com.tngtech.archunit.library.GeneralCodingRules.USE_JAVA_UTIL_LOGG
 
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class CodingRulesWithRunnerMethodsTest {
     @ArchTest
     public static void no_java_util_logging_as_method(JavaClasses classes) {

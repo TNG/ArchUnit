@@ -233,13 +233,13 @@ class GivenClassesThatInternal implements GivenClassesThat {
     }
 
     @Override
-    public GivenClassesConjunction areNamed(String name) {
-        return givenWith(ClassesThatPredicates.areNamed(name));
+    public GivenClassesConjunction haveFullyQualifiedName(String name) {
+        return givenWith(ClassesThatPredicates.haveFullyQualifiedName(name));
     }
 
     @Override
-    public GivenClassesConjunction areNotNamed(String name) {
-        return givenWith(ClassesThatPredicates.areNotNamed(name));
+    public GivenClassesConjunction dontHaveFullyQualifiedName(String name) {
+        return givenWith(ClassesThatPredicates.dontHaveFullyQualifiedName(name));
     }
 
     @Override

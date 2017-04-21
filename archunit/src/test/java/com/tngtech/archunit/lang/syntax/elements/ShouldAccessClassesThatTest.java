@@ -35,18 +35,18 @@ public class ShouldAccessClassesThatTest {
     public final MockitoRule rule = MockitoJUnit.rule();
 
     @Test
-    public void areNamed() {
+    public void haveFullyQualifiedName() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClasses().should().accessClassesThat().areNamed(List.class.getName()))
+                noClasses().should().accessClassesThat().haveFullyQualifiedName(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
     }
 
     @Test
-    public void areNotNamed() {
+    public void dontHaveFullyQualifiedName() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClasses().should().accessClassesThat().areNotNamed(List.class.getName()))
+                noClasses().should().accessClassesThat().dontHaveFullyQualifiedName(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);

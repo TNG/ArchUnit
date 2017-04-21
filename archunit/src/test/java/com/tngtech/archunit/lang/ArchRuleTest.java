@@ -104,11 +104,11 @@ public class ArchRuleTest {
 
         assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
 
-        rule = ArchRuleDefinition.classes().should().accessClassesThat().areNamed("foo")
+        rule = ArchRuleDefinition.classes().should().accessClassesThat().haveFullyQualifiedName("foo")
                 .because("this is the way");
 
         assertThat(rule.getDescription()).isEqualTo(
-                "classes should access classes that are named 'foo', because this is the way");
+                "classes should access classes that have fully qualified name 'foo', because this is the way");
     }
 
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {

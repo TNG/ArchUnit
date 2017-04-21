@@ -250,13 +250,13 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
-    public ClassesShouldConjunction areNamed(String name) {
-        return shouldWith(ClassesThatPredicates.areNamed(name));
+    public ClassesShouldConjunction haveFullyQualifiedName(String name) {
+        return shouldWith(ClassesThatPredicates.haveFullyQualifiedName(name));
     }
 
     @Override
-    public ClassesShouldConjunction areNotNamed(String name) {
-        return shouldWith(ClassesThatPredicates.areNotNamed(name));
+    public ClassesShouldConjunction dontHaveFullyQualifiedName(String name) {
+        return shouldWith(ClassesThatPredicates.dontHaveFullyQualifiedName(name));
     }
 
     @Override

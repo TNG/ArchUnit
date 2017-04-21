@@ -35,7 +35,7 @@ class ClassCache {
 
     private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
-    JavaClasses getClassesToAnalyseFor(Class<?> testClass) {
+    JavaClasses getClassesToAnalyzeFor(Class<?> testClass) {
         checkArgument(testClass);
 
         if (cachedByTest.containsKey(testClass)) {
@@ -49,13 +49,13 @@ class ClassCache {
     }
 
     private LocationsKey locationsToImport(Class<?> testClass) {
-        AnalyseClasses analyseClasses = testClass.getAnnotation(AnalyseClasses.class);
+        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
         Set<String> packages = ImmutableSet.<String>builder()
-                .add(analyseClasses.packages())
-                .addAll(toPackageStrings(analyseClasses.packagesOf()))
+                .add(analyzeClasses.packages())
+                .addAll(toPackageStrings(analyzeClasses.packagesOf()))
                 .build();
         Set<Location> locations = packages.isEmpty() ? Locations.inClassPath() : locationsOf(packages);
-        return new LocationsKey(analyseClasses.importOption(), locations);
+        return new LocationsKey(analyzeClasses.importOption(), locations);
     }
 
     private Set<String> toPackageStrings(Class[] classes) {
@@ -96,9 +96,9 @@ class ClassCache {
     }
 
     private void checkArgument(Class<?> testClass) {
-        if (testClass.getAnnotation(AnalyseClasses.class) == null) {
+        if (testClass.getAnnotation(AnalyzeClasses.class) == null) {
             throw new IllegalArgumentException(String.format("Class %s must be annotated with @%s",
-                    testClass.getSimpleName(), AnalyseClasses.class.getSimpleName()));
+                    testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName()));
         }
     }
 

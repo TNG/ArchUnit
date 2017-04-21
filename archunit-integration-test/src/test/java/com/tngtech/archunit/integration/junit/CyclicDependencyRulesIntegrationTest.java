@@ -30,7 +30,7 @@ import com.tngtech.archunit.example.cycle.simplescenario.importer.ImportService;
 import com.tngtech.archunit.example.cycle.simplescenario.report.Report;
 import com.tngtech.archunit.example.cycle.simplescenario.report.ReportService;
 import com.tngtech.archunit.exampletest.junit.CyclicDependencyRulesTest;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -42,7 +42,7 @@ import static com.tngtech.archunit.integration.junit.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example.cycle")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.cycle")
 public class CyclicDependencyRulesIntegrationTest {
 
     @ArchTest

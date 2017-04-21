@@ -63,7 +63,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Before
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
-        when(classCache.getClassesToAnalyseFor(any(Class.class))).thenReturn(cachedClasses);
+        when(classCache.getClassesToAnalyzeFor(any(Class.class))).thenReturn(cachedClasses);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         assertThat(descriptionCaptor.getValue().toString()).contains(ruleName);
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRuleLibrary {
         public static final String someOtherMethodRuleName = "someOtherMethodRule";
 
@@ -135,7 +135,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         }
     }
 
-    @AnalyseClasses(packages = "some.pkg")
+    @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRuleSet {
         @ArchTest
         public static final ArchRules rules = ArchRules.in(Rules.class);

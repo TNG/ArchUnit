@@ -44,7 +44,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction beNamed(String name);
+    ClassesShouldConjunction haveFullyQualifiedName(String name);
 
     /**
      * Asserts that classes don't have a certain fully qualified class name.
@@ -53,7 +53,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction notBeNamed(String name);
+    ClassesShouldConjunction notHaveFullyQualifiedName(String name);
 
     /**
      * Asserts that classes have a certain simple class name.
@@ -639,7 +639,7 @@ public interface ClassesShould {
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesShouldThat#areNamed(String) areNamed(String)}
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing which classes should be accessed

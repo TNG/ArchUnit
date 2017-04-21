@@ -29,9 +29,8 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class ClassesThatPredicates {
@@ -71,16 +70,12 @@ class ClassesThatPredicates {
         return not(modifier(PRIVATE)).as("are not private");
     }
 
-    static DescribedPredicate<HasName> areNamed(String name) {
-        return are(named(name));
+    static DescribedPredicate<HasName> haveFullyQualifiedName(String name) {
+        return have(fullyQualifiedName(name));
     }
 
-    private static DescribedPredicate<HasName> named(String name) {
-        return name(name).as("named '%s'", name);
-    }
-
-    static DescribedPredicate<HasName> areNotNamed(String name) {
-        return are(not(named(name)));
+    static DescribedPredicate<HasName> dontHaveFullyQualifiedName(String name) {
+        return dont(have(fullyQualifiedName(name)));
     }
 
     static DescribedPredicate<JavaClass> haveSimpleName(String name) {

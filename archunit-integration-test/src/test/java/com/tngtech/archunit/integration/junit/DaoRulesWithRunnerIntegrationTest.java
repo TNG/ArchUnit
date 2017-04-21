@@ -5,7 +5,7 @@ import javax.persistence.EntityManager;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules.MyEntityManager;
 import com.tngtech.archunit.exampletest.junit.DaoRulesWithRunnerTest;
-import com.tngtech.archunit.junit.AnalyseClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.junit.ExpectedViolation.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
-@AnalyseClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class DaoRulesWithRunnerIntegrationTest {
     private static final String ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT =
             "Only DAOs may use the " + EntityManager.class.getSimpleName();
