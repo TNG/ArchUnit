@@ -39,17 +39,17 @@ more powerful rules, like subclasses of class A that are annotated with @X may o
 with @Y. But each of those tools also has some limitations you might run into, if your rules become more complex.
 This might be as simple as not being able to specify a pointcut to only apply to interfaces in AspectJ or no
 back references within pointcuts. Other tools are not even able to define complex rules, like AspectJ allows, at all. 
-Furthermore you might need to learn a new language to specify the rules, or need different infrastructure to evaluate
+Furthermore, you might need to learn a new language to specify the rules, or need different infrastructure to evaluate
 them.
 
 For some tests of coding rules the Java Reflection API provides a convenient way to talk about your code. For
 example you can test some serialization properties of the return values of methods of classes annotated with
-@Remote or similar. What ArchUnit does, it striving to bring this convenience to a level of code structures instead
+@Remote or similar. What ArchUnit does, is striving to bring this convenience to a level of code structures instead
 of mere simple classes. ArchUnit provides simple predefined ways to test the typical standard cases, like package
 dependencies. But it also is fully extensible, providing a convenient way to write custom rules where imported
 classes can be accessed similar to using the reflection API. In fact, the imported structure provides a natural way to
 use the full power of the Reflection API for your tests. But it also allows to write tests looking at field accesses,
-method or constructor calls and subclasses. Furthermore it does not need any special infrastructure, nor any new
+method or constructor calls and subclasses. Furthermore, it does not need any special infrastructure, nor any new
 language, it is plain Java and rules can be evaluated with any unit testing tool like JUnit.
 
 ## Getting started
@@ -154,7 +154,7 @@ Predicates can be joined using the methods `and(..)` and `or(..)`, e.g.
 DescribedPredicate<JavaClass> nameAndAnnotationMatches = simpleName("Foo").and(annotatedWith(Bar.class))
 ```
 
-Further more complex predefined rules can be found inside of the package `com.tngtech.archunit.library`, for example
+Further, more complex predefined rules can be found inside of the package `com.tngtech.archunit.library`, for example
 to check package slice dependencies and cycles or conveniently specify layered architectures.
 
 ## Adding a reason
@@ -190,7 +190,7 @@ With JUnit 4 rules can be evaluated as fields using the `ArchUnitRunner`:
 
 ```Java
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = {"my.pkg.one", "my.pkg.two"})
+@AnalyzeClasses(packages = {"my.pkg.one", "my.pkg.two"})
 public class MyArchTest {
     @ArchTest
     public static final ArchRule one_shouldnt_access_two = 
@@ -205,7 +205,7 @@ the cached classes as well:
 
 ```Java
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = {"my.pkg.one", "my.pkg.two"})
+@AnalyzeClasses(packages = {"my.pkg.one", "my.pkg.two"})
 public class MyArchTest {
     // ...
 
@@ -239,7 +239,7 @@ and then import those in dependent projects to easily evaluate them
 
 ```Java
 @RunWith(ArchUnitRunner.class)
-@AnalyseClasses(packages = {"some.pkg.of.my.project"})
+@AnalyzeClasses(packages = {"some.pkg.of.my.project"})
 public class MyArchTestThatUsesMyRules {
     @ArchTest
     public static final ArchRules myArchRules = ArchRules.in(MyArchRules.class);
@@ -261,7 +261,7 @@ expressions, will be filtered out of the result. If no messages are left, the te
 ## ArchUnit and the classpath
 
 Since ArchUnit is written in plain Java, ArchUnit is compiled to Java classes, loaded by a ClassLoader and executed
-within a JVM. ArchUnit's subject are other Java classes, so naturally those can be on the classpath of the same
+within a JVM. ArchUnit's subject consists of other Java classes, so naturally those can be on the classpath of the same
 ClassLoader, within the scope of your test. However this is no requirement. It is no problem, to execute
 
 ```Java
@@ -291,7 +291,7 @@ JavaAnnotation annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnota
 Object value = annotation.get("value"); // result is untyped, since it might not be on the classpath (e.g. enums)
 ```
 
-So there is no type safety or automatic refactoring support. If this annotation is on the classpath however,
+So there is no type safety or automatic refactoring support. If this annotation is on the classpath, however,
 this can be written way more naturally, like
 
 ```Java
@@ -299,7 +299,7 @@ CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.cla
 String value = annotation.value();
 ```
 
-Also most `JavaXXX` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API, 
+Also, most `JavaXXX` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API, 
 are not only modelled closely to the Java Reflection API, but also provide a simple way to access the 
 respective API, if all necessary classes are on the classpath. For example
 
@@ -327,7 +327,7 @@ Supported configuration options are
 # like in a case, where a package like 'my.app' is imported, and java.lang.String#length is called.
 # Should ArchUnit try to locate the missing class on the classpath and import it as well?
 #
-# default = false - This has an performance impact
+# default = false - This has a performance impact
 resolveMissingDependenciesFromClassPath=true
 
 # Extends the customizability of 'resolveMissingDependenciesFromClassPath' by allowing to specify
@@ -335,7 +335,7 @@ resolveMissingDependenciesFromClassPath=true
 # type names should be resolved against JavaClasses. SelectedClassResolverFromClasspath is one example,
 # it allows to resolve some types from the classpath (based on their package, while others are 
 # just stubbed. E.g. if you want to resolve classes from your own app, but not from java.util.. 
-# or similar.
+# or similar).
 #
 # classResolver.args allows to configure constructor parameters, to be supplied to a constructor
 # accepting a single List<String> parameter. If no arguments are configured, a default constructor
@@ -345,10 +345,10 @@ resolveMissingDependenciesFromClassPath=true
 classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
 classResolver.args=com.tngtech.archunit.core,com.tngtech.archunit.base
 
-# Should ArchUnit include the MD5 sum of imported classes into the JavaClass#getSource()
+# Should ArchUnit include the MD5 sum of imported classes into the JavaClass#getSource()?
 # This way failure tracking can be improved, if there are inconsistencies within the imported sources.
 # 
-# default = false - This has an performance impact
+# default = false - This has a performance impact
 enableMd5InClassSources=true
 ```
 
@@ -356,7 +356,7 @@ enableMd5InClassSources=true
 
 ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
 
-Furthermore ArchUnit redistributes some third party libraries to avoid classpath collisions:
+Furthermore, ArchUnit redistributes some third party libraries to avoid classpath collisions:
 
 * ASM (http://asm.ow2.org)
 * Google Guava (https://github.com/google/guava)
