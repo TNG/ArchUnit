@@ -26,5 +26,3 @@ configurations {
 artifacts {
     tests testJar
 }
-
-install.enabled = false

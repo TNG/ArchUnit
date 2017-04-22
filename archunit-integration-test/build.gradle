@@ -8,5 +8,3 @@ dependencies {
     testCompile project(path: ':archunit-example')
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
-
-install.enabled = false

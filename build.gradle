@@ -19,9 +19,24 @@ plugins {
 }
 
 def thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
+def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
 
 ext {
     year = "${Calendar.getInstance().get(Calendar.YEAR)}"
+    app = [
+            name   : 'ArchUnit',
+            urls   : [
+                    entry : appAndSourceUrl,
+                    doc   : appAndSourceUrl,
+                    issues: "${appAndSourceUrl}/issues",
+                    source: appAndSourceUrl
+            ],
+            gitRepo: 'git@github.com:TNG/ArchUnit.git',
+            license: [
+                    name: 'The Apache Software License, Version 2.0',
+                    url : 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            ]
+    ]
     company = [
             name: 'TNG Technology Consulting GmbH',
             url : 'http://www.tngtech.com'
@@ -65,18 +80,39 @@ allprojects {
     }
 }
 
+description = 'A Java architecture test library, to specify and asserts architecture rules in plain Java'
+
 def productionProjectNames = ['archunit', 'archunit-junit']
 ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
 
+
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'maven'
+
+    def addModuleDescription = { "${it} - Module '${project.name}'" }
+    description addModuleDescription(rootProject.description)
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
 
-    install.dependsOn(build)
-    uploadArchives.dependsOn(build)
+    tasks.withType(Jar) {
+        manifest {
+            attributes(
+                    'Built-By': "Gradle ${gradle.gradleVersion}",
+                    'Built-Date': new Date().format('yyyy-MM-dd'),
+                    'Specification-Title': addModuleDescription(app.name),
+                    'Specification-Version': version,
+                    'Specification-Vendor': company.name,
+                    'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
+                    'Implementation-Version': version,
+                    'Implementation-Vendor': company.name,
+                    'Issue-Tracker': app.urls.issues,
+                    'Documentation-URL': app.urls.doc,
+                    'Copyright': "${year} ${company.name}",
+                    'License': app.license.name
+            )
+        }
+    }
 }
 
 def configureFindbugs = {
@@ -155,55 +191,12 @@ def configureProGuard = {
     build.dependsOn(finishArchive)
 }
 
-def configurePublish = {
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                // the following properties can be defined in ~/.gradle/gradle.properties:
-                if (project.hasProperty('tngNexusUsername') && project.hasProperty('tngNexusPassword')) {
-                    repository(url: 'https://nexus.int.tngtech.com/content/repositories/releases') {
-                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
-                    }
-                    snapshotRepository(url: 'https://nexus.int.tngtech.com/content/repositories/snapshots') {
-                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
-                    }
-                }
-            }
-        }
-    }
-
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-
-    // NOTE: If I write @see ..., I don't want to fail my build because of a missing @param :-(
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
-    }
-}
-
 productionProjects*.with {
     apply plugin: 'com.github.johnrengelman.shadow'
 
     delegate.with configureFindbugs
     delegate.with configureShadow
     delegate.with configureProGuard
-    delegate.with configurePublish
 
     test {
         if (!it.hasProperty('allTests')) {

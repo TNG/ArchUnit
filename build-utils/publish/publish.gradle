@@ -1,0 +1,97 @@
+productionProjects*.with {
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    install.dependsOn(build)
+    uploadArchives.dependsOn(build)
+
+    signing {
+        // requires gradle.properties, see http://www.gradle.org/docs/current/userguide/signing_plugin.html
+        required {
+            gradle.taskGraph.hasTask('uploadArchives') && project.hasProperty('sonatypeUsername')
+        }
+        sign configurations.archives
+    }
+    signArchives.dependsOn finishArchive
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { deployment ->
+                    signing.signPom(deployment)
+                }
+
+                // respective username and password can be configured in ~/.gradle/gradle.properties
+                if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
+                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                        authentication(userName: sonatypeUsername, password: sonatypePassword)
+                    }
+                    snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+                        authentication(userName: sonatypeUsername, password: sonatypePassword)
+                    }
+                }
+                if (project.hasProperty('tngNexusUsername') && project.hasProperty('tngNexusPassword')) {
+                    repository(url: 'https://nexus.int.tngtech.com/content/repositories/releases') {
+                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                    }
+                    snapshotRepository(url: 'https://nexus.int.tngtech.com/content/repositories/snapshots') {
+                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
+                    }
+                }
+            }
+        }
+    }
+
+    def installer = install.repositories.mavenInstaller
+    def deployer = uploadArchives.repositories.mavenDeployer
+
+    [installer, deployer]*.pom*.whenConfigured {
+        project {
+            name app.name
+            description description
+            url app.urls.entry
+
+            organization {
+                name company.name
+                url company.url
+            }
+
+            scm {
+                url app.urls.source
+                connection "scm:${app.gitRepo}"
+                developerConnection "scm:${app.gitRepo}"
+            }
+
+            developers {
+                developer {
+                    id 'codecholeric'
+                    name 'Peter Gafert'
+                    email 'peter.gafert@tngtech.com'
+                }
+            }
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    // If I write @see ..., I don't want to fail my build because of a missing @param :-(
+    if (JavaVersion.current().isJava8Compatible()) {
+        allprojects {
+            tasks.withType(Javadoc) {
+                options.addStringOption('Xdoclint:none', '-quiet')
+            }
+        }
+    }
+
+    artifacts {
+        archives sourcesJar, javadocJar
+    }
+}

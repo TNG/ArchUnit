@@ -1,4 +1,5 @@
 def utilsPath = { "build-utils/${it}" }
 
+apply from: utilsPath('publish/publish.gradle')
 apply from: utilsPath('license/license.gradle')
 apply from: utilsPath('maven-smoke-test/maven-smoke-test.gradle')
