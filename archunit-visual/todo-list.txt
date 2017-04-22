@@ -1,0 +1,2 @@
+- UI via JQuery UI
+- ColorPicker as plugin for Jquery UI?
