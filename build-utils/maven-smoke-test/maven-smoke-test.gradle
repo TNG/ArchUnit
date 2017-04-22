@@ -1,12 +1,32 @@
 import java.nio.file.Files
 
+def repositoryUrls = [
+        tng: [
+                snapshots: 'https://nexus.int.tngtech.com/content/repositories/snapshots',
+                releases: 'https://nexus.int.tngtech.com/content/repositories/releases'
+        ],
+        sonatype: [
+                snapshots: 'https://oss.sonatype.org/content/repositories/snapshots',
+                releases: 'https://oss.sonatype.org/content/repositories/releases'
+        ]
+]
+def defaultRepo = 'tng'
+
 task prepareMavenTest {
     doLast {
         def pom = rootProject.file('archunit-maven-test/pom.xml')
         def pomBak = rootProject.file('archunit-maven-test/pom.xml.bak')
         pomBak.delete()
         Files.copy(pom.toPath(), pomBak.toPath())
-        pom.text = pom.text.replace('#{archunit.version}', "${version}")
+
+        def repos = project.hasProperty('mavenRepos') ? project.getProperty('mavenRepos') : defaultRepo
+        def repoUrls = repositoryUrls.get(repos)
+        assert repoUrls: "The configured -PmavenRepos=${project.getProperty('mavenRepos')} don't exist"
+
+        pom.text = pom.text.
+                replace('#{archunit.version}', "${version}").
+                replace('#{snapshotRepository}', repoUrls.snapshots).
+                replace('#{releaseRepository}', repoUrls.releases)
     }
 }
 
@@ -31,3 +51,7 @@ executeMavenTest.finalizedBy cleanUpMavenTest
 cleanUpMavenTest.mustRunAfter prepareMavenTest
 executeMavenTest.mustRunAfter prepareMavenTest
 task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])
+
+productionProjects.with {
+    executeMavenTest.mustRunAfter uploadArchives
+}

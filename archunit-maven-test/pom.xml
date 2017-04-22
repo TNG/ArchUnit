@@ -11,12 +11,12 @@
         <repository>
             <id>snapshots</id>
             <name>Snapshots</name>
-            <url>https://nexus.int.tngtech.com/content/repositories/snapshots</url>
+            <url>#{snapshotRepository}</url>
         </repository>
         <repository>
             <id>releases</id>
             <name>Releases</name>
-            <url>https://nexus.int.tngtech.com/content/repositories/releases</url>
+            <url>#{releaseRepository}</url>
         </repository>
     </repositories>
 
