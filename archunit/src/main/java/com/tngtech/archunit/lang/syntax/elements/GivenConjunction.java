@@ -17,7 +17,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass.Predicates;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
@@ -28,8 +28,8 @@ public interface GivenConjunction<OBJECTS> {
     ArchRule should(ArchCondition<OBJECTS> condition);
 
     /**
-     * Combines the current predicate (e.g. {@link JavaClass.Predicates#simpleName(String) simpleName} == 'SomeClass') with
-     * another predicate (e.g. {@link JavaClass.Predicates#resideInAPackage(String) resideInAPackage}  'foo.bar')
+     * Combines the current predicate (e.g. {@link Predicates#simpleName(String) simpleName} == 'SomeClass') with
+     * another predicate (e.g. {@link Predicates#resideInAPackage(String) resideInAPackage}  'foo.bar')
      * using AND (i.e. both predicates must be satisfied).<br><br>
      * <p>
      * NOTE: {@link #and(DescribedPredicate)} and {@link #or(DescribedPredicate)} combine predicates in the
@@ -60,8 +60,8 @@ public interface GivenConjunction<OBJECTS> {
     GivenConjunction<OBJECTS> and(DescribedPredicate<? super OBJECTS> predicate);
 
     /**
-     * Combines the current predicate (e.g. {@link JavaClass.Predicates#simpleName(String) simpleName} == 'SomeClass')
-     * with another predicate (e.g. {@link JavaClass.Predicates#resideInAPackage(String) resideInAPackage} 'foo.bar')
+     * Combines the current predicate (e.g. {@link Predicates#simpleName(String) simpleName} == 'SomeClass')
+     * with another predicate (e.g. {@link Predicates#resideInAPackage(String) resideInAPackage} 'foo.bar')
      * using OR (i.e. at least one of the predicates must be satisfied).<br><br>
      * <p>
      * NOTE: For considerations about precedence, when joining predicates, consider note at

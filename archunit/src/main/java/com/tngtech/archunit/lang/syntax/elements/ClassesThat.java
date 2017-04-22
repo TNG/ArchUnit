@@ -23,7 +23,7 @@ import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -295,7 +295,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that implement a certain interface matching the given predicate. For example, a call with
-     * {@link HasName.Predicates#name(String)} would be equivalent to
+     * {@link Predicates#name(String)} would be equivalent to
      * {@link #implement(String)}, but the approach is a lot more generic.
      *
      * @param predicate A predicate identifying interfaces matching classes must implement
@@ -361,7 +361,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes assignable to a certain type matching the given predicate. For example, a call with
-     * {@link HasName.Predicates#name(String)} would be equivalent to
+     * {@link Predicates#name(String)} would be equivalent to
      * {@link #areAssignableTo(String)}, but the approach is a lot more generic.
      *
      * @param predicate A predicate identifying an upper type bound to match imported classes against
@@ -432,7 +432,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes assignable from a certain type matching the given predicate. For example, a call with
-     * {@link HasName.Predicates#name(String)} would be equivalent to
+     * {@link Predicates#name(String)} would be equivalent to
      * {@link #areAssignableFrom(String)}, but the approach is a lot more generic.
      *
      * @param predicate A predicate identifying a lower type bound to match imported classes against

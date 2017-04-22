@@ -39,7 +39,7 @@ ext {
     ]
     company = [
             name: 'TNG Technology Consulting GmbH',
-            url : 'http://www.tngtech.com'
+            url : 'https://www.tngtech.com/'
     ]
     asmRelocationPackage = "${thirdPartyRelocationPackage}.org.objectweb.asm"
     guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"

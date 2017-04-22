@@ -1,20 +1,20 @@
 # ArchUnit
 
-ArchUnit is a free, simple and extensible library for checking the architecture of your code. I.e. ArchUnit can check
+ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. That is, ArchUnit can check
 dependencies between packages and classes, layers and slices, check for cyclic dependencies and more. It does so by
-analyzing given Java Byte Code, and importing all classes into a Java code structure.
+analyzing given Java bytecode, importing all classes into a Java code structure.
 ArchUnit's main focus is to automatically test architecture and coding rules, using any plain Java unit testing
 framework.
 
 ## Why test your architecture?
 
-Most developers working in bigger projects will know the story, where once upon a time somebody experienced looked at
-the product and drew up some nice architecture diagrams, showing the components the system should consist of, and how 
+Most developers working in larger projects will know the story, where once upon a time somebody experienced looked at
+the code and drew up some nice architecture diagrams, showing the components the system should consist of, and how
 they should interact. But when the project got bigger, the use cases more complex, and new developers dropped in and
 old developers dropped out, there were more and more cases where new features would just be added in any way that fit.
 And suddenly everything depended on everything and every change could have an unforeseeable effect on any other
 component. Of course you could have one or several experienced developers, having the role of the architect, who look
-at the code once a week, identify violations and correct them. But a safer way is, to just define the components in
+at the code once a week, identify violations and correct them. But a safer way is to just define the components in
 code and rules for these components that can be automatically tested, for example as part of your continuous integration
 build.
 
@@ -30,10 +30,11 @@ the code and get up to speed with their development.
 ## Why use ArchUnit?
 
 There are several free tools out there to automatically test for dependencies between packages and classes, and 
-several tools with different focus that can be used for this purpose as well, like AspectJ, Checkstyle or Findbugs.
+several tools with different focus that can be used for this purpose as well, like [AspectJ](https://eclipse.org/aspectj/),
+[Checkstyle](http://checkstyle.sourceforge.net/) or [FindBugs](http://findbugs.sourceforge.net/).
 So why would you need another tool for this?
 
-Each of these tools has a more or less convenient way to specify rules like all packages matching '..service..' 
+Each of these tools has a more or less convenient way to specify rules like packages matching '..service..'
 may not access packages matching '..controller..', and similar. Some tools, like AspectJ, enable you to specify
 more powerful rules, like subclasses of class A that are annotated with @X may only access methods annotated
 with @Y. But each of those tools also has some limitations you might run into, if your rules become more complex.
@@ -44,21 +45,20 @@ them.
 
 For some tests of coding rules the Java Reflection API provides a convenient way to talk about your code. For
 example you can test some serialization properties of the return values of methods of classes annotated with
-@Remote or similar. What ArchUnit does, is striving to bring this convenience to a level of code structures instead
+@Remote or similar. ArchUnit strives to bring this convenience to a level of code structures instead
 of mere simple classes. ArchUnit provides simple predefined ways to test the typical standard cases, like package
 dependencies. But it also is fully extensible, providing a convenient way to write custom rules where imported
-classes can be accessed similar to using the reflection API. In fact, the imported structure provides a natural way to
+classes can be accessed similarly to using the Reflection API. In fact, the imported structure provides a natural way to
 use the full power of the Reflection API for your tests. But it also allows to write tests looking at field accesses,
 method or constructor calls and subclasses. Furthermore, it does not need any special infrastructure, nor any new
-language, it is plain Java and rules can be evaluated with any unit testing tool like JUnit.
+language, it is plain Java and rules can be evaluated with any unit testing tool like [JUnit](http://junit.org/).
 
 ## Getting started
 
-The typical Hello World of architecture testing would be to specify package 'one' may not access package 'two'. 
+The typical _Hello World_ of architecture testing would be to specify package 'one' may not access package 'two'.
 A simple ArchUnit test for this could look like the following:
 
 ```Java
-
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 // ...
@@ -68,15 +68,15 @@ private final ClassFileImporter importer = new ClassFileImporter();
 private JavaClasses classes;
 
 @Before
-public void setUp() {
-    classes = importer.importClasspath(); // imports all classes from the classpath, that are not from JARs
+public void importClasses() {
+    classes = importer.importClasspath(); // imports all classes from the classpath that are not from JARs
 }
 
 @Test
 public void one_should_not_access_two() {
     ArchRule rule = noClasses().that().resideInAPackage("..one..")
-        .should().access().classesThat().resideInAPackage("..two.."); // The '..' represents a wildcard for any number of packages
-    
+        .should().accessClassesThat().resideInAPackage("..two.."); // The '..' represents a wildcard for any number of packages
+
     rule.check(classes);
 }
 
@@ -99,20 +99,22 @@ ArchUnit comes with many predefined syntax elements like `classes().that().are..
 `classes().should().accessField(..)`
 for typical use cases like accessing a field, calling a method or accessing a package. However, if the predefined syntax
 is missing a specific syntax element for a certain architecture or coding test, it is easy to define custom 
-predicates and conditions to extend rules the following way:
+predicates and conditions to extend rules in the following way:
 
 ```Java
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
 // assign imported classes to a variable classes
 
 @Test
-public void core_classes_shouldnt_access_remote_endpoints() {
+public void core_classes_should_not_access_remote_endpoints() {
     DescribedPredicate<JavaClass> belongToCore = new DescribedPredicate<JavaClass>("belong to core"){
         @Override
         public boolean apply(JavaClass input) {
             return input.getPackage().contains(".core.") || input.isAnnotatedWith(Core.class);
         }
     };
-    
+
     ArchCondition<JavaClass> notCallRemoteApiEndpoints = 
         new ArchCondition<JavaClass>("not call remote api endpoints") {
             @Override
@@ -142,9 +144,9 @@ calls method <com.tngtech.archunit.example.foo.SomeRemoteEndpoint.execute()> in 
 
 ## Predefined rules and elements
 
-By convention a lot of predefined `DescribedPredicates` can be found within various static inner classes named `Predicates`
-within the ArchUnit core class, that the respective predicate targets. For example there exists 
-`JavaClass.Predicates.simpleName(String)` to match `JavaClasses` by their simple name. Likewise there exists 
+By convention a lot of predefined `DescribedPredicate`s can be found within various static inner classes named `Predicates`
+within the ArchUnit core class that the respective predicate targets. For example there is
+`JavaClass.Predicates.simpleName(String)` to match `JavaClasses` by their simple name. Likewise there is
 `HasName.Predicates.name(String)` to match any class implementing `HasName` by their name. This can for example be used
 on a `JavaClass` to match the fully qualified class name or on a `JavaMethod` to match the method name.
 
@@ -161,7 +163,7 @@ to check package slice dependencies and cycles or conveniently specify layered a
 
 While it is not strictly necessary, it is strongly encouraged to add a reason to rules that are not self-explanatory.
 Not only will it raise acceptance, if people see their code as a cause of failing tests, but it will also document,
-why this rule was once introduced. `ArchRules` offer a simple way to add a `because(..)` clause to your rule:
+why this rule was once introduced. `ArchRule`s offer a simple way to add a `because(..)` clause to your rule:
 
 ```Java
 classes().that().areAnnotatedWith(GuiComponent.class)
@@ -183,10 +185,10 @@ platform independence' was violated:
 
 The approach of the last section is inefficient, because the classes will be reimported on every run, 
 which can take considerable time. To solve this, you can use a different way to declare rules, and a custom 
-JUnit runner, that will cache the imported classes by URLs. Thus when several tests, importing classes from the same 
+JUnit runner that will cache the imported classes by URLs. Thus when several tests, importing classes from the same
 URLs, are run, the import will only happen once.
 
-With JUnit 4 rules can be evaluated as fields using the `ArchUnitRunner`:
+With JUnit 4, `ArchRule`s can be evaluated as fields using the `ArchUnitRunner`:
 
 ```Java
 @RunWith(ArchUnitRunner.class)
@@ -196,7 +198,7 @@ public class MyArchTest {
     public static final ArchRule one_shouldnt_access_two = 
         // This could of course easily come from a central library instead of being defined here
         noClasses().that().resideInAPackage("..one..")
-            .should().access().classesThat().resideInAPackage("..two..");
+            .should().accessClassesThat().resideInAPackage("..two..");
 }
 ```
 
@@ -212,7 +214,7 @@ public class MyArchTest {
     @ArchTest
     public static void one_shouldnt_access_two_could_also_be_specified_as_method(JavaClasses classes) {
         noClasses().that().resideInAPackage("..one..")
-            .should().access().classesThat().resideInAPackage("..two..")
+            .should().accessClassesThat().resideInAPackage("..two..")
             .check(classes);
     }
 }
@@ -227,7 +229,7 @@ It is possible to define reusable rule sets as classes like:
 public class MyArchRules {
     @ArchTest
     public static final ArchRule someRuleAsField = /* definition of some rule */;
-                    
+
     @ArchTest
     public static void anotherRuleAsMethod(JavaClasses classes) {
         /* definition of another rule */
@@ -252,17 +254,17 @@ classes.
 ## Ignoring certain violations
 
 In legacy projects where architecture tests are introduced, there might be too many violations to fix at the current
-time. Nevertheless tests should be activated to ensure no new violations will be introduced. To keep the focus on
+time. Nevertheless tests should be activated to ensure that no new violations will be introduced. To keep the focus on
 those new violations, it is possible to ignore the current violations.
 This is configured by putting a file named 'archunit_ignore_patterns.txt' in the root of the classpath. Each line
 of this file will be interpreted as a regular expression. Violations with a message matching any of these regular
-expressions, will be filtered out of the result. If no messages are left, the test will consequently pass.
+expressions are removed from the result. If no messages are left, the test will consequently pass.
 
 ## ArchUnit and the classpath
 
 Since ArchUnit is written in plain Java, ArchUnit is compiled to Java classes, loaded by a ClassLoader and executed
-within a JVM. ArchUnit's subject consists of other Java classes, so naturally those can be on the classpath of the same
-ClassLoader, within the scope of your test. However this is no requirement. It is no problem, to execute
+within a JVM. ArchUnit's subject consists of other Java classes, which may be on the classpath of the same
+ClassLoader, within the scope of your test. But this is not required; it is possible to execute
 
 ```Java
 new ClassFileImporter().importPath(Paths.get("/home/someuser/workspace/someproject"));
@@ -271,7 +273,7 @@ new ClassFileImporter().importPath(Paths.get("/home/someuser/workspace/someproje
 or
 
 ```Java
-new ClassFileImporter().importJar(new JarFile(new File("/home/someuser/.m2/repository/my/project/my-project.jar")));
+new ClassFileImporter().importJar(new JarFile("/home/someuser/.m2/repository/my/project/my-project.jar"));
 ```
 
 and evaluate rules on the result. However at times it may be more convenient to use ArchUnit with all classes
@@ -291,7 +293,7 @@ JavaAnnotation annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnota
 Object value = annotation.get("value"); // result is untyped, since it might not be on the classpath (e.g. enums)
 ```
 
-So there is no type safety or automatic refactoring support. If this annotation is on the classpath, however,
+So there is neither type safety nor automatic refactoring support. If this annotation is on the classpath, however,
 this can be written way more naturally, like
 
 ```Java
@@ -299,7 +301,7 @@ CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.cla
 String value = annotation.value();
 ```
 
-Also, most `JavaXXX` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API, 
+Also, most `Java...` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API,
 are not only modelled closely to the Java Reflection API, but also provide a simple way to access the 
 respective API, if all necessary classes are on the classpath. For example
 
@@ -312,8 +314,8 @@ assertEquals(String.class.getDeclaredMethod("length"), javaMethod.reflect());
 ```
 
 This allows to use the full power of the Reflection API when writing custom rules, if necessary (and the classpath
-is correct). ArchUnit's own rule API never relies on the classpath, though, keeping the evaluation of 
-default rules and syntax combinations indifferent to the fact, if the classes were imported from the classpath
+is correct). ArchUnit's own rule API never relies on the classpath, though, such that the evaluation of
+default rules and syntax combinations does not depend on whether the classes were imported from the classpath
 or some JAR / folder.
 
 ## Advanced configuration
@@ -365,5 +367,5 @@ All licenses for ArchUnit and redistributed libraries can be found within the [l
 
 ## Where to look next
 
-Further examples can be found inside of the project `archunit-example`, including some further predefined rules
+Further examples can be found in the project `archunit-example`, including some further predefined rules
 like detecting cyclic dependencies or checking for specific field accesses or method calls.
