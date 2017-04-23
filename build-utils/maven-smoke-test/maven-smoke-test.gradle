@@ -10,7 +10,28 @@ def repositoryUrls = [
                 releases: 'https://oss.sonatype.org/content/repositories/releases'
         ]
 ]
-def defaultRepo = 'tng'
+def createRepositoriesTag = { repoUrls ->
+    """
+    <repositories>
+        <repository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${repoUrls.snapshots}</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>${repoUrls.releases}</url>
+        </repository>
+    </repositories>
+"""
+}
+
+def getRepoUrls = {
+    def repoUrls = repositoryUrls.get(it)
+    assert repoUrls: "The configured -PmavenRepos=${it} don't exist"
+    repoUrls
+}
 
 task prepareMavenTest {
     doLast {
@@ -19,14 +40,13 @@ task prepareMavenTest {
         pomBak.delete()
         Files.copy(pom.toPath(), pomBak.toPath())
 
-        def repos = project.hasProperty('mavenRepos') ? project.getProperty('mavenRepos') : defaultRepo
-        def repoUrls = repositoryUrls.get(repos)
-        assert repoUrls: "The configured -PmavenRepos=${project.getProperty('mavenRepos')} don't exist"
+        def repositories = project.hasProperty('mavenRepos') ?
+                createRepositoriesTag(getRepoUrls(project.getProperty('mavenRepos'))) :
+                ''
 
         pom.text = pom.text.
                 replace('#{archunit.version}', "${version}").
-                replace('#{snapshotRepository}', repoUrls.snapshots).
-                replace('#{releaseRepository}', repoUrls.releases)
+                replace('#{repositories}', repositories)
     }
 }
 

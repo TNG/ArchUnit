@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 dependencies {
     compile dependency.asm
     compile dependency.guava
@@ -22,20 +20,6 @@ shadowJar {
     dependencies {
         exclude(dependency(project.dependency.slf4j))
     }
-}
-
-task testJar(type: ShadowJar) {
-    from sourceSets.test.output
-    configurations = [configurations.tests]
-}
-testJar shadowConfig('tests')
-
-configurations {
-    tests
-}
-
-artifacts {
-    tests testJar
 }
 
 /* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/

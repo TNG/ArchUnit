@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import proguard.gradle.ProGuardTask
 
 import java.nio.file.Files
@@ -80,7 +81,7 @@ allprojects {
     }
 }
 
-description = 'A Java architecture test library, to specify and asserts architecture rules in plain Java'
+description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
 
 def productionProjectNames = ['archunit', 'archunit-junit']
 ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
@@ -204,6 +205,20 @@ productionProjects*.with {
                 excludeCategories 'com.tngtech.archunit.Slow'
             }
         }
+    }
+
+    task testJar(type: ShadowJar) {
+        from sourceSets.test.output
+        configurations = [configurations.tests]
+    }
+    testJar shadowConfig('tests')
+
+    configurations {
+        tests
+    }
+
+    artifacts {
+        tests testJar
     }
 }
 
