@@ -15,6 +15,10 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -69,9 +73,22 @@ public interface ImportOption {
      * test that you want to import.
      */
     final class DontIncludeTests implements ImportOption {
+        private static final Set<String> EXCLUDED_INFIXES = ImmutableSet.of(
+                anyFolder("test"),
+                anyFolder("test-classes"));
+
+        private static String anyFolder(String infix) {
+            return String.format("%s%s%s", File.separator, infix, File.separator);
+        }
+
         @Override
         public boolean includes(Location location) {
-            return !location.contains("/test/") && !location.contains("/test-classes/");
+            for (String infix : EXCLUDED_INFIXES) {
+                if (location.contains(infix)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
