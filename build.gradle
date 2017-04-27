@@ -116,22 +116,6 @@ subprojects {
     }
 }
 
-def configureFindbugs = {
-    apply plugin: 'findbugs'
-
-    findbugs {
-        sourceSets = [sourceSets.main]
-        excludeFilter = file("$rootProject.projectDir/findbugs-excludes.xml")
-    }
-
-    tasks.withType(FindBugs) {
-        reports {
-            xml.enabled false
-            html.enabled true
-        }
-    }
-}
-
 ext.shadowConfig = { classifierName ->
     return {
         classifier = classifierName
@@ -195,7 +179,6 @@ def configureProGuard = {
 productionProjects*.with {
     apply plugin: 'com.github.johnrengelman.shadow'
 
-    delegate.with configureFindbugs
     delegate.with configureShadow
     delegate.with configureProGuard
 
