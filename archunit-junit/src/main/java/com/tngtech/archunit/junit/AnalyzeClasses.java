@@ -18,7 +18,9 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.ImportOptions;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -31,9 +33,22 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(TYPE)
 @Retention(RUNTIME)
 public @interface AnalyzeClasses {
+    /**
+     * @return Packages to look for in all URLs known to the actual {@link java.net.URLClassLoader}
+     */
     String[] packages() default {};
 
+    /**
+     * @return Classes that specify packages to look for in all URLs known to the actual {@link java.net.URLClassLoader}
+     */
     Class[] packagesOf() default {};
 
-    Class<? extends ImportOption> importOption() default ImportOption.Everything.class;
+    /**
+     * Allows to filter the class import. The supplied types will be instantiated and used to create the
+     * {@link ImportOptions} passed to the {@link ClassFileImporter}. Considering caching, compare the notes on
+     * {@link ImportOption}.
+     *
+     * @return The types of {@link ImportOption} to use for the import
+     */
+    Class<? extends ImportOption>[] importOptions() default {};
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class ClassCacheConcurrencyTest {
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
         }
-        verify(classFileImporter, atMost(TEST_CLASSES.size())).importClasses(any(ImportOption.class), anyCollection());
+        verify(classFileImporter, atMost(TEST_CLASSES.size())).importClasses(any(ImportOptions.class), anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 

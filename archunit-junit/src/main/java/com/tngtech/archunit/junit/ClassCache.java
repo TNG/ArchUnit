@@ -26,6 +26,7 @@ import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 
@@ -55,7 +56,7 @@ class ClassCache {
                 .addAll(toPackageStrings(analyzeClasses.packagesOf()))
                 .build();
         Set<Location> locations = packages.isEmpty() ? Locations.inClassPath() : locationsOf(packages);
-        return new LocationsKey(analyzeClasses.importOption(), locations);
+        return new LocationsKey(analyzeClasses.importOptions(), locations);
     }
 
     private Set<String> toPackageStrings(Class[] classes) {
@@ -119,31 +120,34 @@ class ClassCache {
 
         private synchronized void initialize() {
             if (javaClasses == null) {
-                ImportOption importOption = newInstanceOf(locationsKey.importOptionClass);
-                javaClasses = cacheClassFileImporter.importClasses(importOption, locationsKey.locations);
+                ImportOptions importOptions = new ImportOptions();
+                for (Class<? extends ImportOption> optionClass : locationsKey.importOptionClasses) {
+                    importOptions = importOptions.with(newInstanceOf(optionClass));
+                }
+                javaClasses = cacheClassFileImporter.importClasses(importOptions, locationsKey.locations);
             }
         }
     }
 
     // Used for testing -> that's also the reason it's declared top level
     static class CacheClassFileImporter {
-        JavaClasses importClasses(ImportOption importOption, Collection<Location> locations) {
-            return new ClassFileImporter().withImportOption(importOption).importLocations(locations);
+        JavaClasses importClasses(ImportOptions importOptions, Collection<Location> locations) {
+            return new ClassFileImporter(importOptions).importLocations(locations);
         }
     }
 
     private static class LocationsKey {
-        private final Class<? extends ImportOption> importOptionClass;
+        private final Set<Class<? extends ImportOption>> importOptionClasses;
         private final Set<Location> locations;
 
-        private LocationsKey(Class<? extends ImportOption> importOptionClass, Set<Location> locations) {
-            this.importOptionClass = importOptionClass;
+        private LocationsKey(Class<? extends ImportOption>[] importOptionClasses, Set<Location> locations) {
+            this.importOptionClasses = ImmutableSet.copyOf(importOptionClasses);
             this.locations = locations;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(importOptionClass, locations);
+            return Objects.hash(importOptionClasses, locations);
         }
 
         @Override
@@ -155,7 +159,7 @@ class ClassCache {
                 return false;
             }
             final LocationsKey other = (LocationsKey) obj;
-            return Objects.equals(this.importOptionClass, other.importOptionClass)
+            return Objects.equals(this.importOptionClasses, other.importOptionClasses)
                     && Objects.equals(this.locations, other.locations);
         }
     }

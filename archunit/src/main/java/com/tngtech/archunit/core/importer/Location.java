@@ -33,6 +33,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Handles various forms of location, from where classes can be imported, in a consistent way. Any location
+ * will be treated like an {@link URI}, thus there won't be any platform dependent file separator problems,
+ * or similar.
+ */
 public abstract class Location {
     private static final String FILE_SCHEME = "file";
     private static final String JAR_SCHEME = "jar";
@@ -50,6 +55,10 @@ public abstract class Location {
 
     abstract ClassFileSource asClassFileSource(ImportOptions importOptions);
 
+    /**
+     * @param part A part to check the respective location {@link URI} for
+     * @return true, if the respective {@link URI} contains the given part
+     */
     @PublicAPI(usage = ACCESS)
     public boolean contains(String part) {
         return uri.toString().contains(part);

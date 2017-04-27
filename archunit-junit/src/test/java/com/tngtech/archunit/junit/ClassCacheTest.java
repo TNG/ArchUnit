@@ -3,6 +3,7 @@ package com.tngtech.archunit.junit;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
@@ -127,7 +128,7 @@ public class ClassCacheTest {
     }
 
     private void verifyNumberOfImports(int number) {
-        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOption.class), anyCollection());
+        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
@@ -147,11 +148,11 @@ public class ClassCacheTest {
     public static class TestClassWithNonExistingPackage {
     }
 
-    @AnalyzeClasses(importOption = TestFilterForJUnitJars.class)
+    @AnalyzeClasses(importOptions = TestFilterForJUnitJars.class)
     public static class TestClassFilteringJustJUnitJars {
     }
 
-    @AnalyzeClasses(importOption = AnotherTestFilterForJUnitJars.class)
+    @AnalyzeClasses(importOptions = AnotherTestFilterForJUnitJars.class)
     public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
     }
 

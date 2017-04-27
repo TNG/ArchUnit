@@ -59,16 +59,10 @@ public interface ImportOption {
         }
     }
 
-    final class Everything implements ImportOption {
-        @Override
-        public boolean includes(Location location) {
-            return true;
-        }
-    }
-
     /**
-     * NOTE: This excludes all class files residing in some directory {@value #MAVEN_INFIX} or
-     * {@value #GRADLE_INFIX} (Maven/Gradle standard). Thus it is just a best guess, how tests can be identified,
+     * NOTE: This excludes all class files residing in some directory
+     * ../target/test-classes/.. or ../build/classes/test/.. (Maven/Gradle standard).
+     * Thus it is just a best guess, how tests can be identified,
      * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
     final class DontIncludeTests implements ImportOption {
