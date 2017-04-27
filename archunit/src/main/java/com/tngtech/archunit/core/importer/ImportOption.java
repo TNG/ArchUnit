@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -60,26 +59,17 @@ public interface ImportOption {
         }
     }
 
-    final class Everything implements ImportOption {
-        @Override
-        public boolean includes(Location location) {
-            return true;
-        }
-    }
-
     /**
-     * NOTE: This excludes all class files residing in some directory ../test/.. or
-     * ../test-classes/.. (Maven/Gradle standard), so don't use this, if you have a package
-     * test that you want to import.
+     * NOTE: This excludes all class files residing in some directory
+     * ../target/test-classes/.. or ../build/classes/test/.. (Maven/Gradle standard).
+     * Thus it is just a best guess, how tests can be identified,
+     * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
     final class DontIncludeTests implements ImportOption {
-        private static final Set<String> EXCLUDED_INFIXES = ImmutableSet.of(
-                anyFolder("test"),
-                anyFolder("test-classes"));
+        private static final String MAVEN_INFIX = "/target/test-classes/";
+        private static final String GRADLE_INFIX = "/build/classes/test/";
 
-        private static String anyFolder(String infix) {
-            return String.format("%s%s%s", File.separator, infix, File.separator);
-        }
+        private static final Set<String> EXCLUDED_INFIXES = ImmutableSet.of(MAVEN_INFIX, GRADLE_INFIX);
 
         @Override
         public boolean includes(Location location) {

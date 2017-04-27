@@ -37,6 +37,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
+/**
+ * The central API to import {@link JavaClasses}. Supports various types of {@link Location}, e.g. {@link Path},
+ * {@link JarFile} or {@link URL}. The {@link Location}s that are scanned, can be filtered by passing any number of
+ * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed (compare
+ * {@link ImportOptions}.
+ */
 public final class ClassFileImporter {
     private final ImportOptions importOptions;
 

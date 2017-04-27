@@ -39,7 +39,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 @RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(
         packagesOf = ArchUnitArchitectureTest.class,
-        importOption = ArchUnitArchitectureTest.ArchUnitProductionCode.class)
+        importOptions = ArchUnitArchitectureTest.ArchUnitProductionCode.class)
 public class ArchUnitArchitectureTest {
     static final String THIRDPARTY_PACKAGE_IDENTIFIER = "..thirdparty..";
 

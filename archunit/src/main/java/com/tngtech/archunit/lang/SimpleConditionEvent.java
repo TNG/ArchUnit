@@ -56,7 +56,7 @@ public class SimpleConditionEvent<T> implements ConditionEvent<T> {
 
     @Override
     public T getCorrespondingObject() {
-        return null;
+        return correspondingObject;
     }
 
     @Override
