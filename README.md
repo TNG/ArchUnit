@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/TNG/ArchUnit.png?branch=master)](https://travis-ci.org/TNG/ArchUnit)
+
 # ArchUnit
 
 ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. That is, ArchUnit can check
