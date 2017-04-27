@@ -37,16 +37,18 @@ public class DontIncludeTestsTest {
     @DataProvider
     public static Object[][] folders() {
         return $$(
-                $("test", false),
-                $("test-classes", false),
-                $("classes", true),
-                $("main", true)
+                $(new String[]{"build", "classes", "test"}, false),
+                $(new String[]{"target", "classes", "test"}, true),
+                $(new String[]{"target", "test-classes"}, false),
+                $(new String[]{"build", "test-classes"}, true),
+                $(new String[]{"build", "classes", "main"}, true),
+                $(new String[]{"target", "classes"}, true)
         );
     }
 
     @Test
     @UseDataProvider("folders")
-    public void detects_both_Gradle_and_Maven_style(String folderName, boolean expectedInclude) throws IOException {
+    public void detects_both_Gradle_and_Maven_style(String[] folderName, boolean expectedInclude) throws IOException {
         File folder = temporaryFolder.newFolder(folderName);
         File targetFile = new File(folder, getClass().getSimpleName() + ".class");
         Files.copy(locationOf(getClass()).asURI().toURL().openStream(), targetFile.toPath());
