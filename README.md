@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/TNG/ArchUnit.png?branch=master)](https://travis-ci.org/TNG/ArchUnit)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tngtech.archunit/archunit/badge.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.tngtech.archunit%22%20)
+[![License](https://img.shields.io/github/license/TNG/ArchUnit.svg)](https://github.com/TNG/ArchUnit/blob/master/LICENSE.txt)
 
 # ArchUnit
 
