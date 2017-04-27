@@ -1,0 +1,9 @@
+language: java
+
+script:
+  - ./gradlew -PallTests clean install runMavenTest
+
+jdk:
+  - oraclejdk8
+
+sudo: false
