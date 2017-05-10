@@ -1,42 +1,52 @@
 {
-  "inheritance": {
-    "name": "inheritanceKind",
-    "kinds": [
-      {
-        "name": "interfaces",
-        "dependency": "implements",
-        "isUnique": false
-      },
-      {
-        "name": "superclass",
-        "dependency": "extends",
-        "isUnique": true
-      }
-    ]
+  "grouped_dependencies": {
+    "inheritance": {
+      "name": "inheritanceKind",
+      "kinds": [
+        {
+          "name": "interfaces",
+          "dependency": "implements",
+          "isUnique": false
+        },
+        {
+          "name": "superclass",
+          "dependency": "extends",
+          "isUnique": true
+        }
+      ]
+    },
+    "access": {
+      "name": "accessKind",
+      "kinds": [
+        {
+          "name": "methodCalls",
+          "dependency": "methodCall",
+          "isUnique": false
+        },
+        {
+          "name": "fieldAccesses",
+          "dependency": "fieldAccess",
+          "isUnique": false
+        },
+        {
+          "name": "constructorCalls",
+          "dependency": "constructorCall",
+          "isUnique": false
+        },
+        {
+          "name": "anonImpl",
+          "dependency": "implementsAnonymous",
+          "isUnique": false
+        }
+      ]
+    }
   },
-  "access": {
-    "name": "accessKind",
-    "kinds": [
-      {
-        "name": "methodCalls",
-        "dependency": "methodCall",
-        "isUnique": false
-      },
-      {
-        "name": "fieldAccesses",
-        "dependency": "fieldAccess",
-        "isUnique": false
-      },
-      {
-        "name": "constructorCalls",
-        "dependency": "constructorCall",
-        "isUnique": false
-      },
-      {
-        "name": "anonImpl",
-        "dependency": "implementsAnonymous",
-        "isUnique": false
-      }
-    ]
+  "all_dependencies": {
+    "implements": "implements",
+    "extends": "extends",
+    "methodCall": "methodCall",
+    "constructorCall": "constructorCall",
+    "fieldAccess": "fieldAccess",
+    "implementsAnonymous": "implementsAnonymous"
   }
 }

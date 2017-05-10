@@ -100,7 +100,12 @@ task browserifyReportDep(type: NodeTask, dependsOn: ['installBrowserify', 'creat
     args = ['-r', './src/main/app/report/dependencies.js:dependencies', '-o', "${reportOutputDir}/dependencies-bundle.js"]
 }
 
-task browserify(dependsOn: ['browserifyReportTree', 'browserifyReportDep']) {}
+task browserifyReportVisualizer(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
+    script = file('node_modules/browserify/bin/cmd.js')
+    args = ['-r', './src/main/app/report/visualizer.js:visualizer', '-o', "${reportOutputDir}/visualizer-bundle.js"]
+}
+
+task browserify(dependsOn: ['browserifyReportTree', 'browserifyReportDep', 'browserifyReportVisualizer']) {}
 
 task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
 

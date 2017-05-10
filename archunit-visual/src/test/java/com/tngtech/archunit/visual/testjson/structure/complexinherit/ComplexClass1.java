@@ -12,6 +12,7 @@ public class ComplexClass1 implements ComplexInterface1, ComplexInterface2 {
     @Override
     public void sayHello() {
         SimpleClass1 c = new SimpleClass1(this.s);
+        ComplexClass2 cc2 = new ComplexClass2("hi");
         c.sayHi();
     }
 

@@ -41,8 +41,8 @@
             </fieldset>
             <fieldset class="inputs">
                 <legend>How to filter:</legend>
-                <input type="radio" name="howToFilter" value="inclusively" checked>inclusively<br>
-                <input type="radio" name="howToFilter" value="exclusively">exclusively<br>
+                <input type="radio" name="howToFilter" value="inclusive" checked>inclusive<br>
+                <input type="radio" name="howToFilter" value="exclusive">exclusive<br>
             </fieldset>
         </form>
         <form id="filterbytype" action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();">
@@ -101,7 +101,7 @@
                 class color:
                 <input class="jscolor" name="classColor" value="98AFC7"><br>
                 class opacity:
-                <input type="number" name="classOpacity" value="1" min="0" max="1" step="0.01"><br>
+                <input type="number" name="classOpacity" value="0.5" min="0" max="1" step="0.01"><br>
                 method call:
                 <input class="jscolor" name="methodcallColor" value="0000FF"><br>
                 field access:
@@ -112,6 +112,8 @@
                 <input class="jscolor" name="anonimplColor" value="00FFCC">
                 dashed line:
                 <input class="number" name="anonimplDashed" value="1" min="1" max="10" step="1"><br>
+                children access (access of the inner classes of a class):
+                <input class="jscolor" name="childrenAccess" value="8B4513;"><br>
                 grouped accesses:
                 <input class="jscolor" name="severalColor" value="808080"><br>
             </fieldset>
@@ -159,53 +161,61 @@
 <script src="d3.js"></script>
 <script src="tree-bundle.js"></script>
 <script src="dependencies-bundle.js"></script>
+<script src="visualizer-bundle.js"></script>
 <script>
   //must match the fontsize in the CSS-declaration
-  let FONTSIZE = 12;
+  let FONT_SIZE = 12;
   //padding between the text in a circle and the rim of the circle
-  const CIRCLETEXTPADDING = 5;
+  const CIRCLE_TEXT_PADDING = 5;
   //minimum padding between the circles
-  let CIRCLEPADDING = 10;
+  let CIRCLE_PADDING = 10;
 
   //defines after which proportion of the circle the text is positioned; only affects nodes
-  const TEXTPOSITION = 0.8;
+  const RELATIVE_TEXT_POSITION = 0.8;
   //padding between a line and its title
-  const TEXTPADDING = 5;
+  const TEXT_PADDING = 5;
   //the width of the click area of the lines
-  let CLICKAREAWIDTH = 10;
+  let CLICK_AREA_WIDTH = 10;
 
   const jsonToRoot = require('tree').jsonToRoot;
   const jsonToDependencies = require('dependencies').jsonToDependencies;
+  const visualizer = require('visualizer').visualizer;
+
   let root;
+  let depWithCurrentDetailedDeps;
 
   const svg = d3.select("#visualization"),
       gTree = svg.append("g").attr("transform", "translate(2,2)"),
       gEdges = svg.append("g").attr("transform", "translate(2,2)");
 
-  let textwidth = text => {
+  let textWidth = text => {
     d3.select("#tester").style("display", "inline");
     let tester = d3.select("#tester").select("text");
     tester.text(text);
-    tester.style("font-size", FONTSIZE);
+    tester.style("font-size", FONT_SIZE);
     let width = tester.node().getBBox().width;
     d3.select("#tester").style("display", "none");
     return width;
   };
 
+  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
-    root = jsonToRoot(jsonroot, textwidth, CIRCLETEXTPADDING);
+    //TODO: couple creation of the tree and the dependencies in one function
+    root = jsonToRoot(jsonroot);
     let deps = jsonToDependencies(jsonroot, root.nodeMap);
-    root.setDepsForAll(deps);
+    root.setDependencies(deps);
     layout();
     initializeGraph();
-    root.foldAllExceptRoot();
+    root.foldAllExceptRoot(visualizer.adaptToFoldState);
     updateWholeVisualization();
   });
 
   function layout() {
-    root.layout(d3.packSiblings, d3.packEnclose, CIRCLEPADDING, TEXTPOSITION);
-    root.deps.calcEndCoordinatesForVisibleDependencies();
+    visualizer.visualize(root, d3.packSiblings, d3.packEnclose, CIRCLE_PADDING);
+    //root.layout(d3.packSiblings, d3.packEnclose, CIRCLE_PADDING, RELATIVE_TEXT_POSITION);
+    //root.deps.resetVisualDataOfVisibleDependencies();
     svg.attr("width", 2 * root.visualData.r + 4);
     svg.attr("height", 2 * root.visualData.r + 4);
   }
@@ -224,13 +234,14 @@
         .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
 
     let drag = d3.drag().on("drag", d => {
-      d.drag(d3.event.dx, d3.event.dy, false);
+      //d.drag(d3.event.dx, d3.event.dy, false);
+      visualizer.drag(d, d3.event.dx, d3.event.dy, false);
       updateAfterDragging(d);
     });
 
     nodes.filter(d => !d.isRoot())
         .on("click", d => {
-          if (d.changeFold()) {
+          if (d.changeFold(visualizer.adaptToFoldState)) {
             updateVisualizationAfterFold(d);
           }
         })
@@ -238,7 +249,9 @@
 
     nodes.filter(d => !d.isRoot())
         .append("circle")
-        .attr("r", d => d.visualData.r);
+        .attr("r", d => d.visualData.r)
+        .filter(d => !d.isLeaf() && d.projectData.type !== "package")
+        .style("cursor", "pointer");
 
     nodes
         .append("text")
@@ -266,6 +279,14 @@
     createNewEdges(gEdges.selectAll().data(root.getVisibleEdges()).enter());
   }
 
+  function showDetailedDepsOf(dependency) {
+    d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + dependency.from + "->" + dependency.to);
+    let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(root.deps.getDetailedDependenciesOf(dependency.from, dependency.to));
+    detailedDeps.exit().remove();
+    detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
+    detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+  }
+
   function createNewEdges(selection) {
     let newEdges = selection.append("g");
 
@@ -273,47 +294,46 @@
         .append("line")
         .attr("id", "dep")
         .attr("class", e => e.getClass())
-        .attr("x1", e => e.startPoint[0])
-        .attr("y1", e => e.startPoint[1])
-        .attr("x2", e => e.endPoint[0])
-        .attr("y2", e => e.endPoint[1]);
+        .attr("x1", e => e.visualData.startPoint.x)
+        .attr("y1", e => e.visualData.startPoint.y)
+        .attr("x2", e => e.visualData.endPoint.x)
+        .attr("y2", e => e.visualData.endPoint.y);
 
     newEdges
-        .filter(e => e.hasDescription())
+        .filter(e => e.description.hasDetailedDescription())
         .append("line")
         .attr("id", "area")
         .attr("class", "area")
         .style("visibility", "hidden")
         .style("pointer-events", "all")
-        .style("stroke-width", CLICKAREAWIDTH)
+        .style("stroke-width", CLICK_AREA_WIDTH)
         .style("stroke", "yellow")
-        .attr("x1", e => e.startPoint[0])
-        .attr("y1", e => e.startPoint[1])
-        .attr("x2", e => e.endPoint[0])
-        .attr("y2", e => e.endPoint[1])
+        .attr("x1", e => e.visualData.startPoint.x)
+        .attr("y1", e => e.visualData.startPoint.y)
+        .attr("x2", e => e.visualData.endPoint.x)
+        .attr("y2", e => e.visualData.endPoint.y)
         .on("click", function (e) {
+          depWithCurrentDetailedDeps = e;
           let t = d3.select(d3.select(this).node().parentNode).select("text");
-          t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
-          if (t.style("visibility") !== "hidden") {
-            d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + e.from + "->" + e.to);
-            let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(root.deps.getDetailedDeps(e.from, e.to));
-            detailedDeps.exit().remove();
-            detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
-            detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+          if (e.description.hasDescription()) {
+            t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
+          }
+          if (!e.description.hasDescription() || t.style("visibility") !== "hidden") {
+            showDetailedDepsOf(e);
           }
         });
 
     newEdges
         .append("title")
-        .text(e => e.getDescription());
+        .text(e => e.description.getDescription());
 
     newEdges
-        .filter(e => e.hasDescription())
+        .filter(e => e.description.hasDescription())
         .append("text")
         .attr("class", e => e.getClass())
-        .text(e => e.getDescription())
+        .text(e => e.description.getDescription())
         .style("visibility", "hidden")
-        .attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+        .attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
   }
 
   function positionTextOfAllNodes(nodes) {
@@ -321,7 +341,7 @@
       let group = d3.select(this);
       let text = group.select("text");
       if (d.isRoot()) {
-        text.attr("dy", -d.visualData.r + FONTSIZE);
+        text.attr("dy", -d.visualData.r + FONT_SIZE);
       }
       else {
         positionText(text, group.select("circle"), d);
@@ -351,7 +371,7 @@
    **/
   function computeTextShift(r, width) {
     let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-    shift = -shift + FONTSIZE;
+    shift = -shift + FONT_SIZE;
     return shift;
   }
 
@@ -398,10 +418,11 @@
   function showEdges(edges) {
     edges.style("visibility", "visible");
     edges.select("line").attr("class", e => e.getClass());
-    edges.select("#area").style("pointer-events", e => e.hasDescription() ? "all" : "none");
-    let t = edges.select("text");
-    t.style("visibility", function (e) {
-      if (e.hasDescription()) {
+    edges.select("#area").style("pointer-events", e => e.description.hasDetailedDescription() ? "all" : "none");
+    edges.filter(e => e.description.hasDescription())
+        .select("text").attr("class", e => e.getClass()).text(e => e.description.getDescription());
+    edges.select("text").style("visibility", function (e) {
+      if (e.description.hasDetailedDescription()) {
         return (d3.select(this).style("visibility") === "hidden") ? "hidden" : "inherit";
       }
       else {
@@ -418,62 +439,73 @@
   function updateLinePosition(edges) {
     edges
         .select("#dep")
-        .attr("x1", e => e.startPoint[0])
-        .attr("y1", e => e.startPoint[1])
-        .attr("x2", e => e.endPoint[0])
-        .attr("y2", e => e.endPoint[1]);
+        .attr("x1", e => e.visualData.startPoint.x)
+        .attr("y1", e => e.visualData.startPoint.y)
+        .attr("x2", e => e.visualData.endPoint.x)
+        .attr("y2", e => e.visualData.endPoint.y);
 
     edges
         .select("#area")
-        .attr("x1", e => e.startPoint[0])
-        .attr("y1", e => e.startPoint[1])
-        .attr("x2", e => e.endPoint[0])
-        .attr("y2", e => e.endPoint[1]);
+        .attr("x1", e => e.visualData.startPoint.x)
+        .attr("y1", e => e.visualData.startPoint.y)
+        .attr("x2", e => e.visualData.endPoint.x)
+        .attr("y2", e => e.visualData.endPoint.y);
   }
 
   function updateTitlePosition(edges) {
-    edges.select("text").attr("transform", e => e.getEdgesTitleTranslation(TEXTPADDING));
+    edges.select("text").attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
   }
 
   function filterByName(form) {
-    root.filterByName(form.filter.value, form.filterBy.value === "fullname",
-        form.whatToFilter.value === "filterClassesAndEliminatePkgs", form.filterPackages.checked,
-        form.filterClasses.checked, form.howToFilter.value === "inclusively", form.matchCase.checked);
+    root.filterByName(form.filter.value, visualizer.refreshOnFiltering)
+        .by()[form.filterBy.value]()
+        [form.whatToFilter.value](form.filterPackages.checked, form.filterClasses.checked)
+        [form.howToFilter.value]()
+        .matchCase(form.matchCase.checked);
+
     updateWholeVisualization();
     return false;
   }
 
   function resetFilterByName() {
-    root.resetFilterByName();
+    root.resetFilterByName(visualizer.refreshOnFiltering);
     updateWholeVisualization();
   }
 
   function filterByType(form) {
-    root.filterByType(form.showInterfaces.checked, form.showClasses.checked);
+    root.filterByType(form.showInterfaces.checked, form.showClasses.checked, true, visualizer.refreshOnFiltering);
     updateWholeVisualization();
     return false;
   }
 
   function resetFilterByType() {
-    root.resetFilterByType();
+    root.resetFilterByType(visualizer.refreshOnFiltering);
     updateWholeVisualization();
   }
 
   function filterDepsByKind(form) {
-    root.deps.filterByKind(form.showImplementing.checked, form.showExtending.checked, form.showConstructorCall.checked,
-        form.showMethodCall.checked, form.showFieldAccess.checked, form.showAnonImpl.checked);
+    root.deps.filterByKind(visualizer.refreshOnFiltering)
+        .showImplementing(form.showImplementing.checked)
+        .showExtending(form.showExtending.checked)
+        .showConstructorCall(form.showConstructorCall.checked)
+        .showMethodCall(form.showMethodCall.checked)
+        .showFieldAccess(form.showFieldAccess.checked)
+        .showAnonymousImplementing(form.showAnonImpl.checked);
     updateEdges();
+    showDetailedDepsOf(depWithCurrentDetailedDeps);
     return false;
   }
 
   function hideAllDeps() {
-    root.deps.filterByKind(false, false, false, false, false, false);
+    root.deps.filterByKind(visualizer.refreshOnFiltering)
+        .showImplementing(false).showExtending(false)
+        .showConstructorCall(false).showMethodCall(false).showFieldAccess(false).showAnonymousImplementing(false);
     updateEdges();
     return false;
   }
 
   function resetFilterDepsByKind() {
-    root.deps.resetFilterByKind();
+    root.deps.resetFilterByKind(visualizer.refreshOnFiltering);
     updateEdges();
   }
 
@@ -523,6 +555,7 @@
     setRule(sheet, 'line.constructorCall', '{ stroke: #' + form.constructorcallColor.value + ';}');
     setRule(sheet, 'line.implementsAnonymous', '{  stroke-dasharray: ' + form.anonimplDashed.value + ', '
         + form.anonimplDashed.value + '; stroke: #' + form.anonimplColor.value + ';}');
+    setRule(sheet, 'line.childrenAccess', '{ stroke: #' + form.childrenAccess.value + ';}');
 
     setRule(sheet, 'li.methodCall', '{ color: #' + form.methodcallColor.value + ';}');
     setRule(sheet, 'li.fieldAccess', '{ color: #' + form.fieldaccessColor.value + ';}');
@@ -535,8 +568,8 @@
   }
 
   function applyDepMenu(form) {
-    CLICKAREAWIDTH = form.clickareaWidth.value;
-    gEdges.selectAll("g").select("#area").style("stroke-width", CLICKAREAWIDTH);
+    CLICK_AREA_WIDTH = form.clickareaWidth.value;
+    gEdges.selectAll("g").select("#area").style("stroke-width", CLICK_AREA_WIDTH);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
     setRule(sheet, 'text.access', '{ font-weight: normal; font-size: ' + form.edgefontsize.value + 'px; }');
@@ -544,11 +577,11 @@
   }
 
   function applyOtherMenu(form) {
-    FONTSIZE = parseInt(form.circfontsize.value);
+    FONT_SIZE = parseInt(form.circfontsize.value);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
-    setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + FONTSIZE + 'px; }');
-    CIRCLEPADDING = parseInt(form.circpadding.value);
+    setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + FONT_SIZE + 'px; }');
+    CIRCLE_PADDING = parseInt(form.circpadding.value);
     layout();
     updateWholeVisualization();
     return false;

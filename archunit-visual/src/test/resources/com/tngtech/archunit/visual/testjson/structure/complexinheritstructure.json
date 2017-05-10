@@ -157,6 +157,11 @@
           ],
           "constructorCalls": [
             {
+              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
+              "startCodeUnit": "sayHello",
+              "targetElement": "<init>"
+            },
+            {
               "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "<init>"

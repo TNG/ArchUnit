@@ -14,8 +14,7 @@ class JsonJavaClass extends JsonJavaElement {
         this.superclass = superclass;
     }
 
-    // FIXME: Name this 'directlyExtends(fullName)' ? Should make it clear, that we only consider the direct superclass in any way...
-    boolean hasAsSuperClass(String fullName) {
+    boolean directlyExtends(String fullName) {
         return superclass.equals(fullName);
     }
 }

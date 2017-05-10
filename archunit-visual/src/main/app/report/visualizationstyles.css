@@ -5,7 +5,7 @@ circle {
 
 .class circle, .abstractclass circle, .interface circle {
     fill: #98AFC7;
-    fill-opacity: 1;
+    fill-opacity: 0.5;
 }
 
 .package circle {
@@ -77,6 +77,10 @@ line.implementsAnonymous {
 li.implementsAnonymous {
     border: dotted 1px black;
     border-color: #00FFCC;
+}
+
+line.childrenAccess {
+    stroke: #FA64D4;
 }
 
 line.several {
