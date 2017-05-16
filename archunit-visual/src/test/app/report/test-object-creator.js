@@ -2,16 +2,7 @@
 const testJson = require("./test-json-creator");
 
 const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
-const jsonToDependencies = require("../../../main/app/report/dependencies.js").jsonToDependencies;
-
-let emptyDependencies = {
-  changeFold: () => {
-  },
-  resetVisualDataOf: () => {
-  },
-  setNodeFilters: filters => {
-  }
-};
+const jsonToGraph = require("../../../main/app/report/graph.js").jsonToGraph;
 
 let testTree1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
@@ -21,9 +12,7 @@ let testTree1 = () => {
       .add(testJson.clazz("class2", "class").build())
       .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.setDependencies(emptyDependencies);
-  return root;
+  return jsonToRoot(simpleJsonTree);
 };
 
 let testTree2 = () => {
@@ -40,9 +29,7 @@ let testTree2 = () => {
       .add(testJson.clazz("class2", "class").build())
       .add(testJson.clazz("class3", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.setDependencies(emptyDependencies);
-  return root;
+  return jsonToRoot(simpleJsonTree);
 };
 
 let testTree3 = () => {
@@ -56,12 +43,10 @@ let testTree3 = () => {
           .add(testJson.clazz("subclass1", "interface").build())
           .build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  root.setDependencies(emptyDependencies);
-  return root;
+  return jsonToRoot(simpleJsonTree);
 };
 
-let testTreeWithDependencies1 = () => {
+let testGraph1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
@@ -85,10 +70,7 @@ let testTreeWithDependencies1 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
-  root.setDependencies(deps);
-  return root;
+  return jsonToGraph(simpleJsonTree);
 };
 
 let allDeps1 = [
@@ -101,7 +83,7 @@ let allDeps1 = [
 ];
 
 
-let testTreeWithDependencies2 = () => {
+let testGraph2 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
@@ -132,10 +114,7 @@ let testTreeWithDependencies2 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
-  root.setDependencies(deps);
-  return root;
+  return jsonToGraph(simpleJsonTree);
 };
 
 let allDeps2 = [
@@ -150,7 +129,7 @@ let allDeps2 = [
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-let testTreeWithOverlappingNodesAndMutualDependencies = () => {
+let testGraphWithOverlappingNodesAndMutualDependencies = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
@@ -183,13 +162,10 @@ let testTreeWithOverlappingNodesAndMutualDependencies = () => {
           .callingMethod("com.tngtech.test.subtest.subtestclass1", "startMethod()", "targetMethod()")
           .build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
-  root.setDependencies(deps);
-  return root;
+  return jsonToGraph(simpleJsonTree);
 };
 
-let testTreeWithDependencies3 = () => {
+let testGraph3 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
@@ -225,10 +201,7 @@ let testTreeWithDependencies3 = () => {
           .build())
       .add(testJson.clazz("interface1", "interface").build())
       .build();
-  let root = jsonToRoot(simpleJsonTree);
-  let deps = jsonToDependencies(simpleJsonTree, root.nodeMap);
-  root.setDependencies(deps);
-  return root;
+  return jsonToGraph(simpleJsonTree);
 };
 
 let allDeps3 = [
@@ -244,22 +217,35 @@ let allDeps3 = [
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-const treeOf = (root, allDependencies) => ({
-  root: root,
+const treeWrapperOf = root => {
+  let nodeMap = createNodeMap(root);
+  return {
+    root: root,
+    getNode: fullname => nodeMap.get(fullname)
+  }
+};
+
+const graphWrapperOf = (graph, allDependencies) => ({
+  graph: graph,
+  getNode: fullname => graph.nodeMap.get(fullname),
   allDependencies: allDependencies
 });
 
 const allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
-const getNode = (root, fullname) => root.nodeMap.get(fullname);
+
+let createNodeMap = root => {
+  let nodeMap = new Map();
+  root.getVisibleDescendants().forEach(d => nodeMap.set(d.projectData.fullname, d));
+  return nodeMap;
+};
 
 module.exports = {
-  testTree1: () => treeOf(testTree1(), []),
-  testTree2: () => treeOf(testTree2(), []),
-  testTree3: () => treeOf(testTree3(), []),
-  testTreeWithDependencies1: () => treeOf(testTreeWithDependencies1(), allDeps1),
-  testTreeWithDependencies2: () => treeOf(testTreeWithDependencies2(), allDeps2),
-  testTreeWithOverlappingNodesAndMutualDependencies: () => treeOf(testTreeWithOverlappingNodesAndMutualDependencies(), []),
-  testTreeWithDependencies3: () => treeOf(testTreeWithDependencies3(), allDeps3),
+  testTree1: () => treeWrapperOf(testTree1()),
+  testTree2: () => treeWrapperOf(testTree2()),
+  testTree3: () => treeWrapperOf(testTree3()),
+  testGraph1: () => graphWrapperOf(testGraph1(), allDeps1),
+  testGraph2: () => graphWrapperOf(testGraph2(), allDeps2),
+  testGraphWithOverlappingNodesAndMutualDependencies: () => graphWrapperOf(testGraphWithOverlappingNodesAndMutualDependencies(), []),
+  testGraph3: () => graphWrapperOf(testGraph3(), allDeps3),
   allNodes: allNodes,
-  getNode: getNode
 };

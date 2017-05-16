@@ -79,6 +79,7 @@ let VisualData = class {
     let offset = getTitleOffset(this.angleRad, textPadding);
     return "translate(" + (this.middlePoint.x + offset[0]) + "," + (this.middlePoint.y - offset[1]) + ") " +
         "rotate(" + this.angleDeg + ")";
+    x
   }
 };
 
@@ -95,5 +96,10 @@ let refreshVisualDataOfDependencies = dependencies => {
   dependencies.forEach(d => refreshVisualData(d));
 };
 
-module.exports.refreshVisualDataOfDependencies = refreshVisualDataOfDependencies;
+let visualizeDependencies = dependencies => {
+  refreshVisualDataOfDependencies(dependencies.getVisible());
+  dependencies.addObserver(refreshVisualDataOfDependencies);
+};
+
 module.exports.refreshVisualDataOf = refreshVisualDataOf;
+module.exports.visualizeDependencies = visualizeDependencies;

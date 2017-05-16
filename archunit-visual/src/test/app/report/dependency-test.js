@@ -2,7 +2,7 @@
 
 const expect = require("chai").expect;
 
-const testTrees = require("./test-tree-creator.js");
+const testObjects = require("./test-object-creator.js");
 
 const createDependencyBuilder = require("../../../main/app/report/dependency.js").buildDependency;
 let buildDependency;
@@ -31,8 +31,8 @@ let buildDescription = () => ({
 
 describe("Dependency", () => {
   it("can be built by merging existing descriptions with different access groups", () => {
-    let root = testTrees.testTreeWithDependencies3().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraph3();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.main.class1", to = "com.tngtech.interface1";
 
     let description1 = buildDescription().withKinds("", "methodCall").withCodeElements(
@@ -45,8 +45,8 @@ describe("Dependency", () => {
   });
 
   it("can be built by merging existing descriptions with same access groups but different access kinds", () => {
-    let root = testTrees.testTreeWithDependencies3().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraph3();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     let description1 = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -62,8 +62,8 @@ describe("Dependency", () => {
   });
 
   it("can be built with existing description when start is folded and start's parent is a class", () => {
-    let root = testTrees.testTreeWithOverlappingNodesAndMutualDependencies().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     let description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -74,8 +74,8 @@ describe("Dependency", () => {
   });
 
   it("can be built with existing description when start is folded and start's parent is a package", () => {
-    let root = testTrees.testTreeWithOverlappingNodesAndMutualDependencies().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.test", to = "com.tngtech.class2";
 
     let description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -86,8 +86,8 @@ describe("Dependency", () => {
   });
 
   it("can be built with existing description when target is folded and target's parent is a class", () => {
-    let root = testTrees.testTreeWithOverlappingNodesAndMutualDependencies().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.main.class1", to = "com.tngtech.test.testclass1";
 
     let description = buildDescription().withKinds("", "methodCall").withCodeElements(
@@ -98,8 +98,8 @@ describe("Dependency", () => {
   });
 
   it("can be built with existing description when target is folded and targets's parent is a package", () => {
-    let root = testTrees.testTreeWithOverlappingNodesAndMutualDependencies().root;
-    buildDependency = createDependencyBuilder(root.nodeMap);
+    let graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
+    buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
     let from = "com.tngtech.main.class1", to = "com.tngtech.test";
 
     let description = buildDescription().withKinds("", "methodCall").withCodeElements(

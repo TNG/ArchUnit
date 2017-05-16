@@ -105,12 +105,6 @@ let Dependency = class {
     return "access " + this.description.getAllKinds();
   }
 
-  /*
-   resetVisualData() {
-   this.visualData.recalc(this.getStartNode().visualData, this.getEndNode().visualData);
-   }
-   */
-
   getDescriptionRelativeToPredecessors(from, to) {
     let start = this.from.substring(from.length + 1);
     start += ((start && !CodeElement.isAbsent(this.description.startCodeUnit)) ? "." : "") + (this.description.startCodeUnit.title);

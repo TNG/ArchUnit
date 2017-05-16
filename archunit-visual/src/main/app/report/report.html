@@ -52,6 +52,8 @@
                 interfaces<br>
                 <input type="checkbox" name="showClasses" value="classes" checked>
                 classes<br>
+                <input type="checkbox" name="eliminatePkgs" value="eliminatePkgs" checked>
+                eliminate packages<br>
             </fieldset>
         </form>
         <form id="filterdepsbykind" action="#" onsubmit="return filterDepsByKind(this);"
@@ -70,6 +72,8 @@
                 field access<br>
                 <input type="checkbox" name="showAnonImpl" value="anonImpl" checked>
                 anonymous implementation<br>
+                <input type="checkbox" name="showChildParentDep" value="childParent">
+                between parent and children<br>
             </fieldset>
         </form>
     </div>
@@ -153,15 +157,18 @@
         </div>
     </div>
 </div>
-<svg width="960" height="960" id="visualization" style="border: solid 1px black"></svg>
-<div id="detailedDeps">
-    <h2 style="font-size: inherit">Detailed dependencies:</h2>
-    <ul></ul>
+<div style="white-space: nowrap">
+    <div id="detailedDeps" style="width: 250px; white-space: normal; vertical-align: top; margin-right: 40px">
+        <h2 style="font-size: inherit; width: inherit">Detailed dependencies:</h2>
+        <ul></ul>
+    </div>
+    <div style="display: inline-block; white-space: normal; vertical-align: top">
+        <svg width="960" height="960" id="visualization" style="border: solid 1px black"></svg>
+    </div>
 </div>
 <script src="d3.js"></script>
-<script src="tree-bundle.js"></script>
-<script src="dependencies-bundle.js"></script>
-<script src="visualizer-bundle.js"></script>
+<script src="graph-bundle.js"></script>
+<script src="graph-visualizer-bundle.js"></script>
 <script>
   //must match the fontsize in the CSS-declaration
   let FONT_SIZE = 12;
@@ -177,11 +184,10 @@
   //the width of the click area of the lines
   let CLICK_AREA_WIDTH = 10;
 
-  const jsonToRoot = require('tree').jsonToRoot;
-  const jsonToDependencies = require('dependencies').jsonToDependencies;
-  const visualizer = require('visualizer').visualizer;
+  const jsonToGraph = require('graph').jsonToGraph;
+  const visualizer = require('graph-visualizer').visualizer;
 
-  let root;
+  let graph;
   let depWithCurrentDetailedDeps;
 
   const svg = d3.select("#visualization"),
@@ -202,22 +208,31 @@
 
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
-    //TODO: couple creation of the tree and the dependencies in one function
-    root = jsonToRoot(jsonroot);
-    let deps = jsonToDependencies(jsonroot, root.nodeMap);
-    root.setDependencies(deps);
+    graph = jsonToGraph(jsonroot);
     layout();
     initializeGraph();
-    root.foldAllExceptRoot(visualizer.adaptToFoldState);
+    graph.foldAllNodes();
     updateWholeVisualization();
+    initializeFilter();
   });
 
+  function initializeFilter() {
+    graph.filterDependenciesByKind()
+        .showImplementing(true)
+        .showExtending(true)
+        .showConstructorCall(true)
+        .showMethodCall(true)
+        .showFieldAccess(true)
+        .showAnonymousImplementing(true)
+        .showDepsBetweenChildAndParent(false);
+    updateEdges();
+    showDetailedDepsOf(depWithCurrentDetailedDeps);
+  }
+
   function layout() {
-    visualizer.visualize(root, d3.packSiblings, d3.packEnclose, CIRCLE_PADDING);
-    //root.layout(d3.packSiblings, d3.packEnclose, CIRCLE_PADDING, RELATIVE_TEXT_POSITION);
-    //root.deps.resetVisualDataOfVisibleDependencies();
-    svg.attr("width", 2 * root.visualData.r + 4);
-    svg.attr("height", 2 * root.visualData.r + 4);
+    visualizer.visualizeGraph(graph, d3.packSiblings, d3.packEnclose, CIRCLE_PADDING);
+    svg.attr("width", 2 * graph.root.visualData.r + 4);
+    svg.attr("height", 2 * graph.root.visualData.r + 4);
   }
 
   function initializeGraph() {
@@ -227,21 +242,20 @@
 
   function initializeTree() {
     let nodes = gTree.selectAll()
-        .data(root.getVisibleDescendants())
+        .data(graph.getVisibleNodes())
         .enter()
         .append("g")
         .attr("class", d => d.getClass())
         .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
 
     let drag = d3.drag().on("drag", d => {
-      //d.drag(d3.event.dx, d3.event.dy, false);
-      visualizer.drag(d, d3.event.dx, d3.event.dy, false);
+      visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
       updateAfterDragging(d);
     });
 
     nodes.filter(d => !d.isRoot())
         .on("click", d => {
-          if (d.changeFold(visualizer.adaptToFoldState)) {
+          if (graph.changeFoldStateOfNode(d)) {
             updateVisualizationAfterFold(d);
           }
         })
@@ -276,15 +290,17 @@
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
 
-    createNewEdges(gEdges.selectAll().data(root.getVisibleEdges()).enter());
+    createNewEdges(gEdges.selectAll().data(graph.getVisibleDependencies()).enter());
   }
 
   function showDetailedDepsOf(dependency) {
-    d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + dependency.from + "->" + dependency.to);
-    let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(root.deps.getDetailedDependenciesOf(dependency.from, dependency.to));
-    detailedDeps.exit().remove();
-    detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
-    detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+    if (dependency) {
+      d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + dependency.from + "->" + dependency.to);
+      let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(graph.getDetailedDependenciesOf(dependency.from, dependency.to));
+      detailedDeps.exit().remove();
+      detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
+      detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+    }
   }
 
   function createNewEdges(selection) {
@@ -394,7 +410,7 @@
   }
 
   function updateNodes(filter) {
-    let nodes = gTree.selectAll("g").data(root.getVisibleDescendants(), root.keyFunction());
+    let nodes = gTree.selectAll("g").data(graph.getVisibleNodes(), graph.nodeKeyFunction());
     nodes.exit().style("visibility", "hidden");
     nodes.style("visibility", "visible");
     nodes.filter(filter).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
@@ -403,7 +419,7 @@
   }
 
   function updateEdges() {
-    let edges = gEdges.selectAll("g").data(root.getVisibleEdges(), root.deps.keyFunction());
+    let edges = gEdges.selectAll("g").data(graph.getVisibleDependencies(), graph.dependencyKeyFunction());
     hideEdges(edges.exit());
     showEdges(edges);
     createNewEdges(edges.enter());
@@ -457,7 +473,7 @@
   }
 
   function filterByName(form) {
-    root.filterByName(form.filter.value, visualizer.refreshOnFiltering)
+    graph.filterNodesByName(form.filter.value)
         .by()[form.filterBy.value]()
         [form.whatToFilter.value](form.filterPackages.checked, form.filterClasses.checked)
         [form.howToFilter.value]()
@@ -468,36 +484,37 @@
   }
 
   function resetFilterByName() {
-    root.resetFilterByName(visualizer.refreshOnFiltering);
+    graph.resetFilterNodesByName();
     updateWholeVisualization();
   }
 
   function filterByType(form) {
-    root.filterByType(form.showInterfaces.checked, form.showClasses.checked, true, visualizer.refreshOnFiltering);
+    graph.filterNodesByType(form.showInterfaces.checked, form.showClasses.checked, form.eliminatePkgs.checked);
     updateWholeVisualization();
     return false;
   }
 
   function resetFilterByType() {
-    root.resetFilterByType(visualizer.refreshOnFiltering);
+    graph.resetFilterNodesByType();
     updateWholeVisualization();
   }
 
   function filterDepsByKind(form) {
-    root.deps.filterByKind(visualizer.refreshOnFiltering)
+    graph.filterDependenciesByKind()
         .showImplementing(form.showImplementing.checked)
         .showExtending(form.showExtending.checked)
         .showConstructorCall(form.showConstructorCall.checked)
         .showMethodCall(form.showMethodCall.checked)
         .showFieldAccess(form.showFieldAccess.checked)
-        .showAnonymousImplementing(form.showAnonImpl.checked);
+        .showAnonymousImplementing(form.showAnonImpl.checked)
+        .showDepsBetweenChildAndParent(form.showChildParentDep.checked);
     updateEdges();
     showDetailedDepsOf(depWithCurrentDetailedDeps);
     return false;
   }
 
   function hideAllDeps() {
-    root.deps.filterByKind(visualizer.refreshOnFiltering)
+    graph.filterDependenciesByKind()
         .showImplementing(false).showExtending(false)
         .showConstructorCall(false).showMethodCall(false).showFieldAccess(false).showAnonymousImplementing(false);
     updateEdges();
@@ -505,7 +522,7 @@
   }
 
   function resetFilterDepsByKind() {
-    root.deps.resetFilterByKind(visualizer.refreshOnFiltering);
+    graph.resetFilterDependenciesByKind();
     updateEdges();
   }
 
@@ -523,7 +540,7 @@
 
   function changeDepsVisibility() {
     let detailedDeps = d3.select("#detailedDeps");
-    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "inline" : "none");
+    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "inline-block" : "none");
     d3.select("#showHideDeps").text(() => detailedDeps.style("display") === "none" ? "Show detailed dependencies" : "Hide detailed dependencies");
   }
 

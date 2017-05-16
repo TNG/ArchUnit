@@ -90,22 +90,17 @@ task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     into "${reportOutputDir}/lib"
 }
 
-task browserifyReportTree(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
+task browserifyReportGraph(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
     script = file('node_modules/browserify/bin/cmd.js')
-    args = ['-r', './src/main/app/report/tree.js:tree', '-o', "${reportOutputDir}/tree-bundle.js"]
+    args = ['-r', './src/main/app/report/graph.js:graph', '-o', "${reportOutputDir}/graph-bundle.js"]
 }
 
-task browserifyReportDep(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
+task browserifyReportGraphVisualizer(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
     script = file('node_modules/browserify/bin/cmd.js')
-    args = ['-r', './src/main/app/report/dependencies.js:dependencies', '-o', "${reportOutputDir}/dependencies-bundle.js"]
+    args = ['-r', './src/main/app/report/graph-visualizer.js:graph-visualizer', '-o', "${reportOutputDir}/graph-visualizer-bundle.js"]
 }
 
-task browserifyReportVisualizer(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
-    script = file('node_modules/browserify/bin/cmd.js')
-    args = ['-r', './src/main/app/report/visualizer.js:visualizer', '-o', "${reportOutputDir}/visualizer-bundle.js"]
-}
-
-task browserify(dependsOn: ['browserifyReportTree', 'browserifyReportDep', 'browserifyReportVisualizer']) {}
+task browserify(dependsOn: ['browserifyReportGraph', 'browserifyReportGraphVisualizer']) {}
 
 task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
 

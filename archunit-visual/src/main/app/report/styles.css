@@ -40,10 +40,12 @@ form {
     border-top: solid 2px black;
 }
 
-li {
+ul, li {
     float: left;
     clear: left;
-    margin: 3px;
+    margin-left: 3px;
+    width: inherit;
+    word-wrap: break-word;
 }
 
 fieldset.inputs {

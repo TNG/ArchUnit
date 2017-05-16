@@ -36,9 +36,11 @@ let dragNodeBackIntoItsParent = node => {
 
 let dragNode = (node, dx, dy, force) => {
   node.visualData.move(dx, dy, node.parent, () => node.origChildren.forEach(d => dragNode(d, dx, dy, true)), true, force);
+};
 
-  //TODO: nicht in dieser Methode:
-  //node.deps.resetVisualDataOf(node.projectData.fullname);
+let updateFunction = updateVisualDataOfDependencies => node => {
+  adaptToFoldState(node);
+  updateVisualDataOfDependencies(node.getVisibleEdges());
 };
 
 let adaptToFoldState = node => {
@@ -50,9 +52,6 @@ let adaptToFoldState = node => {
     if (!node.isRoot() && !node.parent.isRoot()) {
       dragNodeBackIntoItsParent(node);
     }
-
-    //TODO: nicht innerhalb dieser Methode:
-    //node.deps.resetVisualDataOf(node.projectData.fullname);
   }
 };
 
@@ -135,8 +134,7 @@ let calcPositionAndSetRadius = node => {
 let visualizeTree = (root, packSiblings, packEnclose, circpadding) => {
   recVisualizeTree(root, packSiblings, packEnclose, circpadding);
   calcPositionAndSetRadius(root);
-  //TODO: erst einmal initialisieren:
-  //root.deps.resetVisualDataOfVisibleDependencies();
+  root.addObserver(adaptToFoldState);
 };
 
 let createVisualData = (node, x, y, r) => {

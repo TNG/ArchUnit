@@ -76,7 +76,6 @@ let recalculateVisible = (transformers, dependencies) => Array.from(transformers
 let recreateVisible = dependencies => {
   let after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
   dependencies.setVisibleDependencies(after);
-  //dependencies.resetVisualDataOfVisibleDependencies();
 };
 
 let changeFold = (dependencies, callback) => {
@@ -89,6 +88,7 @@ let reapplyFilters = (dependencies, filters) => {
       dependencies._all);
   dependencies._uniqued = unique(Array.from(dependencies._filtered));
   recreateVisible(dependencies);
+  dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
 
 let Dependencies = class {
@@ -99,6 +99,11 @@ let Dependencies = class {
     this._filtered = this._all;
     this._uniqued = unique(Array.from(this._filtered));
     this.setVisibleDependencies(this._uniqued);
+    this.observers = [];
+  }
+
+  addObserver(observerFunction) {
+    this.observers.push(observerFunction);
   }
 
   setVisibleDependencies(deps) {
@@ -111,13 +116,14 @@ let Dependencies = class {
     return e => e.from + "->" + e.to;
   }
 
-  changeFold(foldedElement, isFolded) {
+  changeFold(foldedElement, isFolded, res) {
     if (isFolded) {
       changeFold(this, dependencies => dependencies._transformers.set(foldedElement, foldTransformer(foldedElement)));
     }
     else {
       changeFold(this, dependencies => dependencies._transformers.delete(foldedElement));
     }
+    this.observers.forEach(f => f(this.getVisible()));
   }
 
   setNodeFilters(filters) {
@@ -126,11 +132,10 @@ let Dependencies = class {
     reapplyFilters(this, this._filters);
   }
 
-  filterByKind(callback) {
+  filterByKind() {
     let applyFilter = kindFilter => {
       this._filters.set(KIND_FILTER, filtered_deps => filtered_deps.filter(kindFilter));
       reapplyFilters(this, this._filters);
-      callback(this.getVisible());
     };
     return {
       showImplementing: implementing => ({
@@ -138,19 +143,23 @@ let Dependencies = class {
           showConstructorCall: constructorCall => ({
             showMethodCall: methodCall => ({
               showFieldAccess: fieldAccess => ({
-                showAnonymousImplementing: anonImpl => {
-                  let kindFilter = d => {
-                    let kinds = d.description.getAllKinds();
-                    let deps = dependencyKinds.all_dependencies;
-                    return boolFuncs(kinds === deps.implements).implies(implementing)
-                        && boolFuncs(kinds === deps.extends).implies(extending)
-                        && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
-                        && boolFuncs(kinds === deps.methodCall).implies(methodCall)
-                        && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
-                        && boolFuncs(kinds === deps.implementsAnonymous).implies(anonImpl);
-                  };
-                  applyFilter(kindFilter);
-                }
+                showAnonymousImplementing: anonImpl => ({
+                  showDepsBetweenChildAndParent: childAndParent => {
+                    let kindFilter = d => {
+                      let kinds = d.description.getAllKinds();
+                      let deps = dependencyKinds.all_dependencies;
+                      return boolFuncs(kinds === deps.implements).implies(implementing)
+                          && boolFuncs(kinds === deps.extends).implies(extending)
+                          && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
+                          && boolFuncs(kinds === deps.methodCall).implies(methodCall)
+                          && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
+                          && boolFuncs(kinds === deps.implementsAnonymous).implies(anonImpl)
+                          && boolFuncs(d.getStartNode().parent === d.getEndNode()
+                              || d.getEndNode().parent === d.getStartNode()).implies(childAndParent);
+                    };
+                    applyFilter(kindFilter);
+                  }
+                })
               })
             })
           })
@@ -159,10 +168,9 @@ let Dependencies = class {
     };
   }
 
-  resetFilterByKind(callback) {
+  resetFilterByKind() {
     this._filters.delete(KIND_FILTER);
     reapplyFilters(this, this._filters);
-    callback(this.getVisible());
   }
 
   getVisible() {

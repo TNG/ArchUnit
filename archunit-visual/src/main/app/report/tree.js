@@ -14,14 +14,14 @@ let ProjectData = class {
   }
 };
 
-let descendants = (node, onlyVisible) => {
-  let recDescendants = (res, node, onlyVisible) => {
+let descendants = (node, childrenSelector) => {
+  let recDescendants = (res, node, childrenSelector) => {
     res.push(node);
-    let arr = onlyVisible ? node.currentChildren : node.filteredChildren; // node.origChildren;
-    arr.forEach(n => recDescendants(res, n, onlyVisible));
+    let arr = childrenSelector(node);
+    arr.forEach(n => recDescendants(res, n, childrenSelector));
   };
   let res = [];
-  recDescendants(res, node, onlyVisible);
+  recDescendants(res, node, childrenSelector);
   return res;
 };
 
@@ -39,7 +39,7 @@ let predecessors = node => {
 
 let isLeaf = node => node.filteredChildren.length === 0;
 
-let fold = (node, folded, callback) => {
+let fold = (node, folded) => {
   if (!isLeaf(node)) {
     node.isFolded = folded;
     if (node.isFolded) {
@@ -48,24 +48,35 @@ let fold = (node, folded, callback) => {
     else {
       node.currentChildren = node.filteredChildren;
     }
-    node.deps.changeFold(node.projectData.fullname, node.isFolded);
-    callback(node);
+
+    node.observers.forEach(f => f(node));
     return true;
   }
   return false;
 };
 
-let reapplyFilters = (root, filters, callback) => {
-  let recReapplyFilters = (node, filters) => {
-    node.filteredChildren = Array.from(filters.values()).reduce((children, filter) => children.filter(filter), node.origChildren);
-    node.filteredChildren.forEach(c => recReapplyFilters(c, filters));
-    if (!node.isFolded) {
+let resetFilteredChildrenOfAllNodes = root => {
+  descendants(root, n => n.origChildren).forEach(n => {
+    n.filteredChildren = n.origChildren;
+  });
+};
+
+let reapplyFilters = (root, filters) => {
+  resetFilteredChildrenOfAllNodes(root);
+  let recReapplyFilter = (node, filter) => { //filters
+    node.filteredChildren = node.filteredChildren.filter(filter);//Array.from(filters.values()).reduce((children, filter) => children.filter(filter), node.origChildren);
+    node.filteredChildren.forEach(c => recReapplyFilter(c, filter));
+    /*if (!node.isFolded) {
       node.currentChildren = node.filteredChildren;
-    }
+     }*/
   };
-  recReapplyFilters(root, filters);
-  root.deps.setNodeFilters(root.filters);
-  callback(root.getVisibleEdges());
+  Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
+  descendants(root, n => n.filteredChildren).forEach(n => {
+    if (!n.isFolded) {
+      n.currentChildren = n.filteredChildren;
+    }
+  });
+  //recReapplyFilters(root, filters);
 };
 
 let Node = class {
@@ -78,6 +89,11 @@ let Node = class {
     this.currentChildren = this.filteredChildren;
     this.isFolded = false;
     this.filters = new Map();
+    this.observers = parent ? parent.observers : [];
+  }
+
+  addObserver(observerFunction) {
+    this.observers.push(observerFunction);
   }
 
   isRoot() {
@@ -93,12 +109,11 @@ let Node = class {
   }
 
   isChildOf(d) {
-    return descendants(d, true).indexOf(this) !== -1;
+    return descendants(d, n => n.currentChildren).indexOf(this) !== -1;
   }
 
-  //FIXME: besser ohne Callback, stattdessen einfach nach dem Folden aufrufen??
-  changeFold(callback) {
-    return fold(this, !this.isFolded, callback);
+  changeFold() {
+    return fold(this, !this.isFolded);
   }
 
   getClass() {
@@ -106,7 +121,11 @@ let Node = class {
   }
 
   getVisibleDescendants() {
-    return descendants(this, true);
+    return descendants(this, n => n.currentChildren);
+  }
+
+  getAllDescendants() {
+    return descendants(this, n => n.origChildren);
   }
 
   traverseTree() {
@@ -115,23 +134,15 @@ let Node = class {
     return this.projectData.name + "(" + subTree + ")";
   }
 
-  foldAllExceptRoot(callback) {
+  foldAllNodes() {
     if (!isLeaf(this)) {
-      this.currentChildren.forEach(d => d.foldAllExceptRoot(callback));
-      if (!this.isRoot()) fold(this, true, callback);
+      this.currentChildren.forEach(d => d.foldAllNodes());
+      if (!this.isRoot()) fold(this, true);
     }
   }
 
   keyFunction() {
     return d => d.projectData.fullname;
-  }
-
-  setDependencies(deps) {
-    descendants(this, false).forEach(d => d.deps = deps);
-  }
-
-  getVisibleEdges() {
-    return this.deps.getVisible();
   }
 
   /**
@@ -140,32 +151,32 @@ let Node = class {
   filterByName(filterString, callback) {
     let applyFilter = filter => {
       this.filters.set(NAME_Filter, filter);
-      reapplyFilters(this, this.filters, callback);
+      reapplyFilters(this, this.filters);
+      callback();
     };
     return filterBuilder(filterString, applyFilter);
   }
 
-  resetFilterByName(callback) {
+  resetFilterByName() {
     this.filters.delete(NAME_Filter);
-    reapplyFilters(this, this.filters, callback);
+    reapplyFilters(this, this.filters);
   }
 
-  //FIXME: if classes are excluded, then included again and interfaces are shown instead, it fails
-  filterByType(interfaces, classes, eliminatePkgs, callback) {
+  filterByType(interfaces, classes, eliminatePkgs) {
     let classFilter =
         c => (c.projectData.type !== nodeKinds.package) &&
         boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
         boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
         c => (c.projectData.type === nodeKinds.package) &&
-        boolFunc(eliminatePkgs).implies(descendants(c, false).reduce((acc, n) => acc || classFilter(n), false));
+        boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this.filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
-    reapplyFilters(this, this.filters, callback);
+    reapplyFilters(this, this.filters);
   }
 
-  resetFilterByType(callback) {
+  resetFilterByType() {
     this.filters.delete(TYPE_FILTER);
-    reapplyFilters(this, this.filters, callback);
+    reapplyFilters(this, this.filters);
   }
 };
 
@@ -223,7 +234,7 @@ let filterFunction = (filterSettings) => {
   return node => {
     if (filterSettings.filterClassesAndEliminatePkgs) {
       if (node.projectData.type === nodeKinds.package) {
-        return descendants(node, false).reduce((acc, d) => acc || (d.projectData.type !== nodeKinds.package &&
+        return descendants(node, n => n.filteredChildren).reduce((acc, d) => acc || (d.projectData.type !== nodeKinds.package &&
         filterFunction(filterSettings)(d)), false);
       }
       else {
@@ -246,11 +257,6 @@ let filterFunction = (filterSettings) => {
   }
 };
 
-let createNodeMap = root => {
-  root.nodeMap = new Map();
-  descendants(root, true).forEach(d => root.nodeMap.set(d.projectData.fullname, d));
-};
-
 let addChild = (node, child) => {
   node.origChildren.push(child);
   node.currentChildren = node.origChildren;
@@ -269,9 +275,7 @@ let parseJsonNode = (parent, jsonNode) => {
 };
 
 let jsonToRoot = jsonRoot => {
-  let root = parseJsonNode(null, jsonRoot);
-  createNodeMap(root);
-  return root;
+  return parseJsonNode(null, jsonRoot);
 };
 
 module.exports.jsonToRoot = jsonToRoot;
