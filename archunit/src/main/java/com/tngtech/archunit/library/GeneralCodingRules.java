@@ -33,6 +33,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
@@ -52,7 +53,9 @@ public final class GeneralCodingRules {
         ArchCondition<JavaClass> accessToSystemOut = accessField(System.class, "out");
         ArchCondition<JavaClass> accessToSystemErr = accessField(System.class, "err");
         ArchCondition<JavaClass> callOfPrintStackTrace = callMethodWhere(
-                target(name("printStackTrace")).and(target(owner(assignableTo(Throwable.class)))));
+                target(name("printStackTrace"))
+                        .and(target(owner(assignableTo(Throwable.class))))
+                        .and(target(parameterTypes(new Class[0]))));
 
         return accessToSystemOut.or(accessToSystemErr).or(callOfPrintStackTrace).as("access standard streams");
     }
