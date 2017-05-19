@@ -57,6 +57,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
     private final JavaType javaType;
     private final boolean isInterface;
+    private final boolean isEnum;
     private final Set<JavaModifier> modifiers;
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = new HashSet<>();
@@ -89,6 +90,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         source = checkNotNull(builder.getSource());
         javaType = checkNotNull(builder.getJavaType());
         isInterface = builder.isInterface();
+        isEnum = builder.isEnum();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
     }
@@ -116,6 +118,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     @PublicAPI(usage = ACCESS)
     public boolean isInterface() {
         return isInterface;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isEnum() {
+        return isEnum;
     }
 
     @Override

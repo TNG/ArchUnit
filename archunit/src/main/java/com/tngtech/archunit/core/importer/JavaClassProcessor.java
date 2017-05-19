@@ -101,6 +101,7 @@ class JavaClassProcessor extends ClassVisitor {
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
+        boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
         LOG.debug("Found superclass {} on class '{}'", superClassName, name);
 
@@ -108,6 +109,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withSource(createSource(sourceURI))
                 .withType(javaType)
                 .withInterface(opCodeForInterfaceIsPresent)
+                .withEnum(opCodeForEnumIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
         className = javaType.getName();

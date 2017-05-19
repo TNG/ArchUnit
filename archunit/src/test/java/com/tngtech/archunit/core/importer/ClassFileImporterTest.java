@@ -143,6 +143,7 @@ import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStr
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportTwo;
+import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
@@ -204,7 +205,7 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_package() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
-                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName());
+                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName(), EnumToImport.class.getName());
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
@@ -223,8 +224,27 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
+        assertThat(javaClass.isEnum()).as("is enum").isFalse();
 
         assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
+    }
+
+    @Test
+    public void imports_simple_enum() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/simpleimport");
+        JavaClass javaClass = classes.get(EnumToImport.class);
+
+        assertThat(javaClass.getName()).as("full name").isEqualTo(EnumToImport.class.getName());
+        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(EnumToImport.class.getSimpleName());
+        assertThat(javaClass.getPackage()).as("package").isEqualTo(EnumToImport.class.getPackage().getName());
+        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
+        assertThat(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
+        assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
+        Set<JavaClass> allInterfaces = javaClass.getAllInterfaces();
+        assertThat(namesOf(allInterfaces)).as("all interfaces names")
+            .containsExactlyInAnyOrder(Serializable.class.getName(), Comparable.class.getName());
+        assertThat(javaClass.isInterface()).as("is interface").isFalse();
+        assertThat(javaClass.isEnum()).as("is enum").isTrue();
     }
 
     @Test
@@ -238,6 +258,7 @@ public class ClassFileImporterTest {
         assertThat(simpleInterface.getSuperClass()).as("super class").isAbsent();
         assertThat(simpleInterface.getInterfaces()).as("interfaces").isEmpty();
         assertThat(simpleInterface.isInterface()).as("is interface").isTrue();
+        assertThat(simpleInterface.isEnum()).as("is enum").isFalse();
     }
 
     @Test

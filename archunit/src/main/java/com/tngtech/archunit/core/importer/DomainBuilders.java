@@ -276,6 +276,7 @@ public final class DomainBuilders {
         private Optional<Source> source = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
+        private boolean isEnum;
         private Set<JavaModifier> modifiers = new HashSet<>();
 
         JavaClassBuilder() {
@@ -294,6 +295,11 @@ public final class DomainBuilders {
 
         JavaClassBuilder withInterface(boolean isInterface) {
             this.isInterface = isInterface;
+            return this;
+        }
+
+        JavaClassBuilder withEnum(boolean isEnum) {
+            this.isEnum = isEnum;
             return this;
         }
 
@@ -316,6 +322,10 @@ public final class DomainBuilders {
 
         public boolean isInterface() {
             return isInterface;
+        }
+
+        public boolean isEnum() {
+            return isEnum;
         }
 
         public Set<JavaModifier> getModifiers() {
