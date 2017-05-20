@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -25,6 +24,7 @@ import java.util.jar.JarFile;
 import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
@@ -1670,22 +1670,38 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void ImportOptions_are_respected() throws Exception {
-        ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
-
-        assertThat(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).isEmpty();
-        assertThat(importer.importUrl(urlOf(getClass()))).isEmpty();
-        assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
-    }
-
-    @Test
-    public void imports_package() {
+    public void imports_packages() {
         Set<Class<?>> expectedClasses = ImmutableSet.of(getClass(), Rule.class);
         Set<String> packages = packagesOf(expectedClasses);
 
         JavaClasses classes = new ClassFileImporter().importPackages(packages);
 
         assertThatClasses(classes).contain(expectedClasses);
+    }
+
+    @Test
+    public void imports_jars() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importJar(jarFileOf(Rule.class));
+        assertThatClasses(classes).contain(Rule.class);
+        assertThatClasses(classes).dontContain(Object.class, ImmutableList.class);
+
+        classes = new ClassFileImporter().importJars(jarFileOf(Rule.class), jarFileOf(ImmutableList.class));
+        assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
+        assertThatClasses(classes).dontContain(Object.class);
+
+        classes = new ClassFileImporter().importJars(ImmutableList.of(
+                jarFileOf(Rule.class), jarFileOf(ImmutableList.class)));
+        assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
+        assertThatClasses(classes).dontContain(Object.class);
+    }
+
+    @Test
+    public void ImportOptions_are_respected() throws Exception {
+        ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
+
+        assertThat(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).isEmpty();
+        assertThat(importer.importUrl(urlOf(getClass()))).isEmpty();
+        assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
     }
 
     private Set<String> packagesOf(Set<Class<?>> classes) {
@@ -1696,11 +1712,10 @@ public class ClassFileImporterTest {
         return result;
     }
 
-    private JarFile jarFileOf(Class<Rule> clazzInJar) throws IOException {
+    private JarFile jarFileOf(Class<?> clazzInJar) throws IOException {
         String fileName = urlOf(clazzInJar).getFile();
         checkArgument(fileName.contains(".jar!/"), "Class %s is not contained in a JAR", clazzInJar.getName());
-        File file = new File(fileName.replaceAll(".*:", "").replaceAll("!/.*", ""));
-        return new JarFile(file);
+        return new JarFile(fileName.replaceAll(".*:", "").replaceAll("!/.*", ""));
     }
 
     private ImportOption importNothing() {

@@ -155,13 +155,25 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
         }
 
+        public void contain(Class<?>... classes) {
+            contain(ImmutableSet.copyOf(classes));
+        }
+
+        public void dontContain(Class<?>... classes) {
+            assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
+        }
+
         public void contain(Iterable<Class<?>> classes) {
+            List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
+            assertThat(actualNames()).as("actual classes").containsAll(expectedNames);
+        }
+
+        private Set<String> actualNames() {
             Set<String> actualNames = new HashSet<>();
             for (JavaClass javaClass : actual) {
                 actualNames.add(javaClass.getName());
             }
-            List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
-            assertThat(actualNames).as("actual classes").containsAll(expectedNames);
+            return actualNames;
         }
     }
 
