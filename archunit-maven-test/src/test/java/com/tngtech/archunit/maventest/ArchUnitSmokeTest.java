@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import org.junit.runner.RunWith;
@@ -26,4 +27,8 @@ public class ArchUnitSmokeTest {
         assertEquals("Number of fields in ClassTwo", classes.get(ClassTwo.class).getFields().size(), 0);
         assertEquals("Number of methods in ClassTwo", classes.get(ClassTwo.class).getMethods().size(), 1);
     }
+
+    @ArchTest
+    public static final ArchRules hierarchical_rules_to_be_checked_for_evaluation_in_second_surefire_run =
+            ArchRules.in(ArchLibrary.class);
 }
