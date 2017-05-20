@@ -8,6 +8,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
@@ -530,6 +531,15 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
                 ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
+    @Test
+    public void accesses_by_the_class_itself_are_ignored() {
+        ClassesShouldConjunction rule = classes().should().onlyBeAccessed()
+                .byClassesThat(classWithNameOf(ClassAccessingClassAccessingItself.class));
+
+        rule.check(new ClassFileImporter().importClasses(
+                ClassAccessingItself.class, ClassAccessingClassAccessingItself.class));
+    }
+
     private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
     }
@@ -642,6 +652,19 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     private static class ClassBeingAccessedByClassImplementingSomeInterface {
+    }
 
+    private static class ClassAccessingItself {
+        private String field;
+
+        ClassAccessingItself(String field) {
+            this.field = field;
+        }
+    }
+
+    private static class ClassAccessingClassAccessingItself {
+        void call() {
+            new ClassAccessingItself("foo");
+        }
     }
 }
