@@ -167,8 +167,7 @@
     </div>
 </div>
 <script src="d3.js"></script>
-<script src="graph-bundle.js"></script>
-<script src="graph-visualizer-bundle.js"></script>
+<script src="visualization-bundle.js"></script>
 <script>
   //must match the fontsize in the CSS-declaration
   let FONT_SIZE = 12;
@@ -184,8 +183,8 @@
   //the width of the click area of the lines
   let CLICK_AREA_WIDTH = 10;
 
-  const jsonToGraph = require('graph').jsonToGraph;
-  const visualizer = require('graph-visualizer').visualizer;
+  const jsonToGraph = require('visualization').jsonToGraph;
+  const visualizer = require('visualization').visualizer;
 
   let graph;
   let depWithCurrentDetailedDeps;
@@ -555,7 +554,6 @@
   }
 
   function setRule(sheet, selectorText, value) {
-    let res = selectorText + " " + value;
     let index = getRule(sheet, selectorText);
     sheet.deleteRule(index);
     sheet.insertRule(selectorText + " " + value, index);
