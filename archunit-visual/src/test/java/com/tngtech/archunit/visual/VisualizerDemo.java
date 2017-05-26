@@ -4,10 +4,9 @@ import java.io.File;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
+//@Ignore
 public class VisualizerDemo {
     @Test
     public void build_report() throws Exception {
@@ -17,7 +16,7 @@ public class VisualizerDemo {
                 "java.io", "com.google.common.io");
 
         new Visualizer().visualize(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()), "example-report"),
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"),
                 new VisualizationContext.Builder()
                         .includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io")
                         .build());
