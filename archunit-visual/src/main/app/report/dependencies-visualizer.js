@@ -29,7 +29,6 @@ let getTitleOffset = (angleRad, textPadding) => {
     Math.round(textPadding * Math.cos(angleRad))];
 };
 
-
 let VisualData = class {
   constructor() {
     this.startPoint = {};
@@ -79,7 +78,6 @@ let VisualData = class {
     let offset = getTitleOffset(this.angleRad, textPadding);
     return "translate(" + (this.middlePoint.x + offset[0]) + "," + (this.middlePoint.y - offset[1]) + ") " +
         "rotate(" + this.angleDeg + ")";
-    x
   }
 };
 

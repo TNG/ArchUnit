@@ -1,4 +1,4 @@
-defaultCoordinate = Math.sqrt(2) / 2;
+const defaultCoordinate = Math.sqrt(2) / 2;
 
 let subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x, vector1.y - vector2.y);
 
@@ -8,10 +8,7 @@ let vectors = {
   distance: (vector1, vector2) => getLength(subVectors(vector1, vector2)),
 
   vectorOf: (x, y) => {
-    return {
-      x: x,
-      y: y
-    }
+    return {x, y}
   },
 
   cloneVector: vector => {

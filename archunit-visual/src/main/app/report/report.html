@@ -226,6 +226,7 @@
         .showAnonymousImplementing(true)
         .showDepsBetweenChildAndParent(false);
     updateEdges();
+    // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
     showDetailedDepsOf(depWithCurrentDetailedDeps);
   }
 

@@ -32,7 +32,6 @@ let unique = dependencies => {
   let map = new Map();
   tmp.forEach(e => {
     if (map.has(e[0])) {
-      let i = e[0].indexOf("->");
       let old = map.get(e[0]);
       let newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
       map.set(e[0], newDep);
@@ -116,7 +115,7 @@ let Dependencies = class {
     return e => e.from + "->" + e.to;
   }
 
-  changeFold(foldedElement, isFolded, res) {
+  changeFold(foldedElement, isFolded) {
     if (isFolded) {
       changeFold(this, dependencies => dependencies._transformers.set(foldedElement, foldTransformer(foldedElement)));
     }
@@ -221,26 +220,24 @@ let collectDependencies = () => ({
   })
 });
 
-let addAllDependencies = () => ({
-  ofJsonElement: jsonElement => ({
-    toArray: arr => {
-      if (jsonElement.type !== nodeKinds.package) {
-        collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.inheritance).ofJsonElement(jsonElement).inArray(arr);
-        collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.access).ofJsonElement(jsonElement).inArray(arr);
-      }
-
-      if (jsonElement.hasOwnProperty("children")) {
-        jsonElement.children.forEach(c => addAllDependencies().ofJsonElement(c).toArray(arr));
-      }
+let addAllDependenciesOfJsonElement = jsonElement => ({
+  toArray: arr => {
+    if (jsonElement.type !== nodeKinds.package) {
+      collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.inheritance).ofJsonElement(jsonElement).inArray(arr);
+      collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.access).ofJsonElement(jsonElement).inArray(arr);
     }
-  })
+
+    if (jsonElement.hasOwnProperty("children")) {
+      jsonElement.children.forEach(c => addAllDependenciesOfJsonElement(c).toArray(arr));
+    }
+  }
 });
 
 let jsonToDependencies = (jsonRoot, nodeMap) => {
   let arr = [];
   nodes = nodeMap;
   buildDependency = createDependencyBuilder(nodeMap);
-  addAllDependencies().ofJsonElement(jsonRoot).toArray(arr);
+  addAllDependenciesOfJsonElement(jsonRoot).toArray(arr);
   return new Dependencies(arr);
 };
 
