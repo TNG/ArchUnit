@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -7,7 +8,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -146,11 +149,14 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImpor
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -191,11 +197,16 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public final LogTestRule logTest = new LogTestRule();
 
     @After
     public void tearDown() {
@@ -1644,6 +1655,22 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void import_is_resilient_against_broken_class_files() throws Exception {
+        Class<?> expectedClass = getClass();
+
+        File folder = temporaryFolder.newFolder();
+        copyClassFile(expectedClass, folder);
+        Files.write(new File(folder, "Evil.class").toPath(), "broken".getBytes(UTF_8));
+
+        logTest.watch(ClassFileProcessor.class);
+
+        JavaClasses classes = new ClassFileImporter().importPath(folder.toPath());
+
+        assertThatClasses(classes).matchExactly(expectedClass);
+        logTest.assertLogMessage(Level.WARN, "Evil.class");
+    }
+
+    @Test
     public void class_has_source_of_import() throws Exception {
         ArchConfiguration.get().setMd5InClassSourcesEnabled(true);
 
@@ -1702,6 +1729,10 @@ public class ClassFileImporterTest {
         assertThat(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).isEmpty();
         assertThat(importer.importUrl(urlOf(getClass()))).isEmpty();
         assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
+    }
+
+    private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
+        Files.copy(Paths.get(urlOf(clazz).toURI()), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
     }
 
     private Set<String> packagesOf(Set<Class<?>> classes) {

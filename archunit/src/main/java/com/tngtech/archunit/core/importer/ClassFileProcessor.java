@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Set;
@@ -55,8 +54,8 @@ class ClassFileProcessor {
                         new JavaClassProcessor(location.getUri(), classDetailsRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
                 importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                LOG.warn(String.format("Couldn't import class from %s", location.getUri()), e);
             }
         }
         return new ClassGraphCreator(importRecord, getClassResolver(classDetailsRecorder)).complete();
