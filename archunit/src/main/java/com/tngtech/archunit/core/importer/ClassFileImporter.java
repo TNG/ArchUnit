@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,7 +36,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 /**
@@ -63,8 +63,36 @@ public final class ClassFileImporter {
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaClasses importPath(String path) {
+        return importPaths(path);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaClasses importPath(Path path) {
-        return importLocations(singleton(Location.of(path)));
+        return importPaths(path);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPaths(String... paths) {
+        Set<Path> pathSet = new HashSet<>();
+        for (String path : paths) {
+            pathSet.add(Paths.get(path));
+        }
+        return importPaths(pathSet);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPaths(Path... paths) {
+        return importPaths(ImmutableSet.copyOf(paths));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPaths(Collection<Path> paths) {
+        Set<Location> locations = new HashSet<>();
+        for (Path path : paths) {
+            locations.add(Location.of(path));
+        }
+        return importLocations(locations);
     }
 
     @PublicAPI(usage = ACCESS)

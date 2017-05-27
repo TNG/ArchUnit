@@ -144,6 +144,10 @@ import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfCl
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
+import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
+import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
+import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class21;
+import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class22;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -1707,28 +1711,35 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_jars() throws Exception {
-        JavaClasses classes = new ClassFileImporter().importJar(jarFileOf(Rule.class));
-        assertThatClasses(classes).contain(Rule.class);
-        assertThatClasses(classes).dontContain(Object.class, ImmutableList.class);
+    public void imports_paths() throws Exception {
+        File exampleFolder = new File(new File(urlOf(getClass()).toURI()).getParentFile(), "testexamples");
+        File folderOne = new File(exampleFolder, "pathone");
+        File folderTwo = new File(exampleFolder, "pathtwo");
 
-        classes = new ClassFileImporter().importJars(jarFileOf(Rule.class), jarFileOf(ImmutableList.class));
-        assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
-        assertThatClasses(classes).dontContain(Object.class);
+        JavaClasses classes = new ClassFileImporter()
+                .importPaths(ImmutableList.of(folderOne.toPath(), folderTwo.toPath()));
+        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
 
-        classes = new ClassFileImporter().importJars(ImmutableList.of(
-                jarFileOf(Rule.class), jarFileOf(ImmutableList.class)));
-        assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
-        assertThatClasses(classes).dontContain(Object.class);
+        classes = new ClassFileImporter().importPaths(folderOne.toPath(), folderTwo.toPath());
+        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
+
+        classes = new ClassFileImporter().importPaths(folderOne.getAbsolutePath(), folderTwo.getAbsolutePath());
+        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
+
+        classes = new ClassFileImporter().importPath(folderOne.toPath());
+        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class);
+
+        classes = new ClassFileImporter().importPath(folderOne.getAbsolutePath());
+        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class);
     }
 
     @Test
     public void ImportOptions_are_respected() throws Exception {
-        ClassFileImporter importer = new ClassFileImporter().withImportOption(importNothing());
+        ClassFileImporter importer = new ClassFileImporter().withImportOption(importOnly(getClass(), Rule.class));
 
-        assertThat(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).isEmpty();
-        assertThat(importer.importUrl(urlOf(getClass()))).isEmpty();
-        assertThat(importer.importJar(jarFileOf(Rule.class))).isEmpty();
+        assertThatClasses(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).matchExactly(getClass());
+        assertThatClasses(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
+        assertThatClasses(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
     }
 
     private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
@@ -1743,16 +1754,21 @@ public class ClassFileImporterTest {
         return result;
     }
 
-    private JarFile jarFileOf(Class<?> clazzInJar) throws IOException {
+    static JarFile jarFileOf(Class<?> clazzInJar) throws IOException {
         String fileName = urlOf(clazzInJar).getFile();
         checkArgument(fileName.contains(".jar!/"), "Class %s is not contained in a JAR", clazzInJar.getName());
         return new JarFile(fileName.replaceAll(".*:", "").replaceAll("!/.*", ""));
     }
 
-    private ImportOption importNothing() {
+    private ImportOption importOnly(final Class<?>... classes) {
         return new ImportOption() {
             @Override
             public boolean includes(Location location) {
+                for (Class<?> c : classes) {
+                    if (location.contains(urlOf(c).getFile())) {
+                        return true;
+                    }
+                }
                 return false;
             }
         };
