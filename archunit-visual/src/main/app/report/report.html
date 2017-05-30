@@ -170,18 +170,18 @@
 <script src="visualization-bundle.js"></script>
 <script>
   //must match the fontsize in the CSS-declaration
-  let FONT_SIZE = 12;
+  let fontSize = 12;
   //padding between the text in a circle and the rim of the circle
   const CIRCLE_TEXT_PADDING = 5;
   //minimum padding between the circles
-  let CIRCLE_PADDING = 10;
+  const CIRCLE_PADDING = 10;
 
   //defines after which proportion of the circle the text is positioned; only affects nodes
   const RELATIVE_TEXT_POSITION = 0.8;
   //padding between a line and its title
   const TEXT_PADDING = 5;
   //the width of the click area of the lines
-  let CLICK_AREA_WIDTH = 10;
+  let clickAreaWidth = 10;
 
   const TRANSITION_DURATION = 300;
   const APPEAR_DURATION = 10;
@@ -200,20 +200,20 @@
     d3.select("#tester").style("display", "inline");
     let tester = d3.select("#tester").select("text");
     tester.text(text);
-    tester.style("font-size", FONT_SIZE);
+    tester.style("font-size", fontSize);
     let width = tester.node().getBBox().width;
     d3.select("#tester").style("display", "none");
     return width;
   };
 
-  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, d3.packSiblings, d3.packEnclose);
 
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
     graph = jsonToGraph(jsonroot);
     layout();
     initializeGraph();
-    graph.foldAllNodes();
+    graph.foldAllNodes(n => visualizer.updateOnFolding(graph, n));
     updateWholeVisualization(false);
     initializeFilter();
   });
@@ -228,13 +228,12 @@
         .showAnonymousImplementing(true)
         .showDepsBetweenChildAndParent(false);
     updateEdges(d => true);
-    updateEdges();
     // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
     showDetailedDepsOf(depWithCurrentDetailedDeps);
   }
 
   function layout() {
-    visualizer.visualizeGraph(graph, d3.packSiblings, d3.packEnclose, CIRCLE_PADDING);
+    visualizer.visualizeGraph(graph);
     svg.attr("width", 2 * graph.root.visualData.r + 4);
     svg.attr("height", 2 * graph.root.visualData.r + 4);
   }
@@ -261,13 +260,14 @@
 
     let drag = d3.drag().on("drag", d => {
       visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
-      updateAfterDragging(d);
+      updateVisualizationAfterDragging(d);
     });
 
     nodes
         .filter(d => !d.isRoot())
         .on("click", d => {
           if (graph.changeFoldStateOfNode(d)) {
+            visualizer.updateOnFolding(graph, d);
             updateVisualizationAfterFold(d);
           }
         })
@@ -342,7 +342,7 @@
         .attr("class", "area")
         .style("visibility", "hidden")
         .style("pointer-events", "all")
-        .style("stroke-width", CLICK_AREA_WIDTH)
+        .style("stroke-width", clickAreaWidth)
         .style("stroke", "yellow")
         .attr("x1", e => e.visualData.startPoint.x)
         .attr("y1", e => e.visualData.startPoint.y)
@@ -384,7 +384,7 @@
 
   function getDy(d) {
     if (d.isRoot()) {
-      return -d.visualData.r + FONT_SIZE;
+      return -d.visualData.r + fontSize;
     }
     else if (d.isCurrentlyLeaf()) {
       return 0;
@@ -401,11 +401,11 @@
    **/
   function computeTextShift(r, width) {
     let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-    shift = -shift + FONT_SIZE;
+    shift = -shift + fontSize;
     return shift;
   }
 
-  function updateAfterDragging(node) {
+  function updateVisualizationAfterDragging(node) {
     gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
     updateEdgePosition(gEdges.selectAll("g").filter(d => d.from.startsWith(node.projectData.fullname)
     || d.to.startsWith(node.projectData.fullname)), false, () => {
@@ -669,8 +669,8 @@
   }
 
   function applyDepMenu(form) {
-    CLICK_AREA_WIDTH = form.clickareaWidth.value;
-    gEdges.selectAll("g").select("#area").style("stroke-width", CLICK_AREA_WIDTH);
+    clickAreaWidth = form.clickareaWidth.value;
+    gEdges.selectAll("g").select("#area").style("stroke-width", clickAreaWidth);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
     setRule(sheet, 'text.access', '{ font-weight: normal; font-size: ' + form.edgefontsize.value + 'px; }');
@@ -678,11 +678,11 @@
   }
 
   function applyOtherMenu(form) {
-    FONT_SIZE = parseInt(form.circfontsize.value);
+    fontSize = parseInt(form.circfontsize.value);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
-    setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + FONT_SIZE + 'px; }');
-    CIRCLE_PADDING = parseInt(form.circpadding.value);
+    setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + fontSize + 'px; }');
+    visualizer.setCirclePadding(parseInt(form.circpadding.value));
     layout();
     updateWholeVisualization(true);
     return false;

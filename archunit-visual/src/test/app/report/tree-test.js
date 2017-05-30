@@ -78,7 +78,8 @@ describe("Tree", () => {
 
   it("does the initial fold correct (fold each node except the root)", () => {
     let tree = testObjects.testTree2();
-    tree.root.foldAllNodes();
+    tree.root.foldAllNodes(node => {
+    });
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
     //check if the hidden packages are also folded

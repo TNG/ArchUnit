@@ -122,7 +122,7 @@ let Dependencies = class {
     else {
       changeFold(this, dependencies => dependencies._transformers.delete(foldedElement));
     }
-    this.observers.forEach(f => f(this.getVisible()));
+    //this.observers.forEach(f => f(this.getVisible()));
   }
 
   setNodeFilters(filters) {

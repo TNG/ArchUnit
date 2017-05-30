@@ -49,7 +49,7 @@ let fold = (node, folded) => {
       node.currentChildren = node.filteredChildren;
     }
 
-    node.observers.forEach(f => f(node));
+    //node.observers.forEach(f => f(node));
     return true;
   }
   return false;
@@ -89,12 +89,12 @@ let Node = class {
     this.currentChildren = this.filteredChildren;
     this.isFolded = false;
     this.filters = new Map();
-    this.observers = parent ? parent.observers : [];
+    //this.observers = parent ? parent.observers : [];
   }
 
-  addObserver(observerFunction) {
+  /*addObserver(observerFunction) {
     this.observers.push(observerFunction);
-  }
+   }*/
 
   isRoot() {
     return !this.parent;
@@ -134,10 +134,22 @@ let Node = class {
     return this.projectData.name + "(" + subTree + ")";
   }
 
-  foldAllNodes() {
+  foldAllNodes(callback) {
     if (!isLeaf(this)) {
-      this.currentChildren.forEach(d => d.foldAllNodes());
-      if (!this.isRoot()) fold(this, true);
+      this.currentChildren.forEach(d => d.foldAllNodes(callback));
+      if (!this.isRoot()) {
+        fold(this, true);
+        callback(this);
+      }
+    }
+  }
+
+  dfs(fun) {
+    if (!isLeaf(this)) {
+      this.currentChildren.forEach(c => c.dfs(fun));
+      if (!this.isRoot()) {
+        fun(this);
+      }
     }
   }
 

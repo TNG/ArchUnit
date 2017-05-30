@@ -45,9 +45,14 @@ let Graph = class {
     return false;
   }
 
-  foldAllNodes() {
-    this.root.foldAllNodes();
-    this.root.getAllDescendants().forEach(node => this.dependencies.changeFold(node.projectData.fullname, node.isFolded));
+  foldAllNodes(callback) {
+    this.root.dfs(node => {
+      if (this.changeFoldStateOfNode(node)) {
+        callback(node);
+      }
+    });
+    //this.root.foldAllNodes(callback);
+    //this.root.getAllDescendants().forEach(node => this.dependencies.changeFold(node.projectData.fullname, node.isFolded));
   }
 
   getDetailedDependenciesOf(from, to) {

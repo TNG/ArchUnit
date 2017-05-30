@@ -1,8 +1,11 @@
 'use strict';
 
-let TEXT_WIDTH;
-let CIRCLE_TEXT_PADDING;
-let RELATIVE_TEXT_POSITION;
+let textWidth;
+let circleTextPadding;
+let relativeTextPosition;
+let circlePadding;
+let packSiblings;
+let packEnclose;
 
 let isOrigLeaf = node => node.origChildren.length === 0;
 //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die wenigen übrigen Klassen größer werden
@@ -74,7 +77,7 @@ let VisualData = class {
 };
 
 let radiusOfLeafWithTitle = title => {
-  return TEXT_WIDTH(title) / 2 + CIRCLE_TEXT_PADDING;
+  return textWidth(title) / 2 + circleTextPadding;
 };
 
 let radiusOfAnyNode = (node, TEXT_POSITION) => {
@@ -87,19 +90,19 @@ let radiusOfAnyNode = (node, TEXT_POSITION) => {
   }
 };
 
-let recVisualizeTree = (node, packSiblings, packEnclose, circpadding) => {
+let recVisualizeTree = (node) => {
   if (isOrigLeaf(node)) {
-    createVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
+    createVisualData(node, 0, 0, radiusOfAnyNode(node, relativeTextPosition));
   }
   else {
-    node.origChildren.forEach(c => recVisualizeTree(c, packSiblings, packEnclose, circpadding, RELATIVE_TEXT_POSITION));
+    node.origChildren.forEach(c => recVisualizeTree(c));
     let visualDataOfChildren = node.origChildren.map(c => c.visualData);
-    visualDataOfChildren.forEach(c => c.r += circpadding / 2);
+    visualDataOfChildren.forEach(c => c.r += circlePadding / 2);
     packSiblings(visualDataOfChildren);
     let circ = packEnclose(visualDataOfChildren);
-    visualDataOfChildren.forEach(c => c.r -= circpadding / 2);
+    visualDataOfChildren.forEach(c => c.r -= circlePadding / 2);
     let childradius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-    createVisualData(node, circ.x, circ.y, Math.max(circ.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childradius / RELATIVE_TEXT_POSITION));
+    createVisualData(node, circ.x, circ.y, Math.max(circ.r, radiusOfAnyNode(node, relativeTextPosition), childradius / relativeTextPosition));
     visualDataOfChildren.forEach(c => {
       c.dx = c.x - node.visualData.x;
       c.dy = c.y - node.visualData.y;
@@ -127,22 +130,31 @@ let calcPositionAndSetRadius = node => {
   }
 };
 
-let visualizeTree = (root, packSiblings, packEnclose, circpadding) => {
-  recVisualizeTree(root, packSiblings, packEnclose, circpadding);
+let visualizeTree = (root) => {
+  recVisualizeTree(root);
   calcPositionAndSetRadius(root);
-  root.addObserver(adaptToFoldState);
+  //root.addObserver(adaptToFoldState);
 };
 
 let createVisualData = (node, x, y, r) => {
   node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
-let setStyles = (textWidthFunction, circleTextPadding, relativeTextPosition) => {
-  TEXT_WIDTH = textWidthFunction;
-  CIRCLE_TEXT_PADDING = circleTextPadding;
-  RELATIVE_TEXT_POSITION = relativeTextPosition;
+let setStyles = (text_width_function, circle_text_padding, relative_text_position, circle_padding, pack_siblings, pack_enclose) => {
+  textWidth = text_width_function;
+  circleTextPadding = circle_text_padding;
+  relativeTextPosition = relative_text_position;
+  circlePadding = circle_padding;
+  packSiblings = pack_siblings;
+  packEnclose = pack_enclose;
 };
 
-module.exports.setStyles = setStyles;
-module.exports.visualizeTree = visualizeTree;
-module.exports.dragNode = dragNode;
+let setCirclePadding = circle_padding => circlePadding = circle_padding;
+
+module.exports.treeVisualizer = {
+  setStyles: setStyles,
+  setCirclePadding: setCirclePadding,
+  visualizeTree: visualizeTree,
+  dragNode: dragNode,
+  adaptToFoldState: adaptToFoldState
+};

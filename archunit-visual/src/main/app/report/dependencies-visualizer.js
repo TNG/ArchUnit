@@ -100,5 +100,8 @@ let visualizeDependencies = dependencies => {
   dependencies.addObserver(refreshVisualDataOfDependencies);
 };
 
-module.exports.refreshVisualDataOf = refreshVisualDataOf;
-module.exports.visualizeDependencies = visualizeDependencies;
+module.exports.dependenciesVisualizer = {
+  refreshVisualDataOf: refreshVisualDataOf,
+  visualizeDependencies: visualizeDependencies,
+  refreshVisualDataOfDependencies: refreshVisualDataOfDependencies
+};

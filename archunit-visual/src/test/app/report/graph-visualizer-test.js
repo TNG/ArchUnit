@@ -15,12 +15,12 @@ const packSiblings = require("../../../main/app/report/lib/d3.js").packSiblings;
 const packEnclose = require("../../../main/app/report/lib/d3.js").packEnclose;
 
 const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
-visualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+visualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);
 
 describe("Visualizer", () => {
   it("visualizes the tree and the dependencies correctly", () => {
     let graphWrapper = testObjects.testGraph2();
-    visualizer.visualizeGraph(graphWrapper.graph, packSiblings, packEnclose, CIRCLE_PADDING);
+    visualizer.visualizeGraph(graphWrapper.graph);
     let checkLayout = node => {
       expect(node).to.haveTextWithinCircle(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
