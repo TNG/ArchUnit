@@ -1,11 +1,43 @@
+div {
+    font-family: Verdana;
+    font-size: 12px;
+}
+
 #filters, #menu, #detailedDeps {
     display: none;
     padding: 5px;
 }
 
-div {
-    font-family: Verdana;
-    font-size: 12px;
+#detailedDeps {
+    width: 250px;
+    white-space: normal;
+    vertical-align: top;
+    margin-right: 10px;
+    resize: horizontal;
+    overflow: auto;
+}
+
+#tester {
+    display: none;
+}
+
+#container {
+    white-space: nowrap;
+}
+
+#headerDetailedDeps {
+    font-size: inherit;
+    width: inherit;
+}
+
+#svgContainer {
+    display: inline-block;
+    white-space: normal;
+    vertical-align: top;
+}
+
+#visualization {
+    border: solid 1px black;
 }
 
 .jscolor, .number {

@@ -38,11 +38,6 @@ let dragNode = (node, dx, dy, force) => {
   node.visualData.move(dx, dy, node.parent, () => node.origChildren.forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
 
-let updateFunction = updateVisualDataOfDependencies => node => {
-  adaptToFoldState(node);
-  updateVisualDataOfDependencies(node.getVisibleEdges());
-};
-
 let adaptToFoldState = node => {
   if (node.isFolded) {
     node.visualData.r = getFoldedRadius(node);
@@ -56,11 +51,12 @@ let adaptToFoldState = node => {
 };
 
 let VisualData = class {
-  constructor(x, y, r) {
+  constructor(x, y, r, oldVisualData) {
     this.x = x;
     this.y = y;
     this.origRadius = r;
     this.r = this.origRadius;
+    this.visible = oldVisualData ? oldVisualData.visible : false;
     //this.dragPro = new DragProtocol(this.x, this.y);
   }
 
@@ -138,7 +134,7 @@ let visualizeTree = (root, packSiblings, packEnclose, circpadding) => {
 };
 
 let createVisualData = (node, x, y, r) => {
-  node.visualData = new VisualData(x, y, r);
+  node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
 let setStyles = (textWidthFunction, circleTextPadding, relativeTextPosition) => {
@@ -150,4 +146,3 @@ let setStyles = (textWidthFunction, circleTextPadding, relativeTextPosition) => 
 module.exports.setStyles = setStyles;
 module.exports.visualizeTree = visualizeTree;
 module.exports.dragNode = dragNode;
-module.exports.adaptToFoldState = adaptToFoldState;
