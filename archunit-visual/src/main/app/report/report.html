@@ -234,6 +234,10 @@
 
   function layout() {
     visualizer.visualizeGraph(graph);
+    adaptSVGSize();
+  }
+
+  function adaptSVGSize(animation) {
     svg.attr("width", 2 * graph.root.visualData.r + 4);
     svg.attr("height", 2 * graph.root.visualData.r + 4);
   }
@@ -413,7 +417,7 @@
   }
 
   function updateVisualizationAfterFold(node) {
-    updateVisualization(d => d.isChildOf(node), true);
+    updateVisualization(d => true, true); //ursprünglich: d => d.isChildOf(node)
   }
 
   function updateWholeVisualization(animate) {
@@ -421,6 +425,7 @@
   }
 
   function updateVisualization(filter, animate) {
+    adaptSVGSize();
     updateNodes(filter, animate);
     updateEdges(filter, animate);
   }

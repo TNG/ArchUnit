@@ -1,3 +1,8 @@
+svg {
+    min-height: 600px;
+    min-width: 600px;
+}
+
 div {
     font-family: Verdana;
     font-size: 12px;

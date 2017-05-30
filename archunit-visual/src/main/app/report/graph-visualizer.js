@@ -15,7 +15,8 @@ let drag = (graph, node, dx, dy, force) => {
 };
 
 let updateOnFolding = (graph, node) => {
-  treeVisualizer.adaptToFoldState(node);
+  //treeVisualizer.adaptToFoldState(node);
+  treeVisualizer.visualizeTree(graph.root);
   dependenciesVisualizer.refreshVisualDataOfDependencies(graph.getVisibleDependencies())
 };
 

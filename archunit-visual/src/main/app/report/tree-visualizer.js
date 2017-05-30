@@ -91,18 +91,21 @@ let radiusOfAnyNode = (node, TEXT_POSITION) => {
 };
 
 let recVisualizeTree = (node) => {
-  if (isOrigLeaf(node)) {
+  //isOrigLeaf(node)
+  if (node.isCurrentlyLeaf()) {
     createVisualData(node, 0, 0, radiusOfAnyNode(node, relativeTextPosition));
   }
   else {
-    node.origChildren.forEach(c => recVisualizeTree(c));
-    let visualDataOfChildren = node.origChildren.map(c => c.visualData);
+    //everywhere currentChildren instead of originally origChildren
+    node.currentChildren.forEach(c => recVisualizeTree(c));
+
+    let visualDataOfChildren = node.currentChildren.map(c => c.visualData);
     visualDataOfChildren.forEach(c => c.r += circlePadding / 2);
     packSiblings(visualDataOfChildren);
-    let circ = packEnclose(visualDataOfChildren);
+    let circle = packEnclose(visualDataOfChildren);
     visualDataOfChildren.forEach(c => c.r -= circlePadding / 2);
-    let childradius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-    createVisualData(node, circ.x, circ.y, Math.max(circ.r, radiusOfAnyNode(node, relativeTextPosition), childradius / relativeTextPosition));
+    let childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
+    createVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, relativeTextPosition), childRadius / relativeTextPosition));
     visualDataOfChildren.forEach(c => {
       c.dx = c.x - node.visualData.x;
       c.dy = c.y - node.visualData.y;
@@ -115,8 +118,10 @@ let calcPositionAndSetRadius = node => {
     node.visualData.x = node.visualData.r;
     node.visualData.y = node.visualData.r;
   }
-  if (!isOrigLeaf(node)) {
-    node.origChildren.forEach(c => {
+  //if (!isOrigLeaf(node)) {
+  if (!node.isCurrentlyLeaf()) {
+    //node.origChildren.forEach(c => {
+    node.currentChildren.forEach(c => {
       c.visualData.x = node.visualData.x + c.visualData.dx;
       c.visualData.y = node.visualData.y + c.visualData.dy;
       c.visualData.dx = undefined;
@@ -125,9 +130,9 @@ let calcPositionAndSetRadius = node => {
     });
   }
 
-  if (node.isFolded) {
+  /*if (node.isFolded) {
     node.visualData.r = getFoldedRadius(node);
-  }
+   }*/
 };
 
 let visualizeTree = (root) => {
