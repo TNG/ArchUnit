@@ -80,6 +80,10 @@ public abstract class Location {
         return Location.of(URI.create(uri + relativeURI));
     }
 
+    boolean startsWith(Location location) {
+        return uri.toString().startsWith(location.asURI().toString());
+    }
+
     void checkScheme(String scheme, URI uri) {
         checkArgument(scheme.equals(uri.getScheme()),
                 "URI %s of %s must have scheme %s, but has %s",

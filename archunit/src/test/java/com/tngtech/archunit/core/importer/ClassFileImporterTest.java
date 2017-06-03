@@ -211,6 +211,8 @@ public class ClassFileImporterTest {
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
     @Rule
     public final LogTestRule logTest = new LogTestRule();
+    @Rule
+    public final IndependentClassLoaderRule independentClassLoaderRule = new IndependentClassLoaderRule();
 
     @After
     public void tearDown() {
@@ -1708,6 +1710,30 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importPackages(packages);
 
         assertThatClasses(classes).contain(expectedClasses);
+    }
+
+    /**
+     * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder()}
+     */
+    @Test
+    public void imports_packages_even_if_jar_entry_for_package_is_missing() throws Exception {
+        String packageToImport = independentClassLoaderRule.getIndependentTopLevelPackage();
+
+        ClassFileImporter classFileImporter = new ClassFileImporter();
+        JavaClasses classes = classFileImporter.importPackages(packageToImport);
+        assertThat(classes).extracting("name")
+                .doesNotContain(independentClassLoaderRule.getNameOfSomeContainedClass());
+
+        independentClassLoaderRule.configureContextClassLoaderAsIndependentClassLoader();
+
+        classes = classFileImporter.importUrl(independentClassLoaderRule.getUrlOfIndependentClassLoader());
+        assertThat(classes).extracting("name")
+                .containsAll(independentClassLoaderRule.getNamesOfClasses());
+        assertThat(classes).extracting("package")
+                .containsAll(independentClassLoaderRule.getPackagesOfClasses());
+
+        classes = classFileImporter.importPackages(packageToImport);
+        assertThat(classes).extracting("name").contains(independentClassLoaderRule.getNameOfSomeContainedClass());
     }
 
     @Test
