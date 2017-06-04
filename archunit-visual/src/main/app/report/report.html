@@ -169,7 +169,12 @@
 <script src="d3.js"></script>
 <script src="visualization-bundle.js"></script>
 <script>
-  //must match the fontsize in the CSS-declaration
+
+  // FIXME: Eliminate 'must match' with CSS. We could fill a CSS template, or look at using CSS variables and accessing them from JS
+  // FIXME: Also try to use cascading or variables for things that must match in CSS. At least the many font-size: 12px look suspicious,
+  //        is this still working, if I only change one font-size??
+
+  // must match the fontsize in the CSS-declaration
   let fontSize = 12;
   //padding between the text in a circle and the rim of the circle
   const CIRCLE_TEXT_PADDING = 5;
@@ -502,6 +507,7 @@
   }
 
   function updateLinePosition(edges, animate, callback) {
+    // FIXME: Let's just decide once and for all, if we animate, or not? Why would we want to turn this off? KISS ;-)
     if (animate) {
       let n = 0;
       let deps = edges.select("#dep");
