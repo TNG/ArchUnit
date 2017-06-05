@@ -1,179 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Visualization</title>
-    <link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Visualization</title>
+  <link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
+  <link rel="stylesheet" href="styles.css">
 
-    <script src="webcomponents-hi-sd-ce.js"></script>
-    <script src="jscolor.js"></script>
-    <script src="d3.js"></script>
-    <script src="visualization-bundle.js"></script>
+  <script src="webcomponents-hi-sd-ce.js"></script>
+  <script src="jscolor.js"></script>
+  <script src="d3.js"></script>
+  <script src="visualization-bundle.js"></script>
 
-    <link rel="import" href="menu.html">
+  <link rel="import" href="menu.html">
 </head>
 <body>
 
 <visualization-menu id='filter-menu'></visualization-menu>
 
 <svg id="tester">
-    <text></text>
+  <text></text>
 </svg>
 <div>
-    <button id="showHideFilter" onclick="changeFilterVisibility()">Show filter</button>
-    <button id="showHideMenu" onclick="changeMenuVisibility()">Show menu</button>
-    <button id="showHideDeps" onclick="changeDepsVisibility()">Show detailed dependencies</button>
+  <button id="showHideFilter" onclick="changeFilterVisibility()">Show filter</button>
+  <button id="showHideMenu" onclick="changeMenuVisibility()">Show menu</button>
+  <button id="showHideDeps" onclick="changeDepsVisibility()">Show detailed dependencies</button>
 </div>
 <div id="filters">
-    <div class="forms">
-        <form id="filterbyname" action="#" onsubmit="return filterByName(this);" onreset="return resetFilterByName();">
-            <fieldset class="inputs">
-                <legend>Filter-String:</legend>
-                <input type="text" name="filter"><br>
-                <input type="checkbox" name="matchCase">match case
-            </fieldset>
-            <fieldset class="inputs">
-                <legend>Filter by:</legend>
-                <input type="radio" name="filterBy" value="simplename" checked>simplename<br>
-                <input type="radio" name="filterBy" value="fullname">fullname
-            </fieldset>
-            <fieldset class="inputs">
-                <legend>What to filter:</legend>
-                <input type="radio" name="whatToFilter" value="filterClassesAndEliminatePkgs" checked>
-                filter classes and eliminate packages without matching classes<br>
-                <input type="radio" name="whatToFilter" value="filterPkgsOrClasses">filter the following:
-                <fieldset class="subinputs">
-                    <input type="checkbox" name="filterPackages" value="packages">packages<br>
-                    <input type="checkbox" name="filterClasses" value="classes">classes
-                </fieldset>
-            </fieldset>
-            <fieldset class="inputs">
-                <legend>How to filter:</legend>
-                <input type="radio" name="howToFilter" value="inclusive" checked>inclusive<br>
-                <input type="radio" name="howToFilter" value="exclusive">exclusive<br>
-            </fieldset>
-        </form>
-        <form id="filterbytype" action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();">
-            <fieldset class="inputs">
-                <legend>Show classes:</legend>
-                <input type="checkbox" name="showInterfaces" value="interfaces" checked>
-                interfaces<br>
-                <input type="checkbox" name="showClasses" value="classes" checked>
-                classes<br>
-                <input type="checkbox" name="eliminatePkgs" value="eliminatePkgs" checked>
-                eliminate packages<br>
-            </fieldset>
-        </form>
-        <form id="filterdepsbykind" action="#" onsubmit="return filterDepsByKind(this);"
-              onreset="return resetFilterDepsByKind();">
-            <fieldset class="inputs">
-                <legend>Show dependencies:</legend>
-                <input type="checkbox" name="showImplementing" value="implementing" checked>
-                implementing<br>
-                <input type="checkbox" name="showExtending" value="extending" checked>
-                extending<br>
-                <input type="checkbox" name="showConstructorCall" value="constructorCall" checked>
-                constructor call<br>
-                <input type="checkbox" name="showMethodCall" value="methodCall" checked>
-                method call<br>
-                <input type="checkbox" name="showFieldAccess" value="fieldAccess" checked>
-                field access<br>
-                <input type="checkbox" name="showAnonImpl" value="anonImpl" checked>
-                anonymous implementation<br>
-                <input type="checkbox" name="showChildParentDep" value="childParent">
-                between parent and children<br>
-            </fieldset>
-        </form>
+  <div class="forms">
+    <form id="filterbyname" action="#" onsubmit="return filterByName(this);" onreset="return resetFilterByName();">
+      <fieldset class="inputs">
+        <legend>Filter-String:</legend>
+        <input type="text" name="filter"><br>
+        <input type="checkbox" name="matchCase">match case
+      </fieldset>
+      <fieldset class="inputs">
+        <legend>Filter by:</legend>
+        <input type="radio" name="filterBy" value="simplename" checked>simplename<br>
+        <input type="radio" name="filterBy" value="fullname">fullname
+      </fieldset>
+      <fieldset class="inputs">
+        <legend>What to filter:</legend>
+        <input type="radio" name="whatToFilter" value="filterClassesAndEliminatePkgs" checked>
+        filter classes and eliminate packages without matching classes<br>
+        <input type="radio" name="whatToFilter" value="filterPkgsOrClasses">filter the following:
+        <fieldset class="subinputs">
+          <input type="checkbox" name="filterPackages" value="packages">packages<br>
+          <input type="checkbox" name="filterClasses" value="classes">classes
+        </fieldset>
+      </fieldset>
+      <fieldset class="inputs">
+        <legend>How to filter:</legend>
+        <input type="radio" name="howToFilter" value="inclusive" checked>inclusive<br>
+        <input type="radio" name="howToFilter" value="exclusive">exclusive<br>
+      </fieldset>
+    </form>
+    <form id="filterbytype" action="#" onsubmit="return filterByType(this);" onreset="return resetFilterByType();">
+      <fieldset class="inputs">
+        <legend>Show classes:</legend>
+        <input type="checkbox" name="showInterfaces" value="interfaces" checked>
+        interfaces<br>
+        <input type="checkbox" name="showClasses" value="classes" checked>
+        classes<br>
+        <input type="checkbox" name="eliminatePkgs" value="eliminatePkgs" checked>
+        eliminate packages<br>
+      </fieldset>
+    </form>
+    <form id="filterdepsbykind" action="#" onsubmit="return filterDepsByKind(this);"
+          onreset="return resetFilterDepsByKind();">
+      <fieldset class="inputs">
+        <legend>Show dependencies:</legend>
+        <input type="checkbox" name="showImplementing" value="implementing" checked>
+        implementing<br>
+        <input type="checkbox" name="showExtending" value="extending" checked>
+        extending<br>
+        <input type="checkbox" name="showConstructorCall" value="constructorCall" checked>
+        constructor call<br>
+        <input type="checkbox" name="showMethodCall" value="methodCall" checked>
+        method call<br>
+        <input type="checkbox" name="showFieldAccess" value="fieldAccess" checked>
+        field access<br>
+        <input type="checkbox" name="showAnonImpl" value="anonImpl" checked>
+        anonymous implementation<br>
+        <input type="checkbox" name="showChildParentDep" value="childParent">
+        between parent and children<br>
+      </fieldset>
+    </form>
+  </div>
+  <div class="submitbuttons">
+    <div class="submit">
+      <input form="filterbyname" type="reset" value="Reset" class="button">
+      <input form="filterbyname" type="submit" value="Submit" class="button">
     </div>
-    <div class="submitbuttons">
-        <div class="submit">
-            <input form="filterbyname" type="reset" value="Reset" class="button">
-            <input form="filterbyname" type="submit" value="Submit" class="button">
-        </div>
-        <div class="submit">
-            <input form="filterbytype" type="reset" value="Reset" class="button">
-            <input form="filterbytype" type="submit" value="Submit" class="button">
-        </div>
-        <div class="submit">
-            <button form="filterdepsbykind" type="button" onclick="hideAllDeps()" class="button">Hide all</button>
-            <input form="filterdepsbykind" type="reset" value="Reset" class="button">
-            <input form="filterdepsbykind" type="submit" value="Submit" class="button">
-        </div>
+    <div class="submit">
+      <input form="filterbytype" type="reset" value="Reset" class="button">
+      <input form="filterbytype" type="submit" value="Submit" class="button">
     </div>
+    <div class="submit">
+      <button form="filterdepsbykind" type="button" onclick="hideAllDeps()" class="button">Hide all</button>
+      <input form="filterdepsbykind" type="reset" value="Reset" class="button">
+      <input form="filterdepsbykind" type="submit" value="Submit" class="button">
+    </div>
+  </div>
 </div>
 <div id="menu">
-    <div class="forms">
-        <form id="colormenu" action="#" onsubmit="return applyColorMenu(this);">
-            <fieldset class="inputs">
-                <legend>Colors and styles:</legend>
-                package color:
-                <input class="jscolor" name="pkgColor" value="FF0000"><br>
-                package opacity:
-                <input type="number" name="pkgOpacity" value="0.25" min="0" max="1" step="0.01"><br>
-                class color:
-                <input class="jscolor" name="classColor" value="98AFC7"><br>
-                class opacity:
-                <input type="number" name="classOpacity" value="0.5" min="0" max="1" step="0.01"><br>
-                method call:
-                <input class="jscolor" name="methodcallColor" value="0000FF"><br>
-                field access:
-                <input class="jscolor" name="fieldaccessColor" value="FFFF00"><br>
-                constructor call:
-                <input class="jscolor" name="constructorcallColor" value="FF0000"><br>
-                anonymous implementation:
-                <input class="jscolor" name="anonimplColor" value="00FFCC">
-                dashed line:
-                <input class="number" name="anonimplDashed" value="1" min="1" max="10" step="1"><br>
-                children access (access of the inner classes of a class):
-                <input class="jscolor" name="childrenAccess" value="8B4513;"><br>
-                grouped accesses:
-                <input class="jscolor" name="severalColor" value="808080"><br>
-            </fieldset>
-        </form>
-        <form id="depmenu" action="#" onsubmit="return applyDepMenu(this);">
-            <fieldset class="inputs">
-                <legend>Edge settings:</legend>
-                Click-area width for edges:
-                <input class="number" name="clickareaWidth" value="10" min="0" max="50" step="1"><br>
-                Font-size for edge titel:
-                <input class="number" name="edgefontsize" value="12" min="0" max="50" step="1"><br>
-            </fieldset>
-        </form>
-        <form id="othermenu" action="#" onsubmit="return applyOtherMenu(this);">
-            <fieldset class="inputs">
-                <legend>Other settings (relayout on submit!):</legend>
-                Font-size for circle text:
-                <input class="number" name="circfontsize" width="30" value="12" min="0" max="50" step="1"><br>
-                Padding between circles:
-                <input class="number" name="circpadding" value="10" min="0" step="1"><br>
-            </fieldset>
-        </form>
+  <div class="forms">
+    <form id="colormenu" action="#" onsubmit="return applyColorMenu(this);">
+      <fieldset class="inputs">
+        <legend>Colors and styles:</legend>
+        package color:
+        <input class="jscolor" name="pkgColor" value="FF0000"><br>
+        package opacity:
+        <input type="number" name="pkgOpacity" value="0.25" min="0" max="1" step="0.01"><br>
+        class color:
+        <input class="jscolor" name="classColor" value="98AFC7"><br>
+        class opacity:
+        <input type="number" name="classOpacity" value="0.5" min="0" max="1" step="0.01"><br>
+        method call:
+        <input class="jscolor" name="methodcallColor" value="0000FF"><br>
+        field access:
+        <input class="jscolor" name="fieldaccessColor" value="FFFF00"><br>
+        constructor call:
+        <input class="jscolor" name="constructorcallColor" value="FF0000"><br>
+        anonymous implementation:
+        <input class="jscolor" name="anonimplColor" value="00FFCC">
+        dashed line:
+        <input class="number" name="anonimplDashed" value="1" min="1" max="10" step="1"><br>
+        children access (access of the inner classes of a class):
+        <input class="jscolor" name="childrenAccess" value="8B4513;"><br>
+        grouped accesses:
+        <input class="jscolor" name="severalColor" value="808080"><br>
+      </fieldset>
+    </form>
+    <form id="depmenu" action="#" onsubmit="return applyDepMenu(this);">
+      <fieldset class="inputs">
+        <legend>Edge settings:</legend>
+        Click-area width for edges:
+        <input class="number" name="clickareaWidth" value="10" min="0" max="50" step="1"><br>
+        Font-size for edge titel:
+        <input class="number" name="edgefontsize" value="12" min="0" max="50" step="1"><br>
+      </fieldset>
+    </form>
+    <form id="othermenu" action="#" onsubmit="return applyOtherMenu(this);">
+      <fieldset class="inputs">
+        <legend>Other settings (relayout on submit!):</legend>
+        Font-size for circle text:
+        <input class="number" name="circfontsize" width="30" value="12" min="0" max="50" step="1"><br>
+        Padding between circles:
+        <input class="number" name="circpadding" value="10" min="0" step="1"><br>
+      </fieldset>
+    </form>
+  </div>
+  <div class="submitbuttons">
+    <div class="submit">
+      <input form="colormenu" type="reset" value="reset" class="button">
+      <input form="colormenu" type="submit" value="submit" class="button">
     </div>
-    <div class="submitbuttons">
-        <div class="submit">
-            <input form="colormenu" type="reset" value="reset" class="button">
-            <input form="colormenu" type="submit" value="submit" class="button">
-        </div>
-        <div class="submit">
-            <input form="depmenu" type="reset" value="reset" class="button">
-            <input form="depmenu" type="submit" value="submit" class="button">
-        </div>
-        <div class="submit">
-            <button form="othermenu" type="button" onclick="relayout()" class="button">Relayout</button>
-            <input form="othermenu" type="reset" value="reset" class="button">
-            <input form="othermenu" type="submit" value="submit" class="button">
-        </div>
+    <div class="submit">
+      <input form="depmenu" type="reset" value="reset" class="button">
+      <input form="depmenu" type="submit" value="submit" class="button">
     </div>
+    <div class="submit">
+      <button form="othermenu" type="button" onclick="relayout()" class="button">Relayout</button>
+      <input form="othermenu" type="reset" value="reset" class="button">
+      <input form="othermenu" type="submit" value="submit" class="button">
+    </div>
+  </div>
 </div>
 <div id="container">
-    <div id="detailedDeps">
-        <h2 id="headerDetailedDeps">Detailed dependencies:</h2>
-        <ul></ul>
-    </div>
-    <div id="svgContainer">
-        <svg width="960" height="960" id="visualization"></svg>
-    </div>
+  <div id="detailedDeps">
+    <h2 id="headerDetailedDeps">Detailed dependencies:</h2>
+    <ul></ul>
+  </div>
+  <div id="svgContainer">
+    <svg width="960" height="960" id="visualization"></svg>
+  </div>
 </div>
 <script>
   window.addEventListener('WebComponentsReady', function () {
@@ -539,13 +539,13 @@
               }
             });
       }
-        /*trans = trans.transition().duration(1);
-         trans.select("#dep")
-         .filter(d => !d.visualData.visible)
-         .attr("x1", e => e.visualData.startPoint.x)
-         .attr("y1", e => e.visualData.startPoint.y)
-         .attr("x2", e => e.visualData.endPoint.x)
-         .attr("y2", e => e.visualData.endPoint.y);*/
+      /*trans = trans.transition().duration(1);
+       trans.select("#dep")
+       .filter(d => !d.visualData.visible)
+       .attr("x1", e => e.visualData.startPoint.x)
+       .attr("y1", e => e.visualData.startPoint.y)
+       .attr("x2", e => e.visualData.endPoint.x)
+       .attr("y2", e => e.visualData.endPoint.y);*/
     }
     else {
       edges.select("#dep")
@@ -567,10 +567,10 @@
 
   function updateTitlePosition(edges, animate) {
     if (animate) {
-        /*let trans = edges.select("text").transition().duration(TRANSITION_DURATION);
-         trans.filter(d => d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-         trans.transition().duration(1).filter(d => !d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-         */
+      /*let trans = edges.select("text").transition().duration(TRANSITION_DURATION);
+       trans.filter(d => d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+       trans.transition().duration(1).filter(d => !d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+       */
       edges.select("text").transition().duration(TRANSITION_DURATION).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
     }
     else {
