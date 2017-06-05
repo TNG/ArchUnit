@@ -1,0 +1,38 @@
+<template id="template-filter-menu">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+
+  <label for="filter">Filter</label>
+  <input type="text" id="filter">
+</template>
+
+
+<script>
+  // 'private' variables
+  let shadowRoot;
+  // the Polyfill adds '_currentScript', natively we can access 'currentScript'
+  let currentDocument = document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument;
+
+  class VisualizationMenu extends HTMLElement {
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      shadowRoot = this.attachShadow({mode: 'open'});
+      let template = currentDocument.querySelector('#template-filter-menu');
+      shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+
+    onFilterChanged(handleCurrentFilter) {
+      shadowRoot.querySelector('#filter').oninput = function () {
+        handleCurrentFilter(this.value);
+      };
+    }
+  }
+
+  window.customElements.define('visualization-menu', VisualizationMenu);
+</script>

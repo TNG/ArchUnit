@@ -12,14 +12,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 
+import static com.google.common.io.Files.*;
+
 public class Visualizer {
 
     private static final String JSONFILENAME = "classes.json";
     private static final String DIR = "./report";
-
-    public Visualizer() {
-
-    }
 
     public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
@@ -31,7 +29,7 @@ public class Visualizer {
                         @Override
                         public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
                             if (!path.toFile().isDirectory()) {
-                                com.google.common.io.Files.copy(path.toFile(), new File(targetDir, path.toFile().getName()));
+                                copy(path.toFile(), new File(targetDir, path.toFile().getName()));
                             }
                             return super.visitFile(path, basicFileAttributes);
                         }

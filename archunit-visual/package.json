@@ -3,6 +3,7 @@
   "version": "0.5.0-SNAPSHOT",
   "description": "ArchUnit Visualization",
   "scripts": {
+    "bower": "./node_modules/bower/bin/bower install",
     "test": "./node_modules/mocha/bin/mocha --reporter spec src/test/app/**/*.js",
     "copyStatic": "cp ./src/main/app/report/*.html ./src/main/app/report/*.json ./src/main/app/report/lib/*.js ./build/example-report",
     "browserify": "./node_modules/browserify/bin/cmd.js -r ./src/main/app/report/visualization.js:visualization -o build/example-report/visualization-bundle.js",
@@ -10,14 +11,13 @@
     "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/example-report/"
   },
   "author": "Sebastian Mair <sebastian.mair@tngtech.com>, Peter Gafert <peter.gafert@tngtech.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
+    "bower": "^1.8.0",
+    "browserify": "^14.3.0",
     "chai": "^3.5.0",
     "http-server": "^0.10.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0"
-  },
-  "dependencies": {
-    "browserify": "^14.3.0"
   }
 }

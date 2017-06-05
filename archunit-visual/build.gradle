@@ -34,39 +34,40 @@ configurations {
 }
 
 def nodeVersion = '7.2.0'
+def nodeDir = "${project.projectDir}/nodejs"
 
 node {
     version = nodeVersion
     npmVersion = '4.0.2'
     distBaseUrl = 'https://nodejs.org/dist'
     download = true
-    workDir = file("${project.buildDir}/nodejs")
-    nodeModulesDir = file("${project.projectDir}")
+    workDir = file(nodeDir)
 }
 
-task installBrowserify(type: NpmTask) {
-    args = ['install', 'browserify']
-}
-
-task installTestSupport(type: NpmTask) {
-    args = ['install', 'mocha', 'chai', '--save-dev']
-}
-
-task setupNode(dependsOn: ['installBrowserify', 'installTestSupport']) {
+task setupNode(dependsOn: ['npmInstall']) {
     doLast {
-        def subFolder = file("${project.buildDir}/nodejs").list().grep { it.contains(nodeVersion) }[0]
+        def subFolder = file(nodeDir).list().grep { it.contains(nodeVersion) }[0]
         println """
-            >> Ensuring Browserify is installed...
-            >> Ensuring Mocha and Chai exist...
+            >> Setting up NodeJs and running npm install...
             >> To run node from the command line, add the nodejs bin folder to your PATH:
-            >> export PATH="${project.buildDir}/nodejs/${subFolder}/bin:\$PATH"
+            >> export PATH="${project.projectDir}/nodejs/${subFolder}/bin:\$PATH"
             """.stripIndent()
     }
 }
 
+task cleanNode(type: Delete) {
+    delete 'nodejs', 'node_modules', 'bower_components'
+}
+
+task cleanAll(dependsOn: [clean, cleanNode])
+
 task mocha(type: NodeTask, dependsOn: 'setupNode') {
-    script = file('node_modules/mocha/bin/mocha')
+    script = file('./node_modules/mocha/bin/mocha')
     args = ['--reporter', 'spec', 'src/test/app/report/**/*.js']
+}
+
+task runBower(type: NpmTask, dependsOn: 'setupNode') {
+    args = ['run', 'bower']
 }
 
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
@@ -83,15 +84,17 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
     into reportOutputDir
 }
 
-task copyJsLibs(type: Copy, dependsOn: createReportDir) {
+task copyJsLibs(type: Copy, dependsOn: ['createReportDir', 'runBower']) {
     from 'src/main/app/report/lib'
+    from 'bower_components/webcomponentsjs'
     include 'd3.js'
     include 'jscolor.js'
+    include 'webcomponents-hi-sd-ce.js'
     into "${reportOutputDir}/lib"
 }
 
-task browserify(type: NodeTask, dependsOn: ['installBrowserify', 'createReportDir']) {
-    script = file('node_modules/browserify/bin/cmd.js')
+task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
+    script = file('./node_modules/browserify/bin/cmd.js')
     args = ['-r', './src/main/app/report/visualization.js:visualization', '-o', "${reportOutputDir}/visualization-bundle.js"]
 }
 

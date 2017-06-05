@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Visualization</title>
+    <link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="webcomponents-hi-sd-ce.js"></script>
+    <script src="jscolor.js"></script>
+    <script src="d3.js"></script>
+    <script src="visualization-bundle.js"></script>
+
+    <link rel="import" href="menu.html">
 </head>
-<link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
-<link rel="stylesheet" href="styles.css">
-<script src="jscolor.js"></script>
 <body>
+
+<visualization-menu id='filter-menu'></visualization-menu>
+
 <svg id="tester">
     <text></text>
 </svg>
@@ -166,9 +175,10 @@
         <svg width="960" height="960" id="visualization"></svg>
     </div>
 </div>
-<script src="d3.js"></script>
-<script src="visualization-bundle.js"></script>
 <script>
+  window.addEventListener('WebComponentsReady', function () {
+    document.querySelector('#filter-menu').onFilterChanged(filterBy => console.log(`Should filter by ${filterBy}`));
+  });
 
   // FIXME: Eliminate 'must match' with CSS. We could fill a CSS template, or look at using CSS variables and accessing them from JS
   // FIXME: Also try to use cascading or variables for things that must match in CSS. At least the many font-size: 12px look suspicious,

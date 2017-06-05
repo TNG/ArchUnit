@@ -13,3 +13,4 @@ _site
 .asciidoctor
 verification-results
 node_modules
+nodejs
