@@ -86,6 +86,7 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
 
 task copyJsLibs(type: Copy, dependsOn: ['createReportDir', 'runBower']) {
     from 'src/main/app/report/lib'
+    from 'node_modules/d3/build'
     from 'bower_components/webcomponentsjs'
     include 'd3.js'
     include 'jscolor.js'

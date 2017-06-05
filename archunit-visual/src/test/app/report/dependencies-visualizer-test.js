@@ -10,8 +10,8 @@ const CIRCLE_TEXT_PADDING = 5;
 const RELATIVE_TEXT_POSITION = 0.8;
 const CIRCLE_PADDING = 10;
 
-const packSiblings = require("../../../main/app/report/lib/d3.js").packSiblings;
-const packEnclose = require("../../../main/app/report/lib/d3.js").packEnclose;
+const packSiblings = require('d3').packSiblings;
+const packEnclose = require('d3').packEnclose;
 
 const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
 visualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);

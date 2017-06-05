@@ -19,5 +19,8 @@
     "http-server": "^0.10.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "d3": "^4.9.1"
   }
 }
