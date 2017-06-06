@@ -295,9 +295,7 @@
     nodes
         .filter(d => !d.isRoot())
         .append("circle")
-        .attr("r", d => d.visualData.r)
-        .filter(d => !d.isLeaf() && d.projectData.type !== "package")
-        .style("cursor", "pointer");
+        .attr("r", d => d.visualData.r);
 
     nodes
         .append("text")
@@ -432,7 +430,7 @@
   }
 
   function updateVisualizationAfterFold(node) {
-    updateVisualization(d => true, true); //ursprünglich: d => d.isChildOf(node)
+    updateVisualization(d => true, true);
   }
 
   function updateWholeVisualization(animate) {

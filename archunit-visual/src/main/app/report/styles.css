@@ -41,10 +41,6 @@ div {
     vertical-align: top;
 }
 
-#visualization {
-    border: solid 1px black;
-}
-
 .jscolor, .number {
     width: 50px;
 }

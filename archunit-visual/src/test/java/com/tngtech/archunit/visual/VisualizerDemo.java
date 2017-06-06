@@ -1,13 +1,11 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
+import java.io.File;
+
 public class VisualizerDemo {
     @Test
     public void build_report() throws Exception {

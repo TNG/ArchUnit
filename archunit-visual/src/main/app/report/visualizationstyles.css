@@ -25,7 +25,20 @@ circle {
     cursor: pointer;
 }
 
+.foldable {
+    cursor: pointer;
+}
+
+.foldunable {
+    cursor: default;
+}
+
 text {
+    cursor: inherit;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     font-family: sans-serif;
     text-anchor: middle;
     font-weight: bold;
