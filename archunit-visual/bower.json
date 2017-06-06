@@ -1,7 +1,0 @@
-{
-  "name": "archunit-visual",
-  "main": "report.html",
-  "dependencies": {
-    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
-  }
-}

@@ -56,7 +56,7 @@ task setupNode(dependsOn: ['npmInstall']) {
 }
 
 task cleanNode(type: Delete) {
-    delete 'nodejs', 'node_modules', 'bower_components'
+    delete 'nodejs', 'node_modules'
 }
 
 task cleanAll(dependsOn: [clean, cleanNode])
@@ -64,10 +64,6 @@ task cleanAll(dependsOn: [clean, cleanNode])
 task mocha(type: NodeTask, dependsOn: 'setupNode') {
     script = file('./node_modules/mocha/bin/mocha')
     args = ['--reporter', 'spec', 'src/test/app/report/**/*.js']
-}
-
-task runBower(type: NpmTask, dependsOn: 'setupNode') {
-    args = ['run', 'bower']
 }
 
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
@@ -84,10 +80,10 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
     into reportOutputDir
 }
 
-task copyJsLibs(type: Copy, dependsOn: ['createReportDir', 'runBower']) {
+task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     from 'src/main/app/report/lib'
     from 'node_modules/d3/build'
-    from 'bower_components/webcomponentsjs'
+    from 'node_modules/@webcomponents/webcomponentsjs'
     include 'd3.js'
     include 'jscolor.js'
     include 'webcomponents-hi-sd-ce.js'
