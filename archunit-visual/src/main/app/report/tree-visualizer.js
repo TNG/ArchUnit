@@ -41,7 +41,7 @@ let dragNode = (node, dx, dy, force) => {
   node.visualData.move(dx, dy, node.parent, () => node.origChildren.forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
 
-let adaptToFoldState = node => {
+let adaptToFoldState = (node, root) => {
   if (node.isFolded) {
     node.visualData.r = getFoldedRadius(node);
   }
@@ -118,9 +118,8 @@ let calcPositionAndSetRadius = node => {
     node.visualData.x = node.visualData.r;
     node.visualData.y = node.visualData.r;
   }
-  //if (!isOrigLeaf(node)) {
+
   if (!node.isCurrentlyLeaf()) {
-    //node.origChildren.forEach(c => {
     node.currentChildren.forEach(c => {
       c.visualData.x = node.visualData.x + c.visualData.dx;
       c.visualData.y = node.visualData.y + c.visualData.dy;
@@ -129,10 +128,6 @@ let calcPositionAndSetRadius = node => {
       calcPositionAndSetRadius(c);
     });
   }
-
-  /*if (node.isFolded) {
-    node.visualData.r = getFoldedRadius(node);
-   }*/
 };
 
 let visualizeTree = (root) => {

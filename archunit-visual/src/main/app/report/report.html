@@ -228,7 +228,7 @@
     graph = jsonToGraph(jsonroot);
     layout();
     initializeGraph();
-    graph.foldAllNodes(n => visualizer.updateOnFolding(graph, n));
+    graph.foldAllNodes(n => visualizer.updateOnFolding(graph));
     updateWholeVisualization(false);
     initializeFilter();
   });
@@ -286,7 +286,7 @@
         .filter(d => !d.isRoot())
         .on("click", d => {
           if (graph.changeFoldStateOfNode(d)) {
-            visualizer.updateOnFolding(graph, d);
+            visualizer.updateOnFolding(graph);
             updateVisualizationAfterFold(d);
           }
         })
