@@ -117,7 +117,7 @@ let Node = class {
   }
 
   getClass() {
-    return this.projectData.type + (!this.isLeaf() && this.projectData.type !== nodeKinds.package ? " foldable" : " foldunable");
+    return this.projectData.type + (!this.isLeaf() && this.projectData.type !== nodeKinds.package ? " foldable" : " foldunable"); // FIXME: The word police says: "'foldunable' is no word" ;-)
   }
 
   getVisibleDescendants() {
