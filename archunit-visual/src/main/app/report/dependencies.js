@@ -198,33 +198,32 @@ let Dependencies = class {
   }
 };
 
-let collectDependencies = () => ({
-  ofDependencyGroup: dependencyGroup => ({
-    ofJsonElement: jsonElement => ({
-      inArray: arr => {
-        dependencyGroup.kinds.forEach(kind => {
-          if (jsonElement.hasOwnProperty(kind.name)) {
-            if (kind.isUnique && jsonElement[kind.name]) {
-              arr.push(buildDependency(jsonElement.fullname, jsonElement[kind.name]).withNewDescription()
-                  .withKind(dependencyGroup.name, kind.dependency).build());
-            }
-            else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
-              jsonElement[kind.name].forEach(d => arr.push(
-                  buildDependency(jsonElement.fullname, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
-                      .withTargetElement(d.targetElement).build()));
-            }
+let addDependenciesOf = dependencyGroup => ({
+  ofJsonElement: jsonElement => ({
+    toArray: arr => {
+      dependencyGroup.kinds.forEach(kind => {
+        if (jsonElement.hasOwnProperty(kind.name)) {
+          if (kind.isUnique && jsonElement[kind.name]) {
+            arr.push(buildDependency(jsonElement.fullname, jsonElement[kind.name]).withNewDescription()
+                .withKind(dependencyGroup.name, kind.dependency).build());
           }
-        });
-      }
-    })
+          else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
+            jsonElement[kind.name].forEach(d => arr.push(
+                buildDependency(jsonElement.fullname, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
+                    .withTargetElement(d.targetElement).build()));
+          }
+        }
+      });
+    }
   })
 });
 
 let addAllDependenciesOfJsonElement = jsonElement => ({
   toArray: arr => {
     if (jsonElement.type !== nodeKinds.package) {
-      collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.inheritance).ofJsonElement(jsonElement).inArray(arr);
-      collectDependencies().ofDependencyGroup(dependencyKinds.grouped_dependencies.access).ofJsonElement(jsonElement).inArray(arr);
+      let groupedDependencies = dependencyKinds.grouped_dependencies;
+      addDependenciesOf(groupedDependencies.inheritance).ofJsonElement(jsonElement).toArray(arr);
+      addDependenciesOf(groupedDependencies.access).ofJsonElement(jsonElement).toArray(arr);
     }
 
     if (jsonElement.hasOwnProperty("children")) {
