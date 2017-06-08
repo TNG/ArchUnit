@@ -1,11 +1,34 @@
+/*
+ * Copyright 2017 TNG Technology Consulting GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.tngtech.archunit.visual;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.*;
-
-import java.io.*;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
     private static final String INNER_CLASS_SEPARATOR = "$";
@@ -82,7 +105,6 @@ class JsonExporter {
             // FIXME: Is there a less bloated way with Guava?
             String jsonString = gson.toJson(root);
             gson.toJson(root, new FileWriter(file));
-            file.createNewFile();
             FileOutputStream fOut = new FileOutputStream(file);
             OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
             myOutWriter.append(jsonString);
@@ -130,7 +152,7 @@ class JsonExporter {
                 superClass : "";
     }
 
-    static String getCleanedFullname(String fullname) {
+    private static String getCleanedFullname(String fullname) {
         return fullname.replace(INNER_CLASS_SEPARATOR, PackageStructureCreator.PACKAGE_SEPARATOR);
     }
 
