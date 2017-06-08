@@ -146,7 +146,7 @@ let Dependencies = class {
                   showDepsBetweenChildAndParent: childAndParent => {
                     let kindFilter = d => {
                       let kinds = d.description.getAllKinds();
-                      let deps = dependencyKinds.all_dependencies;
+                      let deps = dependencyKinds.allDependencies;
                       return boolFuncs(kinds === deps.implements).implies(implementing)
                           && boolFuncs(kinds === deps.extends).implies(extending)
                           && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
@@ -221,7 +221,7 @@ let addDependenciesOf = dependencyGroup => ({
 let addAllDependenciesOfJsonElement = jsonElement => ({
   toArray: arr => {
     if (jsonElement.type !== nodeKinds.package) {
-      let groupedDependencies = dependencyKinds.grouped_dependencies;
+      let groupedDependencies = dependencyKinds.groupedDependencies;
       addDependenciesOf(groupedDependencies.inheritance).ofJsonElement(jsonElement).toArray(arr);
       addDependenciesOf(groupedDependencies.access).ofJsonElement(jsonElement).toArray(arr);
     }

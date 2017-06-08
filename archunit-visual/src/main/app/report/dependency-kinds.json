@@ -1,5 +1,5 @@
 {
-  "grouped_dependencies": {
+  "groupedDependencies": {
     "inheritance": {
       "name": "inheritanceKind",
       "kinds": [
@@ -41,7 +41,7 @@
       ]
     }
   },
-  "all_dependencies": {
+  "allDependencies": {
     "implements": "implements",
     "extends": "extends",
     "methodCall": "methodCall",
