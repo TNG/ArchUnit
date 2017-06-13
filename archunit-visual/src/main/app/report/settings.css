@@ -1,0 +1,47 @@
+form, div {
+    border: none;
+    outline: none;
+}
+
+#wrapper {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+}
+
+div.settingsWrapper {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 2px;
+    padding: 10px 10px 0px 10px;
+    text-align: left;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+}
+
+.number {
+    width: 30px;
+}
+
+label, input {
+    font-size: 14px;
+}
+
+label {
+    padding-right: 5px;
+}
+
+div.setting {
+    padding-bottom: 10px;
+}
+
+input.button {
+    background-color: white;
+    border: none;
+    float: none;
+}
+
+div.buttons {
+    width: 100%;
+    text-align: center;
+}

@@ -1,0 +1,58 @@
+form, div {
+    border: none;
+    outline: none;
+}
+
+#wrapper {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+}
+
+label, input {
+    font-size: 14px;
+}
+
+label {
+    padding-right: 5px;
+}
+
+div.filterGroupWrapper {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 2px;
+    text-align: left;
+}
+
+div.filterGroup {
+    border-radius: 25px;
+    border: 1px solid #ccc;
+}
+
+div.filterType {
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+div.filter {
+    padding-bottom: 10px;
+}
+
+input.button {
+    background-color: white;
+    border: none;
+    float: none;
+}
+
+div.left {
+    padding: 10px 5px 0px 10px;
+}
+
+div.right {
+    padding: 10px 10px 0px 5px;
+}
+
+div.buttons {
+    width: 100%;
+    text-align: center;
+}

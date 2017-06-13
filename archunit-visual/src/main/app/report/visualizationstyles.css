@@ -1,16 +1,19 @@
+/*change the styles here to permanently customize your visualization*/
+
+/*circle styles*/
 circle {
     stroke: black;
     stroke-width: 1px;
 }
 
-.class circle, .abstractclass circle, .interface circle {
-    fill: #98AFC7;
-    fill-opacity: 0.5;
-}
-
 .package circle {
     fill: #FF0000;
     fill-opacity: 0.25;
+}
+
+.class circle, .abstractclass circle, .interface circle {
+    fill: #98AFC7;
+    fill-opacity: 0.5;
 }
 
 .interface circle {
@@ -21,16 +24,16 @@ circle {
     stroke-dasharray: 10, 10;
 }
 
-.area {
-    cursor: pointer;
-}
-
 .foldable {
     cursor: pointer;
 }
 
-.foldunable {
+.notfoldable {
     cursor: default;
+}
+
+.area {
+    cursor: pointer;
 }
 
 text {
@@ -44,8 +47,14 @@ text {
     font-weight: bold;
 }
 
-.package text, .interface text, .abstractclass text, .class text {
+/*font-size of the text in the circles*/
+.node text {
     font-size: 12px;
+}
+
+/*padding between two circles*/
+.circle {
+    padding: 10px;
 }
 
 .package text {
@@ -53,6 +62,7 @@ text {
     font-weight: normal;
 }
 
+/*edges styles*/
 line.access {
     marker-end: url(#end_arrow);
     stroke: black;

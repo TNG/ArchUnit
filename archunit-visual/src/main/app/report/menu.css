@@ -1,0 +1,75 @@
+div.tabs .tab {
+    background-color: inherit;
+}
+
+div.tabs {
+    background-color: ghostwhite;
+    transition: 0.3s;
+}
+
+div.tab {
+    position: absolute;
+}
+
+div.first {
+    left: 10px;
+    right: 66%;
+}
+
+div.second {
+    left: 33%;
+    right: 33%;
+}
+
+div.third {
+    left: 66%;
+    right: 10px;
+}
+
+/*if you want the whole menu to expand (not only the current tab), you can use display: table and width: 100% for .tabs
+and display:cell for .tab --> disadvantage: the width of the tabs is not constant*/
+
+div.title {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 16px;
+    text-align: center;
+}
+
+div.tabcontent {
+    display: none;
+    border-bottom: 1px solid #ccc;
+}
+
+div:hover {
+    background-color: #f1f1f1;
+}
+
+#filter:hover #filterTab {
+    display: block;
+}
+
+#settings:hover #settingsTab {
+    display: block;
+}
+
+#legend:hover #legendTab {
+    display: block;
+}
+
+#filterTab:hover {
+    display: block;
+}
+
+#settingsTab:hover {
+    display: block;
+}
+
+#legendTab:hover {
+    display: block;
+}
+
+div.tab:hover {
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+}

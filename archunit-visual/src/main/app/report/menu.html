@@ -1,20 +1,41 @@
-<template id="template-filter-menu">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-  </style>
-
-  <label for="filter">Filter</label>
-  <input type="text" id="filter">
+<template id="template-menu">
+    <head>
+        <link rel="stylesheet" href="menu.css">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="tabs">
+        <div id="filter" class="tab first">
+            <div id="filterTab" class="tabcontent">
+                <visualization-filter id="filter-menu"></visualization-filter>
+            </div>
+            <div class="title">Filter</div>
+        </div>
+        <div id="settings" class="tab second">
+            <div id="settingsTab" class="tabcontent">
+                <visualization-settings id='settings-menu'></visualization-settings>
+            </div>
+            <div class="title">Settings</div>
+        </div>
+        <div id="legend" class="tab third">
+            <div id="legendTab" class="tabcontent">
+                <p>??</p>
+            </div>
+            <div class="title">?</div>
+        </div>
+    </div>
+    </body>
 </template>
 
-
 <script>
-  // 'private' variables
-  let shadowRoot;
-  // the Polyfill adds '_currentScript', natively we can access 'currentScript'
-  let currentDocument = document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument;
+  let menuVars = {
+    shadowRoot: undefined,
+    currentDocument: document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument
+  };
 
   class VisualizationMenu extends HTMLElement {
     constructor() {
@@ -22,15 +43,17 @@
     }
 
     connectedCallback() {
-      shadowRoot = this.attachShadow({mode: 'open'});
-      let template = currentDocument.querySelector('#template-filter-menu');
-      shadowRoot.appendChild(template.content.cloneNode(true));
+      menuVars.shadowRoot = this.attachShadow({mode: 'open'});
+      let template = menuVars.currentDocument.querySelector('#template-menu');
+      menuVars.shadowRoot.appendChild(template.content.cloneNode(true));
     }
 
-    onFilterChanged(handleCurrentFilter) {
-      shadowRoot.querySelector('#filter').oninput = function () {
-        handleCurrentFilter(this.value);
-      };
+    initializeSettings(cssSheet, onSettingsChanged) {
+      menuVars.shadowRoot.querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
+    }
+
+    initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {
+      menuVars.shadowRoot.querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
     }
   }
 

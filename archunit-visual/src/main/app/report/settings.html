@@ -1,0 +1,81 @@
+<template id="template-settings">
+    <head>
+        <link rel="stylesheet" href="settings.css">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+    <div id="wrapper">
+        <div class="settingsWrapper">
+            <form action="#" onsubmit="return applySizes(this);">
+                <div class="setting">
+                    <label>Font size for circle text:</label>
+                    <input class="number" id="circleFontSize" name="circleFontsize" value="12" min="0" max="50"
+                           step="1">
+                </div>
+                <div class="setting">
+                    <label>Padding between circles:</label>
+                    <input class="number" id="circlePadding" name="circlePadding" value="10" min="0" step="1">
+                </div>
+                <div class="setting buttons">
+                    <input type="reset" value="reset" class="button">
+                    <input type="submit" value="submit" class="button">
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</template>
+<script src="css-adapter-bundle.js"></script>
+<script>
+  let settingsVars = {
+    NODE: ".node text",
+    FONT_SIZE: "font-size",
+    CIRCLE: ".circle",
+    PADDING: "padding",
+    UNIT: "px",
+    cssAdapter: require('css-adapter').cssAdapter,
+    document: document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument,
+    shadowRoot: undefined,
+    cssSheet: undefined,
+    onChanged: undefined
+  };
+
+  function applySizes(form) {
+    settingsVars.cssAdapter.setStyle(settingsVars.cssSheet, settingsVars.NODE, settingsVars.FONT_SIZE, form.circleFontsize.value, settingsVars.UNIT);
+    settingsVars.cssAdapter.setStyle(settingsVars.cssSheet, settingsVars.CIRCLE, settingsVars.PADDING, form.circlePadding.value, settingsVars.UNIT);
+    settingsVars.onChanged();
+    return false;
+  }
+
+  class VisualizationSettings extends HTMLElement {
+
+    constructor() {
+      super();
+    }
+
+    loadSettingsFromCSSSheet() {
+      settingsVars.shadowRoot.querySelector('#circleFontSize').setAttribute("value",
+          settingsVars.cssAdapter.getStyleAsNumber(settingsVars.cssSheet, settingsVars.NODE, settingsVars.FONT_SIZE));
+      settingsVars.shadowRoot.querySelector('#circlePadding').setAttribute("value",
+          settingsVars.cssAdapter.getStyleAsNumber(settingsVars.cssSheet, settingsVars.CIRCLE, settingsVars.PADDING));
+    }
+
+    connectedCallback() {
+      settingsVars.shadowRoot = this.attachShadow({mode: 'open'});
+      let template = settingsVars.document.querySelector('#template-settings');
+      settingsVars.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+
+    initialize(cssSheet, onChanged) {
+      settingsVars.cssSheet = cssSheet;
+      this.loadSettingsFromCSSSheet();
+      settingsVars.onChanged = onChanged;
+    }
+  }
+
+  window.customElements.define('visualization-settings', VisualizationSettings);
+</script>

@@ -85,7 +85,6 @@ task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     from 'node_modules/d3/build'
     from 'node_modules/@webcomponents/webcomponentsjs'
     include 'd3.js'
-    include 'jscolor.js'
     include 'webcomponents-hi-sd-ce.js'
     into "${reportOutputDir}/lib"
 }
@@ -95,6 +94,11 @@ task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
     args = ['-r', './src/main/app/report/visualization.js:visualization', '-o', "${reportOutputDir}/visualization-bundle.js"]
 }
 
-task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
+task browserifyCssAdapter(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
+    script = file('./node_modules/browserify/bin/cmd.js')
+    args = ['-r', './src/main/app/report/css-adapter.js:css-adapter', '-o', "${reportOutputDir}/css-adapter-bundle.js"]
+}
+
+task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify', 'browserifyCssAdapter']) {}
 
 jar.dependsOn buildReport

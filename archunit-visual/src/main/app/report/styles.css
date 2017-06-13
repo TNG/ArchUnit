@@ -13,6 +13,10 @@ div {
     padding: 5px;
 }
 
+#new-menu {
+    display: inline-block;
+}
+
 #detailedDeps {
     width: 250px;
     white-space: normal;
@@ -20,6 +24,10 @@ div {
     margin-right: 10px;
     resize: horizontal;
     overflow: auto;
+}
+
+#showButtons {
+    display: inline-block;
 }
 
 #tester {

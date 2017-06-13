@@ -14,7 +14,7 @@ let drag = (graph, node, dx, dy, force) => {
   dependenciesVisualizer.refreshVisualDataOf(node.projectData.fullname, graph.getVisibleDependencies());
 };
 
-let updateOnFolding = graph => {
+let update = graph => {
   treeVisualizer.visualizeTree(graph.root);
   dependenciesVisualizer.refreshVisualDataOfDependencies(graph.getVisibleDependencies())
 };
@@ -24,5 +24,5 @@ module.exports.visualizer = {
   setCirclePadding: treeVisualizer.setCirclePadding,
   visualizeGraph: visualizeGraph,
   drag: drag,
-  updateOnFolding: updateOnFolding
+  update: update
 };
