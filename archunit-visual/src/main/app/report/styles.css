@@ -16,6 +16,7 @@ svg {
 
 div {
     font-size: 12px;
+    --menu-height: 40px;
 }
 
 #filters, #menu, #detailedDeps {
@@ -42,6 +43,7 @@ div {
 
 #container {
     white-space: nowrap;
+    border-top: var(--menu-height) px transparent;
     padding: 20px;
 }
 

@@ -9,6 +9,7 @@ div.tabs {
 
 div.tab {
     position: absolute;
+    height: var(--menu-height);
 }
 
 div.first {

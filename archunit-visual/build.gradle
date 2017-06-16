@@ -76,7 +76,7 @@ task createReportDir {
 
 task copyStatic(type: Copy, dependsOn: createReportDir) {
     from 'src/main/app/report'
-    include '*.html', '*.css'
+    include '**/*.html', '**/*.css'
     into reportOutputDir
 }
 
