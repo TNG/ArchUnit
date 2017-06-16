@@ -1,34 +1,26 @@
 <template id="template-menu">
-    <head>
-        <link rel="stylesheet" href="menu.css">
-        <style>
-            * {
-                box-sizing: border-box;
-            }
-        </style>
-    </head>
-    <body>
-    <div class="tabs">
-        <div id="filter" class="tab first">
-            <div id="filterTab" class="tabcontent">
-                <visualization-filter id="filter-menu"></visualization-filter>
-            </div>
-            <div class="title">Filter</div>
-        </div>
-        <div id="settings" class="tab second">
-            <div id="settingsTab" class="tabcontent">
-                <visualization-settings id='settings-menu'></visualization-settings>
-            </div>
-            <div class="title">Settings</div>
-        </div>
-        <div id="legend" class="tab third">
-            <div id="legendTab" class="tabcontent">
-                <p>??</p>
-            </div>
-            <div class="title">?</div>
-        </div>
+  <link rel="stylesheet" href="menu.css">
+
+  <div class="tabs">
+    <div id="filter" class="tab first">
+      <div id="filterTab" class="tabcontent">
+        <visualization-filter id="filter-menu"></visualization-filter>
+      </div>
+      <div class="title">Filter</div>
     </div>
-    </body>
+    <div id="settings" class="tab second">
+      <div id="settingsTab" class="tabcontent">
+        <visualization-settings id='settings-menu'></visualization-settings>
+      </div>
+      <div class="title">Settings</div>
+    </div>
+    <div id="legend" class="tab third">
+      <div id="legendTab" class="tabcontent">
+        <p>??</p>
+      </div>
+      <div class="title">?</div>
+    </div>
+  </div>
 </template>
 
 <script>

@@ -1,80 +1,72 @@
 <template id="template-filter">
-    <head>
-        <link rel="stylesheet" href="filter.css">
-        <style>
-            * {
-                box-sizing: border-box;
-            }
-        </style>
-    </head>
-    <body>
-    <div id="wrapper">
-        <div class="filterGroupWrapper">
-            <div class="filterType">Classes</div>
-            <div class="filterGroup left">
-                <form action="#" onsubmit="return filterClassesByType(this);">
-                    <div class="filter">
-                        <input type="checkbox" name="interfaces" value="interfaces" checked>
-                        <label>interfaces</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="classes" value="classes" checked>
-                        <label>classes</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="hideEmptyPkgs" value="hideEmptyPkgs" checked>
-                        <label>hide empty packages</label>
-                    </div>
-                    <div class="filter buttons">
-                        <input type="reset" value="reset" class="button">
-                        <input type="submit" value="submit" class="button">
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="filterGroupWrapper">
-            <div class="filterType">Dependencies</div>
-            <div class="filterGroup right">
-                <form action="#" onsubmit="return filterDependenciesByType(this);">
-                    <div class="filter">
-                        <input type="checkbox" name="implementing" value="implementing" checked>
-                        <label>implementing</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="extending" value="extending" checked>
-                        <label>extending</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="constructorCall" value="constructorCall" checked>
-                        <label>constructor call</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="methodCall" value="methodCall" checked>
-                        <label>method call</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="fieldAccess" value="fieldAccess" checked>
-                        <label>field access</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="anonymousImplementation" value="anonymousImplementation" checked>
-                        <label>anonymous implementation</label>
-                    </div>
-                    <div class="filter">
-                        <input type="checkbox" name="betweenClassAndItsInnerClasses"
-                               value="betweenClassAndItsInnerClasses">
-                        <label>between class and its inner classes</label>
-                    </div>
-                    <div class="filter buttons">
-                        <input type="reset" value="reset" class="button">
-                        <input type="submit" value="submit" class="button">
-                    </div>
-                </form>
-            </div>
-        </div>
+  <link rel="stylesheet" href="filter.css">
+  <div id="wrapper">
+    <div class="filterGroupWrapper">
+      <div class="filterType">Classes</div>
+      <div class="filterGroup left">
+        <form action="#" onsubmit="return filterClassesByType(this);">
+          <div class="filter">
+            <input type="checkbox" id="interfaces" name="interfaces" value="interfaces" checked>
+            <label for="interfaces">interfaces</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="classes" name="classes" value="classes" checked>
+            <label for="classes">classes</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="hideEmptyPkgs" name="hideEmptyPkgs" value="hideEmptyPkgs" checked>
+            <label for="hideEmptyPkgs">hide empty packages</label>
+          </div>
+          <div class="filter buttons">
+            <input type="reset" value="reset" class="button">
+            <input type="submit" value="submit" class="button">
+          </div>
+        </form>
+      </div>
     </div>
-    </body>
+    <div class="filterGroupWrapper">
+      <div class="filterType">Dependencies</div>
+      <div class="filterGroup right">
+        <form action="#" onsubmit="return filterDependenciesByType(this);">
+          <div class="filter">
+            <input type="checkbox" id="implementing" name="implementing" value="implementing" checked>
+            <label for="implementing">implementing</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="extending" name="extending" value="extending" checked>
+            <label for="extending">extending</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="constructorCall" name="constructorCall" value="constructorCall" checked>
+            <label for="constructorCall">constructor call</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="methodCall" name="methodCall" value="methodCall" checked>
+            <label for="methodCall">method call</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="fieldAccess" name="fieldAccess" value="fieldAccess" checked>
+            <label for="fieldAccess">field access</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="anonymousImplementation" name="anonymousImplementation" value="anonymousImplementation" checked>
+            <label for="anonymousImplementation">anonymous implementation</label>
+          </div>
+          <div class="filter">
+            <input type="checkbox" id="betweenClassAndItsInnerClasses" name="betweenClassAndItsInnerClasses"
+                   value="betweenClassAndItsInnerClasses">
+            <label for="betweenClassAndItsInnerClasses">between class and its inner classes</label>
+          </div>
+          <div class="filter buttons">
+            <input type="reset" value="reset" class="button">
+            <input type="submit" value="submit" class="button">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </template>
+
 <script src="css-adapter-bundle.js"></script>
 <script>
   let filterVars = {
