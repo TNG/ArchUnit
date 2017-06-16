@@ -12,7 +12,7 @@ div.tab {
 }
 
 div.first {
-    left: 10px;
+    left: 0;
     right: 66%;
 }
 
@@ -23,7 +23,7 @@ div.second {
 
 div.third {
     left: 66%;
-    right: 10px;
+    right: 0;
 }
 
 /*if you want the whole menu to expand (not only the current tab), you can use display: table and width: 100% for .tabs

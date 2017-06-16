@@ -42,7 +42,6 @@ text {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    font-family: sans-serif;
     text-anchor: middle;
     font-weight: bold;
 }
@@ -98,8 +97,7 @@ line.implementsAnonymous {
 }
 
 li.implementsAnonymous {
-    border: dotted 1px black;
-    border-color: #00FFCC;
+    border: dotted 1px #00FFCC;
 }
 
 line.childrenAccess {

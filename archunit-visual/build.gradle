@@ -81,7 +81,6 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
 }
 
 task copyJsLibs(type: Copy, dependsOn: createReportDir) {
-    from 'src/main/app/report/lib'
     from 'node_modules/d3/build'
     from 'node_modules/@webcomponents/webcomponentsjs'
     include 'd3.js'

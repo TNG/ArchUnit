@@ -1,5 +1,12 @@
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: Verdana, sans-serif;
+    font-size: 100%;
+    vertical-align: baseline;
+    line-height: 1;
 }
 
 svg {
@@ -8,17 +15,12 @@ svg {
 }
 
 div {
-    font-family: Verdana;
     font-size: 12px;
 }
 
 #filters, #menu, #detailedDeps {
     display: none;
     padding: 5px;
-}
-
-#new-menu {
-    display: inline-block;
 }
 
 #detailedDeps {
@@ -40,6 +42,7 @@ div {
 
 #container {
     white-space: nowrap;
+    padding: 20px;
 }
 
 #headerDetailedDeps {
@@ -51,10 +54,6 @@ div {
     display: inline-block;
     white-space: normal;
     vertical-align: top;
-}
-
-.jscolor, .number {
-    width: 50px;
 }
 
 div.submit {
@@ -71,7 +70,6 @@ div.submit {
 
 div.forms {
     display: table-row;
-
 }
 
 div.submitbuttons {
@@ -91,22 +89,6 @@ ul, li {
     margin-left: 3px;
     width: inherit;
     word-wrap: break-word;
-}
-
-fieldset.inputs {
-    display: inline-block;
-    vertical-align: top;
-    margin: 5px;
-    padding: 0;
-    border: 0;
-    padding-top: 5px;
-}
-
-fieldset.subinputs {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    padding-left: 20px;
 }
 
 legend {
