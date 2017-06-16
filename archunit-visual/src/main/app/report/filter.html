@@ -1,10 +1,11 @@
 <template id="template-filter">
   <link rel="stylesheet" href="filter.css">
+
   <div id="wrapper">
     <div class="filterGroupWrapper">
       <div class="filterType">Classes</div>
       <div class="filterGroup left">
-        <form action="#" onsubmit="return filterClassesByType(this);">
+        <form action="#" id="filter-classes-by-type-form">
           <div class="filter">
             <input type="checkbox" id="interfaces" name="interfaces" value="interfaces" checked>
             <label for="interfaces">interfaces</label>
@@ -27,7 +28,7 @@
     <div class="filterGroupWrapper">
       <div class="filterType">Dependencies</div>
       <div class="filterGroup right">
-        <form action="#" onsubmit="return filterDependenciesByType(this);">
+        <form action="#" id="filter-dependencies-by-type-form">
           <div class="filter">
             <input type="checkbox" id="implementing" name="implementing" value="implementing" checked>
             <label for="implementing">implementing</label>
@@ -67,50 +68,56 @@
   </div>
 </template>
 
-<script src="css-adapter-bundle.js"></script>
 <script>
-  let filterVars = {
-    document: document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument,
-    shadowRoot: undefined,
-    onClassFilterChanged: undefined,
-    onDependenciesFilterChanged: undefined
-  };
+  (function () {
+    const ownerDocument = require('web-component-infrastructure').workarounds.getOwnerDocument();
+    let shadowRoot;
+    let onClassFilterChanged;
+    let onDependenciesFilterChanged;
 
-  function filterClassesByType(form) {
-    filterVars.onClassFilterChanged(form.interfaces.checked, form.classes.checked, form.hideEmptyPkgs.checked);
-    return false;
-  }
-
-  function filterDependenciesByType(form) {
-    filterVars.onDependenciesFilterChanged({
-      implementing: form.implementing.checked,
-      extending: form.extending.checked,
-      constructorCall: form.constructorCall.checked,
-      methodCall: form.methodCall.checked,
-      fieldAccess: form.fieldAccess.checked,
-      anonymousImplementation: form.anonymousImplementation.checked,
-      betweenClassAndItsInnerClasses: form.betweenClassAndItsInnerClasses
-    });
-    return false;
-  }
-
-  class VisualizationFilter extends HTMLElement {
-
-    constructor() {
-      super();
+    function filterClassesByType(form) {
+      onClassFilterChanged(form.interfaces.checked, form.classes.checked, form.hideEmptyPkgs.checked);
+      return false;
     }
 
-    connectedCallback() {
-      filterVars.shadowRoot = this.attachShadow({mode: 'open'});
-      let template = filterVars.document.querySelector('#template-filter');
-      filterVars.shadowRoot.appendChild(template.content.cloneNode(true));
+    function filterDependenciesByType(form) {
+      onDependenciesFilterChanged({
+        implementing: form.implementing.checked,
+        extending: form.extending.checked,
+        constructorCall: form.constructorCall.checked,
+        methodCall: form.methodCall.checked,
+        fieldAccess: form.fieldAccess.checked,
+        anonymousImplementation: form.anonymousImplementation.checked,
+        betweenClassAndItsInnerClasses: form.betweenClassAndItsInnerClasses
+      });
+      return false;
     }
 
-    initialize(onClassFilterChanged, onDependenciesFilterChanged) {
-      filterVars.onClassFilterChanged = onClassFilterChanged;
-      filterVars.onDependenciesFilterChanged = onDependenciesFilterChanged;
-    }
-  }
+    class VisualizationFilter extends HTMLElement {
+      constructor() {
+        super();
+      }
 
-  window.customElements.define('visualization-filter', VisualizationFilter);
+      connectedCallback() {
+        shadowRoot = this.attachShadow({mode: 'open'});
+        let template = ownerDocument.querySelector('#template-filter');
+        shadowRoot.appendChild(template.content.cloneNode(true));
+
+        // FIXME: Remove the whole form thing, just react to key presses
+        shadowRoot.querySelector('#filter-classes-by-type-form').onsubmit = function () {
+          return filterClassesByType(this);
+        };
+        shadowRoot.querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
+          return filterDependenciesByType(this);
+        };
+      }
+
+      initialize(newOnClassFilterChanged, newOnDependenciesFilterChanged) {
+        onClassFilterChanged = newOnClassFilterChanged;
+        onDependenciesFilterChanged = newOnDependenciesFilterChanged;
+      }
+    }
+
+    window.customElements.define('visualization-filter', VisualizationFilter);
+  }());
 </script>

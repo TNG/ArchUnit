@@ -27,30 +27,30 @@
 </template>
 
 <script>
-  let menuVars = {
-    shadowRoot: undefined,
-    currentDocument: document.currentScript ? document.currentScript.ownerDocument : document._currentScript.ownerDocument
-  };
+  (function () {
+    const ownerDocument = require('web-component-infrastructure').workarounds.getOwnerDocument();
+    let shadowRoot;
 
-  class VisualizationMenu extends HTMLElement {
-    constructor() {
-      super();
+    class VisualizationMenu extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        shadowRoot = this.attachShadow({mode: 'open'});
+        let template = ownerDocument.querySelector('#template-menu');
+        shadowRoot.appendChild(template.content.cloneNode(true));
+      }
+
+      initializeSettings(cssSheet, onSettingsChanged) {
+        shadowRoot.querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
+      }
+
+      initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {
+        shadowRoot.querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
+      }
     }
 
-    connectedCallback() {
-      menuVars.shadowRoot = this.attachShadow({mode: 'open'});
-      let template = menuVars.currentDocument.querySelector('#template-menu');
-      menuVars.shadowRoot.appendChild(template.content.cloneNode(true));
-    }
-
-    initializeSettings(cssSheet, onSettingsChanged) {
-      menuVars.shadowRoot.querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
-    }
-
-    initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {
-      menuVars.shadowRoot.querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
-    }
-  }
-
-  window.customElements.define('visualization-menu', VisualizationMenu);
+    window.customElements.define('visualization-menu', VisualizationMenu);
+  }());
 </script>
