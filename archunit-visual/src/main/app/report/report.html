@@ -7,12 +7,10 @@
     <link rel="stylesheet" href="styles.css">
 
     <script src="webcomponents-hi-sd-ce.js"></script>
-    <script src="css-adapter-bundle.js"></script>
     <script src="d3.js"></script>
+    <script src="css-adapter-bundle.js"></script>
     <script src="visualization-bundle.js"></script>
 
-    <link id="settings" rel="import" href="settings.html">
-    <link id="filter" rel="import" href="filter.html">
     <link rel="import" href="menu.html">
 </head>
 <body>
@@ -725,7 +723,6 @@
   }
 
   function applyDepMenu(form) {
-    clickAreaWidth = form.clickareaWidth.value;
     gEdges.selectAll("g").select("#area").style("stroke-width", clickAreaWidth);
     let visstyles = document.getElementById("visstyles");
     let sheet = visstyles.sheet || visstyles.stylesheet;
