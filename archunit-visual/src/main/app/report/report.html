@@ -140,7 +140,7 @@
     adaptSVGSize();
   }
 
-  function adaptSVGSize(animation) {
+  function adaptSVGSize() {
     svg.attr("width", 2 * graph.root.visualData.r + 4);
     svg.attr("height", 2 * graph.root.visualData.r + 4);
   }
@@ -175,7 +175,7 @@
         .on("click", d => {
           if (graph.changeFoldStateOfNode(d)) {
             visualizer.update(graph);
-            updateVisualizationAfterFold(d);
+            updateVisualizationAfterFold();
           }
         })
         .call(drag);
@@ -194,10 +194,6 @@
         .text(d => d.projectData.name);
 
     positionTextOfAllNodes(nodes, false);
-  }
-
-  function isVisible(d) {
-    return d3.select(this).style("visibility") === "visible";
   }
 
   function initializeDeps() {
@@ -319,7 +315,7 @@
     });
   }
 
-  function updateVisualizationAfterFold(node) {
+  function updateVisualizationAfterFold() {
     updateVisualization(d => true, true);
   }
 
@@ -366,7 +362,7 @@
   function updateEdges(filter, animate) {
     let edges = gEdges.selectAll("g").data(graph.getVisibleDependencies(), graph.dependencyKeyFunction());
     hideEdges(edges.exit());
-    setVisible(edges.filter(function (d) {
+    setVisible(edges.filter(function () {
       return d3.select(this).style("visibility") === "visible";
     }), true);
 
@@ -465,141 +461,6 @@
     else {
       edges.select("text").attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
     }
-  }
-
-  function filterByName(form) {
-    graph.filterNodesByName(form.filter.value)
-        .by()[form.filterBy.value]()
-        [form.whatToFilter.value](form.filterPackages.checked, form.filterClasses.checked)
-        [form.howToFilter.value]()
-        .matchCase(form.matchCase.checked);
-
-    updateWholeVisualization(false);
-    return false;
-  }
-
-  function resetFilterByName() {
-    graph.resetFilterNodesByName();
-    updateWholeVisualization(false);
-  }
-
-  function filterByType(form) {
-    graph.filterNodesByType(form.showInterfaces.checked, form.showClasses.checked, form.eliminatePkgs.checked);
-    updateWholeVisualization(false);
-    return false;
-  }
-
-  function resetFilterByType() {
-    graph.resetFilterNodesByType();
-    updateWholeVisualization(false);
-  }
-
-  function filterDepsByKind(form) {
-    graph.filterDependenciesByKind()
-        .showImplementing(form.showImplementing.checked)
-        .showExtending(form.showExtending.checked)
-        .showConstructorCall(form.showConstructorCall.checked)
-        .showMethodCall(form.showMethodCall.checked)
-        .showFieldAccess(form.showFieldAccess.checked)
-        .showAnonymousImplementing(form.showAnonImpl.checked)
-        .showDepsBetweenChildAndParent(form.showChildParentDep.checked);
-    updateEdges(d => true);
-    showDetailedDepsOf(depWithCurrentDetailedDeps);
-    return false;
-  }
-
-  function hideAllDeps() {
-    graph.filterDependenciesByKind()
-        .showImplementing(false).showExtending(false)
-        .showConstructorCall(false).showMethodCall(false).showFieldAccess(false).showAnonymousImplementing(false);
-    updateEdges(d => true);
-    return false;
-  }
-
-  function resetFilterDepsByKind() {
-    graph.resetFilterDependenciesByKind();
-    updateEdges(d => true);
-  }
-
-  function changeFilterVisibility() {
-    let filters = d3.select("#filters");
-    filters.style("display", () => filters.style("display") === "none" ? "table" : "none");
-    d3.select("#showHideFilter").text(() => filters.style("display") === "none" ? "Show filter" : "Hide filter");
-  }
-
-  function changeMenuVisibility() {
-    let menu = d3.select("#menu");
-    menu.style("display", () => menu.style("display") === "none" ? "table" : "none");
-    d3.select("#showHideMenu").text(() => menu.style("display") === "none" ? "Show menu" : "Hide menu");
-  }
-
-  function changeDepsVisibility() {
-    let detailedDeps = d3.select("#detailedDeps");
-    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "block" : "none");
-    d3.select("#showHideDeps").text(() => detailedDeps.style("display") === "none" ? "Show detailed dependencies" : "Hide detailed dependencies");
-  }
-
-  function getRule(sheet, selectorText) {
-    for (let i = 0; i < sheet.cssRules.length; i++) {
-      if (sheet.cssRules[i].selectorText === selectorText) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  function setRule(sheet, selectorText, value) {
-    let index = getRule(sheet, selectorText);
-    sheet.deleteRule(index);
-    sheet.insertRule(selectorText + " " + value, index);
-  }
-
-  function applyColorMenu(form) {
-    let visstyles = document.getElementById("visstyles");
-    let sheet = visstyles.sheet || visstyles.stylesheet;
-    setRule(sheet, '.package circle', '{ fill: #' + form.pkgColor.value + '; fill-opacity: ' + form.pkgOpacity.value + ';}');
-    setRule(sheet, '.class circle, .abstractclass circle, .interface circle', '{ fill: #' + form.classColor.value
-        + '; fill-opacity: ' + form.classOpacity.value + ';}');
-
-    setRule(sheet, 'line.methodCall', '{ stroke: #' + form.methodcallColor.value + ';}');
-    setRule(sheet, 'line.fieldAccess', '{ stroke: #' + form.fieldaccessColor.value + ';}');
-    setRule(sheet, 'line.constructorCall', '{ stroke: #' + form.constructorcallColor.value + ';}');
-    setRule(sheet, 'line.implementsAnonymous', '{  stroke-dasharray: ' + form.anonimplDashed.value + ', '
-        + form.anonimplDashed.value + '; stroke: #' + form.anonimplColor.value + ';}');
-    setRule(sheet, 'line.childrenAccess', '{ stroke: #' + form.childrenAccess.value + ';}');
-
-    setRule(sheet, 'li.methodCall', '{ color: #' + form.methodcallColor.value + ';}');
-    setRule(sheet, 'li.fieldAccess', '{ color: #' + form.fieldaccessColor.value + ';}');
-    setRule(sheet, 'li.constructorCall', '{ color: #' + form.constructorcallColor.value + ';}');
-    setRule(sheet, 'li.implementsAnonymous', '{  border: dotted ' + form.anonimplDashed.value + 'px black; ' +
-        'border-color: #' + form.anonimplColor.value + ';}');
-
-    setRule(sheet, 'line.several', '{ stroke: #' + form.severalColor.value + ';}');
-    return false;
-  }
-
-  function applyDepMenu(form) {
-    gEdges.selectAll("g").select("#area").style("stroke-width", clickAreaWidth);
-    let visstyles = document.getElementById("visstyles");
-    let sheet = visstyles.sheet || visstyles.stylesheet;
-    setRule(sheet, 'text.access', '{ font-weight: normal; font-size: ' + form.edgefontsize.value + 'px; }');
-    return false;
-  }
-
-  function applyOtherMenu(form) {
-    let fontSize = parseInt(form.circfontsize.value);
-    let visstyles = document.getElementById("visstyles");
-    let sheet = visstyles.sheet || visstyles.stylesheet;
-    setRule(sheet, '.package text, .interface text, .abstractclass text, .class text', '{ font-size: ' + fontSize + 'px; }');
-    visualizer.setCirclePadding(parseInt(form.circpadding.value));
-    layout();
-    updateWholeVisualization(true);
-    return false;
-  }
-
-  function relayout() {
-    layout();
-    updateWholeVisualization(true);
   }
 </script>
 </body>
