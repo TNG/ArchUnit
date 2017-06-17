@@ -68,8 +68,8 @@ let Graph = class {
     refreshOnNodeFiltering(this);
   }
 
-  filterNodesByType(interfaces, classes, eliminatePkgs) {
-    this.root.filterByType(interfaces, classes, eliminatePkgs);
+  filterNodesByType(filter) {
+    this.root.filterByType(filter.showInterfaces, filter.showClasses, !filter.showEmptyPackages);
     refreshOnNodeFiltering(this);
   }
 

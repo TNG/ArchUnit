@@ -102,8 +102,8 @@
     });
 
     document.querySelector('#menu').initializeFilter(
-        (interfaces, classes, hideEmptyPkgs) => {
-          graph.filterNodesByType(interfaces, classes, hideEmptyPkgs);
+        filter => {
+          graph.filterNodesByType(filter);
           visualizer.update(graph);
           updateWholeVisualization(true);
         },

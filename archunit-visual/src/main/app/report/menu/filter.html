@@ -3,20 +3,20 @@
 
   <div id="wrapper">
     <div class="filterGroupWrapper">
-      <div class="filterType">Classes</div>
+      <div class="filterType">Nodes</div>
       <div class="filterGroup left">
         <form action="#" id="filter-classes-by-type-form">
           <div class="filter">
             <input type="checkbox" id="interfaces" name="interfaces" value="interfaces" checked>
-            <label for="interfaces">interfaces</label>
+            <label for="interfaces">show interfaces</label>
           </div>
           <div class="filter">
             <input type="checkbox" id="classes" name="classes" value="classes" checked>
-            <label for="classes">classes</label>
+            <label for="classes">show classes</label>
           </div>
           <div class="filter">
-            <input type="checkbox" id="hideEmptyPkgs" name="hideEmptyPkgs" value="hideEmptyPkgs" checked>
-            <label for="hideEmptyPkgs">hide empty packages</label>
+            <input type="checkbox" id="showEmptyPkgs" name="showEmptyPkgs" value="showEmptyPkgs">
+            <label for="showEmptyPkgs">show empty packages</label>
           </div>
           <div class="filter buttons">
             <input type="reset" value="reset" class="button">
@@ -71,16 +71,20 @@
 <script>
   (function () {
     const webComponents = require('web-component-infrastructure');
-    let onClassFilterChanged;
-    let onDependenciesFilterChanged;
+    let onNodeFilterChanged;
+    let onDependencyFilterChanged;
 
     function filterClassesByType(form) {
-      onClassFilterChanged(form.interfaces.checked, form.classes.checked, form.hideEmptyPkgs.checked);
+      onNodeFilterChanged({
+        showInterfaces: form.interfaces.checked,
+        showClasses: form.classes.checked,
+        showEmptyPackages: form.showEmptyPkgs.checked
+      });
       return false;
     }
 
     function filterDependenciesByType(form) {
-      onDependenciesFilterChanged({
+      onDependencyFilterChanged({
         implementing: form.implementing.checked,
         extending: form.extending.checked,
         constructorCall: form.constructorCall.checked,
@@ -103,9 +107,9 @@
         };
       }
 
-      initialize(newOnClassFilterChanged, newOnDependenciesFilterChanged) {
-        onClassFilterChanged = newOnClassFilterChanged;
-        onDependenciesFilterChanged = newOnDependenciesFilterChanged;
+      initialize(newOnNodeFilterChanged, newOnDependencyFilterChanged) {
+        onNodeFilterChanged = newOnNodeFilterChanged;
+        onDependencyFilterChanged = newOnDependencyFilterChanged;
       }
     });
   }());
