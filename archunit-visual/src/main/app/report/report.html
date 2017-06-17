@@ -88,20 +88,20 @@
   let depWithCurrentDetailedDeps;
 
   window.addEventListener('WebComponentsReady', function () {
-    document.querySelector('#menu').initializeSettings({
-      initialCircleFontSize: cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size"),
-      initialCirclePadding: cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding"),
-
-      onSettingsChanged: (circleFontSize, circlePadding) => {
-        cssAdapter.setStyle(cssSheet, ".node text", "font-size", circleFontSize, "px");
-        cssAdapter.setStyle(cssSheet, ".circle", "padding", circlePadding, "px");
-        visualizer.setCirclePadding(getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
-        layout();
-        updateWholeVisualization(true);
-      }
-    });
-
     document.querySelector('#menu')
+        .initializeSettings(
+            {
+              initialCircleFontSize: cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size"),
+              initialCirclePadding: cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding")
+            })
+        .onSettingsChanged(
+            (circleFontSize, circlePadding) => {
+              cssAdapter.setStyle(cssSheet, ".node text", "font-size", circleFontSize, "px");
+              cssAdapter.setStyle(cssSheet, ".circle", "padding", circlePadding, "px");
+              visualizer.setCirclePadding(getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
+              layout();
+              updateWholeVisualization(true);
+            })
         .onNodeFilterChanged(
             filter => {
               graph.filterNodesByType(filter);

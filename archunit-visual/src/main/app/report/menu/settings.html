@@ -42,7 +42,10 @@
       initialize(settingsInit) {
         this.shadowRoot.querySelector('#circleFontSize').setAttribute("value", settingsInit.initialCircleFontSize);
         this.shadowRoot.querySelector('#circlePadding').setAttribute("value", settingsInit.initialCirclePadding);
-        onChanged = settingsInit.onSettingsChanged;
+      }
+
+      onSettingsChanged(newOnChanged) {
+        onChanged = newOnChanged;
       }
     });
   })();

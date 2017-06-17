@@ -33,6 +33,12 @@
     webComponents.defineCustomElement('visualization-menu', class extends HTMLElement {
       initializeSettings(settingsInit) {
         this.shadowRoot.querySelector('#settings-menu').initialize(settingsInit);
+        return this;
+      }
+
+      onSettingsChanged(onChanged) {
+        this.shadowRoot.querySelector('#settings-menu').onSettingsChanged(onChanged);
+        return this;
       }
 
       onNodeFilterChanged(onChanged) {
