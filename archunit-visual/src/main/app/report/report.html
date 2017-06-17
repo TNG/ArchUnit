@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<visualization-menu id='new-menu'></visualization-menu>
+<visualization-menu id='menu'></visualization-menu>
 
 <!-- FIXME: What is this good for?? -->
 <svg id="tester" class="node">
@@ -83,13 +83,13 @@
   let depWithCurrentDetailedDeps;
 
   window.addEventListener('WebComponentsReady', function () {
-    document.querySelector('#new-menu').initializeSettings(sheet, () => {
+    document.querySelector('#menu').initializeSettings(sheet, () => {
       visualizer.setCirclePadding(getCirclePadding());
       layout();
       updateWholeVisualization(true);
     });
 
-    document.querySelector('#new-menu').initializeFilter(
+    document.querySelector('#menu').initializeFilter(
         (interfaces, classes, hideEmptyPkgs) => {
           graph.filterNodesByType(interfaces, classes, hideEmptyPkgs);
           visualizer.update(graph);
@@ -535,7 +535,7 @@
 
   function changeDepsVisibility() {
     let detailedDeps = d3.select("#detailedDeps");
-    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "inline-block" : "none");
+    detailedDeps.style("display", () => detailedDeps.style("display") === "none" ? "block" : "none");
     d3.select("#showHideDeps").text(() => detailedDeps.style("display") === "none" ? "Show detailed dependencies" : "Hide detailed dependencies");
   }
 

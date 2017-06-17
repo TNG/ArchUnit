@@ -1,4 +1,4 @@
-<template id="template-settings">
+<template class="component-template">
   <link rel="stylesheet" href="settings.css">
 
   <div id="wrapper">
@@ -23,14 +23,14 @@
 
 <script>
   (function () {
-    const ownerDocument = require('web-component-infrastructure').workarounds.getOwnerDocument();
+    const infrastructure = require('web-component-infrastructure');
+    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
     const NODE = ".node text";
     const FONT_SIZE = "font-size";
     const CIRCLE = ".circle";
     const PADDING = "padding";
     const UNIT = "px";
     let cssAdapter = require('css-adapter').cssAdapter;
-    let shadowRoot;
     let cssSheet;
     let onChanged;
 
@@ -41,25 +41,21 @@
       return false;
     }
 
-    class VisualizationSettings extends HTMLElement {
+    class VisualizationSettings extends infrastructure.WebComponentElement {
       constructor() {
-        super();
+        super(ownerDocument);
       }
 
       loadSettingsFromCSSSheet() {
-        shadowRoot.querySelector('#circleFontSize').setAttribute("value",
+        this.getShadowRoot().querySelector('#circleFontSize').setAttribute("value",
             cssAdapter.getStyleAsNumber(cssSheet, NODE, FONT_SIZE));
-        shadowRoot.querySelector('#circlePadding').setAttribute("value",
+        this.getShadowRoot().querySelector('#circlePadding').setAttribute("value",
             cssAdapter.getStyleAsNumber(cssSheet, CIRCLE, PADDING));
       }
 
-      connectedCallback() {
-        shadowRoot = this.attachShadow({mode: 'open'});
-        let template = ownerDocument.querySelector('#template-settings');
-        shadowRoot.appendChild(template.content.cloneNode(true));
-
+      postConnected() {
         // FIXME: Remove the whole form thing, just react to key presses
-        shadowRoot.querySelector('#settings-form').onsubmit = function () {
+        this.getShadowRoot().querySelector('#settings-form').onsubmit = function () {
           return applySizes(this);
         }
       }

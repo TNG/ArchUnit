@@ -9,9 +9,12 @@
     line-height: 1;
 }
 
-svg {
+#visualization {
+    display: block;
     min-height: 600px;
     min-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 div {
@@ -19,7 +22,14 @@ div {
     --menu-height: 40px;
 }
 
-#filters, #menu, #detailedDeps {
+#menu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
+
+#detailedDeps {
     display: none;
     padding: 5px;
 }
@@ -33,10 +43,6 @@ div {
     overflow: auto;
 }
 
-#showButtons {
-    display: inline-block;
-}
-
 #tester {
     display: none;
 }
@@ -45,6 +51,8 @@ div {
     white-space: nowrap;
     border-top: var(--menu-height) px transparent;
     padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #headerDetailedDeps {
@@ -53,7 +61,7 @@ div {
 }
 
 #svgContainer {
-    display: inline-block;
+    display: block;
     white-space: normal;
     vertical-align: top;
 }

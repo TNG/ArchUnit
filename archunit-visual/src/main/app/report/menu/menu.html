@@ -1,7 +1,7 @@
 <link rel="import" href="settings.html">
 <link rel="import" href="filter.html">
 
-<template id="template-menu">
+<template class="component-template">
   <link rel="stylesheet" href="menu.css">
 
   <div class="tabs">
@@ -28,26 +28,20 @@
 
 <script>
   (function () {
-    const ownerDocument = require('web-component-infrastructure').workarounds.getOwnerDocument();
-    let shadowRoot;
+    const infrastructure = require('web-component-infrastructure');
+    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
 
-    class VisualizationMenu extends HTMLElement {
+    class VisualizationMenu extends infrastructure.WebComponentElement {
       constructor() {
-        super();
-      }
-
-      connectedCallback() {
-        shadowRoot = this.attachShadow({mode: 'open'});
-        let template = ownerDocument.querySelector('#template-menu');
-        shadowRoot.appendChild(template.content.cloneNode(true));
+        super(ownerDocument);
       }
 
       initializeSettings(cssSheet, onSettingsChanged) {
-        shadowRoot.querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
+        this.getShadowRoot().querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
       }
 
       initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {
-        shadowRoot.querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
+        this.getShadowRoot().querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
       }
     }
 

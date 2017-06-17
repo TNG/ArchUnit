@@ -1,4 +1,4 @@
-<template id="template-filter">
+<template class="component-template">
   <link rel="stylesheet" href="filter.css">
 
   <div id="wrapper">
@@ -70,8 +70,8 @@
 
 <script>
   (function () {
-    const ownerDocument = require('web-component-infrastructure').workarounds.getOwnerDocument();
-    let shadowRoot;
+    const infrastructure = require('web-component-infrastructure');
+    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
     let onClassFilterChanged;
     let onDependenciesFilterChanged;
 
@@ -93,21 +93,17 @@
       return false;
     }
 
-    class VisualizationFilter extends HTMLElement {
+    class VisualizationFilter extends infrastructure.WebComponentElement {
       constructor() {
-        super();
+        super(ownerDocument);
       }
 
-      connectedCallback() {
-        shadowRoot = this.attachShadow({mode: 'open'});
-        let template = ownerDocument.querySelector('#template-filter');
-        shadowRoot.appendChild(template.content.cloneNode(true));
-
+      postConnected() {
         // FIXME: Remove the whole form thing, just react to key presses
-        shadowRoot.querySelector('#filter-classes-by-type-form').onsubmit = function () {
+        this.getShadowRoot().querySelector('#filter-classes-by-type-form').onsubmit = function () {
           return filterClassesByType(this);
         };
-        shadowRoot.querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
+        this.getShadowRoot().querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
           return filterDependenciesByType(this);
         };
       }
