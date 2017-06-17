@@ -1,4 +1,4 @@
-<template class="component-template">
+<template id="visualization-settings-template">
   <link rel="stylesheet" href="settings.css">
 
   <div id="wrapper">
@@ -23,8 +23,7 @@
 
 <script>
   (function () {
-    const infrastructure = require('web-component-infrastructure');
-    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
+    const webComponents = require('web-component-infrastructure');
     let onChanged;
 
     function applySizes(form) {
@@ -32,25 +31,19 @@
       return false;
     }
 
-    class VisualizationSettings extends infrastructure.WebComponentElement {
-      constructor() {
-        super(ownerDocument);
-      }
-
+    webComponents.defineCustomElement('visualization-settings', class extends HTMLElement {
       postConnected() {
         // FIXME: Remove the whole form thing, just react to key presses
-        this.getShadowRoot().querySelector('#settings-form').onsubmit = function () {
+        this.shadowRoot.querySelector('#settings-form').onsubmit = function () {
           return applySizes(this);
         }
       }
 
       initialize(settingsInit) {
-        this.getShadowRoot().querySelector('#circleFontSize').setAttribute("value", settingsInit.initialCircleFontSize);
-        this.getShadowRoot().querySelector('#circlePadding').setAttribute("value", settingsInit.initialCirclePadding);
+        this.shadowRoot.querySelector('#circleFontSize').setAttribute("value", settingsInit.initialCircleFontSize);
+        this.shadowRoot.querySelector('#circlePadding').setAttribute("value", settingsInit.initialCirclePadding);
         onChanged = settingsInit.onSettingsChanged;
       }
-    }
-
-    window.customElements.define('visualization-settings', VisualizationSettings);
+    });
   })();
 </script>

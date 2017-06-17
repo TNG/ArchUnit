@@ -1,7 +1,7 @@
 <link rel="import" href="settings.html">
 <link rel="import" href="filter.html">
 
-<template class="component-template">
+<template id="visualization-menu-template">
   <link rel="stylesheet" href="menu.css">
 
   <div class="tabs">
@@ -28,23 +28,16 @@
 
 <script>
   (function () {
-    const infrastructure = require('web-component-infrastructure');
-    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
+    const webComponents = require('web-component-infrastructure');
 
-    class VisualizationMenu extends infrastructure.WebComponentElement {
-      constructor() {
-        super(ownerDocument);
-      }
-
+    webComponents.defineCustomElement('visualization-menu', class extends HTMLElement {
       initializeSettings(settingsInit) {
-        this.getShadowRoot().querySelector('#settings-menu').initialize(settingsInit);
+        this.shadowRoot.querySelector('#settings-menu').initialize(settingsInit);
       }
 
       initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {
-        this.getShadowRoot().querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
+        this.shadowRoot.querySelector('#filter-menu').initialize(onClassFilterChanged, onDependenciesFilterChanged);
       }
-    }
-
-    window.customElements.define('visualization-menu', VisualizationMenu);
+    });
   }());
 </script>

@@ -1,29 +1,18 @@
-module.exports.workarounds = {
-  getOwnerDocument: () => document.currentScript ?
-      document.currentScript.ownerDocument :
-      document._currentScript.ownerDocument
-};
-
-module.exports.WebComponentElement = class WebComponentElement extends HTMLElement {
-  constructor(ownerDocument) {
-    super();
-    this._ownerDocument = ownerDocument;
+module.exports.defineCustomElement = function (tagName, elementClass) {
+  const templateId = `#${tagName}-template`;
+  let template = document.currentScript.ownerDocument.querySelector(templateId);
+  if (!template) {
+    throw new Error(`Class for tag '${tagName}' must be defined together with a template with id ${templateId}`);
   }
+  Object.assign(elementClass.prototype, {
+    connectedCallback: function () {
+      this.attachShadow({mode: 'open'});
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-  connectedCallback() {
-    this.attachShadow({mode: 'open'});
-    let template = this._ownerDocument.querySelectorAll('.component-template');
-    if (template.length !== 1) {
-      throw new Error('The passed ownerDocument must specify exactly one element with class=\'component-template\'');
+      if (this.postConnected) {
+        this.postConnected();
+      }
     }
-    this.shadowRoot.appendChild(template[0].content.cloneNode(true));
-
-    if (this.postConnected) {
-      this.postConnected();
-    }
-  }
-
-  getShadowRoot() {
-    return this.shadowRoot;
-  }
+  });
+  window.customElements.define(tagName, elementClass);
 };

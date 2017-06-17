@@ -1,4 +1,4 @@
-<template class="component-template">
+<template id="visualization-filter-template">
   <link rel="stylesheet" href="filter.css">
 
   <div id="wrapper">
@@ -70,8 +70,7 @@
 
 <script>
   (function () {
-    const infrastructure = require('web-component-infrastructure');
-    const ownerDocument = infrastructure.workarounds.getOwnerDocument();
+    const webComponents = require('web-component-infrastructure');
     let onClassFilterChanged;
     let onDependenciesFilterChanged;
 
@@ -93,17 +92,13 @@
       return false;
     }
 
-    class VisualizationFilter extends infrastructure.WebComponentElement {
-      constructor() {
-        super(ownerDocument);
-      }
-
+    webComponents.defineCustomElement('visualization-filter', class extends HTMLElement {
       postConnected() {
         // FIXME: Remove the whole form thing, just react to key presses
-        this.getShadowRoot().querySelector('#filter-classes-by-type-form').onsubmit = function () {
+        this.shadowRoot.querySelector('#filter-classes-by-type-form').onsubmit = function () {
           return filterClassesByType(this);
         };
-        this.getShadowRoot().querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
+        this.shadowRoot.querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
           return filterDependenciesByType(this);
         };
       }
@@ -112,8 +107,6 @@
         onClassFilterChanged = newOnClassFilterChanged;
         onDependenciesFilterChanged = newOnDependenciesFilterChanged;
       }
-    }
-
-    window.customElements.define('visualization-filter', VisualizationFilter);
+    });
   }());
 </script>
