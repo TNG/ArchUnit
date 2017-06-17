@@ -84,7 +84,7 @@ task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     from 'node_modules/d3/build'
     from 'node_modules/@webcomponents/webcomponentsjs'
     include 'd3.js'
-    include 'webcomponents-hi-sd-ce.js'
+    include 'webcomponents-*.js'
     into "${reportOutputDir}/lib"
 }
 
