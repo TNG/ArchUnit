@@ -36,8 +36,8 @@
         super(ownerDocument);
       }
 
-      initializeSettings(cssSheet, onSettingsChanged) {
-        this.getShadowRoot().querySelector('#settings-menu').initialize(cssSheet, onSettingsChanged);
+      initializeSettings(settingsInit) {
+        this.getShadowRoot().querySelector('#settings-menu').initialize(settingsInit);
       }
 
       initializeFilter(onClassFilterChanged, onDependenciesFilterChanged) {

@@ -32,8 +32,13 @@
 </div>
 
 <script>
+  // FIXME: The whole construct looks strange, why do I need cssAdapter to get the cssSheet, which in turn I need to pass to cssAdapter
+  //        again and again in the future? I think we would want an object 'cssSheet' which I initialize once, and which
+  //        provides convenient methods to use, without x params, just stuff like setCirclePadding(5, 'px') and the object itself
+  //        knows, which css properties it has to change for this. Too much css details leaking in here for my taste, if we already
+  //        have an object to deal with css
   const cssAdapter = require('css-adapter').cssAdapter;
-  const sheet = cssAdapter.getCssSheet(document, "visstyles");
+  const cssSheet = cssAdapter.getCssSheet(document, "visstyles");
 
   /*
    * padding between the text in a circle and the rim of the circle
@@ -72,21 +77,28 @@
   };
 
   const getFontSize = () => {
-    return cssAdapter.getStyleAsNumber(sheet, ".node text", "font-size");
+    return cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size");
   };
 
   const getCirclePadding = () => {
-    return cssAdapter.getStyleAsNumber(sheet, ".circle", "padding")
+    return cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding")
   };
 
   let graph;
   let depWithCurrentDetailedDeps;
 
   window.addEventListener('WebComponentsReady', function () {
-    document.querySelector('#menu').initializeSettings(sheet, () => {
-      visualizer.setCirclePadding(getCirclePadding());
-      layout();
-      updateWholeVisualization(true);
+    document.querySelector('#menu').initializeSettings({
+      initialCircleFontSize: cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size"),
+      initialCirclePadding: cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding"),
+
+      onSettingsChanged: (circleFontSize, circlePadding) => {
+        cssAdapter.setStyle(cssSheet, ".node text", "font-size", circleFontSize, "px");
+        cssAdapter.setStyle(cssSheet, ".circle", "padding", circlePadding, "px");
+        visualizer.setCirclePadding(getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
+        layout();
+        updateWholeVisualization(true);
+      }
     });
 
     document.querySelector('#menu').initializeFilter(

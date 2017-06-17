@@ -25,32 +25,16 @@
   (function () {
     const infrastructure = require('web-component-infrastructure');
     const ownerDocument = infrastructure.workarounds.getOwnerDocument();
-    const NODE = ".node text";
-    const FONT_SIZE = "font-size";
-    const CIRCLE = ".circle";
-    const PADDING = "padding";
-    const UNIT = "px";
-    let cssAdapter = require('css-adapter').cssAdapter;
-    let cssSheet;
     let onChanged;
 
     function applySizes(form) {
-      cssAdapter.setStyle(cssSheet, NODE, FONT_SIZE, form.circleFontSize.value, UNIT);
-      cssAdapter.setStyle(cssSheet, CIRCLE, PADDING, form.circlePadding.value, UNIT);
-      onChanged();
+      onChanged(form.circleFontSize.value, form.circlePadding.value);
       return false;
     }
 
     class VisualizationSettings extends infrastructure.WebComponentElement {
       constructor() {
         super(ownerDocument);
-      }
-
-      loadSettingsFromCSSSheet() {
-        this.getShadowRoot().querySelector('#circleFontSize').setAttribute("value",
-            cssAdapter.getStyleAsNumber(cssSheet, NODE, FONT_SIZE));
-        this.getShadowRoot().querySelector('#circlePadding').setAttribute("value",
-            cssAdapter.getStyleAsNumber(cssSheet, CIRCLE, PADDING));
       }
 
       postConnected() {
@@ -60,10 +44,10 @@
         }
       }
 
-      initialize(newSheet, newOnChanged) {
-        cssSheet = newSheet;
-        this.loadSettingsFromCSSSheet();
-        onChanged = newOnChanged;
+      initialize(settingsInit) {
+        this.getShadowRoot().querySelector('#circleFontSize').setAttribute("value", settingsInit.initialCircleFontSize);
+        this.getShadowRoot().querySelector('#circlePadding').setAttribute("value", settingsInit.initialCirclePadding);
+        onChanged = settingsInit.onSettingsChanged;
       }
     }
 
