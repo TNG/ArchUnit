@@ -107,8 +107,11 @@
         };
       }
 
-      initialize(newOnNodeFilterChanged, newOnDependencyFilterChanged) {
+      onNodeFilterChanged(newOnNodeFilterChanged) {
         onNodeFilterChanged = newOnNodeFilterChanged;
+      }
+
+      onDependencyFilterChanged(newOnDependencyFilterChanged) {
         onDependencyFilterChanged = newOnDependencyFilterChanged;
       }
     });

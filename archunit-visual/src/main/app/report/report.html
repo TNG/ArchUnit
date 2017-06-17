@@ -101,24 +101,27 @@
       }
     });
 
-    document.querySelector('#menu').initializeFilter(
-        filter => {
-          graph.filterNodesByType(filter);
-          visualizer.update(graph);
-          updateWholeVisualization(true);
-        },
-        filterOptions => {
-          graph.filterDependenciesByKind()
-              .showImplementing(filterOptions.implementing)
-              .showExtending(filterOptions.extending)
-              .showConstructorCall(filterOptions.constructorCall)
-              .showMethodCall(filterOptions.methodCall)
-              .showFieldAccess(filterOptions.fieldAccess)
-              .showAnonymousImplementing(filterOptions.anonymousImplementation)
-              .showDepsBetweenChildAndParent(filterOptions.betweenClassAndItsInnerClasses);
-          updateEdges(d => true);
-          showDetailedDepsOf(depWithCurrentDetailedDeps);
-        });
+    document.querySelector('#menu')
+        .onNodeFilterChanged(
+            filter => {
+              graph.filterNodesByType(filter);
+              visualizer.update(graph);
+              updateWholeVisualization(true);
+            })
+        .onDependencyFilterChanged(
+            filter => {
+              graph.filterDependenciesByKind()
+                  .showImplementing(filter.implementing)
+                  .showExtending(filter.extending)
+                  .showConstructorCall(filter.constructorCall)
+                  .showMethodCall(filter.methodCall)
+                  .showFieldAccess(filter.fieldAccess)
+                  .showAnonymousImplementing(filter.anonymousImplementation)
+                  .showDepsBetweenChildAndParent(filter.betweenClassAndItsInnerClasses);
+
+              updateEdges(d => true);
+              showDetailedDepsOf(depWithCurrentDetailedDeps);
+            });
   });
 
   visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, getCirclePadding(), d3.packSiblings, d3.packEnclose);

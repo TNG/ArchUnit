@@ -35,8 +35,14 @@
         this.shadowRoot.querySelector('#settings-menu').initialize(settingsInit);
       }
 
-      initializeFilter(onNodeFilterChanged, onDependencyFilterChanged) {
-        this.shadowRoot.querySelector('#filter-menu').initialize(onNodeFilterChanged, onDependencyFilterChanged);
+      onNodeFilterChanged(onChanged) {
+        this.shadowRoot.querySelector('#filter-menu').onNodeFilterChanged(onChanged);
+        return this;
+      }
+
+      onDependencyFilterChanged(onChanged) {
+        this.shadowRoot.querySelector('#filter-menu').onDependencyFilterChanged(onChanged);
+        return this;
       }
     });
   }());
