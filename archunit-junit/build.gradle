@@ -32,7 +32,7 @@ shrinkDependencies {
     dontnote
 }
 
-task removeDuplicateThirdParty(type: Jar, dependsOn: shrinkDependencies) {
+task removeDuplicateThirdParty(type: Jar, dependsOn: [shrinkDependencies, project(':archunit').shrinkDependencies]) {
     doFirst {
         List repackagedFilesInArchUnit = zipTree(project(':archunit').shrinkDependencies.archivePath).filter {
             it.absolutePath.contains('com/tngtech/archunit/thirdparty')
