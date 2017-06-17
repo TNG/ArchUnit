@@ -111,13 +111,13 @@
         .onDependencyFilterChanged(
             filter => {
               graph.filterDependenciesByKind()
-                  .showImplementing(filter.implementing)
-                  .showExtending(filter.extending)
-                  .showConstructorCall(filter.constructorCall)
-                  .showMethodCall(filter.methodCall)
-                  .showFieldAccess(filter.fieldAccess)
-                  .showAnonymousImplementing(filter.anonymousImplementation)
-                  .showDepsBetweenChildAndParent(filter.betweenClassAndItsInnerClasses);
+                  .showImplementing(filter.showImplementing)
+                  .showExtending(filter.showExtending)
+                  .showConstructorCall(filter.showConstructorCall)
+                  .showMethodCall(filter.showMethodCall)
+                  .showFieldAccess(filter.showFieldAccess)
+                  .showAnonymousImplementing(filter.showAnonymousImplementation)
+                  .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
               updateEdges(d => true);
               showDetailedDepsOf(depWithCurrentDetailedDeps);

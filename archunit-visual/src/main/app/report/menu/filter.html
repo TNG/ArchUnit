@@ -85,13 +85,13 @@
 
     function filterDependenciesByType(form) {
       onDependencyFilterChanged({
-        implementing: form.implementing.checked,
-        extending: form.extending.checked,
-        constructorCall: form.constructorCall.checked,
-        methodCall: form.methodCall.checked,
-        fieldAccess: form.fieldAccess.checked,
-        anonymousImplementation: form.anonymousImplementation.checked,
-        betweenClassAndItsInnerClasses: form.betweenClassAndItsInnerClasses
+        showImplementing: form.implementing.checked,
+        showExtending: form.extending.checked,
+        showConstructorCall: form.constructorCall.checked,
+        showMethodCall: form.methodCall.checked,
+        showFieldAccess: form.fieldAccess.checked,
+        showAnonymousImplementation: form.anonymousImplementation.checked,
+        showBetweenClassAndItsInnerClasses: form.betweenClassAndItsInnerClasses
       });
       return false;
     }
