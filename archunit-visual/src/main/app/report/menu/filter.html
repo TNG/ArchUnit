@@ -5,114 +5,90 @@
     <div class="filterGroupWrapper">
       <div class="filterType">Nodes</div>
       <div class="filterGroup left">
-        <form action="#" id="filter-classes-by-type-form">
-          <div class="filter">
-            <input type="checkbox" id="interfaces" name="interfaces" value="interfaces" checked>
-            <label for="interfaces">show interfaces</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="classes" name="classes" value="classes" checked>
-            <label for="classes">show classes</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="showEmptyPkgs" name="showEmptyPkgs" value="showEmptyPkgs">
-            <label for="showEmptyPkgs">show empty packages</label>
-          </div>
-          <div class="filter buttons">
-            <input type="reset" value="reset" class="button">
-            <input type="submit" value="submit" class="button">
-          </div>
-        </form>
+        <div class="filter">
+          <input type="checkbox" class="nodeCheckBox" id="showInterfaces" checked>
+          <label for="showInterfaces">show interfaces</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="nodeCheckBox" id="showClasses" checked>
+          <label for="showClasses">show classes</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="nodeCheckBox" id="showEmptyPackages">
+          <label for="showEmptyPackages">show empty packages</label>
+        </div>
       </div>
     </div>
     <div class="filterGroupWrapper">
       <div class="filterType">Dependencies</div>
       <div class="filterGroup right">
-        <form action="#" id="filter-dependencies-by-type-form">
-          <div class="filter">
-            <input type="checkbox" id="implementing" name="implementing" value="implementing" checked>
-            <label for="implementing">implementing</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="extending" name="extending" value="extending" checked>
-            <label for="extending">extending</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="constructorCall" name="constructorCall" value="constructorCall" checked>
-            <label for="constructorCall">constructor call</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="methodCall" name="methodCall" value="methodCall" checked>
-            <label for="methodCall">method call</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="fieldAccess" name="fieldAccess" value="fieldAccess" checked>
-            <label for="fieldAccess">field access</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="anonymousImplementation" name="anonymousImplementation" value="anonymousImplementation" checked>
-            <label for="anonymousImplementation">anonymous implementation</label>
-          </div>
-          <div class="filter">
-            <input type="checkbox" id="betweenClassAndItsInnerClasses" name="betweenClassAndItsInnerClasses"
-                   value="betweenClassAndItsInnerClasses">
-            <label for="betweenClassAndItsInnerClasses">between class and its inner classes</label>
-          </div>
-          <div class="filter buttons">
-            <input type="reset" value="reset" class="button">
-            <input type="submit" value="submit" class="button">
-          </div>
-        </form>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showImplementing" checked>
+          <label for="showImplementing">implementing</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showExtending" checked>
+          <label for="showExtending">extending</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showConstructorCall" checked>
+          <label for="showConstructorCall">constructor call</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showMethodCall" checked>
+          <label for="showMethodCall">method call</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showFieldAccess" checked>
+          <label for="showFieldAccess">field access</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showAnonymousImplementation" checked>
+          <label for="showAnonymousImplementation">anonymous implementation</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="dependencyCheckBox" id="showBetweenClassAndItsInnerClasses">
+          <label for="showBetweenClassAndItsInnerClasses">between class and its inner classes</label>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+  let checkBoxesFrom = function (nodes) {
+    let checkBoxes = Array.from(nodes);
+    const checkboxIdToCheckedBoolean = () => checkBoxes.reduce((result, box) => {
+      result[box.id] = box.checked;
+      return result;
+    }, {});
+
+    return {
+      onCheckboxClicked: onClicked => {
+        checkBoxes.forEach(box => {
+          box.onclick = () => onClicked(checkboxIdToCheckedBoolean())
+        });
+      }
+    };
+  };
+
   (function () {
     const webComponents = require('web-component-infrastructure');
-    let onNodeFilterChanged;
-    let onDependencyFilterChanged;
-
-    function filterClassesByType(form) {
-      onNodeFilterChanged({
-        showInterfaces: form.interfaces.checked,
-        showClasses: form.classes.checked,
-        showEmptyPackages: form.showEmptyPkgs.checked
-      });
-      return false;
-    }
-
-    function filterDependenciesByType(form) {
-      onDependencyFilterChanged({
-        showImplementing: form.implementing.checked,
-        showExtending: form.extending.checked,
-        showConstructorCall: form.constructorCall.checked,
-        showMethodCall: form.methodCall.checked,
-        showFieldAccess: form.fieldAccess.checked,
-        showAnonymousImplementation: form.anonymousImplementation.checked,
-        showBetweenClassAndItsInnerClasses: form.betweenClassAndItsInnerClasses
-      });
-      return false;
-    }
+    let nodeCheckBoxes;
+    let dependencyCheckBoxes;
 
     webComponents.defineCustomElement('visualization-filter', class extends HTMLElement {
       postConnected() {
-        // FIXME: Remove the whole form thing, just react to key presses
-        this.shadowRoot.querySelector('#filter-classes-by-type-form').onsubmit = function () {
-          return filterClassesByType(this);
-        };
-        this.shadowRoot.querySelector('#filter-dependencies-by-type-form').onsubmit = function () {
-          return filterDependenciesByType(this);
-        };
+        nodeCheckBoxes = checkBoxesFrom(this.shadowRoot.querySelectorAll('.nodeCheckBox'));
+        dependencyCheckBoxes = checkBoxesFrom(this.shadowRoot.querySelectorAll('.dependencyCheckBox'));
       }
 
-      onNodeFilterChanged(newOnNodeFilterChanged) {
-        onNodeFilterChanged = newOnNodeFilterChanged;
+      onNodeFilterChanged(onNodeFilterChanged) {
+        nodeCheckBoxes.onCheckboxClicked(onNodeFilterChanged);
       }
 
-      onDependencyFilterChanged(newOnDependencyFilterChanged) {
-        onDependencyFilterChanged = newOnDependencyFilterChanged;
+      onDependencyFilterChanged(onDependencyFilterChanged) {
+        dependencyCheckBoxes.onCheckboxClicked(onDependencyFilterChanged);
       }
     });
   }());

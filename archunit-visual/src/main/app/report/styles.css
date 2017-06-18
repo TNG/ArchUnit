@@ -66,33 +66,6 @@ div {
     vertical-align: top;
 }
 
-div.submit {
-    display: table-cell;
-    border-left: solid 2px black;
-    border-right: solid 2px black;
-    border-bottom: solid 2px black;
-}
-
-.button {
-    float: right;
-    display: table-cell;
-}
-
-div.forms {
-    display: table-row;
-}
-
-div.submitbuttons {
-    display: table-row;
-}
-
-form {
-    display: table-cell;
-    border-right: solid 2px black;
-    border-left: solid 2px black;
-    border-top: solid 2px black;
-}
-
 ul, li {
     float: left;
     clear: left;
