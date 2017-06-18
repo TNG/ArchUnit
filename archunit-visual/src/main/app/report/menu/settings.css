@@ -19,8 +19,8 @@ div.settingsWrapper {
     border: 1px solid #ccc;
 }
 
-.number {
-    width: 30px;
+.menu-slider {
+    width: 100px;
 }
 
 label, input {

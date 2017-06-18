@@ -3,20 +3,14 @@
 
   <div id="wrapper">
     <div class="settingsWrapper">
-      <form action="#" id='settings-form'>
-        <div class="setting">
-          <label for="circleFontSize">Font size for circle text:</label>
-          <input class="number" id="circleFontSize" name="circleFontSize" value="12" min="0" max="50">
-        </div>
-        <div class="setting">
-          <label for="circlePadding">Padding between circles:</label>
-          <input class="number" id="circlePadding" name="circlePadding" value="10" min="0">
-        </div>
-        <div class="setting buttons">
-          <input type="reset" value="reset" class="button">
-          <input type="submit" value="submit" class="button">
-        </div>
-      </form>
+      <div class="setting">
+        <label for="circleFontSize">Font size for circle text:</label>
+        <input type="range" class="menu-slider" id="circleFontSize" value="12" min="8" max="50">
+      </div>
+      <div class="setting">
+        <label for="circlePadding">Padding between circles:</label>
+        <input type="range" class="menu-slider" id="circlePadding" value="10" min="0" max="50">
+      </div>
     </div>
   </div>
 </template>
@@ -24,24 +18,23 @@
 <script>
   (function () {
     const webComponents = require('web-component-infrastructure');
+    let circleFontSizeInput;
+    let circlePaddingInput;
     let onChanged;
-
-    function applySizes(form) {
-      onChanged(form.circleFontSize.value, form.circlePadding.value);
-      return false;
-    }
 
     webComponents.defineCustomElement('visualization-settings', class extends HTMLElement {
       postConnected() {
-        // FIXME: Remove the whole form thing, just react to key presses
-        this.shadowRoot.querySelector('#settings-form').onsubmit = function () {
-          return applySizes(this);
-        }
+        circleFontSizeInput = this.shadowRoot.querySelector('#circleFontSize');
+        circlePaddingInput = this.shadowRoot.querySelector('#circlePadding');
+
+        const onOneValueChanged = () => onChanged(circleFontSizeInput.value, circlePaddingInput.value);
+        circleFontSizeInput.oninput = onOneValueChanged;
+        circlePaddingInput.oninput = onOneValueChanged;
       }
 
       initialize(settingsInit) {
-        this.shadowRoot.querySelector('#circleFontSize').setAttribute("value", settingsInit.initialCircleFontSize);
-        this.shadowRoot.querySelector('#circlePadding').setAttribute("value", settingsInit.initialCirclePadding);
+        circleFontSizeInput.value = settingsInit.initialCircleFontSize;
+        circlePaddingInput.value = settingsInit.initialCirclePadding;
       }
 
       onSettingsChanged(newOnChanged) {
