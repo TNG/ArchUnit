@@ -67,7 +67,7 @@ public interface ImportOption {
      */
     final class DontIncludeTests implements ImportOption {
         private static final String MAVEN_INFIX = "/target/test-classes/";
-        private static final String GRADLE_INFIX = "/build/classes/test/";
+        private static final String GRADLE_INFIX = "/build/classes/java/test/";
 
         private static final Set<String> EXCLUDED_INFIXES = ImmutableSet.of(MAVEN_INFIX, GRADLE_INFIX);
 

@@ -37,11 +37,11 @@ public class DontIncludeTestsTest {
     @DataProvider
     public static Object[][] folders() {
         return $$(
-                $(new String[]{"build", "classes", "test"}, false),
+                $(new String[]{"build", "classes", "java", "test"}, false),
                 $(new String[]{"target", "classes", "test"}, true),
                 $(new String[]{"target", "test-classes"}, false),
                 $(new String[]{"build", "test-classes"}, true),
-                $(new String[]{"build", "classes", "main"}, true),
+                $(new String[]{"build", "classes", "java", "main"}, true),
                 $(new String[]{"target", "classes"}, true)
         );
     }
