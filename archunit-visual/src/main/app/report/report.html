@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Visualization</title>
   <link rel="stylesheet" href="styles.css">
-  <link id="visstyles" rel="stylesheet" href="visualizationstyles.css">
+  <link id="visualization-styles" rel="stylesheet" href="visualizationstyles.css">
 
   <script src="webcomponents-loader.js"></script>
   <script src="d3.js"></script>
@@ -32,14 +32,6 @@
 </div>
 
 <script>
-  // FIXME: The whole construct looks strange, why do I need cssAdapter to get the cssSheet, which in turn I need to pass to cssAdapter
-  //        again and again in the future? I think we would want an object 'cssSheet' which I initialize once, and which
-  //        provides convenient methods to use, without x params, just stuff like setCirclePadding(5, 'px') and the object itself
-  //        knows, which css properties it has to change for this. Too much css details leaking in here for my taste, if we already
-  //        have an object to deal with css
-  const cssAdapter = require('css-adapter').cssAdapter;
-  const cssSheet = cssAdapter.getCssSheet(document, "visstyles");
-
   /*
    * padding between the text in a circle and the rim of the circle
    */
@@ -60,8 +52,10 @@
   const TRANSITION_DURATION = 300;
   const APPEAR_DURATION = 10;
 
-  const jsonToGraph = require('visualization').jsonToGraph;
-  const visualizer = require('visualization').visualizer;
+  const visualization = require('visualization');
+  const jsonToGraph = visualization.jsonToGraph;
+  const visualizer = visualization.visualizer;
+  const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
 
   const svg = d3.select("#visualization"),
       gTree = svg.append("g").attr("transform", "translate(2,2)"),
@@ -76,14 +70,6 @@
     return width;
   };
 
-  const getFontSize = () => {
-    return cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size");
-  };
-
-  const getCirclePadding = () => {
-    return cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding")
-  };
-
   let graph;
   let depWithCurrentDetailedDeps;
 
@@ -91,14 +77,14 @@
     document.querySelector('#menu')
         .initializeSettings(
             {
-              initialCircleFontSize: cssAdapter.getStyleAsNumber(cssSheet, ".node text", "font-size"),
-              initialCirclePadding: cssAdapter.getStyleAsNumber(cssSheet, ".circle", "padding")
+              initialCircleFontSize: visualizationStyles.getNodeFontSize(),
+              initialCirclePadding: visualizationStyles.getCirclePadding()
             })
         .onSettingsChanged(
             (circleFontSize, circlePadding) => {
-              cssAdapter.setStyle(cssSheet, ".node text", "font-size", circleFontSize, "px");
-              cssAdapter.setStyle(cssSheet, ".circle", "padding", circlePadding, "px");
-              visualizer.setCirclePadding(getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
+              visualizationStyles.setNodeFontSize(circleFontSize);
+              visualizationStyles.setCirclePadding(circlePadding);
+              visualizer.setCirclePadding(visualizationStyles.getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
               layout();
               updateWholeVisualization(true);
             })
@@ -124,7 +110,7 @@
             });
   });
 
-  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, getCirclePadding(), d3.packSiblings, d3.packEnclose);
+  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
 
   d3.json("classes.json", function (error, jsonroot) {
     if (error) throw error;
@@ -300,7 +286,7 @@
 
   function getDy(d) {
     if (d.isRoot()) {
-      let fontSize = getFontSize();
+      let fontSize = visualizationStyles.getNodeFontSize();
       return -d.visualData.r + fontSize;
     }
     else if (d.isCurrentlyLeaf()) {
@@ -318,7 +304,7 @@
    **/
   function computeTextShift(r, width) {
     let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-    let fontSize = getFontSize();
+    let fontSize = visualizationStyles.getNodeFontSize();
     shift = -shift + fontSize;
     return shift;
   }

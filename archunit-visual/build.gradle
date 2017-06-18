@@ -92,7 +92,6 @@ task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
     script = file('./node_modules/browserify/bin/cmd.js')
     args = [
             '-r', './src/main/app/report/visualization.js:visualization',
-            '-r', './src/main/app/report/css-adapter.js:css-adapter',
             '-r', './src/main/app/report/web-component-infrastructure.js:web-component-infrastructure',
             '-o', "${reportOutputDir}/visualization-bundle.js"]
 }

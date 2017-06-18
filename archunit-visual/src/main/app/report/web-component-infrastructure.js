@@ -1,3 +1,5 @@
+'use strict';
+
 let shadyCssStyler = {
   prepareTemplate: (template, name) => ShadyCSS.prepareTemplate(template, name),
   styleElement: component => ShadyCSS.styleElement(component)

@@ -1,3 +1,5 @@
+'use strict';
+
 const defaultCoordinate = Math.sqrt(2) / 2;
 
 let subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x, vector1.y - vector2.y);

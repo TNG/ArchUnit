@@ -5,7 +5,7 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --reporter spec src/test/app/**/*.js",
     "copyStatic": "find src/main/app/report -regextype egrep -regex '.*\\.(html|json|css)' -exec cp {} ./build/example-report ';'",
-    "browserify": "./node_modules/browserify/bin/cmd.js -r ./src/main/app/report/visualization.js:visualization -r ./src/main/app/report/css-adapter.js:css-adapter -r ./src/main/app/report/web-component-infrastructure.js:web-component-infrastructure -o build/example-report/visualization-bundle.js",
+    "browserify": "./node_modules/browserify/bin/cmd.js -r ./src/main/app/report/visualization.js:visualization -r ./src/main/app/report/web-component-infrastructure.js:web-component-infrastructure -o build/example-report/visualization-bundle.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run copyStatic && npm run browserify'",
     "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/example-report/"
   },
