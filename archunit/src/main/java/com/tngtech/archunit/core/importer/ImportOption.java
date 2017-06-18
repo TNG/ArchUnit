@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
@@ -61,20 +62,20 @@ public interface ImportOption {
 
     /**
      * NOTE: This excludes all class files residing in some directory
-     * ../target/test-classes/.. or ../build/classes/test/.. (Maven/Gradle standard).
+     * ../target/test-classes/.., ../build/classes/test/.. or ../build/classes/someLang/test/.. (Maven/Gradle standard).
      * Thus it is just a best guess, how tests can be identified,
      * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
     final class DontIncludeTests implements ImportOption {
-        private static final String MAVEN_INFIX = "/target/test-classes/";
-        private static final String GRADLE_INFIX = "/build/classes/java/test/";
+        private static final Pattern MAVEN_PATTERN = Pattern.compile(".*/target/test-classes/.*");
+        private static final Pattern GRADLE_PATTERN = Pattern.compile(".*/build/classes/([^/]+/)?test/.*");
 
-        private static final Set<String> EXCLUDED_INFIXES = ImmutableSet.of(MAVEN_INFIX, GRADLE_INFIX);
+        private static final Set<Pattern> EXCLUDED_PATTERN = ImmutableSet.of(MAVEN_PATTERN, GRADLE_PATTERN);
 
         @Override
         public boolean includes(Location location) {
-            for (String infix : EXCLUDED_INFIXES) {
-                if (location.contains(infix)) {
+            for (Pattern pattern : EXCLUDED_PATTERN) {
+                if (location.matches(pattern)) {
                     return false;
                 }
             }

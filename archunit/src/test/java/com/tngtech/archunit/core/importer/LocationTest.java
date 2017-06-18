@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -72,6 +73,7 @@ public class LocationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void File_location_as_ClassFileSource() throws IOException {
         ClassFileSource source = Location.of(urlOfOwnClass()).asClassFileSource(new ImportOptions());
 
@@ -86,6 +88,7 @@ public class LocationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void JAR_location_as_ClassFileSource() throws IOException {
         JarFile jar = new TestJarFile()
                 .withEntry(fullClassFileName(getClass()))
@@ -119,6 +122,17 @@ public class LocationTest {
         assertThat(location.contains("/archunit/")).as("location contains '/archunit/'").isTrue();
         assertThat(location.contains(getClass().getSimpleName())).as("location contains own simple class name").isTrue();
         assertThat(location.contains("wrong")).as("location contains 'wrong'").isFalse();
+    }
+
+    @Test
+    @UseDataProvider("locations_of_own_class")
+    public void matches(Location location) {
+        assertThat(location.matches(Pattern.compile("archunit.*"))).as("location matches 'archunit.*'").isFalse();
+        assertThat(location.matches(Pattern.compile(".*archunit.*"))).as("location matches '.*archunit.*'").isTrue();
+        assertThat(location.matches(Pattern.compile(".*/archunit/.*"))).as("location contains '/archunit/'").isTrue();
+        assertThat(location.matches(Pattern.compile(".*" + getClass().getSimpleName() + ".*")))
+                .as("location matches own simple class name").isTrue();
+        assertThat(location.matches(Pattern.compile(".*wrong.*"))).as("location matches '.*wrong.*'").isFalse();
     }
 
     @Test
