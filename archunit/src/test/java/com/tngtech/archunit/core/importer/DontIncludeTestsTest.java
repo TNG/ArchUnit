@@ -28,20 +28,24 @@ public class DontIncludeTestsTest {
     @Test
     public void excludes_test_class() {
         assertThat(dontIncludeTests.includes(locationOf(DontIncludeTests.class)))
-                .as("includes test location").isTrue();
+                .as("includes production location").isTrue();
 
         assertThat(dontIncludeTests.includes(locationOf(getClass())))
-                .as("includes production location").isFalse();
+                .as("includes test location").isFalse();
     }
 
     @DataProvider
     public static Object[][] folders() {
         return $$(
+                $(new String[]{"build", "classes", "test"}, false),
                 $(new String[]{"build", "classes", "java", "test"}, false),
+                $(new String[]{"build", "classes", "otherlang", "test"}, false),
                 $(new String[]{"target", "classes", "test"}, true),
                 $(new String[]{"target", "test-classes"}, false),
                 $(new String[]{"build", "test-classes"}, true),
+                $(new String[]{"build", "classes", "main"}, true),
                 $(new String[]{"build", "classes", "java", "main"}, true),
+                $(new String[]{"build", "classes", "java", "main", "my", "test"}, true),
                 $(new String[]{"target", "classes"}, true)
         );
     }

@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
@@ -62,6 +63,15 @@ public abstract class Location {
     @PublicAPI(usage = ACCESS)
     public boolean contains(String part) {
         return uri.toString().contains(part);
+    }
+
+    /**
+     * @param pattern A pattern to compare the respective location {@link URI} against
+     * @return true, if the respective {@link URI} matches the given pattern
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean matches(Pattern pattern) {
+        return pattern.matcher(uri.toString()).matches();
     }
 
     @PublicAPI(usage = ACCESS)
