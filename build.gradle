@@ -16,6 +16,7 @@ buildscript {
 }
 
 plugins {
+    id 'com.gradle.build-scan' version '1.8'
     id 'com.github.johnrengelman.shadow' version '2.0.0'
 }
 
@@ -206,3 +207,9 @@ productionProjects*.with {
 }
 
 apply from: 'build-utils/build-utils.gradle'
+
+buildScan {
+    publishAlways()
+    licenseAgreementUrl = "https://gradle.com/terms-of-service"
+    licenseAgree = "yes"
+}
