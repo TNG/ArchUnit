@@ -86,12 +86,7 @@ task updateLicenses {
 }
 
 project(':archunit') {
-    shadowJar {
-        from(rootProject.file(asmLicenseFile)) {
-            into "/${asmRelocationPackage.replace('.', '/')}"
-        }
-    }
-    shadowJar.mustRunAfter updateLicenses
+    ext.repackagesAsm = true
 }
 
 productionProjects*.with {
@@ -106,7 +101,7 @@ productionProjects*.with {
                     url app.license.url
                     distribution 'repo'
                 }
-                if (add3rdPartyLicenses.repackagesAsm) {
+                if (repackagesAsm) {
                     def asmLicense = rootProject.file(asmLicenseFile).readLines() as Queue
                     license {
                         name asmLicense.poll().replaceAll(/^.*?: /, '')
@@ -116,6 +111,15 @@ productionProjects*.with {
                 }
             }
         }
+    }
+
+    if (repackagesAsm) {
+        shadowJar {
+            from(rootProject.file(asmLicenseFile)) {
+                into "/${asmRelocationPackage.replace('.', '/')}"
+            }
+        }
+        shadowJar.mustRunAfter updateLicenses
     }
 
     task addLicenseHeader {
