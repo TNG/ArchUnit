@@ -91,6 +91,7 @@ ext.productionProjects = subprojects.findAll { productionProjectNames.contains(i
 subprojects {
     apply plugin: 'java'
 
+    ext.repackagesAsm = false
     def addModuleDescription = { "${it} - Module '${project.name}'" }
     description addModuleDescription(rootProject.description)
 
