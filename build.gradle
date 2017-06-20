@@ -198,7 +198,7 @@ productionDownStreamProjects*.with {
 
         finalizedBy finishArchive
     }
-    assemble.dependsOn removeDuplicateThirdParty
+    assemble.dependsOn removeDuplicateThirdParty, project(':archunit').shrinkDependencies
 }
 
 apply from: 'build-steps/build-steps.gradle'

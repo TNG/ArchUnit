@@ -1,27 +1,32 @@
 <link rel="import" href="settings.html">
 <link rel="import" href="filter.html">
+<link rel="import" href="filter-bar.html">
 
 <template id="visualization-menu-template">
   <link rel="stylesheet" href="menu.css">
-
-  <div class="tabs">
-    <div id="filter" class="tab first">
-      <div id="filterTab" class="tabcontent">
-        <visualization-filter id="filter-menu"></visualization-filter>
+  <div>
+    <div class="tabs canhover">
+      <div id="filter" class="tab first canhover">
+        <div id="filterTab" class="tabcontent canhover">
+          <visualization-filter id="filter-menu"></visualization-filter>
+        </div>
+        <div class="title canhover">Filter</div>
       </div>
-      <div class="title">Filter</div>
+      <div id="settings" class="tab second canhover">
+        <div id="settingsTab" class="tabcontent canhover">
+          <visualization-settings id='settings-menu'></visualization-settings>
+        </div>
+        <div class="title canhover">Settings</div>
+      </div>
+      <div id="legend" class="tab third canhover">
+        <div id="legendTab" class="tabcontent canhover">
+          <p>??</p>
+        </div>
+        <div class="title canhover">?</div>
+      </div>
     </div>
-    <div id="settings" class="tab second">
-      <div id="settingsTab" class="tabcontent">
-        <visualization-settings id='settings-menu'></visualization-settings>
-      </div>
-      <div class="title">Settings</div>
-    </div>
-    <div id="legend" class="tab third">
-      <div id="legendTab" class="tabcontent">
-        <p>??</p>
-      </div>
-      <div class="title">?</div>
+    <div id='filterBar'>
+      <visualization-filter-bar id='filter-bar'></visualization-filter-bar>
     </div>
   </div>
 </template>
@@ -48,6 +53,11 @@
 
       onDependencyFilterChanged(onChanged) {
         this.shadowRoot.querySelector('#filter-menu').onDependencyFilterChanged(onChanged);
+        return this;
+      }
+
+      onFilterChanged(onChanged) {
+        this.shadowRoot.querySelector('#filter-bar').onChanged(onChanged);
         return this;
       }
     });

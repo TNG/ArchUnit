@@ -1,4 +1,4 @@
-form, div {
+div {
     border: none;
     outline: none;
 }
@@ -6,7 +6,7 @@ form, div {
 #wrapper {
     width: 100%;
     text-align: center;
-    padding: 10px;
+    padding: 0px 10px 10px 10px;
 }
 
 label, input {
@@ -18,6 +18,7 @@ label {
 }
 
 div.filterGroupWrapper {
+    padding-top: 10px;
     display: inline-block;
     vertical-align: middle;
     margin: 2px;
@@ -36,23 +37,13 @@ div.filterType {
 
 div.filter {
     padding-bottom: 10px;
-}
 
-input.button {
-    background-color: white;
-    border: none;
-    float: none;
 }
 
 div.left {
-    padding: 10px 5px 0px 10px;
+    padding: 10px;
 }
 
 div.right {
-    padding: 10px 10px 0px 5px;
-}
-
-div.buttons {
-    width: 100%;
-    text-align: center;
+    padding: 10px;
 }

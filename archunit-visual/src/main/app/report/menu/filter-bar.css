@@ -1,0 +1,21 @@
+div {
+    border: none;
+    outline: none;
+}
+
+#wrapper {
+    padding: 0px 10px 10px 10px;
+}
+
+label, input {
+    font-size: 14px;
+}
+
+label {
+    padding-right: 5px;
+}
+
+div.filter {
+    display: inline-block;
+    padding-left: 10px;
+}

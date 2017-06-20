@@ -1,0 +1,37 @@
+<template id="visualization-filter-bar-template">
+  <link rel="stylesheet" href="filter-bar.css">
+  <div class="wrapper">
+    <div class="filter">
+      <label for="filterString">Filter:</label>
+      <input type="text" class="textbox" id="filterString">
+    </div>
+    <div class="filter">
+      <input type="checkbox" class="checkbox" id="exclude">
+      <label for="exclude">exclude</label>
+    </div>
+  </div>
+</template>
+
+<script>
+  (function () {
+    const webComponents = require('web-component-infrastructure');
+    let filterStringInput;
+    let excludeInput;
+    let onChanged;
+
+    webComponents.defineCustomElement('visualization-filter-bar', class extends HTMLElement {
+      postConnected() {
+        filterStringInput = this.shadowRoot.querySelector('#filterString');
+        excludeInput = this.shadowRoot.querySelector('#exclude');
+
+        const onValueChanged = () => onChanged(filterStringInput.value, excludeInput.checked);
+        filterStringInput.oninput = onValueChanged;
+        excludeInput.onclick = onValueChanged;
+      }
+
+      onChanged(newOnChanged) {
+        onChanged = newOnChanged;
+      }
+    });
+  }());
+</script>
