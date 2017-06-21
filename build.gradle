@@ -116,6 +116,18 @@ subprojects {
             )
         }
     }
+    test {
+        testLogging {
+            events "failed"
+            exceptionFormat "full"
+        }
+
+        if (!project.hasProperty('allTests')) {
+            useJUnit {
+                excludeCategories 'com.tngtech.archunit.Slow'
+            }
+        }
+    }
 }
 
 ext.shadowConfig = { classifierName ->
@@ -184,14 +196,6 @@ productionProjects*.with {
     delegate.with configureShadow
     delegate.with configureProGuard
 
-    test {
-        if (!it.hasProperty('allTests')) {
-            it.useJUnit {
-                excludeCategories 'com.tngtech.archunit.Slow'
-            }
-        }
-    }
-
     task testJar(type: ShadowJar) {
         from sourceSets.test.output
         configurations = [configurations.tests]
@@ -208,9 +212,3 @@ productionProjects*.with {
 }
 
 apply from: 'build-utils/build-utils.gradle'
-
-buildScan {
-    publishAlways()
-    licenseAgreementUrl = "https://gradle.com/terms-of-service"
-    licenseAgree = "yes"
-}
