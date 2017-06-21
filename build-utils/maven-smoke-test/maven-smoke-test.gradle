@@ -73,5 +73,6 @@ executeMavenTest.mustRunAfter prepareMavenTest
 task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])
 
 productionProjects.with {
+    executeMavenTest.mustRunAfter install
     executeMavenTest.mustRunAfter uploadArchives
 }
