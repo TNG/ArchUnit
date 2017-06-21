@@ -28,11 +28,10 @@ public class ClassFileImporterSlowTest {
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass());
         assertThatClasses(classes).dontContain(Rule.class); // Default doesn't import jars
-        assertThatClasses(classes).dontContain(Object.class); // Default doesn't import jars
 
         classes = new ClassFileImporter().importClasspath(new ImportOptions());
 
-        assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class, Object.class);
+        assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class);
     }
 
     @Test
