@@ -175,7 +175,7 @@ productionDownStreamProjects*.with {
         }
     }
 
-    task removeDuplicateThirdParty(type: Jar, dependsOn: shrinkDependencies) {
+    task removeDuplicateThirdParty(type: Jar, dependsOn: [shrinkDependencies, project(':archunit').shrinkDependencies]) {
         doFirst {
             List repackagedFilesInArchUnit = zipTree(project(':archunit').shrinkDependencies.archivePath).filter {
                 it.absolutePath.contains('com/tngtech/archunit/thirdparty')
@@ -198,7 +198,7 @@ productionDownStreamProjects*.with {
 
         finalizedBy finishArchive
     }
-    assemble.dependsOn removeDuplicateThirdParty, project(':archunit').shrinkDependencies
+    assemble.dependsOn removeDuplicateThirdParty
 }
 
 apply from: 'build-steps/build-steps.gradle'
