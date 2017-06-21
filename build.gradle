@@ -130,6 +130,15 @@ subprojects {
     }
 }
 
+if (System.env.TRAVIS == 'true') {
+    allprojects {
+        tasks.withType(Test) {
+            maxParallelForks = 2
+            minHeapSize = '128m'
+        }
+    }
+}
+
 ext.shadowConfig = { classifierName ->
     return {
         classifier = classifierName
