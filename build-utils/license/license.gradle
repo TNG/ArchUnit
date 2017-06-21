@@ -85,35 +85,8 @@ task updateLicenses {
     }
 }
 
-def configure3rdPartyLicenses = {
-    File jarPath = shrinkDependencies.archivePath
-    File jarTempPath = tempJar(jarPath)
-
-    task add3rdPartyLicenses(type: Zip, dependsOn: shrinkDependencies) {
-        onlyIf {
-            ext.repackagesAsm = zipTree(jarPath).find { it.absolutePath.contains('thirdparty/org/objectweb/asm') }
-        }
-
-        from {
-            zipTree(jarPath)
-        }
-        from(rootProject.file(asmLicenseFile)) {
-            into "/${asmRelocationPackage.replace('.', '/')}"
-        }
-
-        destinationDir jarTempPath.parentFile
-        archiveName jarTempPath.name
-
-        doLast {
-            assert jarPath.delete()
-            assert jarTempPath.renameTo(jarPath)
-        }
-
-        mustRunAfter updateLicenses
-        finalizedBy finishArchive
-    }
-
-    assemble.dependsOn add3rdPartyLicenses
+project(':archunit') {
+    ext.repackagesAsm = true
 }
 
 productionProjects*.with {
@@ -128,7 +101,7 @@ productionProjects*.with {
                     url app.license.url
                     distribution 'repo'
                 }
-                if (add3rdPartyLicenses.repackagesAsm) {
+                if (repackagesAsm) {
                     def asmLicense = rootProject.file(asmLicenseFile).readLines() as Queue
                     license {
                         name asmLicense.poll().replaceAll(/^.*?: /, '')
@@ -138,6 +111,15 @@ productionProjects*.with {
                 }
             }
         }
+    }
+
+    if (repackagesAsm) {
+        shadowJar {
+            from(rootProject.file(asmLicenseFile)) {
+                into "/${asmRelocationPackage.replace('.', '/')}"
+            }
+        }
+        shadowJar.mustRunAfter updateLicenses
     }
 
     task addLicenseHeader {
@@ -151,7 +133,5 @@ productionProjects*.with {
             }
         }
     }
-    assemble.dependsOn addLicenseHeader
-
-    it.with configure3rdPartyLicenses
+    compileJava.dependsOn addLicenseHeader
 }
