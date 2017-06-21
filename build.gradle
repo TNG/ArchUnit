@@ -121,21 +121,6 @@ subprojects {
             events "failed"
             exceptionFormat "full"
         }
-
-        if (!project.hasProperty('allTests')) {
-            useJUnit {
-                excludeCategories 'com.tngtech.archunit.Slow'
-            }
-        }
-    }
-}
-
-if (System.env.TRAVIS == 'true') {
-    allprojects {
-        tasks.withType(Test) {
-            maxParallelForks = 2
-            minHeapSize = '128m'
-        }
     }
 }
 
@@ -217,6 +202,14 @@ productionProjects*.with {
 
     artifacts {
         tests testJar
+    }
+
+    test {
+        if (!project.hasProperty('allTests')) {
+            useJUnit {
+                excludeCategories 'com.tngtech.archunit.Slow'
+            }
+        }
     }
 }
 

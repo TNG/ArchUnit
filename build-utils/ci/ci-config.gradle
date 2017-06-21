@@ -1,0 +1,9 @@
+// Travis CI will shoot our Gradle Executors down, if we fork too many. This happens in particular, if -PallTests is active
+if (System.env.TRAVIS == 'true') {
+    allprojects {
+        tasks.withType(Test) {
+            maxParallelForks = 2
+            minHeapSize = '128m'
+        }
+    }
+}
