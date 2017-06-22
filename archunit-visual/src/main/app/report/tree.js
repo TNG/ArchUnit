@@ -157,6 +157,11 @@ let Node = class {
     this.filters.delete(TYPE_FILTER);
     reapplyFilters(this, this.filters);
   }
+
+  addChild(child) {
+    this.origChildren.push(child);
+    this.currentChildren = this.origChildren;
+  }
 };
 
 let createFilterFunction = (filterString, exclude) => {
@@ -190,11 +195,6 @@ let escapeRegExp = str => {
   return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&");
 };
 
-let addChild = (node, child) => {
-  node.origChildren.push(child);
-  node.currentChildren = node.origChildren;
-};
-
 let parseJsonProjectData = jsonElement => {
   return new ProjectData(jsonElement.name, jsonElement.fullname, jsonElement.type);
 };
@@ -202,7 +202,7 @@ let parseJsonProjectData = jsonElement => {
 let parseJsonNode = (parent, jsonNode) => {
   let node = new Node(parseJsonProjectData(jsonNode), parent);
   if (jsonNode.hasOwnProperty("children")) {
-    jsonNode.children.forEach(c => addChild(node, parseJsonNode(node, c)));
+    jsonNode.children.forEach(c => node.addChild(parseJsonNode(node, c)));
   }
   return node;
 };
