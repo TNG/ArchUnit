@@ -6,7 +6,7 @@ Assertion.addMethod('containExactlyNodes', function () {
   let actual = Array.from(this._obj);
   let expectedNodeFullNames = arguments[0];
 
-  let actualStrings = actual.map(n => n.projectData.fullname).sort();
+  let actualStrings = actual.map(n => n.getFullName()).sort();
   let expectedStrings = expectedNodeFullNames.sort();
 
   let sizeMatches = actualStrings.length === expectedStrings.length;

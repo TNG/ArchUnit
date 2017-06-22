@@ -193,11 +193,11 @@
 
     nodes
       .append("text")
-      .text(d => d.projectData.name);
+        .text(node => node.getName());
 
     nodes
       .append("title")
-      .text(d => d.projectData.name);
+        .text(node => node.getName());
 
     positionTextOfAllNodes(nodes, false);
   }
@@ -316,8 +316,8 @@
 
   function updateVisualizationAfterDragging(node) {
     gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-    updateEdgePosition(gEdges.selectAll("g").filter(d => d.from.startsWith(node.projectData.fullname)
-    || d.to.startsWith(node.projectData.fullname)), false, () => {
+    updateEdgePosition(gEdges.selectAll("g").filter(d => d.from.startsWith(node.getFullName())
+    || d.to.startsWith(node.getFullName())), false, () => {
     });
   }
 

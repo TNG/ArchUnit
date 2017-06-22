@@ -72,6 +72,22 @@ let Node = class {
     this.filters = new Map();
   }
 
+  isPackage() {
+    return this.getType() === nodeKinds.package
+  }
+
+  getName() {
+    return this.projectData.name;
+  }
+
+  getFullName() {
+    return this.projectData.fullname;
+  }
+
+  getType() {
+    return this.projectData.type;
+  }
+
   isRoot() {
     return !this.parent;
   }
@@ -93,7 +109,7 @@ let Node = class {
   }
 
   getClass() {
-    return "node " + this.projectData.type + (!this.isLeaf() && this.projectData.type !== nodeKinds.package ? " foldable" : " notfoldable");
+    return "node " + this.projectData.type + (!this.isLeaf() && !this.projectData.type !== nodeKinds.package ? " foldable" : " notfoldable");
   }
 
   getVisibleDescendants() {
@@ -143,12 +159,12 @@ let Node = class {
 
   filterByType(interfaces, classes, eliminatePkgs) {
     let classFilter =
-      c => (c.projectData.type !== nodeKinds.package) &&
-      boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
-      boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
+        c => (c.projectData.type !== nodeKinds.package) &&
+        boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
+        boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
-      c => (c.projectData.type === nodeKinds.package) &&
-      boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
+        c => (c.projectData.type === nodeKinds.package) &&
+        boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this.filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
     reapplyFilters(this, this.filters);
   }

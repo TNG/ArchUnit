@@ -231,11 +231,11 @@ const graphWrapperOf = (graph, allDependencies) => ({
   allDependencies: allDependencies
 });
 
-const allNodes = root => root.getVisibleDescendants().map(n => n.projectData.fullname);
+const allNodes = root => root.getVisibleDescendants().map(node => node.getFullName());
 
 let createNodeMap = root => {
   let nodeMap = new Map();
-  root.getVisibleDescendants().forEach(d => nodeMap.set(d.projectData.fullname, d));
+  root.getVisibleDescendants().forEach(node => nodeMap.set(node.getFullName(), node));
   return nodeMap;
 };
 

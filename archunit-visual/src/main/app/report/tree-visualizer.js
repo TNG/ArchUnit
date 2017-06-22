@@ -20,7 +20,7 @@ let getFoldedRadius = node => {
   if (!node.isRoot()) {
     node.parent.origChildren.forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
   }
-  let width = radiusOfLeafWithTitle(node.projectData.name);
+  let width = radiusOfLeafWithTitle(node.getName());
   return Math.max(foldedRadius, width);
 };
 
@@ -81,7 +81,7 @@ let radiusOfLeafWithTitle = title => {
 };
 
 let radiusOfAnyNode = (node, TEXT_POSITION) => {
-  let radius = radiusOfLeafWithTitle(node.projectData.name);
+  let radius = radiusOfLeafWithTitle(node.getName());
   if (isOrigLeaf(node)) {
     return radius;
   }

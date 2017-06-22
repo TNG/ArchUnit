@@ -131,7 +131,7 @@ let getCodeElementWhenParentFolded = (codeElement, dependencyEnd, foldedElement)
 };
 
 let containsPackage = (from, to) => {
-  return nodes.get(from).projectData.type === "package" || nodes.get(to).projectData.type === "package";
+  return nodes.get(from).isPackage() || nodes.get(to).isPackage();
 };
 
 let buildDependency = (from, to) => {

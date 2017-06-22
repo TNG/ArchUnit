@@ -5,7 +5,7 @@ let jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
 let createNodeMap = root => {
   let nodeMap = new Map();
-  root.getVisibleDescendants().forEach(d => nodeMap.set(d.projectData.fullname, d));
+  root.getVisibleDescendants().forEach(node => nodeMap.set(node.getFullName(), node));
   return nodeMap;
 };
 
@@ -39,7 +39,7 @@ let Graph = class {
 
   changeFoldStateOfNode(node) {
     if (node.changeFold()) {
-      this.dependencies.changeFold(node.projectData.fullname, node.isFolded);
+      this.dependencies.changeFold(node.getFullName(), node.isFolded);
       return true;
     }
     return false;

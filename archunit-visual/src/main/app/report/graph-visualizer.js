@@ -11,7 +11,7 @@ let visualizeGraph = graph => {
 
 let drag = (graph, node, dx, dy, force) => {
   treeVisualizer.dragNode(node, dx, dy, force);
-  dependenciesVisualizer.refreshVisualDataOf(node.projectData.fullname, graph.getVisibleDependencies());
+  dependenciesVisualizer.refreshVisualDataOf(node.getFullName(), graph.getVisibleDependencies());
 };
 
 let update = graph => {

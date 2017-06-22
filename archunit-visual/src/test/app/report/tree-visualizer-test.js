@@ -16,7 +16,7 @@ const packEnclose = require('d3').packEnclose;
 const treeVisualizer = require("../../../main/app/report/tree-visualizer.js").treeVisualizer;
 treeVisualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);
 
-let radiusOfLeaf = leaf => TEXT_WIDTH(leaf.projectData.name) / 2 + CIRCLE_TEXT_PADDING;
+let radiusOfLeaf = leaf => TEXT_WIDTH(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 
 let moveToMiddleOfParent = (node, parent) =>
     treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);

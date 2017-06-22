@@ -180,7 +180,7 @@ let Dependencies = class {
     let getDetailedDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
       let matching = filter(dependencies).by(propertyFunc);
       let startNode = nodes.get(depEnd);
-      if (startNode.projectData.type === nodeKinds.package || startNode.isCurrentlyLeaf()) {
+      if (startNode.isPackage() || startNode.isCurrentlyLeaf()) {
         return matching.startsWith(depEnd);
       }
       else {

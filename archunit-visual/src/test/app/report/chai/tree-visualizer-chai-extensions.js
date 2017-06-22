@@ -4,7 +4,7 @@ const Assertion = require("chai").Assertion;
 
 const MAX_RADIUS_DIFF = 0.05;
 
-let radiusOfLeaf = (leaf, textwidth, CIRCLETEXTPADDING) => textwidth(leaf.projectData.name) / 2 + CIRCLETEXTPADDING;
+let radiusOfLeaf = (leaf, textwidth, CIRCLETEXTPADDING) => textwidth(leaf.getName()) / 2 + CIRCLETEXTPADDING;
 
 let radiusOfInnerNode = (node, textwidth, CIRCLETEXTPADDING, TEXTPOSITION) =>
 radiusOfLeaf(node, textwidth, CIRCLETEXTPADDING) / Math.sqrt(1 - TEXTPOSITION * TEXTPOSITION);
@@ -20,7 +20,7 @@ Assertion.addMethod('haveExactlyPositions', function () {
   let exp = arguments[0];
 
   let positionsAreCorrect = actualNodes.reduce((res, n) => {
-        let pos = exp.get(n.projectData.fullname);
+        let pos = exp.get(n.getFullName());
         return res && n.visualData.x == pos[0] && n.visualData.y == pos[1];
       },
       true);
@@ -89,8 +89,8 @@ Assertion.addMethod('doNotOverlap', function () {
       let diff = distance(c.visualData.x, c.visualData.y, d.visualData.x, d.visualData.y);
       let minExpDiff = c.visualData.r + d.visualData.r + CIRCLE_PADDING;
       if (diff + MAX_RADIUS_DIFF < minExpDiff) {
-        nodesOverlapping.add(c.projectData.fullname, c);
-        nodesOverlapping.add(d.projectData.fullname, d);
+        nodesOverlapping.add(c.getFullName(), c);
+        nodesOverlapping.add(d.getFullName(), d);
       }
     });
   });
