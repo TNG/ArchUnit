@@ -48,8 +48,6 @@ let fold = (node, folded) => {
     else {
       node.currentChildren = node.filteredChildren;
     }
-
-    //node.observers.forEach(f => f(node));
     return true;
   }
   return false;
@@ -63,12 +61,9 @@ let resetFilteredChildrenOfAllNodes = root => {
 
 let reapplyFilters = (root, filters) => {
   resetFilteredChildrenOfAllNodes(root);
-  let recReapplyFilter = (node, filter) => { //filters
-    node.filteredChildren = node.filteredChildren.filter(filter);//Array.from(filters.values()).reduce((children, filter) => children.filter(filter), node.origChildren);
+  let recReapplyFilter = (node, filter) => {
+    node.filteredChildren = node.filteredChildren.filter(filter);
     node.filteredChildren.forEach(c => recReapplyFilter(c, filter));
-    /*if (!node.isFolded) {
-     node.currentChildren = node.filteredChildren;
-     }*/
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
   descendants(root, n => n.filteredChildren).forEach(n => {
@@ -76,7 +71,6 @@ let reapplyFilters = (root, filters) => {
       n.currentChildren = n.filteredChildren;
     }
   });
-  //recReapplyFilters(root, filters);
 };
 
 let Node = class {
@@ -89,12 +83,7 @@ let Node = class {
     this.currentChildren = this.filteredChildren;
     this.isFolded = false;
     this.filters = new Map();
-    //this.observers = parent ? parent.observers : [];
   }
-
-  /*addObserver(observerFunction) {
-   this.observers.push(observerFunction);
-   }*/
 
   isRoot() {
     return !this.parent;
@@ -117,7 +106,7 @@ let Node = class {
   }
 
   getClass() {
-    return "node " + this.projectData.type + (!this.isLeaf() && this.projectData.type !== nodeKinds.package ? " foldable" : " notfoldable"); // FIXME: The word police says: "'foldunable' is no word" ;-)
+    return "node " + this.projectData.type + (!this.isLeaf() && this.projectData.type !== nodeKinds.package ? " foldable" : " notfoldable");
   }
 
   getVisibleDescendants() {
@@ -158,32 +147,14 @@ let Node = class {
   }
 
   /**
-   * filters the nodes in the tree without the root by the fullname (matching case);
+   * filters the classes in the tree by the fullname (matching case);
    * empty packages are removed
-   * @param filterString is a "small" regex: "*" stands for any keys,
-   * a space at the beginning or end makes the function filtering on
-   * beginsWith respectively endsWith
+   * @param filterString is a "small" regex: "*" stands for any keys (also nothing),
+   * a space at the end makes the function filtering on endsWith
    * @param exclude
    */
-  filterByNameNew(filterString, exclude) {
+  filterByName(filterString, exclude) {
     this.filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
-    reapplyFilters(this, this.filters);
-  }
-
-  /**
-   * the root package is ignored while filtering
-   */
-  filterByName(filterString, callback) {
-    let applyFilter = filter => {
-      this.filters.set(NAME_Filter, filter);
-      reapplyFilters(this, this.filters);
-      callback();
-    };
-    return filterBuilder(filterString, applyFilter);
-  }
-
-  resetFilterByName() {
-    this.filters.delete(NAME_Filter);
     reapplyFilters(this, this.filters);
   }
 
@@ -206,101 +177,34 @@ let Node = class {
 };
 
 let createFilterFunction = (filterString, exclude) => {
+  filterString = leftTrim(filterString);
+  let endsWith = filterString.endsWith(" ");
+  filterString = filterString.trim();
+  let regexString = escapeRegExp(filterString).replace(/\*/g, ".*");
+  if (endsWith) {
+    regexString = "(" + regexString + ")$";
+  }
+
   let filter = node => {
-    if (node.type === "package") {
-      node.currentChildren.red
+    if (node.projectData.type === nodeKinds.package) {
+      return node.filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      let regexString = escapeRegExp(filterString);
-      regexString = regexString.replace(/\*/g, ".");
-      let regex = new RegExp(regexString);
-      let match = regex.exec(node.projectData.fullname);
+      let match = new RegExp(regexString).exec(node.projectData.fullname);
       let res = match && match.length > 0;
       res = exclude ? !res : res;
-      return res;
+      return res || (!isLeaf(node) && node.filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
   };
+  return filter;
+};
+
+let leftTrim = str => {
+  return str.replace(/^\s+/g, '');
 };
 
 let escapeRegExp = str => {
   return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&");
-};
-
-let filterBuilder = (filterString, applyFilter) => {
-  let filterSettings = {};
-  filterSettings.filterString = filterString;
-  let matchCase = {
-    matchCase: matchCase => {
-      filterSettings.caseConverter = str => matchCase ? str : str.toLowerCase();
-      applyFilter(filterFunction(filterSettings));
-    }
-  };
-  let howToFilter = {
-    inclusive: () => {
-      filterSettings.includeOrExclude = res => res;
-      return matchCase;
-    },
-    exclusive: () => {
-      filterSettings.includeOrExclude = res => !res;
-      return matchCase;
-    }
-  };
-  let whatToFilter = {
-    filterClassesAndEliminatePkgs: () => {
-      filterSettings.filterClassesAndEliminatePkgs = true;
-      return howToFilter;
-    },
-    filterPkgsOrClasses: (filterPackages, filterClasses) => {
-      filterSettings.filterPackages = filterPackages;
-      filterSettings.filterClasses = filterClasses;
-      return howToFilter;
-    }
-  };
-  return {
-    by: () => ({
-      fullname: () => {
-        filterSettings.propertyFunc = n => n.fullname;
-        return whatToFilter;
-      },
-      simplename: () => {
-        filterSettings.propertyFunc = n => n.name;
-        return whatToFilter;
-      }
-    })
-  };
-};
-
-let isElementMatching = (node, filterSettings) => {
-  let toFilter = filterSettings.propertyFunc(node.projectData);
-  let res = filterSettings.caseConverter(toFilter).includes(filterSettings.caseConverter(filterSettings.filterString));
-  return filterSettings.includeOrExclude(res);
-};
-
-let filterFunction = (filterSettings) => {
-  return node => {
-    if (filterSettings.filterClassesAndEliminatePkgs) {
-      if (node.projectData.type === nodeKinds.package) {
-        return descendants(node, n => n.filteredChildren).reduce((acc, d) => acc || (d.projectData.type !== nodeKinds.package &&
-        filterFunction(filterSettings)(d)), false);
-      }
-      else {
-        return isElementMatching(node, filterSettings);
-      }
-    }
-    else {
-      if (!filterSettings.filterPackages && !filterSettings.filterClasses) {
-        return true;
-      }
-      if (filterSettings.filterClasses && !filterSettings.filterPackages && node.projectData.type === nodeKinds.package) {
-        return true;
-      }
-      if (filterSettings.filterPackages && node.projectData.type !== nodeKinds.package) {
-        return (filterSettings.filterClasses ? isElementMatching(node, filterSettings) : true)
-          && predecessors(node).reduce((acc, p) => acc && (p.isRoot() || filterFunction(filterSettings)(p)), true);
-      }
-      return isElementMatching(node, filterSettings);
-    }
-  }
 };
 
 let addChild = (node, child) => {

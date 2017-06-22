@@ -24,7 +24,13 @@
         filterStringInput = this.shadowRoot.querySelector('#filterString');
         excludeInput = this.shadowRoot.querySelector('#exclude');
 
-        const onValueChanged = () => onChanged(filterStringInput.value, excludeInput.checked);
+        const onValueChanged = (() => {
+          let timer = 0;
+          return () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => onChanged(filterStringInput.value, excludeInput.checked), 500);
+          }
+        })();
         filterStringInput.oninput = onValueChanged;
         excludeInput.onclick = onValueChanged;
       }

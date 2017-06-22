@@ -51,8 +51,6 @@ let Graph = class {
         callback(node);
       }
     });
-    //this.root.foldAllNodes(callback);
-    //this.root.getAllDescendants().forEach(node => this.dependencies.changeFold(node.projectData.fullname, node.isFolded));
   }
 
   getDetailedDependenciesOf(from, to) {
@@ -60,13 +58,7 @@ let Graph = class {
   }
 
   filterNodesByName(filterString, exclude) {
-    //return this.root.filterByName(filterString, () => refreshOnNodeFiltering(this));
-    this.root.filterByNameNew(filterString, exclude);
-    refreshOnNodeFiltering(this);
-  }
-
-  resetFilterNodesByName() {
-    this.root.resetFilterByName();
+    this.root.filterByName(filterString, exclude);
     refreshOnNodeFiltering(this);
   }
 
