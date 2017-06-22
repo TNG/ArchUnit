@@ -94,127 +94,16 @@ describe("Tree", () => {
     expect(root.traverseTree()).to.equal("com.tngtech(main(class1, ), class2, class3, )");
   });
 
-  it("can inclusively filter classes by name", function () {
+  it("can inclusively filter classes", function () {
     let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(false, true).inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter classes by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(false, true).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.subtest"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter packages by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(true, false).inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter packages by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("main", emptyFun).by().simplename().filterPkgsOrClasses(true, false).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter classes by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("main", emptyFun).by().fullname().filterPkgsOrClasses(false, true).inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
-      "com.tngtech.test.subtest"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter classes by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("Subtest", emptyFun).by().fullname().filterPkgsOrClasses(false, true).exclusive().matchCase(false);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter packages by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().fullname().filterPkgsOrClasses(true, false).inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter packages by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().fullname().filterPkgsOrClasses(true, false).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter packages and classes by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(true, true).inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter packages and classes by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().fullname().filterPkgsOrClasses(true, true).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter packages and classes by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("tEst", emptyFun).by().fullname().filterPkgsOrClasses(true, true).inclusive().matchCase(false);
-    let exp = ["com.tngtech", "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter packages and classes by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("subtest", emptyFun).by().fullname().filterPkgsOrClasses(true, true).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-
-  it("can inclusively filter classes and eliminate packages without matching classes by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterClassesAndEliminatePkgs().inclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    let res = root.getVisibleDescendants();
-    expect(res).to.containExactlyNodes(exp);
-  });
-
-  it("can exclusively filter classes and eliminate packages without matching classes by name", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can inclusively filter classes and eliminate packages without matching classes by fullname", function () {
-    let root = testObjects.testTree2().root;
-    root.filterByName("main", emptyFun).by().fullname().filterClassesAndEliminatePkgs().inclusive().matchCase(true);
+    root.filterByName("main", false);
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
 
-  it("can exclusively filter classes and eliminate packages without matching classes by fullname", function () {
+  it("can exclusively filter classes", function () {
     let root = testObjects.testTree2().root;
-    root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
@@ -222,11 +111,11 @@ describe("Tree", () => {
 
   it("can reset filter", function () {
     let root = testObjects.testTree2().root;
-    root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
-    root.resetFilterByName();
+    root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
@@ -235,7 +124,7 @@ describe("Tree", () => {
 
   it("can filter, fold, unfold and reset filter in this order", function () {
     let tree = testObjects.testTree2();
-    tree.root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    tree.root.filterByName("subtest", true);
     tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
@@ -244,7 +133,7 @@ describe("Tree", () => {
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
-    tree.root.resetFilterByName();
+    tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
@@ -253,12 +142,12 @@ describe("Tree", () => {
 
   it("can filter, fold, reset filter and unfold in this order", function () {
     let tree = testObjects.testTree2();
-    tree.root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    tree.root.filterByName("subtest", true);
     tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
-    tree.root.resetFilterByName();
+    tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
@@ -272,7 +161,7 @@ describe("Tree", () => {
   it("can fold, filter, unfold and reset filter in this order", function () {
     let tree = testObjects.testTree2();
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
@@ -280,7 +169,7 @@ describe("Tree", () => {
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
-    tree.root.resetFilterByName();
+    tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
@@ -290,11 +179,11 @@ describe("Tree", () => {
   it("can fold, filter, reset the filter and unfold in this order", function () {
     let tree = testObjects.testTree2();
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.filterByName("subtest", emptyFun).by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
-    tree.root.resetFilterByName();
+    tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
@@ -367,22 +256,19 @@ describe("Tree", () => {
       "com.tngtech.class2"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
 
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(false, true).exclusive().matchCase(true);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.subtest"];
+    root.filterByName("test", true);
+    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
 
   it("can filter by name and then filter by type", function () {
     let root = testObjects.testTree2().root;
-    root.filterByName("test", emptyFun).by().simplename().filterPkgsOrClasses(false, true).exclusive().matchCase(true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.subtest"];
+    root.filterByName("test", true);
+    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
 
     root.filterByType(false, true, false);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.subtest"];
+    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
 });

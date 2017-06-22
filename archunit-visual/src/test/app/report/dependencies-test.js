@@ -161,11 +161,10 @@ describe("Dependencies", () => {
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
   });
 
-  it("does the filtering of classes only with eliminating packages correctly (no dependencies of eliminated nodes) " +
-      "and resets them correctly", () => {
+  it("does the filtering of classes (no dependencies of eliminated nodes) and resets them correctly", () => {
     let graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest").by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    graphWrapper.graph.filterNodesByName("subtest", true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
@@ -176,57 +175,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByName();
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
-  });
-
-  it("does the filtering of packages only correctly (no dependencies of eliminated nodes) " +
-      "and resets them correctly", () => {
-    let graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.graph.filterNodesByName("main").by().simplename().filterPkgsOrClasses(true, false).inclusive().matchCase(false);
-    let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)",
-      "com.tngtech.class2->com.tngtech.interface1(implements)"
-    ];
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
-
-    graphWrapper.graph.resetFilterNodesByName();
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
-  });
-
-  it("does the filtering of packages and classes correctly (no dependencies of eliminated nodes) " +
-      "and resets them correctly", () => {
-    let graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.graph.filterNodesByName("i").by().simplename().filterPkgsOrClasses(true, true).exclusive().matchCase(false);
-    let exp = [
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])"
-    ];
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
-
-    graphWrapper.graph.resetFilterNodesByName();
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
-  });
-
-  it("does the filtering of classes only correctly (no dependencies of eliminated nodes) " +
-      "and resets them correctly", () => {
-    let graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.graph.filterNodesByName("i").by().simplename().filterPkgsOrClasses(false, true).exclusive().matchCase(false);
-    let exp = [
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)"
-    ];
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
-
-    graphWrapper.graph.resetFilterNodesByName();
+    graphWrapper.graph.filterNodesByName("", false);
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
@@ -234,7 +183,7 @@ describe("Dependencies", () => {
     let graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
-    graphWrapper.graph.filterNodesByName("subtest").by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    graphWrapper.graph.filterNodesByName("subtest", true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test->com.tngtech.class2()",
@@ -245,7 +194,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByName();
+    graphWrapper.graph.filterNodesByName("", false);
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
@@ -257,7 +206,7 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
 
-    graphWrapper.graph.filterNodesByName("subtest").by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    graphWrapper.graph.filterNodesByName("subtest", true);
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test->com.tngtech.class2()",
@@ -279,14 +228,14 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByName();
+    graphWrapper.graph.filterNodesByName("", false);
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the following correctly (in this order): filter, fold, unfold and reset the filter", () => {
     let graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest").by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    graphWrapper.graph.filterNodesByName("subtest", true);
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
 
     let exp = [
@@ -310,14 +259,14 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByName();
+    graphWrapper.graph.filterNodesByName("", false);
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the following correctly (in this order): filter, fold, reset the filter and unfold", () => {
     let graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest").by().fullname().filterClassesAndEliminatePkgs().exclusive().matchCase(true);
+    graphWrapper.graph.filterNodesByName("subtest", true);
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
@@ -329,7 +278,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByName();
+    graphWrapper.graph.filterNodesByName("", false);
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
