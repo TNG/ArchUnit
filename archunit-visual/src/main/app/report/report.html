@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Visualization</title>
-    <link rel="stylesheet" href="styles.css">
-    <link id="visualization-styles" rel="stylesheet" href="visualizationstyles.css">
+  <meta charset="UTF-8">
+  <title>Visualization</title>
+  <link rel="stylesheet" href="styles.css">
+  <link id="visualization-styles" rel="stylesheet" href="visualizationstyles.css">
 
-    <script src="webcomponents-loader.js"></script>
-    <script src="d3.js"></script>
-    <script src="visualization-bundle.js"></script>
+  <script src="webcomponents-loader.js"></script>
+  <script src="d3.js"></script>
+  <script src="visualization-bundle.js"></script>
 
-    <link rel="import" href="menu.html">
+  <link rel="import" href="menu.html">
 </head>
 <body>
 
@@ -18,452 +18,456 @@
 
 <!-- FIXME: What is this good for?? -->
 <svg id="tester" class="node">
-    <text></text>
+  <text></text>
 </svg>
 
 <div id="container">
-    <div id="detailedDeps">
-        <h2 id="headerDetailedDeps">Detailed dependencies:</h2>
-        <ul></ul>
-    </div>
-    <div id="svgContainer">
-        <svg width="960" height="960" id="visualization"></svg>
-    </div>
+  <div id="detailedDeps">
+    <h2 id="headerDetailedDeps">Detailed dependencies:</h2>
+    <ul></ul>
+  </div>
+  <div id="svgContainer">
+    <svg width="960" height="960" id="visualization"></svg>
+  </div>
 </div>
 
 <script>
-    /*
-     * padding between the text in a circle and the rim of the circle
-     */
-    const CIRCLE_TEXT_PADDING = 5;
-    /*
-     * defines after which proportion of the circle the text is positioned; only affects nodes
-     */
-    const RELATIVE_TEXT_POSITION = 0.8;
-    /*
-     * padding between a line and its title
-     */
-    const TEXT_PADDING = 5;
-    /*
-     * the width of the click area of the lines
-     */
-    const clickAreaWidth = 10;
+  /*
+   * padding between the text in a circle and the rim of the circle
+   */
+  const CIRCLE_TEXT_PADDING = 5;
+  /*
+   * defines after which proportion of the circle the text is positioned; only affects nodes
+   */
+  const RELATIVE_TEXT_POSITION = 0.8;
+  /*
+   * padding between a line and its title
+   */
+  const TEXT_PADDING = 5;
+  /*
+   * the width of the click area of the lines
+   */
+  const clickAreaWidth = 10;
 
-    const TRANSITION_DURATION = 300;
-    const APPEAR_DURATION = 10;
+  const TRANSITION_DURATION = 300;
+  const APPEAR_DURATION = 10;
 
-    const visualization = require('visualization');
-    const jsonToGraph = visualization.jsonToGraph;
-    const visualizer = visualization.visualizer;
-    const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
+  const visualization = require('visualization');
+  const jsonToGraph = visualization.jsonToGraph;
+  const visualizer = visualization.visualizer;
+  const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
 
-    const svg = d3.select("#visualization"),
-      gTree = svg.append("g").attr("transform", "translate(2,2)"),
-      gEdges = svg.append("g").attr("transform", "translate(2,2)");
+  const svg = d3.select("#visualization"),
+    gTree = svg.append("g").attr("transform", "translate(2,2)"),
+    gEdges = svg.append("g").attr("transform", "translate(2,2)");
 
-    const textWidth = text => {
-      d3.select("#tester").style("display", "inline");
-      let tester = d3.select("#tester").select("text");
-      tester.text(text);
-      let width = tester.node().getBBox().width;
-      d3.select("#tester").style("display", "none");
-      return width;
+  const textWidth = text => {
+    d3.select("#tester").style("display", "inline");
+    let tester = d3.select("#tester").select("text");
+    tester.text(text);
+    let width = tester.node().getBBox().width;
+    d3.select("#tester").style("display", "none");
+    return width;
+  };
+
+  let graph;
+  let depWithCurrentDetailedDeps;
+
+  window.addEventListener('WebComponentsReady', function () {
+    document.querySelector('#menu')
+      .initializeSettings(
+        {
+          initialCircleFontSize: visualizationStyles.getNodeFontSize(),
+          initialCirclePadding: visualizationStyles.getCirclePadding()
+        })
+      .onSettingsChanged(
+        (circleFontSize, circlePadding) => {
+          visualizationStyles.setNodeFontSize(circleFontSize);
+          visualizationStyles.setCirclePadding(circlePadding);
+          visualizer.setCirclePadding(visualizationStyles.getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
+          layout();
+          updateWholeVisualization(true);
+        })
+      .onNodeFilterChanged(
+        filter => {
+          graph.filterNodesByType(filter);
+          visualizer.update(graph);
+          updateWholeVisualization(true);
+        })
+      .onDependencyFilterChanged(
+        filter => {
+          graph.filterDependenciesByKind()
+            .showImplementing(filter.showImplementing)
+            .showExtending(filter.showExtending)
+            .showConstructorCall(filter.showConstructorCall)
+            .showMethodCall(filter.showMethodCall)
+            .showFieldAccess(filter.showFieldAccess)
+            .showAnonymousImplementing(filter.showAnonymousImplementation)
+            .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
+
+          updateEdges(d => true);
+          showDetailedDepsOf(depWithCurrentDetailedDeps);
+        })
+      .onFilterChanged((filterString, exclude) => {
+        graph.filterNodesByName(filterString, exclude);
+        visualizer.update(graph);
+        updateWholeVisualization(true);
+      });
+  });
+
+  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
+
+  d3.json("classes.json", function (error, jsonroot) {
+    if (error) throw error;
+    graph = jsonToGraph(jsonroot);
+    layout();
+    initializeGraph();
+    graph.foldAllNodes(n => visualizer.update(graph));
+    updateWholeVisualization(false);
+    initializeFilter();
+  });
+
+  function initializeFilter() {
+    graph.filterDependenciesByKind()
+      .showImplementing(true)
+      .showExtending(true)
+      .showConstructorCall(true)
+      .showMethodCall(true)
+      .showFieldAccess(true)
+      .showAnonymousImplementing(true)
+      .showDepsBetweenChildAndParent(false);
+    updateEdges(d => true);
+    // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
+    showDetailedDepsOf(depWithCurrentDetailedDeps);
+  }
+
+  function layout() {
+    visualizer.visualizeGraph(graph);
+    adaptSVGSize();
+  }
+
+  function adaptSVGSize() {
+    svg.attr("width", 2 * graph.root.visualData.r + 4);
+    svg.attr("height", 2 * graph.root.visualData.r + 4);
+  }
+
+  function initializeGraph() {
+    initializeTree();
+    initializeDeps();
+  }
+
+  function setVisible(selection, value) {
+    selection.each(x => x.visualData.visible = value);
+  }
+
+  function initializeTree() {
+    let nodes =
+      gTree.selectAll()
+        .data(graph.getVisibleNodes())
+        .enter()
+        .append("g")
+        .attr("class", d => d.getClass())
+        .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
+
+    setVisible(nodes, true);
+
+    let drag = d3.drag().on("drag", d => {
+      visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
+      updateVisualizationAfterDragging(d);
+    });
+
+    nodes
+      .filter(d => !d.isRoot())
+      .on("click", d => {
+        if (graph.changeFoldStateOfNode(d)) {
+          visualizer.update(graph);
+          updateVisualizationAfterFold();
+        }
+      })
+      .call(drag);
+
+    nodes
+      .filter(d => !d.isRoot())
+      .append("circle")
+      .attr("r", d => d.visualData.r);
+
+    nodes
+      .append("text")
+      .text(d => d.projectData.name);
+
+    nodes
+      .append("title")
+      .text(d => d.projectData.name);
+
+    positionTextOfAllNodes(nodes, false);
+  }
+
+  function initializeDeps() {
+    const defs = svg.append("defs");
+    const marker = defs.append("marker")
+      .attr("id", "end_arrow")
+      .attr("viewBox", '0 -5 10 10')
+      .attr("refX", 10)
+      .attr("markerWidth", 10)
+      .attr("markerHeight", 10)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("d", "M0,-5L10,0L0,5");
+
+    let edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
+    createNewEdges(edges, null, false);
+  }
+
+  function showDetailedDepsOf(dependency) {
+    if (dependency) {
+      d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + dependency.from + "->" + dependency.to);
+      let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(graph.getDetailedDependenciesOf(dependency.from, dependency.to));
+      detailedDeps.exit().remove();
+      detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
+      detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
+    }
+  }
+
+  function createNewEdges(selection) {
+    let newEdges = selection.append("g");
+
+    setVisible(newEdges, true);
+
+    newEdges
+      .append("line")
+      .attr("id", "dep")
+      .attr("class", e => e.getClass())
+      .attr("x1", e => e.visualData.startPoint.x)
+      .attr("y1", e => e.visualData.startPoint.y)
+      .attr("x2", e => e.visualData.endPoint.x)
+      .attr("y2", e => e.visualData.endPoint.y);
+
+    newEdges
+      .filter(e => e.description.hasDetailedDescription())
+      .append("line")
+      .attr("id", "area")
+      .attr("class", "area")
+      .style("visibility", "hidden")
+      .style("pointer-events", "all")
+      .style("stroke-width", clickAreaWidth)
+      .style("stroke", "yellow")
+      .attr("x1", e => e.visualData.startPoint.x)
+      .attr("y1", e => e.visualData.startPoint.y)
+      .attr("x2", e => e.visualData.endPoint.x)
+      .attr("y2", e => e.visualData.endPoint.y)
+      .on("click", function (e) {
+        depWithCurrentDetailedDeps = e;
+        let t = d3.select(d3.select(this).node().parentNode).select("text");
+        if (e.description.hasDescription()) {
+          t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
+        }
+        if (!e.description.hasDescription() || t.style("visibility") !== "hidden") {
+          showDetailedDepsOf(e);
+        }
+      });
+
+    newEdges
+      .append("title")
+      .text(e => e.description.getDescription());
+
+    newEdges
+      .filter(e => e.description.hasDescription())
+      .append("text")
+      .attr("class", e => e.getClass())
+      .text(e => e.description.getDescription())
+      .style("visibility", "hidden")
+      .attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+  }
+
+  function positionTextOfAllNodes(selection, animate, transition) {
+    if (animate) {
+      transition.filter(d => d.visualData.visible).select("text").attr("dy", getDy);
+      selection.filter(d => !d.visualData.visible).select("text").attr("dy", getDy);
+    }
+    else {
+      selection.select("text").attr("dy", getDy);
+    }
+  }
+
+  function getDy(d) {
+    if (d.isRoot()) {
+      let fontSize = visualizationStyles.getNodeFontSize();
+      return -d.visualData.r + fontSize;
+    }
+    else if (d.isCurrentlyLeaf()) {
+      return 0;
+    }
+    else {
+      let textDom = d3.select(this).node();
+      let r = d.visualData.r;
+      return computeTextShift(r, textDom.getBBox().width);
+    }
+  }
+
+  /**
+   * computes the greatest possible shift in y-direction of the text, so that the text is still in the circle
+   **/
+  function computeTextShift(r, width) {
+    let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
+    let fontSize = visualizationStyles.getNodeFontSize();
+    shift = -shift + fontSize;
+    return shift;
+  }
+
+  function updateVisualizationAfterDragging(node) {
+    gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    updateEdgePosition(gEdges.selectAll("g").filter(d => d.from.startsWith(node.projectData.fullname)
+    || d.to.startsWith(node.projectData.fullname)), false, () => {
+    });
+  }
+
+  function updateVisualizationAfterFold() {
+    updateVisualization(d => true, true);
+  }
+
+  //immer animieren!!!
+  function updateWholeVisualization(animate) {
+    updateVisualization(d => true, animate);
+  }
+
+  function updateVisualization(filter, animate) {
+    adaptSVGSize();
+    updateNodes(filter, animate);
+    updateEdges(filter, animate);
+  }
+
+  function setPositionAndRadius(selection) {
+    selection.attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
+    selection.select("circle").attr("r", d => d.visualData.r);
+  }
+
+  function updateNodes(filter, animate) {
+    let nodes = gTree.selectAll("g").data(graph.getVisibleNodes(), graph.nodeKeyFunction());
+
+    nodes.exit().style("visibility", "hidden");
+    setVisible(nodes.exit(), false);
+
+    let filteredNodes = nodes.filter(filter);
+    let transition = filteredNodes.transition().duration(TRANSITION_DURATION);
+
+    if (animate) {
+      setPositionAndRadius(transition.filter(d => d.visualData.visible));
+      setPositionAndRadius(filteredNodes.filter(d => !d.visualData.visible));
+      transition.transition().duration(APPEAR_DURATION).style("visibility", "visible");
+    }
+    else {
+      setPositionAndRadius(filteredNodes);
+      filteredNodes.style("visibility", "visible");
+    }
+
+    positionTextOfAllNodes(filteredNodes, animate, transition);
+
+    setVisible(nodes, true);
+  }
+
+  function updateEdges(filter, animate) {
+    let edges = gEdges.selectAll("g").data(graph.getVisibleDependencies(), graph.dependencyKeyFunction());
+    hideEdges(edges.exit());
+    setVisible(edges.filter(function () {
+      return d3.select(this).style("visibility") === "visible";
+    }), true);
+
+    let callback = () => {
+      showEdges(edges);
+      createNewEdges(edges.enter());
     };
 
-    let graph;
-    let depWithCurrentDetailedDeps;
+    updateEdgePosition(edges.filter(d => filter(d.getStartNode()) || filter(d.getEndNode())), animate, callback);
+  }
 
-    window.addEventListener('WebComponentsReady', function () {
-      document.querySelector('#menu')
-        .initializeSettings(
-          {
-            initialCircleFontSize: visualizationStyles.getNodeFontSize(),
-            initialCirclePadding: visualizationStyles.getCirclePadding()
-          })
-        .onSettingsChanged(
-          (circleFontSize, circlePadding) => {
-            visualizationStyles.setNodeFontSize(circleFontSize);
-            visualizationStyles.setCirclePadding(circlePadding);
-            visualizer.setCirclePadding(visualizationStyles.getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
-            layout();
-            updateWholeVisualization(true);
-          })
-        .onNodeFilterChanged(
-          filter => {
-            graph.filterNodesByType(filter);
-            visualizer.update(graph);
-            updateWholeVisualization(true);
-          })
-        .onDependencyFilterChanged(
-          filter => {
-            graph.filterDependenciesByKind()
-              .showImplementing(filter.showImplementing)
-              .showExtending(filter.showExtending)
-              .showConstructorCall(filter.showConstructorCall)
-              .showMethodCall(filter.showMethodCall)
-              .showFieldAccess(filter.showFieldAccess)
-              .showAnonymousImplementing(filter.showAnonymousImplementation)
-              .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
+  function hideEdges(edges) {
+    setVisible(edges, false);
+    edges.style("visibility", "hidden");
+    edges.select("#area").style("pointer-events", "none");
+  }
 
-            updateEdges(d => true);
-            showDetailedDepsOf(depWithCurrentDetailedDeps);
-          })
-        .onFilterChanged(() => console.log("Hi guys"));
+  function showEdges(edges) {
+    edges.style("visibility", "visible");
+    edges.select("line").attr("class", e => e.getClass());
+    edges.select("#area").style("pointer-events", e => e.description.hasDetailedDescription() ? "all" : "none");
+    edges.filter(e => e.description.hasDescription())
+      .select("text").attr("class", e => e.getClass()).text(e => e.description.getDescription());
+    edges.select("text").style("visibility", function (e) {
+      if (e.description.hasDetailedDescription()) {
+        return (d3.select(this).style("visibility") === "hidden") ? "hidden" : "inherit";
+      }
+      else {
+        return "hidden";
+      }
     });
+  }
 
-    visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
+  function updateEdgePosition(edges, animate, callback) {
+    updateLinePosition(edges, animate, callback);
+    updateTitlePosition(edges, animate);
+  }
 
-    d3.json("classes.json", function (error, jsonroot) {
-      if (error) throw error;
-      graph = jsonToGraph(jsonroot);
-      layout();
-      initializeGraph();
-      graph.foldAllNodes(n => visualizer.update(graph));
-      updateWholeVisualization(false);
-      initializeFilter();
-    });
-
-    function initializeFilter() {
-      graph.filterDependenciesByKind()
-        .showImplementing(true)
-        .showExtending(true)
-        .showConstructorCall(true)
-        .showMethodCall(true)
-        .showFieldAccess(true)
-        .showAnonymousImplementing(true)
-        .showDepsBetweenChildAndParent(false);
-      updateEdges(d => true);
-      // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
-      showDetailedDepsOf(depWithCurrentDetailedDeps);
-    }
-
-    function layout() {
-      visualizer.visualizeGraph(graph);
-      adaptSVGSize();
-    }
-
-    function adaptSVGSize() {
-      svg.attr("width", 2 * graph.root.visualData.r + 4);
-      svg.attr("height", 2 * graph.root.visualData.r + 4);
-    }
-
-    function initializeGraph() {
-      initializeTree();
-      initializeDeps();
-    }
-
-    function setVisible(selection, value) {
-      selection.each(x => x.visualData.visible = value);
-    }
-
-    function initializeTree() {
-      let nodes =
-        gTree.selectAll()
-          .data(graph.getVisibleNodes())
-          .enter()
-          .append("g")
-          .attr("class", d => d.getClass())
-          .attr("transform", d => "translate(" + d.visualData.x + "," + d.visualData.y + ")");
-
-      setVisible(nodes, true);
-
-      let drag = d3.drag().on("drag", d => {
-        visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
-        updateVisualizationAfterDragging(d);
-      });
-
-      nodes
-        .filter(d => !d.isRoot())
-        .on("click", d => {
-          if (graph.changeFoldStateOfNode(d)) {
-            visualizer.update(graph);
-            updateVisualizationAfterFold();
-          }
-        })
-        .call(drag);
-
-      nodes
-        .filter(d => !d.isRoot())
-        .append("circle")
-        .attr("r", d => d.visualData.r);
-
-      nodes
-        .append("text")
-        .text(d => d.projectData.name);
-
-      nodes
-        .append("title")
-        .text(d => d.projectData.name);
-
-      positionTextOfAllNodes(nodes, false);
-    }
-
-    function initializeDeps() {
-      const defs = svg.append("defs");
-      const marker = defs.append("marker")
-        .attr("id", "end_arrow")
-        .attr("viewBox", '0 -5 10 10')
-        .attr("refX", 10)
-        .attr("markerWidth", 10)
-        .attr("markerHeight", 10)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5");
-
-      let edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
-      createNewEdges(edges, null, false);
-    }
-
-    function showDetailedDepsOf(dependency) {
-      if (dependency) {
-        d3.select("#detailedDeps").select("h2").text(d => "Detailed dependencies: " + dependency.from + "->" + dependency.to);
-        let detailedDeps = d3.select("#detailedDeps").select("ul").selectAll("li").data(graph.getDetailedDependenciesOf(dependency.from, dependency.to));
-        detailedDeps.exit().remove();
-        detailedDeps.attr("class", d => d.cssClass).text(d => d.description);
-        detailedDeps.enter().append("li").attr("class", d => d.cssClass).text(d => d.description);
-      }
-    }
-
-    function createNewEdges(selection) {
-      let newEdges = selection.append("g");
-
-      setVisible(newEdges, true);
-
-      newEdges
-        .append("line")
-        .attr("id", "dep")
-        .attr("class", e => e.getClass())
-        .attr("x1", e => e.visualData.startPoint.x)
-        .attr("y1", e => e.visualData.startPoint.y)
-        .attr("x2", e => e.visualData.endPoint.x)
-        .attr("y2", e => e.visualData.endPoint.y);
-
-      newEdges
-        .filter(e => e.description.hasDetailedDescription())
-        .append("line")
-        .attr("id", "area")
-        .attr("class", "area")
-        .style("visibility", "hidden")
-        .style("pointer-events", "all")
-        .style("stroke-width", clickAreaWidth)
-        .style("stroke", "yellow")
-        .attr("x1", e => e.visualData.startPoint.x)
-        .attr("y1", e => e.visualData.startPoint.y)
-        .attr("x2", e => e.visualData.endPoint.x)
-        .attr("y2", e => e.visualData.endPoint.y)
-        .on("click", function (e) {
-          depWithCurrentDetailedDeps = e;
-          let t = d3.select(d3.select(this).node().parentNode).select("text");
-          if (e.description.hasDescription()) {
-            t.style("visibility", t.style("visibility") === "hidden" ? "inherit" : "hidden");
-          }
-          if (!e.description.hasDescription() || t.style("visibility") !== "hidden") {
-            showDetailedDepsOf(e);
-          }
-        });
-
-      newEdges
-        .append("title")
-        .text(e => e.description.getDescription());
-
-      newEdges
-        .filter(e => e.description.hasDescription())
-        .append("text")
-        .attr("class", e => e.getClass())
-        .text(e => e.description.getDescription())
-        .style("visibility", "hidden")
-        .attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-    }
-
-    function positionTextOfAllNodes(selection, animate, transition) {
-      if (animate) {
-        transition.filter(d => d.visualData.visible).select("text").attr("dy", getDy);
-        selection.filter(d => !d.visualData.visible).select("text").attr("dy", getDy);
+  function updateLinePosition(edges, animate, callback) {
+    // FIXME: Let's just decide once and for all, if we animate, or not? Why would we want to turn this off? KISS ;-)
+    if (animate) {
+      let n = 0;
+      let deps = edges.select("#dep");
+      if (deps.empty()) {
+        callback();
       }
       else {
-        selection.select("text").attr("dy", getDy);
-      }
-    }
-
-    function getDy(d) {
-      if (d.isRoot()) {
-        let fontSize = visualizationStyles.getNodeFontSize();
-        return -d.visualData.r + fontSize;
-      }
-      else if (d.isCurrentlyLeaf()) {
-        return 0;
-      }
-      else {
-        let textDom = d3.select(this).node();
-        let r = d.visualData.r;
-        return computeTextShift(r, textDom.getBBox().width);
-      }
-    }
-
-    /**
-     * computes the greatest possible shift in y-direction of the text, so that the text is still in the circle
-     **/
-    function computeTextShift(r, width) {
-      let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-      let fontSize = visualizationStyles.getNodeFontSize();
-      shift = -shift + fontSize;
-      return shift;
-    }
-
-    function updateVisualizationAfterDragging(node) {
-      gTree.selectAll("g").filter(d => d.isChildOf(node)).attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-      updateEdgePosition(gEdges.selectAll("g").filter(d => d.from.startsWith(node.projectData.fullname)
-      || d.to.startsWith(node.projectData.fullname)), false, () => {
-      });
-    }
-
-    function updateVisualizationAfterFold() {
-      updateVisualization(d => true, true);
-    }
-
-    //immer animieren!!!
-    function updateWholeVisualization(animate) {
-      updateVisualization(d => true, animate);
-    }
-
-    function updateVisualization(filter, animate) {
-      adaptSVGSize();
-      updateNodes(filter, animate);
-      updateEdges(filter, animate);
-    }
-
-    function setPositionAndRadius(selection) {
-      selection.attr("transform", d => "translate(" + [d.visualData.x, d.visualData.y] + ")");
-      selection.select("circle").attr("r", d => d.visualData.r);
-    }
-
-    function updateNodes(filter, animate) {
-      let nodes = gTree.selectAll("g").data(graph.getVisibleNodes(), graph.nodeKeyFunction());
-
-      nodes.exit().style("visibility", "hidden");
-      setVisible(nodes.exit(), false);
-
-      let filteredNodes = nodes.filter(filter);
-      let transition = filteredNodes.transition().duration(TRANSITION_DURATION);
-
-      if (animate) {
-        setPositionAndRadius(transition.filter(d => d.visualData.visible));
-        setPositionAndRadius(filteredNodes.filter(d => !d.visualData.visible));
-        transition.transition().duration(APPEAR_DURATION).style("visibility", "visible");
-      }
-      else {
-        setPositionAndRadius(filteredNodes);
-        filteredNodes.style("visibility", "visible");
-      }
-
-      positionTextOfAllNodes(filteredNodes, animate, transition);
-
-      setVisible(nodes, true);
-    }
-
-    function updateEdges(filter, animate) {
-      let edges = gEdges.selectAll("g").data(graph.getVisibleDependencies(), graph.dependencyKeyFunction());
-      hideEdges(edges.exit());
-      setVisible(edges.filter(function () {
-        return d3.select(this).style("visibility") === "visible";
-      }), true);
-
-      let callback = () => {
-        showEdges(edges);
-        createNewEdges(edges.enter());
-      };
-
-      updateEdgePosition(edges.filter(d => filter(d.getStartNode()) || filter(d.getEndNode())), animate, callback);
-    }
-
-    function hideEdges(edges) {
-      setVisible(edges, false);
-      edges.style("visibility", "hidden");
-      edges.select("#area").style("pointer-events", "none");
-    }
-
-    function showEdges(edges) {
-      edges.style("visibility", "visible");
-      edges.select("line").attr("class", e => e.getClass());
-      edges.select("#area").style("pointer-events", e => e.description.hasDetailedDescription() ? "all" : "none");
-      edges.filter(e => e.description.hasDescription())
-        .select("text").attr("class", e => e.getClass()).text(e => e.description.getDescription());
-      edges.select("text").style("visibility", function (e) {
-        if (e.description.hasDetailedDescription()) {
-          return (d3.select(this).style("visibility") === "hidden") ? "hidden" : "inherit";
-        }
-        else {
-          return "hidden";
-        }
-      });
-    }
-
-    function updateEdgePosition(edges, animate, callback) {
-      updateLinePosition(edges, animate, callback);
-      updateTitlePosition(edges, animate);
-    }
-
-    function updateLinePosition(edges, animate, callback) {
-      // FIXME: Let's just decide once and for all, if we animate, or not? Why would we want to turn this off? KISS ;-)
-      if (animate) {
-        let n = 0;
-        let deps = edges.select("#dep");
-        if (deps.empty()) {
-          callback();
-        }
-        else {
-          deps.each(() => n++)
-            .transition().duration(TRANSITION_DURATION) //zuerst direkt nach edges und unten nicht
-          //.select("#dep")  //.filter(d => d.visualData.visible)
-            .attr("x1", e => e.visualData.startPoint.x)
-            .attr("y1", e => e.visualData.startPoint.y)
-            .attr("x2", e => e.visualData.endPoint.x)
-            .attr("y2", e => e.visualData.endPoint.y)
-            .on('end', () => {
-              n--;
-              if (!n) {
-                callback();
-              }
-            });
-        }
-          /*trans = trans.transition().duration(1);
-           trans.select("#dep")
-           .filter(d => !d.visualData.visible)
-           .attr("x1", e => e.visualData.startPoint.x)
-           .attr("y1", e => e.visualData.startPoint.y)
-           .attr("x2", e => e.visualData.endPoint.x)
-           .attr("y2", e => e.visualData.endPoint.y);*/
-      }
-      else {
-        edges.select("#dep")
+        deps.each(() => n++)
+          .transition().duration(TRANSITION_DURATION) //zuerst direkt nach edges und unten nicht
+        //.select("#dep")  //.filter(d => d.visualData.visible)
           .attr("x1", e => e.visualData.startPoint.x)
           .attr("y1", e => e.visualData.startPoint.y)
           .attr("x2", e => e.visualData.endPoint.x)
-          .attr("y2", e => e.visualData.endPoint.y);
-
-        callback();
+          .attr("y2", e => e.visualData.endPoint.y)
+          .on('end', () => {
+            n--;
+            if (!n) {
+              callback();
+            }
+          });
       }
-
-      edges
-        .select("#area")
+      /*trans = trans.transition().duration(1);
+       trans.select("#dep")
+       .filter(d => !d.visualData.visible)
+       .attr("x1", e => e.visualData.startPoint.x)
+       .attr("y1", e => e.visualData.startPoint.y)
+       .attr("x2", e => e.visualData.endPoint.x)
+       .attr("y2", e => e.visualData.endPoint.y);*/
+    }
+    else {
+      edges.select("#dep")
         .attr("x1", e => e.visualData.startPoint.x)
         .attr("y1", e => e.visualData.startPoint.y)
         .attr("x2", e => e.visualData.endPoint.x)
         .attr("y2", e => e.visualData.endPoint.y);
+
+      callback();
     }
 
-    function updateTitlePosition(edges, animate) {
-      if (animate) {
-          /*let trans = edges.select("text").transition().duration(TRANSITION_DURATION);
-           trans.filter(d => d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-           trans.transition().duration(1).filter(d => !d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-           */
-        edges.select("text").transition().duration(TRANSITION_DURATION).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-      }
-      else {
-        edges.select("text").attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
-      }
+    edges
+      .select("#area")
+      .attr("x1", e => e.visualData.startPoint.x)
+      .attr("y1", e => e.visualData.startPoint.y)
+      .attr("x2", e => e.visualData.endPoint.x)
+      .attr("y2", e => e.visualData.endPoint.y);
+  }
+
+  function updateTitlePosition(edges, animate) {
+    if (animate) {
+      /*let trans = edges.select("text").transition().duration(TRANSITION_DURATION);
+       trans.filter(d => d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+       trans.transition().duration(1).filter(d => !d.visualData.visible).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+       */
+      edges.select("text").transition().duration(TRANSITION_DURATION).attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
     }
+    else {
+      edges.select("text").attr("transform", e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+    }
+  }
 </script>
 </body>
 </html>

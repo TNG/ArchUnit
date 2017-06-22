@@ -78,6 +78,7 @@ div.tab:hover {
     border-bottom-right-radius: 25px;
 }
 
+/* FIXME: better use var(--menu-height) */
 #filterBar {
     padding: 10px 10px 10px 10px;
     background-color: ghostwhite;

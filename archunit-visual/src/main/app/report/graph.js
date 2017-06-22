@@ -59,8 +59,10 @@ let Graph = class {
     return this.dependencies.getDetailedDependenciesOf(from, to);
   }
 
-  filterNodesByName(filterString) {
-    return this.root.filterByName(filterString, () => refreshOnNodeFiltering(this));
+  filterNodesByName(filterString, exclude) {
+    //return this.root.filterByName(filterString, () => refreshOnNodeFiltering(this));
+    this.root.filterByNameNew(filterString, exclude);
+    refreshOnNodeFiltering(this);
   }
 
   resetFilterNodesByName() {

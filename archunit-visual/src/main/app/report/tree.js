@@ -67,7 +67,7 @@ let reapplyFilters = (root, filters) => {
     node.filteredChildren = node.filteredChildren.filter(filter);//Array.from(filters.values()).reduce((children, filter) => children.filter(filter), node.origChildren);
     node.filteredChildren.forEach(c => recReapplyFilter(c, filter));
     /*if (!node.isFolded) {
-      node.currentChildren = node.filteredChildren;
+     node.currentChildren = node.filteredChildren;
      }*/
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
@@ -93,7 +93,7 @@ let Node = class {
   }
 
   /*addObserver(observerFunction) {
-    this.observers.push(observerFunction);
+   this.observers.push(observerFunction);
    }*/
 
   isRoot() {
@@ -158,6 +158,19 @@ let Node = class {
   }
 
   /**
+   * filters the nodes in the tree without the root by the fullname (matching case);
+   * empty packages are removed
+   * @param filterString is a "small" regex: "*" stands for any keys,
+   * a space at the beginning or end makes the function filtering on
+   * beginsWith respectively endsWith
+   * @param exclude
+   */
+  filterByNameNew(filterString, exclude) {
+    this.filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
+    reapplyFilters(this, this.filters);
+  }
+
+  /**
    * the root package is ignored while filtering
    */
   filterByName(filterString, callback) {
@@ -176,12 +189,12 @@ let Node = class {
 
   filterByType(interfaces, classes, eliminatePkgs) {
     let classFilter =
-        c => (c.projectData.type !== nodeKinds.package) &&
-        boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
-        boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
+      c => (c.projectData.type !== nodeKinds.package) &&
+      boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
+      boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
-        c => (c.projectData.type === nodeKinds.package) &&
-        boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
+      c => (c.projectData.type === nodeKinds.package) &&
+      boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this.filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
     reapplyFilters(this, this.filters);
   }
@@ -190,6 +203,27 @@ let Node = class {
     this.filters.delete(TYPE_FILTER);
     reapplyFilters(this, this.filters);
   }
+};
+
+let createFilterFunction = (filterString, exclude) => {
+  let filter = node => {
+    if (node.type === "package") {
+      node.currentChildren.red
+    }
+    else {
+      let regexString = escapeRegExp(filterString);
+      regexString = regexString.replace(/\*/g, ".");
+      let regex = new RegExp(regexString);
+      let match = regex.exec(node.projectData.fullname);
+      let res = match && match.length > 0;
+      res = exclude ? !res : res;
+      return res;
+    }
+  };
+};
+
+let escapeRegExp = str => {
+  return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&");
 };
 
 let filterBuilder = (filterString, applyFilter) => {
@@ -262,7 +296,7 @@ let filterFunction = (filterSettings) => {
       }
       if (filterSettings.filterPackages && node.projectData.type !== nodeKinds.package) {
         return (filterSettings.filterClasses ? isElementMatching(node, filterSettings) : true)
-            && predecessors(node).reduce((acc, p) => acc && (p.isRoot() || filterFunction(filterSettings)(p)), true);
+          && predecessors(node).reduce((acc, p) => acc && (p.isRoot() || filterFunction(filterSettings)(p)), true);
       }
       return isElementMatching(node, filterSettings);
     }
