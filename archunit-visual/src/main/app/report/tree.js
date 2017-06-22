@@ -109,7 +109,8 @@ let Node = class {
   }
 
   getClass() {
-    return "node " + this.projectData.type + (!this.isLeaf() && !this.projectData.type !== nodeKinds.package ? " foldable" : " notfoldable");
+    let foldableStyle = this.isLeaf() ? "notfoldable" : "foldable";
+    return `node ${this.getType()} ${foldableStyle}`;
   }
 
   getVisibleDescendants() {
@@ -132,6 +133,7 @@ let Node = class {
     }
   }
 
+  // FIXME: Don't use cryptic abbreviations!!!!
   dfs(fun) {
     if (!isLeaf(this)) {
       this.currentChildren.forEach(c => c.dfs(fun));

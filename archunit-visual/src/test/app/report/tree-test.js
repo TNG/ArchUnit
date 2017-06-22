@@ -3,13 +3,11 @@
 const expect = require("chai").expect;
 require('./chai/tree-chai-extensions');
 
+const testJson = require("./test-json-creator");
+const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
 const testObjects = require("./test-object-creator.js");
 
-const emptyFun = () => {
-};
-
 describe("Node", () => {
-
   it("knows if it is root", () => {
     let tree = testObjects.testTree1();
     expect(tree.root.isRoot()).to.equal(true);
@@ -62,6 +60,19 @@ describe("Node", () => {
     toFold.changeFold();
     let exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
     expect(toFold.getVisibleDescendants()).to.containExactlyNodes(exp);
+  });
+
+  it("Adds CSS to make the mouse a pointer, if there are children to unfold", () => {
+    let tree = testJson.package("com.tngtech")
+        .add(testJson.clazz("Class1", "abstractclass").build())
+        .build();
+
+    let root = jsonToRoot(tree);
+
+    expect(root.getClass()).to.contain(' foldable');
+    expect(root.getClass()).not.to.contain(' notfoldable');
+    expect(root.currentChildren[0].getClass()).to.contain(' notfoldable');
+    expect(root.currentChildren[0].getClass()).not.to.contain(' foldable');
   });
 });
 
