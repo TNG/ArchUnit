@@ -25,18 +25,6 @@ let descendants = (node, childrenSelector) => {
   return res;
 };
 
-let predecessors = node => {
-  let recpredecessors = (res, node) => {
-    if (!node.isRoot()) {
-      res.push(node.parent);
-      recpredecessors(res, node.parent);
-    }
-  };
-  let res = [];
-  recpredecessors(res, node);
-  return res;
-};
-
 let isLeaf = node => node.filteredChildren.length === 0;
 
 let fold = (node, folded) => {
@@ -74,7 +62,6 @@ let reapplyFilters = (root, filters) => {
 };
 
 let Node = class {
-
   constructor(projectData, parent) {
     this.projectData = projectData;
     this.parent = parent;
@@ -111,10 +98,6 @@ let Node = class {
 
   getVisibleDescendants() {
     return descendants(this, n => n.currentChildren);
-  }
-
-  getAllDescendants() {
-    return descendants(this, n => n.origChildren);
   }
 
   traverseTree() {
