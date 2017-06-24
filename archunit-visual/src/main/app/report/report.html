@@ -65,7 +65,7 @@
     d3.select("#tester").style("display", "inline");
     let tester = d3.select("#tester").select("text");
     tester.text(text);
-    let width = tester.node().getBBox().width;
+    let width = tester.node().getComputedTextLength();
     d3.select("#tester").style("display", "none");
     return width;
   };
