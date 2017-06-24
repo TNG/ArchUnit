@@ -44,10 +44,6 @@ div {
     overflow: auto;
 }
 
-#tester {
-    display: none;
-}
-
 #container {
     white-space: nowrap;
     border-top: var(--menu-height) px transparent;

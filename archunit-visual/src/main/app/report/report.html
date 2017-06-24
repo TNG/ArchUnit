@@ -16,11 +16,6 @@
 
 <visualization-menu id='menu'></visualization-menu>
 
-<!-- FIXME: What is this good for?? -->
-<svg id="tester" class="node">
-  <text></text>
-</svg>
-
 <div id="container">
   <div id="detailedDeps">
     <h2 id="headerDetailedDeps">Detailed dependencies:</h2>
@@ -30,6 +25,11 @@
     <svg width="960" height="960" id="visualization"></svg>
   </div>
 </div>
+
+<!-- We use this svg to calculate text widths of rendered texts, see textWidth()-function -->
+<svg id="text-size-computation" class="node" style="display: none;">
+  <text>Foos</text>
+</svg>
 
 <script>
   /*
@@ -62,11 +62,11 @@
     gEdges = svg.append("g").attr("transform", "translate(2,2)");
 
   const textWidth = text => {
-    d3.select("#tester").style("display", "inline");
-    let tester = d3.select("#tester").select("text");
-    tester.text(text);
-    let width = tester.node().getComputedTextLength();
-    d3.select("#tester").style("display", "none");
+    d3.select("#text-size-computation").style("display", "inline");
+    let textElement = d3.select("#text-size-computation").select("text");
+    textElement.text(text);
+    let width = textElement.node().getComputedTextLength();
+    d3.select("#text-size-computation").style("display", "none");
     return width;
   };
 
