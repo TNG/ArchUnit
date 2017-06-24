@@ -80,13 +80,13 @@ let radiusOfLeafWithTitle = title => {
   return textWidth(title) / 2 + circleTextPadding;
 };
 
-let radiusOfAnyNode = (node, TEXT_POSITION) => {
+let radiusOfAnyNode = (node, textPosition) => {
   let radius = radiusOfLeafWithTitle(node.getName());
   if (isOrigLeaf(node)) {
     return radius;
   }
   else {
-    return radius / Math.sqrt(1 - TEXT_POSITION * TEXT_POSITION);
+    return radius / Math.sqrt(1 - textPosition * textPosition);
   }
 };
 
