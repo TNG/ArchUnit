@@ -118,7 +118,9 @@ let Node = class {
   }
 
   traverseTree() {
-    if (this.isCurrentlyLeaf()) return this.projectData.name;
+    if (this.isCurrentlyLeaf()) {
+      return this.projectData.name;
+    }
     let subTree = this.currentChildren.reduce((sub, act) => sub + act.traverseTree() + ", ", "");
     return this.projectData.name + "(" + subTree + ")";
   }

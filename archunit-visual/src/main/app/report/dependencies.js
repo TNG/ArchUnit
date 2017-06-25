@@ -36,7 +36,9 @@ let unique = dependencies => {
       let newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
       map.set(e[0], newDep);
     }
-    else map.set(e[0], e[1]);
+    else {
+      map.set(e[0], e[1]);
+    }
   });
   return [...map.values()];
 };
@@ -49,7 +51,9 @@ let transform = dependencies => ({
           let matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
           let rest = dependencies.filter(r => !matching.includes(r));
           let folded = unique(matching.map(transformer));
-          if (yes) folded = folded.filter(r => r.from !== r.to);
+          if (yes) {
+            folded = folded.filter(r => r.from !== r.to);
+          }
           return [...rest, ...folded];
         }
       })

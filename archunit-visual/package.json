@@ -29,7 +29,10 @@
     },
     "plugins": [
       "html"
-    ]
+    ],
+    "rules": {
+      "curly": "error"
+    }
   },
   "devDependencies": {
     "browserify": "^14.3.0",

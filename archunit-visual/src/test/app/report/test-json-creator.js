@@ -2,7 +2,9 @@
 
 let changeFullName = (node, path) => {
   node.fullname = path + "." + node.fullname;
-  if (node.children) node.children.forEach(n => changeFullName(n, path));
+  if (node.children) {
+    node.children.forEach(n => changeFullName(n, path));
+  }
 };
 
 module.exports = {

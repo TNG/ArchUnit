@@ -108,7 +108,9 @@
   });
 
   d3.json('classes.json', function (error, jsonroot) {
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     graph = jsonToGraph(jsonroot);
     layout();
     initializeGraph();
