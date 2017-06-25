@@ -5,7 +5,7 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator.js");
 
-const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
+const visualizer = require("../../../main/app/report/graph-visualizer.js").newInstance({});
 
 // FIXME: This is no test of dependency-visualizer, but graph-visualizer, and it uses the deprecated global test objects pattern
 //        Also: The test doesn't say, what its preconditions are, nor, what it really asserts (I'd have to look into haveCorrectEndPositions(),

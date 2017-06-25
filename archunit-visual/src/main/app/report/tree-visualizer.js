@@ -13,7 +13,7 @@ const packSiblings = require('d3').packSiblings;
 const packEnclose = require('d3').packEnclose;
 
 let calculateTextWidth;
-let circlePadding;
+let visualizationStyles;
 
 let isOrigLeaf = node => node.origChildren.length === 0;
 //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die wenigen übrigen Klassen größer werden
@@ -108,10 +108,10 @@ let recVisualizeTree = (node) => {
     node.currentChildren.forEach(c => recVisualizeTree(c));
 
     let visualDataOfChildren = node.currentChildren.map(c => c.visualData);
-    visualDataOfChildren.forEach(c => c.r += circlePadding / 2);
+    visualDataOfChildren.forEach(c => c.r += visualizationStyles.getCirclePadding() / 2);
     packSiblings(visualDataOfChildren);
     let circle = packEnclose(visualDataOfChildren);
-    visualDataOfChildren.forEach(c => c.r -= circlePadding / 2);
+    visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding() / 2);
     let childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
     createVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
     visualDataOfChildren.forEach(c => {
@@ -148,17 +148,13 @@ let createVisualData = (node, x, y, r) => {
   node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
-let setStyles = (calculate_text_width, circle_padding) => {
-  calculateTextWidth = calculate_text_width;
-  circlePadding = circle_padding;
-};
+module.exports.newInstance = config => {
+  calculateTextWidth = config.calculateTextWidth;
+  visualizationStyles = config.visualizationStyles;
 
-let setCirclePadding = circle_padding => circlePadding = circle_padding;
-
-module.exports.treeVisualizer = {
-  setStyles: setStyles,
-  setCirclePadding: setCirclePadding,
-  visualizeTree: visualizeTree,
-  dragNode: dragNode,
-  adaptToFoldState: adaptToFoldState
+  return {
+    visualizeTree: visualizeTree,
+    dragNode: dragNode,
+    adaptToFoldState: adaptToFoldState
+  }
 };

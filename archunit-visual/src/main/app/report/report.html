@@ -46,7 +46,6 @@
   const visualization = require('visualization');
   const d3 = visualization.d3;
   const jsonToGraph = visualization.jsonToGraph;
-  const visualizer = visualization.visualizer;
   const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
 
   const svg = d3.select('#visualization'),
@@ -62,7 +61,7 @@
     return width;
   };
 
-  visualizer.setStyles(calculateTextWidth, visualizationStyles.getCirclePadding());
+  const visualizer = visualization.createVisualizer({calculateTextWidth, visualizationStyles});
 
   let graph;
   let depWithCurrentDetailedDeps;
@@ -78,7 +77,6 @@
             (circleFontSize, circlePadding) => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
-              visualizer.setCirclePadding(visualizationStyles.getCirclePadding()); // FIXME: Why do we have to set the padding style AND set the padding within visualizer??
               layout();
               updateWholeVisualization(true);
             })

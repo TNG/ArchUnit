@@ -15,9 +15,8 @@ const RELATIVE_TEXT_POSITION = 0.8;
 
 const CIRCLE_PADDING = 10;
 
-const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
-// FIXME: Why can I delete this line and the test still passes???
-visualizer.setStyles(calculateTextWidth, CIRCLE_PADDING);
+// FIXME: Why can I pass an empty config, and still assertions of CIRCLE_PADDING pass??
+const visualizer = require("../../../main/app/report/graph-visualizer.js").newInstance({});
 
 describe("Visualizer", () => {
   it("visualizes the tree and the dependencies correctly", () => {
