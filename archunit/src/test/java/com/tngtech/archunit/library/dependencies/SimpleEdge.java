@@ -9,11 +9,11 @@ class SimpleEdge extends Edge<String, String> {
         super(from, to);
     }
 
-    public static List<Edge<String, String>> singleEdgeList(String from, String to) {
+    static List<Edge<String, String>> singleEdgeList(String from, String to) {
         return Collections.<Edge<String, String>>singletonList(new SimpleEdge(from, to));
     }
 
-    public static Set<Edge<String, String>> singleEdge(String from, String to) {
+    static Set<Edge<String, String>> singleEdge(String from, String to) {
         return Collections.<Edge<String, String>>singleton(new SimpleEdge(from, to));
     }
 }

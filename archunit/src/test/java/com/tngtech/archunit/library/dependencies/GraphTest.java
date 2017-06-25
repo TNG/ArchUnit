@@ -63,6 +63,7 @@ public class GraphTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void multiple_cycles_are_detected() {
         Graph<String, String> graph = new Graph<>();
 
@@ -102,7 +103,8 @@ public class GraphTest {
         return new Cycle<>(path.append(new SimpleEdge(path.getEnd(), path.getStart())));
     }
 
-    private void addCycles(Graph<String, String> graph, Cycle<String, String>... cycles) {
+    @SafeVarargs
+    private final void addCycles(Graph<String, String> graph, Cycle<String, String>... cycles) {
         for (Cycle<String, String> cycle : cycles) {
             for (Edge<String, String> edge : cycle.getEdges()) {
                 graph.add(edge.getFrom(), Collections.<Edge<String, String>>emptySet());
@@ -118,7 +120,7 @@ public class GraphTest {
         graph.add(target, ImmutableSet.copyOf(singleEdgeList(origin, target)));
     }
 
-    static void assertEdgeExists(Cycle<?, ?> cycle, Object from, Object to) {
+    private static void assertEdgeExists(Cycle<?, ?> cycle, Object from, Object to) {
         for (Edge<?, ?> edge : cycle.getEdges()) {
             if (edge.getFrom().equals(from) && edge.getTo().equals(to)) {
                 return;

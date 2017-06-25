@@ -183,7 +183,7 @@ public class ArchConditionTest {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 boolean matches = item.toString().endsWith(Integer.toString(number));
-                events.add(new SimpleConditionEvent<>(item, matches,
+                events.add(new SimpleConditionEvent(item, matches,
                         item + (matches ? " ends with " : " does not end with ") + number));
             }
         };
@@ -193,7 +193,7 @@ public class ArchConditionTest {
         return new ConditionWithInit(description);
     }
 
-    private static class GreaterThanEvent extends SimpleConditionEvent<Integer> {
+    private static class GreaterThanEvent extends SimpleConditionEvent {
         GreaterThanEvent(int item, int number) {
             super(item, item > number,
                     String.format(

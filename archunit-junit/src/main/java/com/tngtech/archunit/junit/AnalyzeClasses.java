@@ -41,7 +41,7 @@ public @interface AnalyzeClasses {
     /**
      * @return Classes that specify packages to look for in all URLs known to the actual {@link java.net.URLClassLoader}
      */
-    Class[] packagesOf() default {};
+    Class<?>[] packagesOf() default {};
 
     /**
      * Allows to filter the class import. The supplied types will be instantiated and used to create the

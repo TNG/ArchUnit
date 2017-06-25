@@ -71,7 +71,7 @@ public final class JavaConstructor extends JavaCodeUnit {
     }
 
     @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     private class ReflectConstructorSupplier implements Supplier<Constructor<?>> {
         @Override
         public Constructor<?> get() {

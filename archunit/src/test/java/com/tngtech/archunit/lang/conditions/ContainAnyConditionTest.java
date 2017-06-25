@@ -18,7 +18,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 public class ContainAnyConditionTest {
-    static final List<Object> TWO_NONSERIALIZABLE_OBJECTS = asList(new Object(), new Object());
+    private static final List<Object> TWO_NONSERIALIZABLE_OBJECTS = asList(new Object(), new Object());
 
     @Test
     public void satisfied_works_and_description_contains_mismatches() {

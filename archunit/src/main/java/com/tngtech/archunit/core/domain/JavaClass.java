@@ -840,7 +840,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     private class ReflectClassSupplier implements Supplier<Class<?>> {
         @Override
         public Class<?> get() {
