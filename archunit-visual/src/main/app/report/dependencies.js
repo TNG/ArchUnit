@@ -22,7 +22,7 @@ let filter = dependencies => ({
         return false;
       }
     }),
-    equals: fullname => dependencies.filter(r => propertyFunc(r) === fullname)
+    equals: fullName => dependencies.filter(r => propertyFunc(r) === fullName)
   })
 });
 
@@ -208,12 +208,12 @@ let addDependenciesOf = dependencyGroup => ({
       dependencyGroup.kinds.forEach(kind => {
         if (jsonElement.hasOwnProperty(kind.name)) {
           if (kind.isUnique && jsonElement[kind.name]) {
-            arr.push(buildDependency(jsonElement.fullname, jsonElement[kind.name]).withNewDescription()
+            arr.push(buildDependency(jsonElement.fullName, jsonElement[kind.name]).withNewDescription()
                 .withKind(dependencyGroup.name, kind.dependency).build());
           }
           else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
             jsonElement[kind.name].forEach(d => arr.push(
-                buildDependency(jsonElement.fullname, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
+                buildDependency(jsonElement.fullName, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
                     .withTargetElement(d.targetElement).build()));
           }
         }

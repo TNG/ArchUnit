@@ -29,12 +29,12 @@
           "anonImpl": [],
           "children": [],
           "name": "OtherClass",
-          "fullname": "some.other.OtherClass",
+          "fullName": "some.other.OtherClass",
           "type": "class"
         }
       ],
       "name": "some.other",
-      "fullname": "some.other",
+      "fullName": "some.other",
       "type": "package"
     },
     {
@@ -54,16 +54,16 @@
           "anonImpl": [],
           "children": [],
           "name": "EmptyClass",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
           "type": "class"
         }
       ],
       "name": "com.tngtech.archunit.visual.testjson.structure",
-      "fullname": "com.tngtech.archunit.visual.testjson.structure",
+      "fullName": "com.tngtech.archunit.visual.testjson.structure",
       "type": "package"
     }
   ],
   "name": "default",
-  "fullname": "default",
+  "fullName": "default",
   "type": "package"
 }

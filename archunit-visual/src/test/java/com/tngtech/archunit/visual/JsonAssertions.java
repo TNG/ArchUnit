@@ -168,8 +168,8 @@ class JsonAssertions {
         }
 
         private Object keyOf(Object element) {
-            if (element instanceof Map && ((Map) element).containsKey("fullname")) {
-                return ((Map) element).get("fullname");
+            if (element instanceof Map && ((Map) element).containsKey("fullName")) {
+                return ((Map) element).get("fullName");
             } else {
                 return element;
             }

@@ -1,11 +1,11 @@
 {
   "name": "com.tngtech.archunit.visual.testjson.structure",
-  "fullname": "com.tngtech.archunit.visual.testjson.structure",
+  "fullName": "com.tngtech.archunit.visual.testjson.structure",
   "type": "package",
   "children": [
     {
       "name": "EmptyClass",
-      "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
       "type": "class",
       "children": [],
       "superclass": "",
@@ -17,17 +17,17 @@
     },
     {
       "name": "simpleinherit",
-      "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
+      "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
       "type": "package",
       "children": [
         {
           "name": "SimpleClass1",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
           "type": "class",
           "children": [
             {
               "name": "InnerClass1",
-              "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
               "type": "class",
               "children": [],
               "superclass": "",
@@ -71,7 +71,7 @@
         },
         {
           "name": "SimpleClass2",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
           "type": "class",
           "children": [],
           "superclass": "",
@@ -100,7 +100,7 @@
         },
         {
           "name": "SimpleClass3",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
           "type": "class",
           "children": [],
           "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
@@ -112,7 +112,7 @@
         },
         {
           "name": "SimpleInterface1",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
           "type": "interface",
           "children": [],
           "interfaces": [],

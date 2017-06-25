@@ -7,21 +7,21 @@
             {
               "children": [],
               "name": "subpkg",
-              "fullname": "com.tngtech.pkg.subpkg",
+              "fullName": "com.tngtech.pkg.subpkg",
               "type": "package"
             }
           ],
           "name": "pkg",
-          "fullname": "com.tngtech.pkg",
+          "fullName": "com.tngtech.pkg",
           "type": "package"
         }
       ],
       "name": "tngtech",
-      "fullname": "com.tngtech",
+      "fullName": "com.tngtech",
       "type": "package"
     }
   ],
   "name": "com",
-  "fullname": "com",
+  "fullName": "com",
   "type": "package"
 }

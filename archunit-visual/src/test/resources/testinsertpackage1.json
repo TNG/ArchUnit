@@ -3,11 +3,11 @@
     {
       "children": [],
       "name": "tngtech",
-      "fullname": "com.tngtech",
+      "fullName": "com.tngtech",
       "type": "package"
     }
   ],
   "name": "com",
-  "fullname": "com",
+  "fullName": "com",
   "type": "package"
 }

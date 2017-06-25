@@ -28,12 +28,12 @@ public class VisualizationContext {
     }
 
     //FIXME: Test fuer verschiedene Konfigurationen vom Context
-    boolean isElementIncluded(String fullname) {
+    boolean isElementIncluded(String fullName) {
         if (rootPackages.isEmpty()) {
             return true;
         }
         for (String s : rootPackages) {
-            if (fullname.equals(s) || (fullname.startsWith(s) && fullname.substring(s.length()).startsWith("."))) {
+            if (fullName.equals(s) || (fullName.startsWith(s) && fullName.substring(s.length()).startsWith("."))) {
                 return true;
             }
         }

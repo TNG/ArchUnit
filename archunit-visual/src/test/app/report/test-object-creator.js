@@ -221,13 +221,13 @@ const treeWrapperOf = root => {
   let nodeMap = createNodeMap(root);
   return {
     root: root,
-    getNode: fullname => nodeMap.get(fullname)
+    getNode: fullName => nodeMap.get(fullName)
   }
 };
 
 const graphWrapperOf = (graph, allDependencies) => ({
   graph: graph,
-  getNode: fullname => graph.nodeMap.get(fullname),
+  getNode: fullName => graph.nodeMap.get(fullName),
   allDependencies: allDependencies
 });
 

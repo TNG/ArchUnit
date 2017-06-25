@@ -1,7 +1,7 @@
 'use strict';
 
 let changeFullName = (node, path) => {
-  node.fullname = path + "." + node.fullname;
+  node.fullName = path + "." + node.fullName;
   if (node.children) {
     node.children.forEach(n => changeFullName(n, path));
   }
@@ -10,14 +10,14 @@ let changeFullName = (node, path) => {
 module.exports = {
   package: function (pkgname) {
     let res = {
-      fullname: pkgname,
+      fullName: pkgname,
       name: pkgname,
       type: "package",
       children: []
     };
     let builder = {
       add: function (child) {
-        changeFullName(child, res.fullname);
+        changeFullName(child, res.fullName);
         res.children.push(child);
         return builder;
       },
@@ -29,7 +29,7 @@ module.exports = {
   },
   clazz: function (simpleName, type) {
     let res = {
-      fullname: simpleName,
+      fullName: simpleName,
       name: simpleName,
       type: type,
       children: [],
@@ -40,12 +40,12 @@ module.exports = {
       anonImpl: []
     };
     let builder = {
-      extending: function (superclassfullname) {
-        res.superclass = superclassfullname;
+      extending: function (superclassfullName) {
+        res.superclass = superclassfullName;
         return builder;
       },
-      implementing: function (interfacefullname) {
-        res.interfaces.push(interfacefullname);
+      implementing: function (interfacefullName) {
+        res.interfaces.push(interfacefullName);
         return builder;
       },
       callingMethod: function (to, startCodeUnit, targetElement) {
@@ -61,12 +61,12 @@ module.exports = {
         return builder;
       },
       havingInnerClass: function (innerClass) {
-        changeFullName(innerClass, res.fullname);
+        changeFullName(innerClass, res.fullName);
         res.children.push(innerClass);
         return builder;
       },
-      implementingAnonymous: function (interfacefullname) {
-        res.anonImpl.push(interfacefullname);
+      implementingAnonymous: function (interfacefullName) {
+        res.anonImpl.push(interfacefullName);
         return builder;
       },
       build: function () {

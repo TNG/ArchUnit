@@ -1,12 +1,12 @@
 package com.tngtech.archunit.visual;
 
-import org.junit.Test;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -16,15 +16,15 @@ public class PackageStructureCreatorTest {
     public void testCreatePackage() throws Exception {
         JsonJavaPackage act = PackageStructureCreator.createPackage("com", false, "com.tngtech");
         assertTrue("creating new package not working for one subpackage",
-                hasNameAndFullname(act, "tngtech", "com.tngtech"));
+                hasNameAndFullName(act, "tngtech", "com.tngtech"));
 
         act = PackageStructureCreator.createPackage("com", false, "com.tngtech.pkg.subpkg");
         assertTrue("creating new package not working for several subpackages",
-                hasNameAndFullname(act, "tngtech", "com.tngtech"));
+                hasNameAndFullName(act, "tngtech", "com.tngtech"));
 
         act = PackageStructureCreator.createPackage("default", true, "com.tngtech");
         assertTrue("creating new package not working for several subpackages and default root",
-                hasNameAndFullname(act, "com", "com"));
+                hasNameAndFullName(act, "com", "com"));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class PackageStructureCreatorTest {
                 .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
     }
 
-    private boolean hasNameAndFullname(JsonJavaPackage pkg, String name, String fullname) {
-        return pkg.name.equals(name) && pkg.fullname.equals(fullname);
+    private boolean hasNameAndFullName(JsonJavaPackage pkg, String name, String fullName) {
+        return pkg.name.equals(name) && pkg.fullName.equals(fullName);
     }
 }

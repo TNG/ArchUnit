@@ -31,12 +31,12 @@ class JsonJavaPackage extends JsonElement {
     private Set<JsonJavaPackage> subPackages = new HashSet<>();
     private Set<JsonJavaElement> classes = new HashSet<>();
 
-    JsonJavaPackage(String name, String fullname) {
-        this(name, fullname, false);
+    JsonJavaPackage(String name, String fullName) {
+        this(name, fullName, false);
     }
 
-    private JsonJavaPackage(String name, String fullname, boolean isDefault) {
-        super(name, fullname, TYPE);
+    private JsonJavaPackage(String name, String fullName, boolean isDefault) {
+        super(name, fullName, TYPE);
         this.isDefault = isDefault;
     }
 
@@ -47,9 +47,9 @@ class JsonJavaPackage extends JsonElement {
 
 
     void insertPackage(String pkg) {
-        if (!fullname.equals(pkg)) {
+        if (!fullName.equals(pkg)) {
             if (!insertPackageToCorrespondingChild(pkg)) {
-                JsonJavaPackage newPkg = PackageStructureCreator.createPackage(fullname, isDefault, pkg);
+                JsonJavaPackage newPkg = PackageStructureCreator.createPackage(fullName, isDefault, pkg);
                 addPackage(newPkg);
                 newPkg.insertPackage(pkg);
             }
@@ -63,7 +63,7 @@ class JsonJavaPackage extends JsonElement {
 
     private boolean insertPackageToCorrespondingChild(String pkg) {
         for (JsonJavaPackage c : subPackages) {
-            if (pkg.startsWith(c.fullname)) {
+            if (pkg.startsWith(c.fullName)) {
                 c.insertPackage(pkg);
                 return true;
             }
@@ -72,7 +72,7 @@ class JsonJavaPackage extends JsonElement {
     }
 
     void insertJavaElement(JsonJavaElement element) {
-        if (fullname.equals(element.getPath())) {
+        if (fullName.equals(element.getPath())) {
             addJavaElement(element);
         } else {
             insertJavaElementToCorrespondingChild(element);
@@ -86,7 +86,7 @@ class JsonJavaPackage extends JsonElement {
 
     private void insertJavaElementToCorrespondingChild(JsonJavaElement element) {
         for (JsonElement child : children) {
-            if (element.fullname.startsWith(child.fullname)) {
+            if (element.fullName.startsWith(child.fullName)) {
                 child.insertJavaElement(element);
                 break;
             }
@@ -106,11 +106,11 @@ class JsonJavaPackage extends JsonElement {
         // FIXME: For loop does not loop??
         for (JsonJavaPackage c : subPackages) {
             if (isDefault) {
-                fullname = c.fullname;
+                fullName = c.fullName;
                 name = c.name;
                 isDefault = false;
             } else {
-                fullname = c.fullname;
+                fullName = c.fullName;
                 name += "." + c.name;
             }
             subPackages = c.subPackages;

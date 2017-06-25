@@ -81,7 +81,7 @@ public class JsonJavaPackageTest {
         return element.transform(new Function<JsonElement, String>() {
             @Override
             public String apply(JsonElement input) {
-                return input.fullname;
+                return input.fullName;
             }
         });
     }

@@ -6,10 +6,10 @@ const boolFunc = require('./booleanutils').booleanFunctions;
 const TYPE_FILTER = "typefilter";
 const NAME_Filter = "namefilter";
 
-let ProjectData = class {
-  constructor(name, fullname, type) {
+let NodeDescription = class {
+  constructor(name, fullName, type) {
     this.name = name;
-    this.fullname = fullname;
+    this.fullName = fullName;
     this.type = type;
   }
 };
@@ -62,8 +62,8 @@ let reapplyFilters = (root, filters) => {
 };
 
 let Node = class {
-  constructor(projectData, parent) {
-    this._projectData = projectData;
+  constructor(description, parent) {
+    this._description = description;
     this._parent = parent;
     this._origChildren = [];
     this._filteredChildren = this._origChildren;
@@ -77,15 +77,15 @@ let Node = class {
   }
 
   getName() {
-    return this._projectData.name;
+    return this._description.name;
   }
 
   getFullName() {
-    return this._projectData.fullname;
+    return this._description.fullName;
   }
 
   getType() {
-    return this._projectData.type;
+    return this._description.type;
   }
 
   getParent() {
@@ -176,7 +176,7 @@ let Node = class {
   }
 
   /**
-   * filters the classes in the tree by the fullname (matching case);
+   * filters the classes in the tree by the fullName (matching case);
    * empty packages are removed
    * @param filterString is a "small" regex: "*" stands for any keys (also nothing),
    * a space at the end makes the function filtering on endsWith
@@ -240,12 +240,12 @@ let escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
 
-let parseJsonProjectData = jsonElement => {
-  return new ProjectData(jsonElement.name, jsonElement.fullname, jsonElement.type);
+let parseNodeDescriptionFromJson = jsonElement => {
+  return new NodeDescription(jsonElement.name, jsonElement.fullName, jsonElement.type);
 };
 
 let parseJsonNode = (parent, jsonNode) => {
-  let node = new Node(parseJsonProjectData(jsonNode), parent);
+  let node = new Node(parseNodeDescriptionFromJson(jsonNode), parent);
   if (jsonNode.hasOwnProperty("children")) {
     jsonNode.children.forEach(c => node.addChild(parseJsonNode(node, c)));
   }

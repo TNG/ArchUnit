@@ -87,8 +87,8 @@ let refreshVisualData = dependency => {
   dependency.visualData.recalc(dependency.mustShareNodes, dependency.getStartNode().visualData, dependency.getEndNode().visualData);
 };
 
-let refreshVisualDataOf = (nodeFullname, dependencies) => {
-  dependencies.filter(d => d.from.startsWith(nodeFullname) || d.to.startsWith(nodeFullname)).forEach(d => refreshVisualData(d));
+let refreshVisualDataOf = (nodeFullName, dependencies) => {
+  dependencies.filter(d => d.from.startsWith(nodeFullName) || d.to.startsWith(nodeFullName)).forEach(d => refreshVisualData(d));
 };
 
 let refreshVisualDataOfDependencies = dependencies => {

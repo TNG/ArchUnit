@@ -35,15 +35,15 @@ class PackageStructureCreator {
     }
 
     /**
-     * creates a JsonJavaPackage one level under this parent using the next sub-package in newFullname
+     * creates a JsonJavaPackage one level under this parent using the next sub-package in newFullName
      */
-    static JsonJavaPackage createPackage(String parentFullname, boolean parentIsDeafult, String newFullname) {
-        int length = parentIsDeafult ? 0 : parentFullname.length() + 1;
-        int end = newFullname.indexOf(PACKAGE_SEPARATOR, length);
-        end = end == -1 ? newFullname.length() : end;
-        String fullName = newFullname.substring(0, end);
-        int start = parentIsDeafult || parentFullname.length() == 0 ? 0 : parentFullname.length() + 1;
-        String name = newFullname.substring(start, end);
+    static JsonJavaPackage createPackage(String parentFullName, boolean parentIsDeafult, String newFullName) {
+        int length = parentIsDeafult ? 0 : parentFullName.length() + 1;
+        int end = newFullName.indexOf(PACKAGE_SEPARATOR, length);
+        end = end == -1 ? newFullName.length() : end;
+        String fullName = newFullName.substring(0, end);
+        int start = parentIsDeafult || parentFullName.length() == 0 ? 0 : parentFullName.length() + 1;
+        String name = newFullName.substring(start, end);
         return new JsonJavaPackage(name, fullName);
     }
 

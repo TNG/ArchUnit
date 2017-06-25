@@ -35,8 +35,8 @@ abstract class JsonJavaElement extends JsonElement {
     @Expose
     private Set<JsonJavaElement> children = new HashSet<>();
 
-    JsonJavaElement(String name, String fullname, String type) {
-        super(name, fullname, type);
+    JsonJavaElement(String name, String fullName, String type) {
+        super(name, fullName, type);
     }
 
     @Override

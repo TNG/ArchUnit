@@ -1,21 +1,21 @@
 {
   "name": "default",
-  "fullname": "default",
+  "fullName": "default",
   "type": "package",
   "children": [
     {
       "name": "java",
-      "fullname": "java",
+      "fullName": "java",
       "type": "package",
       "children": [
         {
           "name": "io",
-          "fullname": "java.io",
+          "fullName": "java.io",
           "type": "package",
           "children": [
             {
               "name": "PrintStream",
-              "fullname": "java.io.PrintStream",
+              "fullName": "java.io.PrintStream",
               "type": "class",
               "children": [],
               "superclass": "",
@@ -29,12 +29,12 @@
         },
         {
           "name": "lang",
-          "fullname": "java.lang",
+          "fullName": "java.lang",
           "type": "package",
           "children": [
             {
               "name": "System",
-              "fullname": "java.lang.System",
+              "fullName": "java.lang.System",
               "type": "class",
               "children": [],
               "superclass": "",
@@ -46,7 +46,7 @@
             },
             {
               "name": "Object",
-              "fullname": "java.lang.Object",
+              "fullName": "java.lang.Object",
               "type": "class",
               "children": [],
               "superclass": "",
@@ -62,12 +62,12 @@
     },
     {
       "name": "some.other",
-      "fullname": "some.other",
+      "fullName": "some.other",
       "type": "package",
       "children": [
         {
           "name": "OtherClass",
-          "fullname": "some.other.OtherClass",
+          "fullName": "some.other.OtherClass",
           "type": "class",
           "children": [],
           "superclass": "java.lang.Object",
@@ -99,12 +99,12 @@
     },
     {
       "name": "com.tngtech.archunit.visual.testjson.structure",
-      "fullname": "com.tngtech.archunit.visual.testjson.structure",
+      "fullName": "com.tngtech.archunit.visual.testjson.structure",
       "type": "package",
       "children": [
         {
           "name": "EmptyClass",
-          "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+          "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
           "type": "class",
           "children": [],
           "superclass": "java.lang.Object",

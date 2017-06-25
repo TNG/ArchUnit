@@ -26,29 +26,29 @@ abstract class JsonElement {
     @Expose
     protected String name;
     @Expose
-    protected String fullname;
+    protected String fullName;
     @Expose
     protected String type;
 
-    JsonElement(String name, String fullname, String type) {
+    JsonElement(String name, String fullName, String type) {
         this.name = name;
-        this.fullname = fullname;
+        this.fullName = fullName;
         this.type = type;
     }
 
     String getPath() {
-        return fullname.equals(name) ? DEFAULT_ROOT : fullname.substring(0, fullname.length() - name.length() - 1);
+        return fullName.equals(name) ? DEFAULT_ROOT : fullName.substring(0, fullName.length() - name.length() - 1);
     }
 
     abstract Set<? extends JsonElement> getChildren();
 
-    Optional<? extends JsonElement> getChild(String fullnameChild) {
-        if (fullname.equals(fullnameChild)) {
+    Optional<? extends JsonElement> getChild(String fullNameChild) {
+        if (fullName.equals(fullNameChild)) {
             return Optional.of(this);
         }
         for (JsonElement el : getChildren()) {
-            if (fullnameChild.startsWith(el.fullname)) {
-                return el.getChild(fullnameChild);
+            if (fullNameChild.startsWith(el.fullName)) {
+                return el.getChild(fullNameChild);
             }
         }
         return Optional.absent();

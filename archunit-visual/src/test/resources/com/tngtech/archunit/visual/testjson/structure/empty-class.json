@@ -1,11 +1,11 @@
 {
   "name": "com.tngtech.archunit.visual.testjson.structure",
-  "fullname": "com.tngtech.archunit.visual.testjson.structure",
+  "fullName": "com.tngtech.archunit.visual.testjson.structure",
   "type": "package",
   "children": [
     {
       "name": "EmptyClass",
-      "fullname": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
       "type": "class",
       "children": [],
       "superclass": "",

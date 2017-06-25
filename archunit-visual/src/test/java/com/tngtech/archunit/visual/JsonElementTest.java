@@ -57,17 +57,17 @@ public class JsonElementTest {
             void insertJavaElement(JsonJavaElement el) {
             }
         };
-        assertTrue("getting child-class not working", hasFullname(element.getChild(class1), class1));
+        assertTrue("getting child-class not working", hasFullName(element.getChild(class1), class1));
 
-        assertTrue("getting child-package not working", hasFullname(element.getChild(subpkg), subpkg));
+        assertTrue("getting child-package not working", hasFullName(element.getChild(subpkg), subpkg));
 
-        assertTrue("getting own package not working", hasFullname(element.getChild(pkg), pkg));
+        assertTrue("getting own package not working", hasFullName(element.getChild(pkg), pkg));
 
         assertFalse("getting not existing child is not working",
-                hasFullname(element.getChild(notexistingClass), notexistingClass));
+                hasFullName(element.getChild(notexistingClass), notexistingClass));
     }
 
-    private static boolean hasFullname(Optional<? extends JsonElement> act, String expectedFullname) {
-        return act.isPresent() && act.get().fullname.equals(expectedFullname);
+    private static boolean hasFullName(Optional<? extends JsonElement> act, String expectedFullName) {
+        return act.isPresent() && act.get().fullName.equals(expectedFullName);
     }
 }
