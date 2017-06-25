@@ -71,8 +71,8 @@ describe("Node", () => {
 
     expect(root.getClass()).to.contain(' foldable');
     expect(root.getClass()).not.to.contain(' notfoldable');
-    expect(root.currentChildren[0].getClass()).to.contain(' notfoldable');
-    expect(root.currentChildren[0].getClass()).not.to.contain(' foldable');
+    expect(root.getCurrentChildren()[0].getClass()).to.contain(' notfoldable');
+    expect(root.getCurrentChildren()[0].getClass()).not.to.contain(' foldable');
   });
 });
 

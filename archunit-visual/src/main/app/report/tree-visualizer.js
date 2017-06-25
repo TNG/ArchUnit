@@ -15,7 +15,7 @@ const packEnclose = require('d3').packEnclose;
 let calculateTextWidth;
 let visualizationStyles;
 
-let isOrigLeaf = node => node.origChildren.length === 0;
+let isOrigLeaf = node => node.getOrigChildren().length === 0;
 //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die wenigen übrigen Klassen größer werden
 
 let spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
@@ -26,36 +26,36 @@ let spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
 let getFoldedRadius = node => {
   let foldedRadius = node.visualData.r;
   if (!node.isRoot()) {
-    node.parent.origChildren.forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
+    node.getParent().getOrigChildren().forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
   }
   let width = radiusOfLeafWithTitle(node.getName());
   return Math.max(foldedRadius, width);
 };
 
 let dragNodeBackIntoItsParent = node => {
-  let space = spaceFromPointToNodeBorder(node.visualData.x, node.visualData.y, node.parent.visualData);
+  let space = spaceFromPointToNodeBorder(node.visualData.x, node.visualData.y, node.getParent().visualData);
   if (space < node.visualData.r) {
     let dr = node.visualData.r - space;
-    let alpha = Math.atan2(node.visualData.y - node.parent.visualData.y, node.visualData.x - node.parent.visualData.x);
+    let alpha = Math.atan2(node.visualData.y - node.getParent().visualData.y, node.visualData.x - node.getParent().visualData.x);
     let dy = Math.abs(Math.sin(alpha) * dr);
     let dx = Math.abs(Math.cos(alpha) * dr);
-    dy = Math.sign(node.parent.visualData.y - node.visualData.y) * dy;
-    dx = Math.sign(node.parent.visualData.x - node.visualData.x) * dx;
+    dy = Math.sign(node.getParent().visualData.y - node.visualData.y) * dy;
+    dx = Math.sign(node.getParent().visualData.x - node.visualData.x) * dx;
     dragNode(node, dx, dy, true);
   }
 };
 
 let dragNode = (node, dx, dy, force) => {
-  node.visualData.move(dx, dy, node.parent, () => node.origChildren.forEach(d => dragNode(d, dx, dy, true)), true, force);
+  node.visualData.move(dx, dy, node.getParent(), () => node.getOrigChildren().forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
 
 let adaptToFoldState = (node) => {
-  if (node.isFolded) {
+  if (node.isFolded()) {
     node.visualData.r = getFoldedRadius(node);
   }
   else {
     node.visualData.r = node.visualData.origRadius;
-    if (!node.isRoot() && !node.parent.isRoot()) {
+    if (!node.isRoot() && !node.getParent().isRoot()) {
       dragNodeBackIntoItsParent(node);
     }
   }
@@ -75,7 +75,7 @@ let VisualData = class {
     let newX = this.x + dx;
     let newY = this.y + dy;
     let space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
-    if (force || parent.isRoot() || parent.isFolded || space >= this.r) {
+    if (force || parent.isRoot() || parent.isFolded() || space >= this.r) {
       this.x = newX;
       this.y = newY;
       //if (addToProtocol) this.dragPro.drag(this.x, this.y);
@@ -99,15 +99,13 @@ let radiusOfAnyNode = (node, textPosition) => {
 };
 
 let recVisualizeTree = (node) => {
-  //isOrigLeaf(node)
   if (node.isCurrentlyLeaf()) {
     createVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
   }
   else {
-    //everywhere currentChildren instead of originally origChildren
-    node.currentChildren.forEach(c => recVisualizeTree(c));
+    node.getCurrentChildren().forEach(c => recVisualizeTree(c));
 
-    let visualDataOfChildren = node.currentChildren.map(c => c.visualData);
+    let visualDataOfChildren = node.getCurrentChildren().map(c => c.visualData);
     visualDataOfChildren.forEach(c => c.r += visualizationStyles.getCirclePadding() / 2);
     packSiblings(visualDataOfChildren);
     let circle = packEnclose(visualDataOfChildren);
@@ -128,7 +126,7 @@ let calcPositionAndSetRadius = node => {
   }
 
   if (!node.isCurrentlyLeaf()) {
-    node.currentChildren.forEach(c => {
+    node.getCurrentChildren().forEach(c => {
       c.visualData.x = node.visualData.x + c.visualData.dx;
       c.visualData.y = node.visualData.y + c.visualData.dy;
       c.visualData.dx = undefined;

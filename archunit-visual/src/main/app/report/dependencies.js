@@ -157,8 +157,8 @@ let Dependencies = class {
                           && boolFuncs(kinds === deps.methodCall).implies(methodCall)
                           && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
                           && boolFuncs(kinds === deps.implementsAnonymous).implies(anonImpl)
-                          && boolFuncs(d.getStartNode().parent === d.getEndNode()
-                              || d.getEndNode().parent === d.getStartNode()).implies(childAndParent);
+                          && boolFuncs(d.getStartNode().getParent() === d.getEndNode()
+                              || d.getEndNode().getParent() === d.getStartNode()).implies(childAndParent);
                     };
                     applyFilter(kindFilter);
                   }

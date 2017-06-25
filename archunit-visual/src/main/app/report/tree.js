@@ -25,16 +25,16 @@ let descendants = (node, childrenSelector) => {
   return res;
 };
 
-let isLeaf = node => node.filteredChildren.length === 0;
+let isLeaf = node => node.getFilteredChildren().length === 0;
 
 let fold = (node, folded) => {
   if (!isLeaf(node)) {
-    node.isFolded = folded;
-    if (node.isFolded) {
-      node.currentChildren = [];
+    node._folded = folded;
+    if (node.isFolded()) {
+      node._currentChildren = [];
     }
     else {
-      node.currentChildren = node.filteredChildren;
+      node._currentChildren = node.getFilteredChildren();
     }
     return true;
   }
@@ -42,34 +42,34 @@ let fold = (node, folded) => {
 };
 
 let resetFilteredChildrenOfAllNodes = root => {
-  descendants(root, n => n.origChildren).forEach(n => {
-    n.filteredChildren = n.origChildren;
+  descendants(root, n => n.getOrigChildren()).forEach(n => {
+    n._filteredChildren = n.getOrigChildren();
   });
 };
 
 let reapplyFilters = (root, filters) => {
   resetFilteredChildrenOfAllNodes(root);
   let recReapplyFilter = (node, filter) => {
-    node.filteredChildren = node.filteredChildren.filter(filter);
-    node.filteredChildren.forEach(c => recReapplyFilter(c, filter));
+    node._filteredChildren = node.getFilteredChildren().filter(filter);
+    node.getFilteredChildren().forEach(c => recReapplyFilter(c, filter));
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
-  descendants(root, n => n.filteredChildren).forEach(n => {
-    if (!n.isFolded) {
-      n.currentChildren = n.filteredChildren;
+  descendants(root, n => n.getFilteredChildren()).forEach(n => {
+    if (!n.isFolded()) {
+      n._currentChildren = n.getFilteredChildren();
     }
   });
 };
 
 let Node = class {
   constructor(projectData, parent) {
-    this.projectData = projectData;
-    this.parent = parent;
-    this.origChildren = [];
-    this.filteredChildren = this.origChildren;
-    this.currentChildren = this.filteredChildren;
-    this.isFolded = false;
-    this.filters = new Map();
+    this._projectData = projectData;
+    this._parent = parent;
+    this._origChildren = [];
+    this._filteredChildren = this._origChildren;
+    this._currentChildren = this._filteredChildren;
+    this._folded = false;
+    this._filters = new Map();
   }
 
   isPackage() {
@@ -77,23 +77,41 @@ let Node = class {
   }
 
   getName() {
-    return this.projectData.name;
+    return this._projectData.name;
   }
 
   getFullName() {
-    return this.projectData.fullname;
+    return this._projectData.fullname;
   }
 
   getType() {
-    return this.projectData.type;
+    return this._projectData.type;
+  }
+
+  getParent() {
+    return this._parent;
+  }
+
+  // FIXME: What is the meaning of 'orig' children? I guess it's 'all' children, before any filter is applied? Also why an abbreviation again? Does this stand for original? We could afford the 4 extra chars in the year 2017 ;-)
+  getOrigChildren() {
+    return this._origChildren;
+  }
+
+  getFilteredChildren() {
+    return this._filteredChildren;
+  }
+
+  // FIXME: I don't see, why we need 3 sets of children? Shouldn't 'all' and 'filtered' be enough? Why is there 'current'? And why should it differ from 'filtered'?
+  getCurrentChildren() {
+    return this._currentChildren;
   }
 
   isRoot() {
-    return !this.parent;
+    return !this._parent;
   }
 
   isCurrentlyLeaf() {
-    return isLeaf(this) || this.isFolded;
+    return isLeaf(this) || this._folded;
   }
 
   isLeaf() {
@@ -101,11 +119,19 @@ let Node = class {
   }
 
   isChildOf(d) {
-    return descendants(d, n => n.currentChildren).indexOf(this) !== -1;
+    return descendants(d, n => n.getCurrentChildren()).indexOf(this) !== -1;
+  }
+
+  isFolded() {
+    return this._folded;
   }
 
   changeFold() {
-    return fold(this, !this.isFolded);
+    return fold(this, !this._folded);
+  }
+
+  getFilters() {
+    return this._filters;
   }
 
   getClass() {
@@ -114,20 +140,20 @@ let Node = class {
   }
 
   getVisibleDescendants() {
-    return descendants(this, n => n.currentChildren);
+    return descendants(this, n => n.getCurrentChildren());
   }
 
   traverseTree() {
     if (this.isCurrentlyLeaf()) {
-      return this.projectData.name;
+      return this.getName();
     }
-    let subTree = this.currentChildren.reduce((sub, act) => sub + act.traverseTree() + ", ", "");
-    return this.projectData.name + "(" + subTree + ")";
+    let subTree = this._currentChildren.reduce((sub, act) => sub + act.traverseTree() + ", ", "");
+    return this.getName() + "(" + subTree + ")";
   }
 
   foldAllNodes(callback) {
     if (!isLeaf(this)) {
-      this.currentChildren.forEach(d => d.foldAllNodes(callback));
+      this._currentChildren.forEach(d => d.foldAllNodes(callback));
       if (!this.isRoot()) {
         fold(this, true);
         callback(this);
@@ -138,7 +164,7 @@ let Node = class {
   // FIXME: Don't use cryptic abbreviations!!!!
   dfs(fun) {
     if (!isLeaf(this)) {
-      this.currentChildren.forEach(c => c.dfs(fun));
+      this._currentChildren.forEach(c => c.dfs(fun));
       if (!this.isRoot()) {
         fun(this);
       }
@@ -146,7 +172,7 @@ let Node = class {
   }
 
   keyFunction() {
-    return d => d.projectData.fullname;
+    return d => d.getFullName();
   }
 
   /**
@@ -157,30 +183,29 @@ let Node = class {
    * @param exclude
    */
   filterByName(filterString, exclude) {
-    this.filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
-    reapplyFilters(this, this.filters);
+    this._filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
+    reapplyFilters(this, this._filters);
   }
 
   filterByType(interfaces, classes, eliminatePkgs) {
     let classFilter =
-        c => (c.projectData.type !== nodeKinds.package) &&
-        boolFunc(c.projectData.type === nodeKinds.interface).implies(interfaces) &&
-        boolFunc(c.projectData.type.endsWith(nodeKinds.class)).implies(classes);
+        c => (c.getType() !== nodeKinds.package) &&
+        boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
+        boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
-        c => (c.projectData.type === nodeKinds.package) &&
-        boolFunc(eliminatePkgs).implies(descendants(c, n => n.filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
-    this.filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
-    reapplyFilters(this, this.filters);
+        c => (c.getType() === nodeKinds.package) &&
+        boolFunc(eliminatePkgs).implies(descendants(c, n => n.getFilteredChildren()).reduce((acc, n) => acc || classFilter(n), false));
+    this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
+    reapplyFilters(this, this._filters);
   }
 
   resetFilterByType() {
-    this.filters.delete(TYPE_FILTER);
-    reapplyFilters(this, this.filters);
+    this._filters.delete(TYPE_FILTER);
+    reapplyFilters(this, this._filters);
   }
 
   addChild(child) {
-    this.origChildren.push(child);
-    this.currentChildren = this.origChildren;
+    this._origChildren.push(child);
   }
 };
 
@@ -194,14 +219,14 @@ let createFilterFunction = (filterString, exclude) => {
   }
 
   let filter = node => {
-    if (node.projectData.type === nodeKinds.package) {
-      return node.filteredChildren.reduce((acc, c) => acc || filter(c), false);
+    if (node.getType() === nodeKinds.package) {
+      return node.getFilteredChildren().reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      let match = new RegExp(regexString).exec(node.projectData.fullname);
+      let match = new RegExp(regexString).exec(node.getFullName());
       let res = match && match.length > 0;
       res = exclude ? !res : res;
-      return res || (!isLeaf(node) && node.filteredChildren.reduce((acc, c) => acc || filter(c), false));
+      return res || (!isLeaf(node) && node.getFilteredChildren().reduce((acc, c) => acc || filter(c), false));
     }
   };
   return filter;

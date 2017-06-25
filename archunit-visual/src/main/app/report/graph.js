@@ -9,12 +9,7 @@ let createNodeMap = root => {
   return nodeMap;
 };
 
-let refreshOnNodeFiltering = graph => {
-  graph.dependencies.setNodeFilters(graph.root.filters);
-};
-
 let Graph = class {
-
   constructor(root, nodeMap, dependencies) {
     this.root = root;
     this.nodeMap = nodeMap;
@@ -39,7 +34,7 @@ let Graph = class {
 
   changeFoldStateOfNode(node) {
     if (node.changeFold()) {
-      this.dependencies.changeFold(node.getFullName(), node.isFolded);
+      this.dependencies.changeFold(node.getFullName(), node.isFolded());
       return true;
     }
     return false;
@@ -59,17 +54,17 @@ let Graph = class {
 
   filterNodesByName(filterString, exclude) {
     this.root.filterByName(filterString, exclude);
-    refreshOnNodeFiltering(this);
+    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   filterNodesByType(filter) {
     this.root.filterByType(filter.showInterfaces, filter.showClasses, !filter.showEmptyPackages);
-    refreshOnNodeFiltering(this);
+    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   resetFilterNodesByType() {
     this.root.resetFilterByType();
-    refreshOnNodeFiltering(this);
+    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   filterDependenciesByKind() {

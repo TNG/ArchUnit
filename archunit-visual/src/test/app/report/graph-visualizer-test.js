@@ -25,8 +25,8 @@ describe("Visualizer", () => {
     let checkLayout = node => {
       expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
-      expect(node.origChildren).to.doNotOverlap(CIRCLE_PADDING);
-      node.origChildren.forEach(c => checkLayout(c));
+      expect(node.getOrigChildren()).to.doNotOverlap(CIRCLE_PADDING);
+      node.getOrigChildren().forEach(c => checkLayout(c));
     };
     checkLayout(graphWrapper.graph.root);
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
