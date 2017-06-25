@@ -26,20 +26,12 @@
   </div>
 </div>
 
-<!-- We use this svg to calculate text widths of rendered texts, see textWidth()-function -->
+<!-- We use this svg to calculate text widths of rendered texts, see calculateTextWidth()-function -->
 <svg id='text-size-computation' class='node' style='display: none;'>
   <text>Foos</text>
 </svg>
 
 <script>
-  /*
-   * padding between the text in a circle and the rim of the circle
-   */
-  const CIRCLE_TEXT_PADDING = 5;
-  /*
-   * defines after which proportion of the circle the text is positioned; only affects nodes
-   */
-  const RELATIVE_TEXT_POSITION = 0.8;
   /*
    * padding between a line and its title
    */
@@ -61,7 +53,7 @@
       gTree = svg.append('g').attr('transform', 'translate(2,2)'),
       gEdges = svg.append('g').attr('transform', 'translate(2,2)');
 
-  const textWidth = text => {
+  const calculateTextWidth = text => {
     d3.select('#text-size-computation').style('display', 'inline');
     let textElement = d3.select('#text-size-computation').select('text');
     textElement.text(text);
@@ -70,7 +62,7 @@
     return width;
   };
 
-  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
+  visualizer.setStyles(calculateTextWidth, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
 
   let graph;
   let depWithCurrentDetailedDeps;

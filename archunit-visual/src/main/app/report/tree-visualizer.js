@@ -1,8 +1,15 @@
 'use strict';
 
-let textWidth;
-let circleTextPadding;
-let relativeTextPosition;
+/*
+ * padding between the text in a circle and the rim of the circle
+ */
+const CIRCLE_TEXT_PADDING = 5;
+/*
+ * defines after which proportion of the circle the text is positioned; only affects nodes
+ */
+const RELATIVE_TEXT_POSITION = 0.8;
+
+let calculateTextWidth;
 let circlePadding;
 let packSiblings;
 let packEnclose;
@@ -77,7 +84,7 @@ let VisualData = class {
 };
 
 let radiusOfLeafWithTitle = title => {
-  return textWidth(title) / 2 + circleTextPadding;
+  return calculateTextWidth(title) / 2 + CIRCLE_TEXT_PADDING;
 };
 
 let radiusOfAnyNode = (node, textPosition) => {
@@ -93,7 +100,7 @@ let radiusOfAnyNode = (node, textPosition) => {
 let recVisualizeTree = (node) => {
   //isOrigLeaf(node)
   if (node.isCurrentlyLeaf()) {
-    createVisualData(node, 0, 0, radiusOfAnyNode(node, relativeTextPosition));
+    createVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
   }
   else {
     //everywhere currentChildren instead of originally origChildren
@@ -105,7 +112,7 @@ let recVisualizeTree = (node) => {
     let circle = packEnclose(visualDataOfChildren);
     visualDataOfChildren.forEach(c => c.r -= circlePadding / 2);
     let childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-    createVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, relativeTextPosition), childRadius / relativeTextPosition));
+    createVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
     visualDataOfChildren.forEach(c => {
       c.dx = c.x - node.visualData.x;
       c.dy = c.y - node.visualData.y;
@@ -140,10 +147,8 @@ let createVisualData = (node, x, y, r) => {
   node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
-let setStyles = (text_width_function, circle_text_padding, relative_text_position, circle_padding, pack_siblings, pack_enclose) => {
-  textWidth = text_width_function;
-  circleTextPadding = circle_text_padding;
-  relativeTextPosition = relative_text_position;
+let setStyles = (calculate_text_width, circle_padding, pack_siblings, pack_enclose) => {
+  calculateTextWidth = calculate_text_width;
   circlePadding = circle_padding;
   packSiblings = pack_siblings;
   packEnclose = pack_enclose;

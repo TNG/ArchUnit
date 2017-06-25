@@ -3,20 +3,21 @@
 require('./chai/tree-visualizer-chai-extensions');
 const expect = require("chai").expect;
 
-const testObjects = require("./test-object-creator.js");
+const testObjects = require("./test-object-creator");
 
-const TEXT_WIDTH = n => n.length * 6;
+// See tree-visualizer.js
 const CIRCLE_TEXT_PADDING = 5;
 const RELATIVE_TEXT_POSITION = 0.8;
 
+const calculateTextWidth = n => n.length * 6;
 const CIRCLE_PADDING = 10;
 const packSiblings = require('d3').packSiblings;
 const packEnclose = require('d3').packEnclose;
 
-const treeVisualizer = require("../../../main/app/report/tree-visualizer.js").treeVisualizer;
-treeVisualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);
+const treeVisualizer = require("../../../main/app/report/tree-visualizer").treeVisualizer;
+treeVisualizer.setStyles(calculateTextWidth, CIRCLE_PADDING, packSiblings, packEnclose);
 
-let radiusOfLeaf = leaf => TEXT_WIDTH(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
+let radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 
 let moveToMiddleOfParent = (node, parent) =>
     treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
@@ -152,7 +153,7 @@ describe("Tree", () => {
     let tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
     let checkLayout = node => {
-      expect(node).to.haveTextWithinCircle(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
       expect(node.origChildren).to.doNotOverlap(CIRCLE_PADDING);
       node.origChildren.forEach(c => checkLayout(c));
