@@ -111,7 +111,7 @@ let Dependency = class {
     let end = this.to.substring(to.length + 1);
     end += ((end && !CodeElement.isAbsent(this.description.targetElement)) ? "." : "") + (this.description.targetElement.title);
     return start + "->" + end;
-  };
+  }
 };
 
 let groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
@@ -165,10 +165,6 @@ let buildDependency = (from, to) => {
       return dependency;
     },
     withExistingDescription: function (description) {
-      let setKinds = () => {
-        dependency.description.inheritanceKind = description.inheritanceKind;
-        dependency.description.accessKind = description.accessKind;
-      };
       return {
         whenTargetIsFolded: function (targetBeforeFolding) {
           if (!containsPackage(from, to)) {

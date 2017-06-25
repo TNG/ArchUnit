@@ -157,7 +157,7 @@ subprojects {
 // FIXME: Move to archiving.gradle
 def productionProjectNames = ['archunit', 'archunit-junit', 'archunit-visual']
 ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
-def productionDownStreamProjects = subprojects.findAll { it.name in ['archunit-junit', 'archunit-visual'] }
+def productionDownStreamProjects = [project(':archunit-junit'), project(':archunit-visual')]
 productionDownStreamProjects*.with {
     shrinkDependencies {
         // NOTE: proguard will warn a lot about library classes depending on program classes due to the double

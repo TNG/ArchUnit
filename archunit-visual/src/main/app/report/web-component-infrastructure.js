@@ -6,8 +6,8 @@ let shadyCssStyler = {
 };
 
 let noOpStyler = {
-  prepareTemplate: (template, name) => null,
-  styleElement: component => null
+  prepareTemplate: () => null,
+  styleElement: () => null
 };
 
 // The ShadyCSS Polyfill doesn't work out of the box, we have to activate it, if the Polyfill is present

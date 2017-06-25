@@ -210,7 +210,7 @@ let leftTrim = str => {
 };
 
 let escapeRegExp = str => {
-  return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&");
+  return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
 
 let parseJsonProjectData = jsonElement => {

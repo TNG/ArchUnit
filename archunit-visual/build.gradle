@@ -66,6 +66,11 @@ task mocha(type: NodeTask, dependsOn: 'setupNode') {
     args = ['--reporter', 'spec', 'src/test/app/report/**/*.js']
 }
 
+task eslint(type: NodeTask, dependsOn: 'setupNode') {
+    script = file('./node_modules/eslint/bin/eslint.js')
+    args = ['src/**/*.{js,html}']
+}
+
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
 
 task createReportDir {
@@ -88,7 +93,7 @@ task copyJsLibs(type: Copy, dependsOn: createReportDir) {
     into "${reportOutputDir}/lib"
 }
 
-task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
+task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir', 'eslint']) {
     script = file('./node_modules/browserify/bin/cmd.js')
     args = [
             '-r', './src/main/app/report/visualization.js:visualization',
@@ -96,6 +101,6 @@ task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir']) {
             '-o', "${reportOutputDir}/visualization-bundle.js"]
 }
 
-task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'browserify']) {}
+task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'eslint', 'browserify']) {}
 
 jar.dependsOn buildReport

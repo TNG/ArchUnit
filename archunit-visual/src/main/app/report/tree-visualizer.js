@@ -41,7 +41,7 @@ let dragNode = (node, dx, dy, force) => {
   node.visualData.move(dx, dy, node.parent, () => node.origChildren.forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
 
-let adaptToFoldState = (node, root) => {
+let adaptToFoldState = (node) => {
   if (node.isFolded) {
     node.visualData.r = getFoldedRadius(node);
   }

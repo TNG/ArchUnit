@@ -11,9 +11,31 @@
   },
   "author": "Sebastian Mair <sebastian.mair@tngtech.com>, Peter Gafert <peter.gafert@tngtech.com>",
   "license": "Apache-2.0",
+  "eslintConfig": {
+    "root": true,
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 6
+    },
+    "env": {
+      "es6": true,
+      "browser": true,
+      "node": true,
+      "mocha": true
+    },
+    "globals": {
+      "d3": true,
+      "ShadyCSS": true
+    },
+    "plugins": [
+      "html"
+    ]
+  },
   "devDependencies": {
     "browserify": "^14.3.0",
     "chai": "^3.5.0",
+    "eslint": "^4.1.0",
+    "eslint-plugin-html": "^3.0.0",
     "http-server": "^0.10.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0"

@@ -105,7 +105,7 @@
                   .showAnonymousImplementing(filter.showAnonymousImplementation)
                   .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
-              updateEdges(d => true);
+              updateEdges(() => true);
               showDetailedDepsOf(depWithCurrentDetailedDeps);
             })
         .onFilterChanged((filterString, exclude) => {
@@ -122,7 +122,7 @@
     graph = jsonToGraph(jsonroot);
     layout();
     initializeGraph();
-    graph.foldAllNodes(n => visualizer.update(graph));
+    graph.foldAllNodes(() => visualizer.update(graph));
     updateWholeVisualization(false);
     initializeFilter();
   });
@@ -136,7 +136,7 @@
         .showFieldAccess(true)
         .showAnonymousImplementing(true)
         .showDepsBetweenChildAndParent(false);
-    updateEdges(d => true);
+    updateEdges(() => true);
     // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
     showDetailedDepsOf(depWithCurrentDetailedDeps);
   }
@@ -203,8 +203,7 @@
   }
 
   function initializeDeps() {
-    const defs = svg.append('defs');
-    const marker = defs.append('marker')
+    svg.append('defs').append('marker')
         .attr('id', 'end_arrow')
         .attr('viewBox', '0 -5 10 10')
         .attr('refX', 10)
@@ -220,7 +219,7 @@
 
   function showDetailedDepsOf(dependency) {
     if (dependency) {
-      d3.select('#detailedDeps').select('h2').text(d => 'Detailed dependencies: ' + dependency.from + '->' + dependency.to);
+      d3.select('#detailedDeps').select('h2').text(() => 'Detailed dependencies: ' + dependency.from + '->' + dependency.to);
       let detailedDeps = d3.select('#detailedDeps').select('ul').selectAll('li').data(graph.getDetailedDependenciesOf(dependency.from, dependency.to));
       detailedDeps.exit().remove();
       detailedDeps.attr('class', d => d.cssClass).text(d => d.description);
@@ -322,12 +321,12 @@
   }
 
   function updateVisualizationAfterFold() {
-    updateVisualization(d => true, true);
+    updateVisualization(() => true, true);
   }
 
   //immer animieren!!!
   function updateWholeVisualization(animate) {
-    updateVisualization(d => true, animate);
+    updateVisualization(() => true, animate);
   }
 
   function updateVisualization(filter, animate) {
