@@ -152,7 +152,7 @@ public class PublicAPIRules {
             @Override
             public void check(JavaMember item, ConditionEvents events) {
                 boolean satisfied = !item.getModifiers().contains(PUBLIC);
-                events.add(new SimpleConditionEvent<>(item, satisfied,
+                events.add(new SimpleConditionEvent(item, satisfied,
                         String.format("member %s.%s is %spublic in %s",
                                 item.getOwner().getName(),
                                 item.getName(),
@@ -267,7 +267,7 @@ public class PublicAPIRules {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = item.isInterface();
-                events.add(new SimpleConditionEvent<>(item, satisfied,
+                events.add(new SimpleConditionEvent(item, satisfied,
                         String.format("class %s is %sinterface", item.getName(), satisfied ? "" : "no ")));
             }
         };
@@ -279,7 +279,7 @@ public class PublicAPIRules {
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = item.isAnnotatedWith(publicApiForInheritance()) ||
                         markedAsPublicAPIForInheritance().apply(item);
-                events.add(new SimpleConditionEvent<>(item, satisfied,
+                events.add(new SimpleConditionEvent(item, satisfied,
                         String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
             }
         };

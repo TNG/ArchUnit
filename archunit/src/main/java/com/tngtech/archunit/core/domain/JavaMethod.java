@@ -77,7 +77,7 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     private class ReflectMethodSupplier implements Supplier<Method> {
         @Override
         public Method get() {

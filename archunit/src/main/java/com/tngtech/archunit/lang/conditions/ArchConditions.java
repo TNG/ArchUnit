@@ -186,8 +186,8 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
         @SuppressWarnings({"RedundantTypeArguments", "unchecked"})
-        ChainableFunction<JavaAccess, AccessTarget> getTarget =
-                JavaAccess.Functions.Get.<JavaAccess, AccessTarget>target(); // This seems to be a compiler nightmare...
+        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget =
+                JavaAccess.Functions.Get.<JavaAccess<?>, AccessTarget>target(); // This seems to be a compiler nightmare...
         return new AnyAccessFromClassCondition("access classes that",
                 getTarget.then(Get.<JavaClass>owner()).is(predicate));
     }
@@ -261,7 +261,7 @@ public final class ArchConditions {
                 boolean satisfied = haveFullyQualifiedName.apply(item);
                 String message = String.format("class %s %s fully qualified name '%s'",
                         item.getName(), satisfied ? "has" : "doesn't have", name);
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -286,7 +286,7 @@ public final class ArchConditions {
                 boolean satisfied = haveSimpleName.apply(item);
                 String message = String.format("class %s %s simple name '%s'",
                         item.getName(), satisfied ? "has" : "doesn't have", name);
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -305,7 +305,7 @@ public final class ArchConditions {
                 boolean satisfied = haveNameMatching.apply(item);
                 String infix = satisfied ? "matches" : "doesn't match";
                 String message = String.format("class %s %s '%s'", item.getName(), infix, regex);
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -342,7 +342,7 @@ public final class ArchConditions {
                 boolean satisfied = resideInAPackage.apply(item);
                 String message = String.format("Class %s %s %s",
                         item.getName(), satisfied ? "does" : "doesn't", resideInAPackage.getDescription());
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -356,7 +356,7 @@ public final class ArchConditions {
                 boolean satisfied = haveModifier.apply(item);
                 String message = String.format("class %s %s modifier %s",
                         item.getName(), satisfied ? "has" : "doesn't have", modifier);
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -446,7 +446,7 @@ public final class ArchConditions {
                 boolean satisfied = annotatedWith.apply(item);
                 String message = String.format("class %s is %s%s",
                         item.getName(), satisfied ? "" : "not ", annotatedWith.getDescription());
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -496,7 +496,7 @@ public final class ArchConditions {
                         ? implement.getDescription().replace("implement", "implements")
                         : implement.getDescription().replace("implement", "doesn't implement");
                 String message = String.format("class %s %s", item.getName(), description);
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
@@ -568,7 +568,7 @@ public final class ArchConditions {
                 boolean satisfied = assignable.apply(item);
                 String message = String.format("class %s is %s%s",
                         item.getName(), satisfied ? "" : "not ", assignable.getDescription());
-                events.add(new SimpleConditionEvent<>(item, satisfied, message));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }

@@ -190,7 +190,7 @@ public abstract class Optional<T> {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final Present other = (Present) obj;
+            final Present<?> other = (Present<?>) obj;
             return Objects.equals(this.object, other.object);
         }
     }

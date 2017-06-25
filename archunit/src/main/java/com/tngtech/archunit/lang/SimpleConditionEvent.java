@@ -27,12 +27,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.transform;
 
-public class SimpleConditionEvent<T> implements ConditionEvent<T> {
-    private final T correspondingObject;
+public class SimpleConditionEvent implements ConditionEvent {
+    private final Object correspondingObject;
     private final boolean conditionSatisfied;
     private final String message;
 
-    public SimpleConditionEvent(T correspondingObject, boolean conditionSatisfied, String message) {
+    public SimpleConditionEvent(Object correspondingObject, boolean conditionSatisfied, String message) {
         this.correspondingObject = correspondingObject;
         this.conditionSatisfied = conditionSatisfied;
         this.message = message;
@@ -46,7 +46,7 @@ public class SimpleConditionEvent<T> implements ConditionEvent<T> {
 
     @Override
     public void addInvertedTo(ConditionEvents events) {
-        events.add(new SimpleConditionEvent<>(correspondingObject, !conditionSatisfied, message));
+        events.add(new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class SimpleConditionEvent<T> implements ConditionEvent<T> {
     }
 
     @Override
-    public T getCorrespondingObject() {
+    public Object getCorrespondingObject() {
         return correspondingObject;
     }
 
@@ -68,7 +68,7 @@ public class SimpleConditionEvent<T> implements ConditionEvent<T> {
                 .toString();
     }
 
-    protected static String joinMessages(Collection<ConditionEvent> violating) {
+    protected static String joinMessages(Collection<? extends ConditionEvent> violating) {
         Iterable<String> lines = concat(transform(violating, TO_MESSAGES));
         return Joiner.on(System.lineSeparator()).join(lines);
     }
@@ -87,11 +87,11 @@ public class SimpleConditionEvent<T> implements ConditionEvent<T> {
         }
     };
 
-    public static <T> ConditionEvent<T> violated(T correspondingObject, String message) {
-        return new SimpleConditionEvent<>(correspondingObject, false, message);
+    public static ConditionEvent violated(Object correspondingObject, String message) {
+        return new SimpleConditionEvent(correspondingObject, false, message);
     }
 
-    public static <T> ConditionEvent<T> satisfied(T correspondingObject, String message) {
-        return new SimpleConditionEvent<>(correspondingObject, true, message);
+    public static ConditionEvent satisfied(Object correspondingObject, String message) {
+        return new SimpleConditionEvent(correspondingObject, true, message);
     }
 }

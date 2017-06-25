@@ -59,9 +59,9 @@ class ClassCache {
         return new LocationsKey(analyzeClasses.importOptions(), locations);
     }
 
-    private Set<String> toPackageStrings(Class[] classes) {
+    private Set<String> toPackageStrings(Class<?>[] classes) {
         ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (Class clazz : classes) {
+        for (Class<?> clazz : classes) {
             result.add(clazz.getPackage().getName());
         }
         return result.build();

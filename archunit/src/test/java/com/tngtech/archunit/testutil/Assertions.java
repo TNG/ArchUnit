@@ -61,7 +61,6 @@ import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNCHRONIZED;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
-import static com.tngtech.archunit.core.domain.TestUtils.classForName;
 import static com.tngtech.archunit.core.domain.TestUtils.invoke;
 
 public class Assertions extends org.assertj.core.api.Assertions {
@@ -341,10 +340,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return String.format("(%s)", formatMethodParameterTypeNames(namesOf(parameterTypes)));
     }
 
+    @SuppressWarnings("rawtypes")
     private static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
         List<Annotation> converted = new ArrayList<>();
         for (JavaAnnotation annotation : annotations) {
-            converted.add(annotation.as((Class) classForName(annotation.getType().getName())));
+            converted.add(annotation.as((Class) annotation.getType().reflect()));
         }
         return propertiesOf(converted.toArray(new Annotation[converted.size()]));
     }
@@ -377,7 +377,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return new SimpleEnumConstantReference((Enum<?>) value);
         }
         if (value instanceof Enum[]) {
-            return SimpleEnumConstantReference.allOf((Enum[]) value);
+            return SimpleEnumConstantReference.allOf((Enum<?>[]) value);
         }
         if (value instanceof Annotation) {
             return propertiesOf((Annotation) value);
@@ -458,9 +458,9 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return type + "." + name;
         }
 
-        static List<SimpleEnumConstantReference> allOf(Enum[] values) {
+        static List<SimpleEnumConstantReference> allOf(Enum<?>[] values) {
             ImmutableList.Builder<SimpleEnumConstantReference> result = ImmutableList.builder();
-            for (Enum value : values) {
+            for (Enum<?> value : values) {
                 result.add(new SimpleEnumConstantReference(value));
             }
             return result.build();
@@ -490,7 +490,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
         }
 
-        private List<String> messagesOf(Collection<ConditionEvent> events) {
+        private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
             final List<String> result = new ArrayList<>();
             CollectsLines messages = new CollectsLines() {
                 @Override

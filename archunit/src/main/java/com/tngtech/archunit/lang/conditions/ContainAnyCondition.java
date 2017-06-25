@@ -37,7 +37,7 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
             condition.check(element, subEvents);
         }
         if (!subEvents.isEmpty()) {
-            events.add(new AnyConditionEvent<>(collection, subEvents));
+            events.add(new AnyConditionEvent(collection, subEvents));
         }
     }
 
@@ -46,15 +46,18 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
         return getClass().getSimpleName() + "{condition=" + condition + "}";
     }
 
-    private static class AnyConditionEvent<T> extends SimpleConditionEvent<Collection<T>> {
+    private static class AnyConditionEvent extends SimpleConditionEvent {
         private Collection<ConditionEvent> violating;
         private Collection<ConditionEvent> allowed;
 
-        private AnyConditionEvent(Collection<T> correspondingObject, ConditionEvents events) {
+        private AnyConditionEvent(Collection<?> correspondingObject, ConditionEvents events) {
             this(correspondingObject, !events.getAllowed().isEmpty(), events.getAllowed(), events.getViolating());
         }
 
-        private AnyConditionEvent(Collection<T> correspondingObject, boolean conditionSatisfied, Collection<ConditionEvent> allowed, Collection<ConditionEvent> violating) {
+        private AnyConditionEvent(Collection<?> correspondingObject,
+                                  boolean conditionSatisfied,
+                                  Collection<ConditionEvent> allowed,
+                                  Collection<ConditionEvent> violating) {
             super(correspondingObject, conditionSatisfied, joinMessages(violating));
             this.allowed = allowed;
             this.violating = violating;
@@ -62,7 +65,12 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new AnyConditionEvent<>(getCorrespondingObject(), isViolation(), violating, allowed));
+            events.add(new AnyConditionEvent(getCorrespondingObject(), isViolation(), violating, allowed));
+        }
+
+        @Override
+        public Collection<?> getCorrespondingObject() {
+            return (Collection<?>) super.getCorrespondingObject(); // This is safe, because we ensure Collection<?> within constructor
         }
     }
 }
