@@ -9,10 +9,11 @@ const CIRCLE_TEXT_PADDING = 5;
  */
 const RELATIVE_TEXT_POSITION = 0.8;
 
+const packSiblings = require('d3').packSiblings;
+const packEnclose = require('d3').packEnclose;
+
 let calculateTextWidth;
 let circlePadding;
-let packSiblings;
-let packEnclose;
 
 let isOrigLeaf = node => node.origChildren.length === 0;
 //TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die wenigen übrigen Klassen größer werden
@@ -147,11 +148,9 @@ let createVisualData = (node, x, y, r) => {
   node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
-let setStyles = (calculate_text_width, circle_padding, pack_siblings, pack_enclose) => {
+let setStyles = (calculate_text_width, circle_padding) => {
   calculateTextWidth = calculate_text_width;
   circlePadding = circle_padding;
-  packSiblings = pack_siblings;
-  packEnclose = pack_enclose;
 };
 
 let setCirclePadding = circle_padding => circlePadding = circle_padding;

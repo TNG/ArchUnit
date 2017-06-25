@@ -7,7 +7,6 @@
   <link id='visualization-styles' rel='stylesheet' href='visualizationstyles.css'>
 
   <script src='webcomponents-loader.js'></script>
-  <script src='d3.js'></script>
   <script src='visualization-bundle.js'></script>
 
   <link rel='import' href='menu.html'>
@@ -45,6 +44,7 @@
   const APPEAR_DURATION = 10;
 
   const visualization = require('visualization');
+  const d3 = visualization.d3;
   const jsonToGraph = visualization.jsonToGraph;
   const visualizer = visualization.visualizer;
   const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
@@ -62,7 +62,7 @@
     return width;
   };
 
-  visualizer.setStyles(calculateTextWidth, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
+  visualizer.setStyles(calculateTextWidth, visualizationStyles.getCirclePadding());
 
   let graph;
   let depWithCurrentDetailedDeps;
