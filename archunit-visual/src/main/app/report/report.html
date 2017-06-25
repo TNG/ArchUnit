@@ -70,6 +70,8 @@
     return width;
   };
 
+  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
+
   let graph;
   let depWithCurrentDetailedDeps;
 
@@ -114,8 +116,6 @@
           updateWholeVisualization(true);
         });
   });
-
-  visualizer.setStyles(textWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, visualizationStyles.getCirclePadding(), d3.packSiblings, d3.packEnclose);
 
   d3.json('classes.json', function (error, jsonroot) {
     if (error) throw error;

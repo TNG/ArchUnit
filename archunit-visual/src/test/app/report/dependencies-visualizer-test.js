@@ -5,17 +5,11 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator.js");
 
-const TEXT_WIDTH = n => n.length * 6;
-const CIRCLE_TEXT_PADDING = 5;
-const RELATIVE_TEXT_POSITION = 0.8;
-const CIRCLE_PADDING = 10;
-
-const packSiblings = require('d3').packSiblings;
-const packEnclose = require('d3').packEnclose;
-
 const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
-visualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);
 
+// FIXME: This is no test of dependency-visualizer, but graph-visualizer, and it uses the deprecated global test objects pattern
+//        Also: The test doesn't say, what its preconditions are, nor, what it really asserts (I'd have to look into haveCorrectEndPositions(),
+//        because without that, the test has the same semantics as 'expect(visualizer).to.doItRight()', doesn't really say much...)
 describe("Visual data of dependency", () => {
 
   it("calc their end positions correctly", () => {

@@ -15,6 +15,7 @@ const packSiblings = require('d3').packSiblings;
 const packEnclose = require('d3').packEnclose;
 
 const visualizer = require("../../../main/app/report/graph-visualizer.js").visualizer;
+// FIXME: Why can I delete this line and the test still passes???
 visualizer.setStyles(TEXT_WIDTH, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION, CIRCLE_PADDING, packSiblings, packEnclose);
 
 describe("Visualizer", () => {

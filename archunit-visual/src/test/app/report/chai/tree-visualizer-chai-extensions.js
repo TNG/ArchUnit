@@ -6,8 +6,8 @@ const MAX_RADIUS_DIFF = 0.05;
 
 let radiusOfLeaf = (leaf, textwidth, CIRCLETEXTPADDING) => textwidth(leaf.getName()) / 2 + CIRCLETEXTPADDING;
 
-let radiusOfInnerNode = (node, textwidth, CIRCLETEXTPADDING, TEXTPOSITION) =>
-radiusOfLeaf(node, textwidth, CIRCLETEXTPADDING) / Math.sqrt(1 - TEXTPOSITION * TEXTPOSITION);
+let radiusOfInnerNode = (node, textwidth, circleTestPadding, textPosition) =>
+radiusOfLeaf(node, textwidth, circleTestPadding) / Math.sqrt(1 - textPosition * textPosition);
 
 let haveDiffBiggerThan = (value1, value2, diff) => Math.abs(value1 - value2) > diff;
 
@@ -31,10 +31,10 @@ Assertion.addMethod('haveExactlyPositions', function () {
 Assertion.addMethod('haveTextWithinCircle', function () {
   let node = this._obj;
   let textWidth = arguments[0];
-  let CIRCLE_TEXT_PADDING = arguments[1];
-  let TEXT_POSITION = arguments[2];
+  let circleTextPadding = arguments[1];
+  let textPosition = arguments[2];
   if (node.isCurrentlyLeaf()) {
-    let expRadius = radiusOfLeaf(node, textWidth, CIRCLE_TEXT_PADDING);
+    let expRadius = radiusOfLeaf(node, textWidth, circleTextPadding);
     this.assert(
         !haveDiffBiggerThan(expRadius, node.visualData.r, MAX_RADIUS_DIFF)
         , "expected #{this} to have radius #{exp} but got #{act}"
@@ -44,7 +44,7 @@ Assertion.addMethod('haveTextWithinCircle', function () {
     );
   }
   else {
-    let expRadius = radiusOfInnerNode(node, textWidth, CIRCLE_TEXT_PADDING, TEXT_POSITION);
+    let expRadius = radiusOfInnerNode(node, textWidth, circleTextPadding, textPosition);
     this.assert(
         node.visualData.r > expRadius
         , "expected #{this} to have bigger radius than #{exp} but got #{act}"
