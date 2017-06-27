@@ -147,6 +147,11 @@ let Node = class {
     }
   }
 
+  // FIXME: Sorry, now it are words, but I still don't get it ;-)
+  // What does 'fold post order' mean? This method looks to me like 'applyToAllNonLeafChildrenThenToSelfIfNotRoot' or sth. like that
+  // Sounds a little crazy though, and I wonder, if it wouldn't be possible to skip if-checks, seems like this method is created
+  // for one and only one usecase, but is designed super generic, would maybe be easier to say, it applies to all nodes,
+  // even root and leafs, and the caller has to take care of handling cases he doesn't want
   foldPostOrder(fun) {
     if (!isLeaf(this)) {
       this.getCurrentChildren().forEach(c => c.foldPostOrder(fun));

@@ -40,6 +40,9 @@ let Graph = class {
     return false;
   }
 
+  // FIXME: Is it really necessary, to call this callback for every node? Seems to me like the production use case is simply
+  // visualizer.update(graph), I don't see, why we can't fold all nodes in one shot, and then update the graph once,
+  // would make this method simpler, too, if we don't need the callback
   foldAllNodes(callback) {
     this.root.foldPostOrder(node => {
       if (this.changeFoldStateOfNode(node)) {
