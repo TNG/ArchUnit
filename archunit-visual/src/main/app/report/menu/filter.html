@@ -1,10 +1,10 @@
 <template id="visualization-filter-template">
   <link rel="stylesheet" href="filter.css">
 
-  <div id="wrapper">
-    <div class="filterGroupWrapper">
-      <div class="filterType">Nodes</div>
-      <div class="filterGroup left">
+  <div id="filter-root">
+    <div class="filter-group-panel">
+      <div class="filter-type">Nodes</div>
+      <div class="filter-group left">
         <div class="filter">
           <input type="checkbox" class="nodeCheckBox" id="showInterfaces" checked>
           <label for="showInterfaces">show interfaces</label>
@@ -19,9 +19,9 @@
         </div>
       </div>
     </div>
-    <div class="filterGroupWrapper">
-      <div class="filterType">Dependencies</div>
-      <div class="filterGroup right">
+    <div class="filter-group-panel">
+      <div class="filter-type">Dependencies</div>
+      <div class="filter-group right">
         <div class="filter">
           <input type="checkbox" class="dependencyCheckBox" id="showImplementing" checked>
           <label for="showImplementing">implementing</label>

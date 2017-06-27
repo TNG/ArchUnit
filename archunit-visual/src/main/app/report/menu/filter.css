@@ -1,12 +1,7 @@
-div {
-    border: none;
-    outline: none;
-}
-
-#wrapper {
+#filter-root {
     width: 100%;
     text-align: center;
-    padding: 0px 10px 10px 10px;
+    padding: 0 10px 10px 10px;
 }
 
 label, input {
@@ -17,7 +12,7 @@ label {
     padding-right: 5px;
 }
 
-div.filterGroupWrapper {
+div.filter-group-panel {
     padding-top: 10px;
     display: inline-block;
     vertical-align: middle;
@@ -25,12 +20,12 @@ div.filterGroupWrapper {
     text-align: left;
 }
 
-div.filterGroup {
+div.filter-group {
     border-radius: 25px;
     border: 1px solid #ccc;
 }
 
-div.filterType {
+div.filter-type {
     padding-bottom: 5px;
     text-align: center;
 }
