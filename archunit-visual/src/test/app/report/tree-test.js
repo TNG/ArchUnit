@@ -282,4 +282,6 @@ describe("Tree", () => {
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
   });
+
+  //FIXME: more tests, especially for different cases of node filter input
 });

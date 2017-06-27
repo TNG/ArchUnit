@@ -97,6 +97,24 @@
                   .showAnonymousImplementing(filter.showAnonymousImplementation)
                   .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
+          updateEdges(d => true);
+          showDetailedDepsOf(depWithCurrentDetailedDeps);
+        })
+      .onFilterChanged((filterString, exclude) => {
+        graph.filterNodesByName(filterString, exclude);
+        visualizer.update(graph);
+        updateWholeVisualization(true);
+      })
+      .initializeLegend([
+        visualizationStyles.getLineStyle("constructorCall", "constructor call"),
+        visualizationStyles.getLineStyle("methodCall", "method call"),
+        visualizationStyles.getLineStyle("fieldAccess", "field access"),
+        visualizationStyles.getLineStyle("extends", "extends"),
+        visualizationStyles.getLineStyle("implements", "implements"),
+        visualizationStyles.getLineStyle("implementsAnonymous", "implements anonymous"),
+        visualizationStyles.getLineStyle("childrenAccess", "innerclass access"),
+        visualizationStyles.getLineStyle("several", "grouped access")
+      ]);
               updateEdges(() => true);
               showDetailedDepsOf(depWithCurrentDetailedDeps);
             })

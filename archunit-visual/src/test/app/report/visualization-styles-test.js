@@ -5,13 +5,14 @@ const expect = require("chai").expect;
 
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
+const LINE_STYLE_SELECTOR = 'line';
 
 describe('visualization-styles', () => {
   it('should retrieve the node font-size in pixels', () => {
     const expectedPixels = 15;
     const styles = multipleStylesContaining(
-        nodeTextStyleWithFontSizeInPixels(expectedPixels),
-        circleStyleWithPaddingInPixels(99));
+      nodeTextStyleWithFontSizeInPixels(expectedPixels),
+      circleStyleWithPaddingInPixels(99));
 
     expect(styles.getNodeFontSize()).to.equal(expectedPixels);
   });
@@ -19,8 +20,8 @@ describe('visualization-styles', () => {
   it('should update the node font-size', () => {
     const expectedPixels = 15;
     const styles = multipleStylesContaining(
-        nodeTextStyleWithFontSizeInPixels(99),
-        circleStyleWithPaddingInPixels(99));
+      nodeTextStyleWithFontSizeInPixels(99),
+      circleStyleWithPaddingInPixels(99));
 
     expect(styles.getNodeFontSize()).to.equal(99);
 
@@ -32,23 +33,74 @@ describe('visualization-styles', () => {
   it('should retrieve the circle padding in pixels', () => {
     const expectedPixels = 15;
     const styles = multipleStylesContaining(
-        nodeTextStyleWithFontSizeInPixels(99),
-        circleStyleWithPaddingInPixels(expectedPixels));
+      nodeTextStyleWithFontSizeInPixels(99),
+      circleStyleWithPaddingInPixels(expectedPixels));
 
     expect(styles.getCirclePadding()).to.equal(expectedPixels);
   });
 
-  it('should update the circle padding', () => {
-    const expectedPixels = 15;
-    const styles = multipleStylesContaining(
-        nodeTextStyleWithFontSizeInPixels(99),
-        circleStyleWithPaddingInPixels(99));
+  it('should retrieve the line style when stroke and dasharray is defined', () => {
+    const cssClass = "methodCall";
+    const title = "method call";
+    const expectedStroke = "#ff0000";
+    const expectedStrokeDasharray = "2px";
+    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, "rgb(255, 0, 0)", expectedStrokeDasharray));
 
-    expect(styles.getCirclePadding()).to.equal(99);
+    expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
+      title: title,
+      styles: [
+        {
+          name: "stroke",
+          value: expectedStroke
+        },
+        {
+          name: "stroke-dasharray",
+          value: expectedStrokeDasharray
+        }
+      ]
+    })
+  });
 
-    styles.setCirclePadding(expectedPixels);
+  it('should retrieve the line style when only stroke is defined', () => {
+    const cssClass = "methodCall";
+    const title = "method call";
+    const expectedStroke = "#ff0000";
+    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, "rgb(255, 0, 0)"));
 
-    expect(styles.getCirclePadding()).to.equal(expectedPixels);
+    expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
+      title: title,
+      styles: [
+        {
+          name: "stroke",
+          value: expectedStroke
+        },
+        {
+          name: "stroke-dasharray",
+          value: undefined
+        }
+      ]
+    })
+  });
+
+  it('should retrieve the line style when only stroke-dasharray is defined', () => {
+    const cssClass = "methodCall";
+    const title = "method call";
+    const expectedStrokeDasharray = "2px";
+    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, undefined, expectedStrokeDasharray));
+
+    expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
+      title: title,
+      styles: [
+        {
+          name: "stroke",
+          value: "#000000"
+        },
+        {
+          name: "stroke-dasharray",
+          value: expectedStrokeDasharray
+        }
+      ]
+    })
   });
 });
 
@@ -97,6 +149,16 @@ function toBeIgnored(suffix) {
       "font-size": '8px'
     })
   };
+}
+
+function lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, stroke, strokeDashArray) {
+  return {
+    selectorText: LINE_STYLE_SELECTOR + "." + cssClass,
+    style: new StyleStub({
+      "stroke": stroke,
+      "stroke-dasharray": strokeDashArray
+    })
+  }
 }
 
 // FIXME: Suppose we allow custom CSS, how to handle non-pixel font-sizes??

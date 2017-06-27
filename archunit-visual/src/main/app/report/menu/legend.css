@@ -1,0 +1,14 @@
+div {
+    border: none;
+    outline: none;
+}
+
+#wrapper {
+    display: inline-block;
+    width: 100%;
+    height: auto;
+    text-align: left;
+    vertical-align: middle;
+    padding: 10px 20px 20px 20px;
+    margin: 2px;
+}

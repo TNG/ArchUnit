@@ -1,5 +1,6 @@
 <link rel="import" href="settings.html">
 <link rel="import" href="filter.html">
+<link rel="import" href="legend.html">
 <link rel="import" href="filter-bar.html">
 
 <template id="visualization-menu-template">
@@ -10,19 +11,19 @@
         <div id="filterTab" class="tabcontent canhover">
           <visualization-filter id="filter-menu"></visualization-filter>
         </div>
-        <div class="title canhover">Filter</div>
+        <div class="normaltitle canhover">Filter</div>
       </div>
       <div id="settings" class="tab second canhover">
         <div id="settingsTab" class="tabcontent canhover">
           <visualization-settings id='settings-menu'></visualization-settings>
         </div>
-        <div class="title canhover">Settings</div>
+        <div class="normaltitle canhover">Settings</div>
       </div>
       <div id="legend" class="tab third canhover">
         <div id="legendTab" class="tabcontent canhover">
-          <p>??</p>
+          <visualization-legend id='legend-menu'></visualization-legend>
         </div>
-        <div class="title canhover">?</div>
+        <div id="legendTitle" class="righttitle canhover">?</div>
       </div>
     </div>
     <div id='filterBar'>
@@ -58,6 +59,11 @@
 
       onFilterChanged(onChanged) {
         this.shadowRoot.querySelector('#filter-bar').onChanged(onChanged);
+        return this;
+      }
+
+      initializeLegend(legendStyles) {
+        this.shadowRoot.querySelector('#legend-menu').initialize(legendStyles);
         return this;
       }
     });

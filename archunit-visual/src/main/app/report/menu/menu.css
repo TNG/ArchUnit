@@ -29,11 +29,19 @@ div.third {
 /*if you want the whole menu to expand (not only the current tab), you can use display: table and width: 100% for .tabs
 and display:cell for .tab --> disadvantage: the width of the tabs is not constant*/
 
-div.title {
+div.normaltitle, div.righttitle {
     padding-top: 10px;
     padding-bottom: 10px;
     font-size: 16px;
+}
+
+div.normaltitle {
     text-align: center;
+}
+
+div.righttitle {
+    text-align: right;
+    padding-right: 10px;
 }
 
 div.tabcontent {
@@ -47,6 +55,11 @@ div.tabcontent {
 div.canhover:hover {
     z-index: 1;
     background-color: #f1f1f1;
+    text-align: center;
+}
+
+#legend:hover #legendTitle {
+    text-align: center;
 }
 
 #filter:hover #filterTab {
@@ -73,7 +86,7 @@ div.canhover:hover {
     display: block;
 }
 
-div.tab:hover {
+div.tab:hover, div.normaltitle:hover, div.righttitle:hover {
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
 }

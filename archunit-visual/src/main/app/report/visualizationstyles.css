@@ -92,7 +92,7 @@ li.constructorCall {
 }
 
 line.implementsAnonymous {
-    stroke-dasharray: 1, 1;
+    stroke-dasharray: 1px;
     stroke: #00FFCC;
 }
 
@@ -109,7 +109,7 @@ line.several {
 }
 
 line.extends {
-    stroke-dasharray: 5, 5;
+    stroke-dasharray: 5px;
 }
 
 li.extends {
@@ -117,7 +117,7 @@ li.extends {
 }
 
 line.implements {
-    stroke-dasharray: 2, 2;
+    stroke-dasharray: 2px;
 }
 
 li.implements {
