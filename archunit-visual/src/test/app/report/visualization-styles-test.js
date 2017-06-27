@@ -39,6 +39,19 @@ describe('visualization-styles', () => {
     expect(styles.getCirclePadding()).to.equal(expectedPixels);
   });
 
+  it('should update the circle padding', () => {
+    const expectedPixels = 15;
+    const styles = multipleStylesContaining(
+      nodeTextStyleWithFontSizeInPixels(99),
+      circleStyleWithPaddingInPixels(99));
+
+    expect(styles.getCirclePadding()).to.equal(99);
+
+    styles.setCirclePadding(expectedPixels);
+
+    expect(styles.getCirclePadding()).to.equal(expectedPixels);
+  });
+
   it('should retrieve the line style when stroke and dasharray is defined', () => {
     const cssClass = "methodCall";
     const title = "method call";

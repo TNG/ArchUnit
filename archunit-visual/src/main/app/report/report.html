@@ -97,7 +97,7 @@
             .showAnonymousImplementing(filter.showAnonymousImplementation)
             .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
-          updateEdges(() => true);
+          updateEdges();
           showDetailedDepsOf(depWithCurrentDetailedDeps);
         })
       .onFilterChanged((filterString, exclude) => {
@@ -138,7 +138,7 @@
       .showFieldAccess(true)
       .showAnonymousImplementing(true)
       .showDepsBetweenChildAndParent(false);
-    updateEdges(() => true);
+    updateEdges();
     // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
     showDetailedDepsOf(depWithCurrentDetailedDeps);
   }
@@ -311,8 +311,8 @@
 
   function updateVisualizationAfterDragging(node) {
     gTree.selectAll('g').filter(d => d.isChildOf(node)).attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    updateEdgePosition(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
-    || d.to.startsWith(node.getFullName())), false, () => {
+    updateEdgePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
+    || d.to.startsWith(node.getFullName())), () => {
     });
   }
 
@@ -356,7 +356,7 @@
       createNewEdges(edges.enter());
     };
 
-    updateEdgePosition(edges, callback);
+    updateEdgePositionWithAnimation(edges, callback);
   }
 
   function hideEdges(edges) {
@@ -381,12 +381,17 @@
     });
   }
 
-  function updateEdgePosition(edges, callback) {
-    updateLinePosition(edges, callback);
-    updateTitlePosition(edges);
+  function updateEdgePositionWithAnimation(edges, callback) {
+    updateLinePositionWithAnimation(edges, callback);
+    updateTitlePositionWithAnimation(edges);
   }
 
-  function updateLinePosition(edges, callback) {
+  function updateEdgePositionWithoutAnimation(edges, callback) {
+    updateLinePositionWithoutAnimation(edges, callback);
+    updateTitlePositionWithoutAnimation(edges);
+  }
+
+  function updateLinePositionWithAnimation(edges, callback) {
     let n = 0;
     let deps = edges.select('#dep');
     if (deps.empty()) {
@@ -407,6 +412,21 @@
         });
     }
 
+    updateClickAreaPosition(edges)
+  }
+
+  function updateLinePositionWithoutAnimation(edges, callback) {
+    edges.select('#dep')
+      .attr('x1', e => e.visualData.startPoint.x)
+      .attr('y1', e => e.visualData.startPoint.y)
+      .attr('x2', e => e.visualData.endPoint.x)
+      .attr('y2', e => e.visualData.endPoint.y);
+
+    callback();
+    updateClickAreaPosition(edges);
+  }
+
+  function updateClickAreaPosition(edges) {
     edges
       .select('#area')
       .attr('x1', e => e.visualData.startPoint.x)
@@ -415,8 +435,12 @@
       .attr('y2', e => e.visualData.endPoint.y);
   }
 
-  function updateTitlePosition(edges) {
+  function updateTitlePositionWithAnimation(edges) {
     edges.select('text').transition().duration(TRANSITION_DURATION).attr('transform', e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+  }
+
+  function updateTitlePositionWithoutAnimation(edges) {
+    edges.select('text').attr('transform', e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
   }
 </script>
 </body>

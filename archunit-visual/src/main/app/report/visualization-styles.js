@@ -41,6 +41,10 @@ module.exports.from = function (styleSheet) {
 
     getCirclePadding: () => parseInt(circleRule.style.getPropertyValue('padding'), 10),
 
+    setCirclePadding: (paddingInPixels) => {
+      circleRule.style.setProperty('padding', `${paddingInPixels}px`)
+    },
+
     getLineStyle: (kind, title) => {
       let rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));
       return {
