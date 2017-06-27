@@ -15,8 +15,7 @@ const packEnclose = require('d3').packEnclose;
 let calculateTextWidth;
 let visualizationStyles;
 
-let isOrigLeaf = node => node.getOrigChildren().length === 0;
-//TODO: filteredChildren, falls nach dem Filtern das Layout neu bestimmt werden soll (sodass zum Beispiel die wenigen übrigen Klassen größer werden
+let isOriginalLeaf = node => node.getOriginalChildren().length === 0;
 
 let spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
   let spaceBetweenPoints = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
@@ -26,7 +25,7 @@ let spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
 let getFoldedRadius = node => {
   let foldedRadius = node.visualData.r;
   if (!node.isRoot()) {
-    node.getParent().getOrigChildren().forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
+    node.getParent().getOriginalChildren().forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
   }
   let width = radiusOfLeafWithTitle(node.getName());
   return Math.max(foldedRadius, width);
@@ -46,7 +45,7 @@ let dragNodeBackIntoItsParent = node => {
 };
 
 let dragNode = (node, dx, dy, force) => {
-  node.visualData.move(dx, dy, node.getParent(), () => node.getOrigChildren().forEach(d => dragNode(d, dx, dy, true)), true, force);
+  node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
 
 let adaptToFoldState = (node) => {
@@ -54,7 +53,7 @@ let adaptToFoldState = (node) => {
     node.visualData.r = getFoldedRadius(node);
   }
   else {
-    node.visualData.r = node.visualData.origRadius;
+    node.visualData.r = node.visualData.originalRadius;
     if (!node.isRoot() && !node.getParent().isRoot()) {
       dragNodeBackIntoItsParent(node);
     }
@@ -65,8 +64,8 @@ let VisualData = class {
   constructor(x, y, r, oldVisualData) {
     this.x = x;
     this.y = y;
-    this.origRadius = r;
-    this.r = this.origRadius;
+    this.originalRadius = r;
+    this.r = this.originalRadius;
     this.visible = oldVisualData ? oldVisualData.visible : false;
     //this.dragPro = new DragProtocol(this.x, this.y);
   }
@@ -90,7 +89,7 @@ let radiusOfLeafWithTitle = title => {
 
 let radiusOfAnyNode = (node, textPosition) => {
   let radius = radiusOfLeafWithTitle(node.getName());
-  if (isOrigLeaf(node)) {
+  if (isOriginalLeaf(node)) {
     return radius;
   }
   else {

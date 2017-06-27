@@ -30,20 +30,14 @@ let isLeaf = node => node.getFilteredChildren().length === 0;
 let fold = (node, folded) => {
   if (!isLeaf(node)) {
     node._folded = folded;
-    if (node.isFolded()) {
-      node._currentChildren = [];
-    }
-    else {
-      node._currentChildren = node.getFilteredChildren();
-    }
     return true;
   }
   return false;
 };
 
 let resetFilteredChildrenOfAllNodes = root => {
-  descendants(root, n => n.getOrigChildren()).forEach(n => {
-    n._filteredChildren = n.getOrigChildren();
+  descendants(root, n => n.getOriginalChildren()).forEach(n => {
+    n._filteredChildren = n.getOriginalChildren();
   });
 };
 
@@ -54,20 +48,14 @@ let reapplyFilters = (root, filters) => {
     node.getFilteredChildren().forEach(c => recReapplyFilter(c, filter));
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
-  descendants(root, n => n.getFilteredChildren()).forEach(n => {
-    if (!n.isFolded()) {
-      n._currentChildren = n.getFilteredChildren();
-    }
-  });
 };
 
 let Node = class {
   constructor(description, parent) {
     this._description = description;
     this._parent = parent;
-    this._origChildren = [];
-    this._filteredChildren = this._origChildren;
-    this._currentChildren = this._filteredChildren;
+    this._originalChildren = [];
+    this._filteredChildren = this._originalChildren;
     this._folded = false;
     this._filters = new Map();
   }
@@ -92,18 +80,16 @@ let Node = class {
     return this._parent;
   }
 
-  // FIXME: What is the meaning of 'orig' children? I guess it's 'all' children, before any filter is applied? Also why an abbreviation again? Does this stand for original? We could afford the 4 extra chars in the year 2017 ;-)
-  getOrigChildren() {
-    return this._origChildren;
+  getOriginalChildren() {
+    return this._originalChildren;
   }
 
   getFilteredChildren() {
     return this._filteredChildren;
   }
 
-  // FIXME: I don't see, why we need 3 sets of children? Shouldn't 'all' and 'filtered' be enough? Why is there 'current'? And why should it differ from 'filtered'?
   getCurrentChildren() {
-    return this._currentChildren;
+    return this._folded ? [] : this.getFilteredChildren();
   }
 
   isRoot() {
@@ -147,13 +133,13 @@ let Node = class {
     if (this.isCurrentlyLeaf()) {
       return this.getName();
     }
-    let subTree = this._currentChildren.reduce((sub, act) => sub + act.traverseTree() + ", ", "");
+    let subTree = this.getCurrentChildren().reduce((sub, act) => sub + act.traverseTree() + ", ", "");
     return this.getName() + "(" + subTree + ")";
   }
 
   foldAllNodes(callback) {
     if (!isLeaf(this)) {
-      this._currentChildren.forEach(d => d.foldAllNodes(callback));
+      this.getCurrentChildren().forEach(d => d.foldAllNodes(callback));
       if (!this.isRoot()) {
         fold(this, true);
         callback(this);
@@ -161,10 +147,9 @@ let Node = class {
     }
   }
 
-  // FIXME: Don't use cryptic abbreviations!!!!
-  dfs(fun) {
+  foldPostOrder(fun) {
     if (!isLeaf(this)) {
-      this._currentChildren.forEach(c => c.dfs(fun));
+      this.getCurrentChildren().forEach(c => c.foldPostOrder(fun));
       if (!this.isRoot()) {
         fun(this);
       }
@@ -205,7 +190,7 @@ let Node = class {
   }
 
   addChild(child) {
-    this._origChildren.push(child);
+    this._originalChildren.push(child);
   }
 };
 

@@ -41,7 +41,7 @@ let Graph = class {
   }
 
   foldAllNodes(callback) {
-    this.root.dfs(node => {
+    this.root.foldPostOrder(node => {
       if (this.changeFoldStateOfNode(node)) {
         callback(node);
       }

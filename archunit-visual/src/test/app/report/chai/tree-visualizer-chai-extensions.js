@@ -61,7 +61,7 @@ Assertion.addMethod('haveChildrenWithinCircle', function () {
 
   let childrenNotWithinNode = [];
 
-  node.getOrigChildren().forEach(c => {
+  node.getOriginalChildren().forEach(c => {
     let distanceFromNodeMiddleToChildRim = distance(node.visualData.x, node.visualData.y, c.visualData.x, c.visualData.y)
         + c.visualData.r;
     if (node.visualData.r - distanceFromNodeMiddleToChildRim < CIRCLE_PADDING / 2) {

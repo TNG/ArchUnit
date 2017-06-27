@@ -158,8 +158,8 @@ describe("Tree", () => {
     let checkLayout = node => {
       expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
-      expect(node.getOrigChildren()).to.doNotOverlap(CIRCLE_PADDING);
-      node.getOrigChildren().forEach(c => checkLayout(c));
+      expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
+      node.getOriginalChildren().forEach(c => checkLayout(c));
     };
     checkLayout(tree.root);
   });

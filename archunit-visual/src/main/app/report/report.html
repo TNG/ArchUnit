@@ -97,7 +97,7 @@
                   .showAnonymousImplementing(filter.showAnonymousImplementation)
                   .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
-          updateEdges(d => true);
+              updateEdges(() => true);
           showDetailedDepsOf(depWithCurrentDetailedDeps);
         })
       .onFilterChanged((filterString, exclude) => {
@@ -115,14 +115,6 @@
         visualizationStyles.getLineStyle("childrenAccess", "innerclass access"),
         visualizationStyles.getLineStyle("several", "grouped access")
       ]);
-              updateEdges(() => true);
-              showDetailedDepsOf(depWithCurrentDetailedDeps);
-            })
-        .onFilterChanged((filterString, exclude) => {
-          graph.filterNodesByName(filterString, exclude);
-          visualizer.update(graph);
-          updateWholeVisualization(true);
-        });
   });
 
   d3.json('classes.json', function (error, jsonroot) {

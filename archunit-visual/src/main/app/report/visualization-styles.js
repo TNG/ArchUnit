@@ -4,24 +4,13 @@ const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
 
 const LINE_STYLE_PREFIX = 'line.';
-const DEFAULT_KIND = 'access';
-const BORDER_PREFIX = 'dashed ';
-const BORDER_COLOR = 'black';
-
-const CONSTRUCTOR_CALL_STYLE_SELECTOR = 'line.constructorCall';
-const METHOD_CALL_STYLE_SELECTOR = 'line.methodCall';
-const FIELD_ACCESS_STYLE_SELECTOR = 'line.fieldAccess';
-const EXTENDS_STYLE_SELECTOR = 'line.extends';
-const IMPLEMENTS_STYLE_SELECTOR = 'line.implements';
-const IMPLEMENTS_ANONYMOUS_STYLE_SELECTOR = 'line.implementsAnonymous';
-const INNERCLASS_ACCESS_STYLE_SELECTOR = 'line.childrenAccess';
 
 const rgbToHex = (rgbString, defaultHex) => {
   if (!rgbString) {
     return defaultHex;
   }
   let numbers = rgbString.split(",");
-  numbers = numbers.map(n => parseInt(n.replace(/[rgb\(\)\s]/g, "")));
+  numbers = numbers.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
   let numbersAsHex = numbers.map(n => {
     let hex = n.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
