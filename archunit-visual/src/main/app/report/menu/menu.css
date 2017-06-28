@@ -7,10 +7,10 @@
 
     --border-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     box-shadow: var(--border-shadow);
-}
 
-div {
-    border: 1px solid red;
+    --menu-font-size: 14px;
+    --menu-section-border: 1px solid #ccc;
+    --menu-border-radius: 25px;
 }
 
 .bar-entry {
@@ -36,8 +36,8 @@ div {
     right: 0;
     top: 100%;
     box-shadow: var(--border-shadow);
-    border-bottom-left-radius: 25px;
-    border-bottom-right-radius: 25px;
+    border-bottom-left-radius: var(--menu-border-radius);
+    border-bottom-right-radius: var(--menu-border-radius);
 }
 
 .tab-content:hover {

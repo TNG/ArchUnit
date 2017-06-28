@@ -1,10 +1,9 @@
 label, input {
-    font-size: 14px;
+    font-size: var(--menu-font-size);
 }
 
 label {
     white-space: nowrap;
-    padding-right: 5px;
 }
 
 input[type=checkbox] {
@@ -26,8 +25,8 @@ input[type=checkbox] {
 .filter-group {
     display: flex;
     flex-direction: column;
-    border-radius: 25px;
-    border: 1px solid #ccc;
+    border-radius: var(--menu-border-radius);
+    border: var(--menu-section-border);
     flex-grow: 1;
     padding: 5px;
 }

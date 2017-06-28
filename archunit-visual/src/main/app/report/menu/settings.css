@@ -1,37 +1,30 @@
-div {
-    border: none;
-    outline: none;
-}
-
-#wrapper {
-    width: 100%;
-    text-align: center;
-    padding: 0px 10px 10px 10px;
-}
-
-div.settingsWrapper {
-    display: inline-block;
-    vertical-align: middle;
-    margin: 2px;
-    padding: 10px;
-    text-align: left;
-    border-radius: 25px;
-    border: 1px solid #ccc;
-}
-
-.menu-slider {
-    width: 100px;
-}
-
 label, input {
-    font-size: 14px;
+    font-size: var(--menu-font-size);
 }
 
 label {
-    padding-right: 5px;
+    white-space: nowrap;
 }
 
-div.setting {
-    padding-top: 10px;
-    padding-bottom: 10px;
+#settings-root {
+    padding: 15px;
+}
+
+.settings-panel {
+    border-radius: var(--menu-border-radius);
+    border: var(--menu-section-border);
+    padding: 5px;
+}
+
+.setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+.menu-slider {
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
