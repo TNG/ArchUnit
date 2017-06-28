@@ -1,44 +1,44 @@
-#filter-root {
-    width: 100%;
-    text-align: center;
-    padding: 0 10px 10px 10px;
-}
-
 label, input {
     font-size: 14px;
 }
 
 label {
+    white-space: nowrap;
     padding-right: 5px;
 }
 
-div.filter-group-panel {
-    padding-top: 10px;
-    display: inline-block;
+input[type=checkbox] {
     vertical-align: middle;
-    margin: 2px;
-    text-align: left;
 }
 
-div.filter-group {
+#filter-root {
+    display: flex;
+    flex-direction: row;
+    padding: 15px;
+}
+
+.filter-group-panel {
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
     border-radius: 25px;
     border: 1px solid #ccc;
+    flex-grow: 1;
+    padding: 5px;
 }
 
-div.filter-type {
+.filter-type {
     padding-bottom: 5px;
     text-align: center;
 }
 
-div.filter {
-    padding-bottom: 10px;
-
-}
-
-div.left {
-    padding: 10px;
-}
-
-div.right {
-    padding: 10px;
+.filter {
+    white-space: nowrap;
+    display: inline-block;
+    padding: 5px;
 }

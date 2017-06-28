@@ -2,20 +2,30 @@
     background-color: ghostwhite;
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
+
+    --border-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: var(--border-shadow);
+}
+
+div {
+    border: 1px solid red;
 }
 
 .bar-entry {
     background-color: inherit;
-    padding: 5px 10px 5px 10px;
+    padding: 10px 5px;
 }
 
 .tab {
     position: relative;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
 }
 
-.tab-title:hover + .tab-content {
+.tab:hover .tab-content {
     display: block;
 }
 
@@ -24,6 +34,10 @@
     display: none;
     position: absolute;
     right: 0;
+    top: 100%;
+    box-shadow: var(--border-shadow);
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
 }
 
 .tab-content:hover {
