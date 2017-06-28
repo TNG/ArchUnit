@@ -15,7 +15,7 @@
 
 .bar-entry {
     background-color: inherit;
-    padding: 10px 5px;
+    padding: 10px 20px;
 }
 
 .tab {
@@ -23,6 +23,15 @@
     display: inline-flex;
     flex-direction: row;
     align-items: center;
+}
+
+.tab-title {
+    cursor: pointer;
+}
+
+.tab:hover {
+    box-shadow: var(--border-shadow);
+    z-index: 1;
 }
 
 .tab:hover .tab-content {
