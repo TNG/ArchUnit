@@ -1,3 +1,50 @@
+#bar-root {
+    background-color: ghostwhite;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.bar-entry {
+    background-color: inherit;
+    padding: 5px 10px 5px 10px;
+}
+
+.tab {
+    position: relative;
+}
+
+.tab-title:hover + .tab-content {
+    display: block;
+}
+
+.tab-content {
+    background: inherit;
+    display: none;
+    position: absolute;
+    right: 0;
+}
+
+.tab-content:hover {
+    display: block;
+}
+
+#filter-entry {
+    flex-grow: 1;
+}
+
+/* FIXME: CSS sauber machen, so dass das Menue mit Filter-leiste wieder gut aussieht
+#filterBar {
+    padding: 10px 10px 10px 10px;
+    background-color: ghostwhite;
+    flex-grow: 1;
+}
+
+.drop-downs {
+    position: relative;
+}
+
 div.tab {
     background-color: inherit;
 }
@@ -5,6 +52,8 @@ div.tab {
 div.tabs {
     background-color: ghostwhite;
     transition: 0.3s;
+    display: inline-flex;
+    flex-direction: row;
 }
 
 div.tab {
@@ -26,8 +75,8 @@ div.third {
     right: 0;
 }
 
-/*if you want the whole menu to expand (not only the current tab), you can use display: table and width: 100% for .tabs
-and display:cell for .tab --> disadvantage: the width of the tabs is not constant*/
+if you want the whole menu to expand (not only the current tab), you can use display: table and width: 100% for .tabs
+and display:cell for .tab --> disadvantage: the width of the tabs is not constant
 
 div.normaltitle, div.righttitle {
     padding-top: 10px;
@@ -90,14 +139,4 @@ div.tab:hover, div.normaltitle:hover, div.righttitle:hover {
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
 }
-
-/* FIXME: better use var(--menu-height) */
-#filterBar {
-    padding: 10px 10px 10px 10px;
-    background-color: ghostwhite;
-    z-index: 0;
-    height: auto;
-    width: auto;
-    margin-top: 40px;
-    position: absolute;
-}
+*/

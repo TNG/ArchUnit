@@ -5,29 +5,27 @@
 
 <template id="visualization-menu-template">
   <link rel="stylesheet" href="menu.css">
-  <div>
-    <div class="tabs canhover">
-      <div id="filter" class="tab first canhover">
-        <div id="filterTab" class="tabcontent canhover">
-          <visualization-filter id="filter-menu"></visualization-filter>
-        </div>
-        <div class="normaltitle canhover">Filter</div>
-      </div>
-      <div id="settings" class="tab second canhover">
-        <div id="settingsTab" class="tabcontent canhover">
-          <visualization-settings id='settings-menu'></visualization-settings>
-        </div>
-        <div class="normaltitle canhover">Settings</div>
-      </div>
-      <div id="legend" class="tab third canhover">
-        <div id="legendTab" class="tabcontent canhover">
-          <visualization-legend id='legend-menu'></visualization-legend>
-        </div>
-        <div id="legendTitle" class="righttitle canhover">?</div>
+  <div id="bar-root">
+    <div id='filter-entry' class="bar-entry">
+      <visualization-filter-bar id="filter-bar"></visualization-filter-bar>
+    </div>
+    <div id="filter" class="bar-entry tab">
+      <div class="tab-title">Filter</div>
+      <div id="filterTab" class="tab-content">
+        <visualization-filter id="filter-menu"></visualization-filter>
       </div>
     </div>
-    <div id='filterBar'>
-      <visualization-filter-bar id='filter-bar'></visualization-filter-bar>
+    <div id="settings" class="bar-entry tab">
+      <div class="tab-title">Settings</div>
+      <div id="settingsTab" class="tab-content">
+        <visualization-settings id="settings-menu"></visualization-settings>
+      </div>
+    </div>
+    <div id="legend" class="bar-entry tab">
+      <div class="tab-title">?</div>
+      <div id="legendTab" class="tab-content">
+        <visualization-legend id="legend-menu"></visualization-legend>
+      </div>
     </div>
   </div>
 </template>
