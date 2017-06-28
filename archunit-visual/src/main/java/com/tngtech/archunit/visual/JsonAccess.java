@@ -16,18 +16,29 @@
 package com.tngtech.archunit.visual;
 
 import com.google.gson.annotations.Expose;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaCall;
 
-class JsonConstructorCall {
+import static com.tngtech.archunit.visual.JsonExporter.getCleanedFullName;
+
+class JsonAccess {
     @Expose
+    // FIXME: 'to' doesn't say what this is??
     private String to;
     @Expose
     private String startCodeUnit;
     @Expose
     private String targetElement;
 
-    JsonConstructorCall(String to, String startCodeUnit, String targetElement) {
-        this.to = to;
-        this.startCodeUnit = startCodeUnit;
-        this.targetElement = targetElement;
+    JsonAccess(JavaAccess<?> access) {
+        this.to = getCleanedFullName(access.getTargetOwner().getName());
+        this.startCodeUnit = access.getOrigin().getName();
+        this.targetElement = access.getTarget().getName();
+    }
+
+    JsonAccess(JavaCall<?> javaCall) {
+        this.to = getCleanedFullName(javaCall.getTargetOwner().getName());
+        this.startCodeUnit = javaCall.getOrigin().getName();
+        this.targetElement = javaCall.getTarget().getName(); // FIXME + "(" + Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }
 }

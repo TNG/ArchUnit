@@ -3,6 +3,7 @@ package com.tngtech.archunit.visual;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 final class JsonTestUtils {
 
@@ -30,15 +33,22 @@ final class JsonTestUtils {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-        Map<Object, Object> imported = new Gson().fromJson(reader, new TypeToken<Map<String, Object>>() {
-        }.getType());
+        Map<Object, Object> imported = importJsonFromReader(reader);
 
         return ensureOrderIgnored(imported);
     }
 
+    private static Map<Object, Object> importJsonFromReader(JsonReader reader) {
+        return checkNotNull(new Gson().<Map<Object, Object>>fromJson(reader, mapStringObjectType()));
+    }
+
+    private static Type mapStringObjectType() {
+        return new TypeToken<Map<String, Object>>() {
+        }.getType();
+    }
+
     static Map<Object, Object> jsonToMap(String json) {
-        Map<Object, Object> imported = new Gson().fromJson(json, new TypeToken<Map<String, Object>>() {
-        }.getType());
+        Map<Object, Object> imported = new Gson().fromJson(json, mapStringObjectType());
 
         return ensureOrderIgnored(imported);
     }

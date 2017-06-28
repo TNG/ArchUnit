@@ -24,11 +24,11 @@ abstract class JsonJavaElement extends JsonElement {
     @Expose
     private Set<String> interfaces = new HashSet<>();
     @Expose
-    private Set<JsonFieldAccess> fieldAccesses = new HashSet<>();
+    private Set<JsonAccess> fieldAccesses = new HashSet<>();
     @Expose
-    private Set<JsonMethodCall> methodCalls = new HashSet<>();
+    private Set<JsonAccess> methodCalls = new HashSet<>();
     @Expose
-    private Set<JsonConstructorCall> constructorCalls = new HashSet<>();
+    private Set<JsonAccess> constructorCalls = new HashSet<>();
     // FIXME: Don't use cryptic shortcuts like 'anonImpl', esp. within public API
     @Expose
     private Set<String> anonImpl = new HashSet<>();
@@ -53,16 +53,16 @@ abstract class JsonJavaElement extends JsonElement {
         interfaces.add(i);
     }
 
-    void addFieldAccess(JsonFieldAccess f) {
-        fieldAccesses.add(f);
+    void addFieldAccess(JsonAccess access) {
+        fieldAccesses.add(access);
     }
 
-    void addMethodCall(JsonMethodCall m) {
-        methodCalls.add(m);
+    void addMethodCall(JsonAccess access) {
+        methodCalls.add(access);
     }
 
-    void addConstructorCall(JsonConstructorCall c) {
-        constructorCalls.add(c);
+    void addConstructorCall(JsonAccess access) {
+        constructorCalls.add(access);
     }
 
     void addAnonImpl(String i) {

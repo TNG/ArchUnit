@@ -19,12 +19,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 public class VisualizationContext {
     private final Set<String> rootPackages;
 
     private VisualizationContext(Set<String> rootPackages) {
         this.rootPackages = ImmutableSet.copyOf(rootPackages);
+    }
+
+    boolean isElementIncluded(JavaClass javaClass) {
+        return isElementIncluded(javaClass.getName());
     }
 
     //FIXME: Test fuer verschiedene Konfigurationen vom Context
