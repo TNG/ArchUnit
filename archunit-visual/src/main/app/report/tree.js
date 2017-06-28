@@ -103,6 +103,10 @@ let Node = class {
     return this._folded;
   }
 
+  fold() {
+    return fold(this, true);
+  }
+
   changeFold() {
     return fold(this, !this._folded);
   }
@@ -130,18 +134,9 @@ let Node = class {
     }
   }
 
-  // FIXME: Sorry, now it are words, but I still don't get it ;-)
-  // What does 'fold post order' mean? This method looks to me like 'applyToAllNonLeafChildrenThenToSelfIfNotRoot' or sth. like that
-  // Sounds a little crazy though, and I wonder, if it wouldn't be possible to skip if-checks, seems like this method is created
-  // for one and only one usecase, but is designed super generic, would maybe be easier to say, it applies to all nodes,
-  // even root and leafs, and the caller has to take care of handling cases he doesn't want
-  foldPostOrder(fun) {
-    if (!isLeaf(this)) {
-      this.getCurrentChildren().forEach(c => c.foldPostOrder(fun));
-      if (!this.isRoot()) {
-        fun(this);
-      }
-    }
+  recursiveCall(fun) {
+    this.getCurrentChildren().forEach(c => c.recursiveCall(fun));
+    fun(this);
   }
 
   /**
@@ -158,9 +153,9 @@ let Node = class {
 
   filterByType(interfaces, classes, eliminatePkgs) {
     let classFilter =
-        c => (c.getType() !== nodeKinds.package) &&
-        boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
-        boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
+      c => (c.getType() !== nodeKinds.package) &&
+      boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
+      boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
         c => (c.getType() === nodeKinds.package) &&
         boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
