@@ -15,10 +15,17 @@
 
 .bar-entry {
     background-color: inherit;
-    padding: 10px 20px;
+    --entry-top-bottom-padding: 10px;
+}
+
+#filter-entry {
+    padding-top: var(--entry-top-bottom-padding);
+    padding-bottom: var(--entry-top-bottom-padding);
+    padding-left: var(--entry-top-bottom-padding);
 }
 
 .tab {
+    padding: var(--entry-top-bottom-padding) 20px;
     position: relative;
     display: inline-flex;
     flex-direction: row;

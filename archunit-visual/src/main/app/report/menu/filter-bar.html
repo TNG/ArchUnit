@@ -1,11 +1,12 @@
 <template id="visualization-filter-bar-template">
   <link rel="stylesheet" href="filter-bar.css">
-  <div class="wrapper">
-    <div class="filter">
-      <label for="filterString">Filter:</label>
-      <input type="text" class="textbox" id="filterString">
+
+  <div id="filter-bar-root">
+    <div class="search-bar">
+      <label for="filter-string">Filter:</label>
+      <input type="text" id="filter-string">
     </div>
-    <div class="filter">
+    <div id="invert-checkbox">
       <input type="checkbox" class="checkbox" id="exclude">
       <label for="exclude">exclude</label>
     </div>
@@ -21,7 +22,7 @@
 
     webComponents.defineCustomElement('visualization-filter-bar', class extends HTMLElement {
       postConnected() {
-        filterStringInput = this.shadowRoot.querySelector('#filterString');
+        filterStringInput = this.shadowRoot.querySelector('#filter-string');
         excludeInput = this.shadowRoot.querySelector('#exclude');
 
         const onValueChanged = (() => {
