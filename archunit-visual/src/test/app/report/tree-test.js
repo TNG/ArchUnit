@@ -61,8 +61,8 @@ describe("Node", () => {
     let root = jsonToRoot(tree);
 
     expect(root.getClass()).to.contain(' foldable');
-    expect(root.getClass()).not.to.contain(' notfoldable');
-    expect(root.getCurrentChildren()[0].getClass()).to.contain(' notfoldable');
+    expect(root.getClass()).not.to.contain(' not-foldable');
+    expect(root.getCurrentChildren()[0].getClass()).to.contain(' not-foldable');
     expect(root.getCurrentChildren()[0].getClass()).not.to.contain(' foldable');
   });
 });

@@ -112,7 +112,7 @@ let Node = class {
   }
 
   getClass() {
-    let foldableStyle = isLeaf(this) ? "notfoldable" : "foldable";
+    let foldableStyle = isLeaf(this) ? "not-foldable" : "foldable";
     return `node ${this.getType()} ${foldableStyle}`;
   }
 
