@@ -3,12 +3,6 @@
 let jsonToRoot = require('./tree.js').jsonToRoot;
 let jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
-let createNodeMap = root => {
-  let nodeMap = new Map();
-  root.getVisibleDescendants().forEach(node => nodeMap.set(node.getFullName(), node));
-  return nodeMap;
-};
-
 let Graph = class {
   constructor(root, nodeMap, dependencies) {
     this.root = root;
@@ -81,7 +75,7 @@ let Graph = class {
 
 let jsonToGraph = jsonRoot => {
   let root = jsonToRoot(jsonRoot);
-  let nodeMap = createNodeMap(root);
+  let nodeMap = new Map(root.getVisibleDescendants().map(node => [node.getFullName(), node]));
   let deps = jsonToDependencies(jsonRoot, nodeMap);
   return new Graph(root, nodeMap, deps);
 };
