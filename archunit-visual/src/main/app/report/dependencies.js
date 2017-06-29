@@ -115,10 +115,6 @@ let Dependencies = class {
         this._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
   }
 
-  keyFunction() {
-    return e => e.from + "->" + e.to;
-  }
-
   changeFold(foldedElement, isFolded) {
     if (isFolded) {
       changeFold(this, dependencies => dependencies._transformers.set(foldedElement, foldTransformer(foldedElement)));

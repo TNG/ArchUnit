@@ -18,14 +18,6 @@ let Graph = class {
     return this.dependencies.getVisible();
   }
 
-  nodeKeyFunction() {
-    return this.root.keyFunction();
-  }
-
-  dependencyKeyFunction() {
-    return this.dependencies.keyFunction();
-  }
-
   changeFoldStateOfNode(node) {
     if (node.changeFold()) {
       this.dependencies.changeFold(node.getFullName(), node.isFolded());

@@ -25,8 +25,7 @@ let descendants = (node, childrenSelector) => {
   return res;
 };
 
-let isLeaf = node => node.getFilteredChildren().length === 0;
-
+let isLeaf = node => node._filteredChildren.length === 0;
 let fold = (node, folded) => {
   if (!isLeaf(node)) {
     node._folded = folded;
@@ -44,8 +43,8 @@ let resetFilteredChildrenOfAllNodes = root => {
 let reapplyFilters = (root, filters) => {
   resetFilteredChildrenOfAllNodes(root);
   let recReapplyFilter = (node, filter) => {
-    node._filteredChildren = node.getFilteredChildren().filter(filter);
-    node.getFilteredChildren().forEach(c => recReapplyFilter(c, filter));
+    node._filteredChildren = node._filteredChildren.filter(filter);
+    node._filteredChildren.forEach(c => recReapplyFilter(c, filter));
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
 };
@@ -84,12 +83,8 @@ let Node = class {
     return this._originalChildren;
   }
 
-  getFilteredChildren() {
-    return this._filteredChildren;
-  }
-
   getCurrentChildren() {
-    return this._folded ? [] : this.getFilteredChildren();
+    return this._folded ? [] : this._filteredChildren;
   }
 
   isRoot() {
@@ -98,10 +93,6 @@ let Node = class {
 
   isCurrentlyLeaf() {
     return isLeaf(this) || this._folded;
-  }
-
-  isLeaf() {
-    return isLeaf(this);
   }
 
   isChildOf(d) {
@@ -121,20 +112,12 @@ let Node = class {
   }
 
   getClass() {
-    let foldableStyle = this.isLeaf() ? "notfoldable" : "foldable";
+    let foldableStyle = isLeaf(this) ? "notfoldable" : "foldable";
     return `node ${this.getType()} ${foldableStyle}`;
   }
 
   getVisibleDescendants() {
     return descendants(this, n => n.getCurrentChildren());
-  }
-
-  traverseTree() {
-    if (this.isCurrentlyLeaf()) {
-      return this.getName();
-    }
-    let subTree = this.getCurrentChildren().reduce((sub, act) => sub + act.traverseTree() + ", ", "");
-    return this.getName() + "(" + subTree + ")";
   }
 
   foldAllNodes(callback) {
@@ -161,10 +144,6 @@ let Node = class {
     }
   }
 
-  keyFunction() {
-    return d => d.getFullName();
-  }
-
   /**
    * filters the classes in the tree by the fullName (matching case);
    * empty packages are removed
@@ -184,7 +163,7 @@ let Node = class {
         boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
         c => (c.getType() === nodeKinds.package) &&
-        boolFunc(eliminatePkgs).implies(descendants(c, n => n.getFilteredChildren()).reduce((acc, n) => acc || classFilter(n), false));
+        boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
     reapplyFilters(this, this._filters);
   }
@@ -192,10 +171,6 @@ let Node = class {
   resetFilterByType() {
     this._filters.delete(TYPE_FILTER);
     reapplyFilters(this, this._filters);
-  }
-
-  addChild(child) {
-    this._originalChildren.push(child);
   }
 };
 
@@ -210,13 +185,13 @@ let createFilterFunction = (filterString, exclude) => {
 
   let filter = node => {
     if (node.getType() === nodeKinds.package) {
-      return node.getFilteredChildren().reduce((acc, c) => acc || filter(c), false);
+      return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
       let match = new RegExp(regexString).exec(node.getFullName());
       let res = match && match.length > 0;
       res = exclude ? !res : res;
-      return res || (!isLeaf(node) && node.getFilteredChildren().reduce((acc, c) => acc || filter(c), false));
+      return res || (!isLeaf(node) && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
   };
   return filter;
@@ -237,7 +212,7 @@ let parseNodeDescriptionFromJson = jsonElement => {
 let parseJsonNode = (parent, jsonNode) => {
   let node = new Node(parseNodeDescriptionFromJson(jsonNode), parent);
   if (jsonNode.hasOwnProperty("children")) {
-    jsonNode.children.forEach(c => node.addChild(parseJsonNode(node, c)));
+    jsonNode.children.forEach(c => node._originalChildren.push(parseJsonNode(node, c)));
   }
   return node;
 };

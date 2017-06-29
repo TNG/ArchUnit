@@ -328,8 +328,7 @@
   }
 
   function updateNodes() {
-    let nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), graph.nodeKeyFunction());
-
+    let nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
     setVisible(nodes.exit(), false);
 
@@ -345,7 +344,7 @@
   }
 
   function updateEdges() {
-    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), graph.dependencyKeyFunction());
+    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     hideEdges(edges.exit());
     setVisible(edges.filter(function () {
       return d3.select(this).style('visibility') === 'visible'

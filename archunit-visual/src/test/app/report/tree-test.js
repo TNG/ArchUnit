@@ -14,15 +14,6 @@ describe("Node", () => {
     expect(tree.getNode("com.tngtech.class2").isRoot()).to.equal(false);
   });
 
-  it("knows if it is leaf", () => {
-    let tree = testObjects.testTree1();
-    expect(tree.root.isLeaf()).to.equal(false);
-
-    tree.root.changeFold();
-    expect(tree.root.isLeaf()).to.equal(false);
-    expect(tree.getNode("com.tngtech.class2").isLeaf()).to.equal(true);
-  });
-
   it("knows if it is current leaf", () => {
     let root = testObjects.testTree1().root;
     expect(root.isCurrentlyLeaf()).to.equal(false);
@@ -98,11 +89,6 @@ describe("Tree", () => {
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
     expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
-  });
-
-  it("can traverse", () => {
-    let root = testObjects.testTree1().root;
-    expect(root.traverseTree()).to.equal("com.tngtech(main(class1, ), class2, class3, )");
   });
 
   it("can inclusively filter classes", function () {
