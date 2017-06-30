@@ -363,7 +363,7 @@
     setVisible(nodes, true);
   }
 
-  function updateEdges() {
+  function updateEdges(onAnimationEnd) {
     let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     hideEdges(edges.exit());
     setVisible(edges.filter(function () {

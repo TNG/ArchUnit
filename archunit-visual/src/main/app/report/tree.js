@@ -107,6 +107,10 @@ let Node = class {
     return fold(this, true);
   }
 
+  isLeaf() {
+    return isLeaf(this);
+  }
+
   changeFold() {
     return fold(this, !this._folded);
   }
