@@ -6,14 +6,15 @@ import com.tngtech.archunit.exampletest.junit.SlicesIsolationTest;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
-import com.tngtech.archunit.junit.ExpectedViolation;
+import com.tngtech.archunit.junit.CalledByArchUnitIntegrationTestRunner;
+import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.example.controller.one.UseCaseOneController.doSomethingOne;
 import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
 import static com.tngtech.archunit.integration.junit.SliceDependencyErrorMatcher.sliceDependency;
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
@@ -23,8 +24,9 @@ public class SlicesIsolationIntegrationTest {
     public static final ArchRule controllers_should_only_use_their_own_slice =
             SlicesIsolationTest.controllers_should_only_use_their_own_slice;
 
-    static void expectViolationFromDependencies(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("Controllers should not depend on each other")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromDependencies(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("Controllers should not depend on each other")
                 .by(sliceDependency()
                         .described("Controller one calls Controller two")
                         .byAccess(from(UseCaseOneController.class, doSomethingOne)

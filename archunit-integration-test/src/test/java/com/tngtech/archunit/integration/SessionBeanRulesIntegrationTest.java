@@ -19,7 +19,7 @@ import org.junit.Test;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
 import static com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules.init;
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Rule

@@ -10,19 +10,14 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
-/**
- * Doesn't reside within integration.junit, because this forces extended visibility on production code
- */
 public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
-    private ExpectedViolation expectedViolation;
-
     public ArchUnitIntegrationTestRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
     }
 
     @Override
     protected void runChild(final ArchTestExecution child, final RunNotifier notifier) {
-        expectedViolation = ExpectedViolation.none();
+        ExpectedViolation expectedViolation = ExpectedViolation.none();
         Description description = describeChild(child);
         notifier.fireTestStarted(description);
         try {
@@ -47,7 +42,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     private class IntegrationTestStatement extends Statement {
         private final ArchRuleExecution child;
 
-        public IntegrationTestStatement(ArchTestExecution child) {
+        IntegrationTestStatement(ArchTestExecution child) {
             this.child = (ArchRuleExecution) child;
         }
 
@@ -78,16 +73,16 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         private final Class<?> location;
         private final String method;
 
-        public ExpectedViolationDefinition(ExpectedViolationFrom annotation) {
+        ExpectedViolationDefinition(ExpectedViolationFrom annotation) {
             location = annotation.location();
             method = annotation.method();
         }
 
-        public void configure(ExpectedViolation expectedViolation) {
+        void configure(ExpectsViolations expectsViolations) {
             try {
-                Method expectViolation = location.getDeclaredMethod(method, ExpectedViolation.class);
+                Method expectViolation = location.getDeclaredMethod(method, ExpectsViolations.class);
                 expectViolation.setAccessible(true);
-                expectViolation.invoke(null, expectedViolation);
+                expectViolation.invoke(null, expectsViolations);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException("Cannot find method '" + method + "' on " + location.getSimpleName());
             } catch (InvocationTargetException | IllegalAccessException e) {
