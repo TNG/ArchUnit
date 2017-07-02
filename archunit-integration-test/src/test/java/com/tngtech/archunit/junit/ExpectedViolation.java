@@ -42,7 +42,6 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.singleton;
 import static java.util.regex.Pattern.quote;
 
-@Internal
 public class ExpectedViolation implements TestRule {
     private final MessageAssertionChain assertionChain = new MessageAssertionChain();
 
