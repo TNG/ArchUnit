@@ -9,7 +9,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.tngtech.archunit.junit.ExpectedViolation.ExpectedAccess;
+import com.tngtech.archunit.junit.ExpectedAccess;
 import com.tngtech.archunit.junit.MessageAssertionChain;
 
 import static com.google.common.base.Functions.toStringFunction;

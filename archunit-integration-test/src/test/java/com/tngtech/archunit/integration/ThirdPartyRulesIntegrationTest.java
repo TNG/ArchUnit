@@ -8,7 +8,7 @@ import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 public class ThirdPartyRulesIntegrationTest extends ThirdPartyRulesTest {
     private static final String RULE_TEXT = "classes should " + THIRD_PARTY_CLASS_RULE_TEXT;

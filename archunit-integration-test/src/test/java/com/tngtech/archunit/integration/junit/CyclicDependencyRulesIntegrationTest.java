@@ -33,13 +33,14 @@ import com.tngtech.archunit.exampletest.junit.CyclicDependencyRulesTest;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
-import com.tngtech.archunit.junit.ExpectedViolation;
+import com.tngtech.archunit.junit.CalledByArchUnitIntegrationTestRunner;
+import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.integration.junit.CyclicErrorMatcher.cycle;
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example.cycle")
@@ -75,9 +76,9 @@ public class CyclicDependencyRulesIntegrationTest {
     public static final ArchRule NO_CYCLES_IN_COMPLEX_SCENARIO =
             CyclicDependencyRulesTest.NO_CYCLES_IN_COMPLEX_SCENARIO;
 
-
-    static void expectViolationFromSimpleCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromSimpleCycle(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of simplecycle")
                         .byAccess(from(SliceOneCallingMethodInSliceTwo.class, "callSliceTwo")
@@ -93,8 +94,9 @@ public class CyclicDependencyRulesIntegrationTest {
                                 .inLine(9)));
     }
 
-    static void expectViolationFromConstructorCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..(constructorcycle).(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromConstructorCycle(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..(constructorcycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of constructorcycle")
                         .byAccess(from(SliceOneCallingConstructorInSliceTwo.class, "callSliceTwo")
@@ -106,8 +108,9 @@ public class CyclicDependencyRulesIntegrationTest {
                                 .inLine(7)));
     }
 
-    static void expectViolationFromInheritanceCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..(inheritancecycle).(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromInheritanceCycle(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..(inheritancecycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of inheritancecycle")
                         .byAccess(from(ClassThatInheritsFromSliceTwo.class, CONSTRUCTOR_NAME)
@@ -119,9 +122,9 @@ public class CyclicDependencyRulesIntegrationTest {
                                 .inLine(5)));
     }
 
-
-    static void expectViolationFromFieldAccessCycle(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..(fieldaccesscycle).(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromFieldAccessCycle(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..(fieldaccesscycle).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of fieldaccesscycle")
                         .byAccess(from(SliceOneAccessingFieldInSliceTwo.class, "accessSliceTwo")
@@ -133,8 +136,9 @@ public class CyclicDependencyRulesIntegrationTest {
                                 .inLine(10)));
     }
 
-    static void expectViolationFromSimpleCyclicScenario(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..simplescenario.(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromSimpleCyclicScenario(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..simplescenario.(*)..' should be free of cycles")
                 .by(cycle().from("administration")
                         .byAccess(from(AdministrationService.class, "saveNewInvoice", Invoice.class)
                                 .toMethod(ReportService.class, "getReport", String.class)
@@ -152,8 +156,9 @@ public class CyclicDependencyRulesIntegrationTest {
                                 .inLine(11)));
     }
 
-    static void expectViolationFromComplexCyclicScenario(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule("slices matching '..(complexcycles).(*)..' should be free of cycles")
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromComplexCyclicScenario(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("slices matching '..(complexcycles).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of complexcycles")
                         .byAccess(from(ClassOfMinimalCircleCallingSliceTwo.class, "callSliceTwo")

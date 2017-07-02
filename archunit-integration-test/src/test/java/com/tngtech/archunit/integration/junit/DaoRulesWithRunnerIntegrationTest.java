@@ -8,11 +8,12 @@ import com.tngtech.archunit.exampletest.junit.DaoRulesWithRunnerTest;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
-import com.tngtech.archunit.junit.ExpectedViolation;
+import com.tngtech.archunit.junit.CalledByArchUnitIntegrationTestRunner;
+import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
@@ -25,8 +26,9 @@ public class DaoRulesWithRunnerIntegrationTest {
     public static final ArchRule only_DAOs_may_use_the_EntityManager =
             DaoRulesWithRunnerTest.only_DAOs_may_use_the_EntityManager;
 
-    private static void expectViolationByIllegalUseOfEntityManager(ExpectedViolation expectedViolation) {
-        expectedViolation.ofRule(ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT)
+    @CalledByArchUnitIntegrationTestRunner
+    private static void expectViolationByIllegalUseOfEntityManager(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule(ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT)
                 .byCall(from(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(EntityManager.class, "persist", Object.class)
                         .inLine(24))
