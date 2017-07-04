@@ -16,18 +16,29 @@
 package com.tngtech.archunit.visual;
 
 import com.google.gson.annotations.Expose;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 class JsonJavaClass extends JsonJavaElement {
+    static final String INNER_CLASS_SEPARATOR = "$";
+    private static final String TYPE = "class";
+
     @Expose
     private String superclass;
 
-    // FIXME: Can we use Formatters.ensureSimpleName() to derive name from fullName??
-    // FiXME: Can't we just take JavaClass as input??
-    // FIXME: Isn't type always 'class' for a JsonJavaClass? Why do we have to supply it from outside?
-    JsonJavaClass(String name, String fullName, String type, String superclass) {
-        super(name, fullName, type);
-        this.superclass = superclass;
+    private JsonJavaClass(String name, String fullname) {
+        super(name, fullname, TYPE);
+        this.superclass = "";
     }
+
+    JsonJavaClass(JavaClass clazz, boolean withSuperclass) {
+        super(clazz.getSimpleName(), clazz.getName(), TYPE);
+        this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";
+    }
+
+    // FIXME AU-18: ArchUnit shows fqn of inner classes with '$', so we should do this here as well, to be consistent
+    /*private static String getCleanedFullName(String fullName) {
+        return fullName.replace(INNER_CLASS_SEPARATOR, JsonJavaPackage.PACKAGE_SEPARATOR);
+    }*/
 
     boolean directlyExtends(String fullName) {
         return superclass.equals(fullName);

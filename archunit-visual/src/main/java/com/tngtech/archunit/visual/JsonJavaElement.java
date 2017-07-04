@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.google.gson.annotations.Expose;
 
 abstract class JsonJavaElement extends JsonElement {
     @Expose
@@ -29,9 +29,8 @@ abstract class JsonJavaElement extends JsonElement {
     private Set<JsonAccess> methodCalls = new HashSet<>();
     @Expose
     private Set<JsonAccess> constructorCalls = new HashSet<>();
-    // FIXME: Don't use cryptic shortcuts like 'anonImpl', esp. within public API
     @Expose
-    private Set<String> anonImpl = new HashSet<>();
+    private Set<String> anonymousImplementation = new HashSet<>();
     @Expose
     private Set<JsonJavaElement> children = new HashSet<>();
 
@@ -40,8 +39,8 @@ abstract class JsonJavaElement extends JsonElement {
     }
 
     @Override
-    void insertJavaElement(JsonJavaElement el) {
-        this.children.add(el);
+    void insert(JsonJavaElement jsonJavaElement) {
+        this.children.add(jsonJavaElement);
     }
 
     @Override
@@ -49,8 +48,8 @@ abstract class JsonJavaElement extends JsonElement {
         return children;
     }
 
-    void addInterface(String i) {
-        interfaces.add(i);
+    void addInterface(String fullnameInterface) {
+        interfaces.add(fullnameInterface);
     }
 
     void addFieldAccess(JsonAccess access) {
@@ -65,7 +64,7 @@ abstract class JsonJavaElement extends JsonElement {
         constructorCalls.add(access);
     }
 
-    void addAnonImpl(String i) {
-        anonImpl.add(i);
+    void addAnonymousImplementation(String fullnameInterface) {
+        anonymousImplementation.add(fullnameInterface);
     }
 }

@@ -13,7 +13,7 @@
       "fieldAccesses": [],
       "methodCalls": [],
       "constructorCalls": [],
-      "anonImpl": []
+      "anonymousImplementation": []
     },
     {
       "name": "simpleinherit",
@@ -27,7 +27,7 @@
           "children": [
             {
               "name": "InnerClass1",
-              "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "type": "class",
               "children": [],
               "superclass": "",
@@ -43,7 +43,7 @@
                 }
               ],
               "constructorCalls": [],
-              "anonImpl": []
+              "anonymousImplementation": []
             }
           ],
           "superclass": "",
@@ -53,19 +53,19 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "sayHello"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.InnerClass1",
+              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "SimpleClass2",
@@ -94,7 +94,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "SimpleClass3",
@@ -112,7 +112,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "SimpleInterface1",
@@ -123,7 +123,7 @@
           "fieldAccesses": [],
           "methodCalls": [],
           "constructorCalls": [],
-          "anonImpl": []
+          "anonymousImplementation": []
         }
       ]
     },
@@ -172,7 +172,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "ComplexClass2",
@@ -201,7 +201,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": [
+          "anonymousImplementation": [
             "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1"
           ]
         },
@@ -227,7 +227,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "ComplexInterface1",
@@ -238,7 +238,7 @@
           "fieldAccesses": [],
           "methodCalls": [],
           "constructorCalls": [],
-          "anonImpl": []
+          "anonymousImplementation": []
         },
         {
           "name": "ComplexInterface2",
@@ -249,7 +249,7 @@
           "fieldAccesses": [],
           "methodCalls": [],
           "constructorCalls": [],
-          "anonImpl": []
+          "anonymousImplementation": []
         }
       ]
     }

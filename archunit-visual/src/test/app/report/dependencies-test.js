@@ -42,7 +42,7 @@ describe("Dependencies", () => {
     let graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
     let hasEndNodes = (from, to) => d => (d.from === from || d.to === from) && (d.from === to || d.to === to);
     let filter = d => hasEndNodes("com.tngtech.test.subtest.subtestclass1", "com.tngtech.interface1")(d)
-    || hasEndNodes("com.tngtech.class2", "com.tngtech.class2.InnerClass2")(d);
+    || hasEndNodes("com.tngtech.class2", "com.tngtech.class2$InnerClass2")(d);
     graphWrapper.graph.getVisibleDependencies().filter(filter).forEach(d => expect(d.mustShareNodes).to.equal(true));
     graphWrapper.graph.getVisibleDependencies().filter(d => !filter(d)).forEach(d => expect(d.mustShareNodes).to.equal(false));
   });
@@ -91,8 +91,8 @@ describe("Dependencies", () => {
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(startMethod(arg) constructorCall testclass1())",
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)",
-      "com.tngtech.class2.InnerClass2->com.tngtech.class2(startCodeUnit() fieldAccess targetField)",
-      "com.tngtech.class2->com.tngtech.class2.InnerClass2(startCodeUnit() fieldAccess innerTargetField)",
+      "com.tngtech.class2$InnerClass2->com.tngtech.class2(startCodeUnit() fieldAccess targetField)",
+      "com.tngtech.class2->com.tngtech.class2$InnerClass2(startCodeUnit() fieldAccess innerTargetField)",
       "com.tngtech.interface1->com.tngtech.test.subtest.subtestclass1(startMethod() methodCall targetMethod())"
     ];
 

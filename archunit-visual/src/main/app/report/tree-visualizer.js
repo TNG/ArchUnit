@@ -67,7 +67,6 @@ let VisualData = class {
     this.originalRadius = r;
     this.r = this.originalRadius;
     this.visible = oldVisualData ? oldVisualData.visible : false;
-    //this.dragPro = new DragProtocol(this.x, this.y);
   }
 
   move(dx, dy, parent, callback, addToProtocol, force) {
@@ -77,7 +76,6 @@ let VisualData = class {
     if (force || parent.isRoot() || parent.isFolded() || space >= this.r) {
       this.x = newX;
       this.y = newY;
-      //if (addToProtocol) this.dragPro.drag(this.x, this.y);
       callback();
     }
   }
@@ -138,7 +136,6 @@ let calcPositionAndSetRadius = node => {
 let visualizeTree = (root) => {
   recVisualizeTree(root);
   calcPositionAndSetRadius(root);
-  //root.addObserver(adaptToFoldState);
 };
 
 let createVisualData = (node, x, y, r) => {

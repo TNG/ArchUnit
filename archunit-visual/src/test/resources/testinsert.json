@@ -1,0 +1,45 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "superclass": "",
+              "interfaces": [],
+              "fieldAccesses": [],
+              "methodCalls": [],
+              "constructorCalls": [],
+              "anonymousImplementation": [],
+              "children": [],
+              "name": "class2",
+              "fullName": "com.tngtech.pkg.class2",
+              "type": "class"
+            }
+          ],
+          "name": "pkg",
+          "fullName": "com.tngtech.pkg",
+          "type": "package"
+        },
+        {
+          "superclass": "",
+          "interfaces": [],
+          "fieldAccesses": [],
+          "methodCalls": [],
+          "constructorCalls": [],
+          "anonymousImplementation": [],
+          "children": [],
+          "name": "class1",
+          "fullName": "com.tngtech.class1",
+          "type": "class"
+        }
+      ],
+      "name": "tngtech",
+      "fullName": "com.tngtech",
+      "type": "package"
+    }
+  ],
+  "name": "com",
+  "fullName": "com",
+  "type": "package"
+}

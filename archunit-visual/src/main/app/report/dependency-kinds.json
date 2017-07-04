@@ -34,7 +34,7 @@
           "isUnique": false
         },
         {
-          "name": "anonImpl",
+          "name": "anonymousImplementation",
           "dependency": "implementsAnonymous",
           "isUnique": false
         }

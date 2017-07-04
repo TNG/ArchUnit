@@ -15,13 +15,15 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class VisualizedClasses {
     private static final String INNER_CLASS_SEPARATOR = "$";
@@ -29,10 +31,12 @@ public class VisualizedClasses {
     private Map<String, JavaClass> classes = new HashMap<>();
     private Map<String, JavaClass> innerClasses = new HashMap<>();
     private Map<String, JavaClass> dependencies = new HashMap<>();
+    private Set<String> packages = new HashSet<>();
 
     public VisualizedClasses(JavaClasses classes, VisualizationContext context) {
         addClasses(classes, context);
         addDependencies(context);
+        addPackages();
     }
 
     private void addClasses(JavaClasses classes, VisualizationContext context) {
@@ -61,6 +65,12 @@ public class VisualizedClasses {
         }
     }
 
+    private void addPackages() {
+        for (JavaClass c : getAll()) {
+            packages.add(c.getPackage());
+        }
+    }
+
     Iterable<JavaClass> getClasses() {
         return classes.values();
     }
@@ -71,6 +81,10 @@ public class VisualizedClasses {
 
     Iterable<JavaClass> getDependencies() {
         return dependencies.values();
+    }
+
+    Set<String> getPackages() {
+        return packages;
     }
 
     Iterable<JavaClass> getAll() {

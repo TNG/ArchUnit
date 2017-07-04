@@ -37,7 +37,6 @@ let VisualData = class {
     this.angleDeg = 0;
     this.angleRad = 0;
     this.visible = false;
-    //this.dragPro = new DragProtocol(this.x, this.y);
   }
 
   recalc(mustShareNodes, visualStartNode, visualEndNode) {

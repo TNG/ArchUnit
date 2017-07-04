@@ -10,13 +10,20 @@ const NODE_FILTER = "nodefilter";
 
 let nodes = new Map();
 
+const fullnameSeparators = {
+  packageSeparator: ".",
+  classSeparator: "$"
+};
+
+let startsWithFullnameSeparator = string => string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
+
 let filter = dependencies => ({
   by: propertyFunc => ({
     startsWith: prefix => dependencies.filter(r => {
       let property = propertyFunc(r);
       if (property.startsWith(prefix)) {
         let rest = property.substring(prefix.length);
-        return rest ? rest.startsWith(".") : true;
+        return rest ? startsWithFullnameSeparator(rest) : true; //rest.startsWith(".") : true;
       }
       else {
         return false;
@@ -65,16 +72,16 @@ let transform = dependencies => ({
 let foldTransformer = foldedElement => {
   return dependencies => {
     let targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-        .to(r => (
-            buildDependency(r.from, foldedElement).withExistingDescription(r.description).whenTargetIsFolded(r.to)));
+      .to(r => (
+        buildDependency(r.from, foldedElement).withExistingDescription(r.description).whenTargetIsFolded(r.to)));
     return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-        .to(r => (
-            buildDependency(foldedElement, r.to).withExistingDescription(r.description).whenStartIsFolded(r.from)));
+      .to(r => (
+        buildDependency(foldedElement, r.to).withExistingDescription(r.description).whenStartIsFolded(r.from)));
   }
 };
 
 let recalculateVisible = (transformers, dependencies) => Array.from(transformers)
-    .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
+  .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
 let recreateVisible = dependencies => {
   let after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
@@ -88,7 +95,7 @@ let changeFold = (dependencies, callback) => {
 
 let reapplyFilters = (dependencies, filters) => {
   dependencies._filtered = Array.from(filters.values()).reduce((filtered_deps, filter) => filter(filtered_deps),
-      dependencies._all);
+    dependencies._all);
   dependencies._uniqued = unique(Array.from(dependencies._filtered));
   recreateVisible(dependencies);
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
@@ -112,7 +119,7 @@ let Dependencies = class {
   setVisibleDependencies(deps) {
     this._visibleDependencies = deps;
     this._visibleDependencies.forEach(d => d.mustShareNodes =
-        this._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
+      this._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
   }
 
   changeFold(foldedElement, isFolded) {
@@ -127,7 +134,7 @@ let Dependencies = class {
 
   setNodeFilters(filters) {
     this._filters.set(NODE_FILTER, filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
-        deps.filter(d => filter(nodes.get(d.from)) && filter(nodes.get(d.to))), filtered_deps));
+      deps.filter(d => filter(nodes.get(d.from)) && filter(nodes.get(d.to))), filtered_deps));
     reapplyFilters(this, this._filters);
   }
 
@@ -142,19 +149,19 @@ let Dependencies = class {
           showConstructorCall: constructorCall => ({
             showMethodCall: methodCall => ({
               showFieldAccess: fieldAccess => ({
-                showAnonymousImplementing: anonImpl => ({
+                showAnonymousImplementing: anonymousImplementation => ({
                   showDepsBetweenChildAndParent: childAndParent => {
                     let kindFilter = d => {
                       let kinds = d.description.getAllKinds();
                       let deps = dependencyKinds.allDependencies;
                       return boolFuncs(kinds === deps.implements).implies(implementing)
-                          && boolFuncs(kinds === deps.extends).implies(extending)
-                          && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
-                          && boolFuncs(kinds === deps.methodCall).implies(methodCall)
-                          && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
-                          && boolFuncs(kinds === deps.implementsAnonymous).implies(anonImpl)
-                          && boolFuncs(d.getStartNode().getParent() === d.getEndNode()
-                              || d.getEndNode().getParent() === d.getStartNode()).implies(childAndParent);
+                        && boolFuncs(kinds === deps.extends).implies(extending)
+                        && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
+                        && boolFuncs(kinds === deps.methodCall).implies(methodCall)
+                        && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
+                        && boolFuncs(kinds === deps.implementsAnonymous).implies(anonymousImplementation)
+                        && boolFuncs(d.getStartNode().getParent() === d.getEndNode()
+                          || d.getEndNode().getParent() === d.getStartNode()).implies(childAndParent);
                     };
                     applyFilter(kindFilter);
                   }
@@ -205,12 +212,12 @@ let addDependenciesOf = dependencyGroup => ({
         if (jsonElement.hasOwnProperty(kind.name)) {
           if (kind.isUnique && jsonElement[kind.name]) {
             arr.push(buildDependency(jsonElement.fullName, jsonElement[kind.name]).withNewDescription()
-                .withKind(dependencyGroup.name, kind.dependency).build());
+              .withKind(dependencyGroup.name, kind.dependency).build());
           }
           else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
             jsonElement[kind.name].forEach(d => arr.push(
-                buildDependency(jsonElement.fullName, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
-                    .withTargetElement(d.targetElement).build()));
+              buildDependency(jsonElement.fullName, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
+                .withTargetElement(d.targetElement).build()));
           }
         }
       });

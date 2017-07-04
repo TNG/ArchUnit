@@ -23,6 +23,8 @@ public class JsonExporterTest {
 
     private final JsonExporter jsonExporter = new JsonExporter();
 
+    //TODO: more tests for different configs of the context
+
     @Test
     public void exports_empty_class() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(EmptyClass.class, OtherClass.class);

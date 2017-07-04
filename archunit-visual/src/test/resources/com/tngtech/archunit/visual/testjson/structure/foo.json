@@ -26,7 +26,7 @@
               "targetElement": "Object"
             }
           ],
-          "anonImpl": [],
+          "anonymousImplementation": [],
           "children": [],
           "name": "OtherClass",
           "fullName": "some.other.OtherClass",
@@ -51,7 +51,7 @@
               "targetElement": "Object"
             }
           ],
-          "anonImpl": [],
+          "anonymousImplementation": [],
           "children": [],
           "name": "EmptyClass",
           "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",

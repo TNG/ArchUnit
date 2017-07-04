@@ -15,12 +15,13 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.gson.annotations.Expose;
-
 class JsonJavaPackage extends JsonElement {
+    static final String PACKAGE_SEPARATOR = ".";
     private static final String TYPE = "package";
 
     private boolean isDefault;
@@ -32,12 +33,21 @@ class JsonJavaPackage extends JsonElement {
     private Set<JsonJavaElement> classes = new HashSet<>();
 
     JsonJavaPackage(String name, String fullName) {
-        this(name, fullName, false);
+        super(name, fullName, TYPE);
     }
 
-    private JsonJavaPackage(String name, String fullName, boolean isDefault) {
-        super(name, fullName, TYPE);
-        this.isDefault = isDefault;
+    private static JsonJavaPackage createDefaultPackage() {
+        JsonJavaPackage defaultPackage = new JsonJavaPackage(DEFAULT_ROOT, DEFAULT_ROOT);
+        defaultPackage.isDefault = true;
+        return defaultPackage;
+    }
+
+    static JsonJavaPackage createPackageStructure(Set<String> packages) {
+        JsonJavaPackage root = createDefaultPackage();
+        for (String p : packages) {
+            root.insertPackage(p);
+        }
+        return root;
     }
 
     @Override
@@ -45,23 +55,16 @@ class JsonJavaPackage extends JsonElement {
         return children;
     }
 
-
     void insertPackage(String pkg) {
-        if (!fullName.equals(pkg)) {
-            if (!insertPackageToCorrespondingChild(pkg)) {
-                JsonJavaPackage newPkg = PackageStructureCreator.createPackage(fullName, isDefault, pkg);
-                addPackage(newPkg);
-                newPkg.insertPackage(pkg);
-            }
+        if (!fullName.equals(pkg) && !tryToInsertToExistingPackage(pkg)) {
+            JsonJavaPackage newPkg = createPackage(pkg, fullName, isDefault);
+            subPackages.add(newPkg);
+            children.add(newPkg);
+            newPkg.insertPackage(pkg);
         }
     }
 
-    private void addPackage(JsonJavaPackage pkg) {
-        subPackages.add(pkg);
-        children.add(pkg);
-    }
-
-    private boolean insertPackageToCorrespondingChild(String pkg) {
+    private boolean tryToInsertToExistingPackage(String pkg) {
         for (JsonJavaPackage c : subPackages) {
             if (pkg.startsWith(c.fullName)) {
                 c.insertPackage(pkg);
@@ -71,23 +74,32 @@ class JsonJavaPackage extends JsonElement {
         return false;
     }
 
-    void insertJavaElement(JsonJavaElement element) {
+    /**
+     * creates a JsonJavaPackage one level under this parent using the next sub-package in newFullName
+     */
+    private static JsonJavaPackage createPackage(String newFullName, String parentFullName, boolean parentIsDefault) {
+        int length = parentIsDefault ? 0 : parentFullName.length() + 1;
+        int end = newFullName.indexOf(PACKAGE_SEPARATOR, length);
+        end = end == -1 ? newFullName.length() : end;
+        String fullName = newFullName.substring(0, end);
+        int start = parentIsDefault || parentFullName.length() == 0 ? 0 : parentFullName.length() + 1;
+        String name = newFullName.substring(start, end);
+        return new JsonJavaPackage(name, fullName);
+    }
+
+    void insert(JsonJavaElement element) {
         if (fullName.equals(element.getPath())) {
-            addJavaElement(element);
+            classes.add(element);
+            children.add(element);
         } else {
-            insertJavaElementToCorrespondingChild(element);
+            insertToSubPackage(element);
         }
     }
 
-    private void addJavaElement(JsonJavaElement el) {
-        classes.add(el);
-        children.add(el);
-    }
-
-    private void insertJavaElementToCorrespondingChild(JsonJavaElement element) {
+    private void insertToSubPackage(JsonJavaElement jsonJavaElement) {
         for (JsonElement child : children) {
-            if (element.fullName.startsWith(child.fullName)) {
-                child.insertJavaElement(element);
+            if (jsonJavaElement.fullName.startsWith(child.fullName)) {
+                child.insert(jsonJavaElement);
                 break;
             }
         }
@@ -95,38 +107,27 @@ class JsonJavaPackage extends JsonElement {
 
     void normalize() {
         if (subPackages.size() == 1 && classes.size() == 0) {
-            mergeWithSubpackages();
+            mergeWithSubpackage();
             normalize();
         } else {
-            normalizeSubpackages();
-        }
-    }
-
-    private void mergeWithSubpackages() {
-        // FIXME: For loop does not loop??
-        for (JsonJavaPackage c : subPackages) {
-            if (isDefault) {
-                fullName = c.fullName;
-                name = c.name;
-                isDefault = false;
-            } else {
-                fullName = c.fullName;
-                name += "." + c.name;
+            for (JsonJavaPackage c : subPackages) {
+                c.normalize();
             }
-            subPackages = c.subPackages;
-            classes = c.classes;
-            children = c.children;
-            break;
         }
     }
 
-    private void normalizeSubpackages() {
-        for (JsonJavaPackage c : subPackages) {
-            c.normalize();
+    private void mergeWithSubpackage() {
+        JsonJavaPackage newRoot = subPackages.iterator().next();
+        if (isDefault) {
+            fullName = newRoot.fullName;
+            name = newRoot.name;
+            isDefault = false;
+        } else {
+            fullName = newRoot.fullName;
+            name += "." + newRoot.name;
         }
-    }
-
-    static JsonJavaPackage getDefaultPackage() {
-        return new JsonJavaPackage(DEFAULT_ROOT, DEFAULT_ROOT, true);
+        subPackages = newRoot.subPackages;
+        classes = newRoot.classes;
+        children = newRoot.children;
     }
 }

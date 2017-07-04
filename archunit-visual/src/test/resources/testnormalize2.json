@@ -14,7 +14,7 @@
           "fieldAccesses": [],
           "methodCalls": [],
           "constructorCalls": [],
-          "anonImpl": [],
+          "anonymousImplementation": [],
           "children": [],
           "name": "class1",
           "fullName": "com.tngtech.pkg1.class1",

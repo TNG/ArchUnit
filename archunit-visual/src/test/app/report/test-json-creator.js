@@ -1,9 +1,9 @@
 'use strict';
 
-let changeFullName = (node, path) => {
-  node.fullName = path + "." + node.fullName;
+let changeFullName = (node, path, separator) => {
+  node.fullName = path + separator + node.fullName;
   if (node.children) {
-    node.children.forEach(n => changeFullName(n, path));
+    node.children.forEach(n => changeFullName(n, path, separator));
   }
 };
 
@@ -17,7 +17,7 @@ module.exports = {
     };
     let builder = {
       add: function (child) {
-        changeFullName(child, res.fullName);
+        changeFullName(child, res.fullName, ".");
         res.children.push(child);
         return builder;
       },
@@ -37,7 +37,7 @@ module.exports = {
       fieldAccesses: [],
       methodCalls: [],
       constructorCalls: [],
-      anonImpl: []
+      anonymousImplementation: []
     };
     let builder = {
       extending: function (superclassfullName) {
@@ -61,12 +61,12 @@ module.exports = {
         return builder;
       },
       havingInnerClass: function (innerClass) {
-        changeFullName(innerClass, res.fullName);
+        changeFullName(innerClass, res.fullName, "$");
         res.children.push(innerClass);
         return builder;
       },
       implementingAnonymous: function (interfacefullName) {
-        res.anonImpl.push(interfacefullName);
+        res.anonymousImplementation.push(interfacefullName);
         return builder;
       },
       build: function () {

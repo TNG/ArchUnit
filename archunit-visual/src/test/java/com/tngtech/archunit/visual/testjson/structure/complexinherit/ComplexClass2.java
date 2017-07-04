@@ -15,7 +15,8 @@ public class ComplexClass2 {
         ComplexInterface1 i = new ComplexInterface1() {
             @Override
             public void sayHello() {
-
+                //ensure that this access is ignored by the exporter
+                ComplexClass2 complexClass2 = new ComplexClass2("Thorsten");
             }
         };
     }

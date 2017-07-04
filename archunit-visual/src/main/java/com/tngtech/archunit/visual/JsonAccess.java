@@ -19,8 +19,6 @@ import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCall;
 
-import static com.tngtech.archunit.visual.JsonExporter.getCleanedFullName;
-
 class JsonAccess {
     @Expose
     // FIXME: 'to' doesn't say what this is??
@@ -31,13 +29,13 @@ class JsonAccess {
     private String targetElement;
 
     JsonAccess(JavaAccess<?> access) {
-        this.to = getCleanedFullName(access.getTargetOwner().getName());
+        this.to = access.getTargetOwner().getName();
         this.startCodeUnit = access.getOrigin().getName();
         this.targetElement = access.getTarget().getName();
     }
 
     JsonAccess(JavaCall<?> javaCall) {
-        this.to = getCleanedFullName(javaCall.getTargetOwner().getName());
+        this.to = javaCall.getTargetOwner().getName();
         this.startCodeUnit = javaCall.getOrigin().getName();
         this.targetElement = javaCall.getTarget().getName(); // FIXME + "(" + Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }

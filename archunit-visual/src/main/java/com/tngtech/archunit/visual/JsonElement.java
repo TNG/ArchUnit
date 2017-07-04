@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.Set;
-
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.base.Optional;
+
+import java.util.Set;
 
 abstract class JsonElement {
     static final String DEFAULT_ROOT = "default";
@@ -36,7 +36,7 @@ abstract class JsonElement {
         this.type = type;
     }
 
-    String getPath() {
+    final String getPath() {
         return fullName.equals(name) ? DEFAULT_ROOT : fullName.substring(0, fullName.length() - name.length() - 1);
     }
 
@@ -54,5 +54,5 @@ abstract class JsonElement {
         return Optional.absent();
     }
 
-    abstract void insertJavaElement(JsonJavaElement el);
+    abstract void insert(JsonJavaElement jsonJavaElement);
 }

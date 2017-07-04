@@ -15,10 +15,16 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.tngtech.archunit.core.domain.JavaClass;
+
 class JsonJavaInterface extends JsonJavaElement {
     private static final String TYPE = "interface";
 
-    JsonJavaInterface(String name, String fullName) {
-        super(name, fullName, TYPE);
+    private JsonJavaInterface(String name, String fullname) {
+        super(name, fullname, TYPE);
+    }
+
+    JsonJavaInterface(JavaClass javaClass) {
+        super(javaClass.getSimpleName(), javaClass.getName(), TYPE);
     }
 }

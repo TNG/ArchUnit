@@ -23,7 +23,7 @@
               "fieldAccesses": [],
               "methodCalls": [],
               "constructorCalls": [],
-              "anonImpl": []
+              "anonymousImplementation": []
             }
           ]
         },
@@ -42,7 +42,7 @@
               "fieldAccesses": [],
               "methodCalls": [],
               "constructorCalls": [],
-              "anonImpl": []
+              "anonymousImplementation": []
             },
             {
               "name": "Object",
@@ -54,7 +54,7 @@
               "fieldAccesses": [],
               "methodCalls": [],
               "constructorCalls": [],
-              "anonImpl": []
+              "anonymousImplementation": []
             }
           ]
         }
@@ -93,7 +93,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         }
       ]
     },
@@ -118,7 +118,7 @@
               "targetElement": "<init>"
             }
           ],
-          "anonImpl": []
+          "anonymousImplementation": []
         }
       ]
     }
