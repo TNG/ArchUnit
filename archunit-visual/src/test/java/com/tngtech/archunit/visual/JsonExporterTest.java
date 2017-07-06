@@ -23,8 +23,6 @@ public class JsonExporterTest {
 
     private final JsonExporter jsonExporter = new JsonExporter();
 
-    //TODO: more tests for different configs of the context
-
     @Test
     public void exports_empty_class() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(EmptyClass.class, OtherClass.class);
@@ -57,6 +55,17 @@ public class JsonExporterTest {
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
         File expectedJson = expectJson("simpleinheritstructure.json");
+        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+    }
+
+    @Test
+    public void exports_simple_inherit_structure_including_two_packages() throws Exception {
+        JavaClasses classes = importClassesThatAreInPackagesOf(EmptyClass.class, SimpleClass1.class);
+        File target = tmpDir.newFile("test.json");
+
+        jsonExporter.export(classes, target, new VisualizationContext.Builder().includeOnly("com.tngtech.archunit.visual.testjson", "java.io").build());
+
+        File expectedJson = expectJson("simpleinheritstructure_includetwopackages.json");
         assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
     }
 
