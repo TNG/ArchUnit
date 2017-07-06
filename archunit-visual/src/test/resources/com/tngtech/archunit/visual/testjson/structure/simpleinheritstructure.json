@@ -39,7 +39,7 @@
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
                   "startCodeUnit": "sayHello",
-                  "targetCodeElement": "sayHello()"
+                  "targetCodeElement": "sayHello(int)"
                 }
               ],
               "constructorCalls": [],
@@ -55,7 +55,7 @@
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
-              "targetCodeElement": "sayHello()"
+              "targetCodeElement": "sayHello(int)"
             }
           ],
           "constructorCalls": [
@@ -79,7 +79,7 @@
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetCodeElement": "sayHello()"
+              "targetCodeElement": "sayHello(int)"
             },
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",

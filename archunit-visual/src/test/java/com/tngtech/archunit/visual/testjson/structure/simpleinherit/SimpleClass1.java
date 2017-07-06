@@ -8,10 +8,10 @@ public class SimpleClass1 implements SimpleInterface1 {
     }
 
     @Override
-    public void sayHello() {
+    public void sayHello(int i) {
         System.out.println(this.s);
         InnerClass1 c = new InnerClass1();
-        c.sayHello();
+        c.sayHello(42);
     }
 
     public void sayHi() {
@@ -20,8 +20,8 @@ public class SimpleClass1 implements SimpleInterface1 {
 
     class InnerClass1 implements SimpleInterface1 {
         @Override
-        public void sayHello() {
-            SimpleClass1.this.sayHello();
+        public void sayHello(int i) {
+            SimpleClass1.this.sayHello(42);
         }
     }
 }

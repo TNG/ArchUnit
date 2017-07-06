@@ -37,7 +37,6 @@ public class VisualizationContext {
         return isElementIncluded(javaClass.getName());
     }
 
-    //FIXME: Test fuer verschiedene Konfigurationen vom Context
     boolean isElementIncluded(String fullName) {
         if (rootPackages.isEmpty()) {
             return true;

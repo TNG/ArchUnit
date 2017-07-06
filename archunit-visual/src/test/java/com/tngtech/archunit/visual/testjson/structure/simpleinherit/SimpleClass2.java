@@ -9,7 +9,7 @@ public class SimpleClass2 {
 
     public void sayHelloAndBye() {
         SimpleClass1 c = new SimpleClass1("Hi" + " " + name);
-        c.sayHello();
+        c.sayHello(42);
         c.sayHi();
         System.out.println("Bye" + " " + name);
     }

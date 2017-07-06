@@ -18,6 +18,6 @@ public class ComplexClass1 implements ComplexInterface1, ComplexInterface2 {
 
     public void sayHi() {
         SimpleClass1 c = new SimpleClass1(this.s);
-        c.sayHello();
+        c.sayHello(42);
     }
 }
