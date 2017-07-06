@@ -48,16 +48,16 @@ module.exports = {
         res.interfaces.push(interfacefullName);
         return builder;
       },
-      callingMethod: function (to, startCodeUnit, targetElement) {
-        res.methodCalls.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+      callingMethod: function (target, startCodeUnit, targetCodeElement) {
+        res.methodCalls.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
         return builder;
       },
-      callingConstructor: function (to, startCodeUnit, targetElement) {
-        res.constructorCalls.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+      callingConstructor: function (target, startCodeUnit, targetCodeElement) {
+        res.constructorCalls.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
         return builder;
       },
-      accessingField: function (to, startCodeUnit, targetElement) {
-        res.fieldAccesses.push({to: to, startCodeUnit: startCodeUnit, targetElement: targetElement});
+      accessingField: function (target, startCodeUnit, targetCodeElement) {
+        res.fieldAccesses.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
         return builder;
       },
       havingInnerClass: function (innerClass) {

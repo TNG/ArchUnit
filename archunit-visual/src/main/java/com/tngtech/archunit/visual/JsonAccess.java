@@ -21,22 +21,21 @@ import com.tngtech.archunit.core.domain.JavaCall;
 
 class JsonAccess {
     @Expose
-    // FIXME: 'to' doesn't say what this is??
-    private String to;
+    private String target;
     @Expose
     private String startCodeUnit;
     @Expose
-    private String targetElement;
+    private String targetCodeElement;
 
     JsonAccess(JavaAccess<?> access) {
-        this.to = access.getTargetOwner().getName();
+        this.target = access.getTargetOwner().getName();
         this.startCodeUnit = access.getOrigin().getName();
-        this.targetElement = access.getTarget().getName();
+        this.targetCodeElement = access.getTarget().getName();
     }
 
     JsonAccess(JavaCall<?> javaCall) {
-        this.to = javaCall.getTargetOwner().getName();
+        this.target = javaCall.getTargetOwner().getName();
         this.startCodeUnit = javaCall.getOrigin().getName();
-        this.targetElement = javaCall.getTarget().getName(); // FIXME + "(" + Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
+        this.targetCodeElement = javaCall.getTarget().getName(); // FIXME + "(" + Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }
 }

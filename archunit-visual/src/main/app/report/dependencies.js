@@ -216,8 +216,8 @@ let addDependenciesOf = dependencyGroup => ({
           }
           else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
             jsonElement[kind.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.to || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
-                .withTargetElement(d.targetElement).build()));
+              buildDependency(jsonElement.fullName, d.target || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
+                .withTargetElement(d.targetCodeElement).build()));
           }
         }
       });

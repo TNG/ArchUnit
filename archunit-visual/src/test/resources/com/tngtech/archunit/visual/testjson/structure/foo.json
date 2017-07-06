@@ -7,23 +7,23 @@
           "interfaces": [],
           "fieldAccesses": [
             {
-              "to": "java.lang.System",
+              "target": "java.lang.System",
               "startCodeUnit": "OtherClass",
-              "targetElement": "out"
+              "targetCodeElement": "out"
             }
           ],
           "methodCalls": [
             {
-              "to": "java.io.PrintStream",
+              "target": "java.io.PrintStream",
               "startCodeUnit": "OtherClass",
-              "targetElement": "println"
+              "targetCodeElement": "println"
             }
           ],
           "constructorCalls": [
             {
-              "to": "java.lang.Object",
+              "target": "java.lang.Object",
               "startCodeUnit": "OtherClass",
-              "targetElement": "Object"
+              "targetCodeElement": "Object"
             }
           ],
           "anonymousImplementation": [],
@@ -46,9 +46,9 @@
           "methodCalls": [],
           "constructorCalls": [
             {
-              "to": "java.lang.Object",
+              "target": "java.lang.Object",
               "startCodeUnit": "EmptyClass",
-              "targetElement": "Object"
+              "targetCodeElement": "Object"
             }
           ],
           "anonymousImplementation": [],

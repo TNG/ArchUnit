@@ -35,11 +35,6 @@ class JsonJavaClass extends JsonJavaElement {
         this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";
     }
 
-    // FIXME AU-18: ArchUnit shows fqn of inner classes with '$', so we should do this here as well, to be consistent
-    /*private static String getCleanedFullName(String fullName) {
-        return fullName.replace(INNER_CLASS_SEPARATOR, JsonJavaPackage.PACKAGE_SEPARATOR);
-    }*/
-
     boolean directlyExtends(String fullName) {
         return superclass.equals(fullName);
     }

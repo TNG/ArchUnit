@@ -74,23 +74,23 @@
           "interfaces": [],
           "fieldAccesses": [
             {
-              "to": "java.lang.System",
+              "target": "java.lang.System",
               "startCodeUnit": "<init>",
-              "targetElement": "out"
+              "targetCodeElement": "out"
             }
           ],
           "methodCalls": [
             {
-              "to": "java.io.PrintStream",
+              "target": "java.io.PrintStream",
               "startCodeUnit": "<init>",
-              "targetElement": "println"
+              "targetCodeElement": "println"
             }
           ],
           "constructorCalls": [
             {
-              "to": "java.lang.Object",
+              "target": "java.lang.Object",
               "startCodeUnit": "<init>",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
@@ -113,9 +113,9 @@
           "methodCalls": [],
           "constructorCalls": [
             {
-              "to": "java.lang.Object",
+              "target": "java.lang.Object",
               "startCodeUnit": "<init>",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []

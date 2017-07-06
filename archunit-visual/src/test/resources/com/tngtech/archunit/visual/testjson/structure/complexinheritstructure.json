@@ -37,9 +37,9 @@
               "fieldAccesses": [],
               "methodCalls": [
                 {
-                  "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                  "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
                   "startCodeUnit": "sayHello",
-                  "targetElement": "sayHello"
+                  "targetCodeElement": "sayHello"
                 }
               ],
               "constructorCalls": [],
@@ -53,16 +53,16 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
-              "targetElement": "sayHello"
+              "targetCodeElement": "sayHello"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
@@ -77,21 +77,21 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHello"
+              "targetCodeElement": "sayHello"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHi"
+              "targetCodeElement": "sayHi"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
@@ -107,9 +107,9 @@
           "methodCalls": [],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
               "startCodeUnit": "<init>",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
@@ -145,31 +145,31 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHello",
-              "targetElement": "sayHi"
+              "targetCodeElement": "sayHi"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHi",
-              "targetElement": "sayHello"
+              "targetCodeElement": "sayHello"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
               "startCodeUnit": "sayHello",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHello",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHi",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
@@ -184,21 +184,21 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHello"
+              "targetCodeElement": "sayHello"
             },
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHi"
+              "targetCodeElement": "sayHi"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": [
@@ -215,16 +215,16 @@
           "fieldAccesses": [],
           "methodCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
               "startCodeUnit": "sayHelloAndBye",
-              "targetElement": "sayHelloAndBye"
+              "targetCodeElement": "sayHelloAndBye"
             }
           ],
           "constructorCalls": [
             {
-              "to": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
+              "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
               "startCodeUnit": "<init>",
-              "targetElement": "<init>"
+              "targetCodeElement": "<init>"
             }
           ],
           "anonymousImplementation": []
