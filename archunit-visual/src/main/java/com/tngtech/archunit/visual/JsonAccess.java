@@ -16,6 +16,7 @@
 package com.tngtech.archunit.visual;
 
 import com.google.gson.annotations.Expose;
+import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCall;
 
@@ -36,6 +37,7 @@ class JsonAccess {
     JsonAccess(JavaCall<?> javaCall) {
         this.target = javaCall.getTargetOwner().getName();
         this.startCodeUnit = javaCall.getOrigin().getName();
-        this.targetCodeElement = javaCall.getTarget().getName(); // FIXME + "(" + Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
+        this.targetCodeElement = javaCall.getTarget().getName() + "(" +
+                Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }
 }

@@ -83,14 +83,14 @@
             {
               "target": "java.io.PrintStream",
               "startCodeUnit": "<init>",
-              "targetCodeElement": "println"
+              "targetCodeElement": "println(java.lang.String)"
             }
           ],
           "constructorCalls": [
             {
               "target": "java.lang.Object",
               "startCodeUnit": "<init>",
-              "targetCodeElement": "<init>"
+              "targetCodeElement": "<init>()"
             }
           ],
           "anonymousImplementation": []
@@ -115,7 +115,7 @@
             {
               "target": "java.lang.Object",
               "startCodeUnit": "<init>",
-              "targetCodeElement": "<init>"
+              "targetCodeElement": "<init>()"
             }
           ],
           "anonymousImplementation": []

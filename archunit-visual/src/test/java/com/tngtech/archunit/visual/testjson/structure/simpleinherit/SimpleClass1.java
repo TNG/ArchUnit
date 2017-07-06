@@ -21,7 +21,6 @@ public class SimpleClass1 implements SimpleInterface1 {
     class InnerClass1 implements SimpleInterface1 {
         @Override
         public void sayHello() {
-            //sayHi();
             SimpleClass1.this.sayHello();
         }
     }

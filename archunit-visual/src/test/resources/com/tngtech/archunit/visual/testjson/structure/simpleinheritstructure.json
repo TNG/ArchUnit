@@ -39,7 +39,7 @@
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
                   "startCodeUnit": "sayHello",
-                  "targetCodeElement": "sayHello"
+                  "targetCodeElement": "sayHello()"
                 }
               ],
               "constructorCalls": [],
@@ -55,14 +55,14 @@
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
-              "targetCodeElement": "sayHello"
+              "targetCodeElement": "sayHello()"
             }
           ],
           "constructorCalls": [
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
               "startCodeUnit": "sayHello",
-              "targetCodeElement": "<init>"
+              "targetCodeElement": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)"
             }
           ],
           "anonymousImplementation": []
@@ -79,19 +79,19 @@
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetCodeElement": "sayHello"
+              "targetCodeElement": "sayHello()"
             },
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetCodeElement": "sayHi"
+              "targetCodeElement": "sayHi()"
             }
           ],
           "constructorCalls": [
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
               "startCodeUnit": "sayHelloAndBye",
-              "targetCodeElement": "<init>"
+              "targetCodeElement": "<init>(java.lang.String)"
             }
           ],
           "anonymousImplementation": []
@@ -109,7 +109,7 @@
             {
               "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
               "startCodeUnit": "<init>",
-              "targetCodeElement": "<init>"
+              "targetCodeElement": "<init>(java.lang.String)"
             }
           ],
           "anonymousImplementation": []
