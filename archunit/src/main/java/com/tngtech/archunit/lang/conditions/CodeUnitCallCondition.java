@@ -31,6 +31,6 @@ class CodeUnitCallCondition extends ArchCondition<JavaCall<?>> {
 
     @Override
     public void check(JavaCall<?> item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent<>(item, callIdentifier.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent(item, callIdentifier.apply(item), item.getDescription()));
     }
 }

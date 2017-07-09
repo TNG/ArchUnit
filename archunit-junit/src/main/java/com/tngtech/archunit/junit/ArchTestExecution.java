@@ -33,7 +33,7 @@ abstract class ArchTestExecution {
         this.testClass = testClass;
     }
 
-    static <T extends Member> T validate(T member) {
+    static <T extends Member> T validatePublicStatic(T member) {
         checkArgument(Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
                 "With @%s annotated members must be public and static", ArchTest.class.getSimpleName());
         return member;

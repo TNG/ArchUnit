@@ -21,11 +21,13 @@ import java.util.Iterator;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class ConditionEvents implements Iterable<ConditionEvent> {
+
     @PublicAPI(usage = ACCESS)
     public ConditionEvents() {
     }
@@ -62,6 +64,40 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
         for (ConditionEvent event : getViolating()) {
             event.describeTo(messages);
         }
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public void handleViolations(ViolationHandler<?> violationHandler) {
+        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
+        for (final ConditionEvent event : eventsByViolation.get(Type.VIOLATION)) {
+            event.handleWith(eventHandler);
+        }
+    }
+
+    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
+        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
+                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
+
+        return new ConditionEvent.Handler() {
+            @Override
+            public void handle(Collection<?> correspondingObjects, String message) {
+                if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
+                    // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
+                    @SuppressWarnings("unchecked")
+                    Collection<T> collection = (Collection<T>) correspondingObjects;
+                    handler.handle(collection, message);
+                }
+            }
+        };
+    }
+
+    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
+        for (Object violatingObject : violatingObjects) {
+            if (!supportedElementType.isInstance(violatingObject)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -99,7 +99,8 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     public void should_fail_on_wrong_field_visibility() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(WrongArchTestWrongModifier.class);
 
-        thrown.expectMessage("With @ArchTest annotated members must be public and static");
+        thrown.expectMessage("With @" + ArchTest.class.getSimpleName() +
+                " annotated members must be public and static");
 
         runner.runChild(ArchUnitRunnerTestUtils.getRule(WRONG_MODIFIER_FIELD_NAME, runner), runNotifier);
     }
@@ -108,10 +109,11 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     public void should_fail_on_wrong_field_type() throws InitializationError {
         ArchUnitRunner runner = new ArchUnitRunner(WrongArchTestWrongFieldType.class);
 
+        thrown.expectMessage("Rule field " +
+                WrongArchTestWrongFieldType.class.getSimpleName() + "." + NO_RULE_AT_ALL_FIELD_NAME +
+                " to check must be of type " + ArchRule.class.getSimpleName());
+
         runner.runChild(ArchUnitRunnerTestUtils.getRule(NO_RULE_AT_ALL_FIELD_NAME, runner), runNotifier);
-        verify(runNotifier).fireTestFailure(failureCaptor.capture());
-        assertThat(failureCaptor.getValue().getMessage())
-                .contains("Only fields of type ArchRule may be annotated with @ArchTest");
     }
 
     @Test

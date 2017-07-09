@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -187,7 +186,6 @@ import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.domain.TestUtils.MD5_SUM_DISABLED;
 import static com.tngtech.archunit.core.domain.TestUtils.asClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.md5sumOf;
-import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
@@ -197,6 +195,8 @@ import static com.tngtech.archunit.core.importer.testexamples.annotationmethodim
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
+import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -1997,111 +1997,6 @@ public class ClassFileImporterTest {
                 fields.addAll(clazz.getFields());
             }
             return fields;
-        }
-    }
-
-    private static AccessToFieldAssertion assertThatAccess(JavaFieldAccess access) {
-        return new AccessToFieldAssertion(access);
-    }
-
-    private static MethodCallAssertion assertThatCall(JavaMethodCall call) {
-        return new MethodCallAssertion(call);
-    }
-
-    private static ConstructorCallAssertion assertThatCall(JavaConstructorCall call) {
-        return new ConstructorCallAssertion(call);
-    }
-
-    protected abstract static class BaseAccessAssertion<
-            SELF extends BaseAccessAssertion<SELF, ACCESS, TARGET>,
-            ACCESS extends JavaAccess<TARGET>,
-            TARGET extends AccessTarget> {
-
-        ACCESS access;
-
-        BaseAccessAssertion(ACCESS access) {
-            this.access = access;
-        }
-
-        SELF isFrom(String name, Class<?>... parameterTypes) {
-            return isFrom(access.getOrigin().getOwner().getCodeUnitWithParameterTypes(name, parameterTypes));
-        }
-
-        SELF isFrom(JavaCodeUnit codeUnit) {
-            assertThat(access.getOrigin()).as("Origin of field access").isEqualTo(codeUnit);
-            return newAssertion(access);
-        }
-
-        SELF isTo(TARGET target) {
-            assertThat(access.getTarget()).as("Target of " + access.getName()).isEqualTo(target);
-            return newAssertion(access);
-        }
-
-        SELF isTo(Condition<TARGET> target) {
-            assertThat(access.getTarget()).as("Target of " + access.getName()).is(target);
-            return newAssertion(access);
-        }
-
-        void inLineNumber(int number) {
-            assertThat(access.getLineNumber())
-                    .as("Line number of access to " + access.getName())
-                    .isEqualTo(number);
-        }
-
-        protected abstract SELF newAssertion(ACCESS access);
-    }
-
-    private static class AccessToFieldAssertion extends BaseAccessAssertion<AccessToFieldAssertion, JavaFieldAccess, FieldAccessTarget> {
-        private AccessToFieldAssertion(JavaFieldAccess access) {
-            super(access);
-        }
-
-        @Override
-        protected AccessToFieldAssertion newAssertion(JavaFieldAccess access) {
-            return new AccessToFieldAssertion(access);
-        }
-
-        private AccessToFieldAssertion isTo(String name) {
-            return isTo(access.getOrigin().getOwner().getField(name));
-        }
-
-        private AccessToFieldAssertion isTo(JavaField field) {
-            return isTo(targetFrom(field));
-        }
-
-        private AccessToFieldAssertion isOfType(AccessType type) {
-            assertThat(access.getAccessType()).isEqualTo(type);
-            return newAssertion(access);
-        }
-    }
-
-    private static class MethodCallAssertion extends BaseAccessAssertion<MethodCallAssertion, JavaMethodCall, MethodCallTarget> {
-        private MethodCallAssertion(JavaMethodCall call) {
-            super(call);
-        }
-
-        MethodCallAssertion isTo(JavaMethod target) {
-            return isTo(resolvedTargetFrom(target));
-        }
-
-        @Override
-        protected MethodCallAssertion newAssertion(JavaMethodCall call) {
-            return new MethodCallAssertion(call);
-        }
-    }
-
-    private static class ConstructorCallAssertion extends BaseAccessAssertion<ConstructorCallAssertion, JavaConstructorCall, ConstructorCallTarget> {
-        private ConstructorCallAssertion(JavaConstructorCall call) {
-            super(call);
-        }
-
-        ConstructorCallAssertion isTo(JavaConstructor target) {
-            return isTo(targetFrom(target));
-        }
-
-        @Override
-        protected ConstructorCallAssertion newAssertion(JavaConstructorCall call) {
-            return new ConstructorCallAssertion(call);
         }
     }
 }

@@ -9,11 +9,12 @@ import com.tngtech.archunit.exampletest.junit.LayeredArchitectureTest;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitIntegrationTestRunner;
-import com.tngtech.archunit.junit.ExpectedViolation;
+import com.tngtech.archunit.junit.CalledByArchUnitIntegrationTestRunner;
+import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 import static java.lang.System.lineSeparator;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
@@ -23,8 +24,9 @@ public class LayeredArchitectureIntegrationTest {
     @ExpectedViolationFrom(location = LayeredArchitectureIntegrationTest.class, method = "expectLayerViolations")
     public static final ArchRule layer_dependencies_are_respected = LayeredArchitectureTest.layer_dependencies_are_respected;
 
-    static void expectLayerViolations(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("Layered architecture consisting of" + lineSeparator() +
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectLayerViolations(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("Layered architecture consisting of" + lineSeparator() +
                 "layer 'Controllers' ('com.tngtech.archunit.example.controller..')" + lineSeparator() +
                 "layer 'Services' ('com.tngtech.archunit.example.service..')" + lineSeparator() +
                 "layer 'Persistence' ('com.tngtech.archunit.example.persistence..')" + lineSeparator() +

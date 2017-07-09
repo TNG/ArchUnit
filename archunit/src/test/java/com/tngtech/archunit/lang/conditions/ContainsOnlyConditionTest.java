@@ -22,7 +22,7 @@ public class ContainsOnlyConditionTest {
         @Override
         public void check(Object item, ConditionEvents events) {
             boolean satisfied = item instanceof Serializable;
-            events.add(new SimpleConditionEvent<>(item, satisfied, isSerializableMessageFor(item.getClass())));
+            events.add(new SimpleConditionEvent(item, satisfied, isSerializableMessageFor(item.getClass())));
         }
     };
 

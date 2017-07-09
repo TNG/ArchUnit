@@ -15,14 +15,20 @@
  */
 package com.tngtech.archunit.lang;
 
-import com.tngtech.archunit.PublicAPI;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import com.google.common.base.Joiner;
 
-/**
- * Generic interface for an object that gathers lines of text.
- */
-@PublicAPI(usage = INHERITANCE)
-public interface CollectsLines {
-    void add(String line);
+class CollectsLinesToJoin implements CollectsLines {
+    private final List<String> lines = new ArrayList<>();
+
+    @Override
+    public void add(String line) {
+        lines.add(line);
+    }
+
+    String joinOn(String separator) {
+        return Joiner.on(separator).join(lines);
+    }
 }

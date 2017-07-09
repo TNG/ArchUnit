@@ -31,6 +31,6 @@ class AccessTargetCondition extends ArchCondition<JavaAccess<?>> {
 
     @Override
     public void check(JavaAccess<?> item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent<>(item, callIdentifier.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent(item, callIdentifier.apply(item), item.getDescription()));
     }
 }
