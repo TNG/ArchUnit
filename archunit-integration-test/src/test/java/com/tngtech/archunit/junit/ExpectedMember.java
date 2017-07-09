@@ -1,6 +1,7 @@
 package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,11 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static java.util.Collections.singleton;
@@ -35,9 +40,25 @@ abstract class ExpectedMember {
         return params;
     }
 
+    public String getMemberName() {
+        return memberName;
+    }
+
     @Override
     public String toString() {
         return String.format("%s.%s", clazz.getName(), memberName);
+    }
+
+    <T extends HasOwner<JavaClass> & HasName> boolean matches(T member) {
+        return member.getOwner().isEquivalentTo(clazz) &&
+                member.getName().equals(memberName) &&
+                getParameters(member).equals(params);
+    }
+
+    private List<String> getParameters(Object member) {
+        return member instanceof HasParameterTypes ?
+                ((HasParameterTypes) member).getParameters().getNames() :
+                Collections.<String>emptyList();
     }
 
     static class ExpectedOrigin extends ExpectedMember {

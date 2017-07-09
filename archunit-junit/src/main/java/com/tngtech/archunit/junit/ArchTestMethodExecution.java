@@ -28,7 +28,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     ArchTestMethodExecution(Class<?> testClass, Method testMethod) {
         super(testClass);
-        this.testMethod = validate(testMethod);
+        this.testMethod = validatePublicStatic(testMethod);
     }
 
     @Override

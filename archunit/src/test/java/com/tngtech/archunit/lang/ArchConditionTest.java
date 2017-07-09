@@ -215,7 +215,7 @@ public class ArchConditionTest {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 for (int number : numbers) {
-                    events.add(new GreaterThanEvent(item, number));
+                    events.add(greaterThanEvent(item, number));
                 }
             }
         };
@@ -236,13 +236,10 @@ public class ArchConditionTest {
         return new ConditionWithInit(description);
     }
 
-    private static class GreaterThanEvent extends SimpleConditionEvent {
-        GreaterThanEvent(int item, int number) {
-            super(item, item > number,
-                    String.format(
-                            "%d is%s greater than %d",
-                            item, item <= number ? " not" : "", number));
-        }
+    private ConditionEvent greaterThanEvent(Integer item, int number) {
+        return new SimpleConditionEvent(item, item > number,
+                String.format("%d is%s greater than %d",
+                        item, item <= number ? " not" : "", number));
     }
 
     public static class ConditionWithInit extends ArchCondition<String> {

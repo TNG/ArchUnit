@@ -1,9 +1,14 @@
 package com.tngtech.archunit.junit;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.junit.ExpectedMember.ExpectedConstructorTarget;
+import com.tngtech.archunit.junit.ExpectedMember.ExpectedMethodTarget;
 import com.tngtech.archunit.junit.ExpectedMember.ExpectedOrigin;
 import com.tngtech.archunit.junit.ExpectedMember.ExpectedTarget;
+
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 public abstract class ExpectedAccess {
     private final ExpectedOrigin origin;
@@ -41,6 +46,12 @@ public abstract class ExpectedAccess {
         return new ExpectedAccessViolationCreationProcess(origin, method, paramTypes);
     }
 
+    boolean matches(JavaAccess<?> access) {
+        return getOrigin().matches(access.getOrigin()) &&
+                getTarget().matches(access.getTarget()) &&
+                (getLineNumber() == access.getLineNumber());
+    }
+
     public static class ExpectedAccessViolationCreationProcess {
         private ExpectedOrigin origin;
 
@@ -60,14 +71,14 @@ public abstract class ExpectedAccess {
             return new ExpectedFieldAccessViolationBuilderStep1(origin, JavaFieldAccess.AccessType.SET);
         }
 
-        public ExpectedMethodCallViolationBuilder toMethod(Class<?> target, String member, Class<?>... paramTypes) {
-            return new ExpectedMethodCallViolationBuilder(
-                    origin, new ExpectedMember.ExpectedMethodTarget(target, member, paramTypes));
+        public ExpectedCallViolationBuilder toMethod(Class<?> target, String member, Class<?>... paramTypes) {
+            return new ExpectedCallViolationBuilder(
+                    origin, new ExpectedMethodTarget(target, member, paramTypes));
         }
 
-        public ExpectedMethodCallViolationBuilder toConstructor(Class<?> target, Class<?>... paramTypes) {
-            return new ExpectedMethodCallViolationBuilder(
-                    origin, new ExpectedMember.ExpectedConstructorTarget(target, paramTypes));
+        public ExpectedCallViolationBuilder toConstructor(Class<?> target, Class<?>... paramTypes) {
+            return new ExpectedCallViolationBuilder(
+                    origin, new ExpectedConstructorTarget(target, paramTypes));
         }
     }
 
@@ -106,13 +117,13 @@ public abstract class ExpectedAccess {
         }
     }
 
-    public static class ExpectedMethodCallViolationBuilder extends ExpectedAccessViolationBuilder {
-        private ExpectedMethodCallViolationBuilder(ExpectedOrigin origin, ExpectedMember.ExpectedMethodTarget target) {
+    public static class ExpectedCallViolationBuilder extends ExpectedAccessViolationBuilder {
+        private ExpectedCallViolationBuilder(ExpectedOrigin origin, ExpectedMethodTarget target) {
             super(origin, target);
         }
 
-        public ExpectedMethodCall inLine(int number) {
-            return new ExpectedMethodCall(origin, target, number);
+        public ExpectedCall inLine(int number) {
+            return new ExpectedCall(origin, target, number);
         }
     }
 
@@ -122,9 +133,13 @@ public abstract class ExpectedAccess {
         }
     }
 
-    static class ExpectedMethodCall extends ExpectedAccess {
-        private ExpectedMethodCall(ExpectedOrigin origin, ExpectedTarget target, int lineNumber) {
+    static class ExpectedCall extends ExpectedAccess {
+        private ExpectedCall(ExpectedOrigin origin, ExpectedTarget target, int lineNumber) {
             super(origin, target, lineNumber);
+        }
+
+        boolean isToConstructor() {
+            return getTarget().getMemberName().equals(CONSTRUCTOR_NAME);
         }
     }
 }
