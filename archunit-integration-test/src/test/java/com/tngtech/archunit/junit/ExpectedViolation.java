@@ -19,8 +19,8 @@ import java.util.LinkedList;
 
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.junit.ExpectedAccess.ExpectedCall;
 import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedMethodCall;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -79,7 +79,7 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
     }
 
     @Override
-    public ExpectedViolation byCall(ExpectedMethodCall call) {
+    public ExpectedViolation byCall(ExpectedCall call) {
         assertionChain.add(containsLine(call.expectedMessage()));
         return this;
     }

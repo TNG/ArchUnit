@@ -1,5 +1,6 @@
 dependencies {
     testCompile dependency.junit
+    testCompile dependency.assertj
     testCompile dependency.guava
     testCompile dependency.log4j_api
     testCompile dependency.log4j_core

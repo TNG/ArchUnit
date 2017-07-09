@@ -86,7 +86,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchRules getArchRules(FrameworkField ruleField) {
-        ArchTestExecution.validate(ruleField.getField());
+        ArchTestExecution.validatePublicStatic(ruleField.getField());
         try {
             return (ArchRules) ruleField.get(null);
         } catch (IllegalAccessException e) {

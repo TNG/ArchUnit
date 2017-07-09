@@ -17,10 +17,14 @@ package com.tngtech.archunit.lang;
 
 import java.util.Collections;
 
+import com.tngtech.archunit.PublicAPI;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public class SimpleConditionEvent implements ConditionEvent {
+@PublicAPI(usage = ACCESS)
+public final class SimpleConditionEvent implements ConditionEvent {
     private final Object correspondingObject;
     private final boolean conditionSatisfied;
     private final String message;
