@@ -1,14 +1,16 @@
 package com.tngtech.archunit.lang;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Iterables;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -17,9 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ConditionEventsTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-
     @DataProvider
     public static Object[][] eventsWithEmpty() {
         return $$(
@@ -53,7 +52,7 @@ public class ConditionEventsTest {
         handledFailures.clear();
         events.handleViolations(new ViolationHandler<CorrectType>() {
             @Override
-            public void handle(CorrectType violatingObject, String message) {
+            public void handle(Collection<CorrectType> violatingObject, String message) {
                 new ObjectToStringAndMessageJoiningTestHandler(handledFailures).handle(violatingObject, message);
             }
         });
@@ -64,40 +63,66 @@ public class ConditionEventsTest {
     }
 
     @Test
-    public void handleViolations_joins_lines_with_new_line() {
-        ConditionEvents events = events(new SimpleConditionEvent(new CorrectType("ignore"), false, "ignore") {
-            @Override
-            public void describeTo(CollectsLines messages) {
-                messages.add("line one");
-                messages.add("line two");
-            }
-        });
+    public void handles_erased_generics_as_upper_bound() {
+        ConditionEvents events = events(
+                SimpleConditionEvent.violated(new CorrectType("ignore"), "correct"),
+                SimpleConditionEvent.violated(new WrongType(), "wrong"));
 
-        final Set<String> onlyMessage = new HashSet<>();
-        events.handleViolations(new ViolationHandler<CorrectType>() {
+        Set<String> handledFailureMessages = new HashSet<>();
+        events.handleViolations(genericBoundByCorrectType(handledFailureMessages));
+
+        assertThat(handledFailureMessages).containsOnly("correct");
+
+        handledFailureMessages = new HashSet<>();
+        events.handleViolations(unboundGeneric(handledFailureMessages));
+
+        assertThat(handledFailureMessages).containsOnly("correct", "wrong");
+    }
+
+    private <T extends CorrectType> ViolationHandler<?> genericBoundByCorrectType(final Set<String> handledFailureMessages) {
+        return new ViolationHandler<T>() {
             @Override
-            public void handle(CorrectType violatingObject, String message) {
-                onlyMessage.add(message);
+            public void handle(Collection<T> violatingObjects, String message) {
+                handledFailureMessages.add(message);
             }
-        });
-        assertThat(onlyMessage).containsOnly("line one" + System.lineSeparator() + "line two");
+        };
+    }
+
+    private <T> ViolationHandler<?> unboundGeneric(final Set<String> handledFailureMessages) {
+        return new ViolationHandler<T>() {
+            @Override
+            public void handle(Collection<T> violatingObjects, String message) {
+                handledFailureMessages.add(message);
+            }
+        };
     }
 
     @Test
-    public void handleViolations_reports_error_on_finding_handle_method() {
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage(getClass().getName() + "$");
-        thrown.expectMessage("unique method");
-        thrown.expectMessage("handle(T, String.class)");
+    public void can_handle_with_generic_superclasses() {
+        ConditionEvents events = events(
+                SimpleConditionEvent.violated(new Object(), "ignore"),
+                SimpleConditionEvent.violated("correct", "ignore"));
 
-        events().handleViolations(new ViolationHandler<Object>() {
-            @Override
-            public void handle(Object violatingObject, String message) {
-            }
+        StringHandler handler = new StringHandler();
+        events.handleViolations(handler);
 
-            public void handle(String violatingObject, String message) {
-            }
-        });
+        assertThat(handler.getRecorded()).containsOnly("correct");
+    }
+
+    private static class BaseHandler<T> implements ViolationHandler<T> {
+        private final List<T> recorded = new ArrayList<>();
+
+        @Override
+        public void handle(Collection<T> violatingObjects, String message) {
+            recorded.add(Iterables.getOnlyElement(violatingObjects));
+        }
+
+        List<T> getRecorded() {
+            return recorded;
+        }
+    }
+
+    private static class StringHandler extends BaseHandler<String> {
     }
 
     private static ConditionEvents events(ConditionEvent... events) {

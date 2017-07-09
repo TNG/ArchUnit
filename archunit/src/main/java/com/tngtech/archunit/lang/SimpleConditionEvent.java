@@ -15,17 +15,10 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import java.util.Collections;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.transform;
 
 public class SimpleConditionEvent implements ConditionEvent {
     private final Object correspondingObject;
@@ -55,8 +48,8 @@ public class SimpleConditionEvent implements ConditionEvent {
     }
 
     @Override
-    public Object getCorrespondingObject() {
-        return correspondingObject;
+    public void handleWith(Handler handler) {
+        handler.handle(Collections.singleton(correspondingObject), message);
     }
 
     @Override
@@ -67,25 +60,6 @@ public class SimpleConditionEvent implements ConditionEvent {
                 .add("message", message)
                 .toString();
     }
-
-    protected static String joinMessages(Collection<? extends ConditionEvent> violating) {
-        Iterable<String> lines = concat(transform(violating, TO_MESSAGES));
-        return Joiner.on(System.lineSeparator()).join(lines);
-    }
-
-    private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = new Function<ConditionEvent, Iterable<String>>() {
-        @Override
-        public Iterable<String> apply(ConditionEvent input) {
-            final List<String> result = new ArrayList<>();
-            input.describeTo(new CollectsLines() {
-                @Override
-                public void add(String line) {
-                    result.add(line);
-                }
-            });
-            return result;
-        }
-    };
 
     public static ConditionEvent violated(Object correspondingObject, String message) {
         return new SimpleConditionEvent(correspondingObject, false, message);

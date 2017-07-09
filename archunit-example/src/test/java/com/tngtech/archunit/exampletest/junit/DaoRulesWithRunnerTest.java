@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-
 @ArchIgnore
 @RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")

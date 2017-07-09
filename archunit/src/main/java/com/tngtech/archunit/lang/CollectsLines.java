@@ -19,6 +19,9 @@ import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
+/**
+ * Generic interface for an object that gathers lines of text.
+ */
 @PublicAPI(usage = INHERITANCE)
 public interface CollectsLines {
     void add(String line);
