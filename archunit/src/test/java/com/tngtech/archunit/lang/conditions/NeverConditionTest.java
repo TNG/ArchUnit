@@ -19,8 +19,8 @@ public class NeverConditionTest {
     private static final ArchCondition<Object> ONE_VIOLATED_ONE_SATISFIED = new ArchCondition<Object>("irrelevant") {
         @Override
         public void check(Object item, ConditionEvents events) {
-            events.add(new SimpleConditionEvent<>(item, false, ORIGINALLY_MISMATCH));
-            events.add(new SimpleConditionEvent<>(item, true, ORIGINALLY_NO_MISMATCH));
+            events.add(new SimpleConditionEvent(item, false, ORIGINALLY_MISMATCH));
+            events.add(new SimpleConditionEvent(item, true, ORIGINALLY_NO_MISMATCH));
         }
     };
 

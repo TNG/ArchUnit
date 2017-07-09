@@ -102,7 +102,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     }
 
     @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     static Class<?>[] reflect(JavaClassList parameters) {
         List<Class<?>> result = new ArrayList<>();
         for (JavaClass parameter : parameters) {

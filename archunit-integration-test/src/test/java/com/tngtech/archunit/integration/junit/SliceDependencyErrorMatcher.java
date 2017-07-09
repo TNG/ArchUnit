@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.junit.ExpectedViolation.ExpectedAccess;
+import com.tngtech.archunit.junit.ExpectedAccess;
 import com.tngtech.archunit.junit.MessageAssertionChain;
 
 class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
@@ -21,12 +21,12 @@ class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
     private SliceDependencyErrorMatcher() {
     }
 
-    public SliceDependencyErrorMatcher described(String description) {
+    SliceDependencyErrorMatcher described(String description) {
         dependencyDescription = description;
         return this;
     }
 
-    public SliceDependencyErrorMatcher byAccess(ExpectedAccess expectedAccess) {
+    SliceDependencyErrorMatcher byAccess(ExpectedAccess expectedAccess) {
         expectedAccesses.add(expectedAccess);
         return this;
     }

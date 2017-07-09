@@ -174,7 +174,7 @@ public class ArchRuleTest {
             new ArchCondition<JavaClass>("always be violated") {
                 @Override
                 public void check(JavaClass item, ConditionEvents events) {
-                    events.add(new SimpleConditionEvent<>(item, false, "I'm violated"));
+                    events.add(new SimpleConditionEvent(item, false, "I'm violated"));
                 }
             };
 }

@@ -193,7 +193,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
-        CodeUnitCallTarget(CodeUnitCallTargetBuilder builder) {
+        CodeUnitCallTarget(CodeUnitCallTargetBuilder<?> builder) {
             super(builder.getOwner(), builder.getName(), builder.getFullName());
             this.parameters = ImmutableList.copyOf(builder.getParameters());
             this.returnType = builder.getReturnType();

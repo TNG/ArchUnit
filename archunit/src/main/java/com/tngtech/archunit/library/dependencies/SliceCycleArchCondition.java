@@ -160,7 +160,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             Map<String, Edge<Slice, Dependency>> descriptionsToEdges = sortEdgesByDescription(cycle);
             String description = createDescription(descriptionsToEdges);
             String details = createDetails(descriptionsToEdges);
-            return new SimpleConditionEvent<>(cycle,
+            return new SimpleConditionEvent(cycle,
                     false,
                     String.format(MESSAGE_TEMPLATE, description, details));
         }

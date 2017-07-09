@@ -17,6 +17,7 @@ package com.tngtech.archunit.lang;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -74,6 +75,11 @@ public abstract class ArchCondition<T> {
         };
     }
 
+    @Override
+    public String toString() {
+        return getDescription();
+    }
+
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
     public <U extends T> ArchCondition<U> forSubType() {
         return (ArchCondition<U>) this;
@@ -102,10 +108,10 @@ public abstract class ArchCondition<T> {
             }
         }
 
-        List<ConditionWithEvents> evaluateConditions(T item) {
-            List<ConditionWithEvents> evaluate = new ArrayList<>();
+        List<ConditionWithEvents<T>> evaluateConditions(T item) {
+            List<ConditionWithEvents<T>> evaluate = new ArrayList<>();
             for (ArchCondition<T> condition : conditions) {
-                evaluate.add(new ConditionWithEvents(condition, item));
+                evaluate.add(new ConditionWithEvents<>(condition, item));
             }
             return evaluate;
         }
@@ -116,15 +122,15 @@ public abstract class ArchCondition<T> {
         }
     }
 
-    private static class ConditionWithEvents {
-        private final ArchCondition<?> condition;
+    private static class ConditionWithEvents<T> {
+        private final ArchCondition<T> condition;
         private final ConditionEvents events;
 
-        <T> ConditionWithEvents(ArchCondition<T> condition, T item) {
+        ConditionWithEvents(ArchCondition<T> condition, T item) {
             this(condition, check(condition, item));
         }
 
-        ConditionWithEvents(ArchCondition<?> condition, ConditionEvents events) {
+        ConditionWithEvents(ArchCondition<T> condition, ConditionEvents events) {
             this.condition = condition;
             this.events = events;
         }
@@ -144,11 +150,11 @@ public abstract class ArchCondition<T> {
         }
     }
 
-    private abstract static class JoinConditionEvent<T> implements ConditionEvent<T> {
-        private final T correspondingObject;
-        final List<ConditionWithEvents> evaluatedConditions;
+    private abstract static class JoinConditionEvent<T> implements ConditionEvent {
+        final T correspondingObject;
+        final List<ConditionWithEvents<T>> evaluatedConditions;
 
-        JoinConditionEvent(T correspondingObject, List<ConditionWithEvents> evaluatedConditions) {
+        JoinConditionEvent(T correspondingObject, List<ConditionWithEvents<T>> evaluatedConditions) {
             this.correspondingObject = correspondingObject;
             this.evaluatedConditions = evaluatedConditions;
         }
@@ -161,7 +167,7 @@ public abstract class ArchCondition<T> {
                     result.add(line);
                 }
             };
-            for (ConditionWithEvents evaluation : evaluatedConditions) {
+            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 for (ConditionEvent event : evaluation.events) {
                     if (event.isViolation()) {
                         event.describeTo(lines);
@@ -172,31 +178,26 @@ public abstract class ArchCondition<T> {
         }
 
         @Override
-        public T getCorrespondingObject() {
-            return correspondingObject;
-        }
-
-        @Override
         public String toString() {
             return MoreObjects.toStringHelper(this)
                     .add("evaluatedConditions", evaluatedConditions)
                     .toString();
         }
 
-        List<ConditionWithEvents> invert(List<ConditionWithEvents> evaluatedConditions) {
-            List<ConditionWithEvents> inverted = new ArrayList<>();
-            for (ConditionWithEvents evaluation : evaluatedConditions) {
+        List<ConditionWithEvents<T>> invert(List<ConditionWithEvents<T>> evaluatedConditions) {
+            List<ConditionWithEvents<T>> inverted = new ArrayList<>();
+            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 inverted.add(invert(evaluation));
             }
             return inverted;
         }
 
-        ConditionWithEvents invert(ConditionWithEvents evaluation) {
+        ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
             ConditionEvents invertedEvents = new ConditionEvents();
             for (ConditionEvent event : evaluation.events) {
                 event.addInvertedTo(invertedEvents);
             }
-            return new ConditionWithEvents(evaluation.condition, invertedEvents);
+            return new ConditionWithEvents<>(evaluation.condition, invertedEvents);
         }
     }
 
@@ -223,13 +224,13 @@ public abstract class ArchCondition<T> {
     }
 
     private static class AndConditionEvent<T> extends JoinConditionEvent<T> {
-        AndConditionEvent(T item, List<ConditionWithEvents> evaluatedConditions) {
+        AndConditionEvent(T item, List<ConditionWithEvents<T>> evaluatedConditions) {
             super(item, evaluatedConditions);
         }
 
         @Override
         public boolean isViolation() {
-            for (ConditionWithEvents evaluation : evaluatedConditions) {
+            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 if (evaluation.events.containViolation()) {
                     return true;
                 }
@@ -239,7 +240,7 @@ public abstract class ArchCondition<T> {
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new OrConditionEvent<>(getCorrespondingObject(), invert(evaluatedConditions)));
+            events.add(new OrConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
         }
 
         @Override
@@ -248,16 +249,28 @@ public abstract class ArchCondition<T> {
                 lines.add(line);
             }
         }
+
+        @Override
+        public void handleWith(final Handler handler) {
+            for (ConditionWithEvents<T> condition : evaluatedConditions) {
+                condition.events.handleViolations(new ViolationHandler<Object>() {
+                    @Override
+                    public void handle(Collection<Object> violatingObjects, String message) {
+                        handler.handle(violatingObjects, message);
+                    }
+                });
+            }
+        }
     }
 
     private static class OrConditionEvent<T> extends JoinConditionEvent<T> {
-        OrConditionEvent(T item, List<ConditionWithEvents> evaluatedConditions) {
+        OrConditionEvent(T item, List<ConditionWithEvents<T>> evaluatedConditions) {
             super(item, evaluatedConditions);
         }
 
         @Override
         public boolean isViolation() {
-            for (ConditionWithEvents evaluation : evaluatedConditions) {
+            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 if (!evaluation.events.containViolation()) {
                     return false;
                 }
@@ -267,12 +280,21 @@ public abstract class ArchCondition<T> {
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new AndConditionEvent<>(getCorrespondingObject(), invert(evaluatedConditions)));
+            events.add(new AndConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
         }
 
         @Override
         public void describeTo(CollectsLines lines) {
-            lines.add(Joiner.on(" and ").join(getUniqueLinesOfViolations()));
+            lines.add(createMessage());
+        }
+
+        private String createMessage() {
+            return Joiner.on(" and ").join(getUniqueLinesOfViolations());
+        }
+
+        @Override
+        public void handleWith(final Handler handler) {
+            handler.handle(Collections.singleton(correspondingObject), createMessage());
         }
     }
 }

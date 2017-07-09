@@ -67,7 +67,7 @@ public class JavaField extends JavaMember implements HasType {
     }
 
     @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution procecss")
+    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     private class ReflectFieldSupplier implements Supplier<Field> {
         @Override
         public Field get() {

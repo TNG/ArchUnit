@@ -30,11 +30,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.MessageAssertionChain.Link.Result.difference;
 import static java.util.Collections.singletonList;
 
-@Internal
 public class MessageAssertionChain {
     private final List<Link> links = new ArrayList<>();
 
-    public void add(Link link) {
+    void add(Link link) {
         links.add(link);
     }
 
@@ -47,7 +46,7 @@ public class MessageAssertionChain {
         return Joiner.on(System.lineSeparator()).join(descriptions);
     }
 
-    public static Link matchesLine(final String pattern) {
+    static Link matchesLine(final String pattern) {
         final Pattern p = Pattern.compile(pattern);
         return new Link() {
             @Override
@@ -67,7 +66,7 @@ public class MessageAssertionChain {
         };
     }
 
-    public static Link containsLine(String text, Object... args) {
+    static Link containsLine(String text, Object... args) {
         final String expectedLine = String.format(text, args);
         return new Link() {
             @Override
@@ -84,7 +83,7 @@ public class MessageAssertionChain {
         };
     }
 
-    public static Link containsConsecutiveLines(final List<String> lines) {
+    static Link containsConsecutiveLines(final List<String> lines) {
         checkArgument(!lines.isEmpty(), "Asserting zero consecutive lines makes no sense");
         final String linesDesription = Joiner.on(System.lineSeparator()).join(lines);
         final String description = "Message contains consecutive lines " + System.lineSeparator() + linesDesription;
@@ -112,7 +111,7 @@ public class MessageAssertionChain {
         };
     }
 
-    public void evaluate(AssertionError error) {
+    void evaluate(AssertionError error) {
         List<String> remainingLines = Splitter.on(System.lineSeparator()).splitToList(error.getMessage());
         for (Link link : links) {
             Link.Result result = link.filterMatching(remainingLines);
@@ -146,15 +145,15 @@ public class MessageAssertionChain {
             private final List<String> remainingLines;
             private final Optional<String> mismatchDescription;
 
-            public static Result success(List<String> remainingLines) {
+            static Result success(List<String> remainingLines) {
                 return new Result(true, remainingLines);
             }
 
-            public static Result failure(List<String> lines) {
+            static Result failure(List<String> lines) {
                 return failure(lines, "Lines were " + Joiner.on(System.lineSeparator()).join(lines));
             }
 
-            public static Result failure(List<String> lines, String mismatchDescription, Object... args) {
+            static Result failure(List<String> lines, String mismatchDescription, Object... args) {
                 return new Result(false, lines, String.format(mismatchDescription, args));
             }
 
@@ -172,11 +171,11 @@ public class MessageAssertionChain {
                 this.remainingLines = remainingLines;
             }
 
-            public static List<String> difference(List<String> list, String toSubtract) {
+            static List<String> difference(List<String> list, String toSubtract) {
                 return difference(list, singletonList(toSubtract));
             }
 
-            public static List<String> difference(List<String> list, List<String> toSubtract) {
+            static List<String> difference(List<String> list, List<String> toSubtract) {
                 List<String> result = new ArrayList<>(list);
                 result.removeAll(toSubtract);
                 return result;

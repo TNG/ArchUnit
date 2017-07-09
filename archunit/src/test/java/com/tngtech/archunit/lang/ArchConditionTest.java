@@ -1,7 +1,13 @@
 package com.tngtech.archunit.lang;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -46,6 +52,25 @@ public class ArchConditionTest {
     }
 
     @Test
+    public void and_handles_each_violating_object_separately() {
+        ArchCondition<Integer> condition = greaterThan(1).and(greaterThan(2)).and(greaterThan(3));
+
+        ConditionEvents events = new ConditionEvents();
+        condition.check(2, events);
+        final List<HandledViolation> handledViolations = new ArrayList<>();
+        events.handleViolations(new ViolationHandler<Integer>() {
+            @Override
+            public void handle(Collection<Integer> violatingObjects, String message) {
+                handledViolations.add(new HandledViolation(violatingObjects, message));
+            }
+        });
+
+        assertThat(handledViolations).containsOnly(
+                new HandledViolation(2, "2 is not greater than 2"),
+                new HandledViolation(2, "2 is not greater than 3"));
+    }
+
+    @Test
     public void or_checks_all_conditions() {
         ArchCondition<Integer> greaterThan15OrGreater14And20 =
                 greaterThan(15).or(greaterThan(14, 20));
@@ -72,6 +97,24 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         isGreaterThan15OrEndsWith1.check(12, events);
         assertThat(events).containViolations("12 does not end with 1 and 12 is not greater than 15");
+    }
+
+    @Test
+    public void or_handles_all_violated_conditions_as_unit() {
+        ArchCondition<Integer> condition = greaterThan(1).or(greaterThan(2)).or(greaterThan(3));
+
+        ConditionEvents events = new ConditionEvents();
+        condition.check(1, events);
+        final List<HandledViolation> handledViolations = new ArrayList<>();
+        events.handleViolations(new ViolationHandler<Integer>() {
+            @Override
+            public void handle(Collection<Integer> violatingObjects, String message) {
+                handledViolations.add(new HandledViolation(violatingObjects, message));
+            }
+        });
+
+        assertThat(handledViolations).containsOnly(new HandledViolation(
+                1, "1 is not greater than 1 and 1 is not greater than 2 and 1 is not greater than 3"));
     }
 
     @DataProvider
@@ -172,7 +215,7 @@ public class ArchConditionTest {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 for (int number : numbers) {
-                    events.add(new GreaterThanEvent(item, number));
+                    events.add(greaterThanEvent(item, number));
                 }
             }
         };
@@ -183,7 +226,7 @@ public class ArchConditionTest {
             @Override
             public void check(final Integer item, ConditionEvents events) {
                 boolean matches = item.toString().endsWith(Integer.toString(number));
-                events.add(new SimpleConditionEvent<>(item, matches,
+                events.add(new SimpleConditionEvent(item, matches,
                         item + (matches ? " ends with " : " does not end with ") + number));
             }
         };
@@ -193,13 +236,10 @@ public class ArchConditionTest {
         return new ConditionWithInit(description);
     }
 
-    private static class GreaterThanEvent extends SimpleConditionEvent<Integer> {
-        GreaterThanEvent(int item, int number) {
-            super(item, item > number,
-                    String.format(
-                            "%d is%s greater than %d",
-                            item, item <= number ? " not" : "", number));
-        }
+    private ConditionEvent greaterThanEvent(Integer item, int number) {
+        return new SimpleConditionEvent(item, item > number,
+                String.format("%d is%s greater than %d",
+                        item, item <= number ? " not" : "", number));
     }
 
     public static class ConditionWithInit extends ArchCondition<String> {
@@ -227,5 +267,45 @@ public class ArchConditionTest {
         }
 
         abstract <T> ArchCondition<T> combine(ArchCondition<T> first, ArchCondition<T> second);
+    }
+
+    private static class HandledViolation {
+        final Multiset<Integer> objects;
+        final String message;
+
+        HandledViolation(int object, String message) {
+            this(singleton(object), message);
+        }
+
+        HandledViolation(Collection<Integer> objects, String message) {
+            this.objects = HashMultiset.create(objects);
+            this.message = message;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(objects, message);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final HandledViolation other = (HandledViolation) obj;
+            return Objects.equals(this.objects, other.objects)
+                    && Objects.equals(this.message, other.message);
+        }
+
+        @Override
+        public String toString() {
+            return "HandledViolation{" +
+                    "objects=" + objects +
+                    ", message='" + message + '\'' +
+                    '}';
+        }
     }
 }

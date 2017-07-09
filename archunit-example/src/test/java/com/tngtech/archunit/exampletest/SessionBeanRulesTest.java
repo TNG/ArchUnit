@@ -96,7 +96,7 @@ public class SessionBeanRulesTest {
             new ArchCondition<JavaClass>("have an unique implementation") {
                 @Override
                 public void check(JavaClass businessInterface, ConditionEvents events) {
-                    events.add(new SimpleConditionEvent<>(businessInterface,
+                    events.add(new SimpleConditionEvent(businessInterface,
                             businessInterface.getAllSubClasses().size() <= 1,
                             describe(businessInterface)));
                 }

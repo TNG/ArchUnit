@@ -6,7 +6,9 @@ import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.LayerDependencyRulesTest;
+import com.tngtech.archunit.junit.CalledByArchUnitIntegrationTestRunner;
 import com.tngtech.archunit.junit.ExpectedViolation;
+import com.tngtech.archunit.junit.ExpectsViolations;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -15,7 +17,7 @@ import static com.tngtech.archunit.example.controller.one.UseCaseOneController.s
 import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
 import static com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService.violateLayerRules;
 import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToController;
-import static com.tngtech.archunit.junit.ExpectedViolation.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.from;
 
 public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTest {
 
@@ -30,8 +32,9 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
         super.services_should_not_access_controllers();
     }
 
-    static void expectViolationByAccessFromServiceToController(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("no classes that reside in a package '..service..' " +
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationByAccessFromServiceToController(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("no classes that reside in a package '..service..' " +
                 "should access classes that reside in a package '..controller..'")
                 .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneController.class, someString)
@@ -52,8 +55,9 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
         super.persistence_should_not_access_services();
     }
 
-    static void expectViolationByAccessFromPersistenceToService(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("no classes that reside in a package '..persistence..' should " +
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationByAccessFromPersistenceToService(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("no classes that reside in a package '..persistence..' should " +
                 "access classes that reside in a package '..service..'")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
@@ -68,8 +72,9 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
         super.services_should_only_be_accessed_by_controllers_or_other_services();
     }
 
-    static void expectViolationByIllegalAccessToService(ExpectedViolation expectViolation) {
-        expectViolation.ofRule("classes that reside in a package '..service..' should " +
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationByIllegalAccessToService(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("classes that reside in a package '..service..' should " +
                 "only be accessed by any package ['..controller..', '..service..']")
                 .byCall(from(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)

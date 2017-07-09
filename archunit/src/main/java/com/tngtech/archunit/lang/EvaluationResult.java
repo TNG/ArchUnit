@@ -50,4 +50,9 @@ public final class EvaluationResult {
             events.add(event);
         }
     }
+
+    @PublicAPI(usage = ACCESS)
+    public void handleViolations(ViolationHandler<?> violationHandler) {
+        events.handleViolations(violationHandler);
+    }
 }
