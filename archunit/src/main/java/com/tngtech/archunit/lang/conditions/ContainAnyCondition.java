@@ -18,9 +18,10 @@ package com.tngtech.archunit.lang.conditions;
 import java.util.Collection;
 
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ContainsOnlyCondition.OnlyConditionEvent;
 
 class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
@@ -46,31 +47,41 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
         return getClass().getSimpleName() + "{condition=" + condition + "}";
     }
 
-    private static class AnyConditionEvent extends SimpleConditionEvent {
+    static class AnyConditionEvent implements ConditionEvent {
+        private final Collection<?> correspondingObjects;
         private Collection<ConditionEvent> violating;
         private Collection<ConditionEvent> allowed;
 
-        private AnyConditionEvent(Collection<?> correspondingObject, ConditionEvents events) {
-            this(correspondingObject, !events.getAllowed().isEmpty(), events.getAllowed(), events.getViolating());
+        private AnyConditionEvent(Collection<?> correspondingObjects, ConditionEvents events) {
+            this(correspondingObjects, events.getAllowed(), events.getViolating());
         }
 
-        private AnyConditionEvent(Collection<?> correspondingObject,
-                                  boolean conditionSatisfied,
-                                  Collection<ConditionEvent> allowed,
-                                  Collection<ConditionEvent> violating) {
-            super(correspondingObject, conditionSatisfied, joinMessages(violating));
+        AnyConditionEvent(Collection<?> correspondingObjects,
+                          Collection<ConditionEvent> allowed,
+                          Collection<ConditionEvent> violating) {
+            this.correspondingObjects = correspondingObjects;
             this.allowed = allowed;
             this.violating = violating;
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new AnyConditionEvent(getCorrespondingObject(), isViolation(), violating, allowed));
+        public boolean isViolation() {
+            return allowed.isEmpty();
         }
 
         @Override
-        public Collection<?> getCorrespondingObject() {
-            return (Collection<?>) super.getCorrespondingObject(); // This is safe, because we ensure Collection<?> within constructor
+        public void addInvertedTo(ConditionEvents events) {
+            events.add(new OnlyConditionEvent(correspondingObjects, violating, allowed));
+        }
+
+        @Override
+        public void describeTo(CollectsLines messages) {
+            messages.add(EventsDescription.describe(violating));
+        }
+
+        @Override
+        public void handleWith(Handler handler) {
+            handler.handle(correspondingObjects, EventsDescription.describe(violating));
         }
     }
 }

@@ -1,14 +1,15 @@
 package com.tngtech.archunit.lang;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
 import org.junit.Test;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
@@ -38,8 +39,8 @@ public class EvaluationResultTest {
         final Set<String> actual = new HashSet<>();
         result.handleViolations(new ViolationHandler<Set<?>>() {
             @Override
-            public void handle(Set<?> violatingObject, String message) {
-                actual.add(Iterables.getOnlyElement(violatingObject) + ": " + message);
+            public void handle(Collection<Set<?>> violatingObject, String message) {
+                actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message);
             }
         });
 

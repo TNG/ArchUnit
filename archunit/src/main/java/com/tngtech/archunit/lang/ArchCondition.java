@@ -17,6 +17,7 @@ package com.tngtech.archunit.lang;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -72,6 +73,11 @@ public abstract class ArchCondition<T> {
                 ArchCondition.this.check(item, events);
             }
         };
+    }
+
+    @Override
+    public String toString() {
+        return getDescription();
     }
 
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
@@ -145,7 +151,7 @@ public abstract class ArchCondition<T> {
     }
 
     private abstract static class JoinConditionEvent<T> implements ConditionEvent {
-        private final T correspondingObject;
+        final T correspondingObject;
         final List<ConditionWithEvents<T>> evaluatedConditions;
 
         JoinConditionEvent(T correspondingObject, List<ConditionWithEvents<T>> evaluatedConditions) {
@@ -169,11 +175,6 @@ public abstract class ArchCondition<T> {
                 }
             }
             return result;
-        }
-
-        @Override
-        public T getCorrespondingObject() {
-            return correspondingObject;
         }
 
         @Override
@@ -239,13 +240,25 @@ public abstract class ArchCondition<T> {
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new OrConditionEvent<>(getCorrespondingObject(), invert(evaluatedConditions)));
+            events.add(new OrConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
         }
 
         @Override
         public void describeTo(CollectsLines lines) {
             for (String line : getUniqueLinesOfViolations()) {
                 lines.add(line);
+            }
+        }
+
+        @Override
+        public void handleWith(final Handler handler) {
+            for (ConditionWithEvents<T> condition : evaluatedConditions) {
+                condition.events.handleViolations(new ViolationHandler<Object>() {
+                    @Override
+                    public void handle(Collection<Object> violatingObjects, String message) {
+                        handler.handle(violatingObjects, message);
+                    }
+                });
             }
         }
     }
@@ -267,12 +280,21 @@ public abstract class ArchCondition<T> {
 
         @Override
         public void addInvertedTo(ConditionEvents events) {
-            events.add(new AndConditionEvent<>(getCorrespondingObject(), invert(evaluatedConditions)));
+            events.add(new AndConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
         }
 
         @Override
         public void describeTo(CollectsLines lines) {
-            lines.add(Joiner.on(" and ").join(getUniqueLinesOfViolations()));
+            lines.add(createMessage());
+        }
+
+        private String createMessage() {
+            return Joiner.on(" and ").join(getUniqueLinesOfViolations());
+        }
+
+        @Override
+        public void handleWith(final Handler handler) {
+            handler.handle(Collections.singleton(correspondingObject), createMessage());
         }
     }
 }

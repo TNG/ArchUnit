@@ -1,7 +1,9 @@
 package com.tngtech.archunit.lang;
 
+import java.util.Collection;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.lang.ConditionEventsTest.CorrectType;
 
 class ObjectToStringAndMessageJoiningTestHandler implements ViolationHandler<CorrectType> {
@@ -12,7 +14,7 @@ class ObjectToStringAndMessageJoiningTestHandler implements ViolationHandler<Cor
     }
 
     @Override
-    public void handle(CorrectType violatingObject, String message) {
-        messages.add(violatingObject + ": " + message);
+    public void handle(Collection<CorrectType> violatingObjects, String message) {
+        messages.add(Joiner.on(", ").join(violatingObjects) + ": " + message);
     }
 }
