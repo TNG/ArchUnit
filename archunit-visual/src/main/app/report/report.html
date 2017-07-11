@@ -260,82 +260,89 @@
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
 
-    let hidingMap = new Map();
+    let shouldBeHidden = new Map();
+    let isFixed = new Map();
 
     let hideDetailedDeps = gDetailedDeps => {
       gDetailedDeps.select('.frame').style('visibility', 'hidden');
       gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
       gDetailedDeps.select('text').style('visibility', 'hidden');
-
     };
 
     let showDetailedDeps = e => {
-      hidingMap.set(`${e.from}-${e.to}`, false);
+      shouldBeHidden.set(`${e.from}-${e.to}`, false);
       let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
       gDetailedDeps.select('.frame').style('visibility', 'visible');
       gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
       gDetailedDeps.select('text').style('visibility', 'visible');
     };
 
+    let createDetailedDeps = e => {
+      let gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
+      gDetailedDeps.append('rect').attr('class', 'frame');
+      gDetailedDeps.append('text').attr('class', 'access');
+      gDetailedDeps.append('rect').attr('class', 'hoverArea')
+        .on('mouseover', () => showDetailedDeps(e))
+        .on('mouseout', () => hideDetailedDeps(gDetailedDeps));
+    };
+
+    let updateDetailedDeps = e => {
+      let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+      gDetailedDeps.attr('transform', () => {
+        let coordinates = d3.mouse(svg.node());
+        return `translate(${coordinates[0]}, ${coordinates[1]})`;
+      });
+      let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
+
+      let tspans = gDetailedDeps.select('text')
+        .selectAll('tspan')
+        .data(detailedDeps);
+
+      let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access')));
+
+      let fontSize = visualizationStyles.getDependencyTitleFontSize();
+      tspans.exit().remove();
+
+      tspans.enter()
+        .append('tspan');
+
+      gDetailedDeps.select('text')
+        .selectAll('tspan')
+        .text(d => d.description) //
+        .attr('class', d => d.cssClass)
+        .attr("x", -maxWidth / 2 + TEXT_PADDING)
+        .attr("dy", () => fontSize + TEXT_PADDING);
+
+      gDetailedDeps.selectAll('rect')
+        .attr('x', -maxWidth / 2)
+        .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
+        .attr('width', maxWidth + 2 * TEXT_PADDING);
+    };
+
     hoverAreas
       .on('mouseover', function (e) {
-        gAllDetailedDeps.selectAll('g').each(function () {
+        if (!isFixed.get(`${e.from}-${e.to}`)) {
+          gAllDetailedDeps.selectAll('g').each(function () {
             hideDetailedDeps(d3.select(this));
+          });
+          if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
+            createDetailedDeps(e);
           }
-        );
-
-        let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-        if (gDetailedDeps.empty()) {
-          gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
-          gDetailedDeps.append('rect').attr('class', 'frame');
-          gDetailedDeps.append('text').attr('class', 'access');
-          gDetailedDeps.append('rect').attr('class', 'hoverArea')
-            .on('mouseover', () => showDetailedDeps(e))
-            .on('mouseout', () => hideDetailedDeps(gDetailedDeps));
+          updateDetailedDeps(e);
+          showDetailedDeps(e);
         }
-        gDetailedDeps.attr('transform', function () {
-          let coordinates = d3.mouse(svg.node());
-          return `translate(${coordinates[0]}, ${coordinates[1]})`;
-        });
-
-        let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
-
-        let tspans = gDetailedDeps.select('text')
-          .selectAll('tspan')
-          .data(detailedDeps);
-
-        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access')));
-
-        let fontSize = visualizationStyles.getDependencyTitleFontSize();
-        tspans.exit().remove();
-        tspans.text(d => d.description)
-          .attr('class', d => d.cssClass)
-          .attr("x", -maxWidth / 2 + TEXT_PADDING)
-          .attr("dy", d => fontSize + TEXT_PADDING);
-
-        tspans.enter()
-          .append('tspan')
-          .text(d => d.description)
-          .attr('class', d => d.cssClass)
-          .attr("x", -maxWidth / 2 + TEXT_PADDING)
-          .attr("dy", d => fontSize + TEXT_PADDING);
-
-        gDetailedDeps.selectAll('rect')
-          .attr('x', -maxWidth / 2)
-          .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
-          .attr('width', maxWidth + 2 * TEXT_PADDING);
-
-        showDetailedDeps(e);
       });
 
     hoverAreas
       .on('mouseout', e => {
-        hidingMap.set(`${e.from}-${e.to}`, true);
-        let timer = setTimeout(() => {
-          if (hidingMap.get(`${e.from}-${e.to}`)) {
-            hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
-          }
-        }, DETAILED_DEPENDENCIES_HIDE_DURATION);
+        if (!isFixed.get(`${e.from}-${e.to}`)) {
+          shouldBeHidden.set(`${e.from}-${e.to}`, true);
+          setTimeout(() => {
+            if (shouldBeHidden.get(`${e.from}-${e.to}`)) {
+              hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
+            }
+          }, DETAILED_DEPENDENCIES_HIDE_DURATION);
+        }
       });
   }
 
