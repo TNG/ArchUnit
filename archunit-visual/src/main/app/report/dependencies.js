@@ -23,7 +23,7 @@ let filter = dependencies => ({
       let property = propertyFunc(r);
       if (property.startsWith(prefix)) {
         let rest = property.substring(prefix.length);
-        return rest ? startsWithFullnameSeparator(rest) : true; //rest.startsWith(".") : true;
+        return rest ? startsWithFullnameSeparator(rest) : true;
       }
       else {
         return false;
@@ -129,7 +129,6 @@ let Dependencies = class {
     else {
       changeFold(this, dependencies => dependencies._transformers.delete(foldedElement));
     }
-    //this.observers.forEach(f => f(this.getVisible()));
   }
 
   setNodeFilters(filters) {
@@ -196,12 +195,14 @@ let Dependencies = class {
     };
     let startMatching = getDetailedDependenciesMatching(this._filtered, d => d.from, from);
     let targetMatching = getDetailedDependenciesMatching(startMatching, d => d.to, to);
-    return targetMatching.map(d => {
-      return {
-        description: d.getDescriptionRelativeToPredecessors(from, to),
-        cssClass: d.getClass()
-      }
-    });
+    targetMatching = targetMatching.filter(d => !d.description.inheritanceKind);
+    let detailedDeps = targetMatching.map(d => ({
+      description: d.getDescriptionRelativeToPredecessors(from, to),
+      cssClass: d.getClass()
+    }));
+    let map = new Map();
+    detailedDeps.forEach(d => map.set(d.description, d));
+    return [...map.values()];
   }
 };
 

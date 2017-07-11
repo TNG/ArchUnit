@@ -59,7 +59,7 @@ let DependencyDescription = class {
   }
 
   hasDetailedDescription() {
-    return this.containsPkg || this.hasDescription();
+    return !this.containsPkg && this.hasDescription();
   }
 
   hasDescription() {

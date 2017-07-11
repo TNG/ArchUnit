@@ -5,6 +5,8 @@ const CIRCLE_STYLE_SELECTOR = '.circle';
 
 const LINE_STYLE_PREFIX = 'line.';
 
+const DEPENDENCY_TEXT_STYLE_SELECTOR = "text.access";
+
 const rgbToHex = (rgbString, defaultHex) => {
   if (!rgbString) {
     return defaultHex;
@@ -31,6 +33,7 @@ module.exports.from = function (styleSheet) {
   const cssRules = Array.from(styleSheet.cssRules);
   const nodeTextRule = unique(cssRules.filter(rule => rule.selectorText === NODE_TEXT_STYLE_SELECTOR));
   const circleRule = unique(cssRules.filter(rule => rule.selectorText === CIRCLE_STYLE_SELECTOR));
+  const dependencyTextRule = unique(cssRules.filter(rule => rule.selectorText === DEPENDENCY_TEXT_STYLE_SELECTOR));
 
   return {
     getNodeFontSize: () => parseInt(nodeTextRule.style.getPropertyValue('font-size'), 10),
@@ -44,6 +47,8 @@ module.exports.from = function (styleSheet) {
     setCirclePadding: (paddingInPixels) => {
       circleRule.style.setProperty('padding', `${paddingInPixels}px`)
     },
+
+    getDependencyTitleFontSize: () => parseInt(dependencyTextRule.style.getPropertyValue('font-size'), 10),
 
     getLineStyle: (kind, title) => {
       let rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));

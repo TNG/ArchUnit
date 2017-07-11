@@ -13,7 +13,7 @@ circle {
 
 .class circle, .abstractclass circle, .interface circle {
     fill: #98AFC7;
-    fill-opacity: 0.5;
+    fill-opacity: 1;
 }
 
 .interface circle {
@@ -71,24 +71,24 @@ line.methodCall {
     stroke: #0000FF;
 }
 
-li.methodCall {
-    color: #0000FF;
+tspan.methodCall {
+    fill: #0000FF;
 }
 
 line.fieldAccess {
     stroke: #FFFF00;
 }
 
-li.fieldAccess {
-    color: #FFFF00;
+tspan.fieldAccess {
+    fill: #FFFF00;
 }
 
 line.constructorCall {
     stroke: #FF0000;
 }
 
-li.constructorCall {
-    color: #FF0000;
+tspan.constructorCall {
+    fill: #FF0000;
 }
 
 line.implementsAnonymous {
@@ -96,8 +96,8 @@ line.implementsAnonymous {
     stroke: #00FFCC;
 }
 
-li.implementsAnonymous {
-    border: dotted 1px #00FFCC;
+tspan.implementsAnonymous {
+    fill: #00FFCC;
 }
 
 line.childrenAccess {
@@ -112,19 +112,25 @@ line.extends {
     stroke-dasharray: 5px;
 }
 
-li.extends {
-    border: dashed 1px black;
-}
-
 line.implements {
     stroke-dasharray: 2px;
-}
-
-li.implements {
-    border: dotted 1px black;
 }
 
 text.access {
     font-weight: normal;
     font-size: 12px;
+    text-anchor: start;
+}
+
+rect.frame {
+    fill: #dadada;
+}
+
+rect.hoverArea {
+    fill: none;
+    visibility: hidden;
+}
+
+tspan {
+    text-align: left;
 }

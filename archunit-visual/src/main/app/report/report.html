@@ -16,10 +16,6 @@
 <visualization-menu id='menu'></visualization-menu>
 
 <div id='container'>
-  <div id='detailedDeps'>
-    <h2 id='headerDetailedDeps'>Detailed dependencies:</h2>
-    <ul></ul>
-  </div>
   <div id='svgContainer'>
     <svg width='960' height='960' id='visualization'></svg>
   </div>
@@ -40,6 +36,7 @@
    */
   const clickAreaWidth = 10;
 
+  const DETAILED_DEPENDENCIES_HIDE_DURATION = 500;
   const TRANSITION_DURATION = 300;
   const APPEAR_DURATION = 10;
 
@@ -50,21 +47,27 @@
 
   const svg = d3.select('#visualization'),
     gTree = svg.append('g').attr('transform', 'translate(2,2)'),
-    gEdges = svg.append('g').attr('transform', 'translate(2,2)');
+    gEdges = svg.append('g').attr('transform', 'translate(2,2)'),
+    gAllDetailedDeps = svg.append('g').attr('transform', 'translate(2,2)');
 
-  const calculateTextWidth = text => {
-    d3.select('#text-size-computation').style('display', 'inline');
-    let textElement = d3.select('#text-size-computation').select('text');
+  const calculateTextWidth = (text, cssClassOfText) => {
+    let textSvg = d3.select('#text-size-computation').style('display', 'inline');
+    let textElement = textSvg.select('text');
+    if (cssClassOfText) {
+      textElement.attr('class', cssClassOfText)
+    }
     textElement.text(text);
     let width = textElement.node().getComputedTextLength();
-    d3.select('#text-size-computation').style('display', 'none');
+    if (cssClassOfText) {
+      textElement.classed(cssClassOfText, false)
+    }
+    textSvg.style('display', 'none');
     return width;
   };
 
   const visualizer = visualization.createVisualizer({calculateTextWidth, visualizationStyles});
 
   let graph;
-  let depWithCurrentDetailedDeps;
 
   window.addEventListener('WebComponentsReady', function () {
     document.querySelector('#menu')
@@ -98,7 +101,6 @@
             .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
           updateEdges();
-          showDetailedDepsOf(depWithCurrentDetailedDeps);
         })
       .onFilterChanged((filterString, exclude) => {
         graph.filterNodesByName(filterString, exclude);
@@ -140,8 +142,6 @@
       .showAnonymousImplementing(true)
       .showDepsBetweenChildAndParent(false);
     updateEdges();
-    // FIXME: Is there no way around this quasi global variable 'depWithCurrentDetailedDeps'?? Makes code hard to comprehend and extend...
-    showDetailedDepsOf(depWithCurrentDetailedDeps);
   }
 
   function layout() {
@@ -188,7 +188,7 @@
             finished = false;
             if (graph.changeFoldStateOfNode(d)) {
               visualizer.update(graph);
-              let numberOfAnimations = 4;
+              let numberOfAnimations = 3;
               updateVisualization(() => {
                 numberOfAnimations--;
                 if (!numberOfAnimations) {
@@ -229,17 +229,7 @@
       .attr('d', 'M0,-5L10,0L0,5');
 
     let edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
-    createNewEdges(edges, null, false);
-  }
-
-  function showDetailedDepsOf(dependency) {
-    if (dependency) {
-      d3.select('#detailedDeps').select('h2').text(() => 'Detailed dependencies: ' + dependency.from + '->' + dependency.to);
-      let detailedDeps = d3.select('#detailedDeps').select('ul').selectAll('li').data(graph.getDetailedDependenciesOf(dependency.from, dependency.to));
-      detailedDeps.exit().remove();
-      detailedDeps.attr('class', d => d.cssClass).text(d => d.description);
-      detailedDeps.enter().append('li').attr('class', d => d.cssClass).text(d => d.description);
-    }
+    createNewEdges(edges);
   }
 
   function createNewEdges(selection) {
@@ -256,7 +246,7 @@
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
 
-    newEdges
+    let hoverAreas = newEdges
       .filter(e => e.description.hasDetailedDescription())
       .append('line')
       .attr('id', 'area')
@@ -268,29 +258,85 @@
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y)
-      .on('click', function (e) {
-        depWithCurrentDetailedDeps = e;
-        let t = d3.select(d3.select(this).node().parentNode).select('text');
-        if (e.description.hasDescription()) {
-          t.style('visibility', t.style('visibility') === 'hidden' ? 'inherit' : 'hidden');
+      .attr('y2', e => e.visualData.endPoint.y);
+
+    let hidingMap = new Map();
+
+    let hideDetailedDeps = gDetailedDeps => {
+      gDetailedDeps.select('.frame').style('visibility', 'hidden');
+      gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
+      gDetailedDeps.select('text').style('visibility', 'hidden');
+
+    };
+
+    let showDetailedDeps = e => {
+      hidingMap.set(`${e.from}-${e.to}`, false);
+      let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+      gDetailedDeps.select('.frame').style('visibility', 'visible');
+      gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
+      gDetailedDeps.select('text').style('visibility', 'visible');
+    };
+
+    hoverAreas
+      .on('mouseover', function (e) {
+        gAllDetailedDeps.selectAll('g').each(function () {
+            hideDetailedDeps(d3.select(this));
+          }
+        );
+
+        let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+        if (gDetailedDeps.empty()) {
+          gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
+          gDetailedDeps.append('rect').attr('class', 'frame');
+          gDetailedDeps.append('text').attr('class', 'access');
+          gDetailedDeps.append('rect').attr('class', 'hoverArea')
+            .on('mouseover', () => showDetailedDeps(e))
+            .on('mouseout', () => hideDetailedDeps(gDetailedDeps));
         }
-        if (!e.description.hasDescription() || t.style('visibility') !== 'hidden') {
-          showDetailedDepsOf(e);
-        }
+        gDetailedDeps.attr('transform', function () {
+          let coordinates = d3.mouse(svg.node());
+          return `translate(${coordinates[0]}, ${coordinates[1]})`;
+        });
+
+        let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
+
+        let tspans = gDetailedDeps.select('text')
+          .selectAll('tspan')
+          .data(detailedDeps);
+
+        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access')));
+
+        let fontSize = visualizationStyles.getDependencyTitleFontSize();
+        tspans.exit().remove();
+        tspans.text(d => d.description)
+          .attr('class', d => d.cssClass)
+          .attr("x", -maxWidth / 2 + TEXT_PADDING)
+          .attr("dy", d => fontSize + TEXT_PADDING);
+
+        tspans.enter()
+          .append('tspan')
+          .text(d => d.description)
+          .attr('class', d => d.cssClass)
+          .attr("x", -maxWidth / 2 + TEXT_PADDING)
+          .attr("dy", d => fontSize + TEXT_PADDING);
+
+        gDetailedDeps.selectAll('rect')
+          .attr('x', -maxWidth / 2)
+          .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
+          .attr('width', maxWidth + 2 * TEXT_PADDING);
+
+        showDetailedDeps(e);
       });
 
-    newEdges
-      .append('title')
-      .text(e => e.description.getDescription());
-
-    newEdges
-      .filter(e => e.description.hasDescription())
-      .append('text')
-      .attr('class', e => e.getClass())
-      .text(e => e.description.getDescription())
-      .style('visibility', 'hidden')
-      .attr('transform', e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
+    hoverAreas
+      .on('mouseout', e => {
+        hidingMap.set(`${e.from}-${e.to}`, true);
+        let timer = setTimeout(() => {
+          if (hidingMap.get(`${e.from}-${e.to}`)) {
+            hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
+          }
+        }, DETAILED_DEPENDENCIES_HIDE_DURATION);
+      });
   }
 
   function positionTextOfAllNodes(selection) {
@@ -392,26 +438,14 @@
     edges.style('visibility', 'visible');
     edges.select('line').attr('class', e => e.getClass());
     edges.select('#area').style('pointer-events', e => e.description.hasDetailedDescription() ? 'all' : 'none');
-    edges.filter(e => e.description.hasDescription())
-      .select('text').attr('class', e => e.getClass()).text(e => e.description.getDescription());
-    edges.select('text').style('visibility', function (e) {
-      if (e.description.hasDetailedDescription()) {
-        return (d3.select(this).style('visibility') === 'hidden') ? 'hidden' : 'inherit';
-      }
-      else {
-        return 'hidden';
-      }
-    });
   }
 
   function updateEdgePositionWithAnimation(edges, callback, onAnimationEnd) {
     updateLinePositionWithAnimation(edges, callback, onAnimationEnd);
-    updateTitlePositionWithAnimation(edges, onAnimationEnd);
   }
 
   function updateEdgePositionWithoutAnimation(edges, callback) {
     updateLinePositionWithoutAnimation(edges, callback);
-    updateTitlePositionWithoutAnimation(edges);
   }
 
   function runTransitionWithEndCallback(transition, transitionRunner, callback) {
@@ -432,7 +466,8 @@
 
   function updateLinePositionWithAnimation(edges, callback, onAnimationEnd) {
     let deps = edges.select('#dep').transition().duration(TRANSITION_DURATION);
-    runTransitionWithEndCallback(deps, selection => selection.attr('x1', e => e.visualData.startPoint.x)
+    runTransitionWithEndCallback(deps, selection => selection
+      .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y), () => {
@@ -461,15 +496,6 @@
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
-  }
-
-  function updateTitlePositionWithAnimation(edges, onAnimationEnd) {
-    let transition = edges.select('text').transition().duration(TRANSITION_DURATION);
-    runTransitionWithEndCallback(transition, selection => selection.attr('transform', e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING)), onAnimationEnd);
-  }
-
-  function updateTitlePositionWithoutAnimation(edges) {
-    edges.select('text').attr('transform', e => e.visualData.getEdgesTitleTranslation(TEXT_PADDING));
   }
 </script>
 </body>
