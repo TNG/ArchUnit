@@ -44,6 +44,7 @@
   const d3 = visualization.d3;
   const jsonToGraph = visualization.jsonToGraph;
   const visualizationStyles = visualization.styles.from(document.getElementById('visualization-styles').sheet);
+  const isFixed = new Map();
 
   const svg = d3.select('#visualization'),
     gTree = svg.append('g').attr('transform', 'translate(2,2)'),
@@ -261,12 +262,13 @@
       .attr('y2', e => e.visualData.endPoint.y);
 
     let shouldBeHidden = new Map();
-    let isFixed = new Map();
 
     let hideDetailedDeps = gDetailedDeps => {
-      gDetailedDeps.select('.frame').style('visibility', 'hidden');
-      gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
-      gDetailedDeps.select('text').style('visibility', 'hidden');
+      if (!isFixed.get(gDetailedDeps.attr('id'))) {
+        gDetailedDeps.select('.frame').style('visibility', 'hidden');
+        gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
+        gDetailedDeps.select('text').style('visibility', 'hidden');
+      }
     };
 
     let showDetailedDeps = e => {
@@ -277,13 +279,42 @@
       gDetailedDeps.select('text').style('visibility', 'visible');
     };
 
-    let createDetailedDeps = e => {
-      let gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
-      gDetailedDeps.append('rect').attr('class', 'frame');
-      gDetailedDeps.append('text').attr('class', 'access');
-      gDetailedDeps.append('rect').attr('class', 'hoverArea')
-        .on('mouseover', () => showDetailedDeps(e))
-        .on('mouseout', () => hideDetailedDeps(gDetailedDeps));
+    let createDetailedDepsIfNecessary = e => {
+      if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
+        let gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
+        gDetailedDeps.append('rect').attr('class', 'frame');
+        gDetailedDeps.append('text').attr('class', 'access');
+
+        let fixDetailedDeps = () => {
+          if (gDetailedDeps.select('.closeButton').empty()) {
+            let fontSize = visualizationStyles.getDependencyTitleFontSize();
+            gDetailedDeps.append('text')
+              .attr('class', 'closeButton')
+              .text('x')
+              .attr('dx', gDetailedDeps.select('.hoverArea').attr('width') / 2)
+              .attr('dy', fontSize)
+              .on('click', function () {
+                isFixed.set(`${e.from}-${e.to}`, false);
+                hideDetailedDeps(gDetailedDeps);
+                d3.select(this).remove();
+              });
+            isFixed.set(`${e.from}-${e.to}`, true);
+          }
+        };
+
+        gDetailedDeps.append('rect').attr('class', 'hoverArea')
+          .on('mouseover', () => showDetailedDeps(e))
+          .on('mouseout', () => hideDetailedDeps(gDetailedDeps))
+          .on('click', () => {
+            fixDetailedDeps();
+          });
+
+        let drag = d3.drag().on('drag', () => {
+          fixDetailedDeps();
+          gDetailedDeps.attr('transform', () => `translate(${d3.event.x}, ${d3.event.y})`);
+        });
+        gDetailedDeps.call(drag);
+      }
     };
 
     let updateDetailedDeps = e => {
@@ -294,7 +325,7 @@
       });
       let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
 
-      let tspans = gDetailedDeps.select('text')
+      let tspans = gDetailedDeps.select('text.access')
         .selectAll('tspan')
         .data(detailedDeps);
 
@@ -308,7 +339,7 @@
 
       gDetailedDeps.select('text')
         .selectAll('tspan')
-        .text(d => d.description) //
+        .text(d => d.description)
         .attr('class', d => d.cssClass)
         .attr("x", -maxWidth / 2 + TEXT_PADDING)
         .attr("dy", () => fontSize + TEXT_PADDING);
@@ -316,7 +347,7 @@
       gDetailedDeps.selectAll('rect')
         .attr('x', -maxWidth / 2)
         .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
-        .attr('width', maxWidth + 2 * TEXT_PADDING);
+        .attr('width', maxWidth + 2 * TEXT_PADDING + fontSize);
     };
 
     hoverAreas
@@ -325,9 +356,7 @@
           gAllDetailedDeps.selectAll('g').each(function () {
             hideDetailedDeps(d3.select(this));
           });
-          if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
-            createDetailedDeps(e);
-          }
+          createDetailedDepsIfNecessary(e);
           updateDetailedDeps(e);
           showDetailedDeps(e);
         }
@@ -335,14 +364,12 @@
 
     hoverAreas
       .on('mouseout', e => {
-        if (!isFixed.get(`${e.from}-${e.to}`)) {
-          shouldBeHidden.set(`${e.from}-${e.to}`, true);
-          setTimeout(() => {
-            if (shouldBeHidden.get(`${e.from}-${e.to}`)) {
-              hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
-            }
-          }, DETAILED_DEPENDENCIES_HIDE_DURATION);
-        }
+        shouldBeHidden.set(`${e.from}-${e.to}`, true);
+        setTimeout(() => {
+          if (shouldBeHidden.get(`${e.from}-${e.to}`)) {
+            hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
+          }
+        }, DETAILED_DEPENDENCIES_HIDE_DURATION);
       });
   }
 

@@ -51,6 +51,10 @@ text {
     font-size: 12px;
 }
 
+text.closeButton {
+    cursor: default;
+}
+
 /*padding between two circles*/
 .circle {
     padding: 10px;
