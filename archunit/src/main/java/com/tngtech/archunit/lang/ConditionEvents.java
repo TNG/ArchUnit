@@ -66,6 +66,17 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
         }
     }
 
+    /**
+     * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
+     * be filtered by the reified type of the given {@link ViolationHandler}. That is, if a
+     * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
+     * <code>SomeClass</code> will be reported. The term 'reified' means, that the type parameter
+     * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
+     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
+     *
+     * @param violationHandler The violation handler that is supposed to handle all violations matching the
+     *                         respective type parameter
+     */
     @PublicAPI(usage = ACCESS)
     public void handleViolations(ViolationHandler<?> violationHandler) {
         ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);

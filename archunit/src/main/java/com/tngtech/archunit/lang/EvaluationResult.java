@@ -16,10 +16,24 @@
 package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Represents the result of evaluating an {@link ArchRule} against some {@link JavaClasses}.
+ * To react to failures during evaluation of the rule, one can use {@link #handleViolations(ViolationHandler)}:
+ * <br><br>
+ * <pre><code>
+ * result.handleViolations(new ViolationHandler&lt;JavaAccess&lt;?&gt;&gt;() {
+ *     {@literal @}Override
+ *     public void handle(Collection&lt;JavaAccess&lt;?&gt;&gt; violatingObjects, String message) {
+ *         // do some reporting or react in any way to violation
+ *     }
+ * });
+ * </code></pre>
+ */
 public final class EvaluationResult {
     private final HasDescription rule;
     private final ConditionEvents events;
@@ -51,6 +65,9 @@ public final class EvaluationResult {
         }
     }
 
+    /**
+     * @see ConditionEvents#handleViolations(ViolationHandler)
+     */
     @PublicAPI(usage = ACCESS)
     public void handleViolations(ViolationHandler<?> violationHandler) {
         events.handleViolations(violationHandler);
