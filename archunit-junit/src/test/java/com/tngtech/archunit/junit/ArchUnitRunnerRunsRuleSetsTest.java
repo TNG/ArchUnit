@@ -23,7 +23,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.core.domain.TestUtils.invoke;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.ArchTestWithRuleLibrary.someOtherMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
@@ -32,6 +31,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
+import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -125,7 +125,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
 
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRuleLibrary {
-        public static final String someOtherMethodRuleName = "someOtherMethodRule";
+        static final String someOtherMethodRuleName = "someOtherMethodRule";
 
         @ArchTest
         public static final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
@@ -142,8 +142,8 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     public static class Rules {
-        public static final String someFieldRuleName = "someFieldRule";
-        public static final String someMethodRuleName = "someMethodRule";
+        static final String someFieldRuleName = "someFieldRule";
+        static final String someMethodRuleName = "someMethodRule";
 
         @ArchTest
         public static final ArchRule someFieldRule = all(classes())

@@ -14,6 +14,9 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
+import static com.tngtech.archunit.testutil.TestUtils.properties;
+import static com.tngtech.archunit.testutil.TestUtils.singleProperty;
+import static org.assertj.core.api.Assertions.entry;
 
 public class ArchConfigurationTest {
     private static final String PROPERTIES_FILE_NAME = "archconfigtest.properties";
@@ -89,6 +92,88 @@ public class ArchConfigurationTest {
         ArchConfiguration configuration = ArchConfiguration.get();
         configuration.setResolveMissingDependenciesFromClassPath(true);
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
+    }
+
+    @Test
+    public void can_set_extension_properties() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        configuration.setExtensionProperties("test", singleProperty("key", "value"));
+
+        assertThat(configuration.getExtensionProperties("test")).
+                containsOnly(entry("key", "value"));
+    }
+
+    @Test
+    public void set_extension_properties_are_copied() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        Properties properties = singleProperty("key", "value");
+        configuration.setExtensionProperties("test", properties);
+        properties.setProperty("key", "changed");
+
+        assertThat(configuration.getExtensionProperties("test")).
+                containsOnly(entry("key", "value"));
+    }
+
+    @Test
+    public void can_change_extension_properties() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        configuration.setExtensionProperties("test",
+                properties("one", "valueOne", "two", "valueTwo"));
+
+        configuration.configureExtension("test")
+                .setProperty("two", "changed")
+                .setProperty("three", "new");
+
+        assertThat(configuration.getExtensionProperties("test")).containsOnly(
+                entry("one", "valueOne"),
+                entry("two", "changed"),
+                entry("three", "new"));
+    }
+
+    @Test
+    public void if_no_extension_properties_are_found_empty_properties_are_returned() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        assertThat(configuration.getExtensionProperties("not-there")).isEmpty();
+    }
+
+    @Test
+    public void returned_properties_are_copied() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        String original = "value";
+        configuration.setExtensionProperties("test", singleProperty("key", original));
+
+        Properties retrievedProps = configuration.getExtensionProperties("test");
+        String changed = "changed";
+        retrievedProps.setProperty("key", changed);
+
+        assertThat(retrievedProps.getProperty("key")).isEqualTo(changed);
+        assertThat(configuration.getExtensionProperties("test").getProperty("key")).isEqualTo(original);
+    }
+
+    @Test
+    public void creates_extension_properties_from_prefix() {
+        writeProperties(ImmutableMap.of(
+                "extension.test-extension.enabled", true,
+                "extension.test-extension.some-prop", "some value",
+                "extension.test-extension.other_prop", 88,
+                "extension.other-extension.enabled", false,
+                "extension.other-extension.other-prop", "other value"
+        ));
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        Properties properties = configuration.getExtensionProperties("test-extension");
+        assertThat(properties).containsOnly(
+                entry("enabled", "true"), entry("some-prop", "some value"), entry("other_prop", "88"));
+
+        properties = configuration.getExtensionProperties("other-extension");
+        assertThat(properties).containsOnly(
+                entry("enabled", "false"), entry("other-prop", "other value"));
     }
 
     private void writeProperties(Map<String, ?> props) {

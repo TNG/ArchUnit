@@ -391,6 +391,30 @@ classResolver.args=com.tngtech.archunit.core,com.tngtech.archunit.base
 enableMd5InClassSources=true
 ```
 
+## Extending ArchUnit
+
+Besides extending the rule syntax itself, it's also possible, to extend the rule evaluation mechanism in a completely
+dynamic way. An use case could be to draw some diagrams of failed rules, or report failures to
+some custom system.
+
+ArchUnit uses the standard Java `ServiceLoader` mechanism. I.e. to register a custom extension, one has to add a
+class implementing `com.tngtech.archunit.lang.extension.ArchUnitExtension`, add a text file (in UTF-8) to the
+directory `/META-INF/services`, named 'com.tngtech.archunit.lang.extension.ArchUnitExtension' and add a line
+containing the fully qualified class name of the custom extension.
+
+Extensions can be configured via `archunit.properties`, in particular, only enabled extensions will be evaluated, i.e.
+
+```
+# this must be set to true, or the extension will never be called
+extension.my-custom-extension.enabled=true
+
+# All further properties will be passed to the custom extension during evaluation
+# In this case properties with a single entry 'my-prop'='someValue'
+extension.my-custom-extension.my-prop=someValue
+```
+
+Note that 'my-custom-extension' refers to the String returned by `extension.getUniqueIdentifier()`.
+
 ## License
 
 ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.

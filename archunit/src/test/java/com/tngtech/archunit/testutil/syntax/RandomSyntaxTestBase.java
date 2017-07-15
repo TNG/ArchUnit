@@ -32,8 +32,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.domain.TestUtils.invoke;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +46,7 @@ public abstract class RandomSyntaxTestBase {
     public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed, String... patternsExcludedFromDescription) {
         List<List<?>> result = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            SyntaxSpec spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, patternsExcludedFromDescription));
+            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, patternsExcludedFromDescription));
             result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
         }
         return result;
@@ -325,7 +325,7 @@ public abstract class RandomSyntaxTestBase {
                 .add(new SpecificParameterProvider(Class[].class) {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
-                        Class[] value = {String.class, Serializable.class};
+                        Class<?>[] value = {String.class, Serializable.class};
                         return new Parameter(value, "[" + value[0].getName() + ", " + value[1].getName() + "]");
                     }
                 })
@@ -443,7 +443,7 @@ public abstract class RandomSyntaxTestBase {
 
         private String simpleNameFrom(Object classOrString) {
             return Class.class.isAssignableFrom(classOrString.getClass())
-                    ? ((Class) classOrString).getSimpleName()
+                    ? ((Class<?>) classOrString).getSimpleName()
                     : ensureSimpleName((String) classOrString);
         }
 
@@ -543,7 +543,7 @@ public abstract class RandomSyntaxTestBase {
 
         private String createCallDetailsForClassArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
             List<String> simpleParamTypeNames = new ArrayList<>();
-            for (Class param : (Class[]) parameters.parameters.get(index).value) {
+            for (Class<?> param : (Class<?>[]) parameters.parameters.get(index).value) {
                 simpleParamTypeNames.add(param.getSimpleName());
             }
             return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
