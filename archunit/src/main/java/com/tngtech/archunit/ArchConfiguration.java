@@ -204,8 +204,8 @@ public final class ArchConfiguration {
         }
 
         @PublicAPI(usage = ACCESS)
-        public ExtensionProperties setProperty(String key, String value) {
-            properties.setProperty(key, value);
+        public ExtensionProperties setProperty(String key, Object value) {
+            properties.setProperty(key, String.valueOf(value));
             return this;
         }
     }

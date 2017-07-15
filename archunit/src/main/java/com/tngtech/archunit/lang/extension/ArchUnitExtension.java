@@ -51,7 +51,7 @@ public interface ArchUnitExtension {
     /**
      * Before calling {@link #handle(EvaluatedRule)}, ArchUnit will call this method, to pass configured
      * properties to the extension. Properties for an extension
-     * can be configured via <code>{@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>
+     * can be configured via <code>{@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>
      * (compare {@link ArchConfiguration}).
      * Extension properties are identified by prefixing each property to pass with
      * <pre><code>extension.${extension-id}</code></pre>

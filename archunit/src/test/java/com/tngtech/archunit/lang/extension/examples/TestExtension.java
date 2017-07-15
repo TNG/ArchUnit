@@ -44,4 +44,8 @@ public class TestExtension implements ArchUnitExtension {
     public EvaluatedRule getEvaluatedRule() {
         return evaluatedRule;
     }
+
+    public boolean wasNeverCalled() {
+        return configuredProperties == null && evaluatedRule == null;
+    }
 }
