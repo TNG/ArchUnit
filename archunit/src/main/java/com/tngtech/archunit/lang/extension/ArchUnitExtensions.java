@@ -50,6 +50,9 @@ public class ArchUnitExtensions {
         Properties extensionProperties = configuration.getExtensionProperties(extension.getUniqueIdentifier());
         if (isEnabled(extensionProperties)) {
             configureAndDispatch(extension, extensionProperties, evaluatedRule);
+        } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Extension '{}' is disabled, skipping... (to enable this extension, configure extension.{}.{}=true)",
+                    extension.getUniqueIdentifier(), extension.getUniqueIdentifier(), ENABLED_PROPERTY);
         }
     }
 
