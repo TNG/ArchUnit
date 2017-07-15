@@ -60,6 +60,11 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaClass getOriginClass() {
+        return originClass;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaClass getTargetClass() {
         return targetClass;
     }
