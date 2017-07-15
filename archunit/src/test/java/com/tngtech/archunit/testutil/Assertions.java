@@ -72,9 +72,9 @@ import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNCHRONIZED;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
-import static com.tngtech.archunit.core.domain.TestUtils.invoke;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
+import static com.tngtech.archunit.testutil.TestUtils.invoke;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {

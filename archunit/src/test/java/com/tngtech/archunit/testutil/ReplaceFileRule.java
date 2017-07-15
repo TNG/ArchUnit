@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.tngtech.archunit.core.domain.TestUtils;
 import org.junit.rules.ExternalResource;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -119,13 +118,13 @@ public class ReplaceFileRule extends ExternalResource {
 
         @Override
         public FileAction execute() {
-            dir.mkdir();
+            checkState(dir.mkdir());
             return this;
         }
 
         @Override
         public void revert() {
-            dir.delete();
+            checkState(dir.delete());
         }
     }
 
