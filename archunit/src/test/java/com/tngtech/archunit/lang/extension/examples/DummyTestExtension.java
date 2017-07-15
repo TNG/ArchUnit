@@ -6,9 +6,11 @@ import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
 
 public class DummyTestExtension implements ArchUnitExtension {
+    public static final String UNIQUE_IDENTIFIER = DummyTestExtension.class.getName();
+
     @Override
     public String getUniqueIdentifier() {
-        return getClass().getName();
+        return UNIQUE_IDENTIFIER;
     }
 
     @Override

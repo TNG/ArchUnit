@@ -20,17 +20,28 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 import com.google.common.base.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Suppliers.memoize;
 
 class ArchUnitExtensionLoader {
+    private static final Logger LOG = LoggerFactory.getLogger(ArchUnitExtensionLoader.class);
+
     private final Supplier<Iterable<ArchUnitExtension>> extensions = memoize(new Supplier<Iterable<ArchUnitExtension>>() {
         @Override
         public Iterable<ArchUnitExtension> get() {
             ServiceLoader<ArchUnitExtension> extensions = ServiceLoader.load(ArchUnitExtension.class);
+            log(extensions);
             checkIdentifiersNonNull(extensions);
             checkIdentifiersUnique(extensions);
             return extensions;
+        }
+
+        private void log(ServiceLoader<ArchUnitExtension> extensions) {
+            for (ArchUnitExtension extension : extensions) {
+                LOG.info("Loaded {} with id '{}'", ArchUnitExtension.class.getSimpleName(), extension.getUniqueIdentifier());
+            }
         }
 
         private void checkIdentifiersNonNull(Iterable<ArchUnitExtension> extensions) {

@@ -56,6 +56,7 @@ public class LogTestRule extends ExternalResource {
         }
 
         Assert.fail(String.format(
-                "Couldn't find any message with level %s that contains '%s'", level, messagePart));
+                "Couldn't find any message with level %s that contains '%s' in%n%s",
+                level, messagePart, logEvents));
     }
 }
