@@ -17,36 +17,32 @@ package com.tngtech.archunit.library.dependencies;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
-import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.GivenNamedSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
+import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldNotDependOnEachOtherIn;
 
-class GivenSlicesInternal implements GivenSlices, GivenConjunction<Slice>, SlicesShould {
+class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
     private final Slices.Transformer classesTransformer;
     private final PredicateAggregator<Slice> chosenSlices;
-    private final Optional<String> overriddenDescription;
 
     GivenSlicesInternal(Priority priority, Slices.Transformer classesTransformer) {
-        this(priority, classesTransformer, new PredicateAggregator<Slice>(), Optional.<String>absent());
+        this(priority, classesTransformer, new PredicateAggregator<Slice>());
     }
 
     private GivenSlicesInternal(Priority priority,
                                 Slices.Transformer classesTransformer,
-                                PredicateAggregator<Slice> chosenSlices,
-                                Optional<String> overriddenDescription) {
+                                PredicateAggregator<Slice> chosenSlices) {
         this.classesTransformer = classesTransformer;
         this.priority = priority;
-        this.overriddenDescription = overriddenDescription;
         this.chosenSlices = chosenSlices;
     }
 
@@ -61,7 +57,7 @@ class GivenSlicesInternal implements GivenSlices, GivenConjunction<Slice>, Slice
     }
 
     private GivenSlicesInternal givenWith(PredicateAggregator<Slice> predicate) {
-        return new GivenSlicesInternal(priority, classesTransformer, predicate, overriddenDescription);
+        return new GivenSlicesInternal(priority, classesTransformer, predicate);
     }
 
     @Override
@@ -75,17 +71,14 @@ class GivenSlicesInternal implements GivenSlices, GivenConjunction<Slice>, Slice
     }
 
     private Slices.Transformer finishClassesTransformer() {
-        Slices.Transformer finished = chosenSlices.isPresent() ?
+        return chosenSlices.isPresent() ?
                 classesTransformer.that(chosenSlices.get()) :
                 classesTransformer;
-        return overriddenDescription.isPresent() ?
-                finished.as(overriddenDescription.get()) :
-                finished;
     }
 
     @Override
     public GivenSlices as(String newDescription) {
-        return new GivenSlicesInternal(priority, classesTransformer, chosenSlices, Optional.of(newDescription));
+        return new GivenSlicesInternal(priority, classesTransformer.as(newDescription), chosenSlices);
     }
 
     /**
@@ -94,7 +87,7 @@ class GivenSlicesInternal implements GivenSlices, GivenConjunction<Slice>, Slice
     @Override
     @PublicAPI(usage = ACCESS)
     public GivenNamedSlices namingSlices(String pattern) {
-        return new GivenSlicesInternal(priority, classesTransformer.namingSlices(pattern), chosenSlices, overriddenDescription);
+        return new GivenSlicesInternal(priority, classesTransformer.namingSlices(pattern), chosenSlices);
     }
 
     @Override

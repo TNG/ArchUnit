@@ -4,9 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
 import org.junit.Test;
@@ -37,6 +39,24 @@ public class GivenSlicesTest {
                         .or(have(descriptionMatching(".*ir.*"))));
 
         assertThat(slices).extracting("description").containsOnly("Slice first", "Slice third");
+    }
+
+    @Test
+    public void restricting_slices_that_should_not_depend_on_each_other() {
+        GivenSlices givenSlices = slices().matching("..testclasses.(*)..");
+        JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.library.testclasses");
+
+        EvaluationResult result = givenSlices.that(DescribedPredicate.<Slice>alwaysFalse())
+                .and(DescribedPredicate.<Slice>alwaysTrue())
+                .should().notDependOnEachOther().evaluate(classes);
+
+        assertThat(result.hasViolation()).as("Result has violation").isFalse();
+
+        result = givenSlices.that(DescribedPredicate.<Slice>alwaysTrue())
+                .or(DescribedPredicate.<Slice>alwaysFalse())
+                .should().notDependOnEachOther().evaluate(classes);
+
+        assertThat(result.hasViolation()).as("Result has violation").isTrue();
     }
 
     private GivenSlices testSlices() {

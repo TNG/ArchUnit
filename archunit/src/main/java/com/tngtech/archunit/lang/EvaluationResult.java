@@ -72,4 +72,9 @@ public final class EvaluationResult {
     public void handleViolations(ViolationHandler<?> violationHandler) {
         events.handleViolations(violationHandler);
     }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean hasViolation() {
+        return events.containViolation();
+    }
 }

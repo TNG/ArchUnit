@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
@@ -43,10 +42,10 @@ public abstract class RandomSyntaxTestBase {
     protected static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
-    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed, String... patternsExcludedFromDescription) {
+    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed, DescriptionReplacement... replacements) {
         List<List<?>> result = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, patternsExcludedFromDescription));
+            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, replacements));
             result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
         }
         return result;
@@ -98,30 +97,44 @@ public abstract class RandomSyntaxTestBase {
         }
     }
 
+    protected interface DescriptionReplacement {
+        /**
+         * Can modify the list of tokens composing the current description in any way.
+         *
+         * @param currentToken       The description token to process
+         * @param currentDescription All collected description tokens so far
+         * @return true, if the token was already handled and should thus not be added to the description
+         */
+        boolean applyTo(String currentToken, List<String> currentDescription);
+    }
+
     private static class ExpectedDescription {
-        private final Set<Pattern> patternsToExclude;
+        private final List<DescriptionReplacement> descriptionReplacements;
         private final List<String> description = new ArrayList<>();
 
-        private ExpectedDescription(String[] patternsToExclude) {
-            ImmutableSet.Builder<Pattern> patterns = ImmutableSet.builder();
-            for (String p : patternsToExclude) {
-                patterns.add(Pattern.compile(p));
-            }
-            this.patternsToExclude = patterns.build();
+        private ExpectedDescription(DescriptionReplacement[] descriptionReplacements) {
+            this.descriptionReplacements = ImmutableList.copyOf(descriptionReplacements);
         }
 
-        public static ExpectedDescription from(RandomSyntaxSeed<?> seed, String[] patternsToExclude) {
+        public static ExpectedDescription from(RandomSyntaxSeed<?> seed, DescriptionReplacement[] patternsToExclude) {
             return new ExpectedDescription(patternsToExclude).add(seed.getDescription());
         }
 
         private ExpectedDescription add(String expected) {
-            for (Pattern pattern : patternsToExclude) {
-                if (pattern.matcher(expected).matches()) {
-                    return this;
-                }
-            }
+            boolean handled = false;
+            for (DescriptionReplacement replacement : descriptionReplacements) {
+                LOG.debug("Applying {}, token is \"{}\" and description so far {}",
+                        replacement, expected, description);
 
-            description.add(expected);
+                handled = handled || replacement.applyTo(expected, description);
+
+                LOG.debug("Applied {}, token is \"{}\" and description so far {}",
+                        replacement, expected, description);
+            }
+            if (!handled) {
+                description.add(expected);
+            }
+            LOG.debug("Expected description is now {}", description);
             return this;
         }
 
