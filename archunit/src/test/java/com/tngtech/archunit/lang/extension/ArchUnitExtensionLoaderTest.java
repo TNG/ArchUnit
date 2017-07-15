@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import com.tngtech.archunit.lang.extension.examples.DummyTestExtension;
 import com.tngtech.archunit.lang.extension.examples.TestExtension;
+import com.tngtech.archunit.lang.extension.examples.TestExtensionWithIllegalIdentifier;
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithNullIdentifier;
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithSameIdentifier;
 import com.tngtech.archunit.lang.extension.examples.YetAnotherDummyTestExtension;
@@ -74,6 +75,17 @@ public class ArchUnitExtensionLoaderTest {
         thrown.expectMessage("identifier");
         thrown.expectMessage("null");
         thrown.expectMessage(containingWord(TestExtensionWithNullIdentifier.class.getName()));
+        extensionLoader.getAll();
+    }
+
+    @Test
+    public void rejects_illegal_characters_in_extension_identifier() {
+        testServicesFile.addService(TestExtensionWithIllegalIdentifier.class);
+
+        thrown.expect(ExtensionLoadingException.class);
+        thrown.expectMessage("identifier");
+        thrown.expectMessage("'.'");
+        thrown.expectMessage(containingWord(TestExtensionWithIllegalIdentifier.class.getName()));
         extensionLoader.getAll();
     }
 

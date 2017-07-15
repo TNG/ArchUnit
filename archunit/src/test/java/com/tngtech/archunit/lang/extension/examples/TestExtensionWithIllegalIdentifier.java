@@ -5,10 +5,10 @@ import java.util.Properties;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
 
-public class YetAnotherDummyTestExtension implements ArchUnitExtension {
+public class TestExtensionWithIllegalIdentifier implements ArchUnitExtension {
     @Override
     public String getUniqueIdentifier() {
-        return getClass().getName().replace(".", "_");
+        return "illegal_because.of.dot";
     }
 
     @Override

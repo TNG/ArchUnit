@@ -34,6 +34,7 @@ class ArchUnitExtensionLoader {
             ServiceLoader<ArchUnitExtension> extensions = ServiceLoader.load(ArchUnitExtension.class);
             log(extensions);
             checkIdentifiersNonNull(extensions);
+            checkIdentifiersValid(extensions);
             checkIdentifiersUnique(extensions);
             return extensions;
         }
@@ -47,8 +48,16 @@ class ArchUnitExtensionLoader {
         private void checkIdentifiersNonNull(Iterable<ArchUnitExtension> extensions) {
             for (ArchUnitExtension extension : extensions) {
                 if (extension.getUniqueIdentifier() == null) {
-                    throw new ExtensionLoadingException(String.format(
-                            "Failed to load %s: Extension identifier must not be null", extension.getClass().getName()));
+                    throwLoadingException(extension, "Extension identifier must not be null");
+                }
+            }
+        }
+
+        private void checkIdentifiersValid(ServiceLoader<ArchUnitExtension> extensions) {
+            for (ArchUnitExtension extension : extensions) {
+                if (extension.getUniqueIdentifier().contains(".")) {
+                    throwLoadingException(extension,
+                            "Extension identifier '%s' must not contain '.'", extension.getUniqueIdentifier());
                 }
             }
         }
@@ -57,14 +66,19 @@ class ArchUnitExtensionLoader {
             Map<String, ArchUnitExtension> alreadyPresent = new HashMap<>();
             for (ArchUnitExtension extension : extensions) {
                 if (alreadyPresent.containsKey(extension.getUniqueIdentifier())) {
-                    throw new ExtensionLoadingException(String.format(
-                            "Failed to load %s: Extension identifiers must be unique, but %s also has identifier '%s'",
-                            extension.getClass().getName(),
-                            alreadyPresent.get(extension.getUniqueIdentifier()).getClass().getName(),
-                            extension.getUniqueIdentifier()));
+                    String presentExtensionName = alreadyPresent.get(extension.getUniqueIdentifier()).getClass().getName();
+                    throwLoadingException(extension,
+                            "Extension identifiers must be unique, but %s also has identifier '%s'",
+                            presentExtensionName, extension.getUniqueIdentifier());
                 }
                 alreadyPresent.put(extension.getUniqueIdentifier(), extension);
             }
+        }
+
+        private void throwLoadingException(ArchUnitExtension extension, String messageTemplate, Object... args) {
+            String loadingFailedMessage = String.format("Failed to load %s: ", extension.getClass().getName());
+            String details = String.format(messageTemplate, args);
+            throw new ExtensionLoadingException(loadingFailedMessage + details);
         }
     });
 
