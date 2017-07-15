@@ -3,6 +3,8 @@ package com.tngtech.archunit.testutil;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -49,8 +51,8 @@ public class LogTestRule extends ExternalResource {
     }
 
     public void assertLogMessage(Level level, String messagePart) {
-        for (LogEvent message : logEvents) {
-            if (level.equals(message.getLevel()) && message.getMessage().getFormattedMessage().contains(messagePart)) {
+        for (LogEvent event : filterByLevel(logEvents, level)) {
+            if (event.getMessage().getFormattedMessage().contains(messagePart)) {
                 return;
             }
         }
@@ -58,5 +60,26 @@ public class LogTestRule extends ExternalResource {
         Assert.fail(String.format(
                 "Couldn't find any message with level %s that contains '%s' in%n%s",
                 level, messagePart, logEvents));
+    }
+
+    public void assertException(Level level, Class<?> exceptionType, String messagePart) {
+        for (LogEvent event : filterByLevel(logEvents, level)) {
+            if (exceptionType.isInstance(event.getThrown()) && event.getThrown().getMessage().contains(messagePart)) {
+                return;
+            }
+        }
+
+        Assert.fail(String.format(
+                "Couldn't find any log event with level %s that contains a %s with message containing '%s' in%n%s",
+                level, exceptionType.getSimpleName(), messagePart, logEvents));
+    }
+
+    private Iterable<LogEvent> filterByLevel(List<LogEvent> events, final Level level) {
+        return FluentIterable.from(events).filter(new Predicate<LogEvent>() {
+            @Override
+            public boolean apply(LogEvent input) {
+                return input.getLevel().equals(level);
+            }
+        });
     }
 }

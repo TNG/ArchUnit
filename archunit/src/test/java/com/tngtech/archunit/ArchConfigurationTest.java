@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.testutil.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,6 +90,37 @@ public class ArchConfigurationTest {
         ArchConfiguration configuration = ArchConfiguration.get();
         configuration.setResolveMissingDependenciesFromClassPath(true);
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
+    }
+
+    @Test
+    public void can_set_extension_properties() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        configuration.setExtensionProperties("test", TestUtils.singleProperty("key", "value"));
+
+        assertThat(configuration.getExtensionProperties("test")).isEqualTo(TestUtils.singleProperty("key", "value"));
+    }
+
+    @Test
+    public void if_no_extension_properties_are_found_empty_properties_are_returned() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        assertThat(configuration.getExtensionProperties("not-there")).isEmpty();
+    }
+
+    @Test
+    public void returned_properties_are_copied() {
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        String original = "value";
+        configuration.setExtensionProperties("test", TestUtils.singleProperty("key", original));
+
+        Properties retrievedProps = configuration.getExtensionProperties("test");
+        String changed = "changed";
+        retrievedProps.setProperty("key", changed);
+
+        assertThat(retrievedProps.getProperty("key")).isEqualTo(changed);
+        assertThat(configuration.getExtensionProperties("test").getProperty("key")).isEqualTo(original);
     }
 
     private void writeProperties(Map<String, ?> props) {

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
@@ -63,6 +64,8 @@ public final class ArchConfiguration {
     private Optional<String> classResolver = Optional.absent();
     private List<String> classResolverArguments = Collections.emptyList();
     private boolean enableMd5InClassSources;
+
+    private final Map<String, Properties> extensionProperties = new ConcurrentHashMap<>();
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
@@ -142,6 +145,24 @@ public final class ArchConfiguration {
     @PublicAPI(usage = ACCESS)
     public void setClassResolverArguments(String... args) {
         classResolverArguments = ImmutableList.copyOf(args);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public void setExtensionProperties(String extensionIdentifier, Properties properties) {
+        extensionProperties.put(extensionIdentifier, properties);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Properties getExtensionProperties(String extensionIdentifier) {
+        return extensionProperties.containsKey(extensionIdentifier) ?
+                copy(extensionProperties.get(extensionIdentifier)) :
+                new Properties();
+    }
+
+    private Properties copy(Properties properties) {
+        Properties result = new Properties();
+        result.putAll(properties);
+        return result;
     }
 
     private String propertyOrDefault(Properties properties, String propertyName) {

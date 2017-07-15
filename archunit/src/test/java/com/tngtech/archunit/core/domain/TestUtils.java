@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core.domain;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -10,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import com.google.common.base.Suppliers;
@@ -26,18 +24,14 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.ImportTestUtils;
 import com.tngtech.archunit.core.importer.ImportTestUtils.ImportedTestClasses;
-import org.assertj.core.util.Files;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
-import static org.assertj.core.util.Files.temporaryFolderPath;
-import static org.assertj.core.util.Strings.concat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -45,32 +39,6 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
     public static final Md5sum MD5_SUM_DISABLED = Md5sum.DISABLED;
-
-    private static final Random random = new Random();
-
-    /**
-     * NOTE: The resolution of {@link Files#newTemporaryFolder()}, using {@link System#currentTimeMillis()}
-     * is not good enough and makes tests flaky.
-     */
-    public static File newTemporaryFolder() {
-        String folderName = "archtmp" + System.nanoTime() + random.nextLong();
-        File folder = new File(concat(temporaryFolderPath(), folderName));
-        if (folder.exists()) {
-            Files.delete(folder);
-        }
-        checkArgument(folder.mkdirs(), "Folder %s already exists", folder.getAbsolutePath());
-        folder.deleteOnExit();
-        return folder;
-    }
-
-    public static Object invoke(Method method, Object owner, Object... params) {
-        try {
-            method.setAccessible(true);
-            return method.invoke(owner, params);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static JavaMethod javaMethodViaReflection(Class<?> owner, String name, Class<?>... args) {
         return javaMethodViaReflection(javaClassViaReflection(owner), name, args);
