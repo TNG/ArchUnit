@@ -9,6 +9,8 @@ import com.tngtech.archunit.lang.extension.examples.TestExtension;
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithNullIdentifier;
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithSameIdentifier;
 import com.tngtech.archunit.lang.extension.examples.YetAnotherDummyTestExtension;
+import com.tngtech.archunit.testutil.LogTestRule;
+import org.apache.logging.log4j.Level;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -25,6 +27,8 @@ public class ArchUnitExtensionLoaderTest {
     public final TestServicesFile testServicesFile = new TestServicesFile();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final LogTestRule logTestRule = new LogTestRule();
 
     private ArchUnitExtensionLoader extensionLoader = new ArchUnitExtensionLoader();
 
@@ -84,6 +88,23 @@ public class ArchUnitExtensionLoaderTest {
         thrown.expectMessage(containingWord(TestExtension.class.getName()));
         thrown.expectMessage(containingWord(TestExtensionWithSameIdentifier.class.getName()));
         extensionLoader.getAll();
+    }
+
+    @Test
+    public void logs_discovered_extensions() {
+        testServicesFile.addService(TestExtension.class);
+        testServicesFile.addService(DummyTestExtension.class);
+
+        logTestRule.watch(ArchUnitExtensionLoader.class);
+
+        extensionLoader.getAll();
+
+        logTestRule.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(TestExtension.UNIQUE_IDENTIFIER));
+        logTestRule.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(DummyTestExtension.UNIQUE_IDENTIFIER));
+    }
+
+    private String expectedExtensionLoadedMessage(String identifier) {
+        return "Loaded " + ArchUnitExtension.class.getSimpleName() + " with id '" + identifier + "'";
     }
 
     private Matcher<String> containingWord(final String word) {
