@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.lang.extension;
 
+import java.util.Properties;
+
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import org.slf4j.Logger;
@@ -23,6 +25,8 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class ArchUnitExtensions {
     private static final Logger LOG = LoggerFactory.getLogger(ArchUnitExtensions.class);
+
+    private static final String ENABLED_PROPERTY = "enabled";
 
     private final ArchUnitExtensionLoader extensionLoader;
 
@@ -43,8 +47,19 @@ public class ArchUnitExtensions {
 
     private void dispatch(EvaluatedRule evaluatedRule, ArchUnitExtension extension) {
         ArchConfiguration configuration = ArchConfiguration.get();
+        Properties extensionProperties = configuration.getExtensionProperties(extension.getUniqueIdentifier());
+        if (isEnabled(extensionProperties)) {
+            configureAndDispatch(extension, extensionProperties, evaluatedRule);
+        }
+    }
+
+    private Boolean isEnabled(Properties extensionProperties) {
+        return Boolean.valueOf(extensionProperties.getProperty(ENABLED_PROPERTY, "false"));
+    }
+
+    private void configureAndDispatch(ArchUnitExtension extension, Properties extensionProperties, EvaluatedRule evaluatedRule) {
         try {
-            extension.configure(configuration.getExtensionProperties(extension.getUniqueIdentifier()));
+            extension.configure(extensionProperties);
             extension.handle(evaluatedRule);
         } catch (RuntimeException e) {
             LOG.warn(String.format("Error in extension '%s'", extension.getUniqueIdentifier()), e);
