@@ -17,20 +17,19 @@ package com.tngtech.archunit.library.dependencies.syntax;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
-import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
+import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.dependencies.Slice;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenNamedSlices extends GivenObjects<Slice>, CanOverrideDescription<GivenNamedSlices> {
+public interface GivenSlicesConjunction extends GivenConjunction<Slice> {
 
     @PublicAPI(usage = ACCESS)
     SlicesShould should();
 
     @Override
-    GivenNamedSlices as(String newDescription);
+    GivenSlicesConjunction and(DescribedPredicate<? super Slice> predicate);
 
     @Override
-    GivenSlicesConjunction that(DescribedPredicate<? super Slice> predicate);
+    GivenSlicesConjunction or(DescribedPredicate<? super Slice> predicate);
 }
