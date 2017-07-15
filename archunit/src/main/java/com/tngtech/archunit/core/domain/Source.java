@@ -35,9 +35,9 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * <b>NOTE</b>: Since the generation of md5 sums has a performance impact, it is disabled by default.<br>
  * To enable it, add
  * <br><br><code>
- * {@value com.tngtech.archunit.ArchConfiguration#ENABLE_MD5_IN_CLASS_SOURCES}=true
+ * {@value ArchConfiguration#ENABLE_MD5_IN_CLASS_SOURCES}=true
  * </code><br><br>
- * to your <code>{@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>.
+ * to your <code>{@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>.
  * </p>
  */
 public class Source {

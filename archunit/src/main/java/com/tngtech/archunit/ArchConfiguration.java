@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
@@ -33,6 +35,9 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Allows access to configured properties in {@value ARCHUNIT_PROPERTIES_RESOURCE_NAME}.
+ */
 public final class ArchConfiguration {
     @Internal // {@value ...} doesn't work on non public constants outside of the package
     public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
@@ -41,6 +46,7 @@ public final class ArchConfiguration {
     static final String CLASS_RESOLVER_ARGS = "classResolver.args";
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
+    private static final Pattern EXTENSION_PROP___GROUP_ONE_ID_GROUP_TWO_KEY = Pattern.compile("^extension\\.([^.]+)\\.(.+)");
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
             RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, "" + false,
@@ -110,6 +116,20 @@ public final class ArchConfiguration {
                 .splitToList(properties.getProperty(CLASS_RESOLVER_ARGS, ""));
         enableMd5InClassSources = Boolean.valueOf(
                 propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
+
+        parseExtensionProperties(properties);
+    }
+
+    private void parseExtensionProperties(Properties properties) {
+        for (String key : properties.stringPropertyNames()) {
+            Matcher matcher = EXTENSION_PROP___GROUP_ONE_ID_GROUP_TWO_KEY.matcher(key);
+            if (matcher.matches()) {
+                String extensionId = matcher.group(1);
+                String extensionPropertyKey = matcher.group(2);
+                String extensionPropertyValue = properties.getProperty(key);
+                configureExtension(extensionId).setProperty(extensionPropertyKey, extensionPropertyValue);
+            }
+        }
     }
 
     @PublicAPI(usage = ACCESS)
@@ -149,7 +169,7 @@ public final class ArchConfiguration {
 
     @PublicAPI(usage = ACCESS)
     public void setExtensionProperties(String extensionIdentifier, Properties properties) {
-        extensionProperties.put(extensionIdentifier, properties);
+        extensionProperties.put(extensionIdentifier, copy(properties));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -157,6 +177,13 @@ public final class ArchConfiguration {
         return extensionProperties.containsKey(extensionIdentifier) ?
                 copy(extensionProperties.get(extensionIdentifier)) :
                 new Properties();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public ExtensionProperties configureExtension(String extensionIdentifier) {
+        Properties properties = getExtensionProperties(extensionIdentifier);
+        extensionProperties.put(extensionIdentifier, properties);
+        return new ExtensionProperties(properties);
     }
 
     private Properties copy(Properties properties) {
@@ -167,5 +194,19 @@ public final class ArchConfiguration {
 
     private String propertyOrDefault(Properties properties, String propertyName) {
         return properties.getProperty(propertyName, PROPERTY_DEFAULTS.get(propertyName));
+    }
+
+    public static final class ExtensionProperties {
+        private final Properties properties;
+
+        private ExtensionProperties(Properties properties) {
+            this.properties = properties;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public ExtensionProperties setProperty(String key, String value) {
+            properties.setProperty(key, value);
+            return this;
+        }
     }
 }

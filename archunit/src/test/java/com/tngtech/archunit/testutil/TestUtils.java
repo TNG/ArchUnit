@@ -43,4 +43,12 @@ public class TestUtils {
         result.setProperty(key, value);
         return result;
     }
+
+    public static Properties properties(String... keyValues) {
+        Properties result = new Properties();
+        for (int i = 0; i < keyValues.length; i += 2) {
+            result.setProperty(keyValues[i], keyValues[i + 1]);
+        }
+        return result;
+    }
 }
