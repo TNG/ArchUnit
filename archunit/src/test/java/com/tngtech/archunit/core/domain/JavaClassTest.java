@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import org.assertj.core.api.AbstractBooleanAssert;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
@@ -30,10 +31,10 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,10 +49,10 @@ public class JavaClassTest {
         assertThat(javaClass.getMethods()).hasSize(2);
 
         for (JavaField field : javaClass.getFields()) {
-            assertThat(field.getOwner()).isSameAs(javaClass);
+            org.assertj.core.api.Assertions.assertThat(field.getOwner()).isSameAs(javaClass);
         }
         for (JavaCodeUnit method : javaClass.getCodeUnits()) {
-            assertThat(method.getOwner()).isSameAs(javaClass);
+            Assertions.assertThat(method.getOwner()).isSameAs(javaClass);
         }
     }
 
@@ -235,6 +236,28 @@ public class JavaClassTest {
                         value.getParameters().getNames().equals(ImmutableList.of(paramType.getName()));
             }
         };
+    }
+
+    @Test
+    public void dependencies() {
+        JavaClass javaClass = importClasses(ADependingOnB.class, B.class).get(ADependingOnB.class);
+
+        Dependency dependency = getDependencyToB(javaClass.getDirectDependencies());
+
+        assertThat(dependency.getOriginClass()).matches(ADependingOnB.class);
+        assertThat(dependency.getTargetClass()).matches(B.class);
+        assertThat(dependency.getDescription())
+                .contains(ADependingOnB.class.getName())
+                .contains(B.class.getName());
+    }
+
+    private Dependency getDependencyToB(Set<Dependency> dependencies) {
+        for (Dependency dependency : dependencies) {
+            if (dependency.getTargetClass().isEquivalentTo(B.class)) {
+                return dependency;
+            }
+        }
+        throw new AssertionError("Couldn't find any dependency to B");
     }
 
     @Test
@@ -448,13 +471,13 @@ public class JavaClassTest {
         }
 
         private class FromEvaluation extends Evaluation<FromEvaluation> {
-            public Evaluation to(Class<?> toType) {
+            public FromEvaluation to(Class<?> toType) {
                 return evaluationToType(toType);
             }
         }
 
         private class ToEvaluation extends Evaluation<ToEvaluation> {
-            public Evaluation from(Class<?> fromType) {
+            public ToEvaluation from(Class<?> fromType) {
                 return evaluationToType(fromType);
             }
         }
@@ -465,13 +488,17 @@ public class JavaClassTest {
             private final Set<Class<?>> additionalTypes = new HashSet<>();
 
             // NOTE: We need all the classes in the context to create realistic hierarchies
-            @SuppressWarnings("unchecked")
             SELF via(Class<?> type) {
                 additionalTypes.add(type);
+                return self();
+            }
+
+            @SuppressWarnings("unchecked")
+            private SELF self() {
                 return (SELF) this;
             }
 
-            Evaluation evaluationToType(Class<?> secondType) {
+            SELF evaluationToType(Class<?> secondType) {
                 Class<?>[] types = ImmutableSet.<Class<?>>builder()
                         .addAll(additionalTypes).add(firstType).add(secondType)
                         .build().toArray(new Class<?>[0]);
@@ -480,7 +507,7 @@ public class JavaClassTest {
                     assignableAssertion.add(assertThat(predicate.apply(javaClass))
                             .as(message + secondType.getSimpleName()));
                 }
-                return this;
+                return self();
             }
 
             public void isTrue() {
@@ -597,5 +624,16 @@ public class JavaClassTest {
         String interfaceField = "foo";
 
         void parentMethod();
+    }
+
+    private static class ADependingOnB {
+        public ADependingOnB(B b) {
+            b.call();
+        }
+    }
+
+    private static class B {
+        void call() {
+        }
     }
 }
