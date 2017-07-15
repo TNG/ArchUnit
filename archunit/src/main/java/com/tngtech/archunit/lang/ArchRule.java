@@ -29,6 +29,8 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
+import com.tngtech.archunit.lang.extension.ArchUnitExtensions;
+import com.tngtech.archunit.lang.extension.EvaluatedRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
@@ -65,10 +67,19 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
     @PublicAPI(usage = ACCESS)
     final class Assertions {
+        private static final ArchUnitExtensions extensions = new ArchUnitExtensions();
+
         private Assertions() {
         }
 
         static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
+
+        @PublicAPI(usage = ACCESS)
+        public static void check(ArchRule rule, JavaClasses classes) {
+            EvaluationResult result = rule.evaluate(classes);
+            extensions.dispatch(new SimpleEvaluatedRule(rule, classes, result));
+            assertNoViolation(result);
+        }
 
         @PublicAPI(usage = ACCESS)
         public static void assertNoViolation(EvaluationResult result) {
@@ -116,6 +127,33 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             }
             return result.build();
         }
+
+        private static class SimpleEvaluatedRule implements EvaluatedRule {
+            private final ArchRule rule;
+            private final JavaClasses importedClasses;
+            private final EvaluationResult evaluationResult;
+
+            SimpleEvaluatedRule(ArchRule rule, JavaClasses importedClasses, EvaluationResult evaluationResult) {
+                this.rule = rule;
+                this.importedClasses = importedClasses;
+                this.evaluationResult = evaluationResult;
+            }
+
+            @Override
+            public ArchRule getRule() {
+                return rule;
+            }
+
+            @Override
+            public JavaClasses getClasses() {
+                return importedClasses;
+            }
+
+            @Override
+            public EvaluationResult getResult() {
+                return evaluationResult;
+            }
+        }
     }
 
     @Internal
@@ -149,8 +187,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
             @Override
             public void check(JavaClasses classes) {
-                EvaluationResult result = evaluate(classes);
-                Assertions.assertNoViolation(result);
+                Assertions.check(this, classes);
             }
 
             @Override

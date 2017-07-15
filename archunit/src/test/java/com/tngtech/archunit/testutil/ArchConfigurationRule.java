@@ -13,6 +13,7 @@ public class ArchConfigurationRule extends ExternalResource {
 
     @Override
     protected void before() throws Throwable {
+        ArchConfiguration.get().reset();
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(resolveMissingDependenciesFromClassPath);
     }
 

@@ -9,7 +9,7 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import com.tngtech.archunit.core.domain.TestUtils;
+import com.tngtech.archunit.testutil.TestUtils;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 
