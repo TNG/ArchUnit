@@ -95,10 +95,14 @@ public class ArchUnitExtensionsTest {
 
         when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));
 
+        logTestRule.watch(ArchUnitExtensions.class);
+
         extensions.dispatch(evaluatedRule);
 
         assertThat(extensionOne.wasNeverCalled()).as("Extension 'one' was never called").isTrue();
         assertThat(extensionTwo.wasNeverCalled()).as("Extension 'two' was never called").isFalse();
+        logTestRule.assertLogMessage(Level.DEBUG,
+                "Extension 'one' is disabled, skipping... (to enable this extension, configure extension.one.enabled=true)");
     }
 
     @Test

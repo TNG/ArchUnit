@@ -22,6 +22,7 @@ public class LogTestRule extends ExternalResource {
 
     private final List<LogEvent> logEvents = new ArrayList<>();
     private Class<?> loggerClass;
+    private Level oldLevel;
 
     public void watch(Class<?> loggerClass) {
         this.loggerClass = loggerClass;
@@ -35,6 +36,8 @@ public class LogTestRule extends ExternalResource {
         };
         appender.start();
         LoggerConfig loggerConfig = config.getLoggerConfig(loggerClass.getName());
+        oldLevel = loggerConfig.getLevel();
+        loggerConfig.setLevel(Level.ALL);
         loggerConfig.addAppender(appender, Level.ALL, null);
         ctx.updateLoggers();
     }
@@ -46,7 +49,9 @@ public class LogTestRule extends ExternalResource {
         }
 
         final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        ctx.getConfiguration().getLoggerConfig(loggerClass.getName()).removeAppender(APPENDER_NAME);
+        LoggerConfig loggerConfig = ctx.getConfiguration().getLoggerConfig(loggerClass.getName());
+        loggerConfig.setLevel(oldLevel);
+        loggerConfig.removeAppender(APPENDER_NAME);
         ctx.updateLoggers();
     }
 
