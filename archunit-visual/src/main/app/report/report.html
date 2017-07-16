@@ -188,13 +188,7 @@
           finished = false;
           if (graph.changeFoldStateOfNode(d)) {
             visualizer.update(graph);
-            let numberOfAnimations = 3;
-            updateVisualization(() => {
-              numberOfAnimations--;
-              if (!numberOfAnimations) {
-                finished = true;
-              }
-            });
+            updateVisualization(() => finished = true);
           }
         }
       });
@@ -411,9 +405,21 @@
   }
 
   function updateVisualization(onAnimationEnd) {
+    // FIXME: Passing undefined around as function is bad practice, too
+    let countDownLatchOnAnimationEnd;
+    if (onAnimationEnd) {
+      let numberOfAnimations = 3;
+      countDownLatchOnAnimationEnd = () => {
+        numberOfAnimations--;
+        if (!numberOfAnimations) {
+          onAnimationEnd();
+        }
+      };
+    }
+
     adaptSVGSize();
-    updateNodes(onAnimationEnd);
-    updateEdges(onAnimationEnd);
+    updateNodes(countDownLatchOnAnimationEnd);
+    updateEdges(countDownLatchOnAnimationEnd);
   }
 
   function setPositionAndRadius(selection) {
