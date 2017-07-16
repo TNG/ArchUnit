@@ -14,13 +14,8 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -36,18 +31,10 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class GivenClassesThatTest {
-
-    @Rule
-    public final MockitoRule rule = MockitoJUnit.rule();
-
-    @Mock
-    private ArchCondition<JavaClass> condition;
-
-    @Captor
-    private ArgumentCaptor<JavaClass> classesCaptor;
 
     @Test
     public void haveFullyQualifiedName() {
@@ -469,10 +456,15 @@ public class GivenClassesThatTest {
 
         public List<JavaClass> on(Class<?>... toCheck) {
             JavaClasses classes = javaClassesViaReflection(toCheck);
+            ArchCondition<JavaClass> condition = spy(new ArchCondition<JavaClass>("ignored") {
+                @Override
+                public void check(JavaClass item, ConditionEvents events) {
+                }
+            });
             givenClasses.should(condition).check(classes);
 
+            ArgumentCaptor<JavaClass> classesCaptor = ArgumentCaptor.forClass(JavaClass.class);
             verify(condition, atLeast(0)).check(classesCaptor.capture(), any(ConditionEvents.class));
-
             return classesCaptor.getAllValues();
         }
     }
