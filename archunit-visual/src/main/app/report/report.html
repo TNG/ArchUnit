@@ -182,24 +182,25 @@
 
     let finished = true;
     nodes
-      .filter(d => !d.isRoot())
+      .filter(d => !d.isRoot() && !d.isLeaf())
       .on('click', d => {
-        if (!d.isLeaf()) {
-          if (finished) {
-            finished = false;
-            if (graph.changeFoldStateOfNode(d)) {
-              visualizer.update(graph);
-              let numberOfAnimations = 3;
-              updateVisualization(() => {
-                numberOfAnimations--;
-                if (!numberOfAnimations) {
-                  finished = true;
-                }
-              });
-            }
+        if (finished) {
+          finished = false;
+          if (graph.changeFoldStateOfNode(d)) {
+            visualizer.update(graph);
+            let numberOfAnimations = 3;
+            updateVisualization(() => {
+              numberOfAnimations--;
+              if (!numberOfAnimations) {
+                finished = true;
+              }
+            });
           }
         }
-      })
+      });
+
+    nodes
+      .filter(d => !d.isRoot())
       .call(drag);
 
     nodes
