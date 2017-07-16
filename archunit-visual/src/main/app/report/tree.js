@@ -161,8 +161,8 @@ let Node = class {
       boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
       boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
     let pkgFilter =
-        c => (c.getType() === nodeKinds.package) &&
-        boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
+      c => (c.getType() === nodeKinds.package) &&
+      boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
     reapplyFilters(this, this._filters);
   }
