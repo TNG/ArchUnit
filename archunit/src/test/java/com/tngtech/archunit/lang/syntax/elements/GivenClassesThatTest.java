@@ -27,6 +27,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static org.mockito.Matchers.any;
@@ -206,8 +207,24 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areAnnotatedWith_type_inverse() {
+        List<JavaClass> classes = filterResultOf(noClasses().that().areNotAnnotatedWith(SomeAnnotation.class))
+                .on(AnnotatedClass.class, SimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(AnnotatedClass.class);
+    }
+
+    @Test
     public void areNotAnnotatedWith_type() {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(SomeAnnotation.class))
+                .on(AnnotatedClass.class, SimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(SimpleClass.class);
+    }
+
+    @Test
+    public void areNotAnnotatedWith_type_usingNoClasses() {
+        List<JavaClass> classes = filterResultOf(noClasses().that().areAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(SimpleClass.class);

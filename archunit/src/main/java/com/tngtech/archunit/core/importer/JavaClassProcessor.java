@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -250,6 +251,9 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Found annotations {} on class '{}'", annotations.stream().map(a -> a.getJavaType().getName()).collect(Collectors.joining(", ", "[", "]")), this.className);
+        }
         declarationHandler.onDeclaredAnnotations(annotations);
         LOG.debug("Done analysing {}", className);
     }
