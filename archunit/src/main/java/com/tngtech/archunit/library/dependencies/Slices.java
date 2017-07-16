@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -118,25 +119,25 @@ public final class Slices implements DescribedIterable<Slice> {
         private final String packageIdentifier;
         private final String description;
         private final Optional<String> namingPattern;
-        private final PredicateAggregator<Slice> predicate;
+        private final SlicesPredicateAggregator predicate;
 
-        private Transformer(String packageIdentifier, String description) {
-            this(packageIdentifier, description, new PredicateAggregator<Slice>());
+        Transformer(String packageIdentifier, String description) {
+            this(packageIdentifier, description, new SlicesPredicateAggregator("that"));
         }
 
-        private Transformer(String packageIdentifier, String description, PredicateAggregator<Slice> predicate) {
+        private Transformer(String packageIdentifier, String description, SlicesPredicateAggregator predicate) {
             this(packageIdentifier, description, Optional.<String>absent(), predicate);
         }
 
         private Transformer(String packageIdentifier,
                             String description,
                             Optional<String> namingPattern,
-                            PredicateAggregator<Slice> predicate) {
+                            SlicesPredicateAggregator predicate) {
 
             this.packageIdentifier = checkNotNull(packageIdentifier);
             this.description = checkNotNull(description);
             this.namingPattern = checkNotNull(namingPattern);
-            this.predicate = checkNotNull(predicate);
+            this.predicate = predicate;
         }
 
         /**
@@ -152,7 +153,7 @@ public final class Slices implements DescribedIterable<Slice> {
 
         @Override
         public Transformer as(String description) {
-            return new Transformer(packageIdentifier, description).namingSlices(namingPattern);
+            return new Transformer(packageIdentifier, description, predicate).namingSlices(namingPattern);
         }
 
         public Slices of(JavaClasses classes) {
@@ -166,24 +167,72 @@ public final class Slices implements DescribedIterable<Slice> {
         @Override
         public Slices transform(JavaClasses classes) {
             Slices slices = new Creator(classes).matching(packageIdentifier);
-            if (predicate.isPresent()) {
-                slices = new Slices(Guava.Iterables.filter(slices, predicate.get()));
-            }
             if (namingPattern.isPresent()) {
                 slices.namingSlices(namingPattern.get());
+            }
+            if (predicate.isPresent()) {
+                slices = new Slices(Guava.Iterables.filter(slices, predicate.get()));
             }
             return slices.as(getDescription());
         }
 
         @Override
         public Slices.Transformer that(final DescribedPredicate<? super Slice> predicate) {
-            String newDescription = getDescription() + " that " + predicate.getDescription();
+            String newDescription = this.predicate.joinDescription(getDescription(), predicate.getDescription());
             return new Transformer(packageIdentifier, newDescription, namingPattern, this.predicate.add(predicate));
         }
 
         @Override
         public String getDescription() {
             return description;
+        }
+
+        Transformer thatANDsPredicates() {
+            return new Transformer(packageIdentifier, description, namingPattern, predicate.thatANDs());
+        }
+
+        Transformer thatORsPredicates() {
+            return new Transformer(packageIdentifier, description, namingPattern, predicate.thatORs());
+        }
+    }
+
+    // Since Slices can be renamed with 'as' in the middle (e.g. slices().that(foo).as("bar").should()... -> "bar should")
+    // we need this workaround for now
+    private static class SlicesPredicateAggregator {
+        private final PredicateAggregator<Slice> predicate;
+        private final String descriptionJoinWord;
+
+        SlicesPredicateAggregator(String descriptionJoinWord) {
+            this(new PredicateAggregator<Slice>(), descriptionJoinWord);
+        }
+
+        private SlicesPredicateAggregator(PredicateAggregator<Slice> predicate, String descriptionJoinWord) {
+            this.predicate = checkNotNull(predicate);
+            this.descriptionJoinWord = checkNotNull(descriptionJoinWord);
+        }
+
+        boolean isPresent() {
+            return predicate.isPresent();
+        }
+
+        DescribedPredicate<Slice> get() {
+            return predicate.get();
+        }
+
+        SlicesPredicateAggregator add(DescribedPredicate<? super Slice> predicate) {
+            return new SlicesPredicateAggregator(this.predicate.add(predicate), descriptionJoinWord);
+        }
+
+        SlicesPredicateAggregator thatANDs() {
+            return new SlicesPredicateAggregator(predicate.thatANDs(), "and");
+        }
+
+        SlicesPredicateAggregator thatORs() {
+            return new SlicesPredicateAggregator(predicate.thatORs(), "or");
+        }
+
+        String joinDescription(String first, String second) {
+            return Joiner.on(" ").join(first, descriptionJoinWord, second);
         }
     }
 
