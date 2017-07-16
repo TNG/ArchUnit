@@ -32,4 +32,7 @@ public interface GivenSlicesConjunction extends GivenConjunction<Slice> {
 
     @Override
     GivenSlicesConjunction or(DescribedPredicate<? super Slice> predicate);
+
+    @PublicAPI(usage = ACCESS)
+    GivenSlicesConjunction as(String description);
 }

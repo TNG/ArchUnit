@@ -1,5 +1,6 @@
 package com.tngtech.archunit.example.controller.one;
 
+import com.tngtech.archunit.example.controller.three.UseCaseThreeController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 
 public class UseCaseOneController {
@@ -8,5 +9,6 @@ public class UseCaseOneController {
 
     public void doSomethingOne() {
         new UseCaseTwoController().doSomethingTwo();
+        new UseCaseThreeController().doSomethingThree();
     }
 }

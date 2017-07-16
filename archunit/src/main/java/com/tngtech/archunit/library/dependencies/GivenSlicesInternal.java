@@ -20,65 +20,51 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.Priority;
-import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 import com.tngtech.archunit.library.dependencies.syntax.GivenNamedSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldNotDependOnEachOtherIn;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
     private final Slices.Transformer classesTransformer;
-    private final PredicateAggregator<Slice> chosenSlices;
 
     GivenSlicesInternal(Priority priority, Slices.Transformer classesTransformer) {
-        this(priority, classesTransformer, new PredicateAggregator<Slice>());
-    }
-
-    private GivenSlicesInternal(Priority priority,
-                                Slices.Transformer classesTransformer,
-                                PredicateAggregator<Slice> chosenSlices) {
-        this.classesTransformer = classesTransformer;
-        this.priority = priority;
-        this.chosenSlices = chosenSlices;
+        this.classesTransformer = checkNotNull(classesTransformer);
+        this.priority = checkNotNull(priority);
     }
 
     @Override
     public ArchRule should(ArchCondition<Slice> condition) {
-        return ArchRule.Factory.create(finishClassesTransformer(), condition, priority);
+        return ArchRule.Factory.create(classesTransformer, condition, priority);
     }
 
     @Override
     public GivenSlicesInternal that(DescribedPredicate<? super Slice> predicate) {
-        return givenWith(chosenSlices.add(predicate));
-    }
-
-    private GivenSlicesInternal givenWith(PredicateAggregator<Slice> predicate) {
-        return new GivenSlicesInternal(priority, classesTransformer, predicate);
+        return givenWith(classesTransformer.that(predicate));
     }
 
     @Override
     public GivenSlicesInternal and(DescribedPredicate<? super Slice> predicate) {
-        return givenWith(chosenSlices.thatANDs().add(predicate));
+        return givenWith(classesTransformer.thatANDsPredicates().that(predicate));
     }
 
     @Override
     public GivenSlicesInternal or(DescribedPredicate<? super Slice> predicate) {
-        return givenWith(chosenSlices.thatORs().add(predicate));
+        return givenWith(classesTransformer.thatORsPredicates().that(predicate));
     }
 
-    private Slices.Transformer finishClassesTransformer() {
-        return chosenSlices.isPresent() ?
-                classesTransformer.that(chosenSlices.get()) :
-                classesTransformer;
+    private GivenSlicesInternal givenWith(Slices.Transformer transformer) {
+        return new GivenSlicesInternal(priority, transformer);
     }
 
     @Override
-    public GivenSlices as(String newDescription) {
-        return new GivenSlicesInternal(priority, classesTransformer.as(newDescription), chosenSlices);
+    public GivenSlicesInternal as(String newDescription) {
+        return givenWith(classesTransformer.as(newDescription));
     }
 
     /**
@@ -87,7 +73,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     @Override
     @PublicAPI(usage = ACCESS)
     public GivenNamedSlices namingSlices(String pattern) {
-        return new GivenSlicesInternal(priority, classesTransformer.namingSlices(pattern), chosenSlices);
+        return new GivenSlicesInternal(priority, classesTransformer.namingSlices(pattern));
     }
 
     @Override
@@ -104,6 +90,6 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     @Override
     @PublicAPI(usage = ACCESS)
     public ArchRule notDependOnEachOther() {
-        return slicesShouldNotDependOnEachOtherIn(finishClassesTransformer());
+        return slicesShouldNotDependOnEachOtherIn(classesTransformer);
     }
 }

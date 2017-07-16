@@ -39,8 +39,9 @@ public abstract class ArchCondition<T> {
     }
 
     /**
-     * Can be used to prepare this condition with respect to the collection of all objects the condition
-     * will be tested against.
+     * Can be used/overridden to prepare this condition with respect to the collection of all objects the condition
+     * will be tested against.<br>
+     * ArchUnit will call this method once in the beginning, before starting to check single items.
      *
      * @param allObjectsToTest All objects that {@link #check(Object, ConditionEvents)} will be called against
      */
