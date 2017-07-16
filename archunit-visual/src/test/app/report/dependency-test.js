@@ -4,7 +4,7 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator.js");
 
-const createDependencyBuilder = require("../../../main/app/report/dependency.js").buildDependency;
+const createDependencyBuilder = require('./main-files').get('dependency').buildDependency;
 let buildDependency;
 
 const CodeElement = {

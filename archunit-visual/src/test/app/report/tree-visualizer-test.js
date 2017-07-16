@@ -15,7 +15,7 @@ const visualizationStyles = {
   getCirclePadding: () => CIRCLE_PADDING
 };
 
-const treeVisualizer = require("../../../main/app/report/tree-visualizer").newInstance({
+const treeVisualizer = require('./main-files').get('tree-visualizer').newInstance({
   calculateTextWidth,
   visualizationStyles
 });

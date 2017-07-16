@@ -4,7 +4,7 @@ const expect = require("chai").expect;
 require('./chai/tree-chai-extensions');
 
 const testJson = require("./test-json-creator");
-const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
+const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
 const testObjects = require("./test-object-creator.js");
 
 describe("Node", () => {

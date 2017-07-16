@@ -1,8 +1,8 @@
 'use strict';
 const testJson = require("./test-json-creator");
 
-const jsonToRoot = require("../../../main/app/report/tree.js").jsonToRoot;
-const jsonToGraph = require("../../../main/app/report/graph.js").jsonToGraph;
+const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
+const jsonToGraph = require('./main-files').get('graph').jsonToGraph;
 
 let testTree1 = () => {
   let simpleJsonTree = testJson.package("com.tngtech")

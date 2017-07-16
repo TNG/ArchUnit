@@ -3,7 +3,7 @@
 require('./chai/vectors-chai-extensions');
 const expect = require("chai").expect;
 
-const vectors = require("../../../main/app/report/vectors.js").vectors;
+const vectors = require('./main-files').get('vectors').vectors;
 
 describe("vectors", () => {
   const vector1 = {

@@ -1,6 +1,6 @@
 'use strict';
 
-const visualizationStyles = require("../../../main/app/report/visualization-styles");
+const visualizationStyles = require('./main-files').get('visualization-styles');
 const expect = require("chai").expect;
 
 const NODE_TEXT_STYLE_SELECTOR = '.node text';

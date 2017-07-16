@@ -16,7 +16,7 @@ const RELATIVE_TEXT_POSITION = 0.8;
 const CIRCLE_PADDING = 10;
 
 // FIXME: Why can I pass an empty config, and still assertions of CIRCLE_PADDING pass?? --> the assertion does not pass, but the test is ignored, I don't no why...
-const visualizer = require("../../../main/app/report/graph-visualizer.js").newInstance({
+const visualizer = require('./main-files').get('graph-visualizer').newInstance({
   calculateTextWidth: calculateTextWidth,
   visualizationStyles: {
     getCirclePadding: () => CIRCLE_PADDING
