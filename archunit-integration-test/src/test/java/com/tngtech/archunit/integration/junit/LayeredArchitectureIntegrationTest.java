@@ -1,7 +1,7 @@
 package com.tngtech.archunit.integration.junit;
 
 import com.tngtech.archunit.example.SomeMediator;
-import com.tngtech.archunit.example.controller.one.UseCaseOneController;
+import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
@@ -51,7 +51,7 @@ public class LayeredArchitectureIntegrationTest {
                         .inLine(13))
 
                 .byAccess(from(ServiceViolatingLayerRules.class, "illegalAccessToController")
-                        .getting().field(UseCaseOneController.class, "someString")
+                        .getting().field(UseCaseOneTwoController.class, "someString")
                         .inLine(11));
     }
 }

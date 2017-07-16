@@ -1,7 +1,7 @@
 package com.tngtech.archunit.integration;
 
 import com.tngtech.archunit.example.SomeMediator;
-import com.tngtech.archunit.example.controller.one.UseCaseOneController;
+import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
@@ -13,7 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.tngtech.archunit.example.SomeMediator.violateLayerRulesIndirectly;
-import static com.tngtech.archunit.example.controller.one.UseCaseOneController.someString;
+import static com.tngtech.archunit.example.controller.one.UseCaseOneTwoController.someString;
 import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
 import static com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService.violateLayerRules;
 import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToController;
@@ -37,7 +37,7 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
         expectsViolations.ofRule("no classes that reside in a package '..service..' " +
                 "should access classes that reside in a package '..controller..'")
                 .byAccess(from(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .getting().field(UseCaseOneController.class, someString)
+                        .getting().field(UseCaseOneTwoController.class, someString)
                         .inLine(11))
                 .byCall(from(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toConstructor(UseCaseTwoController.class)
