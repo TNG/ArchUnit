@@ -1,6 +1,7 @@
 package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,7 +15,7 @@ public class LayerDependencyRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        classes = new ClassFileImportHelper().importTreesOf(ClassViolatingCodingRules.class);
+        classes = new ClassFileImporter().importPackagesOf(ClassViolatingCodingRules.class);
     }
 
     @Ignore

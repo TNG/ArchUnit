@@ -4,6 +4,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
@@ -35,7 +36,7 @@ public class ThirdPartyRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        classes = new ClassFileImportHelper().importTreesOf(ClassViolatingThirdPartyRules.class);
+        classes = new ClassFileImporter().importPackagesOf(ClassViolatingThirdPartyRules.class);
     }
 
     @Ignore

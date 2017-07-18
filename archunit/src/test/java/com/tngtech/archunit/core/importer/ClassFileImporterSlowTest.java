@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -32,6 +33,26 @@ public class ClassFileImporterSlowTest {
         classes = new ClassFileImporter().importClasspath(new ImportOptions());
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class);
+    }
+
+    @Test
+    public void imports_packages() {
+        JavaClasses classes = new ClassFileImporter().importPackages(
+                getClass().getPackage().getName(), Rule.class.getPackage().getName());
+        assertThatClasses(classes).contain(ImmutableSet.of(getClass(), Rule.class));
+
+        classes = new ClassFileImporter().importPackages(
+                ImmutableSet.of(getClass().getPackage().getName(), Rule.class.getPackage().getName()));
+        assertThatClasses(classes).contain(ImmutableSet.of(getClass(), Rule.class));
+    }
+
+    @Test
+    public void imports_packages_of_classes() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass(), Rule.class);
+        assertThatClasses(classes).contain(ImmutableSet.of(getClass(), Rule.class));
+
+        classes = new ClassFileImporter().importPackagesOf(ImmutableSet.of(getClass(), Rule.class));
+        assertThatClasses(classes).contain(ImmutableSet.of(getClass(), Rule.class));
     }
 
     @Test

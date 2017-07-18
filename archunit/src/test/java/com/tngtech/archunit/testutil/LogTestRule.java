@@ -11,7 +11,6 @@ import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.junit.Assert;
@@ -24,10 +23,8 @@ public class LogTestRule extends ExternalResource {
     private Class<?> loggerClass;
     private Level oldLevel;
 
-    public void watch(Class<?> loggerClass) {
+    public void watch(Class<?> loggerClass, Level level) {
         this.loggerClass = loggerClass;
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        final Configuration config = ctx.getConfiguration();
         Appender appender = new AbstractAppender(APPENDER_NAME, null, PatternLayout.createDefaultLayout()) {
             @Override
             public void append(LogEvent event) {
@@ -35,10 +32,11 @@ public class LogTestRule extends ExternalResource {
             }
         };
         appender.start();
-        LoggerConfig loggerConfig = config.getLoggerConfig(loggerClass.getName());
+        final LoggerContext ctx = getLoggerContext();
+        LoggerConfig loggerConfig = ctx.getConfiguration().getLoggerConfig(loggerClass.getName());
         oldLevel = loggerConfig.getLevel();
-        loggerConfig.setLevel(Level.ALL);
-        loggerConfig.addAppender(appender, Level.ALL, null);
+        loggerConfig.setLevel(level);
+        loggerConfig.addAppender(appender, level, null);
         ctx.updateLoggers();
     }
 
@@ -48,11 +46,15 @@ public class LogTestRule extends ExternalResource {
             return;
         }
 
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        final LoggerContext ctx = getLoggerContext();
         LoggerConfig loggerConfig = ctx.getConfiguration().getLoggerConfig(loggerClass.getName());
         loggerConfig.setLevel(oldLevel);
         loggerConfig.removeAppender(APPENDER_NAME);
         ctx.updateLoggers();
+    }
+
+    private LoggerContext getLoggerContext() {
+        return (LoggerContext) LogManager.getContext(false);
     }
 
     public void assertLogMessage(Level level, String messagePart) {
