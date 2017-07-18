@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -39,7 +40,7 @@ public class SessionBeanRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        classes = new ClassFileImportHelper().importTreesOf(ClassViolatingSessionBeanRules.class);
+        classes = new ClassFileImporter().importPackagesOf(ClassViolatingSessionBeanRules.class);
     }
 
     @Ignore

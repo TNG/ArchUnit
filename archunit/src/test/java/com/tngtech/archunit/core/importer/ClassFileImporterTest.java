@@ -1668,7 +1668,7 @@ public class ClassFileImporterTest {
         copyClassFile(expectedClass, folder);
         Files.write(new File(folder, "Evil.class").toPath(), "broken".getBytes(UTF_8));
 
-        logTest.watch(ClassFileProcessor.class);
+        logTest.watch(ClassFileProcessor.class, Level.WARN);
 
         JavaClasses classes = new ClassFileImporter().importPath(folder.toPath());
 
@@ -1700,16 +1700,6 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importClasses(ClassToImportOne.class, ClassToImportTwo.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
-    }
-
-    @Test
-    public void imports_packages() {
-        Set<Class<?>> expectedClasses = ImmutableSet.of(getClass(), Rule.class);
-        Set<String> packages = packagesOf(expectedClasses);
-
-        JavaClasses classes = new ClassFileImporter().importPackages(packages);
-
-        assertThatClasses(classes).contain(expectedClasses);
     }
 
     /**
@@ -1770,14 +1760,6 @@ public class ClassFileImporterTest {
 
     private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
         Files.copy(Paths.get(urlOf(clazz).toURI()), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
-    }
-
-    private Set<String> packagesOf(Set<Class<?>> classes) {
-        Set<String> result = new HashSet<>();
-        for (Class<?> c : classes) {
-            result.add(c.getPackage().getName());
-        }
-        return result;
     }
 
     static JarFile jarFileOf(Class<?> clazzInJar) throws IOException {

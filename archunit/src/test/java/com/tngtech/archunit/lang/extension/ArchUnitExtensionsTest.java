@@ -95,7 +95,7 @@ public class ArchUnitExtensionsTest {
 
         when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));
 
-        logTestRule.watch(ArchUnitExtensions.class);
+        logTestRule.watch(ArchUnitExtensions.class, Level.DEBUG);
 
         extensions.dispatch(evaluatedRule);
 
@@ -143,7 +143,7 @@ public class ArchUnitExtensionsTest {
     private void evaluateExtensionAndVerifyLog(String expectedExceptionMessage, ArchUnitExtension evilExtension) {
         when(extensionLoader.getAll()).thenReturn(singleton(evilExtension));
 
-        logTestRule.watch(ArchUnitExtensions.class);
+        logTestRule.watch(ArchUnitExtensions.class, Level.WARN);
 
         extensions.dispatch(evaluatedRule);
 

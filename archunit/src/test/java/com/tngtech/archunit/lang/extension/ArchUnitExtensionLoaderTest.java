@@ -107,7 +107,7 @@ public class ArchUnitExtensionLoaderTest {
         testServicesFile.addService(TestExtension.class);
         testServicesFile.addService(DummyTestExtension.class);
 
-        logTestRule.watch(ArchUnitExtensionLoader.class);
+        logTestRule.watch(ArchUnitExtensionLoader.class, Level.INFO);
 
         extensionLoader.getAll();
 

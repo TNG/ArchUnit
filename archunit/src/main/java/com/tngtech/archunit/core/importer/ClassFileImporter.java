@@ -135,6 +135,26 @@ public final class ClassFileImporter {
     }
 
     /**
+     * @see #importPackagesOf(Collection)
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPackagesOf(Class<?>... classes) {
+        return importPackagesOf(ImmutableSet.copyOf(classes));
+    }
+
+    /**
+     * Takes the packages of the supplied classes and delegates to {@link #importPackages(String...)}
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaClasses importPackagesOf(Collection<Class<?>> classes) {
+        Set<String> pkgs = new HashSet<>();
+        for (Class<?> clazz : classes) {
+            pkgs.add(clazz.getPackage().getName());
+        }
+        return importPackages(pkgs);
+    }
+
+    /**
      * Imports classes from the whole classpath without JARs.
      *
      * @return Imported classes

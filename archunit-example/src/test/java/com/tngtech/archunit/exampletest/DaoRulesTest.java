@@ -3,6 +3,7 @@ package com.tngtech.archunit.exampletest;
 import javax.persistence.Entity;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
@@ -17,7 +18,7 @@ public class DaoRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        classes = new ClassFileImportHelper().importTreesOf(InWrongPackageDao.class, OtherDao.class, ServiceViolatingDaoRules.class);
+        classes = new ClassFileImporter().importPackagesOf(InWrongPackageDao.class, OtherDao.class, ServiceViolatingDaoRules.class);
     }
 
     @Ignore
