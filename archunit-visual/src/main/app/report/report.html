@@ -399,7 +399,7 @@
 
   function updateVisualizationAfterDragging(node) {
     gTree.selectAll('g').filter(d => d.isChildOf(node)).attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    updateEdgePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
+    updateLinePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
     || d.to.startsWith(node.getFullName())), () => {
     });
   }
@@ -462,10 +462,10 @@
       createNewEdges(edges.enter());
     };
     if (onAnimationEnd) {
-      updateEdgePositionWithAnimation(edges, callback, onAnimationEnd);
+      updateLinePositionWithAnimation(edges, callback, onAnimationEnd);
     }
     else {
-      updateEdgePositionWithoutAnimation(edges, callback);
+      updateLinePositionWithoutAnimation(edges, callback);
     }
   }
 
@@ -479,14 +479,6 @@
     edges.style('visibility', 'visible');
     edges.select('line').attr('class', e => e.getClass());
     edges.select('#area').style('pointer-events', e => e.description.hasDetailedDescription() ? 'all' : 'none');
-  }
-
-  function updateEdgePositionWithAnimation(edges, callback, onAnimationEnd) {
-    updateLinePositionWithAnimation(edges, callback, onAnimationEnd);
-  }
-
-  function updateEdgePositionWithoutAnimation(edges, callback) {
-    updateLinePositionWithoutAnimation(edges, callback);
   }
 
   function runTransitionWithEndCallback(transition, transitionRunner, callback) {
