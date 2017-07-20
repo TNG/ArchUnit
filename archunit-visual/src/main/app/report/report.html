@@ -320,29 +320,31 @@
       });
       let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
 
-      let tspans = gDetailedDeps.select('text.access')
-        .selectAll('tspan')
-        .data(detailedDeps);
+      if (detailedDeps.length > 0) {
+        let tspans = gDetailedDeps.select('text.access')
+          .selectAll('tspan')
+          .data(detailedDeps);
 
-      let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access')));
+        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access')));
 
-      let fontSize = visualizationStyles.getDependencyTitleFontSize();
-      tspans.exit().remove();
+        let fontSize = visualizationStyles.getDependencyTitleFontSize();
+        tspans.exit().remove();
 
-      tspans.enter()
-        .append('tspan');
+        tspans.enter()
+          .append('tspan');
 
-      gDetailedDeps.select('text')
-        .selectAll('tspan')
-        .text(d => d.description)
-        .attr('class', d => d.cssClass)
-        .attr("x", -maxWidth / 2 + TEXT_PADDING)
-        .attr("dy", () => fontSize + TEXT_PADDING);
+        gDetailedDeps.select('text')
+          .selectAll('tspan')
+          .text(d => d.description)
+          .attr('class', d => d.cssClass)
+          .attr("x", -maxWidth / 2 + TEXT_PADDING)
+          .attr("dy", () => fontSize + TEXT_PADDING);
 
-      gDetailedDeps.selectAll('rect')
-        .attr('x', -maxWidth / 2)
-        .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
-        .attr('width', maxWidth + 2 * TEXT_PADDING + fontSize);
+        gDetailedDeps.selectAll('rect')
+          .attr('x', -maxWidth / 2)
+          .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
+          .attr('width', maxWidth + 2 * TEXT_PADDING + fontSize);
+      }
     };
 
     hoverAreas

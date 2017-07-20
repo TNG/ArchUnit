@@ -126,7 +126,10 @@ let groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
   }
 };
 
-let getCodeElementWhenParentFolded = (codeElement, dependencyEnd, foldedElement) => {
+let getCodeElementWhenParentFolded = (description, codeElement, dependencyEnd, foldedElement) => {
+  if (description.inheritanceKind) {
+    return codeElement;
+  }
   return CodeElement.single(dependencyEnd.substring(foldedElement.length + 1) + (!CodeElement.isAbsent(codeElement) ? "." + codeElement.title : ""));
 };
 
@@ -174,7 +177,7 @@ let buildDependency = (from, to) => {
             else {
               dependency.description.accessKind = "childrenAccess";
               dependency.description.startCodeUnit = description.startCodeUnit;
-              dependency.description.targetElement = getCodeElementWhenParentFolded(description.targetElement, targetBeforeFolding, to);
+              dependency.description.targetElement = getCodeElementWhenParentFolded(description, description.targetElement, targetBeforeFolding, to);
             }
           }
           return dependency;
@@ -186,7 +189,7 @@ let buildDependency = (from, to) => {
             }
             else {
               dependency.description.accessKind = "childrenAccess";
-              dependency.description.startCodeUnit = getCodeElementWhenParentFolded(description.startCodeUnit, startBeforeFolding, from);
+              dependency.description.startCodeUnit = getCodeElementWhenParentFolded(description, description.startCodeUnit, startBeforeFolding, from);
               dependency.description.targetElement = description.targetElement;
             }
           }
