@@ -228,7 +228,6 @@ public final class ArchConditions {
                 JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
     }
 
-
     @PublicAPI(usage = ACCESS)
     public static <T> ArchCondition<T> never(ArchCondition<T> condition) {
         return new NeverCondition<>(condition);

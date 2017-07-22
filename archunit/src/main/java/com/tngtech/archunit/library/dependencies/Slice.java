@@ -80,7 +80,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     public Set<Dependency> getDependencies() {
         Set<Dependency> result = new HashSet<>();
         for (JavaClass javaClass : this) {
-            for (Dependency dependency : javaClass.getDirectDependencies()) {
+            for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
                 if (!contains(dependency.getTargetClass())) {
                     result.add(dependency);
                 }
