@@ -11,11 +11,11 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyFirstClass;
-import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyFirstClass;
-import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnySecondClass;
-import com.tngtech.archunit.library.testclasses.some.pkg.SomeFirstClass;
-import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomeSecondClass;
+import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
+import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -98,9 +98,9 @@ public class ArchitecturesTest {
 
         assertPatternMatches(result.getFailureReport().getDetails(),
                 ImmutableSet.of(
-                        expectedViolationPattern(FirstAnyFirstClass.class, "call", SomeSecondClass.class, "callMe"),
-                        expectedViolationPattern(SecondThreeAnySecondClass.class, "call", SomeFirstClass.class, "callMe"),
-                        expectedViolationPattern(FirstThreeAnyFirstClass.class, "call", FirstAnyFirstClass.class, "callMe")));
+                        expectedViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubClass.class, "callMe"),
+                        expectedViolationPattern(SecondThreeAnyClass.class, "call", SomePkgClass.class, "callMe"),
+                        expectedViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe")));
     }
 
     private void assertPatternMatches(List<String> input, Set<String> expectedRegexes) {
