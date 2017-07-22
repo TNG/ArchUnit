@@ -21,11 +21,18 @@ public class DependencyTest {
     @Test
     public void Dependency_from_origin_and_target() {
         JavaClass target = javaClassViaReflection(Object.class);
-        Dependency dependency = Dependency.from(javaClassViaReflection(getClass()), target);
 
+        Dependency dependency = Dependency.fromExtends(javaClassViaReflection(getClass()), target);
+        assertDependency(target, dependency, "extends");
+
+        dependency = Dependency.fromImplements(javaClassViaReflection(getClass()), target);
+        assertDependency(target, dependency, "implements");
+    }
+
+    private void assertDependency(JavaClass target, Dependency dependency, String dependencyType) {
         assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
         assertThat(dependency.getDescription()).as("description").isEqualTo(
-                getClass().getName() + " accesses " + Object.class.getName() +
+                getClass().getName() + " " + dependencyType + " " + Object.class.getName() +
                         " in (" + getClass().getSimpleName() + ".java:0)");
     }
 

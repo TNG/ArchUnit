@@ -462,14 +462,39 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    /**
+     * @deprecated Use {@link #getDirectDependenciesFromSelf()} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependencies() {
+        return getDirectDependenciesFromSelf();
+    }
+
+    /**
+     * Returns all dependencies originating directly from this class (i.e. not just from a superclass),
+     * where a dependency can be
+     * <ul>
+     * <li>field access</li>
+     * <li>method call</li>
+     * <li>constructor call</li>
+     * <li>extending a class</li>
+     * <li>implementing an interface</li>
+     * </ul>
+     *
+     * @return All dependencies directly from this class
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDirectDependenciesFromSelf() {
         Set<Dependency> result = new HashSet<>();
-        for (JavaAccess<?> access : filterTargetNotSelf(getAccessesFromSelf())) { // Includes direct super class due to super(..) call
+        for (JavaAccess<?> access : filterTargetNotSelf(getAccessesFromSelf())) {
             result.add(Dependency.from(access));
         }
+        if (getSuperClass().isPresent()) {
+            result.add(Dependency.fromExtends(this, getSuperClass().get()));
+        }
         for (JavaClass i : getInterfaces()) {
-            result.add(Dependency.from(this, i));
+            result.add(Dependency.fromImplements(this, i));
         }
         return result;
     }

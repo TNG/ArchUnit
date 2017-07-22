@@ -1399,7 +1399,7 @@ public class ClassFileImporterTest {
         );
 
         Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : javaClass.getDirectDependencies()) {
+        for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
             targetClasses.add(dependency.getTargetClass());
         }
 
@@ -1413,7 +1413,7 @@ public class ClassFileImporterTest {
         JavaClass expectedTargetClass = classes.get(ClassBDependingOnClassA.class);
 
         Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : javaClass.getDirectDependencies()) {
+        for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
             if (dependency.getTargetClass().getPackage().contains("testexamples")) {
                 targetClasses.add(dependency.getTargetClass());
             }
