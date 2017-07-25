@@ -307,7 +307,11 @@
 
         let drag = d3.drag().on('drag', () => {
           fixDetailedDeps();
-          gDetailedDeps.attr('transform', () => `translate(${d3.event.x}, ${d3.event.y})`);
+          gDetailedDeps.attr('transform', () => {
+            let transform = gDetailedDeps.attr('transform');
+            let translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
+            return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
+          });
         });
         gDetailedDeps.call(drag);
       }
