@@ -9,13 +9,8 @@
     line-height: 1;
 }
 
-#visualization {
-    display: block;
-    min-height: 600px;
-    min-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 80px;
+html, body {
+    overflow: hidden;
 }
 
 div {
@@ -30,45 +25,14 @@ div {
     width: 100%;
 }
 
-#detailedDeps {
-    display: none;
-    padding: 5px;
-}
-
-#detailedDeps {
-    width: 250px;
-    white-space: normal;
-    vertical-align: top;
-    margin-right: 10px;
-    resize: horizontal;
-    overflow: auto;
-}
-
 #container {
-    white-space: nowrap;
-    border-top: var(--menu-height) px transparent;
-    padding: 20px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#headerDetailedDeps {
-    font-size: inherit;
-    width: inherit;
-}
-
-#svgContainer {
-    display: block;
-    white-space: normal;
-    vertical-align: top;
-}
-
-ul, li {
-    float: left;
-    clear: left;
-    margin-left: 3px;
-    width: inherit;
-    word-wrap: break-word;
+    height: 100%;
+    width: 100%;
+    max-height: 100vh;
+    max-width: 100vw;
+    overflow: scroll;
+    margin-top: 55px;
+    left: 0;
 }
 
 legend {

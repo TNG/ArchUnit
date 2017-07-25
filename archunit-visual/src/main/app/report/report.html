@@ -11,14 +11,12 @@
 
   <link rel='import' href='menu.html'>
 </head>
-<body>
+<body onresize="adaptSVGSize()">
 
 <visualization-menu id='menu'></visualization-menu>
 
 <div id='container'>
-  <div id='svgContainer'>
-    <svg width='960' height='960' id='visualization'></svg>
-  </div>
+  <svg id='visualization'></svg>
 </div>
 
 <!-- We use this svg to calculate text widths of rendered texts, see calculateTextWidth()-function -->
@@ -48,9 +46,9 @@
   const isFixed = new Map();
 
   const svg = d3.select('#visualization'),
-    gTree = svg.append('g').attr('transform', 'translate(2,2)'),
-    gEdges = svg.append('g').attr('transform', 'translate(2,2)'),
-    gAllDetailedDeps = svg.append('g').attr('transform', 'translate(2,2)');
+    gTree = svg.append('g').attr('transform', 'translate(5,5)'),
+    gEdges = svg.append('g').attr('transform', 'translate(5,5)'),
+    gAllDetailedDeps = svg.append('g').attr('transform', 'translate(5,5)');
 
   const calculateTextWidth = (text, cssClassOfText) => {
     let textSvg = d3.select('#text-size-computation').style('display', 'inline');
@@ -148,8 +146,10 @@
   }
 
   function adaptSVGSize() {
-    svg.attr('width', 2 * graph.root.visualData.r + 4);
-    svg.attr('height', 2 * graph.root.visualData.r + 4);
+    svg.attr('width', Math.max(parseInt(2 * graph.root.visualData.r + 4),
+      d3.select('#container').node().getBoundingClientRect().width));
+    svg.attr('height', Math.max(parseInt(2 * graph.root.visualData.r + 4),
+      d3.select('#container').node().getBoundingClientRect().height));
   }
 
   function initializeGraph() {
@@ -418,7 +418,10 @@
   let visualizationIsUpdatedAtTheMoment = false;
   let numberOfWaitingInvokes = 0;
   function updateVisualization() {
-    if (!visualizationIsUpdatedAtTheMoment) {
+    if (visualizationIsUpdatedAtTheMoment) {
+      numberOfWaitingInvokes++;
+    }
+    else {
       visualizationIsUpdatedAtTheMoment = true;
       visualizer.update(graph);
       let countDownLatchOnAnimationEnd;
@@ -436,9 +439,6 @@
       adaptSVGSize();
       updateNodes(countDownLatchOnAnimationEnd);
       updateEdgesWithAnimation(countDownLatchOnAnimationEnd);
-    }
-    else {
-      numberOfWaitingInvokes++;
     }
   }
 
