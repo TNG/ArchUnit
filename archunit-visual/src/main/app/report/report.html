@@ -16,7 +16,9 @@
 <visualization-menu id='menu'></visualization-menu>
 
 <div id='container'>
-  <svg id='visualization'></svg>
+  <svg id='visualization'>
+    <g id="translater"></g>
+  </svg>
 </div>
 
 <!-- We use this svg to calculate text widths of rendered texts, see calculateTextWidth()-function -->
@@ -46,9 +48,10 @@
   const isFixed = new Map();
 
   const svg = d3.select('#visualization'),
-    gTree = svg.append('g').attr('transform', 'translate(5,5)'),
-    gEdges = svg.append('g').attr('transform', 'translate(5,5)'),
-    gAllDetailedDeps = svg.append('g').attr('transform', 'translate(5,5)');
+    translater = svg.select('#translater'),
+    gTree = translater.append('g'),
+    gEdges = translater.append('g'),
+    gAllDetailedDeps = svg.append('g');
 
   const calculateTextWidth = (text, cssClassOfText) => {
     let textSvg = d3.select('#text-size-computation').style('display', 'inline');
@@ -150,6 +153,8 @@
       d3.select('#container').node().getBoundingClientRect().width));
     svg.attr('height', Math.max(parseInt(2 * graph.root.visualData.r + 4),
       d3.select('#container').node().getBoundingClientRect().height));
+    translater.attr('transform',
+      `translate(${parseInt(svg.attr('width')) / 2 - graph.root.visualData.r}, ${parseInt(svg.attr('height')) / 2 - graph.root.visualData.r})`);
   }
 
   function initializeGraph() {
@@ -316,7 +321,7 @@
       let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
       if (detailedDeps.length > 0) {
         let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING;
+        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
 
         gDetailedDeps.attr('transform', () => {
           //ensure that the rect is visible on the left side
