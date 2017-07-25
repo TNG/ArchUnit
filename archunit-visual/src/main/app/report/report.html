@@ -36,7 +36,8 @@
    */
   const clickAreaWidth = 10;
 
-  const DETAILED_DEPENDENCIES_HIDE_DURATION = 500;
+  const DETAILED_DEPENDENCIES_HIDE_DURATION = 2000;
+  const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
   const TRANSITION_DURATION = 300;
   const APPEAR_DURATION = 10;
 
@@ -259,7 +260,7 @@
     let shouldBeHidden = new Map();
 
     let hideDetailedDeps = gDetailedDeps => {
-      if (!isFixed.get(gDetailedDeps.attr('id'))) {
+      if (!gDetailedDeps.empty() && !isFixed.get(gDetailedDeps.attr('id'))) {
         gDetailedDeps.select('.frame').style('visibility', 'hidden');
         gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
         gDetailedDeps.select('text').style('visibility', 'hidden');
@@ -312,17 +313,17 @@
       }
     };
 
-    let updateDetailedDeps = e => {
+    let updateDetailedDeps = (e, coordinates) => {
       let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
       if (detailedDeps.length > 0) {
         let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
         let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING;
 
         gDetailedDeps.attr('transform', () => {
-          let coordinates = d3.mouse(svg.node());
+          //let coordinates = d3.mouse(svg.node());
           //ensure that the rect is visible on the left side
           let x = Math.max(maxWidth / 2, coordinates[0]);
-          //ensure that the rect is visible on the left side
+          //ensure that the rect is visible on the right side
           x = Math.min(x, svg.attr('width') - maxWidth / 2);
           return `translate(${x}, ${coordinates[1]})`;
         });
@@ -354,12 +355,18 @@
     hoverAreas
       .on('mouseover', function (e) {
         if (!isFixed.get(`${e.from}-${e.to}`)) {
-          gAllDetailedDeps.selectAll('g').each(function () {
-            hideDetailedDeps(d3.select(this));
-          });
-          createDetailedDepsIfNecessary(e);
-          updateDetailedDeps(e);
-          showDetailedDeps(e);
+          shouldBeHidden.set(`${e.from}-${e.to}`, false);
+          let coordinates = d3.mouse(svg.node());
+          setTimeout(() => {
+            if (!shouldBeHidden.get(`${e.from}-${e.to}`)) {
+              gAllDetailedDeps.selectAll('g').each(function () {
+                hideDetailedDeps(d3.select(this));
+              });
+              createDetailedDepsIfNecessary(e);
+              updateDetailedDeps(e, coordinates);
+              showDetailedDeps(e);
+            }
+          }, DETAILED_DEPENDENCIES_APPEAR_DURATION);
         }
       });
 
