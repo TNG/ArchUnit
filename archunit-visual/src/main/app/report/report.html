@@ -257,6 +257,10 @@
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
 
+    initializeDetailedDeps(hoverAreas);
+  }
+
+  function initializeDetailedDeps(hoverAreas) {
     let shouldBeHidden = new Map();
 
     let hideDetailedDeps = gDetailedDeps => {
