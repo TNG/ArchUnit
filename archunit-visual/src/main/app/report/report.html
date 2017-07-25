@@ -36,7 +36,7 @@
    */
   const clickAreaWidth = 10;
 
-  const DETAILED_DEPENDENCIES_HIDE_DURATION = 2000;
+  const DETAILED_DEPENDENCIES_HIDE_DURATION = 200;
   const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
   const TRANSITION_DURATION = 300;
   const APPEAR_DURATION = 10;
@@ -82,13 +82,11 @@
         (circleFontSize, circlePadding) => {
           visualizationStyles.setNodeFontSize(circleFontSize);
           visualizationStyles.setCirclePadding(circlePadding);
-          layout();
           updateVisualization();
         })
       .onNodeFilterChanged(
         filter => {
           graph.filterNodesByType(filter);
-          visualizer.update(graph);
           updateVisualization();
         })
       .onDependencyFilterChanged(
@@ -102,11 +100,10 @@
             .showAnonymousImplementing(filter.showAnonymousImplementation)
             .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
 
-          updateEdges();
+          updateEdgesWithoutAnimation();
         })
       .onFilterChanged((filterString, exclude) => {
         graph.filterNodesByName(filterString, exclude);
-        visualizer.update(graph);
         updateVisualization();
       })
       .initializeLegend([
@@ -129,7 +126,6 @@
     layout();
     initializeGraph();
     graph.foldAllNodes();
-    visualizer.update(graph);
     updateVisualization();
     initializeFilter();
   });
@@ -143,7 +139,7 @@
       .showFieldAccess(true)
       .showAnonymousImplementing(true)
       .showDepsBetweenChildAndParent(false);
-    updateEdges();
+    updateEdgesWithoutAnimation();
   }
 
   function layout() {
@@ -181,16 +177,11 @@
       updateVisualizationAfterDragging(d);
     });
 
-    let finished = true;
     nodes
       .filter(d => !d.isRoot() && !d.isLeaf())
       .on('click', d => {
-        if (finished) {
-          finished = false;
-          if (graph.changeFoldStateOfNode(d)) {
-            visualizer.update(graph);
-            updateVisualization(() => finished = true);
-          }
+        if (graph.changeFoldStateOfNode(d)) {
+          updateVisualization();
         }
       });
 
@@ -328,7 +319,6 @@
         let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING;
 
         gDetailedDeps.attr('transform', () => {
-          //let coordinates = d3.mouse(svg.node());
           //ensure that the rect is visible on the left side
           let x = Math.max(maxWidth / 2, coordinates[0]);
           //ensure that the rect is visible on the right side
@@ -425,22 +415,31 @@
     });
   }
 
-  function updateVisualization(onAnimationEnd) {
-    // FIXME: Passing undefined around as function is bad practice, too
-    let countDownLatchOnAnimationEnd;
-    if (onAnimationEnd) {
+  let visualizationIsUpdatedAtTheMoment = false;
+  let numberOfWaitingInvokes = 0;
+  function updateVisualization() {
+    if (!visualizationIsUpdatedAtTheMoment) {
+      visualizationIsUpdatedAtTheMoment = true;
+      visualizer.update(graph);
+      let countDownLatchOnAnimationEnd;
       let numberOfAnimations = 3;
       countDownLatchOnAnimationEnd = () => {
         numberOfAnimations--;
         if (!numberOfAnimations) {
-          onAnimationEnd();
+          visualizationIsUpdatedAtTheMoment = false;
+          if (numberOfWaitingInvokes > 0) {
+            numberOfWaitingInvokes--;
+            updateVisualization();
+          }
         }
       };
+      adaptSVGSize();
+      updateNodes(countDownLatchOnAnimationEnd);
+      updateEdgesWithAnimation(countDownLatchOnAnimationEnd);
     }
-
-    adaptSVGSize();
-    updateNodes(countDownLatchOnAnimationEnd);
-    updateEdges(countDownLatchOnAnimationEnd);
+    else {
+      numberOfWaitingInvokes++;
+    }
   }
 
   function setPositionAndRadius(selection) {
@@ -459,35 +458,34 @@
     setPositionAndRadius(nodes.filter(d => !d.visualData.visible));
 
     let appearTransition = transition.transition().duration(APPEAR_DURATION);
-    if (onAnimationEnd) {
-      runTransitionWithEndCallback(appearTransition, t => t.style('visibility', 'visible'), onAnimationEnd);
-      runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), onAnimationEnd);
-    }
-    else {
-      appearTransition.style('visibility', 'visible');
-      positionTextOfAllNodes(transition);
-    }
+    runTransitionWithEndCallback(appearTransition, t => t.style('visibility', 'visible'), onAnimationEnd);
+    runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), onAnimationEnd);
 
     setVisible(nodes, true);
   }
 
-  function updateEdges(onAnimationEnd) {
-    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
+  function updateEdges(edges) {
+    showEdges(edges);
+    createNewEdges(edges.enter());
+  }
+
+  function updateEdgesVisibility(edges) {
     hideEdges(edges.exit());
     setVisible(edges.filter(function () {
       return d3.select(this).style('visibility') === 'visible';
     }), true);
+  }
 
-    let callback = () => {
-      showEdges(edges);
-      createNewEdges(edges.enter());
-    };
-    if (onAnimationEnd) {
-      updateLinePositionWithAnimation(edges, callback, onAnimationEnd);
-    }
-    else {
-      updateLinePositionWithoutAnimation(edges, callback);
-    }
+  function updateEdgesWithoutAnimation() {
+    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
+    updateEdgesVisibility(edges);
+    updateLinePositionWithoutAnimation(edges, updateEdges);
+  }
+
+  function updateEdgesWithAnimation(onAnimationEnd) {
+    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
+    updateEdgesVisibility(edges);
+    updateLinePositionWithAnimation(edges, onAnimationEnd);
   }
 
   function hideEdges(edges) {
@@ -518,18 +516,17 @@
     }
   }
 
-  function updateLinePositionWithAnimation(edges, callback, onAnimationEnd) {
+  function updateLinePositionWithAnimation(edges, onAnimationEnd) {
     let deps = edges.select('#dep').transition().duration(TRANSITION_DURATION);
     runTransitionWithEndCallback(deps, selection => selection
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y), () => {
-      callback();
+      updateEdges(edges);
+      updateClickAreaPosition(edges);
       onAnimationEnd();
     });
-
-    updateClickAreaPosition(edges)
   }
 
   function updateLinePositionWithoutAnimation(edges, callback) {
@@ -538,8 +535,7 @@
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
-
-    callback();
+    callback(edges);
     updateClickAreaPosition(edges);
   }
 
