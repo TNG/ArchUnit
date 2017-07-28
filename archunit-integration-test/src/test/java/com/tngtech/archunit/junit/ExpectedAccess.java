@@ -10,7 +10,7 @@ import com.tngtech.archunit.junit.ExpectedMember.ExpectedTarget;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
-public abstract class ExpectedAccess {
+public abstract class ExpectedAccess implements ExpectedDependency {
     private final ExpectedOrigin origin;
     private final ExpectedTarget target;
     private final int lineNumber;
@@ -42,7 +42,11 @@ public abstract class ExpectedAccess {
         return expectedMessage();
     }
 
-    public static ExpectedAccessViolationCreationProcess from(Class<?> origin, String method, Class<?>... paramTypes) {
+    public static ExpectedAccessViolationCreationProcess accessFrom(Class<?> origin, String method, Class<?>... paramTypes) {
+        return new ExpectedAccessViolationCreationProcess(origin, method, paramTypes);
+    }
+
+    public static ExpectedAccessViolationCreationProcess callFrom(Class<?> origin, String method, Class<?>... paramTypes) {
         return new ExpectedAccessViolationCreationProcess(origin, method, paramTypes);
     }
 

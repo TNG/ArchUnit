@@ -73,13 +73,13 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
     }
 
     @Override
-    public ExpectedViolation byAccess(ExpectedFieldAccess access) {
+    public ExpectedViolation by(ExpectedFieldAccess access) {
         assertionChain.add(containsLine(access.expectedMessage()));
         return this;
     }
 
     @Override
-    public ExpectedViolation byCall(ExpectedCall call) {
+    public ExpectedViolation by(ExpectedCall call) {
         assertionChain.add(containsLine(call.expectedMessage()));
         return this;
     }

@@ -26,7 +26,7 @@ class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
         return this;
     }
 
-    SliceDependencyErrorMatcher byAccess(ExpectedAccess expectedAccess) {
+    SliceDependencyErrorMatcher by(ExpectedAccess expectedAccess) {
         expectedAccesses.add(expectedAccess);
         return this;
     }

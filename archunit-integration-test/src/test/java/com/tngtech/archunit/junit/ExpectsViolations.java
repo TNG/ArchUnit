@@ -6,9 +6,9 @@ import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
 public interface ExpectsViolations {
     ExpectsViolations ofRule(String ruleText);
 
-    ExpectsViolations byAccess(ExpectedFieldAccess access);
+    ExpectsViolations by(ExpectedFieldAccess access);
 
-    ExpectsViolations byCall(ExpectedCall call);
+    ExpectsViolations by(ExpectedCall call);
 
     ExpectsViolations by(MessageAssertionChain.Link assertion);
 }
