@@ -24,7 +24,7 @@ describe("vectors", () => {
       x: 3,
       y: 4
     };
-    let normedVector = vectors.norm(vector, 10);
+    const normedVector = vectors.norm(vector, 10);
     expect(normedVector.x).to.equal(6);
     expect(normedVector.y).to.equal(8);
   });

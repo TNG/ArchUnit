@@ -54,13 +54,13 @@
     gAllDetailedDeps = svg.append('g');
 
   const calculateTextWidth = (text, cssClassOfText) => {
-    let textSvg = d3.select('#text-size-computation').style('display', 'inline');
-    let textElement = textSvg.select('text');
+    const textSvg = d3.select('#text-size-computation').style('display', 'inline');
+    const textElement = textSvg.select('text');
     if (cssClassOfText) {
       textElement.attr('class', cssClassOfText)
     }
     textElement.text(text);
-    let width = textElement.node().getComputedTextLength();
+    const width = textElement.node().getComputedTextLength();
     if (cssClassOfText) {
       textElement.classed(cssClassOfText, false)
     }
@@ -167,7 +167,7 @@
   }
 
   function initializeTree() {
-    let nodes =
+    const nodes =
       gTree.selectAll()
         .data(graph.getVisibleNodes())
         .enter()
@@ -177,7 +177,7 @@
 
     setVisible(nodes, true);
 
-    let drag = d3.drag().on('drag', d => {
+    const drag = d3.drag().on('drag', d => {
       visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
       updateVisualizationAfterDragging(d);
     });
@@ -221,12 +221,12 @@
       .append('path')
       .attr('d', 'M0,-5L10,0L0,5');
 
-    let edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
+    const edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
     createNewEdges(edges);
   }
 
   function createNewEdges(selection) {
-    let newEdges = selection.append('g');
+    const newEdges = selection.append('g');
 
     setVisible(newEdges, true);
 
@@ -239,7 +239,7 @@
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
 
-    let hoverAreas = newEdges
+    const hoverAreas = newEdges
       .filter(e => e.description.hasDetailedDescription())
       .append('line')
       .attr('id', 'area')
@@ -257,9 +257,9 @@
   }
 
   function initializeDetailedDeps(hoverAreas) {
-    let shouldBeHidden = new Map();
+    const shouldBeHidden = new Map();
 
-    let hideDetailedDeps = gDetailedDeps => {
+    const hideDetailedDeps = gDetailedDeps => {
       if (!gDetailedDeps.empty() && !isFixed.get(gDetailedDeps.attr('id'))) {
         gDetailedDeps.select('.frame').style('visibility', 'hidden');
         gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
@@ -267,23 +267,23 @@
       }
     };
 
-    let showDetailedDeps = e => {
+    const showDetailedDeps = e => {
       shouldBeHidden.set(`${e.from}-${e.to}`, false);
-      let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+      const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
       gDetailedDeps.select('.frame').style('visibility', 'visible');
       gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
       gDetailedDeps.select('text').style('visibility', 'visible');
     };
 
-    let createDetailedDepsIfNecessary = e => {
+    const createDetailedDepsIfNecessary = e => {
       if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
-        let gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
+        const gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
         gDetailedDeps.append('rect').attr('class', 'frame');
         gDetailedDeps.append('text').attr('class', 'access');
 
-        let fixDetailedDeps = () => {
+        const fixDetailedDeps = () => {
           if (gDetailedDeps.select('.closeButton').empty()) {
-            let fontSize = visualizationStyles.getDependencyTitleFontSize();
+            const fontSize = visualizationStyles.getDependencyTitleFontSize();
             gDetailedDeps.append('text')
               .attr('class', 'closeButton')
               .text('x')
@@ -305,11 +305,11 @@
             fixDetailedDeps();
           });
 
-        let drag = d3.drag().on('drag', () => {
+        const drag = d3.drag().on('drag', () => {
           fixDetailedDeps();
           gDetailedDeps.attr('transform', () => {
-            let transform = gDetailedDeps.attr('transform');
-            let translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
+            const transform = gDetailedDeps.attr('transform');
+            const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
             return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
           });
         });
@@ -317,11 +317,11 @@
       }
     };
 
-    let updateDetailedDeps = (e, coordinates) => {
-      let detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
+    const updateDetailedDeps = (e, coordinates) => {
+      const detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
       if (detailedDeps.length > 0) {
-        let gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-        let maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
+        const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+        const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
 
         gDetailedDeps.attr('transform', () => {
           //ensure that the rect is visible on the left side
@@ -331,11 +331,11 @@
           return `translate(${x}, ${coordinates[1]})`;
         });
 
-        let tspans = gDetailedDeps.select('text.access')
+        const tspans = gDetailedDeps.select('text.access')
           .selectAll('tspan')
           .data(detailedDeps);
 
-        let fontSize = visualizationStyles.getDependencyTitleFontSize();
+        const fontSize = visualizationStyles.getDependencyTitleFontSize();
         tspans.exit().remove();
 
         tspans.enter()
@@ -359,7 +359,7 @@
       .on('mouseover', function (e) {
         if (!isFixed.get(`${e.from}-${e.to}`)) {
           shouldBeHidden.set(`${e.from}-${e.to}`, false);
-          let coordinates = d3.mouse(svg.node());
+          const coordinates = d3.mouse(svg.node());
           setTimeout(() => {
             if (!shouldBeHidden.get(`${e.from}-${e.to}`)) {
               gAllDetailedDeps.selectAll('g').each(function () {
@@ -390,15 +390,15 @@
 
   function getDy(d) {
     if (d.isRoot()) {
-      let fontSize = visualizationStyles.getNodeFontSize();
+      const fontSize = visualizationStyles.getNodeFontSize();
       return -d.visualData.r + fontSize;
     }
     else if (d.isCurrentlyLeaf()) {
       return 0;
     }
     else {
-      let textDom = d3.select(this).node();
-      let r = d.visualData.r;
+      const textDom = d3.select(this).node();
+      const r = d.visualData.r;
       return computeTextShift(r, textDom.getBBox().width);
     }
   }
@@ -408,7 +408,7 @@
    **/
   function computeTextShift(r, width) {
     let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-    let fontSize = visualizationStyles.getNodeFontSize();
+    const fontSize = visualizationStyles.getNodeFontSize();
     shift = -shift + fontSize;
     return shift;
   }
@@ -429,9 +429,8 @@
     else {
       visualizationIsUpdatedAtTheMoment = true;
       visualizer.update(graph);
-      let countDownLatchOnAnimationEnd;
       let numberOfAnimations = 3;
-      countDownLatchOnAnimationEnd = () => {
+      const countDownLatchOnAnimationEnd = () => {
         numberOfAnimations--;
         if (!numberOfAnimations) {
           visualizationIsUpdatedAtTheMoment = false;
@@ -453,16 +452,16 @@
   }
 
   function updateNodes(onAnimationEnd) {
-    let nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
+    const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
     setVisible(nodes.exit(), false);
 
-    let transition = nodes.transition().duration(TRANSITION_DURATION);
+    const transition = nodes.transition().duration(TRANSITION_DURATION);
 
     setPositionAndRadius(transition.filter(d => d.visualData.visible));
     setPositionAndRadius(nodes.filter(d => !d.visualData.visible));
 
-    let appearTransition = transition.transition().duration(APPEAR_DURATION);
+    const appearTransition = transition.transition().duration(APPEAR_DURATION);
     runTransitionWithEndCallback(appearTransition, t => t.style('visibility', 'visible'), onAnimationEnd);
     runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), onAnimationEnd);
 
@@ -482,13 +481,13 @@
   }
 
   function updateEdgesWithoutAnimation() {
-    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
+    const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     updateEdgesVisibility(edges);
     updateLinePositionWithoutAnimation(edges, updateEdges);
   }
 
   function updateEdgesWithAnimation(onAnimationEnd) {
-    let edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
+    const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     updateEdgesVisibility(edges);
     updateLinePositionWithAnimation(edges, onAnimationEnd);
   }
@@ -522,7 +521,7 @@
   }
 
   function updateLinePositionWithAnimation(edges, onAnimationEnd) {
-    let deps = edges.select('#dep').transition().duration(TRANSITION_DURATION);
+    const deps = edges.select('#dep').transition().duration(TRANSITION_DURATION);
     runTransitionWithEndCallback(deps, selection => selection
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)

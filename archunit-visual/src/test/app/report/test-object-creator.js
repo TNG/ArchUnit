@@ -4,8 +4,8 @@ const testJson = require("./test-json-creator");
 const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
 const jsonToGraph = require('./main-files').get('graph').jsonToGraph;
 
-let testTree1 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testTree1 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass").build())
           .build())
@@ -15,8 +15,8 @@ let testTree1 = () => {
   return jsonToRoot(simpleJsonTree);
 };
 
-let testTree2 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testTree2 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass").build())
           .build())
@@ -32,8 +32,8 @@ let testTree2 = () => {
   return jsonToRoot(simpleJsonTree);
 };
 
-let testTree3 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testTree3 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "class").build())
           .add(testJson.clazz("class2", "interface").build())
@@ -46,8 +46,8 @@ let testTree3 = () => {
   return jsonToRoot(simpleJsonTree);
 };
 
-let testGraph1 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testGraph1 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
               .callingMethod("com.tngtech.interface1", "startMethod(arg1, arg2)", "targetMethod()")
@@ -73,7 +73,7 @@ let testGraph1 = () => {
   return jsonToGraph(simpleJsonTree);
 };
 
-let allDeps1 = [
+const allDeps1 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() fieldAccess field1)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
@@ -83,8 +83,8 @@ let allDeps1 = [
 ];
 
 
-let testGraph2 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testGraph2 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
               .implementing("com.tngtech.interface1")
@@ -117,7 +117,7 @@ let testGraph2 = () => {
   return jsonToGraph(simpleJsonTree);
 };
 
-let allDeps2 = [
+const allDeps2 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
   "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
@@ -129,8 +129,8 @@ let allDeps2 = [
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-let testGraphWithOverlappingNodesAndMutualDependencies = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testGraphWithOverlappingNodesAndMutualDependencies = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
               .callingMethod("com.tngtech.interface1", "startMethod(arg1, arg2)", "targetMethod()")
@@ -165,8 +165,8 @@ let testGraphWithOverlappingNodesAndMutualDependencies = () => {
   return jsonToGraph(simpleJsonTree);
 };
 
-let testGraph3 = () => {
-  let simpleJsonTree = testJson.package("com.tngtech")
+const testGraph3 = () => {
+  const simpleJsonTree = testJson.package("com.tngtech")
       .add(testJson.package("main")
           .add(testJson.clazz("class1", "abstractclass")
               .implementing("com.tngtech.interface1")
@@ -204,7 +204,7 @@ let testGraph3 = () => {
   return jsonToGraph(simpleJsonTree);
 };
 
-let allDeps3 = [
+const allDeps3 = [
   "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
   "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
   "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several [...])",
@@ -218,7 +218,7 @@ let allDeps3 = [
 ];
 
 const treeWrapperOf = root => {
-  let nodeMap = createNodeMap(root);
+  const nodeMap = createNodeMap(root);
   return {
     root: root,
     getNode: fullName => nodeMap.get(fullName)
@@ -233,8 +233,8 @@ const graphWrapperOf = (graph, allDependencies) => ({
 
 const allNodes = root => root.getVisibleDescendants().map(node => node.getFullName());
 
-let createNodeMap = root => {
-  let nodeMap = new Map();
+const createNodeMap = root => {
+  const nodeMap = new Map();
   root.getVisibleDescendants().forEach(node => nodeMap.set(node.getFullName(), node));
   return nodeMap;
 };

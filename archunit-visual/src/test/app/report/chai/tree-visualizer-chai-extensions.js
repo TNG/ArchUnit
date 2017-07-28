@@ -4,23 +4,23 @@ const Assertion = require("chai").Assertion;
 
 const MAX_RADIUS_DIFF = 0.05;
 
-let radiusOfLeaf = (leaf, textwidth, CIRCLETEXTPADDING) => textwidth(leaf.getName()) / 2 + CIRCLETEXTPADDING;
+const radiusOfLeaf = (leaf, textwidth, CIRCLETEXTPADDING) => textwidth(leaf.getName()) / 2 + CIRCLETEXTPADDING;
 
-let radiusOfInnerNode = (node, textwidth, circleTestPadding, textPosition) =>
+const radiusOfInnerNode = (node, textwidth, circleTestPadding, textPosition) =>
 radiusOfLeaf(node, textwidth, circleTestPadding) / Math.sqrt(1 - textPosition * textPosition);
 
-let haveDiffBiggerThan = (value1, value2, diff) => Math.abs(value1 - value2) > diff;
+const haveDiffBiggerThan = (value1, value2, diff) => Math.abs(value1 - value2) > diff;
 
-let distance = (x1, y1, x2, y2) => {
+const distance = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
 };
 
 Assertion.addMethod('haveExactlyPositions', function () {
-  let actualNodes = Array.from(this._obj);
-  let exp = arguments[0];
+  const actualNodes = Array.from(this._obj);
+  const exp = arguments[0];
 
-  let positionsAreCorrect = actualNodes.reduce((res, n) => {
-        let pos = exp.get(n.getFullName());
+  const positionsAreCorrect = actualNodes.reduce((res, n) => {
+      const pos = exp.get(n.getFullName());
         return res && n.visualData.x == pos[0] && n.visualData.y == pos[1];
       },
       true);
@@ -29,12 +29,12 @@ Assertion.addMethod('haveExactlyPositions', function () {
 });
 
 Assertion.addMethod('haveTextWithinCircle', function () {
-  let node = this._obj;
-  let textWidth = arguments[0];
-  let circleTextPadding = arguments[1];
-  let textPosition = arguments[2];
+  const node = this._obj;
+  const textWidth = arguments[0];
+  const circleTextPadding = arguments[1];
+  const textPosition = arguments[2];
   if (node.isCurrentlyLeaf()) {
-    let expRadius = radiusOfLeaf(node, textWidth, circleTextPadding);
+    const expRadius = radiusOfLeaf(node, textWidth, circleTextPadding);
     this.assert(
         !haveDiffBiggerThan(expRadius, node.visualData.r, MAX_RADIUS_DIFF)
         , "expected #{this} to have radius #{exp} but got #{act}"
@@ -44,7 +44,7 @@ Assertion.addMethod('haveTextWithinCircle', function () {
     );
   }
   else {
-    let expRadius = radiusOfInnerNode(node, textWidth, circleTextPadding, textPosition);
+    const expRadius = radiusOfInnerNode(node, textWidth, circleTextPadding, textPosition);
     this.assert(
         node.visualData.r > expRadius
         , "expected #{this} to have bigger radius than #{exp} but got #{act}"
@@ -56,13 +56,13 @@ Assertion.addMethod('haveTextWithinCircle', function () {
 });
 
 Assertion.addMethod('haveChildrenWithinCircle', function () {
-  let node = this._obj;
-  let CIRCLE_PADDING = arguments[0];
+  const node = this._obj;
+  const CIRCLE_PADDING = arguments[0];
 
-  let childrenNotWithinNode = [];
+  const childrenNotWithinNode = [];
 
   node.getOriginalChildren().forEach(c => {
-    let distanceFromNodeMiddleToChildRim = distance(node.visualData.x, node.visualData.y, c.visualData.x, c.visualData.y)
+    const distanceFromNodeMiddleToChildRim = distance(node.visualData.x, node.visualData.y, c.visualData.x, c.visualData.y)
         + c.visualData.r;
     if (node.visualData.r - distanceFromNodeMiddleToChildRim < CIRCLE_PADDING / 2) {
       childrenNotWithinNode.push(c);
@@ -79,15 +79,15 @@ Assertion.addMethod('haveChildrenWithinCircle', function () {
 });
 
 Assertion.addMethod('doNotOverlap', function () {
-  let nodes = this._obj;
-  let CIRCLE_PADDING = arguments[0];
+  const nodes = this._obj;
+  const CIRCLE_PADDING = arguments[0];
 
-  let nodesOverlapping = new Set();
+  const nodesOverlapping = new Set();
 
   nodes.forEach(c => {
     nodes.filter(d => d !== c).forEach(d => {
-      let diff = distance(c.visualData.x, c.visualData.y, d.visualData.x, d.visualData.y);
-      let minExpDiff = c.visualData.r + d.visualData.r + CIRCLE_PADDING;
+      const diff = distance(c.visualData.x, c.visualData.y, d.visualData.x, d.visualData.y);
+      const minExpDiff = c.visualData.r + d.visualData.r + CIRCLE_PADDING;
       if (diff + MAX_RADIUS_DIFF < minExpDiff) {
         nodesOverlapping.add(c.getFullName(), c);
         nodesOverlapping.add(d.getFullName(), d);

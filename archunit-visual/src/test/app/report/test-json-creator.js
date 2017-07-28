@@ -1,6 +1,6 @@
 'use strict';
 
-let changeFullName = (node, path, separator) => {
+const changeFullName = (node, path, separator) => {
   node.fullName = path + separator + node.fullName;
   if (node.children) {
     node.children.forEach(n => changeFullName(n, path, separator));
@@ -9,13 +9,13 @@ let changeFullName = (node, path, separator) => {
 
 module.exports = {
   package: function (pkgname) {
-    let res = {
+    const res = {
       fullName: pkgname,
       name: pkgname,
       type: "package",
       children: []
     };
-    let builder = {
+    const builder = {
       add: function (child) {
         changeFullName(child, res.fullName, ".");
         res.children.push(child);
@@ -28,7 +28,7 @@ module.exports = {
     return builder;
   },
   clazz: function (simpleName, type) {
-    let res = {
+    const res = {
       fullName: simpleName,
       name: simpleName,
       type: type,
@@ -39,7 +39,7 @@ module.exports = {
       constructorCalls: [],
       anonymousImplementation: []
     };
-    let builder = {
+    const builder = {
       extending: function (superclassfullName) {
         res.superclass = superclassfullName;
         return builder;

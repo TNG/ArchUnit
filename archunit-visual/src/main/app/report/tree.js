@@ -6,7 +6,7 @@ const boolFunc = require('./booleanutils').booleanFunctions;
 const TYPE_FILTER = "typefilter";
 const NAME_Filter = "namefilter";
 
-let NodeDescription = class {
+const NodeDescription = class {
   constructor(name, fullName, type) {
     this.name = name;
     this.fullName = fullName;
@@ -14,19 +14,19 @@ let NodeDescription = class {
   }
 };
 
-let descendants = (node, childrenSelector) => {
-  let recDescendants = (res, node, childrenSelector) => {
+const descendants = (node, childrenSelector) => {
+  const recDescendants = (res, node, childrenSelector) => {
     res.push(node);
-    let arr = childrenSelector(node);
+    const arr = childrenSelector(node);
     arr.forEach(n => recDescendants(res, n, childrenSelector));
   };
-  let res = [];
+  const res = [];
   recDescendants(res, node, childrenSelector);
   return res;
 };
 
-let isLeaf = node => node._filteredChildren.length === 0;
-let fold = (node, folded) => {
+const isLeaf = node => node._filteredChildren.length === 0;
+const fold = (node, folded) => {
   if (!isLeaf(node)) {
     node._folded = folded;
     return true;
@@ -34,22 +34,22 @@ let fold = (node, folded) => {
   return false;
 };
 
-let resetFilteredChildrenOfAllNodes = root => {
+const resetFilteredChildrenOfAllNodes = root => {
   descendants(root, n => n.getOriginalChildren()).forEach(n => {
     n._filteredChildren = n.getOriginalChildren();
   });
 };
 
-let reapplyFilters = (root, filters) => {
+const reapplyFilters = (root, filters) => {
   resetFilteredChildrenOfAllNodes(root);
-  let recReapplyFilter = (node, filter) => {
+  const recReapplyFilter = (node, filter) => {
     node._filteredChildren = node._filteredChildren.filter(filter);
     node._filteredChildren.forEach(c => recReapplyFilter(c, filter));
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
 };
 
-let Node = class {
+const Node = class {
   constructor(description, parent) {
     this._description = description;
     this._parent = parent;
@@ -120,7 +120,7 @@ let Node = class {
   }
 
   getClass() {
-    let foldableStyle = isLeaf(this) ? "not-foldable" : "foldable";
+    const foldableStyle = isLeaf(this) ? "not-foldable" : "foldable";
     return `node ${this.getType()} ${foldableStyle}`;
   }
 
@@ -156,11 +156,11 @@ let Node = class {
   }
 
   filterByType(interfaces, classes, eliminatePkgs) {
-    let classFilter =
+    const classFilter =
       c => (c.getType() !== nodeKinds.package) &&
       boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
       boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
-    let pkgFilter =
+    const pkgFilter =
       c => (c.getType() === nodeKinds.package) &&
       boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
@@ -173,21 +173,21 @@ let Node = class {
   }
 };
 
-let createFilterFunction = (filterString, exclude) => {
+const createFilterFunction = (filterString, exclude) => {
   filterString = leftTrim(filterString);
-  let endsWith = filterString.endsWith(" ");
+  const endsWith = filterString.endsWith(" ");
   filterString = filterString.trim();
   let regexString = escapeRegExp(filterString).replace(/\*/g, ".*");
   if (endsWith) {
     regexString = "(" + regexString + ")$";
   }
 
-  let filter = node => {
+  const filter = node => {
     if (node.getType() === nodeKinds.package) {
       return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      let match = new RegExp(regexString).exec(node.getFullName());
+      const match = new RegExp(regexString).exec(node.getFullName());
       let res = match && match.length > 0;
       res = exclude ? !res : res;
       return res || (!isLeaf(node) && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
@@ -196,27 +196,27 @@ let createFilterFunction = (filterString, exclude) => {
   return filter;
 };
 
-let leftTrim = str => {
+const leftTrim = str => {
   return str.replace(/^\s+/g, '');
 };
 
-let escapeRegExp = str => {
+const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
 
-let parseNodeDescriptionFromJson = jsonElement => {
+const parseNodeDescriptionFromJson = jsonElement => {
   return new NodeDescription(jsonElement.name, jsonElement.fullName, jsonElement.type);
 };
 
-let parseJsonNode = (parent, jsonNode) => {
-  let node = new Node(parseNodeDescriptionFromJson(jsonNode), parent);
+const parseJsonNode = (parent, jsonNode) => {
+  const node = new Node(parseNodeDescriptionFromJson(jsonNode), parent);
   if (jsonNode.hasOwnProperty("children")) {
     jsonNode.children.forEach(c => node._originalChildren.push(parseJsonNode(node, c)));
   }
   return node;
 };
 
-let jsonToRoot = jsonRoot => {
+const jsonToRoot = jsonRoot => {
   return parseJsonNode(null, jsonRoot);
 };
 

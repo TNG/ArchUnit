@@ -3,7 +3,7 @@
 const dependencyKinds = require('./dependency-kinds.json');
 const nodeKinds = require('./node-kinds.json');
 const boolFuncs = require('./booleanutils').booleanFunctions;
-let createDependencyBuilder = require('./dependency.js').buildDependency;
+const createDependencyBuilder = require('./dependency.js').buildDependency;
 let buildDependency;
 const KIND_FILTER = "kindfilter";
 const NODE_FILTER = "nodefilter";
@@ -15,14 +15,14 @@ const fullnameSeparators = {
   classSeparator: "$"
 };
 
-let startsWithFullnameSeparator = string => string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
+const startsWithFullnameSeparator = string => string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
 
-let filter = dependencies => ({
+const filter = dependencies => ({
   by: propertyFunc => ({
     startsWith: prefix => dependencies.filter(r => {
-      let property = propertyFunc(r);
+      const property = propertyFunc(r);
       if (property.startsWith(prefix)) {
-        let rest = property.substring(prefix.length);
+        const rest = property.substring(prefix.length);
         return rest ? startsWithFullnameSeparator(rest) : true;
       }
       else {
@@ -34,13 +34,13 @@ let filter = dependencies => ({
 });
 
 
-let unique = dependencies => {
-  let tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
-  let map = new Map();
+const unique = dependencies => {
+  const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
+  const map = new Map();
   tmp.forEach(e => {
     if (map.has(e[0])) {
-      let old = map.get(e[0]);
-      let newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
+      const old = map.get(e[0]);
+      const newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
       map.set(e[0], newDep);
     }
     else {
@@ -50,13 +50,13 @@ let unique = dependencies => {
   return [...map.values()];
 };
 
-let transform = dependencies => ({
+const transform = dependencies => ({
   where: propertyFunc => ({
     startsWith: prefix => ({
       eliminateSelfDeps: yes => ({
         to: transformer => {
-          let matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
-          let rest = dependencies.filter(r => !matching.includes(r));
+          const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
+          const rest = dependencies.filter(r => !matching.includes(r));
           let folded = unique(matching.map(transformer));
           if (yes) {
             folded = folded.filter(r => r.from !== r.to);
@@ -69,9 +69,9 @@ let transform = dependencies => ({
 });
 
 
-let foldTransformer = foldedElement => {
+const foldTransformer = foldedElement => {
   return dependencies => {
-    let targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
+    const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
       .to(r => (
         buildDependency(r.from, foldedElement).withExistingDescription(r.description).whenTargetIsFolded(r.to)));
     return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
@@ -80,20 +80,20 @@ let foldTransformer = foldedElement => {
   }
 };
 
-let recalculateVisible = (transformers, dependencies) => Array.from(transformers)
+const recalculateVisible = (transformers, dependencies) => Array.from(transformers)
   .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-let recreateVisible = dependencies => {
-  let after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
+const recreateVisible = dependencies => {
+  const after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
   dependencies.setVisibleDependencies(after);
 };
 
-let changeFold = (dependencies, callback) => {
+const changeFold = (dependencies, callback) => {
   callback(dependencies);
   recreateVisible(dependencies);
 };
 
-let reapplyFilters = (dependencies, filters) => {
+const reapplyFilters = (dependencies, filters) => {
   dependencies._filtered = Array.from(filters.values()).reduce((filtered_deps, filter) => filter(filtered_deps),
     dependencies._all);
   dependencies._uniqued = unique(Array.from(dependencies._filtered));
@@ -101,7 +101,7 @@ let reapplyFilters = (dependencies, filters) => {
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
 
-let Dependencies = class {
+const Dependencies = class {
   constructor(all) {
     this._filters = new Map();
     this._transformers = new Map();
@@ -138,7 +138,7 @@ let Dependencies = class {
   }
 
   filterByKind() {
-    let applyFilter = kindFilter => {
+    const applyFilter = kindFilter => {
       this._filters.set(KIND_FILTER, filtered_deps => filtered_deps.filter(kindFilter));
       reapplyFilters(this, this._filters);
     };
@@ -150,9 +150,9 @@ let Dependencies = class {
               showFieldAccess: fieldAccess => ({
                 showAnonymousImplementing: anonymousImplementation => ({
                   showDepsBetweenChildAndParent: childAndParent => {
-                    let kindFilter = d => {
-                      let kinds = d.description.getAllKinds();
-                      let deps = dependencyKinds.allDependencies;
+                    const kindFilter = d => {
+                      const kinds = d.description.getAllKinds();
+                      const deps = dependencyKinds.allDependencies;
                       return boolFuncs(kinds === deps.implements).implies(implementing)
                         && boolFuncs(kinds === deps.extends).implies(extending)
                         && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
@@ -183,9 +183,9 @@ let Dependencies = class {
   }
 
   getDetailedDependenciesOf(from, to) {
-    let getDetailedDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
-      let matching = filter(dependencies).by(propertyFunc);
-      let startNode = nodes.get(depEnd);
+    const getDetailedDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
+      const matching = filter(dependencies).by(propertyFunc);
+      const startNode = nodes.get(depEnd);
       if (startNode.isPackage() || startNode.isCurrentlyLeaf()) {
         return matching.startsWith(depEnd);
       }
@@ -193,20 +193,20 @@ let Dependencies = class {
         return matching.equals(depEnd);
       }
     };
-    let startMatching = getDetailedDependenciesMatching(this._filtered, d => d.from, from);
+    const startMatching = getDetailedDependenciesMatching(this._filtered, d => d.from, from);
     let targetMatching = getDetailedDependenciesMatching(startMatching, d => d.to, to);
     targetMatching = targetMatching.filter(d => !d.description.inheritanceKind);
-    let detailedDeps = targetMatching.map(d => ({
+    const detailedDeps = targetMatching.map(d => ({
       description: d.getDescriptionRelativeToPredecessors(from, to),
       cssClass: d.getClass()
     }));
-    let map = new Map();
+    const map = new Map();
     detailedDeps.forEach(d => map.set(d.description, d));
     return [...map.values()];
   }
 };
 
-let addDependenciesOf = dependencyGroup => ({
+const addDependenciesOf = dependencyGroup => ({
   ofJsonElement: jsonElement => ({
     toArray: arr => {
       dependencyGroup.kinds.forEach(kind => {
@@ -226,10 +226,10 @@ let addDependenciesOf = dependencyGroup => ({
   })
 });
 
-let addAllDependenciesOfJsonElement = jsonElement => ({
+const addAllDependenciesOfJsonElement = jsonElement => ({
   toArray: arr => {
     if (jsonElement.type !== nodeKinds.package) {
-      let groupedDependencies = dependencyKinds.groupedDependencies;
+      const groupedDependencies = dependencyKinds.groupedDependencies;
       addDependenciesOf(groupedDependencies.inheritance).ofJsonElement(jsonElement).toArray(arr);
       addDependenciesOf(groupedDependencies.access).ofJsonElement(jsonElement).toArray(arr);
     }
@@ -240,8 +240,8 @@ let addAllDependenciesOfJsonElement = jsonElement => ({
   }
 });
 
-let jsonToDependencies = (jsonRoot, nodeMap) => {
-  let arr = [];
+const jsonToDependencies = (jsonRoot, nodeMap) => {
+  const arr = [];
   nodes = nodeMap;
   buildDependency = createDependencyBuilder(nodeMap);
   addAllDependenciesOfJsonElement(jsonRoot).toArray(arr);

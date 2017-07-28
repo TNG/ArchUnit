@@ -13,9 +13,9 @@ const rgbToHex = (rgbString, defaultHex) => {
   }
   let numbers = rgbString.split(",");
   numbers = numbers.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
-  let numbersAsHex = numbers.map(n => {
-    let hex = n.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
+  const numbersAsHex = numbers.map(n => {
+    const hex = n.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
   });
   return numbersAsHex.reduce((acc, n) => acc + n, "#");
 };
@@ -51,7 +51,7 @@ module.exports.from = function (styleSheet) {
     getDependencyTitleFontSize: () => parseInt(dependencyTextRule.style.getPropertyValue('font-size'), 10),
 
     getLineStyle: (kind, title) => {
-      let rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));
+      const rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));
       return {
         title: title,
         styles: [{

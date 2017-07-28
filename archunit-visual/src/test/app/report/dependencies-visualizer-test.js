@@ -13,34 +13,34 @@ const visualizer = require('./main-files').get('graph-visualizer').newInstance({
 describe("Visual data of dependency", () => {
 
   it("calc their end positions correctly", () => {
-    let graph = testObjects.testGraph2().graph;
+    const graph = testObjects.testGraph2().graph;
     visualizer.visualizeGraph(graph);
     expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 
   it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
-    let graph = testObjects.testGraphWithOverlappingNodesAndMutualDependencies().graph;
+    const graph = testObjects.testGraphWithOverlappingNodesAndMutualDependencies().graph;
     visualizer.visualizeGraph(graph);
     expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 
   it("refreshes its end positions correctly if a node is dragged", () => {
-    let graphWrapper = testObjects.testGraph2();
+    const graphWrapper = testObjects.testGraph2();
     visualizer.visualizeGraph(graphWrapper.graph);
 
-    let toChange = "com.tngtech.test.testclass1";
-    let node = graphWrapper.getNode(toChange);
+    const toChange = "com.tngtech.test.testclass1";
+    const node = graphWrapper.getNode(toChange);
     visualizer.drag(graphWrapper.graph, node, 10, -20, true);
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 
   it("refreshes its end positions correctly if a node changes its radius on folding", () => {
-    let graphWrapper = testObjects.testGraph2();
+    const graphWrapper = testObjects.testGraph2();
     visualizer.visualizeGraph(graphWrapper.graph);
 
-    let toChange = "com.tngtech.main";
-    let node = graphWrapper.getNode(toChange);
+    const toChange = "com.tngtech.main";
+    const node = graphWrapper.getNode(toChange);
     graphWrapper.graph.changeFoldStateOfNode(node);
     visualizer.update(graphWrapper.graph, node);
 

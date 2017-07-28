@@ -45,7 +45,7 @@ const CodeElement = {
   }
 };
 
-let DependencyDescription = class {
+const DependencyDescription = class {
   constructor(containsPkg) {
     this.containsPkg = containsPkg;
     this.inheritanceKind = "";
@@ -71,12 +71,12 @@ let DependencyDescription = class {
   }
 
   toString() {
-    let allKinds = this.getAllKinds();
+    const allKinds = this.getAllKinds();
     return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
   }
 };
 
-let Dependency = class {
+const Dependency = class {
   constructor(from, to) {
     this.from = from;
     this.to = to;
@@ -114,7 +114,7 @@ let Dependency = class {
   }
 };
 
-let groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
+const groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
   if (!kind1) {
     return kind2;
   }
@@ -126,22 +126,22 @@ let groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
   }
 };
 
-let getCodeElementWhenParentFolded = (description, codeElement, dependencyEnd, foldedElement) => {
+const getCodeElementWhenParentFolded = (description, codeElement, dependencyEnd, foldedElement) => {
   if (description.inheritanceKind) {
     return codeElement;
   }
   return CodeElement.single(dependencyEnd.substring(foldedElement.length + 1) + (!CodeElement.isAbsent(codeElement) ? "." + codeElement.title : ""));
 };
 
-let containsPackage = (from, to) => {
+const containsPackage = (from, to) => {
   return nodes.get(from).isPackage() || nodes.get(to).isPackage();
 };
 
-let buildDependency = (from, to) => {
-  let dependency = new Dependency(from, to);
-  let builder = {
+const buildDependency = (from, to) => {
+  const dependency = new Dependency(from, to);
+  const builder = {
     withNewDescription: function () {
-      let descriptionBuilder = {
+      const descriptionBuilder = {
         withKind: function (kindgroup, kind) {
           dependency.description[kindgroup] = kind;
           return descriptionBuilder;

@@ -4,12 +4,12 @@ const vectors = require('./vectors.js').vectors;
 
 const lineDiff = 20;
 
-let oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
-  let middleDiff = vectors.distance(node1, node2);
+const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
+  const middleDiff = vectors.distance(node1, node2);
   return middleDiff + Math.min(node1.r, node2.r) < Math.max(node1.r, node2.r);
 };
 
-let getSmallerAndBiggerNode = (node1, node2) => {
+const getSmallerAndBiggerNode = (node1, node2) => {
   if (node2.r >= node1.r) {
     return {
       bigger: node2,
@@ -24,12 +24,12 @@ let getSmallerAndBiggerNode = (node1, node2) => {
   }
 };
 
-let getTitleOffset = (angleRad, textPadding) => {
+const getTitleOffset = (angleRad, textPadding) => {
   return [Math.round(textPadding * Math.sin(angleRad)),
     Math.round(textPadding * Math.cos(angleRad))];
 };
 
-let VisualData = class {
+const VisualData = class {
   constructor() {
     this.startPoint = {};
     this.endPoint = {};
@@ -40,10 +40,10 @@ let VisualData = class {
   }
 
   recalc(mustShareNodes, visualStartNode, visualEndNode) {
-    let oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(visualStartNode, visualEndNode),
+    const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(visualStartNode, visualEndNode),
         nodes = getSmallerAndBiggerNode(visualStartNode, visualEndNode);
 
-    let direction = vectors.vectorOf(visualEndNode.x - visualStartNode.x,
+    const direction = vectors.vectorOf(visualEndNode.x - visualStartNode.x,
         visualEndNode.y - visualStartNode.y);
 
     let startDirectionVector = vectors.cloneVector(direction);
@@ -75,26 +75,26 @@ let VisualData = class {
   }
 
   getEdgesTitleTranslation(textPadding) {
-    let offset = getTitleOffset(this.angleRad, textPadding);
+    const offset = getTitleOffset(this.angleRad, textPadding);
     return "translate(" + (this.middlePoint.x + offset[0]) + "," + (this.middlePoint.y - offset[1]) + ") " +
         "rotate(" + this.angleDeg + ")";
   }
 };
 
-let refreshVisualData = dependency => {
+const refreshVisualData = dependency => {
   dependency.visualData = new VisualData();
   dependency.visualData.recalc(dependency.mustShareNodes, dependency.getStartNode().visualData, dependency.getEndNode().visualData);
 };
 
-let refreshVisualDataOf = (nodeFullName, dependencies) => {
+const refreshVisualDataOf = (nodeFullName, dependencies) => {
   dependencies.filter(d => d.from.startsWith(nodeFullName) || d.to.startsWith(nodeFullName)).forEach(d => refreshVisualData(d));
 };
 
-let refreshVisualDataOfDependencies = dependencies => {
+const refreshVisualDataOfDependencies = dependencies => {
   dependencies.forEach(d => refreshVisualData(d));
 };
 
-let visualizeDependencies = dependencies => {
+const visualizeDependencies = dependencies => {
   refreshVisualDataOfDependencies(dependencies.getVisible());
   dependencies.addObserver(refreshVisualDataOfDependencies);
 };

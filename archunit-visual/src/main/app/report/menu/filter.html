@@ -56,8 +56,8 @@
 </template>
 
 <script>
-  let checkBoxesFrom = function (nodes) {
-    let checkBoxes = Array.from(nodes);
+  const checkBoxesFrom = function (nodes) {
+    const checkBoxes = Array.from(nodes);
     const checkboxIdToCheckedBoolean = () => checkBoxes.reduce((result, box) => {
       result[box.id] = box.checked;
       return result;

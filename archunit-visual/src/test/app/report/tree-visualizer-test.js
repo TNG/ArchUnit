@@ -20,22 +20,22 @@ const treeVisualizer = require('./main-files').get('tree-visualizer').newInstanc
   visualizationStyles
 });
 
-let radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
+const radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 
-let moveToMiddleOfParent = (node, parent) =>
+const moveToMiddleOfParent = (node, parent) =>
     treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
 
-let calcDeltaToRightUpperCornerOfParent = (node, parent) => {
-  let delta = (parent.visualData.r - node.visualData.r - 0.5) / Math.sqrt(2);
+const calcDeltaToRightUpperCornerOfParent = (node, parent) => {
+  const delta = (parent.visualData.r - node.visualData.r - 0.5) / Math.sqrt(2);
   return delta;
 };
 
 describe("Visual data of node", () => {
   it("adapts radius on folding to minimum radius on the same level", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toFold = tree.getNode("com.tngtech.main");
+    const toFold = tree.getNode("com.tngtech.main");
     let expRadius = Math.min.apply(Math, [toFold.visualData.r, tree.getNode("com.tngtech.class2").visualData.r,
       tree.getNode("com.tngtech.class3").visualData.r, tree.getNode("com.tngtech.test").visualData.r]);
     toFold.changeFold();
@@ -46,11 +46,11 @@ describe("Visual data of node", () => {
   });
 
   it("reset radius on unfolding", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toFold = tree.getNode("com.tngtech.main");
-    let expRadius = toFold.visualData.r;
+    const toFold = tree.getNode("com.tngtech.main");
+    const expRadius = toFold.visualData.r;
     toFold.changeFold();
     treeVisualizer.adaptToFoldState(toFold);
     toFold.changeFold();
@@ -59,28 +59,28 @@ describe("Visual data of node", () => {
   });
 
   it("can be dragged", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toDrag = tree.getNode("com.tngtech.class2");
-    let dx = 1, dy = -3;
-    let newX = toDrag.visualData.x + dx, newY = toDrag.visualData.y + dy;
+    const toDrag = tree.getNode("com.tngtech.class2");
+    const dx = 1, dy = -3;
+    const newX = toDrag.visualData.x + dx, newY = toDrag.visualData.y + dy;
     treeVisualizer.dragNode(toDrag, dx, dy, false);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
 
   it("drags also its children if it is dragged", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let allNodes2 = testObjects.allNodes(tree.root);
-    let toDrag = tree.getNode("com.tngtech.test");
-    let dx = 1, dy = -3;
-    let exp = new Map();
+    const allNodes2 = testObjects.allNodes(tree.root);
+    const toDrag = tree.getNode("com.tngtech.test");
+    const dx = 1, dy = -3;
+    const exp = new Map();
     allNodes2.forEach(n => {
-      let node = tree.getNode(n);
-      let xy = [node.visualData.x, node.visualData.y];
+      const node = tree.getNode(n);
+      const xy = [node.visualData.x, node.visualData.y];
       if (node.isChildOf(toDrag)) {
         xy[0] += dx;
         xy[1] += dy;
@@ -92,34 +92,34 @@ describe("Visual data of node", () => {
   });
 
   it("cannot be dragged out of its parent", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toDrag = tree.getNode("com.tngtech.test.subtest.subtestclass1");
-    let parent = tree.getNode("com.tngtech.test.subtest");
-    let dx = toDrag.visualData.x + parent.visualData.r, dy = 5;
-    let newX = toDrag.visualData.x, newY = toDrag.visualData.y;
+    const toDrag = tree.getNode("com.tngtech.test.subtest.subtestclass1");
+    const parent = tree.getNode("com.tngtech.test.subtest");
+    const dx = toDrag.visualData.x + parent.visualData.r, dy = 5;
+    const newX = toDrag.visualData.x, newY = toDrag.visualData.y;
     treeVisualizer.dragNode(toDrag, dx, dy, false);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
 
-  it("is dragged automatically back into its parent on unfolding, so that it is completely within its parent", () => {
-    let tree = testObjects.testTree2();
+  it("is dragged automatically back into its parent on unfolding, so that it is compconstely within its parent", () => {
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toDrag = tree.getNode("com.tngtech.test.subtest");
-    let parent = tree.getNode("com.tngtech.test");
+    const toDrag = tree.getNode("com.tngtech.test.subtest");
+    const parent = tree.getNode("com.tngtech.test");
 
-    let newDelta = (parent.visualData.r - toDrag.visualData.r) / Math.sqrt(2);
+    const newDelta = (parent.visualData.r - toDrag.visualData.r) / Math.sqrt(2);
 
     moveToMiddleOfParent(toDrag, parent);
 
-    let newX = toDrag.visualData.x + newDelta, newY = toDrag.visualData.y - newDelta;
+    const newX = toDrag.visualData.x + newDelta, newY = toDrag.visualData.y - newDelta;
 
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
-    let delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
+    const delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
     treeVisualizer.dragNode(toDrag, delta, -delta, false);
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
@@ -129,16 +129,16 @@ describe("Visual data of node", () => {
   });
 
   it("is not dragged automatically back into its parent on unfolding if its parent is the root", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
 
-    let toDrag = tree.getNode("com.tngtech.test");
-    let parent = tree.getNode("com.tngtech");
+    const toDrag = tree.getNode("com.tngtech.test");
+    const parent = tree.getNode("com.tngtech");
 
     moveToMiddleOfParent(toDrag, parent);
 
-    let delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
-    let newX = toDrag.visualData.x + delta, newY = toDrag.visualData.y - delta;
+    const delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
+    const newX = toDrag.visualData.x + delta, newY = toDrag.visualData.y - delta;
 
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
@@ -153,9 +153,9 @@ describe("Visual data of node", () => {
 
 describe("Tree", () => {
   it("does the initial layout correct", () => {
-    let tree = testObjects.testTree2();
+    const tree = testObjects.testTree2();
     treeVisualizer.visualizeTree(tree.root);
-    let checkLayout = node => {
+    const checkLayout = node => {
       expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
       expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);

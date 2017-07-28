@@ -7,6 +7,7 @@
     "copyStatic": "find src/main/app/report/*.html src/main/app/report/*.css src/main/app/report/*.json src/main/app/report/menu/*.html src/main/app/report/menu/*.css -exec cp {} ./build/classes/example-report ';'",
     "browserify": "./node_modules/browserify/bin/cmd.js -r ./src/main/app/report/visualization.js:visualization -r ./src/main/app/report/web-component-infrastructure.js:web-component-infrastructure -o build/classes/example-report/visualization-bundle.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run copyStatic && npm run browserify'",
+    "lint": "./node_modules/eslint/bin/eslint.js 'src/**/*.{js,html}'",
     "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/classes/example-report/"
   },
   "author": "Sebastian Mair <sebastian.mair@tngtech.com>, Peter Gafert <peter.gafert@tngtech.com>",
@@ -31,7 +32,14 @@
       "html"
     ],
     "rules": {
-      "curly": "error"
+      "curly": "error",
+      "prefer-const": [
+        "error",
+        {
+          "destructuring": "any",
+          "ignoreReadBeforeAssign": false
+        }
+      ]
     }
   },
   "devDependencies": {

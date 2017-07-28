@@ -3,14 +3,14 @@
 const Assertion = require("chai").Assertion;
 
 Assertion.addMethod('containExactlyDependencies', function () {
-  let actual = Array.from(this._obj);
-  let expectedDepStrings = arguments[0];
+  const actual = Array.from(this._obj);
+  const expectedDepStrings = arguments[0];
 
-  let actualStrings = actual.map(d => d.toString()).sort();
-  let expectedStrings = expectedDepStrings.sort();
+  const actualStrings = actual.map(d => d.toString()).sort();
+  const expectedStrings = expectedDepStrings.sort();
 
-  let sizeMatches = actualStrings.length === expectedStrings.length;
-  let elementsMatch = !actualStrings.map((v, i) => v !== expectedStrings[i]).includes(true);
+  const sizeMatches = actualStrings.length === expectedStrings.length;
+  const elementsMatch = !actualStrings.map((v, i) => v !== expectedStrings[i]).includes(true);
 
   this.assert(
       sizeMatches && elementsMatch

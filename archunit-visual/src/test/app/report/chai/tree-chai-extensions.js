@@ -3,14 +3,14 @@
 const Assertion = require("chai").Assertion;
 
 Assertion.addMethod('containExactlyNodes', function () {
-  let actual = Array.from(this._obj);
-  let expectedNodeFullNames = arguments[0];
+  const actual = Array.from(this._obj);
+  const expectedNodeFullNames = arguments[0];
 
-  let actualStrings = actual.map(n => n.getFullName()).sort();
-  let expectedStrings = expectedNodeFullNames.sort();
+  const actualStrings = actual.map(n => n.getFullName()).sort();
+  const expectedStrings = expectedNodeFullNames.sort();
 
-  let sizeMatches = actualStrings.length === expectedStrings.length;
-  let elementsMatch = !actualStrings.map((v, i) => v !== expectedStrings[i]).includes(true);
+  const sizeMatches = actualStrings.length === expectedStrings.length;
+  const elementsMatch = !actualStrings.map((v, i) => v !== expectedStrings[i]).includes(true);
 
   this.assert(
       sizeMatches && elementsMatch

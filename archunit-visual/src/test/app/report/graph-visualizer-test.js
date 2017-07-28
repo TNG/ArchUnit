@@ -25,9 +25,9 @@ const visualizer = require('./main-files').get('graph-visualizer').newInstance({
 
 describe("Visualizer", () => {
   it("visualizes the tree and the dependencies correctly", () => {
-    let graphWrapper = testObjects.testGraph2();
+    const graphWrapper = testObjects.testGraph2();
     visualizer.visualizeGraph(graphWrapper.graph);
-    let checkLayout = node => {
+    const checkLayout = node => {
       expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
       expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);

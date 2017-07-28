@@ -1,21 +1,21 @@
 'use strict';
 
-let shadyCssStyler = {
+const shadyCssStyler = {
   prepareTemplate: (template, name) => ShadyCSS.prepareTemplate(template, name),
   styleElement: component => ShadyCSS.styleElement(component)
 };
 
-let noOpStyler = {
+const noOpStyler = {
   prepareTemplate: () => null,
   styleElement: () => null
 };
 
 // The ShadyCSS Polyfill doesn't work out of the box, we have to activate it, if the Polyfill is present
-let styler = window.ShadyCSS ? shadyCssStyler : noOpStyler;
+const styler = window.ShadyCSS ? shadyCssStyler : noOpStyler;
 
 module.exports.defineCustomElement = function (tagName, elementClass) {
   const templateId = `#${tagName}-template`;
-  let template = document.currentScript.ownerDocument.querySelector(templateId);
+  const template = document.currentScript.ownerDocument.querySelector(templateId);
   if (!template) {
     throw new Error(`Class for tag '${tagName}' must be defined together with a template with id ${templateId}`);
   }

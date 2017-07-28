@@ -1,9 +1,9 @@
 'use strict';
 
-let jsonToRoot = require('./tree.js').jsonToRoot;
-let jsonToDependencies = require('./dependencies.js').jsonToDependencies;
+const jsonToRoot = require('./tree.js').jsonToRoot;
+const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
-let Graph = class {
+const Graph = class {
   constructor(root, nodeMap, dependencies) {
     this.root = root;
     this.nodeMap = nodeMap;
@@ -66,10 +66,10 @@ let Graph = class {
   }
 };
 
-let jsonToGraph = jsonRoot => {
-  let root = jsonToRoot(jsonRoot);
-  let nodeMap = new Map(root.getVisibleDescendants().map(node => [node.getFullName(), node]));
-  let deps = jsonToDependencies(jsonRoot, nodeMap);
+const jsonToGraph = jsonRoot => {
+  const root = jsonToRoot(jsonRoot);
+  const nodeMap = new Map(root.getVisibleDescendants().map(node => [node.getFullName(), node]));
+  const deps = jsonToDependencies(jsonRoot, nodeMap);
   return new Graph(root, nodeMap, deps);
 };
 

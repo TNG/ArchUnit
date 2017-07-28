@@ -2,11 +2,11 @@
 
 const defaultCoordinate = Math.sqrt(2) / 2;
 
-let subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x, vector1.y - vector2.y);
+const subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x, vector1.y - vector2.y);
 
-let getLength = vector => Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+const getLength = vector => Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 
-let vectors = {
+const vectors = {
   distance: (vector1, vector2) => getLength(subVectors(vector1, vector2)),
 
   vectorOf: (x, y) => {
@@ -23,7 +23,7 @@ let vectors = {
   getDefaultIfNull: vector => getLength(vector) === 0 ? vectors.vectorOf(defaultCoordinate, defaultCoordinate) : vector,
 
   norm: (vector, scale) => {
-    let length = getLength(vector);
+    const length = getLength(vector);
     return vectors.vectorOf(scale * vector.x / length, scale * vector.y / length);
   },
 
