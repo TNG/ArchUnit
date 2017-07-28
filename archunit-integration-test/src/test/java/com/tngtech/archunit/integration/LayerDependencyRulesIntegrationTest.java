@@ -62,7 +62,7 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                 "access classes that reside in a package '..service..'")
                 .by(callFrom(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
-                        .inLine(13));
+                        .inLine(14));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                 "only be accessed by any package ['..controller..', '..service..']")
                 .by(callFrom(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
-                        .inLine(13))
+                        .inLine(14))
                 .by(callFrom(SomeMediator.class, violateLayerRulesIndirectly)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(15));

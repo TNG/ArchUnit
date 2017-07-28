@@ -37,7 +37,7 @@ public class LayeredArchitectureIntegrationTest {
 
                 .by(callFrom(DaoCallingService.class, "violateLayerRules")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
-                        .inLine(13))
+                        .inLine(14))
 
                 .by(callFrom(SomeMediator.class, "violateLayerRulesIndirectly")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
