@@ -8,7 +8,7 @@ import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
 
 public class ThirdPartyRulesIntegrationTest extends ThirdPartyRulesTest {
     private static final String RULE_TEXT = "classes should " + THIRD_PARTY_CLASS_RULE_TEXT;
@@ -20,10 +20,10 @@ public class ThirdPartyRulesIntegrationTest extends ThirdPartyRulesTest {
     @Override
     public void third_party_class_should_only_be_instantiated_via_workaround() {
         expectedViolation.ofRule(RULE_TEXT)
-                .byCall(from(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartyClass")
+                .by(callFrom(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartyClass")
                         .toConstructor(ThirdPartyClassWithProblem.class)
                         .inLine(9))
-                .byCall(from(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartySubClass")
+                .by(callFrom(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartySubClass")
                         .toConstructor(ThirdPartySubClassWithProblem.class)
                         .inLine(17));
 

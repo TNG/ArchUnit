@@ -9,7 +9,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.tngtech.archunit.junit.ExpectedAccess;
+import com.tngtech.archunit.junit.ExpectedDependency;
 import com.tngtech.archunit.junit.MessageAssertionChain;
 
 import static com.google.common.base.Functions.toStringFunction;
@@ -18,7 +18,7 @@ import static com.google.common.collect.Iterables.getLast;
 
 class CyclicErrorMatcher implements MessageAssertionChain.Link {
     private final List<String> cycleDescriptions = new ArrayList<>();
-    private final Multimap<String, ExpectedAccess> details = LinkedHashMultimap.create();
+    private final Multimap<String, ExpectedDependency> details = LinkedHashMultimap.create();
 
     static CyclicErrorMatcher cycle() {
         return new CyclicErrorMatcher();
@@ -35,20 +35,20 @@ class CyclicErrorMatcher implements MessageAssertionChain.Link {
 
     private List<String> detailLines() {
         List<String> result = new ArrayList<>();
-        for (Map.Entry<String, Collection<ExpectedAccess>> detail : details.asMap().entrySet()) {
+        for (Map.Entry<String, Collection<ExpectedDependency>> detail : details.asMap().entrySet()) {
             result.add("Dependencies of " + detail.getKey());
             result.addAll(transform(detail.getValue(), toStringFunction()));
         }
         return result;
     }
 
-    public CyclicErrorMatcher from(String sliceName) {
+    CyclicErrorMatcher from(String sliceName) {
         cycleDescriptions.add(sliceName);
         return this;
     }
 
-    public CyclicErrorMatcher byAccess(ExpectedAccess access) {
-        details.put(getLast(cycleDescriptions), access);
+    CyclicErrorMatcher by(ExpectedDependency dependency) {
+        details.put(getLast(cycleDescriptions), dependency);
         return this;
     }
 

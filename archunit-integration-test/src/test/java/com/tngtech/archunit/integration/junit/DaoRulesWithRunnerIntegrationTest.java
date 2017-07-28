@@ -13,7 +13,7 @@ import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
@@ -29,10 +29,10 @@ public class DaoRulesWithRunnerIntegrationTest {
     @CalledByArchUnitIntegrationTestRunner
     private static void expectViolationByIllegalUseOfEntityManager(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule(ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT)
-                .byCall(from(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
+                .by(accessFrom(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(EntityManager.class, "persist", Object.class)
                         .inLine(24))
-                .byCall(from(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
+                .by(accessFrom(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(MyEntityManager.class, "persist", Object.class)
                         .inLine(25));
     }

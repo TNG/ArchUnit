@@ -10,7 +10,8 @@ import com.tngtech.archunit.junit.ExpectsViolations;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
 
 public class CodingRulesIntegrationTest extends CodingRulesTest {
     @Rule
@@ -35,16 +36,16 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationByWritingToStandardStream(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should access standard streams")
-                .byAccess(from(ClassViolatingCodingRules.class, "printToStandardStream")
+                .by(accessFrom(ClassViolatingCodingRules.class, "printToStandardStream")
                         .accessing().field(System.class, "out")
                         .inLine(12))
-                .byAccess(from(ClassViolatingCodingRules.class, "printToStandardStream")
+                .by(accessFrom(ClassViolatingCodingRules.class, "printToStandardStream")
                         .accessing().field(System.class, "err")
                         .inLine(13))
-                .byCall(from(ClassViolatingCodingRules.class, "printToStandardStream")
+                .by(callFrom(ClassViolatingCodingRules.class, "printToStandardStream")
                         .toMethod(SomeCustomException.class, "printStackTrace")
                         .inLine(14))
-                .byAccess(from(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .accessing().field(System.class, "out")
                         .inLine(11));
     }
@@ -60,16 +61,16 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationByThrowingGenericException(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should throw generic exceptions")
-                .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
                         .inLine(22))
-                .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Exception.class, String.class)
                         .inLine(24))
-                .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(RuntimeException.class, String.class, Throwable.class)
                         .inLine(26))
-                .byCall(from(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Exception.class, String.class)
                         .inLine(26));
     }
@@ -85,7 +86,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     public static void expectViolationByUsingJavaUtilLogging(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should use java.util.logging")
-                .byAccess(from(ClassViolatingCodingRules.class, "<clinit>")
+                .by(accessFrom(ClassViolatingCodingRules.class, "<clinit>")
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(9));
     }

@@ -83,25 +83,39 @@ public class MessageAssertionChain {
         };
     }
 
-    static Link containsConsecutiveLines(final List<String> lines) {
-        checkArgument(!lines.isEmpty(), "Asserting zero consecutive lines makes no sense");
-        final String linesDesription = Joiner.on(System.lineSeparator()).join(lines);
+    static Link containsConsecutiveLines(final List<String> expectedLines) {
+        checkArgument(!expectedLines.isEmpty(), "Asserting zero consecutive lines makes no sense");
+        final String linesDesription = Joiner.on(System.lineSeparator()).join(expectedLines);
         final String description = "Message contains consecutive lines " + System.lineSeparator() + linesDesription;
 
         return new Link() {
             @Override
             public Result filterMatching(List<String> allLines) {
-                int indexOfFirstLine = allLines.indexOf(lines.get(0));
+                int indexOfFirstLine = allLines.indexOf(expectedLines.get(0));
                 if (indexOfFirstLine < 0) {
-                    return new Result(false, allLines);
+                    return new Result(false, allLines, String.format("Couldn't find line '%s'", expectedLines.get(0)));
                 }
-                if (!lines.equals(allLines.subList(indexOfFirstLine, indexOfFirstLine + lines.size()))) {
-                    return new Result(false, allLines);
+
+                List<String> linesToAnalyze = allLines.subList(indexOfFirstLine, indexOfFirstLine + expectedLines.size());
+                Optional<String> lineMismatch = findMismatch(expectedLines, linesToAnalyze);
+                if (lineMismatch.isPresent()) {
+                    return new Result(false, allLines, lineMismatch.get());
                 }
                 List<String> remainingLines = ImmutableList.copyOf(Iterables.concat(
                         allLines.subList(0, indexOfFirstLine),
-                        allLines.subList(indexOfFirstLine + lines.size(), allLines.size())));
+                        allLines.subList(indexOfFirstLine + expectedLines.size(), allLines.size())));
                 return new Result(true, remainingLines);
+            }
+
+            private Optional<String> findMismatch(List<String> expectedLines, List<String> linesToAnalyze) {
+                for (int i = 0; i < expectedLines.size(); i++) {
+                    String checkLine = linesToAnalyze.size() > i ? linesToAnalyze.get(i) : null;
+                    if (!expectedLines.get(i).equals(checkLine)) {
+                        return Optional.of(String.format("Expected line '%s', but was %s",
+                                expectedLines.get(i), checkLine != null ? "'" + checkLine + "'" : "<empty>"));
+                    }
+                }
+                return Optional.absent();
             }
 
             @Override
@@ -127,9 +141,9 @@ public class MessageAssertionChain {
 
     private String createErrorMessage(Link link, Link.Result result) {
         String message = "Expected: " + link.getDescription();
-        if (result.mismatchDescription.isPresent()) {
-            message += System.lineSeparator() + "But: " + result.mismatchDescription.get();
-        }
+        String mismatchDescription = result.mismatchDescription
+                .or("The following lines were unexpected: " + result.remainingLines);
+        message += System.lineSeparator() + "But: " + mismatchDescription;
         return message;
     }
 
@@ -205,7 +219,7 @@ public class MessageAssertionChain {
                         remainingLines = result.remainingLines;
                         mismatchDescription = append(mismatchDescription, result.mismatchDescription);
                     }
-                    return new Result(matches, remainingLines);
+                    return new Result(matches, remainingLines, mismatchDescription);
                 }
 
                 private Optional<String> append(Optional<String> description, Optional<String> part) {

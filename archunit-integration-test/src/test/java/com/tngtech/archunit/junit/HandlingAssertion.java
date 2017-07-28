@@ -32,13 +32,13 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     @Override
-    public ExpectsViolations byAccess(ExpectedFieldAccess access) {
+    public ExpectsViolations by(ExpectedFieldAccess access) {
         expectedFieldAccesses.add(access);
         return this;
     }
 
     @Override
-    public ExpectsViolations byCall(ExpectedCall call) {
+    public ExpectsViolations by(ExpectedCall call) {
         if (call.isToConstructor()) {
             expectedConstructorCalls.add(call);
         } else {
