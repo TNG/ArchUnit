@@ -274,6 +274,44 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_to_self() {
+        JavaClasses classes = importClasses(ADependingOnB.class, SuperA.class, InterfaceForA.class, B.class);
+
+        assertThat(classes.get(B.class).getDirectDependenciesToSelf())
+                .hasSize(3)
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(5))
+                .areAtLeastOne(setFieldDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "field")
+                        .inLineNumber(6))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "call")
+                        .inLineNumber(7));
+
+        assertThat(classes.get(SuperA.class).getDirectDependenciesToSelf())
+                .hasSize(2)
+                .areAtLeastOne(extendsDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(4));
+
+        assertThat(classes.get(InterfaceForA.class).getDirectDependenciesToSelf())
+                .hasSize(1)
+                .areAtLeastOne(implementsDependency()
+                        .from(ADependingOnB.class)
+                        .to(InterfaceForA.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
     public void function_simpleName() {
         assertThat(JavaClass.Functions.SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
                 .as("result of SIMPLE_NAME(clazz)")
