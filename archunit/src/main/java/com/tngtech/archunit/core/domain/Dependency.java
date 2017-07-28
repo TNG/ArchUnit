@@ -41,12 +41,9 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
         return new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
     }
 
-    static Dependency fromExtends(JavaClass origin, JavaClass targetSuperClass) {
-        return createDependency(origin, targetSuperClass, "extends");
-    }
-
-    static Dependency fromImplements(JavaClass origin, JavaClass targetInterface) {
-        return createDependency(origin, targetInterface, "implements");
+    static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
+        String dependencyType = targetSuperType.isInterface() ? "implements" : "extends";
+        return createDependency(origin, targetSuperType, dependencyType);
     }
 
     private static Dependency createDependency(JavaClass origin, JavaClass target, String dependencyType) {

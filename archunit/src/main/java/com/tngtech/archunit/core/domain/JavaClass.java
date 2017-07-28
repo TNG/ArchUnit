@@ -26,6 +26,7 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -482,27 +483,44 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * <li>implementing an interface</li>
      * </ul>
      *
-     * @return All dependencies directly from this class
+     * @return All dependencies originating directly from this class (i.e. where this class is the origin)
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaAccess<?> access : filterTargetNotSelf(getAccessesFromSelf())) {
+        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesFromSelf());
+        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
+            result.add(Dependency.fromInheritance(this, superType));
+        }
+        return result.build();
+    }
+
+    private ImmutableSet.Builder<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
             result.add(Dependency.from(access));
-        }
-        if (getSuperClass().isPresent()) {
-            result.add(Dependency.fromExtends(this, getSuperClass().get()));
-        }
-        for (JavaClass i : getInterfaces()) {
-            result.add(Dependency.fromImplements(this, i));
         }
         return result;
     }
 
-    private Set<JavaAccess<?>> filterTargetNotSelf(Set<? extends JavaAccess<?>> accesses) {
+    /**
+     * Like {@link #getDirectDependenciesFromSelf()}, but instead returns all dependencies where this class
+     * is target.
+     *
+     * @return Dependencies where this class is the target.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDirectDependenciesToSelf() {
+        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesToSelf());
+        for (JavaClass subClass : getSubClasses()) {
+            result.add(Dependency.fromInheritance(subClass, this));
+        }
+        return result.build();
+    }
+
+    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
         Set<JavaAccess<?>> result = new HashSet<>();
         for (JavaAccess<?> access : accesses) {
-            if (!access.getTarget().getOwner().equals(this)) {
+            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
                 result.add(access);
             }
         }
