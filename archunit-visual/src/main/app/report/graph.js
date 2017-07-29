@@ -173,16 +173,6 @@ module.exports.create = () => {
   }
 
   function initializeDeps() {
-    svg.append('defs').append('marker')
-      .attr('id', 'end_arrow')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 10)
-      .attr('markerWidth', 10)
-      .attr('markerHeight', 10)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M0,-5L10,0L0,5');
-
     const edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
     createNewEdges(edges);
   }
