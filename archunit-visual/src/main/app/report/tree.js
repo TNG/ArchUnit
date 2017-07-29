@@ -164,8 +164,8 @@ const Node = class {
     }
   }
 
-  recursiveCall(fun) {
-    this.getCurrentChildren().forEach(c => c.recursiveCall(fun));
+  callOnEveryNode(fun) {
+    this.getCurrentChildren().forEach(c => c.callOnEveryNode(fun));
     fun(this);
   }
 
@@ -250,7 +250,7 @@ const jsonToRoot = jsonRoot => {
   const root = parseJsonNode(jsonRoot);
 
   const map = new Map();
-  root.recursiveCall(n => map.set(n.getFullName(), n));
+  root.callOnEveryNode(n => map.set(n.getFullName(), n));
   root.getByName = name => map.get(name);
 
   root._dependencies = jsonToDependencies(jsonRoot, root);

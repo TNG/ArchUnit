@@ -21,7 +21,7 @@ const Graph = class {
 
   //FIXME: fold and do not change state only
   foldAllNodes() {
-    this.root.recursiveCall(node => {
+    this.root.callOnEveryNode(node => {
       if (!node.isRoot()) {
         node.fold();
       }
