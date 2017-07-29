@@ -4,9 +4,8 @@ const jsonToRoot = require('./tree.js').jsonToRoot;
 const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
 const Graph = class {
-  constructor(root, nodeMap, dependencies) {
+  constructor(root, dependencies) {
     this.root = root;
-    this.nodeMap = nodeMap;
     this.dependencies = dependencies;
   }
 
@@ -68,9 +67,8 @@ const Graph = class {
 
 const jsonToGraph = jsonRoot => {
   const root = jsonToRoot(jsonRoot);
-  const nodeMap = new Map(root.getVisibleDescendants().map(node => [node.getFullName(), node]));
-  const deps = jsonToDependencies(jsonRoot, nodeMap);
-  return new Graph(root, nodeMap, deps);
+  const deps = jsonToDependencies(jsonRoot, root);
+  return new Graph(root, deps);
 };
 
 module.exports.jsonToGraph = jsonToGraph;

@@ -9,6 +9,6 @@ describe("Graph", () => {
   it("creates a correct node map", () => {
     const graph = testObjects.testGraph3().graph;
     const allNodes = testObjects.allNodes(graph.root);
-    expect(allNodes.map(n => graph.nodeMap.get(n))).to.containExactlyNodes(allNodes);
+    expect(allNodes.map(n => graph.root.getByName(n))).to.containExactlyNodes(allNodes);
   });
 });

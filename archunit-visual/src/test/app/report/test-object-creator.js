@@ -227,7 +227,7 @@ const treeWrapperOf = root => {
 
 const graphWrapperOf = (graph, allDependencies) => ({
   graph: graph,
-  getNode: fullName => graph.nodeMap.get(fullName),
+  getNode: fullName => graph.root.getByName(fullName),
   allDependencies: allDependencies
 });
 
@@ -239,6 +239,8 @@ const createNodeMap = root => {
   return nodeMap;
 };
 
+// FIXME: Whatever 'wrapper' is supposed to mean, it's defenitely weird
+// FIXME: Global test objects pattern is bad, too. Don't just define graph1, graph2, ... and use those, because you'll use all information, what is really relevant for the test
 module.exports = {
   testTree1: () => treeWrapperOf(testTree1()),
   testTree2: () => treeWrapperOf(testTree2()),

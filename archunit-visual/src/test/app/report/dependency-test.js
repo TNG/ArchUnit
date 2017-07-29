@@ -31,7 +31,7 @@ const buildDescription = () => ({
 describe("Dependency", () => {
   it("can be built by merging existing descriptions with different access groups", () => {
     const graphWrapper = testObjects.testGraph3();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.main.class1", to = "com.tngtech.interface1";
 
     const description1 = buildDescription().withKinds("", "methodCall").withCodeElements(
@@ -45,7 +45,7 @@ describe("Dependency", () => {
 
   it("can be built by merging existing descriptions with same access groups but different access kinds", () => {
     const graphWrapper = testObjects.testGraph3();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     const description1 = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -62,7 +62,7 @@ describe("Dependency", () => {
 
   it("can be built with existing description when start is folded and start's parent is a class", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     const description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -74,7 +74,7 @@ describe("Dependency", () => {
 
   it("can be built with existing description when start is folded and start's parent is a package", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.test", to = "com.tngtech.class2";
 
     const description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
@@ -86,7 +86,7 @@ describe("Dependency", () => {
 
   it("can be built with existing description when target is folded and target's parent is a class", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.main.class1", to = "com.tngtech.test.testclass1";
 
     const description = buildDescription().withKinds("", "methodCall").withCodeElements(
@@ -98,7 +98,7 @@ describe("Dependency", () => {
 
   it("can be built with existing description when target is folded and targets's parent is a package", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
-    const buildDependency = createDependencyBuilder(graphWrapper.graph.nodeMap);
+    const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.main.class1", to = "com.tngtech.test";
 
     const description = buildDescription().withKinds("", "methodCall").withCodeElements(

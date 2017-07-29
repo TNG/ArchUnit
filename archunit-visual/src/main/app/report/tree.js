@@ -217,7 +217,11 @@ const parseJsonNode = (parent, jsonNode) => {
 };
 
 const jsonToRoot = jsonRoot => {
-  return parseJsonNode(null, jsonRoot);
+  const root = parseJsonNode(null, jsonRoot);
+  const map = new Map();
+  root.recursiveCall(n => map.set(n.getFullName(), n));
+  root.getByName = name => map.get(name);
+  return root;
 };
 
 module.exports.jsonToRoot = jsonToRoot;

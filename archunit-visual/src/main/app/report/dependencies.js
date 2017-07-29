@@ -133,7 +133,7 @@ const Dependencies = class {
 
   setNodeFilters(filters) {
     this._filters.set(NODE_FILTER, filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
-      deps.filter(d => filter(nodes.get(d.from)) && filter(nodes.get(d.to))), filtered_deps));
+      deps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), filtered_deps));
     reapplyFilters(this, this._filters);
   }
 
@@ -185,7 +185,7 @@ const Dependencies = class {
   getDetailedDependenciesOf(from, to) {
     const getDetailedDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
       const matching = filter(dependencies).by(propertyFunc);
-      const startNode = nodes.get(depEnd);
+      const startNode = nodes.getByName(depEnd);
       if (startNode.isPackage() || startNode.isCurrentlyLeaf()) {
         return matching.startsWith(depEnd);
       }

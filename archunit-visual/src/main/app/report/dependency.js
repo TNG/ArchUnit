@@ -66,10 +66,6 @@ const DependencyDescription = class {
     return !CodeElement.isAbsent(this.startCodeUnit) || !CodeElement.isAbsent(this.targetElement);
   }
 
-  getDescription() {
-    return this.startCodeUnit.title + "->" + this.targetElement.title;
-  }
-
   toString() {
     const allKinds = this.getAllKinds();
     return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
@@ -90,11 +86,11 @@ const Dependency = class {
   }
 
   getStartNode() {
-    return nodes.get(this.from);
+    return nodes.getByName(this.from);
   }
 
   getEndNode() {
-    return nodes.get(this.to);
+    return nodes.getByName(this.to);
   }
 
   toString() {
@@ -134,7 +130,7 @@ const getCodeElementWhenParentFolded = (description, codeElement, dependencyEnd,
 };
 
 const containsPackage = (from, to) => {
-  return nodes.get(from).isPackage() || nodes.get(to).isPackage();
+  return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
 };
 
 const buildDependency = (from, to) => {
