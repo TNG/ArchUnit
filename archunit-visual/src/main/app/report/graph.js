@@ -105,10 +105,6 @@ module.exports.create = () => {
 
   let graph;
 
-  function initializeFilter() {
-    updateEdgesWithoutAnimation();
-  }
-
   function layout() {
     visualizer.visualizeGraph(graph);
     adaptSVGSize();
@@ -530,7 +526,6 @@ module.exports.create = () => {
       initializeGraph();
       graph.foldAllNodes();
       updateVisualization();
-      initializeFilter();
 
 
       // FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
