@@ -64,10 +64,10 @@ const getDependencies = node => {
 };
 
 const Node = class {
-  constructor(description, parent) {
+  constructor(description, children) {
     this._description = description;
-    this._parent = parent;
-    this._originalChildren = [];
+    this._originalChildren = children;
+    this._originalChildren.forEach(c => c._parent = this);
     this._filteredChildren = this._originalChildren;
     this._folded = false;
     this._filters = new Map();
@@ -240,16 +240,14 @@ const parseNodeDescriptionFromJson = jsonElement => {
   return new NodeDescription(jsonElement.name, jsonElement.fullName, jsonElement.type);
 };
 
-const parseJsonNode = (parent, jsonNode) => {
-  const node = new Node(parseNodeDescriptionFromJson(jsonNode), parent);
-  if (jsonNode.hasOwnProperty("children")) {
-    jsonNode.children.forEach(c => node._originalChildren.push(parseJsonNode(node, c)));
-  }
-  return node;
+const parseJsonNode = jsonNode => {
+  const jsonChildren = jsonNode.hasOwnProperty("children") ? jsonNode.children : [];
+  const children = jsonChildren.map(parseJsonNode);
+  return new Node(parseNodeDescriptionFromJson(jsonNode), children);
 };
 
 const jsonToRoot = jsonRoot => {
-  const root = parseJsonNode(null, jsonRoot);
+  const root = parseJsonNode(jsonRoot);
 
   const map = new Map();
   root.recursiveCall(n => map.set(n.getFullName(), n));
