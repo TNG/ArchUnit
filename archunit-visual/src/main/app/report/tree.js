@@ -1,5 +1,7 @@
 'use strict';
 
+const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
+
 const nodeKinds = require('./node-kinds.json');
 const boolFunc = require('./booleanutils').booleanFunctions;
 
@@ -47,6 +49,18 @@ const reapplyFilters = (root, filters) => {
     node._filteredChildren.forEach(c => recReapplyFilter(c, filter));
   };
   Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
+};
+
+const getRoot = node => {
+  let root = node;
+  while (root._parent) {
+    root = root._parent;
+  }
+  return root;
+};
+
+const getDependencies = node => {
+  return getRoot(node)._dependencies;
 };
 
 const Node = class {
@@ -104,7 +118,11 @@ const Node = class {
   }
 
   fold() {
-    return fold(this, true);
+    const wasFolded = fold(this, true);
+    if (wasFolded) {
+      getDependencies(this).changeFold(this.getFullName(), this.isFolded());
+    }
+    return wasFolded;
   }
 
   isLeaf() {
@@ -112,7 +130,11 @@ const Node = class {
   }
 
   changeFold() {
-    return fold(this, !this._folded);
+    const wasFolded = fold(this, !this._folded);
+    if (wasFolded) {
+      getDependencies(this).changeFold(this.getFullName(), this.isFolded());
+    }
+    return wasFolded;
   }
 
   getFilters() {
@@ -126,6 +148,10 @@ const Node = class {
 
   getVisibleDescendants() {
     return descendants(this, n => n.getCurrentChildren());
+  }
+
+  getVisibleDependencies() {
+    return getDependencies(this).getVisible();
   }
 
   foldAllNodes(callback) {
@@ -153,6 +179,8 @@ const Node = class {
   filterByName(filterString, exclude) {
     this._filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
     reapplyFilters(this, this._filters);
+
+    getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
   filterByType(interfaces, classes, eliminatePkgs) {
@@ -165,11 +193,15 @@ const Node = class {
       boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
     this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
     reapplyFilters(this, this._filters);
+
+    getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
   resetFilterByType() {
     this._filters.delete(TYPE_FILTER);
     reapplyFilters(this, this._filters);
+
+    getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 };
 
@@ -218,9 +250,16 @@ const parseJsonNode = (parent, jsonNode) => {
 
 const jsonToRoot = jsonRoot => {
   const root = parseJsonNode(null, jsonRoot);
+
   const map = new Map();
   root.recursiveCall(n => map.set(n.getFullName(), n));
   root.getByName = name => map.get(name);
+
+  root._dependencies = jsonToDependencies(jsonRoot, root);
+  root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
+  root.filterDependenciesByKind = () => root._dependencies.filterByKind();
+  root.resetFilterDependenciesByKind = () => root._dependencies.resetFilterByKind();
+
   return root;
 };
 

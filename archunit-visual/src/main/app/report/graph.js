@@ -1,12 +1,10 @@
 'use strict';
 
 const jsonToRoot = require('./tree.js').jsonToRoot;
-const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
 const Graph = class {
-  constructor(root, dependencies) {
+  constructor(root) {
     this.root = root;
-    this.dependencies = dependencies;
   }
 
   getVisibleNodes() {
@@ -14,61 +12,50 @@ const Graph = class {
   }
 
   getVisibleDependencies() {
-    return this.dependencies.getVisible();
+    return this.root.getVisibleDependencies();
   }
 
   changeFoldStateOfNode(node) {
-    if (node.changeFold()) {
-      this.dependencies.changeFold(node.getFullName(), node.isFolded());
-      return true;
-    }
-    return false;
+    return !!node.changeFold();
   }
 
   //FIXME: fold and do not change state only
   foldAllNodes() {
     this.root.recursiveCall(node => {
       if (!node.isRoot()) {
-        if (node.fold()) {
-          //FIXME: schöner machen AU-14
-          this.dependencies.changeFold(node.getFullName(), node.isFolded());
-        }
+        node.fold();
       }
     });
   }
 
   getDetailedDependenciesOf(from, to) {
-    return this.dependencies.getDetailedDependenciesOf(from, to);
+    return this.root.getDetailedDependenciesOf(from, to);
   }
 
   filterNodesByName(filterString, exclude) {
     this.root.filterByName(filterString, exclude);
-    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   filterNodesByType(filter) {
     this.root.filterByType(filter.showInterfaces, filter.showClasses, !filter.showEmptyPackages);
-    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   resetFilterNodesByType() {
     this.root.resetFilterByType();
-    this.dependencies.setNodeFilters(this.root.getFilters());
   }
 
   filterDependenciesByKind() {
-    return this.dependencies.filterByKind();
+    return this.root.filterDependenciesByKind();
   }
 
   resetFilterDependenciesByKind() {
-    this.dependencies.resetFilterByKind();
+    this.root.resetFilterDependenciesByKind();
   }
 };
 
 const jsonToGraph = jsonRoot => {
   const root = jsonToRoot(jsonRoot);
-  const deps = jsonToDependencies(jsonRoot, root);
-  return new Graph(root, deps);
+  return new Graph(root);
 };
 
 module.exports.jsonToGraph = jsonToGraph;

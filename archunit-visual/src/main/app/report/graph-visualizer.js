@@ -7,7 +7,7 @@ module.exports.newInstance = config => {
   return {
     visualizeGraph: graph => {
       treeVisualizer.visualizeTree(graph.root);
-      dependenciesVisualizer.visualizeDependencies(graph.dependencies);
+      dependenciesVisualizer.visualizeDependencies(graph.root._dependencies);
     },
     drag: (graph, node, dx, dy, force) => {
       treeVisualizer.dragNode(node, dx, dy, force);
