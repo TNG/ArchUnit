@@ -68,6 +68,8 @@
         checkBoxes.forEach(box => {
           box.onclick = () => onClicked(checkboxIdToCheckedBoolean())
         });
+
+        onClicked(checkboxIdToCheckedBoolean()); // Sync the initial state
       }
     };
   };

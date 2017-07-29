@@ -106,14 +106,6 @@ module.exports.create = () => {
   let graph;
 
   function initializeFilter() {
-    graph.filterDependenciesByKind()
-      .showImplementing(true)
-      .showExtending(true)
-      .showConstructorCall(true)
-      .showMethodCall(true)
-      .showFieldAccess(true)
-      .showAnonymousImplementing(true)
-      .showDepsBetweenChildAndParent(false);
     updateEdgesWithoutAnimation();
   }
 
