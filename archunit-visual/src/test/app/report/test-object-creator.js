@@ -2,7 +2,14 @@
 const testJson = require("./test-json-creator");
 
 const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
-const jsonToGraph = require('./main-files').get('graph').jsonToGraph;
+const jsonToGraph = require('./main-files').getRewired('graph', {
+  './graph-visualizer': {
+    newInstance: () => ({
+      visualizeGraph: () => {
+      }
+    })
+  }
+}).jsonToGraph;
 
 const testTree1 = () => {
   const simpleJsonTree = testJson.package("com.tngtech")

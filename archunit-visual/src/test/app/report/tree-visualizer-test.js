@@ -11,14 +11,11 @@ const RELATIVE_TEXT_POSITION = 0.8;
 
 const calculateTextWidth = n => n.length * 6;
 const CIRCLE_PADDING = 10;
-const visualizationStyles = {
-  getCirclePadding: () => CIRCLE_PADDING
-};
 
-const treeVisualizer = require('./main-files').get('tree-visualizer').newInstance({
-  calculateTextWidth,
-  visualizationStyles
-});
+const guiElementsStub = require('./stubs').guiElementsStub();
+guiElementsStub.setCirclePadding(CIRCLE_PADDING);
+guiElementsStub.setCalculateTextWidth(calculateTextWidth);
+const treeVisualizer = require('./main-files').getRewired('tree-visualizer', guiElementsStub).newInstance();
 
 const radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 

@@ -55,7 +55,9 @@ const Graph = class {
 
 const jsonToGraph = jsonRoot => {
   const root = jsonToRoot(jsonRoot);
-  return new Graph(root);
+  const graph = new Graph(root);
+  require('./graph-visualizer').newInstance().visualizeGraph(graph);
+  return graph;
 };
 
 module.exports.jsonToGraph = jsonToGraph;
@@ -76,8 +78,6 @@ module.exports.create = () => {
   const APPEAR_DURATION = 10;
 
   const d3 = require('d3');
-  const visualizationStyles = require('./visualization-styles')
-    .from(document.getElementById('visualization-styles').sheet);
   const isFixed = new Map();
 
   const svg = d3.select('#visualization'),
@@ -86,29 +86,11 @@ module.exports.create = () => {
     gEdges = translater.append('g'),
     gAllDetailedDeps = svg.append('g');
 
-  const calculateTextWidth = (text, cssClassOfText) => {
-    const textSvg = d3.select('#text-size-computation').style('display', 'inline');
-    const textElement = textSvg.select('text');
-    if (cssClassOfText) {
-      textElement.attr('class', cssClassOfText)
-    }
-    textElement.text(text);
-    const width = textElement.node().getComputedTextLength();
-    if (cssClassOfText) {
-      textElement.classed(cssClassOfText, false)
-    }
-    textSvg.style('display', 'none');
-    return width;
-  };
-
-  const visualizer = require('./graph-visualizer').newInstance({calculateTextWidth, visualizationStyles});
+  const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
+  const calculateTextWidth = require('./text-width-calculator');
+  const visualizer = require('./graph-visualizer').newInstance();
 
   let graph;
-
-  function layout() {
-    visualizer.visualizeGraph(graph);
-    adaptSVGSize();
-  }
 
   function adaptSVGSize() {
     svg.attr('width', Math.max(parseInt(2 * graph.root.visualData.r + 4),
@@ -512,7 +494,7 @@ module.exports.create = () => {
       }
 
       graph = jsonToGraph(jsonroot);
-      layout();
+      adaptSVGSize();
       initializeGraph();
       graph.foldAllNodes();
       updateVisualization();

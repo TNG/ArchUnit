@@ -12,8 +12,8 @@ const RELATIVE_TEXT_POSITION = 0.8;
 const packSiblings = require('d3').packSiblings;
 const packEnclose = require('d3').packEnclose;
 
-let calculateTextWidth;
-let visualizationStyles;
+const calculateTextWidth = require('./text-width-calculator');
+const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
 
 const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
 
@@ -142,10 +142,7 @@ const createVisualData = (node, x, y, r) => {
   node.visualData = new VisualData(x, y, r, node.visualData);
 };
 
-module.exports.newInstance = config => {
-  calculateTextWidth = config.calculateTextWidth;
-  visualizationStyles = config.visualizationStyles;
-
+module.exports.newInstance = () => {
   return {
     visualizeTree: visualizeTree,
     dragNode: dragNode,

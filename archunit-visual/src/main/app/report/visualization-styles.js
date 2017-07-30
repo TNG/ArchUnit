@@ -1,5 +1,7 @@
 'use strict';
 
+const guiElements = require('./gui-elements');
+
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
 
@@ -20,7 +22,7 @@ const rgbToHex = (rgbString, defaultHex) => {
   return numbersAsHex.reduce((acc, n) => acc + n, "#");
 };
 
-module.exports.from = function (styleSheet) {
+const stylesFrom = (styleSheet) => {
   const unique = (elements) => {
     if (elements.length === 0) {
       return null;
@@ -65,3 +67,6 @@ module.exports.from = function (styleSheet) {
     }
   };
 };
+
+module.exports.from = stylesFrom;
+module.exports.fromEmbeddedStyleSheet = () => stylesFrom(guiElements.visualizationStyleSheet());

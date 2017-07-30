@@ -15,13 +15,15 @@ const RELATIVE_TEXT_POSITION = 0.8;
 
 const CIRCLE_PADDING = 10;
 
-// FIXME: Why can I pass an empty config, and still assertions of CIRCLE_PADDING pass?? --> the assertion does not pass, but the test is ignored, I don't no why...
-const visualizer = require('./main-files').get('graph-visualizer').newInstance({
-  calculateTextWidth: calculateTextWidth,
-  visualizationStyles: {
-    getCirclePadding: () => CIRCLE_PADDING
+const guiElementsStub = require('./stubs').guiElementsStub();
+guiElementsStub.setCirclePadding(CIRCLE_PADDING);
+guiElementsStub.setCalculateTextWidth(calculateTextWidth);
+const treeVisualizerFactory = require('./main-files').getRewired('tree-visualizer', guiElementsStub);
+const visualizer = require('./main-files').getRewired('graph-visualizer', {
+  './tree-visualizer': {
+    newInstance: () => treeVisualizerFactory.newInstance()
   }
-});
+}).newInstance();
 
 describe("Visualizer", () => {
   it("visualizes the tree and the dependencies correctly", () => {
@@ -34,6 +36,44 @@ describe("Visualizer", () => {
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
     checkLayout(graphWrapper.graph.root);
+    expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+  });
+});
+
+describe("Visual data of dependency", () => {
+
+  it("calc their end positions correctly", () => {
+    const graph = testObjects.testGraph2().graph;
+    visualizer.visualizeGraph(graph);
+    expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+  });
+
+  it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
+    const graph = testObjects.testGraphWithOverlappingNodesAndMutualDependencies().graph;
+    visualizer.visualizeGraph(graph);
+    expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+  });
+
+  it("refreshes its end positions correctly if a node is dragged", () => {
+    const graphWrapper = testObjects.testGraph2();
+    visualizer.visualizeGraph(graphWrapper.graph);
+
+    const toChange = "com.tngtech.test.testclass1";
+    const node = graphWrapper.getNode(toChange);
+    visualizer.drag(graphWrapper.graph, node, 10, -20, true);
+
+    expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+  });
+
+  it("refreshes its end positions correctly if a node changes its radius on folding", () => {
+    const graphWrapper = testObjects.testGraph2();
+    visualizer.visualizeGraph(graphWrapper.graph);
+
+    const toChange = "com.tngtech.main";
+    const node = graphWrapper.getNode(toChange);
+    graphWrapper.graph.changeFoldStateOfNode(node);
+    visualizer.update(graphWrapper.graph, node);
+
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 });

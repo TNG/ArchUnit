@@ -1,8 +1,8 @@
 'use strict';
 
-module.exports.newInstance = config => {
-  const treeVisualizer = require("./tree-visualizer.js").newInstance(config);
-  const dependenciesVisualizer = require("./dependencies-visualizer.js");
+module.exports.newInstance = () => {
+  const treeVisualizer = require("./tree-visualizer").newInstance();
+  const dependenciesVisualizer = require("./dependencies-visualizer");
 
   return {
     visualizeGraph: graph => {

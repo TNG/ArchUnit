@@ -127,7 +127,7 @@ describe('StyleStub', () => {
     expect(styleStub.getPropertyValue('foo-bar')).to.equal('baz');
   });
 
-  it('should return update style values just like the DOM API', () => {
+  it('should update style values just like the DOM API', () => {
     const styleStub = new StyleStub({
       'foo': 'bar',
       'foo-bar': 'baz'
