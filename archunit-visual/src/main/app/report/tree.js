@@ -64,10 +64,13 @@ const getDependencies = node => {
 };
 
 const Node = class {
-  constructor(description, children) {
-    this._description = description;
-    this._originalChildren = children;
+  constructor(jsonNode) {
+    this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
+
+    const jsonChildren = jsonNode.hasOwnProperty("children") ? jsonNode.children : [];
+    this._originalChildren = jsonChildren.map(jsonChild => new Node(jsonChild));
     this._originalChildren.forEach(c => c._parent = this);
+
     this._filteredChildren = this._originalChildren;
     this._folded = false;
     this._filters = new Map();
@@ -236,18 +239,8 @@ const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
 
-const parseNodeDescriptionFromJson = jsonElement => {
-  return new NodeDescription(jsonElement.name, jsonElement.fullName, jsonElement.type);
-};
-
-const parseJsonNode = jsonNode => {
-  const jsonChildren = jsonNode.hasOwnProperty("children") ? jsonNode.children : [];
-  const children = jsonChildren.map(parseJsonNode);
-  return new Node(parseNodeDescriptionFromJson(jsonNode), children);
-};
-
 const jsonToRoot = jsonRoot => {
-  const root = parseJsonNode(jsonRoot);
+  const root = new Node(jsonRoot);
 
   const map = new Map();
   root.callOnEveryNode(n => map.set(n.getFullName(), n));
