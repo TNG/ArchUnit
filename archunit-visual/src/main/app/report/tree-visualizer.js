@@ -17,11 +17,6 @@ const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleS
 
 const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
 
-const spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
-  const spaceBetweenPoints = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
-  return nodeVisualData.r - spaceBetweenPoints;
-};
-
 const getFoldedRadius = node => {
   let foldedRadius = node.visualData.r;
   if (!node.isRoot()) {
@@ -41,26 +36,6 @@ const adaptToFoldState = (node) => {
   }
 };
 
-const VisualData = class {
-  constructor(x, y, r, oldVisualData) {
-    this.x = x;
-    this.y = y;
-    this.r = r;
-    this.visible = oldVisualData ? oldVisualData.visible : false;
-  }
-
-  move(dx, dy, parent, callback, addToProtocol, force) {
-    const newX = this.x + dx;
-    const newY = this.y + dy;
-    const space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
-    if (force || parent.isRoot() || parent.isFolded() || space >= this.r) {
-      this.x = newX;
-      this.y = newY;
-      callback();
-    }
-  }
-};
-
 const radiusOfLeafWithTitle = title => {
   return calculateTextWidth(title) / 2 + CIRCLE_TEXT_PADDING;
 };
@@ -77,7 +52,7 @@ const radiusOfAnyNode = (node, textPosition) => {
 
 const recVisualizeTree = (node) => {
   if (node.isCurrentlyLeaf()) {
-    createVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
+    updateVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
   }
   else {
     node.getCurrentChildren().forEach(c => recVisualizeTree(c));
@@ -88,7 +63,7 @@ const recVisualizeTree = (node) => {
     const circle = packEnclose(visualDataOfChildren);
     visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding() / 2);
     const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-    createVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
+    updateVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
     visualDataOfChildren.forEach(c => {
       c.dx = c.x - node.visualData.x;
       c.dy = c.y - node.visualData.y;
@@ -118,14 +93,10 @@ const visualizeTree = (root) => {
   calcPositionAndSetRadius(root);
 };
 
-const createVisualData = (node, x, y, r) => {
-  if (!node.visualData) {
-    node.visualData = new VisualData(x, y, r, node.visualData);
-  } else {
-    node.visualData.x = x;
-    node.visualData.y = y;
-    node.visualData.r = r;
-  }
+const updateVisualData = (node, x, y, r) => {
+  node.visualData.x = x;
+  node.visualData.y = y;
+  node.visualData.r = r;
 };
 
 module.exports.newInstance = () => {

@@ -63,6 +63,31 @@ const getDependencies = node => {
   return getRoot(node)._dependencies;
 };
 
+const spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
+  const spaceBetweenPoints = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
+  return nodeVisualData.r - spaceBetweenPoints;
+};
+
+const VisualData = class {
+  constructor(x, y, r, oldVisualData) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.visible = oldVisualData ? oldVisualData.visible : false;
+  }
+
+  move(dx, dy, parent, callback, addToProtocol, force) {
+    const newX = this.x + dx;
+    const newY = this.y + dy;
+    const space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
+    if (force || parent.isRoot() || parent.isFolded() || space >= this.r) {
+      this.x = newX;
+      this.y = newY;
+      callback();
+    }
+  }
+};
+
 const Node = class {
   constructor(jsonNode) {
     this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
@@ -74,6 +99,8 @@ const Node = class {
     this._filteredChildren = this._originalChildren;
     this._folded = false;
     this._filters = new Map();
+
+    this.visualData = new VisualData(0, 0, 0);
   }
 
   isPackage() {
