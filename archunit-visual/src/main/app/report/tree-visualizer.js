@@ -31,19 +31,6 @@ const getFoldedRadius = node => {
   return Math.max(foldedRadius, width);
 };
 
-const dragNodeBackIntoItsParent = node => {
-  const space = spaceFromPointToNodeBorder(node.visualData.x, node.visualData.y, node.getParent().visualData);
-  if (space < node.visualData.r) {
-    const dr = node.visualData.r - space;
-    const alpha = Math.atan2(node.visualData.y - node.getParent().visualData.y, node.visualData.x - node.getParent().visualData.x);
-    let dy = Math.abs(Math.sin(alpha) * dr);
-    let dx = Math.abs(Math.cos(alpha) * dr);
-    dy = Math.sign(node.getParent().visualData.y - node.visualData.y) * dy;
-    dx = Math.sign(node.getParent().visualData.x - node.visualData.x) * dx;
-    dragNode(node, dx, dy, true);
-  }
-};
-
 const dragNode = (node, dx, dy, force) => {
   node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy, true)), true, force);
 };
@@ -52,20 +39,13 @@ const adaptToFoldState = (node) => {
   if (node.isFolded()) {
     node.visualData.r = getFoldedRadius(node);
   }
-  else {
-    node.visualData.r = node.visualData.originalRadius;
-    if (!node.isRoot() && !node.getParent().isRoot()) {
-      dragNodeBackIntoItsParent(node);
-    }
-  }
 };
 
 const VisualData = class {
   constructor(x, y, r, oldVisualData) {
     this.x = x;
     this.y = y;
-    this.originalRadius = r;
-    this.r = this.originalRadius;
+    this.r = r;
     this.visible = oldVisualData ? oldVisualData.visible : false;
   }
 
@@ -139,7 +119,13 @@ const visualizeTree = (root) => {
 };
 
 const createVisualData = (node, x, y, r) => {
-  node.visualData = new VisualData(x, y, r, node.visualData);
+  if (!node.visualData) {
+    node.visualData = new VisualData(x, y, r, node.visualData);
+  } else {
+    node.visualData.x = x;
+    node.visualData.y = y;
+    node.visualData.r = r;
+  }
 };
 
 module.exports.newInstance = () => {
