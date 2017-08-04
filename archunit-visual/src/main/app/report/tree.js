@@ -76,7 +76,7 @@ const VisualData = class {
     this.visible = oldVisualData ? oldVisualData.visible : false;
   }
 
-  move(dx, dy, parent, callback, addToProtocol, force) {
+  move(dx, dy, parent, callback, force) {
     const newX = this.x + dx;
     const newY = this.y + dy;
     const space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);

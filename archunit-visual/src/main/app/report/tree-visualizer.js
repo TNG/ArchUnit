@@ -27,7 +27,7 @@ const getFoldedRadius = node => {
 };
 
 const dragNode = (node, dx, dy, force) => {
-  node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy, true)), true, force);
+  node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy, true)), force);
 };
 
 const adaptToFoldState = (node) => {
