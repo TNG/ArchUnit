@@ -69,7 +69,7 @@ const spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
 };
 
 const VisualData = class {
-  constructor(x, y, r, oldVisualData) {
+  constructor(x = 0, y = 0, r = 0, oldVisualData) {
     this.x = x;
     this.y = y;
     this.r = r;
@@ -100,7 +100,7 @@ const Node = class {
     this._folded = false;
     this._filters = new Map();
 
-    this.visualData = new VisualData(0, 0, 0);
+    this.visualData = new VisualData();
   }
 
   isPackage() {
