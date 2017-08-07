@@ -16,6 +16,7 @@
 package com.tngtech.archunit.visual;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitResult;
@@ -33,11 +34,18 @@ import static com.google.common.io.Files.copy;
 public class Visualizer {
 
     private static final String JSONFILENAME = "classes.json";
+    private static final String VIOLATIONS_FILENAME = "violations.json";
     private static final String DIR = "./report";
 
     public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
         new JsonExporter().export(classes, new File(targetDir, JSONFILENAME), context);
+
+        try {
+            new JsonViolationExporter().export(evaluationResult, new FileWriter(new File(targetDir, VIOLATIONS_FILENAME)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         try {
             Files.walkFileTree(Paths.get(getClass().getResource(DIR).toURI()),
