@@ -26,6 +26,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.io.Files.copy;
 
@@ -34,7 +35,7 @@ public class Visualizer {
     private static final String JSONFILENAME = "classes.json";
     private static final String DIR = "./report";
 
-    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
+    public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
         new JsonExporter().export(classes, new File(targetDir, JSONFILENAME), context);
 

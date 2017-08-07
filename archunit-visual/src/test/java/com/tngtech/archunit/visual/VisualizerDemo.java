@@ -2,6 +2,8 @@ package com.tngtech.archunit.visual;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
 
 import java.io.File;
@@ -14,9 +16,10 @@ public class VisualizerDemo {
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.visual",
                 "java.io", "com.google.common.io");
 
-        new Visualizer().visualize(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"),
-                new VisualizationContext.Builder()
+        EvaluationResult evaluationResult = ArchRuleDefinition.noClasses().should().callMethod(Object.class, "toString").evaluate(classes);
+
+        new Visualizer().visualize(classes, evaluationResult,
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"), new VisualizationContext.Builder()
                         .includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io")
                         .build());
     }
