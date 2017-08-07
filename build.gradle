@@ -51,7 +51,8 @@ ext {
             junit_dataprovider  : 'com.tngtech.java:junit-dataprovider:1.11.0',
             mockito             : 'org.mockito:mockito-core:2.27.0',
             assertj             : 'org.assertj:assertj-core:2.9.1',
-            assertj_guava       : 'org.assertj:assertj-guava:2.0.1'
+            assertj_guava       : 'org.assertj:assertj-guava:2.0.1',
+            json_assert       : 'org.skyscreamer:jsonassert:1.5.0'
     ]
 
     postfixedJar = { File jarFile, String postfix ->

@@ -17,6 +17,7 @@ dependencies {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
+    testCompile dependency.json_assert
     testCompile dependency.junit_dataprovider
     testCompile project(path: ':archunit', configuration: 'tests')
 }
