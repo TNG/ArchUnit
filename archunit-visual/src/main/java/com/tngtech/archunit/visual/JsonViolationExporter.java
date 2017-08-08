@@ -28,6 +28,10 @@ import java.util.List;
 
 public class JsonViolationExporter {
 
+    private final Gson gson = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+            .create();
+
     public void export(EvaluationResult result, Writer writer) {
         final List<JsonViolation> violations = Lists.newArrayList();
         extractFieldAccesses(result, violations);
@@ -58,10 +62,6 @@ public class JsonViolationExporter {
     }
 
     private void writeToWriter(List<JsonViolation> violations, Writer writer) {
-        final GsonBuilder builder = new GsonBuilder();
-        builder.excludeFieldsWithoutExposeAnnotation();
-        builder.setPrettyPrinting();
-        Gson gson = builder.create();
         gson.toJson(violations, writer);
     }
 }

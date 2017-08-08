@@ -20,18 +20,20 @@ import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
 class JsonExporter {
 
-    void export(JavaClasses classes, File file, VisualizationContext context) {
+    private Gson gson = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+            .create();
+
+    void export(JavaClasses classes, Writer writer, VisualizationContext context) {
         VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, context);
         JsonJavaPackage root = createPackageClassTree(visualizedClasses, context);
-        writeToFile(file, root);
+        writeToWriter(root, writer);
     }
 
     private JsonJavaPackage createPackageClassTree(VisualizedClasses visualizedClasses, VisualizationContext context) {
@@ -69,17 +71,9 @@ class JsonExporter {
         }
     }
 
-    private void writeToFile(File file, JsonJavaPackage root) {
-        final GsonBuilder builder = new GsonBuilder();
-        builder.excludeFieldsWithoutExposeAnnotation();
-        Gson gson = builder.create();
-        try (FileWriter writer = new FileWriter(file)) {
-            gson.toJson(root, writer);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+    private void writeToWriter(JsonJavaPackage root, Writer writer) {
+        gson.toJson(root, writer);
     }
-
 
     private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass anonymousInnerClass) {
         Optional<? extends JsonElement> optionalParent = root.getChild(anonymousInnerClass.getEnclosingClass().get().getName());

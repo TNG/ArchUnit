@@ -39,9 +39,8 @@ public class Visualizer {
 
     public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
-        new JsonExporter().export(classes, new File(targetDir, JSONFILENAME), context);
-
         try {
+            new JsonExporter().export(classes, new FileWriter(new File(targetDir, JSONFILENAME)), context);
             new JsonViolationExporter().export(evaluationResult, new FileWriter(new File(targetDir, VIOLATIONS_FILENAME)));
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,84 +1,75 @@
 package com.tngtech.archunit.visual;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.visual.testjson.structure.EmptyClass;
 import com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1;
-import org.junit.Rule;
+import org.json.JSONException;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.skyscreamer.jsonassert.JSONAssert;
 import some.other.OtherClass;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tngtech.archunit.visual.JsonAssertions.assertThatJsonIn;
-
 public class JsonExporterTest {
-    @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
-
     private final JsonExporter jsonExporter = new JsonExporter();
+
+    private final StringWriter writer = new StringWriter();
 
     @Test
     public void exports_empty_class() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(EmptyClass.class, OtherClass.class);
-        File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder()
+        jsonExporter.export(classes, writer, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson.structure").build());
 
-        File expectedJson = expectJson("empty-class.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+        assertWriterContainsJsonEqualToFile("empty-class.json");
     }
 
     @Test
     public void exports_empty_class_including_everything() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(EmptyClass.class, OtherClass.class);
-        File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder().build());
+        jsonExporter.export(classes, writer, new VisualizationContext.Builder().build());
 
-        File expectedJson = expectJson("empty-class-everything.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+        assertWriterContainsJsonEqualToFile("empty-class-everything.json");
     }
 
     @Test
     public void exports_simple_inherit_structure() throws Exception {
         JavaClasses classes = importClassesThatAreInPackagesOf(EmptyClass.class, SimpleClass1.class);
-        File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder()
+        jsonExporter.export(classes, writer, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
-        File expectedJson = expectJson("simpleinheritstructure.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+        assertWriterContainsJsonEqualToFile("simpleinheritstructure.json");
     }
 
     @Test
     public void exports_simple_inherit_structure_including_two_packages() throws Exception {
         JavaClasses classes = importClassesThatAreInPackagesOf(EmptyClass.class, SimpleClass1.class);
-        File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder().includeOnly("com.tngtech.archunit.visual.testjson", "java.io").build());
+        jsonExporter.export(classes, writer, new VisualizationContext.Builder().includeOnly("com.tngtech.archunit.visual.testjson", "java.io").build());
 
-        File expectedJson = expectJson("simpleinheritstructure_includetwopackages.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+        assertWriterContainsJsonEqualToFile("simpleinheritstructure_includetwopackages.json");
     }
 
     @Test
     public void exports_complex_inherit_structure() throws Exception {
         JavaClasses classes = new ClassFileImporter().importPackages(EmptyClass.class.getPackage().getName());
-        File target = tmpDir.newFile("test.json");
 
-        jsonExporter.export(classes, target, new VisualizationContext.Builder()
+        jsonExporter.export(classes, writer, new VisualizationContext.Builder()
                 .includeOnly("com.tngtech.archunit.visual.testjson").build());
 
-        File expectedJson = expectJson("complexinheritstructure.json");
-        assertThatJsonIn(target).isEquivalentToJsonIn(expectedJson);
+        assertWriterContainsJsonEqualToFile("complexinheritstructure.json");
     }
 
     private JavaClasses importClassesThatAreInPackagesOf(Class... classes) {
@@ -99,7 +90,9 @@ public class JsonExporterTest {
         };
     }
 
-    private File expectJson(String fileName) {
-        return JsonTestUtils.getJsonFile("testjson/structure/" + fileName);
+    private void assertWriterContainsJsonEqualToFile(String fileName) throws IOException, JSONException {
+        File jsonFile = JsonTestUtils.getJsonFile("testjson/structure/" + fileName);
+        String expectedJson = Files.toString(jsonFile, Charsets.UTF_8);
+        JSONAssert.assertEquals(expectedJson, writer.toString(), false);
     }
 }
