@@ -1,6 +1,7 @@
 'use strict';
 
 const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
+const nodeFilters = require('./node-filters');
 
 const nodeKinds = require('./node-kinds.json');
 const boolFunc = require('./booleanutils').booleanFunctions;
@@ -200,14 +201,13 @@ const Node = class {
   }
 
   /**
-   * filters the classes in the tree by the fullName (matching case);
-   * empty packages are removed
-   * @param filterString is a "small" regex: "*" stands for any keys (also nothing),
-   * a space at the end makes the function filtering on endsWith
-   * @param exclude
+   * Hides all nodes that don't contain the supplied filterString.
+   *
+   * @param filterString The node's full name needs to contain this text, to pass the filter. '*' matches any number of arbitrary characters.
+   * @param exclude If true, the condition is inverted, i.e. nodes with names not containing the string will pass the filter.
    */
   filterByName(filterString, exclude) {
-    this._filters.set(NAME_Filter, createFilterFunction(filterString, exclude));
+    this._filters.set(NAME_Filter, nodeFilters.nameContainsFilter(filterString, exclude));
     reapplyFilters(this, this._filters);
 
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
@@ -233,37 +233,6 @@ const Node = class {
 
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
-};
-
-const createFilterFunction = (filterString, exclude) => {
-  filterString = leftTrim(filterString);
-  const endsWith = filterString.endsWith(" ");
-  filterString = filterString.trim();
-  let regexString = escapeRegExp(filterString).replace(/\*/g, ".*");
-  if (endsWith) {
-    regexString = "(" + regexString + ")$";
-  }
-
-  const filter = node => {
-    if (node.getType() === nodeKinds.package) {
-      return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
-    }
-    else {
-      const match = new RegExp(regexString).exec(node.getFullName());
-      let res = match && match.length > 0;
-      res = exclude ? !res : res;
-      return res || (!isLeaf(node) && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
-    }
-  };
-  return filter;
-};
-
-const leftTrim = str => {
-  return str.replace(/^\s+/g, '');
-};
-
-const escapeRegExp = str => {
-  return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
 
 const jsonToRoot = jsonRoot => {
