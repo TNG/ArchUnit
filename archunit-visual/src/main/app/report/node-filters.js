@@ -1,5 +1,13 @@
 'use strict';
 
+const not = predicate => input => !predicate(input);
+
+/**
+ * Takes a predicate p (i.e. a function T -> boolean) as input. Returns an inverted predicate,
+ * i.e. if for any predicate p and any input x p(x) == true, then not(p)(x) == false.
+ */
+module.exports.not = not;
+
 const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
@@ -29,20 +37,25 @@ const stringContains = substring => {
  */
 module.exports.stringContains = stringContains;
 
-const nameContainsFilter = (filterString, exclude) => {
-  const stringContainsSubstring = stringContains(filterString);
-
+const nodeFilter = nodePredicate => {
   const filter = node => {
     if (node.isPackage()) {
       return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      let res = stringContainsSubstring(node.getFullName());
-      res = exclude ? !res : res;
+      const res = nodePredicate(node);
       return res || (!node.isLeaf() && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
   };
   return filter;
+};
+
+const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
+
+const nameContainsFilter = (filterString, exclude) => {
+  const stringContainsSubstring = stringContains(filterString);
+  const stringPredicate = exclude ? not(stringContainsSubstring) : stringContainsSubstring;
+  return nodeFilter(nodeNameSatisfies(stringPredicate));
 };
 
 module.exports.nameContainsFilter = nameContainsFilter;

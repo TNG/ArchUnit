@@ -35,7 +35,7 @@ public class Visualizer {
 
     private static final String JSONFILENAME = "classes.json";
     private static final String VIOLATIONS_FILENAME = "violations.json";
-    private static final String DIR = "./report";
+    private static final String DIR = "report";
 
     public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
