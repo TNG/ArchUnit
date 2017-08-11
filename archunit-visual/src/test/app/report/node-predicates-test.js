@@ -2,13 +2,13 @@
 
 const expect = require("chai").expect;
 const testGraph = require('./test-object-creator').graph;
-const nodeFilters = require('./main-files').get('node-filters');
+const nodePredicates = require('./main-files').get('node-predicates');
 
 const testStringContains = (subString) => ({
   against: input => ({
     is: expected => {
       it(`stringContains('${subString}')('${input}') == ${expected}`, () => {
-        expect(nodeFilters.stringContains(subString)(input)).to.equal(expected);
+        expect(nodePredicates.stringContains(subString)(input)).to.equal(expected);
       });
     }
   })
@@ -70,10 +70,10 @@ describe("Filter node names containing", () => {
 
     const classNode = graph.root.getCurrentChildren()[0].getCurrentChildren()[0];
 
-    expect(nodeFilters.nameContainsFilter('SomeClass')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('ompany.So')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('NotThere')(classNode)).to.equal(false);
-    expect(nodeFilters.nameContainsFilter('pan.S')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('SomeClass')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('ompany.So')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('NotThere')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('pan.S')(classNode)).to.equal(false);
   });
 
   it("should filter out a node not matching a wildcard part of the full class name", () => {
@@ -83,14 +83,14 @@ describe("Filter node names containing", () => {
 
     const classNode = graph.root.getCurrentChildren()[0].getCurrentChildren()[0];
 
-    expect(nodeFilters.nameContainsFilter('*Class')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('my.*')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('*')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('my*any*meCl')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('*Class')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('my.*')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('*')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('my*any*meCl')(classNode)).to.equal(true);
 
-    expect(nodeFilters.nameContainsFilter('*Wrong*')(classNode)).to.equal(false);
-    expect(nodeFilters.nameContainsFilter('not*my*any*meCl')(classNode)).to.equal(false);
-    expect(nodeFilters.nameContainsFilter('my.co.*any*')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('*Wrong*')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('not*my*any*meCl')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('my.co.*any*')(classNode)).to.equal(false);
   });
 
   it("should filter out a node not ending in a certain text, if the string ends in whitespace", () => {
@@ -100,9 +100,9 @@ describe("Filter node names containing", () => {
 
     const classNode = graph.root.getCurrentChildren()[0].getCurrentChildren()[0];
 
-    expect(nodeFilters.nameContainsFilter('Some')(classNode)).to.equal(true);
-    expect(nodeFilters.nameContainsFilter('Some ')(classNode)).to.equal(false);
-    expect(nodeFilters.nameContainsFilter('Class ')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('Some')(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('Some ')(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('Class ')(classNode)).to.equal(true);
   });
 
   it("should invert the filter if exclude==true is passed", () => {
@@ -112,7 +112,7 @@ describe("Filter node names containing", () => {
 
     const classNode = graph.root.getCurrentChildren()[0].getCurrentChildren()[0];
 
-    expect(nodeFilters.nameContainsFilter('Some', true)(classNode)).to.equal(false);
-    expect(nodeFilters.nameContainsFilter('Wrong', true)(classNode)).to.equal(true);
+    expect(nodePredicates.nameContainsPredicate('Some', true)(classNode)).to.equal(false);
+    expect(nodePredicates.nameContainsPredicate('Wrong', true)(classNode)).to.equal(true);
   });
 });

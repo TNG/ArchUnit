@@ -1,7 +1,7 @@
 'use strict';
 
 const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
-const nodeFilters = require('./node-filters');
+const nodePredicates = require('./node-predicates');
 
 const nodeKinds = require('./node-kinds.json');
 const boolFunc = require('./booleanutils').booleanFunctions;
@@ -207,7 +207,7 @@ const Node = class {
    * @param exclude If true, the condition is inverted, i.e. nodes with names not containing the string will pass the filter.
    */
   filterByName(filterString, exclude) {
-    this._filters.set(NAME_Filter, nodeFilters.nameContainsFilter(filterString, exclude));
+    this._filters.set(NAME_Filter, nodePredicates.nameContainsPredicate(filterString, exclude));
     reapplyFilters(this, this._filters);
 
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());

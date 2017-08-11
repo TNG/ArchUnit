@@ -37,13 +37,13 @@ const stringContains = substring => {
  */
 module.exports.stringContains = stringContains;
 
-const nodeFilter = nodePredicate => {
+const nodePredicate = classPredicate => {
   const filter = node => {
     if (node.isPackage()) {
       return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      const res = nodePredicate(node);
+      const res = classPredicate(node);
       return res || (!node.isLeaf() && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
   };
@@ -52,10 +52,9 @@ const nodeFilter = nodePredicate => {
 
 const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-const nameContainsFilter = (filterString, exclude) => {
-  const stringContainsSubstring = stringContains(filterString);
-  const stringPredicate = exclude ? not(stringContainsSubstring) : stringContainsSubstring;
-  return nodeFilter(nodeNameSatisfies(stringPredicate));
+const nameContainsPredicate = (substring, exclude) => {
+  const stringPredicate = exclude ? not(stringContains(substring)) : stringContains(substring);
+  return nodePredicate(nodeNameSatisfies(stringPredicate));
 };
 
-module.exports.nameContainsFilter = nameContainsFilter;
+module.exports.nameContainsPredicate = nameContainsPredicate;
