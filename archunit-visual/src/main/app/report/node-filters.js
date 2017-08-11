@@ -4,10 +4,6 @@ const nodeKinds = require('./node-kinds.json');
 
 const isLeaf = node => node._filteredChildren.length === 0;
 
-const leftTrim = str => {
-  return str.replace(/^\s+/, '');
-};
-
 const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
@@ -38,21 +34,14 @@ const stringContains = substring => {
 module.exports.stringContains = stringContains;
 
 const nameContainsFilter = (filterString, exclude) => {
-  filterString = leftTrim(filterString);
-  const endsWith = filterString.endsWith(" ");
-  filterString = filterString.trim();
-  let regexString = escapeRegExp(filterString).replace(/\*/g, ".*");
-  if (endsWith) {
-    regexString = "(" + regexString + ")$";
-  }
+  const stringContainsSubstring = stringContains(filterString);
 
   const filter = node => {
     if (node.getType() === nodeKinds.package) {
       return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
-      const match = new RegExp(regexString).exec(node.getFullName());
-      let res = match && match.length > 0;
+      let res = stringContainsSubstring(node.getFullName());
       res = exclude ? !res : res;
       return res || (!isLeaf(node) && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
