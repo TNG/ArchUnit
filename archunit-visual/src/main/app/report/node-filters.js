@@ -1,9 +1,5 @@
 'use strict';
 
-const nodeKinds = require('./node-kinds.json');
-
-const isLeaf = node => node._filteredChildren.length === 0;
-
 const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
 };
@@ -37,13 +33,13 @@ const nameContainsFilter = (filterString, exclude) => {
   const stringContainsSubstring = stringContains(filterString);
 
   const filter = node => {
-    if (node.getType() === nodeKinds.package) {
+    if (node.isPackage()) {
       return node._filteredChildren.reduce((acc, c) => acc || filter(c), false);
     }
     else {
       let res = stringContainsSubstring(node.getFullName());
       res = exclude ? !res : res;
-      return res || (!isLeaf(node) && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
+      return res || (!node.isLeaf() && node._filteredChildren.reduce((acc, c) => acc || filter(c), false));
     }
   };
   return filter;
