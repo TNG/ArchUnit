@@ -201,6 +201,14 @@ const Node = class {
   }
 
   /**
+   * @param predicate A predicate (i.e. function Node -> boolean)
+   * @return true, iff this Node or any child (after filtering) matches the predicate
+   */
+  matchesOrHasChildThatMatches(predicate) {
+    return predicate(this) || this._filteredChildren.some(node => node.matchesOrHasChildThatMatches(predicate));
+  }
+
+  /**
    * Hides all nodes that don't contain the supplied filterString.
    *
    * @param filterString The node's full name needs to contain this text, to pass the filter. '*' matches any number of arbitrary characters.

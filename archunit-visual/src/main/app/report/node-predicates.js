@@ -37,18 +37,10 @@ const stringContains = substring => {
  */
 module.exports.stringContains = stringContains;
 
-const matchesDirectlyOrHasChildThatMatches = nodePredicate => {
-  const nodeOrAnyChildPredicate = node => {
-    return nodePredicate(node) || node._filteredChildren.some(nodeOrAnyChildPredicate);
-  };
-  return nodeOrAnyChildPredicate;
-};
-
-const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-
 const nameContainsPredicate = (substring, exclude) => {
   const stringPredicate = exclude ? not(stringContains(substring)) : stringContains(substring);
-  return matchesDirectlyOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+  const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
+  return node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
 };
 
 module.exports.nameContainsPredicate = nameContainsPredicate;
