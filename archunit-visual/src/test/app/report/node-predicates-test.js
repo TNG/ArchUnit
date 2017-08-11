@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 const testGraph = require('./test-object-creator').graph;
 const nodePredicates = require('./main-files').get('node-predicates');
 
@@ -14,7 +14,7 @@ const testStringContains = (subString) => ({
   })
 });
 
-describe("matching strings by checking for a certain substring", () => {
+describe('matching strings by checking for a certain substring', () => {
   describe('simple substrings', () => {
     testStringContains('foo').against('foobar').is(true);
     testStringContains('oba').against('foobar').is(true);
@@ -62,8 +62,15 @@ describe("matching strings by checking for a certain substring", () => {
   });
 });
 
-describe("Filter node names containing", () => {
-  it("should filter out a node not matching a simple part of the full class name", () => {
+describe('matching inverted predicates via "not"', () => {
+  it("should match iff original predicate doesn't", () => {
+    expect(nodePredicates.not(() => true)('anything')).to.equal(false);
+    expect(nodePredicates.not(() => false)('anything')).to.equal(true);
+  })
+});
+
+describe('Filter node names containing', () => {
+  it('should filter out a node not matching a simple part of the full class name', () => {
     const graph = testGraph([
       'my.company.SomeClass'
     ]);
@@ -76,7 +83,7 @@ describe("Filter node names containing", () => {
     expect(nodePredicates.nameContainsPredicate('pan.S')(classNode)).to.equal(false);
   });
 
-  it("should filter out a node not matching a wildcard part of the full class name", () => {
+  it('should filter out a node not matching a wildcard part of the full class name', () => {
     const graph = testGraph([
       'my.company.SomeClass'
     ]);
@@ -93,7 +100,7 @@ describe("Filter node names containing", () => {
     expect(nodePredicates.nameContainsPredicate('my.co.*any*')(classNode)).to.equal(false);
   });
 
-  it("should filter out a node not ending in a certain text, if the string ends in whitespace", () => {
+  it('should filter out a node not ending in a certain text, if the string ends in whitespace', () => {
     const graph = testGraph([
       'my.company.SomeClass'
     ]);
@@ -105,7 +112,7 @@ describe("Filter node names containing", () => {
     expect(nodePredicates.nameContainsPredicate('Class ')(classNode)).to.equal(true);
   });
 
-  it("should invert the filter if exclude==true is passed", () => {
+  it('should invert the filter if exclude==true is passed', () => {
     const graph = testGraph([
       'my.company.SomeClass'
     ]);
