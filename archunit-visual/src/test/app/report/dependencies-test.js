@@ -290,7 +290,7 @@ describe("Dependencies", () => {
     "and resets them correctly", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByType({showInterfaces: false, showClasses: true, showEmptyPackages: true});
+    graphWrapper.graph.filterNodesByType({showInterfaces: false, showClasses: true});
     const exp = [
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
       "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
@@ -308,7 +308,7 @@ describe("Dependencies", () => {
     "(no dependencies of eliminated nodes) and resets them correctly", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false, showEmptyPackages: false});
+    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false});
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies([]);
 
     graphWrapper.graph.resetFilterNodesByType();

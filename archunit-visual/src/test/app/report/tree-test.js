@@ -194,7 +194,7 @@ describe("Tree", () => {
 
   it("can filter by type to hide interfaces", function () {
     const root = testObjects.testTree2().root;
-    root.filterByType(false, true, false);
+    root.filterByType(false, true);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1", "com.tngtech.class2"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
@@ -202,36 +202,35 @@ describe("Tree", () => {
 
   it("can filter by type to hide classes", function () {
     const root = testObjects.testTree2().root;
-    root.filterByType(true, false, false);
-    const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.test", "com.tngtech.test.subtest",
-      "com.tngtech.class3"];
+    root.filterByType(true, false);
+    const exp = ["com.tngtech", "com.tngtech.class3"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
-  it("can filter by type to show only packages", function () {
+  it("can filter out everything by type except the root node", function () {
     const root = testObjects.testTree2().root;
-    root.filterByType(false, false, false);
-    const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.test", "com.tngtech.test.subtest"];
+    root.filterByType(false, false);
+    const exp = ["com.tngtech"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide classes and eliminate packages", function () {
     const root = testObjects.testTree2().root;
-    root.filterByType(true, false, true);
+    root.filterByType(true, false);
     const exp = ["com.tngtech", "com.tngtech.class3"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide interfaces and eliminate packages", function () {
     const root = testObjects.testTree3().root;
-    root.filterByType(false, true, true);
+    root.filterByType(false, true);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can reset the type-filter", function () {
     const root = testObjects.testTree2().root;
-    root.filterByType(false, true, false);
+    root.filterByType(false, true);
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2"];
@@ -247,7 +246,7 @@ describe("Tree", () => {
   it("can filter by type and then filter by name", function () {
     const root = testObjects.testTree2().root;
 
-    root.filterByType(false, true, false);
+    root.filterByType(false, true);
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2"];
@@ -264,7 +263,7 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
 
-    root.filterByType(false, true, false);
+    root.filterByType(false, true);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
     expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });

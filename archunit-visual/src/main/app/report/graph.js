@@ -41,7 +41,7 @@ const Graph = class {
   }
 
   filterNodesByType(filter) {
-    this.root.filterByType(filter.showInterfaces, filter.showClasses, !filter.showEmptyPackages);
+    this.root.filterByType(filter.showInterfaces, filter.showClasses);
   }
 
   resetFilterNodesByType() {

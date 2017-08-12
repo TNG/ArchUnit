@@ -225,7 +225,8 @@ const Node = class {
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
-  filterByType(interfaces, classes, eliminatePkgs) {
+  filterByType(interfaces, classes) {
+    const eliminatePkgs = true;
     const classFilter =
       c => (c.getType() !== nodeKinds.package) &&
       boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
