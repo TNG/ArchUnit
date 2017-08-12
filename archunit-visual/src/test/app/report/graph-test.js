@@ -21,12 +21,10 @@ describe("Graph", () => {
 
       expect(graph).to.containOnlyClasses('my.company.SomeClass', 'my.company.OtherClass');
 
-      graph.filterNodesByName('SomeClass', false);
-
+      graph.filterNodesByNameContaining('SomeClass');
       expect(graph).to.containOnlyClasses('my.company.SomeClass');
 
-      graph.filterNodesByName('SomeClass', true);
-
+      graph.filterNodesByNameNotContaining('SomeClass');
       expect(graph).to.containOnlyClasses('my.company.OtherClass');
     });
 
@@ -37,16 +35,16 @@ describe("Graph", () => {
         'my.company.second.SomeClass',
         'my.company.second.OtherClass']);
 
-      graph.filterNodesByName('my.*.first', false);
+      graph.filterNodesByNameContaining('my.*.first');
       expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass');
 
-      graph.filterNodesByName('company*.Some', false);
+      graph.filterNodesByNameContaining('company*.Some');
       expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass');
 
-      graph.filterNodesByName('company*.Some', true);
+      graph.filterNodesByNameNotContaining('company*.Some');
       expect(graph).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass');
 
-      graph.filterNodesByName('company*.Some ', false);
+      graph.filterNodesByNameContaining('company*.Some ');
       expect(graph).to.containNoClasses();
     });
   });

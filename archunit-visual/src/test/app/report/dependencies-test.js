@@ -164,7 +164,7 @@ describe("Dependencies", () => {
   it("does the filtering of classes (no dependencies of eliminated nodes) and resets them correctly", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest", true);
+    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
@@ -175,7 +175,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterNodesByName("", false);
+    graphWrapper.graph.filterNodesByNameContaining("");
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
@@ -183,7 +183,7 @@ describe("Dependencies", () => {
     const graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
-    graphWrapper.graph.filterNodesByName("subtest", true);
+    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test->com.tngtech.class2()",
@@ -194,7 +194,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterNodesByName("", false);
+    graphWrapper.graph.filterNodesByNameContaining("");
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
@@ -206,7 +206,7 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
 
-    graphWrapper.graph.filterNodesByName("subtest", true);
+    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     let exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
       "com.tngtech.test->com.tngtech.class2()",
@@ -228,14 +228,14 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterNodesByName("", false);
+    graphWrapper.graph.filterNodesByNameContaining("");
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the following correctly (in this order): filter, fold, unfold and reset the filter", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest", true);
+    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
 
     let exp = [
@@ -259,14 +259,14 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterNodesByName("", false);
+    graphWrapper.graph.filterNodesByNameContaining("");
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the following correctly (in this order): filter, fold, reset the filter and unfold", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterNodesByName("subtest", true);
+    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
@@ -278,7 +278,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterNodesByName("", false);
+    graphWrapper.graph.filterNodesByNameContaining("");
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test"));
@@ -287,7 +287,7 @@ describe("Dependencies", () => {
   });
 
   it("does the filtering by type (hiding interfaces) correctly (no dependencies of eliminated nodes) " +
-      "and resets them correctly", () => {
+    "and resets them correctly", () => {
     const graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.filterNodesByType({showInterfaces: false, showClasses: true, showEmptyPackages: true});
@@ -305,7 +305,7 @@ describe("Dependencies", () => {
   });
 
   it("does the filtering by type (hiding classes) with eliminating packages correctly " +
-      "(no dependencies of eliminated nodes) and resets them correctly", () => {
+    "(no dependencies of eliminated nodes) and resets them correctly", () => {
     const graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false, showEmptyPackages: false});
@@ -319,13 +319,13 @@ describe("Dependencies", () => {
     const graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.filterDependenciesByKind()
-        .showImplementing(true)
-        .showExtending(true)
-        .showConstructorCall(false)
-        .showMethodCall(false)
-        .showFieldAccess(false)
-        .showAnonymousImplementing(false)
-        .showDepsBetweenChildAndParent(true);
+      .showImplementing(true)
+      .showExtending(true)
+      .showConstructorCall(false)
+      .showMethodCall(false)
+      .showFieldAccess(false)
+      .showAnonymousImplementing(false)
+      .showDepsBetweenChildAndParent(true);
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(implements)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
@@ -341,13 +341,13 @@ describe("Dependencies", () => {
   it("dies the filtering by kind (do not show inheritance) correcty and resets it", () => {
     const graphWrapper = testObjects.testGraph3();
     graphWrapper.graph.filterDependenciesByKind()
-        .showImplementing(false)
-        .showExtending(false)
-        .showConstructorCall(true)
-        .showMethodCall(true)
-        .showFieldAccess(true)
-        .showAnonymousImplementing(true)
-        .showDepsBetweenChildAndParent(true);
+      .showImplementing(false)
+      .showExtending(false)
+      .showConstructorCall(true)
+      .showMethodCall(true)
+      .showFieldAccess(true)
+      .showAnonymousImplementing(true)
+      .showDepsBetweenChildAndParent(true);
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
       "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
@@ -371,7 +371,7 @@ describe("Dependencies", () => {
       "testclass1()->targetMethod()"
     ];
     const act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-        .map(d => d.description);
+      .map(d => d.description);
     expect(act).to.containExactlyDependencies(exp);
   });
 
@@ -379,7 +379,7 @@ describe("Dependencies", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
 
     let act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-        .map(d => d.description);
+      .map(d => d.description);
     let exp = [
       "testclass1()->field1"
     ];
@@ -387,7 +387,7 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.changeFoldStateOfNode(graphWrapper.getNode("com.tngtech.test.testclass1"));
     act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-        .map(d => d.description);
+      .map(d => d.description);
     exp = [
       "testclass1()->field1",
       "InnerTestClass1.innertestclass1()->field1"

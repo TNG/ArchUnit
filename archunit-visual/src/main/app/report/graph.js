@@ -32,8 +32,12 @@ const Graph = class {
     return this.root.getDetailedDependenciesOf(from, to);
   }
 
-  filterNodesByName(filterString, exclude) {
-    this.root.filterByName(filterString, exclude);
+  filterNodesByNameContaining(filterString) {
+    this.root.filterByName(filterString, false); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+  }
+
+  filterNodesByNameNotContaining(filterString) {
+    this.root.filterByName(filterString, true); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
   }
 
   filterNodesByType(filter) {
@@ -533,7 +537,11 @@ module.exports.create = () => {
               updateEdgesWithoutAnimation();
             })
           .onFilterChanged((filterString, exclude) => {
-            graph.filterNodesByName(filterString, exclude);
+            if (exclude) {
+              graph.filterNodesByNameNotContaining(filterString);
+            } else {
+              graph.filterNodesByNameContaining(filterString);
+            }
             updateVisualization();
           })
           .initializeLegend([
