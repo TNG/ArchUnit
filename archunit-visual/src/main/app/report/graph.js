@@ -518,7 +518,7 @@ module.exports.create = () => {
               visualizationStyles.setCirclePadding(circlePadding);
               updateVisualization();
             })
-          .onNodeFilterChanged(
+          .onNodeTypeFilterChanged(
             filter => {
               graph.filterNodesByType(filter);
               updateVisualization();
@@ -536,7 +536,7 @@ module.exports.create = () => {
 
               updateEdgesWithoutAnimation();
             })
-          .onFilterChanged((filterString, exclude) => {
+          .onNodeNameFilterChanged((filterString, exclude) => {
             if (exclude) {
               graph.filterNodesByNameNotContaining(filterString);
             } else {

@@ -81,8 +81,8 @@
         dependencyCheckBoxes = checkBoxesFrom(this.shadowRoot.querySelectorAll('.dependencyCheckBox'));
       }
 
-      onNodeFilterChanged(onNodeFilterChanged) {
-        nodeCheckBoxes.onCheckboxClicked(onNodeFilterChanged);
+      onNodeTypeFilterChanged(onChanged) {
+        nodeCheckBoxes.onCheckboxClicked(onChanged);
       }
 
       onDependencyFilterChanged(onDependencyFilterChanged) {
