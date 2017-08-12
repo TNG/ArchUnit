@@ -36,11 +36,3 @@ const stringContains = substring => {
  * @param substring The string the text must contain.
  */
 module.exports.stringContains = stringContains;
-
-const nameContainsPredicate = (substring, exclude) => {
-  const stringPredicate = exclude ? not(stringContains(substring)) : stringContains(substring);
-  const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-  return node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-};
-
-module.exports.nameContainsPredicate = nameContainsPredicate;

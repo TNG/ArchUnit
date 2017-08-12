@@ -32,7 +32,7 @@ describe("Node", () => {
   it("can fold single node", () => {
     const root = testObjects.testTree1().root;
     root.changeFold();
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(["com.tngtech"]);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(["com.tngtech"]);
   });
 
   it("can unfold single node", () => {
@@ -40,7 +40,7 @@ describe("Node", () => {
     const allNodes1 = testObjects.allNodes(root);
     root.changeFold();
     root.changeFold();
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(allNodes1);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(allNodes1);
   });
 
   it("can be folded and unfolded without changing the fold-state of its children", () => {
@@ -50,13 +50,13 @@ describe("Node", () => {
     toFold.changeFold();
     toFold.changeFold();
     const exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(toFold.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(toFold.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("Adds CSS to make the mouse a pointer, if there are children to unfold", () => {
     const tree = testJson.package("com.tngtech")
-        .add(testJson.clazz("Class1", "abstractclass").build())
-        .build();
+      .add(testJson.clazz("Class1", "abstractclass").build())
+      .build();
 
     const root = jsonToRoot(tree);
 
@@ -71,11 +71,11 @@ describe("Tree", () => {
   it("returns correct visible nodes", () => {
     const tree = testObjects.testTree1();
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.class2", "com.tngtech.class3"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
 
     tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("does the initial fold correct (fold each node except the root)", () => {
@@ -83,19 +83,19 @@ describe("Tree", () => {
     tree.root.foldAllNodes(() => {
     });
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     //check if the hidden packages are also folded
     tree.getNode("com.tngtech.test").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can inclusively filter classes", function () {
     const root = testObjects.testTree2().root;
     root.filterByName("main", false);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can exclusively filter classes", function () {
@@ -103,7 +103,7 @@ describe("Tree", () => {
     root.filterByName("subtest", true);
     const exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can reset filter", function () {
@@ -111,12 +111,12 @@ describe("Tree", () => {
     root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
     root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter, fold, unfold and reset filter in this order", function () {
@@ -125,16 +125,16 @@ describe("Tree", () => {
     tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter, fold, reset filter and unfold in this order", function () {
@@ -143,16 +143,16 @@ describe("Tree", () => {
     tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can fold, filter, unfold and reset filter in this order", function () {
@@ -161,16 +161,16 @@ describe("Tree", () => {
     tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can fold, filter, reset the filter and unfold in this order", function () {
@@ -179,17 +179,17 @@ describe("Tree", () => {
     tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
       "com.tngtech.test.testclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.root.filterByName("", false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
       "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
       "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(tree.root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide interfaces", function () {
@@ -197,7 +197,7 @@ describe("Tree", () => {
     root.filterByType(false, true, false);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1", "com.tngtech.class2"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide classes", function () {
@@ -205,28 +205,28 @@ describe("Tree", () => {
     root.filterByType(true, false, false);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.test", "com.tngtech.test.subtest",
       "com.tngtech.class3"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to show only packages", function () {
     const root = testObjects.testTree2().root;
     root.filterByType(false, false, false);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.test", "com.tngtech.test.subtest"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide classes and eliminate packages", function () {
     const root = testObjects.testTree2().root;
     root.filterByType(true, false, true);
     const exp = ["com.tngtech", "com.tngtech.class3"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type to hide interfaces and eliminate packages", function () {
     const root = testObjects.testTree3().root;
     root.filterByType(false, true, true);
     const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can reset the type-filter", function () {
@@ -235,13 +235,13 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
 
     root.resetFilterByType();
     exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2", "com.tngtech.class3"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by type and then filter by name", function () {
@@ -251,22 +251,22 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
 
     root.filterByName("test", true);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   it("can filter by name and then filter by type", function () {
     const root = testObjects.testTree2().root;
     root.filterByName("test", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
 
     root.filterByType(false, true, false);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
-    expect(root.getVisibleDescendants()).to.containExactlyNodes(exp);
+    expect(root.getVisibleDescendants()).to.containOnlyNodes(exp);
   });
 
   //FIXME: more tests, especially for different cases of node filter input
