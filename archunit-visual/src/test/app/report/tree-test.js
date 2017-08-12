@@ -78,19 +78,6 @@ describe("Tree", () => {
     expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
   });
 
-  it("does the initial fold correct (fold each node except the root)", () => {
-    const tree = testObjects.testTree2();
-    tree.root.foldAllNodes(() => {
-    });
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    //check if the hidden packages are also folded
-    tree.getNode("com.tngtech.test").changeFold();
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-  });
-
   it("can inclusively filter classes", function () {
     const root = testObjects.testTree2().root;
     root.filterByName("main", false);

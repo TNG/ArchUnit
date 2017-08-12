@@ -173,16 +173,6 @@ const Node = class {
     return getDependencies(this).getVisible();
   }
 
-  foldAllNodes(callback) {
-    if (!this.isLeaf()) {
-      this.getCurrentChildren().forEach(d => d.foldAllNodes(callback));
-      if (!this.isRoot()) {
-        fold(this, true);
-        callback(this);
-      }
-    }
-  }
-
   getDescendants() {
     const result = [];
     this.getCurrentChildren().forEach(child => child.callOnSelfThenEveryDescendant(node => result.push(node)));
