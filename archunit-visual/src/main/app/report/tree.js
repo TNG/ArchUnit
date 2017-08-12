@@ -5,9 +5,6 @@ const predicates = require('./predicates');
 
 const nodeKinds = require('./node-kinds.json');
 
-const TYPE_FILTER = "typefilter";
-const NAME_Filter = "namefilter";
-
 const NodeDescription = class {
   constructor(name, fullName, type) {
     this.name = name;
@@ -22,15 +19,6 @@ const fold = (node, folded) => {
     return true;
   }
   return false;
-};
-
-const reapplyFilters = (root, filters) => {
-  root.resetFiltering();
-  const recReapplyFilter = (node, filter) => {
-    node._filteredChildren = node._filteredChildren.filter(filter);
-    node._filteredChildren.forEach(c => recReapplyFilter(c, filter));
-  };
-  Array.from(filters.values()).forEach(filter => recReapplyFilter(root, filter));
 };
 
 const getRoot = node => {
@@ -70,6 +58,24 @@ const VisualData = class {
   }
 };
 
+const newFilters = (root) => ({
+  typeFilter: null,
+  nameFilter: null,
+
+  apply: function () {
+    root.resetFiltering();
+    const applyFilter = (node, filters) => {
+      node._filteredChildren = filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren);
+      node._filteredChildren.forEach(c => applyFilter(c, filters));
+    };
+    applyFilter(root, this.values());
+  },
+
+  values: function () {
+    return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
+  }
+});
+
 const Node = class {
   constructor(jsonNode) {
     this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
@@ -80,7 +86,7 @@ const Node = class {
 
     this._filteredChildren = this._originalChildren;
     this._folded = false;
-    this._filters = new Map();
+    this._filters = newFilters(this);
 
     this.visualData = new VisualData();
   }
@@ -213,9 +219,8 @@ const Node = class {
     const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
     const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-    this._filters.set(NAME_Filter, node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate)));
-    reapplyFilters(this, this._filters);
-
+    this._filters.nameFilter = node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+    this._filters.apply();
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
@@ -224,16 +229,14 @@ const Node = class {
     predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
     predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
-    this._filters.set(TYPE_FILTER, node => node.matchesOrHasChildThatMatches(predicate));
-    reapplyFilters(this, this._filters);
-
+    this._filters.typeFilter = node => node.matchesOrHasChildThatMatches(predicate);
+    this._filters.apply();
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
   resetFilterByType() {
-    this._filters.delete(TYPE_FILTER);
-    reapplyFilters(this, this._filters);
-
+    this._filters.typeFilter = null;
+    this._filters.apply();
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 };
