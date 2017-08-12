@@ -27,9 +27,8 @@ const descendants = (node, childrenSelector) => {
   return res;
 };
 
-const isLeaf = node => node._filteredChildren.length === 0;
 const fold = (node, folded) => {
-  if (!isLeaf(node)) {
+  if (!node.isLeaf()) {
     node._folded = folded;
     return true;
   }
@@ -140,7 +139,7 @@ const Node = class {
   }
 
   isCurrentlyLeaf() {
-    return isLeaf(this) || this._folded;
+    return this.isLeaf() || this._folded;
   }
 
   isChildOf(d) {
@@ -160,7 +159,7 @@ const Node = class {
   }
 
   isLeaf() {
-    return isLeaf(this);
+    return this._filteredChildren.length === 0;
   }
 
   changeFold() {
@@ -176,7 +175,7 @@ const Node = class {
   }
 
   getClass() {
-    const foldableStyle = isLeaf(this) ? "not-foldable" : "foldable";
+    const foldableStyle = this.isLeaf() ? "not-foldable" : "foldable";
     return `node ${this.getType()} ${foldableStyle}`;
   }
 
@@ -189,7 +188,7 @@ const Node = class {
   }
 
   foldAllNodes(callback) {
-    if (!isLeaf(this)) {
+    if (!this.isLeaf()) {
       this.getCurrentChildren().forEach(d => d.foldAllNodes(callback));
       if (!this.isRoot()) {
         fold(this, true);
