@@ -211,17 +211,15 @@ const Node = class {
   /**
    * Hides all nodes that don't contain the supplied filterString.
    *
-   * @param filterString The node's full name needs to contain this text, to pass the filter. '*' matches any number of arbitrary characters.
+   * @param nodeNameSubstring The node's full name needs to contain this text, to pass the filter. '*' matches any number of arbitrary characters.
    * @param exclude If true, the condition is inverted, i.e. nodes with names not containing the string will pass the filter.
    */
-  filterByName(filterString, exclude) {
-    const nameContainsPredicate = (substring, exclude) => {
-      const stringPredicate = exclude ? nodePredicates.not(nodePredicates.stringContains(substring)) : nodePredicates.stringContains(substring);
-      const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-      return node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-    };
+  filterByName(nodeNameSubstring, exclude) {
+    const stringContainsSubstring = nodePredicates.stringContains(nodeNameSubstring);
+    const stringPredicate = exclude ? nodePredicates.not(stringContainsSubstring) : stringContainsSubstring;
+    const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-    this._filters.set(NAME_Filter, nameContainsPredicate(filterString, exclude));
+    this._filters.set(NAME_Filter, node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate)));
     reapplyFilters(this, this._filters);
 
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
