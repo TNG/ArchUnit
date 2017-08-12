@@ -86,7 +86,7 @@ describe("Visual data of node", () => {
       exp.set(n, xy);
     });
     treeVisualizer.dragNode(toDrag, dx, dy, false);
-    expect(tree.root.getVisibleDescendants()).to.haveExactlyPositions(exp);
+    expect(tree.root.getSelfAndDescendants()).to.haveExactlyPositions(exp);
   });
 
   it("cannot be dragged out of its parent", () => {

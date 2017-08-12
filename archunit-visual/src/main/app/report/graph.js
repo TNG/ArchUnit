@@ -8,7 +8,7 @@ const Graph = class {
   }
 
   getVisibleNodes() {
-    return this.root.getVisibleDescendants();
+    return this.root.getSelfAndDescendants();
   }
 
   getVisibleDependencies() {
@@ -19,9 +19,8 @@ const Graph = class {
     return !!node.changeFold();
   }
 
-  //FIXME: fold and do not change state only
   foldAllNodes() {
-    this.root.callOnEveryNode(node => {
+    this.root.callOnEveryDescendantThenSelf(node => {
       if (!node.isRoot()) {
         node.fold();
       }

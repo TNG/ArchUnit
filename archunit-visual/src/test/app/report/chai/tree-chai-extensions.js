@@ -2,7 +2,7 @@
 
 const Assertion = require("chai").Assertion;
 
-const nodesFrom = object => Array.from(object.root ? object.root.getVisibleDescendants() : object);
+const nodesFrom = object => Array.from(object.root ? object.root.getSelfAndDescendants() : object);
 
 const convertActualAndExpectedToStrings = (actual, args) => {
   const expectedNodeFullNames = Array.isArray(args[0]) ? args[0] : Array.from(args);

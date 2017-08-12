@@ -16,17 +16,6 @@ const NodeDescription = class {
   }
 };
 
-const descendants = (node, childrenSelector) => {
-  const recDescendants = (res, node, childrenSelector) => {
-    res.push(node);
-    const arr = childrenSelector(node);
-    arr.forEach(n => recDescendants(res, n, childrenSelector));
-  };
-  const res = [];
-  recDescendants(res, node, childrenSelector);
-  return res;
-};
-
 const fold = (node, folded) => {
   if (!node.isLeaf()) {
     node._folded = folded;
@@ -35,14 +24,8 @@ const fold = (node, folded) => {
   return false;
 };
 
-const resetFilteredChildrenOfAllNodes = root => {
-  descendants(root, n => n.getOriginalChildren()).forEach(n => {
-    n._filteredChildren = n.getOriginalChildren();
-  });
-};
-
 const reapplyFilters = (root, filters) => {
-  resetFilteredChildrenOfAllNodes(root);
+  root.resetFiltering();
   const recReapplyFilter = (node, filter) => {
     node._filteredChildren = node._filteredChildren.filter(filter);
     node._filteredChildren.forEach(c => recReapplyFilter(c, filter));
@@ -142,8 +125,11 @@ const Node = class {
     return this.isLeaf() || this._folded;
   }
 
-  isChildOf(d) {
-    return descendants(d, n => n.getCurrentChildren()).indexOf(this) !== -1;
+  isChildOf(node) {
+    if (node === this) {
+      return true; // FIXME: Why does a method called 'isChildOf' return true for the node itself??
+    }
+    return node.getDescendants().indexOf(this) !== -1;
   }
 
   isFolded() {
@@ -179,8 +165,8 @@ const Node = class {
     return `node ${this.getType()} ${foldableStyle}`;
   }
 
-  getVisibleDescendants() {
-    return descendants(this, n => n.getCurrentChildren());
+  getSelfAndDescendants() {
+    return [this, ...this.getDescendants()];
   }
 
   getVisibleDependencies() {
@@ -197,8 +183,19 @@ const Node = class {
     }
   }
 
-  callOnEveryNode(fun) {
-    this.getCurrentChildren().forEach(c => c.callOnEveryNode(fun));
+  getDescendants() {
+    const result = [];
+    this.getCurrentChildren().forEach(child => child.callOnSelfThenEveryDescendant(node => result.push(node)));
+    return result;
+  }
+
+  callOnSelfThenEveryDescendant(fun) {
+    fun(this);
+    this.getCurrentChildren().forEach(c => c.callOnSelfThenEveryDescendant(fun));
+  }
+
+  callOnEveryDescendantThenSelf(fun) {
+    this.getCurrentChildren().forEach(c => c.callOnEveryDescendantThenSelf(fun));
     fun(this);
   }
 
@@ -208,6 +205,11 @@ const Node = class {
    */
   matchesOrHasChildThatMatches(predicate) {
     return predicate(this) || this._filteredChildren.some(node => node.matchesOrHasChildThatMatches(predicate));
+  }
+
+  resetFiltering() {
+    this.getOriginalChildren().forEach(node => node.resetFiltering());
+    this._filteredChildren = this.getOriginalChildren();
   }
 
   /**
@@ -250,7 +252,7 @@ const jsonToRoot = jsonRoot => {
   const root = new Node(jsonRoot);
 
   const map = new Map();
-  root.callOnEveryNode(n => map.set(n.getFullName(), n));
+  root.callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
   root.getByName = name => map.get(name);
 
   root._dependencies = jsonToDependencies(jsonRoot, root);
