@@ -41,7 +41,7 @@ const Graph = class {
   }
 
   filterNodesByType(filter) {
-    this.root.filterByType(filter.showInterfaces, filter.showClasses);
+    this.root.filterByType(filter.showInterfaces, filter.showClasses); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
   }
 
   resetFilterNodesByType() {

@@ -1,12 +1,16 @@
 'use strict';
 
-const not = predicate => input => !predicate(input);
-
 /**
  * Takes a predicate p (i.e. a function T -> boolean) as input. Returns an inverted predicate,
  * i.e. if for any predicate p and any input x p(x) == true, then not(p)(x) == false.
  */
-module.exports.not = not;
+module.exports.not = predicate => input => !predicate(input);
+
+/**
+ * Takes two predicates p1 and p2 (i.e. functions T -> boolean) as input. Returns a new predicate p,
+ * where p(x) == true iff p1(x) == true AND p2(x) == true.
+ */
+module.exports.and = (...predicates) => input => predicates.every(p => p(input));
 
 const escapeRegExp = str => {
   return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');

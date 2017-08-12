@@ -1,10 +1,9 @@
 'use strict';
 
 const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
-const nodePredicates = require('./predicates');
+const predicates = require('./predicates');
 
 const nodeKinds = require('./node-kinds.json');
-const boolFunc = require('./booleanutils').booleanFunctions;
 
 const TYPE_FILTER = "typefilter";
 const NAME_Filter = "namefilter";
@@ -105,7 +104,11 @@ const Node = class {
   }
 
   isPackage() {
-    return this.getType() === nodeKinds.package
+    return this.getType() === nodeKinds.package;
+  }
+
+  isInterface() {
+    return this.getType() === nodeKinds.interface;
   }
 
   getName() {
@@ -215,8 +218,8 @@ const Node = class {
    * @param exclude If true, the condition is inverted, i.e. nodes with names not containing the string will pass the filter.
    */
   filterByName(nodeNameSubstring, exclude) {
-    const stringContainsSubstring = nodePredicates.stringContains(nodeNameSubstring);
-    const stringPredicate = exclude ? nodePredicates.not(stringContainsSubstring) : stringContainsSubstring;
+    const stringContainsSubstring = predicates.stringContains(nodeNameSubstring);
+    const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
     const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
     this._filters.set(NAME_Filter, node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate)));
@@ -225,16 +228,12 @@ const Node = class {
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());
   }
 
-  filterByType(interfaces, classes) {
-    const eliminatePkgs = true;
-    const classFilter =
-      c => (c.getType() !== nodeKinds.package) &&
-      boolFunc(c.getType() === nodeKinds.interface).implies(interfaces) &&
-      boolFunc(c.getType().endsWith(nodeKinds.class)).implies(classes);
-    const pkgFilter =
-      c => (c.getType() === nodeKinds.package) &&
-      boolFunc(eliminatePkgs).implies(descendants(c, n => n._filteredChildren).reduce((acc, n) => acc || classFilter(n), false));
-    this._filters.set(TYPE_FILTER, c => classFilter(c) || pkgFilter(c));
+  filterByType(showInterfaces, showClasses) {
+    let predicate = node => !node.isPackage();
+    predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
+    predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
+
+    this._filters.set(TYPE_FILTER, node => node.matchesOrHasChildThatMatches(predicate));
     reapplyFilters(this, this._filters);
 
     getDependencies(this).setNodeFilters(getRoot(this).getFilters());

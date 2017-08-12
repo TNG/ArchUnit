@@ -67,3 +67,24 @@ describe('matching inverted predicates via "not"', () => {
     expect(nodePredicates.not(() => false)('anything')).to.equal(true);
   })
 });
+
+const testAnd = (...bools) => ({
+  evaluatesTo: (expected) => {
+    it(`should evaluate to ${expected}, if the supplied predicates evaluate to ${bools}`, () => {
+      const predicates = bools.map(b => () => b);
+      expect(nodePredicates.and(...predicates)('anything')).to.equal(expected);
+    })
+  }
+});
+
+describe('AND-ing predicates via "and"', () => {
+  testAnd(true, true).evaluatesTo(true);
+  testAnd(false, true).evaluatesTo(false);
+  testAnd(true, false).evaluatesTo(false);
+  testAnd(false, false).evaluatesTo(false);
+  testAnd(true, false, true).evaluatesTo(false);
+  testAnd(true, true, false).evaluatesTo(false);
+  testAnd(true, true, true, false).evaluatesTo(false);
+  testAnd(true, true, false, true).evaluatesTo(false);
+  testAnd(true, true, true, true).evaluatesTo(true);
+});
