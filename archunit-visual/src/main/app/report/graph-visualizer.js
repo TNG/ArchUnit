@@ -1,12 +1,8 @@
 'use strict';
 
-module.exports.newInstance = () => {
-  const treeVisualizer = require("./tree-visualizer").newInstance();
-  const dependenciesVisualizer = require("./dependencies-visualizer");
-
+module.exports.newInstance = (treeVisualizer, dependenciesVisualizer) => {
   return {
     visualizeGraph: graph => {
-      treeVisualizer.visualizeTree(graph.root);
       dependenciesVisualizer.visualizeDependencies(graph.root._dependencies);
     },
     drag: (graph, node, dx, dy, force) => {

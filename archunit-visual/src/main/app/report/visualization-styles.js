@@ -1,7 +1,5 @@
 'use strict';
 
-const guiElements = require('./gui-elements');
-
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
 
@@ -68,5 +66,5 @@ const stylesFrom = (styleSheet) => {
   };
 };
 
-module.exports.from = stylesFrom;
-module.exports.fromEmbeddedStyleSheet = () => stylesFrom(guiElements.visualizationStyleSheet());
+module.exports.from = cssSheet => stylesFrom(cssSheet);
+module.exports.fromEmbeddedStyleSheet = () => stylesFrom(require('./gui-elements').visualizationStyleSheet());

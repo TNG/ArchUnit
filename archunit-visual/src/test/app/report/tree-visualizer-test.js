@@ -5,22 +5,17 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator");
 
-// See tree-visualizer.js
+const visualizationStyles = testObjects.visualizationStyles;
+const calculateTextWidth = testObjects.calculateTextWidth;
+const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
+const treeVisualizer = appContext.getTreeVisualizer();
+
+// FIXME: Define (if unavoidable??) magic constants in one place
 const CIRCLE_TEXT_PADDING = 5;
-const RELATIVE_TEXT_POSITION = 0.8;
-
-const calculateTextWidth = n => n.length * 6;
-const CIRCLE_PADDING = 10;
-
-const guiElementsStub = require('./stubs').guiElementsStub();
-guiElementsStub.setCirclePadding(CIRCLE_PADDING);
-guiElementsStub.setCalculateTextWidth(calculateTextWidth);
-const treeVisualizer = require('./main-files').getRewired('tree-visualizer', guiElementsStub).newInstance();
-
 const radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 
 const moveToMiddleOfParent = (node, parent) =>
-    treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
+  treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
 
 const calcDeltaToRightUpperCornerOfParent = (node, parent) => {
   const delta = (parent.visualData.r - node.visualData.r - 0.5) / Math.sqrt(2);
@@ -30,7 +25,6 @@ const calcDeltaToRightUpperCornerOfParent = (node, parent) => {
 describe("Visual data of node", () => {
   it("adapts radius on folding to minimum radius on the same level", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toFold = tree.getNode("com.tngtech.main");
     let expRadius = Math.min.apply(Math, [toFold.visualData.r, tree.getNode("com.tngtech.class2").visualData.r,
@@ -45,7 +39,6 @@ describe("Visual data of node", () => {
   // FIXME: Why is this important? It looks fine, even if the radius is 4px off after fold and unfold
   xit("reset radius on unfolding", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toFold = tree.getNode("com.tngtech.main");
     const expRadius = toFold.visualData.r;
@@ -58,7 +51,6 @@ describe("Visual data of node", () => {
 
   it("can be dragged", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toDrag = tree.getNode("com.tngtech.class2");
     const dx = 1, dy = -3;
@@ -70,7 +62,6 @@ describe("Visual data of node", () => {
 
   it("drags also its children if it is dragged", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const allNodes2 = testObjects.allNodes(tree.root);
     const toDrag = tree.getNode("com.tngtech.test");
@@ -91,7 +82,6 @@ describe("Visual data of node", () => {
 
   it("cannot be dragged out of its parent", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toDrag = tree.getNode("com.tngtech.test.subtest.subtestclass1");
     const parent = tree.getNode("com.tngtech.test.subtest");
@@ -105,7 +95,6 @@ describe("Visual data of node", () => {
   // FIXME: If I remove this, the graph looks fine, no bubbles wander outside of their parents or anything, what's the use of this??
   xit("is dragged automatically back into its parent on unfolding, so that it is compconstely within its parent", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toDrag = tree.getNode("com.tngtech.test.subtest");
     const parent = tree.getNode("com.tngtech.test");
@@ -129,7 +118,6 @@ describe("Visual data of node", () => {
 
   it("is not dragged automatically back into its parent on unfolding if its parent is the root", () => {
     const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
 
     const toDrag = tree.getNode("com.tngtech.test");
     const parent = tree.getNode("com.tngtech");
@@ -147,19 +135,5 @@ describe("Visual data of node", () => {
 
     expect(toDrag.visualData.x).to.be.within(newX - 2, newX + 2);
     expect(toDrag.visualData.y).to.be.within(newY - 2, newY + 2);
-  });
-});
-
-describe("Tree", () => {
-  it("does the initial layout correct", () => {
-    const tree = testObjects.testTree2();
-    treeVisualizer.visualizeTree(tree.root);
-    const checkLayout = node => {
-      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
-      expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
-      expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
-      node.getOriginalChildren().forEach(c => checkLayout(c));
-    };
-    checkLayout(tree.root);
   });
 });

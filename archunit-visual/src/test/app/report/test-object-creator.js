@@ -1,15 +1,13 @@
 'use strict';
 const testJson = require("./test-json-creator");
 
-const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
-const jsonToGraph = require('./main-files').getRewired('graph', {
-  './graph-visualizer': {
-    newInstance: () => ({
-      visualizeGraph: () => {
-      }
-    })
-  }
-}).jsonToGraph;
+const visualizationStyles = require('./stubs').visualizationStylesStub();
+visualizationStyles.setCirclePadding(10);
+const calculateTextWidth = text => text.length * 7;
+const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
+
+const jsonToRoot = appContext.getJsonToRoot();
+const jsonToGraph = appContext.getJsonToGraph();
 
 const testTree1 = () => {
   const simpleJsonTree = testJson.package("com.tngtech")
@@ -313,3 +311,6 @@ module.exports.graph = classNames => {
   const json = mapToJson(jsonAsMap);
   return jsonToGraph(json);
 };
+
+module.exports.calculateTextWidth = calculateTextWidth;
+module.exports.visualizationStyles = visualizationStyles;

@@ -1,69 +1,71 @@
 'use strict';
 
-const jsonToRoot = require('./tree.js').jsonToRoot;
+const init = (jsonToRoot, visualizer) => {
+  const Graph = class {
+    constructor(root) {
+      this.root = root;
+    }
 
-const Graph = class {
-  constructor(root) {
-    this.root = root;
-  }
+    getVisibleNodes() {
+      return this.root.getSelfAndDescendants();
+    }
 
-  getVisibleNodes() {
-    return this.root.getSelfAndDescendants();
-  }
+    getVisibleDependencies() {
+      return this.root.getVisibleDependencies();
+    }
 
-  getVisibleDependencies() {
-    return this.root.getVisibleDependencies();
-  }
+    changeFoldStateOfNode(node) {
+      return !!node.changeFold();
+    }
 
-  changeFoldStateOfNode(node) {
-    return !!node.changeFold();
-  }
+    foldAllNodes() {
+      this.root.callOnEveryDescendantThenSelf(node => {
+        if (!node.isRoot()) {
+          node.fold();
+        }
+      });
+    }
 
-  foldAllNodes() {
-    this.root.callOnEveryDescendantThenSelf(node => {
-      if (!node.isRoot()) {
-        node.fold();
-      }
-    });
-  }
+    getDetailedDependenciesOf(from, to) {
+      return this.root.getDetailedDependenciesOf(from, to);
+    }
 
-  getDetailedDependenciesOf(from, to) {
-    return this.root.getDetailedDependenciesOf(from, to);
-  }
+    filterNodesByNameContaining(filterString) {
+      this.root.filterByName(filterString, false); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+    }
 
-  filterNodesByNameContaining(filterString) {
-    this.root.filterByName(filterString, false); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
-  }
+    filterNodesByNameNotContaining(filterString) {
+      this.root.filterByName(filterString, true); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+    }
 
-  filterNodesByNameNotContaining(filterString) {
-    this.root.filterByName(filterString, true); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
-  }
+    filterNodesByType(filter) {
+      this.root.filterByType(filter.showInterfaces, filter.showClasses); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+    }
 
-  filterNodesByType(filter) {
-    this.root.filterByType(filter.showInterfaces, filter.showClasses); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
-  }
+    resetFilterNodesByType() {
+      this.root.resetFilterByType();
+    }
 
-  resetFilterNodesByType() {
-    this.root.resetFilterByType();
-  }
+    filterDependenciesByKind() {
+      return this.root.filterDependenciesByKind();
+    }
 
-  filterDependenciesByKind() {
-    return this.root.filterDependenciesByKind();
-  }
+    resetFilterDependenciesByKind() {
+      this.root.resetFilterDependenciesByKind();
+    }
+  };
 
-  resetFilterDependenciesByKind() {
-    this.root.resetFilterDependenciesByKind();
-  }
+  return {
+    jsonToGraph: jsonRoot => {
+      const root = jsonToRoot(jsonRoot);
+      const graph = new Graph(root);
+      visualizer.visualizeGraph(graph);
+      return graph;
+    }
+  };
 };
 
-const jsonToGraph = jsonRoot => {
-  const root = jsonToRoot(jsonRoot);
-  const graph = new Graph(root);
-  require('./graph-visualizer').newInstance().visualizeGraph(graph);
-  return graph;
-};
-
-module.exports.jsonToGraph = jsonToGraph;
+module.exports.init = init; // FIXME: Make create() the only public API
 
 module.exports.create = () => {
   /*
@@ -91,7 +93,9 @@ module.exports.create = () => {
 
   const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
   const calculateTextWidth = require('./text-width-calculator');
-  const visualizer = require('./graph-visualizer').newInstance();
+  const appContext = require('./app-context').newInstance();
+  const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
+  const visualizer = require('./graph-visualizer').newInstance(appContext.getTreeVisualizer(), require('./dependencies-visualizer'));
 
   let graph;
 
@@ -496,6 +500,7 @@ module.exports.create = () => {
         return reject(error);
       }
 
+      const jsonToGraph = init(jsonToRoot, visualizer).jsonToGraph;
       graph = jsonToGraph(jsonroot);
       adaptSVGSize();
       initializeGraph();

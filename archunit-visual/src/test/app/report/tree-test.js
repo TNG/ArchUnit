@@ -2,10 +2,14 @@
 
 const expect = require("chai").expect;
 require('./chai/tree-chai-extensions');
+require('./chai/tree-visualizer-chai-extensions');
 
 const testJson = require("./test-json-creator");
-const jsonToRoot = require('./main-files').get('tree').jsonToRoot;
 const testObjects = require("./test-object-creator.js");
+const visualizationStyles = testObjects.visualizationStyles;
+const calculateTextWidth = testObjects.calculateTextWidth;
+const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
+const jsonToRoot = appContext.getJsonToRoot();
 
 describe("Node", () => {
   it("knows if it is root", () => {
@@ -14,7 +18,7 @@ describe("Node", () => {
     expect(tree.getNode("com.tngtech.class2").isRoot()).to.equal(false);
   });
 
-  it("knows if it is current leaf", () => {
+  it("knows if it is currently leaf", () => {
     const root = testObjects.testTree1().root;
     expect(root.isCurrentlyLeaf()).to.equal(false);
 
@@ -256,4 +260,41 @@ describe("Tree", () => {
   });
 
   //FIXME: more tests, especially for different cases of node filter input
+});
+
+
+// FIXME: Define these constants, that need to match production code, but can't be accessed from tests, in a central spot
+const CIRCLE_TEXT_PADDING = 5;
+// FIXME: Why can I set this to 0 and the test still passes??? --> because there is still no test that tests if a the text is at the correct place within the circle
+const RELATIVE_TEXT_POSITION = 0.8;
+const CIRCLE_PADDING = testObjects.visualizationStyles.getCirclePadding();
+
+// FIXME: These tests should really better communicate what they're actually testing, and what the preconditions are
+describe("Layout of nodes", () => {
+  it("draws text within node circles", () => {
+    const graphWrapper = testObjects.testGraph2();
+    const checkText = node => {
+      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+      node.getOriginalChildren().forEach(c => checkText(c));
+    };
+    checkText(graphWrapper.graph.root);
+  });
+
+  it("draws children within parent", () => {
+    const graphWrapper = testObjects.testGraph2();
+    const checkLayout = node => {
+      expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
+      node.getOriginalChildren().forEach(c => checkLayout(c));
+    };
+    checkLayout(graphWrapper.graph.root);
+  });
+
+  it("draws children without overlap", () => {
+    const graphWrapper = testObjects.testGraph2();
+    const checkLayout = node => {
+      expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
+      node.getOriginalChildren().forEach(c => checkLayout(c));
+    };
+    checkLayout(graphWrapper.graph.root);
+  });
 });
