@@ -72,15 +72,13 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       node.visualData.y = node.visualData.r;
     }
 
-    if (!node.isCurrentlyLeaf()) {
-      node.getCurrentChildren().forEach(c => {
-        c.visualData.x = node.visualData.x + c.visualData.dx;
-        c.visualData.y = node.visualData.y + c.visualData.dy;
-        c.visualData.dx = undefined;
-        c.visualData.dy = undefined;
-        calcPositionAndSetRadius(c);
-      });
-    }
+    node.getCurrentChildren().forEach(c => {
+      c.visualData.x = node.visualData.x + c.visualData.dx;
+      c.visualData.y = node.visualData.y + c.visualData.dy;
+      c.visualData.dx = undefined;
+      c.visualData.dy = undefined;
+      calcPositionAndSetRadius(c);
+    });
   };
 
   const visualizeTree = (root) => {
