@@ -334,18 +334,17 @@ module.exports.create = () => {
     return selection.select('text').attr('dy', getDy);
   }
 
-  function getDy(d) {
-    if (d.isRoot()) {
+  function getDy(node) {
+    if (node.isRoot()) {
       const fontSize = visualizationStyles.getNodeFontSize();
-      return -d.visualData.r + fontSize;
+      return -node.visualData.r + fontSize;
     }
-    else if (d.isCurrentlyLeaf()) {
+    else if (node.isCurrentlyLeaf()) {
       return 0;
     }
     else {
-      const textDom = d3.select(this).node();
-      const r = d.visualData.r;
-      return computeTextShift(r, textDom.getBBox().width);
+      const r = node.visualData.r;
+      return computeTextShift(r, calculateTextWidth(node.getName(), 'node'));
     }
   }
 
