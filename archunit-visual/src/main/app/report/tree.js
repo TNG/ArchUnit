@@ -94,8 +94,8 @@ const init = (treeVisualizer, jsonToDependencies) => {
       this.visualData = new VisualData();
 
       if (this.isRoot()) {
-        treeVisualizer.visualizeTree(this);
-        this.updateVisualization = () => treeVisualizer.visualizeTree(this);
+        this.relayout();
+        this.updateVisualization = () => this.relayout();
       }
     }
 
@@ -226,6 +226,10 @@ const init = (treeVisualizer, jsonToDependencies) => {
 
     getCoords() {
       return {x: this.getX(), y: this.getY()};
+    }
+
+    relayout() {
+      treeVisualizer.visualizeTree(this);
     }
 
     /**
