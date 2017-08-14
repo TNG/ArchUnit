@@ -5,8 +5,8 @@ module.exports.newInstance = (treeVisualizer, dependenciesVisualizer) => {
     visualizeGraph: graph => {
       dependenciesVisualizer.visualizeDependencies(graph.root._dependencies);
     },
-    drag: (graph, node, dx, dy, force) => {
-      treeVisualizer.dragNode(node, dx, dy, false);
+    drag: (graph, node, dx, dy) => {
+      treeVisualizer.dragNode(node, dx, dy);
       dependenciesVisualizer.refreshVisualDataOf(node.getFullName(), graph.getVisibleDependencies());
     },
     update: graph => {

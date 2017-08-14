@@ -15,7 +15,7 @@ const CIRCLE_TEXT_PADDING = 5;
 const radiusOfLeaf = leaf => calculateTextWidth(leaf.getName()) / 2 + CIRCLE_TEXT_PADDING;
 
 const moveToMiddleOfParent = (node, parent) =>
-  treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y, false);
+  treeVisualizer.dragNode(node, parent.visualData.x - node.visualData.x, parent.visualData.y - node.visualData.y);
 
 const calcDeltaToRightUpperCornerOfParent = (node, parent) => {
   const delta = (parent.visualData.r - node.visualData.r - 0.5) / Math.sqrt(2);
@@ -55,7 +55,7 @@ describe("Visual data of node", () => {
     const toDrag = tree.getNode("com.tngtech.class2");
     const dx = 1, dy = -3;
     const newX = toDrag.visualData.x + dx, newY = toDrag.visualData.y + dy;
-    treeVisualizer.dragNode(toDrag, dx, dy, false);
+    treeVisualizer.dragNode(toDrag, dx, dy);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
@@ -76,7 +76,7 @@ describe("Visual data of node", () => {
       }
       exp.set(n, xy);
     });
-    treeVisualizer.dragNode(toDrag, dx, dy, false);
+    treeVisualizer.dragNode(toDrag, dx, dy);
     expect(tree.root.getSelfAndDescendants()).to.haveExactlyPositions(exp);
   });
 
@@ -87,7 +87,7 @@ describe("Visual data of node", () => {
     const parent = tree.getNode("com.tngtech.test.subtest");
     const dx = toDrag.visualData.x + parent.visualData.r, dy = 5;
     const newX = toDrag.visualData.x, newY = toDrag.visualData.y;
-    treeVisualizer.dragNode(toDrag, dx, dy, false);
+    treeVisualizer.dragNode(toDrag, dx, dy);
     expect(toDrag.visualData.x).to.equal(newX);
     expect(toDrag.visualData.y).to.equal(newY);
   });
@@ -108,7 +108,7 @@ describe("Visual data of node", () => {
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
     const delta = calcDeltaToRightUpperCornerOfParent(toDrag, parent);
-    treeVisualizer.dragNode(toDrag, delta, -delta, false);
+    treeVisualizer.dragNode(toDrag, delta, -delta);
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
 
@@ -129,7 +129,7 @@ describe("Visual data of node", () => {
 
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
-    treeVisualizer.dragNode(toDrag, delta, -delta, false);
+    treeVisualizer.dragNode(toDrag, delta, -delta);
     toDrag.changeFold();
     treeVisualizer.adaptToFoldState(toDrag);
 

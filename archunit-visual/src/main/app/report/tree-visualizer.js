@@ -25,8 +25,8 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     return Math.max(foldedRadius, width);
   };
 
-  const dragNode = (node, dx, dy, force) => {
-    node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy, true)), force);
+  const dragNode = (node, dx, dy) => {
+    node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy)));
   };
 
   const adaptToFoldState = (node) => {

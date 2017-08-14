@@ -43,11 +43,11 @@ const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
       this.visible = oldVisualData ? oldVisualData.visible : false;
     }
 
-    move(dx, dy, parent, callback, force) {
+    move(dx, dy, parent, callback) {
       const newX = this.x + dx;
       const newY = this.y + dy;
       const space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
-      if (force || parent.isRoot() || parent.isFolded() || space >= this.r) {
+      if (parent.isRoot() || parent.isFolded() || space >= this.r) {
         this.x = newX;
         this.y = newY;
         callback();
