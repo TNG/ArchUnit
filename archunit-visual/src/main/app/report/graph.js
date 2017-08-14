@@ -20,6 +20,7 @@ const init = (jsonToRoot, visualizer) => {
           node.fold();
         }
       });
+      this.refresh();
     }
 
     getDetailedDependenciesOf(from, to) {
@@ -28,14 +29,17 @@ const init = (jsonToRoot, visualizer) => {
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.refresh();
     }
 
     filterNodesByNameNotContaining(filterString) {
       this.root.filterByName(filterString, true); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.refresh();
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.refresh();
     }
 
     resetFilterNodesByType() {
@@ -48,6 +52,10 @@ const init = (jsonToRoot, visualizer) => {
 
     resetFilterDependenciesByKind() {
       this.root.resetFilterDependenciesByKind();
+    }
+
+    refresh() {
+      this.root.updateVisualization();
     }
   };
 
@@ -367,7 +375,6 @@ module.exports.create = () => {
     }
     else {
       visualizationIsUpdatedAtTheMoment = true;
-      graph.root.updateVisualization();
       visualizer.update(graph);
       let numberOfAnimations = 3;
       const countDownLatchOnAnimationEnd = () => {
@@ -518,6 +525,7 @@ module.exports.create = () => {
             (circleFontSize, circlePadding) => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
+              graph.refresh();
               updateVisualization();
             })
           .onNodeTypeFilterChanged(

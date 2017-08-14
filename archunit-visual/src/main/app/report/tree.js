@@ -163,11 +163,12 @@ const init = (treeVisualizer, jsonToDependencies) => {
     }
 
     changeFold() {
-      const wasFolded = fold(this, !this._folded);
-      if (wasFolded) {
+      const foldChanged = fold(this, !this._folded);
+      if (foldChanged) {
         getDependencies(this).changeFold(this.getFullName(), this.isFolded());
+        getRoot(this).updateVisualization();
       }
-      return wasFolded;
+      return foldChanged;
     }
 
     getFilters() {
