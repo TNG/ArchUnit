@@ -367,6 +367,7 @@ module.exports.create = () => {
     }
     else {
       visualizationIsUpdatedAtTheMoment = true;
+      graph.root.updateVisualization();
       visualizer.update(graph);
       let numberOfAnimations = 3;
       const countDownLatchOnAnimationEnd = () => {

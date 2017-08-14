@@ -277,6 +277,7 @@ const init = (treeVisualizer, jsonToDependencies) => {
     root.resetFilterDependenciesByKind = () => root._dependencies.resetFilterByKind();
 
     treeVisualizer.visualizeTree(root);
+    root.updateVisualization = () => treeVisualizer.visualizeTree(root);
 
     return root;
   };

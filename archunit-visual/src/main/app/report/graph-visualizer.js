@@ -9,7 +9,6 @@ module.exports.newInstance = (treeVisualizer, dependenciesVisualizer) => {
       dependenciesVisualizer.refreshVisualDataOf(node.getFullName(), graph.getVisibleDependencies());
     },
     update: graph => {
-      treeVisualizer.visualizeTree(graph.root);
       dependenciesVisualizer.refreshVisualDataOfDependencies(graph.getVisibleDependencies())
     }
   }
