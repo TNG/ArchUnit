@@ -6,6 +6,7 @@ require('./chai/tree-visualizer-chai-extensions');
 
 const testJson = require("./test-json-creator");
 const testObjects = require("./test-object-creator.js");
+const testTree = testObjects.tree;
 const visualizationStyles = testObjects.visualizationStyles;
 const calculateTextWidth = testObjects.calculateTextWidth;
 const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
@@ -296,5 +297,87 @@ describe("Layout of nodes", () => {
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
     checkLayout(graphWrapper.graph.root);
+  });
+});
+
+describe("Dragging nodes", () => {
+  it("can be dragged", () => {
+    const tree = testTree('root.SomeClass1', 'root.SomeClass2');
+
+    const toDrag = tree.getByName('root.SomeClass1');
+    const dx = 1;
+    const dy = -3;
+    const expected = {x: toDrag.getX() + dx, y: toDrag.getY() + dy};
+
+    toDrag.drag(dx, dy);
+
+    expect(toDrag.getCoords()).to.deep.equal(expected);
+  });
+
+  const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
+    const result = new Map(root.getSelfAndDescendants().map(node => [node, node.getCoords()]));
+    toDrag.getSelfAndDescendants().forEach(node => {
+      const coords = result.get(node);
+      coords.x += dx;
+      coords.y += dy;
+    });
+    return result;
+  };
+
+  it("drags along its children, if it is dragged", () => {
+    const root = testTree(
+      'root.SomeClass',
+      'root.sub.SubClass1',
+      'root.sub.SubClass2');
+
+    const toDrag = root.getByName('root.sub');
+    const dx = -5, dy = 4;
+
+    const expectedCoordsByNode = expectedCoordsAfterDrag(root, toDrag, dx, dy);
+
+    toDrag.drag(dx, dy);
+
+    root.getSelfAndDescendants().forEach(node => {
+      expect(node.getCoords()).to.deep.equal(expectedCoordsByNode.get(node))
+    });
+  });
+
+  it("can't be dragged out of its parent", () => {
+    const tree = testTree(
+      'root.other',
+      'root.parent.SomeClass1',
+      'root.parent.SomeClass2');
+
+    const toDrag = tree.getByName('root.parent.SomeClass1');
+    const parent = toDrag.getParent();
+    expect(parent).not.to.be.root();
+
+    const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
+
+    toDrag.drag(deltaOutsideOfParent, 0);
+    expect(toDrag).to.be.locatedWithin(parent);
+
+    toDrag.drag(0, deltaOutsideOfParent);
+    expect(toDrag).to.be.locatedWithin(parent);
+  });
+
+  it("can be dragged anywhere, if parent is root", () => {
+    const tree = testTree(
+      'root.SomeClass1',
+      'root.SomeClass2');
+
+    const toDrag = tree.getByName('root.SomeClass1');
+    const parent = toDrag.getParent();
+    expect(parent).to.be.root();
+
+    const oldX = toDrag.getX();
+    const oldY = toDrag.getY();
+    const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
+
+    toDrag.drag(deltaOutsideOfParent, 0);
+    expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
+
+    toDrag.drag(0, deltaOutsideOfParent);
+    expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
   });
 });

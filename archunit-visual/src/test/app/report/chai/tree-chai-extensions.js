@@ -1,44 +1,48 @@
 'use strict';
 
-const Assertion = require("chai").Assertion;
+require('chai').use(function (chai, utils) {
+  const Assertion = chai.Assertion;
 
-const nodesFrom = object => Array.from(object.root ? object.root.getSelfAndDescendants() : object);
+  const nodesFrom = object => Array.from(object.root ? object.root.getSelfAndDescendants() : object);
 
-const convertActualAndExpectedToStrings = (actual, args) => {
-  const expectedNodeFullNames = Array.isArray(args[0]) ? args[0] : Array.from(args);
+  const convertActualAndExpectedToStrings = (actual, args) => {
+    const expectedNodeFullNames = Array.isArray(args[0]) ? args[0] : Array.from(args);
 
-  const actualStrings = actual.map(n => n.getFullName()).sort();
-  const expectedStrings = expectedNodeFullNames.sort();
-  return {actualStrings, expectedStrings};
-};
+    const actualStrings = actual.map(n => n.getFullName()).sort();
+    const expectedStrings = expectedNodeFullNames.sort();
+    return {actualStrings, expectedStrings};
+  };
 
-Assertion.addMethod('containOnlyNodes', function () {
-  const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(nodesFrom(this._obj), arguments);
+  Assertion.addMethod('containOnlyNodes', function () {
+    const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(nodesFrom(this._obj), arguments);
 
-  new Assertion(actualStrings).to.deep.equal(expectedStrings);
+    new Assertion(actualStrings).to.deep.equal(expectedStrings);
+  });
+
+  Assertion.addMethod('containOnlyClasses', function () {
+    const actual = nodesFrom(this._obj).filter(node => node.isLeaf());
+    const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(actual, arguments);
+
+    new Assertion(actualStrings).to.deep.equal(expectedStrings);
+  });
+
+  Assertion.addMethod('containNoClasses', function () {
+    const actual = nodesFrom(this._obj).filter(node => node.isLeaf() && !node.isPackage());
+
+    //noinspection BadExpressionStatementJS -> Chai magic
+    new Assertion(actual).to.be.empty;
+  });
+
+  Assertion.addMethod('containNodes', function () {
+    const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(nodesFrom(this._obj), arguments);
+
+    new Assertion(actualStrings).to.include.members(expectedStrings);
+  });
+
+  Assertion.addMethod('root', function () {
+    const node = this._obj;
+    const negateIfNecessary = chain => utils.flag(this, 'negate') ? chain : chain.not;
+
+    negateIfNecessary(new Assertion(node.getParent())).to.exist;
+  });
 });
-
-Assertion.addMethod('containOnlyClasses', function () {
-  const actual = nodesFrom(this._obj).filter(node => node.isLeaf());
-  const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(actual, arguments);
-
-  new Assertion(actualStrings).to.deep.equal(expectedStrings);
-});
-
-Assertion.addMethod('containNoClasses', function () {
-  const actual = nodesFrom(this._obj).filter(node => node.isLeaf() && !node.isPackage());
-
-  //noinspection BadExpressionStatementJS -> Chai magic
-  new Assertion(actual).to.be.empty;
-});
-
-Assertion.addMethod('containNodes', function () {
-  const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(nodesFrom(this._obj), arguments);
-
-  new Assertion(actualStrings).to.include.members(expectedStrings);
-});
-
-
-
-
-

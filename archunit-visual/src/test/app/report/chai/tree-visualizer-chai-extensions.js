@@ -1,6 +1,7 @@
 'use strict';
 
 const Assertion = require("chai").Assertion;
+const Vector = require('../main-files').get('vectors').Vector;
 
 const MAX_RADIUS_DIFF = 0.05;
 
@@ -15,24 +16,8 @@ const distance = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
 };
 
-Assertion.addMethod('haveExactlyPositions', function () {
-  const actualNodes = Array.from(this._obj);
-  const exp = arguments[0];
-
-  const positionsAreCorrect = actualNodes.reduce((res, n) => {
-      const pos = exp.get(n.getFullName());
-        return res && n.visualData.x == pos[0] && n.visualData.y == pos[1];
-      },
-      true);
-
-  this.assert(positionsAreCorrect)
-});
-
-Assertion.addMethod('haveTextWithinCircle', function () {
+Assertion.addMethod('haveTextWithinCircle', function (textWidth, circleTextPadding, textPosition) {
   const node = this._obj;
-  const textWidth = arguments[0];
-  const circleTextPadding = arguments[1];
-  const textPosition = arguments[2];
   if (node.isCurrentlyLeaf()) {
     const expRadius = radiusOfLeaf(node, textWidth, circleTextPadding);
     this.assert(
@@ -55,22 +40,21 @@ Assertion.addMethod('haveTextWithinCircle', function () {
   }
 });
 
-Assertion.addMethod('haveChildrenWithinCircle', function () {
+Assertion.addMethod('haveChildrenWithinCircle', function (circlePadding) {
   const node = this._obj;
-  const CIRCLE_PADDING = arguments[0];
 
   const childrenNotWithinNode = [];
 
   node.getOriginalChildren().forEach(c => {
     const distanceFromNodeMiddleToChildRim = distance(node.visualData.x, node.visualData.y, c.visualData.x, c.visualData.y)
         + c.visualData.r;
-    if (node.visualData.r - distanceFromNodeMiddleToChildRim < CIRCLE_PADDING / 2) {
+    if (node.visualData.r - distanceFromNodeMiddleToChildRim < circlePadding / 2) {
       childrenNotWithinNode.push(c);
     }
   });
 
   this.assert(
-      childrenNotWithinNode.length == 0
+    childrenNotWithinNode.length === 0
       , "expected #{this} to have only children within its circle got #{act} being not within its circle"
       , "expected #{this} to not be of type #{act}"
       , 0
@@ -78,16 +62,15 @@ Assertion.addMethod('haveChildrenWithinCircle', function () {
   );
 });
 
-Assertion.addMethod('doNotOverlap', function () {
+Assertion.addMethod('doNotOverlap', function (circlePadding) {
   const nodes = this._obj;
-  const CIRCLE_PADDING = arguments[0];
 
   const nodesOverlapping = new Set();
 
   nodes.forEach(c => {
     nodes.filter(d => d !== c).forEach(d => {
       const diff = distance(c.visualData.x, c.visualData.y, d.visualData.x, d.visualData.y);
-      const minExpDiff = c.visualData.r + d.visualData.r + CIRCLE_PADDING;
+      const minExpDiff = c.visualData.r + d.visualData.r + circlePadding;
       if (diff + MAX_RADIUS_DIFF < minExpDiff) {
         nodesOverlapping.add(c.getFullName(), c);
         nodesOverlapping.add(d.getFullName(), d);
@@ -96,10 +79,19 @@ Assertion.addMethod('doNotOverlap', function () {
   });
 
   this.assert(
-      nodesOverlapping.size == 0
+    nodesOverlapping.size === 0
       , "expected #{this} not to overlap but got #{act} that are overlapping"
       , "expected #{this} to not be of type #{act}"
       , 0
       , Array.from(nodesOverlapping)
   );
+});
+
+Assertion.addMethod('locatedWithin', function (parent) {
+  const node = this._obj;
+
+  const centerDifference = Vector.between(node.getCoords(), parent.getCoords()).length();
+  const circleRadiusContainingNode = centerDifference + node.getRadius();
+
+  new Assertion(circleRadiusContainingNode).to.be.at.most(parent.getRadius());
 });

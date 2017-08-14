@@ -25,10 +25,8 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
 
   const getJsonToRoot = () => {
     const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
-    const predicates = require('./predicates');
-    const nodeKinds = require('./node-kinds.json');
 
-    return require('./tree').init(getTreeVisualizer(), jsonToDependencies, predicates, nodeKinds).jsonToRoot;
+    return require('./tree').init(getTreeVisualizer(), jsonToDependencies).jsonToRoot;
   };
 
   const getJsonToGraph = () => {

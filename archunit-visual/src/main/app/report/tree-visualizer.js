@@ -25,10 +25,6 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     return Math.max(foldedRadius, width);
   };
 
-  const dragNode = (node, dx, dy) => {
-    node.visualData.move(dx, dy, node.getParent(), () => node.getOriginalChildren().forEach(d => dragNode(d, dx, dy)));
-  };
-
   const adaptToFoldState = (node) => {
     if (node.isFolded()) {
       node.visualData.r = getFoldedRadius(node);
@@ -100,7 +96,6 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
 
   return {
     visualizeTree: visualizeTree,
-    dragNode: dragNode,
     adaptToFoldState: adaptToFoldState
   }
 };

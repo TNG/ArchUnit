@@ -38,4 +38,23 @@ const vectors = {
   getAngleDeg: angleRad => Math.round(angleRad * (180 / Math.PI))
 };
 
+const Vector = class {
+  constructor(x, y) {
+    if (isNaN(x) || isNaN(y)) {
+      throw new Error(`Vector must be initialized with numbers 'x' and 'y', but was (${x}, ${y})`);
+    }
+    this.x = x;
+    this.y = y;
+  }
+
+  length() {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  static between(originPoint, targetPoint) {
+    return new Vector(targetPoint.x - originPoint.x, targetPoint.y - originPoint.y);
+  }
+};
+
+module.exports.Vector = Vector;
 module.exports.vectors = vectors;

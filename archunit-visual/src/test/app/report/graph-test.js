@@ -15,9 +15,9 @@ describe("Graph", () => {
 
   describe('filter nodes by name', () => {
     it('should filter out a node not matching a simple part of the full class name', () => {
-      const graph = testGraph([
+      const graph = testGraph(
         'my.company.SomeClass',
-        'my.company.OtherClass']);
+        'my.company.OtherClass');
 
       expect(graph).to.containOnlyClasses('my.company.SomeClass', 'my.company.OtherClass');
 
@@ -29,11 +29,11 @@ describe("Graph", () => {
     });
 
     it('should filter out a node not matching a part with wildcard', () => {
-      const graph = testGraph([
+      const graph = testGraph(
         'my.company.first.SomeClass',
         'my.company.first.OtherClass',
         'my.company.second.SomeClass',
-        'my.company.second.OtherClass']);
+        'my.company.second.OtherClass');
 
       graph.filterNodesByNameContaining('my.*.first');
       expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass');

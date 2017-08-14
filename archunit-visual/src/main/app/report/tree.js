@@ -1,6 +1,10 @@
 'use strict';
 
-const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
+const predicates = require('./predicates');
+const nodeKinds = require('./node-kinds.json');
+const Vector = require('./vectors').Vector;
+
+const init = (treeVisualizer, jsonToDependencies) => {
 
   const NodeDescription = class {
     constructor(name, fullName, type) {
@@ -30,11 +34,6 @@ const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
     return getRoot(node)._dependencies;
   };
 
-  const spaceFromPointToNodeBorder = (x, y, nodeVisualData) => {
-    const spaceBetweenPoints = Math.sqrt(Math.pow(y - nodeVisualData.y, 2) + Math.pow(x - nodeVisualData.x, 2));
-    return nodeVisualData.r - spaceBetweenPoints;
-  };
-
   const VisualData = class {
     constructor(x = 0, y = 0, r = 0, oldVisualData) {
       this.x = x;
@@ -43,11 +42,13 @@ const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
       this.visible = oldVisualData ? oldVisualData.visible : false;
     }
 
+    // FIXME: It would appear smoother, if we would shorten dx and dy to the minimal possible delta, if otherwise we would end up outside of the parent
     move(dx, dy, parent, callback) {
       const newX = this.x + dx;
       const newY = this.y + dy;
-      const space = spaceFromPointToNodeBorder(newX, newY, parent.visualData);
-      if (parent.isRoot() || parent.isFolded() || space >= this.r) {
+      const centerDistance = Vector.between({x: newX, y: newY}, parent.getCoords()).length();
+      const insideOfParent = centerDistance + this.r <= parent.getRadius();
+      if (parent.isRoot() || insideOfParent) {
         this.x = newX;
         this.y = newY;
         callback();
@@ -199,6 +200,32 @@ const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
       return predicate(this) || this._filteredChildren.some(node => node.matchesOrHasChildThatMatches(predicate));
     }
 
+    getX() {
+      return this.visualData.x;
+    }
+
+    getY() {
+      return this.visualData.y;
+    }
+
+    getRadius() {
+      return this.visualData.r;
+    }
+
+    getCoords() {
+      return {x: this.getX(), y: this.getY()};
+    }
+
+    /**
+     * Shifts this node and its children.
+     *
+     * @param dx The delta in x-direction
+     * @param dy The delta in y-direction
+     */
+    drag(dx, dy) {
+      this.visualData.move(dx, dy, this.getParent(), () => this.getOriginalChildren().forEach(node => node.drag(dx, dy)));
+    }
+
     resetFiltering() {
       this.getOriginalChildren().forEach(node => node.resetFiltering());
       this._filteredChildren = this.getOriginalChildren();
@@ -255,8 +282,8 @@ const init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
   };
 };
 
-module.exports.init = (treeVisualizer, jsonToDependencies, predicates, nodeKinds) => {
+module.exports.init = (treeVisualizer, jsonToDependencies) => {
   return {
-    jsonToRoot: init(treeVisualizer, jsonToDependencies, predicates, nodeKinds)
+    jsonToRoot: init(treeVisualizer, jsonToDependencies)
   };
 };
