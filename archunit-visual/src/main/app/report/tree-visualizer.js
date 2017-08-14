@@ -53,10 +53,10 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
 
       const visualDataOfChildren = node.getCurrentChildren().map(c => c.visualData);
-      visualDataOfChildren.forEach(c => c.r += visualizationStyles.getCirclePadding() / 2);
+      visualDataOfChildren.forEach(c => c.r += visualizationStyles.getCirclePadding());
       packSiblings(visualDataOfChildren);
       const circle = packEnclose(visualDataOfChildren);
-      visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding() / 2);
+      visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding());
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
       node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
       visualDataOfChildren.forEach(c => {
