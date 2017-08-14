@@ -47,7 +47,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
 
   const recVisualizeTree = (node) => {
     if (node.isCurrentlyLeaf()) {
-      updateVisualData(node, 0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
+      node.visualData.update(0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
     }
     else {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
@@ -58,7 +58,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       const circle = packEnclose(visualDataOfChildren);
       visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding() / 2);
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-      updateVisualData(node, circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
+      node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
       visualDataOfChildren.forEach(c => {
         c.dx = c.x - node.visualData.x;
         c.dy = c.y - node.visualData.y;
@@ -86,12 +86,6 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
   const visualizeTree = (root) => {
     recVisualizeTree(root);
     calcPositionAndSetRadius(root);
-  };
-
-  const updateVisualData = (node, x, y, r) => {
-    node.visualData.x = x;
-    node.visualData.y = y;
-    node.visualData.r = r;
   };
 
   return {

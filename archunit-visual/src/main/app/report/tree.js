@@ -54,6 +54,12 @@ const init = (treeVisualizer, jsonToDependencies) => {
         callback();
       }
     }
+
+    update(x, y, r) {
+      this.x = x;
+      this.y = y;
+      this.r = r;
+    }
   };
 
   const newFilters = (root) => ({
