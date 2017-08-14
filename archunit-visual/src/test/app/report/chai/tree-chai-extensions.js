@@ -41,8 +41,8 @@ require('chai').use(function (chai, utils) {
 
   Assertion.addMethod('root', function () {
     const node = this._obj;
-    const negateIfNecessary = chain => utils.flag(this, 'negate') ? chain : chain.not;
+    const negateIfNecessary = chain => utils.flag(this, 'negate') ? chain.not : chain;
 
-    negateIfNecessary(new Assertion(node.getParent())).to.exist;
+    negateIfNecessary(new Assertion(node.isRoot())).to.be.true;
   });
 });

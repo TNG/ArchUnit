@@ -86,6 +86,11 @@ const init = (treeVisualizer, jsonToDependencies) => {
       this._filters = newFilters(this);
 
       this.visualData = new VisualData();
+
+      if (this.isRoot()) {
+        treeVisualizer.visualizeTree(this);
+        this.updateVisualization = () => treeVisualizer.visualizeTree(this);
+      }
     }
 
     isPackage() {
@@ -265,7 +270,7 @@ const init = (treeVisualizer, jsonToDependencies) => {
   };
 
   return jsonRoot => {
-    const root = new Node(jsonRoot);
+    const root = new Node(jsonRoot, treeVisualizer);
 
     const map = new Map();
     root.callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
@@ -275,9 +280,6 @@ const init = (treeVisualizer, jsonToDependencies) => {
     root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
     root.filterDependenciesByKind = () => root._dependencies.filterByKind();
     root.resetFilterDependenciesByKind = () => root._dependencies.resetFilterByKind();
-
-    treeVisualizer.visualizeTree(root);
-    root.updateVisualization = () => treeVisualizer.visualizeTree(root);
 
     return root;
   };
