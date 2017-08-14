@@ -125,7 +125,7 @@ module.exports.create = () => {
     setVisible(nodes, true);
 
     const drag = d3.drag().on('drag', d => {
-      visualizer.drag(graph, d, d3.event.dx, d3.event.dy, false);
+      visualizer.drag(graph, d, d3.event.dx, d3.event.dy);
       updateVisualizationAfterDragging(d);
     });
 
