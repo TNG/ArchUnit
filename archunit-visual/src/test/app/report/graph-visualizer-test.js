@@ -50,7 +50,7 @@ describe("Visual data of dependency", () => {
 
     const toChange = "com.tngtech.main";
     const node = graphWrapper.getNode(toChange);
-    graphWrapper.graph.changeFoldStateOfNode(node);
+    node.changeFold();
     visualizer.update(graphWrapper.graph, node);
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();

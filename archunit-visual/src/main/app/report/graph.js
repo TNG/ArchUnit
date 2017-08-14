@@ -14,10 +14,6 @@ const init = (jsonToRoot, visualizer) => {
       return this.root.getVisibleDependencies();
     }
 
-    changeFoldStateOfNode(node) {
-      return !!node.changeFold();
-    }
-
     foldAllNodes() {
       this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
@@ -134,9 +130,9 @@ module.exports.create = () => {
     });
 
     nodes
-      .filter(d => !d.isRoot() && !d.isLeaf())
-      .on('click', d => {
-        if (graph.changeFoldStateOfNode(d)) {
+      .filter(node => !node.isRoot() && !node.isLeaf())
+      .on('click', node => {
+        if (node.changeFold()) {
           updateVisualization();
         }
       });
