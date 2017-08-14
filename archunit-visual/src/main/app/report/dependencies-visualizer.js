@@ -24,11 +24,6 @@ const getSmallerAndBiggerNode = (node1, node2) => {
   }
 };
 
-const getTitleOffset = (angleRad, textPadding) => {
-  return [Math.round(textPadding * Math.sin(angleRad)),
-    Math.round(textPadding * Math.cos(angleRad))];
-};
-
 const VisualData = class {
   constructor() {
     this.startPoint = {};
@@ -72,12 +67,6 @@ const VisualData = class {
     this.middlePoint = vectors.vectorOf((this.endPoint.x + this.startPoint.x) / 2, (this.endPoint.y + this.startPoint.y) / 2);
     this.angleRad = vectors.angleToVector(vectors.getDefaultIfNull(direction));
     this.angleDeg = vectors.getAngleDeg(this.angleRad);
-  }
-
-  getEdgesTitleTranslation(textPadding) {
-    const offset = getTitleOffset(this.angleRad, textPadding);
-    return "translate(" + (this.middlePoint.x + offset[0]) + "," + (this.middlePoint.y - offset[1]) + ") " +
-        "rotate(" + this.angleDeg + ")";
   }
 };
 
