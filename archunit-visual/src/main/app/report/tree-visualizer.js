@@ -7,8 +7,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
   const CIRCLE_TEXT_PADDING = 5;
   const MIN_NODE_RADIUS = 40;
 
-  const packSiblings = visualizationFunctions.packSiblings;
-  const packEnclose = visualizationFunctions.packEnclose;
+  const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateTextWidth = visualizationFunctions.calculateTextWidth;
 
   const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
@@ -30,10 +29,9 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
 
       const visualDataOfChildren = node.getCurrentChildren().map(c => c.visualData);
-      visualDataOfChildren.forEach(c => c.r += visualizationStyles.getCirclePadding());
-      packSiblings(visualDataOfChildren);
-      const circle = packEnclose(visualDataOfChildren);
-      visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding());
+
+      const circle = packCirclesAndReturnEnclosingCircle(visualDataOfChildren, visualizationStyles.getCirclePadding());
+
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
       const minParentRadiusForOneChild = childRadius * 3;
       node.visualData.update(circle.x, circle.y, Math.max(circle.r, minParentRadiusForOneChild));

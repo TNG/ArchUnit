@@ -6,11 +6,9 @@
 
 const init = (getVisualizationStyles, getCalculateTextWidth) => {
 
-  const getVisualizationFunctions = () => ({
-    packSiblings: require('d3').packSiblings,
-    packEnclose: require('d3').packEnclose,
-    calculateTextWidth: getCalculateTextWidth()
-  });
+  const getVisualizationFunctions = () => {
+    return require('./visualization-functions').newInstance(getCalculateTextWidth);
+  };
 
   const getTreeVisualizer = () => {
     const visualizationFunctions = getVisualizationFunctions();
