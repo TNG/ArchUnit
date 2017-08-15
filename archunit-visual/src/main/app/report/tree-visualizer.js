@@ -40,22 +40,11 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  const calcPositionAndSetRadius = node => {
-    if (node.isRoot()) {
-      node.visualData.x = node.getRadius();
-      node.visualData.y = node.getRadius();
-    }
-
-    node.getCurrentChildren().forEach(c => {
-      c.visualData.x = node.getX() + c.getX();
-      c.visualData.y = node.getY() + c.getY();
-      calcPositionAndSetRadius(c);
-    });
-  };
-
   const visualizeTree = (root) => {
     recVisualizeTree(root);
-    calcPositionAndSetRadius(root);
+
+    root.visualData.update(root.getRadius(), root.getRadius());
+    root.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
   };
 
   return {

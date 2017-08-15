@@ -58,7 +58,9 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
     update(x, y, r) {
       this.x = x;
       this.y = y;
-      this.r = r;
+      if (r) {
+        this.r = r;
+      }
     }
   };
 
