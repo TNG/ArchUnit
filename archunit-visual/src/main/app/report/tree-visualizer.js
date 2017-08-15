@@ -22,10 +22,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
   };
 
   const recVisualizeTree = (node) => {
-    if (node.isCurrentlyLeaf()) {
-      node.visualData.update(0, 0, radiusOfAnyNode(node));
-    }
-    else {
+    if (!node.isCurrentlyLeaf()) {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
 
       if (node.getCurrentChildren().length === 1) {
@@ -46,9 +43,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     root.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
   };
 
-  return {
-    visualizeTree: visualizeTree
-  }
+  return {visualizeTree, radiusOfAnyNode}
 };
 
 module.exports.newInstance = newInstance;
