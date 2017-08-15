@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports.newInstance = (treeVisualizer, dependenciesVisualizer) => {
+module.exports.newInstance = (dependenciesVisualizer) => {
   return {
     visualizeGraph: graph => {
       dependenciesVisualizer.visualizeDependencies(graph.root._dependencies);

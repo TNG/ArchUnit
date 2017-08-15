@@ -4,7 +4,10 @@ const predicates = require('./predicates');
 const nodeKinds = require('./node-kinds.json');
 const Vector = require('./vectors').Vector;
 
-const init = (NodeText, treeVisualizer, jsonToDependencies) => {
+const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
+
+  const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
+  const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
 
   const NodeDescription = class {
     constructor(name, fullName, type) {
@@ -235,28 +238,51 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
       return {x: this.getX(), y: this.getY()};
     }
 
-    relayout() {
-      this.getCurrentChildren().forEach(d => d.relayout());
+    /**
+     * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
+     * circle around those for the current node. The coordinates of the circle of any node will be shifted, when
+     * the next higher circle packing is created, thus the coordinates of the children run out of sync (we would
+     * have to adjust those recursively in every step, wasting performance).
+     * We'll fix this in _finishLayout().
+     *
+     * @private
+     */
+    _prepareLayout() {
+      this.getCurrentChildren().forEach(d => d._prepareLayout());
 
       if (this.isCurrentlyLeaf()) {
-        this.visualData.update(0, 0, treeVisualizer.radiusOfAnyNode(this));
+        this.visualData.update(0, 0, calculateDefaultRadius(this));
+      } else if (this.getCurrentChildren().length === 1) {
+        const onlyChild = this.getCurrentChildren()[0];
+        this.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
+      } else {
+        const childCircles = this.getCurrentChildren().map(c => c.visualData);
+        const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
+        this.visualData.update(circle.x, circle.y, circle.r);
       }
+    }
 
-      if (!this.isCurrentlyLeaf()) {
-        if (this.getCurrentChildren().length === 1) {
-          const onlyChild = this.getCurrentChildren()[0];
-          this.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
-        } else {
-          const childCircles = this.getCurrentChildren().map(c => c.visualData);
-          const circle = treeVisualizer.packCirclesAndReturnEnclosingCircle(childCircles, treeVisualizer.visualizationStyles.getCirclePadding());
-          this.visualData.update(circle.x, circle.y, circle.r);
-        }
-      }
+    /**
+     * We need to recursively shift the circle packings back in place (that went out of sync, stepping backwards
+     * through the tree in _prepareLayout() )
+     *
+     * @private
+     */
+    _finishLayout() {
+      this.getCurrentChildren().forEach(child => {
+        child.visualData.update(child.getParent().getX() + child.getX(), child.getParent().getY() + child.getY());
+        child._finishLayout();
+      });
+    }
+
+    relayout() {
+      this._prepareLayout();
 
       if (this.isRoot()) {
-        this.visualData.update(this.getRadius(), this.getRadius());
-        this.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
+        this.visualData.update(this.getRadius(), this.getRadius()); // Shift root to the middle
       }
+
+      this._finishLayout();
     }
 
     /**
@@ -308,7 +334,7 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
   };
 
   return jsonRoot => {
-    const root = new Node(jsonRoot, treeVisualizer);
+    const root = new Node(jsonRoot);
 
     const map = new Map();
     root.callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
@@ -323,8 +349,8 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
   };
 };
 
-module.exports.init = (NodeText, treeVisualizer, jsonToDependencies) => {
+module.exports.init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
   return {
-    jsonToRoot: init(NodeText, treeVisualizer, jsonToDependencies)
+    jsonToRoot: init(NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies)
   };
 };

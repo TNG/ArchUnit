@@ -7,18 +7,11 @@
 const init = (getVisualizationStyles, getCalculateTextWidth) => {
 
   const getVisualizationFunctions = () => {
-    return require('./visualization-functions').newInstance(getCalculateTextWidth);
-  };
-
-  const getTreeVisualizer = () => {
-    const visualizationFunctions = getVisualizationFunctions();
-    const visualizationStyles = getVisualizationStyles();
-
-    return require("./tree-visualizer").newInstance(visualizationFunctions, visualizationStyles);
+    return require('./visualization-functions').newInstance(getCalculateTextWidth());
   };
 
   const getGraphVisualizer = () => {
-    return require('./graph-visualizer').newInstance(getTreeVisualizer(), require('./dependencies-visualizer'))
+    return require('./graph-visualizer').newInstance(require('./dependencies-visualizer'))
   };
 
   const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
@@ -26,7 +19,7 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
   const getJsonToRoot = () => {
     const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
-    return require('./tree').init(getNodeText(), getTreeVisualizer(), jsonToDependencies).jsonToRoot;
+    return require('./tree').init(getNodeText(), getVisualizationFunctions(), getVisualizationStyles(), jsonToDependencies).jsonToRoot;
   };
 
   const getJsonToGraph = () => {
@@ -34,7 +27,6 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
   };
 
   return {
-    getTreeVisualizer,
     getVisualizationFunctions,
     getVisualizationStyles,
     getJsonToRoot,

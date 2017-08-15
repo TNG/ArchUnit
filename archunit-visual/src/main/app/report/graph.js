@@ -99,7 +99,7 @@ module.exports.create = () => {
   const calculateTextWidth = require('./text-width-calculator');
   const appContext = require('./app-context').newInstance();
   const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
-  const visualizer = require('./graph-visualizer').newInstance(appContext.getTreeVisualizer(), require('./dependencies-visualizer'));
+  const visualizer = require('./graph-visualizer').newInstance(require('./dependencies-visualizer'));
 
   let graph;
 

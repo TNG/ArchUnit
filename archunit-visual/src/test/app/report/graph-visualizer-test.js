@@ -5,12 +5,7 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator.js");
 
-const calculateTextWidth = n => n.length * 6;
-
-const visualizationStyles = require('./stubs').visualizationStylesStub();
-const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
-const treeVisualizer = appContext.getTreeVisualizer();
-const visualizer = require('./main-files').get('graph-visualizer').newInstance(treeVisualizer, require('./main-files').get('dependencies-visualizer'));
+const visualizer = require('./main-files').get('graph-visualizer').newInstance(require('./main-files').get('dependencies-visualizer'));
 
 describe("Visualizer", () => {
   it("visualizes the dependencies correctly", () => {

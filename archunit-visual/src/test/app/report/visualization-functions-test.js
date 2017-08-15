@@ -2,7 +2,8 @@
 
 const expect = require("chai").expect;
 
-const visualizationFunctions = require('./main-files').get('visualization-functions').newInstance(() => () => 1);
+const visualizationFunctionsFactory = require('./main-files').get('visualization-functions');
+const visualizationFunctions = visualizationFunctionsFactory.newInstance(() => () => 1);
 const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
 const Vector = require('./main-files').get('vectors').Vector;
 
@@ -58,5 +59,48 @@ describe('Circle packing', () => {
     expect(Vector.between(circles[0], circles[1]).length()).to.equal(expectedDistance);
 
     expect(enclosingCircle.r).to.be.at.least(oldEnclosingCircleRadius + padding);
+  });
+});
+
+const nodeWithoutChildren = nodeName => newNode(nodeName, 0);
+const nodeWithChildren = nodeName => newNode(nodeName, 1);
+const newNode = (nodeName, numberOfChildren) => {
+  return {
+    getName: () => nodeName,
+    getOriginalChildren: () => new Array(numberOfChildren).fill().map(() => ({}))
+  };
+};
+
+const expectedDefaultRadius = 40;
+const expectedTextPadding = 5;
+
+describe('Calculate default radius', () => {
+  it(`should simply adjust the size to the node text for original leafs and add ${expectedTextPadding}px of padding`, () => {
+    const nodeName = 'Short';
+    const calculateTextWidth = text => text.length * 3;
+    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance(calculateTextWidth).calculateDefaultRadius;
+
+    const radius = calculateDefaultRadius(nodeWithoutChildren(nodeName));
+
+    const radiusForText = calculateTextWidth(nodeName) / 2;
+    expect(radius).to.be.lessThan(expectedDefaultRadius);
+    expect(radius).to.equal(radiusForText + expectedTextPadding);
+  });
+
+  it(`should adjust the size same as for leafs, but enforce a minimum of ${expectedDefaultRadius}px`, () => {
+    const calculateTextWidth = text => text.length * 3;
+    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance(calculateTextWidth).calculateDefaultRadius;
+
+    let radius = calculateDefaultRadius(nodeWithChildren('Short'));
+
+    expect(radius).to.equal(expectedDefaultRadius);
+
+    const nodeName = 'TwentyThreeCharsFillThis';
+    radius = calculateDefaultRadius(nodeWithChildren(nodeName));
+
+    const radiusForText = calculateTextWidth(nodeName) / 2;
+    const expectedWidth = radiusForText + expectedTextPadding;
+    expect(expectedWidth).to.equal(expectedDefaultRadius + 1);
+    expect(radius).to.equal(expectedWidth);
   });
 });
