@@ -266,8 +266,6 @@ describe("Tree", () => {
 
 // FIXME: Define these constants, that need to match production code, but can't be accessed from tests, in a central spot
 const CIRCLE_TEXT_PADDING = 5;
-// FIXME: Why can I set this to 0 and the test still passes??? --> because there is still no test that tests if a the text is at the correct place within the circle
-const RELATIVE_TEXT_POSITION = 0.8;
 const CIRCLE_PADDING = testObjects.visualizationStyles.getCirclePadding();
 
 // FIXME: These tests should really better communicate what they're actually testing, and what the preconditions are
@@ -275,7 +273,7 @@ describe("Layout of nodes", () => {
   it("draws text within node circles", () => {
     const graphWrapper = testObjects.testGraph2();
     const checkText = node => {
-      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, RELATIVE_TEXT_POSITION);
+      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, 0);
       node.getOriginalChildren().forEach(c => checkText(c));
     };
     checkText(graphWrapper.graph.root);

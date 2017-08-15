@@ -242,6 +242,17 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
         this.visualData.update(0, 0, treeVisualizer.radiusOfAnyNode(this));
       }
 
+      if (!this.isCurrentlyLeaf()) {
+        if (this.getCurrentChildren().length === 1) {
+          const onlyChild = this.getCurrentChildren()[0];
+          this.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
+        } else {
+          const childCircles = this.getCurrentChildren().map(c => c.visualData);
+          const circle = treeVisualizer.packCirclesAndReturnEnclosingCircle(childCircles, treeVisualizer.visualizationStyles.getCirclePadding());
+          this.visualData.update(circle.x, circle.y, circle.r);
+        }
+      }
+
       if (this.isRoot()) {
         treeVisualizer.visualizeTree(this);
       }

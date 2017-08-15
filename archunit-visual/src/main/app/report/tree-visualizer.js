@@ -21,29 +21,12 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
-  const recVisualizeTree = (node) => {
-    if (!node.isCurrentlyLeaf()) {
-      node.getCurrentChildren().forEach(c => recVisualizeTree(c));
-
-      if (node.getCurrentChildren().length === 1) {
-        const onlyChild = node.getCurrentChildren()[0];
-        node.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
-      } else {
-        const childCircles = node.getCurrentChildren().map(c => c.visualData);
-        const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        node.visualData.update(circle.x, circle.y, circle.r);
-      }
-    }
-  };
-
   const visualizeTree = (root) => {
-    recVisualizeTree(root);
-
     root.visualData.update(root.getRadius(), root.getRadius());
     root.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
   };
 
-  return {visualizeTree, radiusOfAnyNode}
+  return {visualizeTree, radiusOfAnyNode, packCirclesAndReturnEnclosingCircle, visualizationStyles}
 };
 
 module.exports.newInstance = newInstance;
