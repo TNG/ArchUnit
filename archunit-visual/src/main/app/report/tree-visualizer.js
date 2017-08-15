@@ -28,13 +28,14 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     else {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
 
-      const visualDataOfChildren = node.getCurrentChildren().map(c => c.visualData);
-
-      const circle = packCirclesAndReturnEnclosingCircle(visualDataOfChildren, visualizationStyles.getCirclePadding());
-
-      const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-      const minParentRadiusForOneChild = childRadius * 3;
-      node.visualData.update(circle.x, circle.y, Math.max(circle.r, minParentRadiusForOneChild));
+      if (node.getCurrentChildren().length === 1) {
+        const onlyChild = node.getCurrentChildren()[0];
+        node.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
+      } else {
+        const childCircles = node.getCurrentChildren().map(c => c.visualData);
+        const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
+        node.visualData.update(circle.x, circle.y, circle.r);
+      }
     }
   };
 
