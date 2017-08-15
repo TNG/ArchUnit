@@ -236,12 +236,15 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
     }
 
     relayout() {
-      this.getDescendants().forEach(d => {
-        if (d.isCurrentlyLeaf()) {
-          d.visualData.update(0, 0, treeVisualizer.radiusOfAnyNode(d));
-        }
-      });
-      treeVisualizer.visualizeTree(this);
+      this.getCurrentChildren().forEach(d => d.relayout());
+
+      if (this.isCurrentlyLeaf()) {
+        this.visualData.update(0, 0, treeVisualizer.radiusOfAnyNode(this));
+      }
+
+      if (this.isRoot()) {
+        treeVisualizer.visualizeTree(this);
+      }
     }
 
     /**
