@@ -13,21 +13,6 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
 
   const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
 
-  const getFoldedRadius = node => {
-    let foldedRadius = node.getRadius();
-    if (!node.isRoot()) {
-      node.getParent().getOriginalChildren().forEach(e => foldedRadius = e.getRadius() < foldedRadius ? e.getRadius() : foldedRadius);
-    }
-    const width = radiusOfLeafWithTitle(node.getName());
-    return Math.max(foldedRadius, width);
-  };
-
-  const adaptToFoldState = (node) => {
-    if (node.isFolded()) {
-      node.visualData.r = getFoldedRadius(node);
-    }
-  };
-
   const radiusOfLeafWithTitle = title => {
     return calculateTextWidth(title) / 2 + CIRCLE_TEXT_PADDING;
   };
@@ -80,8 +65,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
   };
 
   return {
-    visualizeTree: visualizeTree,
-    adaptToFoldState: adaptToFoldState
+    visualizeTree: visualizeTree
   }
 };
 
