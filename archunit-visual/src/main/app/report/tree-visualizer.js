@@ -38,8 +38,8 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       const minParentRadiusForOneChild = childRadius * 3;
       node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node), minParentRadiusForOneChild));
       visualDataOfChildren.forEach(c => {
-        c.dx = c.x - node.visualData.x;
-        c.dy = c.y - node.visualData.y;
+        c.dx = c.x;
+        c.dy = c.y;
       });
     }
   };
