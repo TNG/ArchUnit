@@ -140,6 +140,10 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
       return !this._parent;
     }
 
+    isLeaf() {
+      return this._filteredChildren.length === 0;
+    }
+
     isCurrentlyLeaf() {
       return this.isLeaf() || this._folded;
     }
@@ -161,10 +165,6 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
         getDependencies(this).changeFold(this.getFullName(), this.isFolded());
       }
       return wasFolded;
-    }
-
-    isLeaf() {
-      return this._filteredChildren.length === 0;
     }
 
     changeFold() {

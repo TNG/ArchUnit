@@ -5,10 +5,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
    * padding between the text in a circle and the rim of the circle
    */
   const CIRCLE_TEXT_PADDING = 5;
-  /*
-   * defines after which proportion of the circle the text is positioned; only affects nodes
-   */
-  const RELATIVE_TEXT_POSITION = 0.8;
+  const MIN_NODE_RADIUS = 40;
 
   const packSiblings = visualizationFunctions.packSiblings;
   const packEnclose = visualizationFunctions.packEnclose;
@@ -17,9 +14,9 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
   const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
 
   const getFoldedRadius = node => {
-    let foldedRadius = node.visualData.r;
+    let foldedRadius = node.getRadius();
     if (!node.isRoot()) {
-      node.getParent().getOriginalChildren().forEach(e => foldedRadius = e.visualData.r < foldedRadius ? e.visualData.r : foldedRadius);
+      node.getParent().getOriginalChildren().forEach(e => foldedRadius = e.getRadius() < foldedRadius ? e.getRadius() : foldedRadius);
     }
     const width = radiusOfLeafWithTitle(node.getName());
     return Math.max(foldedRadius, width);
@@ -35,19 +32,14 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     return calculateTextWidth(title) / 2 + CIRCLE_TEXT_PADDING;
   };
 
-  const radiusOfAnyNode = (node, textPosition) => {
+  const radiusOfAnyNode = node => {
     const radius = radiusOfLeafWithTitle(node.getName());
-    if (isOriginalLeaf(node)) {
-      return radius;
-    }
-    else {
-      return radius / Math.sqrt(1 - textPosition * textPosition);
-    }
+    return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
   const recVisualizeTree = (node) => {
     if (node.isCurrentlyLeaf()) {
-      node.visualData.update(0, 0, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION));
+      node.visualData.update(0, 0, radiusOfAnyNode(node));
     }
     else {
       node.getCurrentChildren().forEach(c => recVisualizeTree(c));
@@ -58,7 +50,8 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       const circle = packEnclose(visualDataOfChildren);
       visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding());
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
-      node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node, RELATIVE_TEXT_POSITION), childRadius / RELATIVE_TEXT_POSITION));
+      const minParentRadiusForOneChild = childRadius * 3;
+      node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node), minParentRadiusForOneChild));
       visualDataOfChildren.forEach(c => {
         c.dx = c.x - node.visualData.x;
         c.dy = c.y - node.visualData.y;
@@ -68,8 +61,8 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
 
   const calcPositionAndSetRadius = node => {
     if (node.isRoot()) {
-      node.visualData.x = node.visualData.r;
-      node.visualData.y = node.visualData.r;
+      node.visualData.x = node.getRadius();
+      node.visualData.y = node.getRadius();
     }
 
     node.getCurrentChildren().forEach(c => {
