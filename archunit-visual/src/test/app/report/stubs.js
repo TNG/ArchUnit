@@ -2,22 +2,12 @@
 
 const createVisualizationStylesStub = () => {
   let circlePadding = 1;
+  let nodeFontSize = 10;
   return {
     getCirclePadding: () => circlePadding,
-    setCirclePadding: (padding) => circlePadding = padding
+    setCirclePadding: padding => circlePadding = padding,
+    getNodeFontSize: () => nodeFontSize,
+    setNodeFontSize: fontSize => nodeFontSize = fontSize
   };
 };
 module.exports.visualizationStylesStub = createVisualizationStylesStub;
-
-module.exports.guiElementsStub = () => {
-  const visualizationStylesStub = createVisualizationStylesStub();
-  let textWidthCalculator = text => text.length;
-  return {
-    './text-width-calculator': (text) => textWidthCalculator(text),
-    './visualization-styles': {
-      fromEmbeddedStyleSheet: () => visualizationStylesStub
-    },
-    setCirclePadding: (padding) => visualizationStylesStub.setCirclePadding(padding),
-    setCalculateTextWidth: calculator => textWidthCalculator = calculator
-  };
-};

@@ -4,7 +4,7 @@ const predicates = require('./predicates');
 const nodeKinds = require('./node-kinds.json');
 const Vector = require('./vectors').Vector;
 
-const init = (treeVisualizer, jsonToDependencies) => {
+const init = (NodeText, treeVisualizer, jsonToDependencies) => {
 
   const NodeDescription = class {
     constructor(name, fullName, type) {
@@ -92,6 +92,7 @@ const init = (treeVisualizer, jsonToDependencies) => {
       this._filters = newFilters(this);
 
       this.visualData = new VisualData();
+      this._text = new NodeText(this);
 
       if (this.isRoot()) {
         this.relayout();
@@ -113,6 +114,10 @@ const init = (treeVisualizer, jsonToDependencies) => {
 
     getFullName() {
       return this._description.fullName;
+    }
+
+    getText() {
+      return this._text;
     }
 
     getType() {
@@ -296,8 +301,8 @@ const init = (treeVisualizer, jsonToDependencies) => {
   };
 };
 
-module.exports.init = (treeVisualizer, jsonToDependencies) => {
+module.exports.init = (NodeText, treeVisualizer, jsonToDependencies) => {
   return {
-    jsonToRoot: init(treeVisualizer, jsonToDependencies)
+    jsonToRoot: init(NodeText, treeVisualizer, jsonToDependencies)
   };
 };

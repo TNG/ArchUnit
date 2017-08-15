@@ -23,10 +23,12 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
     return require('./graph-visualizer').newInstance(getTreeVisualizer(), require('./dependencies-visualizer'))
   };
 
+  const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
+
   const getJsonToRoot = () => {
     const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
-    return require('./tree').init(getTreeVisualizer(), jsonToDependencies).jsonToRoot;
+    return require('./tree').init(getNodeText(), getTreeVisualizer(), jsonToDependencies).jsonToRoot;
   };
 
   const getJsonToGraph = () => {

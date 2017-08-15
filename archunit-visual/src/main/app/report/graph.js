@@ -331,31 +331,7 @@ module.exports.create = () => {
   }
 
   function positionTextOfAllNodes(selection) {
-    return selection.select('text').attr('dy', getDy);
-  }
-
-  function getDy(node) {
-    if (node.isRoot()) {
-      const fontSize = visualizationStyles.getNodeFontSize();
-      return -node.visualData.r + fontSize;
-    }
-    else if (node.isCurrentlyLeaf()) {
-      return 0;
-    }
-    else {
-      const r = node.visualData.r;
-      return computeTextShift(r, calculateTextWidth(node.getName(), 'node'));
-    }
-  }
-
-  /**
-   * computes the greatest possible shift in y-direction of the text, so that the text is still in the circle
-   **/
-  function computeTextShift(r, width) {
-    let shift = Math.sqrt(Math.pow(r, 2) - Math.pow(width / 2, 2));
-    const fontSize = visualizationStyles.getNodeFontSize();
-    shift = -shift + fontSize;
-    return shift;
+    return selection.select('text').attr('dy', node => node.getText().getY());
   }
 
   function updateVisualizationAfterDragging(node) {
