@@ -254,7 +254,8 @@ const init = (NodeText, treeVisualizer, jsonToDependencies) => {
       }
 
       if (this.isRoot()) {
-        treeVisualizer.visualizeTree(this);
+        this.visualData.update(this.getRadius(), this.getRadius());
+        this.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
       }
     }
 

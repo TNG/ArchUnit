@@ -21,12 +21,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
-  const visualizeTree = (root) => {
-    root.visualData.update(root.getRadius(), root.getRadius());
-    root.getDescendants().forEach(d => d.visualData.update(d.getParent().getX() + d.getX(), d.getParent().getY() + d.getY()));
-  };
-
-  return {visualizeTree, radiusOfAnyNode, packCirclesAndReturnEnclosingCircle, visualizationStyles}
+  return {radiusOfAnyNode, packCirclesAndReturnEnclosingCircle, visualizationStyles}
 };
 
 module.exports.newInstance = newInstance;
