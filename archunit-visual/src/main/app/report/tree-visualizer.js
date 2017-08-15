@@ -36,7 +36,7 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       visualDataOfChildren.forEach(c => c.r -= visualizationStyles.getCirclePadding());
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
       const minParentRadiusForOneChild = childRadius * 3;
-      node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node), minParentRadiusForOneChild));
+      node.visualData.update(circle.x, circle.y, Math.max(circle.r, minParentRadiusForOneChild));
     }
   };
 
