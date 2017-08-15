@@ -37,10 +37,6 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
       const childRadius = visualDataOfChildren.length === 1 ? visualDataOfChildren[0].r : 0;
       const minParentRadiusForOneChild = childRadius * 3;
       node.visualData.update(circle.x, circle.y, Math.max(circle.r, radiusOfAnyNode(node), minParentRadiusForOneChild));
-      visualDataOfChildren.forEach(c => {
-        c.dx = c.x;
-        c.dy = c.y;
-      });
     }
   };
 
@@ -51,10 +47,8 @@ const newInstance = (visualizationFunctions, visualizationStyles) => {
     }
 
     node.getCurrentChildren().forEach(c => {
-      c.visualData.x = node.visualData.x + c.visualData.dx;
-      c.visualData.y = node.visualData.y + c.visualData.dy;
-      c.visualData.dx = undefined;
-      c.visualData.dy = undefined;
+      c.visualData.x = node.getX() + c.getX();
+      c.visualData.y = node.getY() + c.getY();
       calcPositionAndSetRadius(c);
     });
   };
