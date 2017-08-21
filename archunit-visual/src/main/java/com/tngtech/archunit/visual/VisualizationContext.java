@@ -42,7 +42,7 @@ public class VisualizationContext {
             return true;
         }
         for (String s : rootPackages) {
-            if (fullName.equals(s) || (fullName.startsWith(s) && fullName.substring(s.length()).startsWith("."))) {
+            if (fullName.equals(s) || (fullName.startsWith(s) && fullName.substring(s.length()).matches("(\\.|\\$).*"))) {
                 return true;
             }
         }

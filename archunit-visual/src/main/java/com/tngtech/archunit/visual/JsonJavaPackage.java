@@ -87,6 +87,7 @@ class JsonJavaPackage extends JsonElement {
         return new JsonJavaPackage(name, fullName);
     }
 
+    @Override
     void insert(JsonJavaElement element) {
         if (fullName.equals(element.getPath())) {
             classes.add(element);
@@ -98,7 +99,8 @@ class JsonJavaPackage extends JsonElement {
 
     private void insertToSubPackage(JsonJavaElement jsonJavaElement) {
         for (JsonElement child : children) {
-            if (jsonJavaElement.fullName.startsWith(child.fullName)) {
+            if (jsonJavaElement.fullName.startsWith(child.fullName)
+                    && jsonJavaElement.fullName.substring(child.fullName.length()).matches("(\\.|\\$).*")) {
                 child.insert(jsonJavaElement);
                 break;
             }
