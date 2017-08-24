@@ -365,18 +365,14 @@ module.exports.create = () => {
     }
   }
 
-  function setPositionAndRadius(selection) {
-    selection.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    selection.select('circle').attr('r', d => d.visualData.r);
-  }
-
   function updateNodes(onAnimationEnd) {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
 
     const transition = nodes.transition().duration(TRANSITION_DURATION);
 
-    setPositionAndRadius(transition);
+    transition.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
+    transition.select('circle').attr('r', d => d.visualData.r);
 
     runTransition(transition, t => positionTextOfAllNodes(t)).then(() => {
       onAnimationEnd();
@@ -423,18 +419,16 @@ module.exports.create = () => {
   function runTransition(transition, transitionRunner) {
     return new Promise(resolve => {
       if (transition.empty()) {
-        resolve();
+        return resolve();
       }
-      else {
-        let n = 0;
-        transition.each(() => n++);
-        transitionRunner(transition).on('end', () => {
-          n--;
-          if (!n) {
-            resolve();
-          }
-        });
-      }
+
+      let wasTriggered = false;
+      transitionRunner(transition).on('end', () => {
+        if (!wasTriggered) {
+          wasTriggered = true;
+          resolve();
+        }
+      });
     });
   }
 
