@@ -45,7 +45,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     }
 
     // FIXME: It would appear smoother, if we would shorten dx and dy to the minimal possible delta, if otherwise we would end up outside of the parent
-    move(dx, dy, parent, callback) {
+    move(dx, dy, parent) {
       const newX = this.x + dx;
       const newY = this.y + dy;
       const centerDistance = Vector.between({x: newX, y: newY}, parent.getCoords()).length();
@@ -53,8 +53,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       if (parent.isRoot() || insideOfParent) {
         this.x = newX;
         this.y = newY;
-        callback();
+        return true;
       }
+      return false;
     }
 
     update(x, y, r) {
@@ -303,7 +304,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
      * @param dy The delta in y-direction
      */
     drag(dx, dy) {
-      this.visualData.move(dx, dy, this.getParent(), () => this.getOriginalChildren().forEach(node => node.drag(dx, dy)));
+      if (this.visualData.move(dx, dy, this.getParent())) {
+        this.getOriginalChildren().forEach(node => node.drag(dx, dy));
+      }
     }
 
     resetFiltering() {
