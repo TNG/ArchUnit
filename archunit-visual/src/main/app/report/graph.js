@@ -348,20 +348,15 @@ module.exports.create = () => {
     else {
       visualizationIsUpdatedAtTheMoment = true;
       visualizer.update(graph);
-      let numberOfAnimations = 2;
-      const countDownLatchOnAnimationEnd = () => {
-        numberOfAnimations--;
-        if (!numberOfAnimations) {
-          visualizationIsUpdatedAtTheMoment = false;
-          if (numberOfWaitingInvokes > 0) {
-            numberOfWaitingInvokes--;
-            updateVisualization();
-          }
+      const onAnimationEnd = () => {
+        visualizationIsUpdatedAtTheMoment = false;
+        if (numberOfWaitingInvokes > 0) {
+          numberOfWaitingInvokes--;
+          updateVisualization();
         }
       };
       adaptSVGSize();
-      updateNodes().then(countDownLatchOnAnimationEnd);
-      updateEdgesWithAnimation().then(countDownLatchOnAnimationEnd);
+      Promise.all([updateNodes(), updateEdgesWithAnimation()]).then(onAnimationEnd);
     }
   }
 
