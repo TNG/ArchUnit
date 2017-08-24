@@ -361,7 +361,7 @@ module.exports.create = () => {
       };
       adaptSVGSize();
       updateNodes().then(countDownLatchOnAnimationEnd);
-      updateEdgesWithAnimation(countDownLatchOnAnimationEnd);
+      updateEdgesWithAnimation().then(countDownLatchOnAnimationEnd);
     }
   }
 
@@ -396,10 +396,10 @@ module.exports.create = () => {
     updateLinePositionWithoutAnimation(edges, updateEdges);
   }
 
-  function updateEdgesWithAnimation(onAnimationEnd) {
+  function updateEdgesWithAnimation() {
     const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     updateEdgesVisibility(edges);
-    updateLinePositionWithAnimation(edges).then(onAnimationEnd);
+    return updateLinePositionWithAnimation(edges);
   }
 
   function hideEdges(edges) {
