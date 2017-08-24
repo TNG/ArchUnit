@@ -360,12 +360,12 @@ module.exports.create = () => {
         }
       };
       adaptSVGSize();
-      updateNodes(countDownLatchOnAnimationEnd);
+      updateNodes().then(countDownLatchOnAnimationEnd);
       updateEdgesWithAnimation(countDownLatchOnAnimationEnd);
     }
   }
 
-  function updateNodes(onAnimationEnd) {
+  function updateNodes() {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
 
@@ -374,10 +374,8 @@ module.exports.create = () => {
     transition.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
     transition.select('circle').attr('r', d => d.visualData.r);
 
-    runTransition(transition, t => positionTextOfAllNodes(t)).then(() => {
-      onAnimationEnd();
-      nodes.style('visibility', 'visible');
-    });
+    return runTransition(transition, t => positionTextOfAllNodes(t))
+      .then(() => nodes.style('visibility', 'visible'));
   }
 
   function updateEdges(edges) {
