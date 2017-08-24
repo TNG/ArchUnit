@@ -382,7 +382,7 @@ module.exports.create = () => {
     setPositionAndRadius(transition.filter(d => d.visualData.visible));
     setPositionAndRadius(nodes.filter(d => !d.visualData.visible));
 
-    runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), () => {
+    runTransition(transition, t => positionTextOfAllNodes(t)).then(() => {
       onAnimationEnd();
       nodes.style('visibility', 'visible');
     });
@@ -426,29 +426,34 @@ module.exports.create = () => {
     edges.select('#area').style('pointer-events', e => e.description.hasDetailedDescription() ? 'all' : 'none');
   }
 
-  function runTransitionWithEndCallback(transition, transitionRunner, callback) {
-    if (transition.empty()) {
-      callback();
-    }
-    else {
-      let n = 0;
-      transition.each(() => n++);
-      transitionRunner(transition).on('end', () => {
-        n--;
-        if (!n) {
-          callback();
-        }
-      });
-    }
+  function runTransition(transition, transitionRunner) {
+    return new Promise(resolve => {
+      if (transition.empty()) {
+        resolve();
+      }
+      else {
+        let n = 0;
+        transition.each(() => n++);
+        transitionRunner(transition).on('end', () => {
+          n--;
+          if (!n) {
+            resolve();
+          }
+        });
+      }
+    });
   }
 
   function updateLinePositionWithAnimation(edges, onAnimationEnd) {
-    const deps = edges.select('#dep').transition().duration(TRANSITION_DURATION);
-    runTransitionWithEndCallback(deps, selection => selection
+    const dependencyTransition = edges.select('#dep').transition().duration(TRANSITION_DURATION);
+
+    const adaptStartAndEnd = selection => selection
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y), () => {
+      .attr('y2', e => e.visualData.endPoint.y);
+
+    runTransition(dependencyTransition, adaptStartAndEnd).then(() => {
       updateEdges(edges);
       updateClickAreaPosition(edges);
       onAnimationEnd();
