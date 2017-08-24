@@ -399,7 +399,7 @@ module.exports.create = () => {
   function updateEdgesWithAnimation(onAnimationEnd) {
     const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
     updateEdgesVisibility(edges);
-    updateLinePositionWithAnimation(edges, onAnimationEnd);
+    updateLinePositionWithAnimation(edges).then(onAnimationEnd);
   }
 
   function hideEdges(edges) {
@@ -430,7 +430,7 @@ module.exports.create = () => {
     });
   }
 
-  function updateLinePositionWithAnimation(edges, onAnimationEnd) {
+  function updateLinePositionWithAnimation(edges) {
     const dependencyTransition = edges.select('#dep').transition().duration(TRANSITION_DURATION);
 
     const adaptStartAndEnd = selection => selection
@@ -439,10 +439,9 @@ module.exports.create = () => {
       .attr('x2', e => e.visualData.endPoint.x)
       .attr('y2', e => e.visualData.endPoint.y);
 
-    runTransition(dependencyTransition, adaptStartAndEnd).then(() => {
+    return runTransition(dependencyTransition, adaptStartAndEnd).then(() => {
       updateEdges(edges);
       updateClickAreaPosition(edges);
-      onAnimationEnd();
     });
   }
 
