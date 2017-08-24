@@ -84,7 +84,6 @@ module.exports.create = () => {
   const DETAILED_DEPENDENCIES_HIDE_DURATION = 200;
   const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
   const TRANSITION_DURATION = 300;
-  const APPEAR_DURATION = 10;
 
   const d3 = require('d3');
   const isFixed = new Map();
@@ -351,7 +350,7 @@ module.exports.create = () => {
     else {
       visualizationIsUpdatedAtTheMoment = true;
       visualizer.update(graph);
-      let numberOfAnimations = 3;
+      let numberOfAnimations = 2;
       const countDownLatchOnAnimationEnd = () => {
         numberOfAnimations--;
         if (!numberOfAnimations) {
@@ -383,9 +382,10 @@ module.exports.create = () => {
     setPositionAndRadius(transition.filter(d => d.visualData.visible));
     setPositionAndRadius(nodes.filter(d => !d.visualData.visible));
 
-    const appearTransition = transition.transition().duration(APPEAR_DURATION);
-    runTransitionWithEndCallback(appearTransition, t => t.style('visibility', 'visible'), onAnimationEnd);
-    runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), onAnimationEnd);
+    runTransitionWithEndCallback(transition, t => positionTextOfAllNodes(t), () => {
+      onAnimationEnd();
+      nodes.style('visibility', 'visible');
+    });
 
     setVisible(nodes, true);
   }
