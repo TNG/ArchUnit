@@ -4,7 +4,7 @@ const predicates = require('./predicates');
 const nodeKinds = require('./node-kinds.json');
 const Vector = require('./vectors').Vector;
 
-const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
+const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
@@ -236,6 +236,18 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
       return {x: this.getX(), y: this.getY()};
     }
 
+    initView(svgElement, onNodeFoldChanged) {
+      this._view = new View(svgElement, this);
+      if (!this.isRoot() && !this.isLeaf()) {
+        this._view.onClick(() => {
+          if (this.changeFold()) {
+            onNodeFoldChanged();
+          }
+        });
+      }
+      this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged));
+    }
+
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node. The coordinates of the circle of any node will be shifted, when
@@ -348,8 +360,8 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
   };
 };
 
-module.exports.init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
+module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
   return {
-    jsonToRoot: init(NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies)
+    jsonToRoot: init(View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies)
   };
 };

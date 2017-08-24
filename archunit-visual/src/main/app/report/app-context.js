@@ -4,7 +4,7 @@
  * Some poor man's DI solution...
  */
 
-const init = (getVisualizationStyles, getCalculateTextWidth) => {
+const init = (getNodeView, getVisualizationStyles, getCalculateTextWidth) => {
 
   const getVisualizationFunctions = () => {
     return require('./visualization-functions').newInstance(getCalculateTextWidth());
@@ -19,7 +19,7 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
   const getJsonToRoot = () => {
     const jsonToDependencies = require('./dependencies.js').jsonToDependencies;
 
-    return require('./tree').init(getNodeText(), getVisualizationFunctions(), getVisualizationStyles(), jsonToDependencies).jsonToRoot;
+    return require('./tree').init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles(), jsonToDependencies).jsonToRoot;
   };
 
   const getJsonToGraph = () => {
@@ -37,8 +37,9 @@ const init = (getVisualizationStyles, getCalculateTextWidth) => {
 module.exports.newInstance = overrides => {
   overrides = overrides || {};
 
+  const getNodeView = () => overrides.NodeView || require('./node-view');
   const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
   const getCalculateTextWidth = () => overrides.calculateTextWidth || require('./text-width-calculator');
 
-  return init(getVisualizationStyles, getCalculateTextWidth);
+  return init(getNodeView, getVisualizationStyles, getCalculateTextWidth);
 };
