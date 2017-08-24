@@ -55,7 +55,7 @@ const init = (jsonToRoot, visualizer) => {
     }
 
     refresh() {
-      this.root.updateVisualization();
+      this.root.relayout();
     }
   };
 

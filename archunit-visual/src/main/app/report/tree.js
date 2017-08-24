@@ -101,7 +101,6 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
 
       if (this.isRoot()) {
         this.relayout();
-        this.updateVisualization = () => this.relayout();
       }
     }
 
@@ -176,7 +175,7 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
       const foldChanged = fold(this, !this._folded);
       if (foldChanged) {
         getDependencies(this).changeFold(this.getFullName(), this.isFolded());
-        getRoot(this).updateVisualization();
+        getRoot(this).relayout();
       }
       return foldChanged;
     }
@@ -258,7 +257,7 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
       } else {
         const childCircles = this.getCurrentChildren().map(c => c.visualData);
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        let r = Math.max(circle.r, calculateDefaultRadius(this));
+        const r = Math.max(circle.r, calculateDefaultRadius(this));
         this.visualData.update(circle.x, circle.y, r);
       }
     }
