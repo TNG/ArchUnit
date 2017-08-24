@@ -38,11 +38,10 @@ const init = (NodeText, visualizationFunctions, visualizationStyles, jsonToDepen
   };
 
   const VisualData = class {
-    constructor(x = 0, y = 0, r = 0, oldVisualData) {
+    constructor(x = 0, y = 0, r = 0) {
       this.x = x;
       this.y = y;
       this.r = r;
-      this.visible = oldVisualData ? oldVisualData.visible : false;
     }
 
     // FIXME: It would appear smoother, if we would shorten dx and dy to the minimal possible delta, if otherwise we would end up outside of the parent

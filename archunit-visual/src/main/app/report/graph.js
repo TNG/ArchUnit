@@ -129,8 +129,6 @@ module.exports.create = () => {
         .attr('class', d => d.getClass())
         .attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
 
-    setVisible(nodes, true);
-
     const drag = d3.drag().on('drag', node => {
       node.drag(d3.event.dx, d3.event.dy);
       visualizer.drag(graph, node);
@@ -375,19 +373,15 @@ module.exports.create = () => {
   function updateNodes(onAnimationEnd) {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
-    setVisible(nodes.exit(), false);
 
     const transition = nodes.transition().duration(TRANSITION_DURATION);
 
-    setPositionAndRadius(transition.filter(d => d.visualData.visible));
-    setPositionAndRadius(nodes.filter(d => !d.visualData.visible));
+    setPositionAndRadius(transition);
 
     runTransition(transition, t => positionTextOfAllNodes(t)).then(() => {
       onAnimationEnd();
       nodes.style('visibility', 'visible');
     });
-
-    setVisible(nodes, true);
   }
 
   function updateEdges(edges) {
