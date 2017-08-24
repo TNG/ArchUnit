@@ -121,22 +121,16 @@ module.exports.create = () => {
   }
 
   function initializeTree() {
-    graph.root.initView(gTree.node(), updateVisualization);
+    const onMoved = node => {
+      visualizer.drag(graph, node);
+      updateVisualizationAfterDragging(node);
+    };
+    graph.root.initView(gTree.node(), updateVisualization, onMoved);
     const nodes =
       gTree.selectAll('.node')
         .data(graph.getVisibleNodes(), function (node) {
           return (node && node.getFullName()) || d3.select(this).attr("id")
         });
-
-    const drag = d3.drag().on('drag', node => {
-      node.drag(d3.event.dx, d3.event.dy);
-      visualizer.drag(graph, node);
-      updateVisualizationAfterDragging(node);
-    });
-
-    nodes
-      .filter(d => !d.isRoot())
-      .call(drag);
 
     nodes
       .filter(d => !d.isRoot())

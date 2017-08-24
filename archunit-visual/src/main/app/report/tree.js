@@ -237,7 +237,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return {x: this.getX(), y: this.getY()};
     }
 
-    initView(svgElement, onNodeFoldChanged) {
+    initView(svgElement, onNodeFoldChanged, onMoved) {
       this._view = new View(svgElement, this);
       if (!this.isRoot() && !this.isLeaf()) {
         this._view.onClick(() => {
@@ -246,7 +246,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
           }
         });
       }
-      this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged));
+      this._view.onDrag((dx, dy) => {
+        this.drag(dx, dy);
+        onMoved(this);
+      });
+      this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged, onMoved));
     }
 
     /**

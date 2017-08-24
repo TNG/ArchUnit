@@ -15,6 +15,11 @@ const View = class {
   onClick(handler) {
     d3.select(this._svgElement).on('click', handler);
   }
+
+  onDrag(handler) {
+    const drag = d3.drag().on('drag', () => handler(d3.event.dx, d3.event.dy));
+    d3.select(this._svgElement).call(drag);
+  }
 };
 
 module.exports = View;
