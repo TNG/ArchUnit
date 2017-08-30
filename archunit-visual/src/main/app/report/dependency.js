@@ -1,5 +1,7 @@
 'use strict';
 
+const dependencyKinds = require('./dependency-kinds.json');
+
 let nodes;
 
 const CodeElement = {
@@ -72,6 +74,27 @@ const DependencyDescription = class {
   }
 };
 
+const AccessDescription = class extends DependencyDescription {
+  constructor(containsPkg) {
+    super(containsPkg);
+  }
+};
+
+const InheritanceDescription = class extends DependencyDescription {
+  constructor(containsPkg) {
+    super(containsPkg);
+  }
+};
+
+const createDependencyDescription = (dependencyGroup, containsPkg) => {
+  if (dependencyGroup === dependencyKinds.groupedDependencies.access.name) {
+    return new AccessDescription(containsPkg);
+  }
+  else if (dependencyGroup === dependencyKinds.groupedDependencies.inheritance.name) {
+    return new InheritanceDescription(containsPkg);
+  }
+};
+
 const Dependency = class {
   constructor(from, to) {
     this.from = from;
@@ -139,6 +162,7 @@ const buildDependency = (from, to) => {
     withNewDescription: function () {
       const descriptionBuilder = {
         withKind: function (kindgroup, kind) {
+          dependency.description = createDependencyDescription(kindgroup, dependency.description.containsPkg);
           dependency.description[kindgroup] = kind;
           return descriptionBuilder;
         },
