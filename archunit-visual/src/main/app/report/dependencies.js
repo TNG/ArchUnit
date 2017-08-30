@@ -5,8 +5,6 @@ const nodeKinds = require('./node-kinds.json');
 const boolFuncs = require('./booleanutils').booleanFunctions;
 const createDependencyBuilder = require('./dependency.js').buildDependency;
 let buildDependency;
-const KIND_FILTER = "kindfilter";
-const NODE_FILTER = "nodefilter";
 
 let nodes = new Map();
 
@@ -94,22 +92,35 @@ const changeFold = (dependencies, callback) => {
 };
 
 const reapplyFilters = (dependencies, filters) => {
-  dependencies._filtered = Array.from(filters.values()).reduce((filtered_deps, filter) => filter(filtered_deps),
+  dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
     dependencies._all);
   dependencies._uniqued = unique(Array.from(dependencies._filtered));
   recreateVisible(dependencies);
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
 
+const newFilters = (dependencies) => ({
+  typeFilter: null,
+  nameFilter: null,
+
+  apply: function () {
+    reapplyFilters(dependencies, this.values());
+  },
+
+  values: function () {
+    return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
+  }
+});
+
 const Dependencies = class {
   constructor(all) {
-    this._filters = new Map();
     this._transformers = new Map();
     this._all = all;
     this._filtered = this._all;
     this._uniqued = unique(Array.from(this._filtered));
     this.setVisibleDependencies(this._uniqued);
     this.observers = [];
+    this._filters = newFilters(this);
   }
 
   addObserver(observerFunction) {
@@ -132,15 +143,15 @@ const Dependencies = class {
   }
 
   setNodeFilters(filters) {
-    this._filters.set(NODE_FILTER, filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
-      deps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), filtered_deps));
-    reapplyFilters(this, this._filters);
+    this._filters.nameFilter = filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
+      deps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), filtered_deps);
+    this._filters.apply();
   }
 
   filterByKind() {
     const applyFilter = kindFilter => {
-      this._filters.set(KIND_FILTER, filtered_deps => filtered_deps.filter(kindFilter));
-      reapplyFilters(this, this._filters);
+      this._filters.typeFilter = filtered_deps => filtered_deps.filter(kindFilter);
+      this._filters.apply();
     };
     return {
       showImplementing: implementing => ({
@@ -174,8 +185,8 @@ const Dependencies = class {
   }
 
   resetFilterByKind() {
-    this._filters.delete(KIND_FILTER);
-    reapplyFilters(this, this._filters);
+    this._filters.typeFilter = null;
+    this._filters.apply();
   }
 
   getVisible() {
