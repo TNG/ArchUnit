@@ -360,7 +360,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     root._dependencies = jsonToDependencies(jsonRoot, root);
     root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
-    root.filterDependenciesByKind = () => root._dependencies.filterByKind();
+    root.filterDependenciesByKind = (typeFilterConfig) => root._dependencies.filterByKind(typeFilterConfig);
     root.resetFilterDependenciesByKind = () => root._dependencies.resetFilterByKind();
 
     return root;

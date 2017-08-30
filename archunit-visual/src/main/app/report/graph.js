@@ -46,8 +46,8 @@ const init = (jsonToRoot, visualizer) => {
       this.root.resetFilterByType();
     }
 
-    filterDependenciesByKind() {
-      return this.root.filterDependenciesByKind();
+    filterDependenciesByKind(typeFilterConfig) {
+      this.root.filterDependenciesByKind(typeFilterConfig);
     }
 
     resetFilterDependenciesByKind() {
@@ -480,15 +480,7 @@ module.exports.create = () => {
             })
           .onDependencyFilterChanged(
             filter => {
-              graph.filterDependenciesByKind()
-                .showImplementing(filter.showImplementing)
-                .showExtending(filter.showExtending)
-                .showConstructorCall(filter.showConstructorCall)
-                .showMethodCall(filter.showMethodCall)
-                .showFieldAccess(filter.showFieldAccess)
-                .showAnonymousImplementing(filter.showAnonymousImplementation)
-                .showDepsBetweenChildAndParent(filter.showBetweenClassAndItsInnerClasses);
-
+              graph.filterDependenciesByKind(filter);
               updateEdgesWithoutAnimation();
             })
           .onNodeNameFilterChanged((filterString, exclude) => {

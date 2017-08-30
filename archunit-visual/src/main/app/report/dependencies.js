@@ -2,7 +2,6 @@
 
 const dependencyKinds = require('./dependency-kinds.json');
 const nodeKinds = require('./node-kinds.json');
-const boolFuncs = require('./booleanutils').booleanFunctions;
 const createDependencyBuilder = require('./dependency.js').buildDependency;
 let buildDependency;
 
@@ -148,40 +147,21 @@ const Dependencies = class {
     this._filters.apply();
   }
 
-  filterByKind() {
-    const applyFilter = kindFilter => {
-      this._filters.typeFilter = filtered_deps => filtered_deps.filter(kindFilter);
-      this._filters.apply();
+  filterByKind(typeFilterConfig) {
+    const kindFilter = dependency => {
+      const type = dependency.description.getAllKinds();
+      return (type !== dependencyKinds.allDependencies.implements || typeFilterConfig.showImplementing)
+        && ((type !== dependencyKinds.allDependencies.extends || typeFilterConfig.showExtending))
+        && ((type !== dependencyKinds.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))
+        && ((type !== dependencyKinds.allDependencies.methodCall || typeFilterConfig.showMethodCall))
+        && ((type !== dependencyKinds.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
+        && ((type !== dependencyKinds.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
+        && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
+        && dependency.getEndNode().getParent() !== dependency.getStartNode())
+        || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
     };
-    return {
-      showImplementing: implementing => ({
-        showExtending: extending => ({
-          showConstructorCall: constructorCall => ({
-            showMethodCall: methodCall => ({
-              showFieldAccess: fieldAccess => ({
-                showAnonymousImplementing: anonymousImplementation => ({
-                  showDepsBetweenChildAndParent: childAndParent => {
-                    const kindFilter = d => {
-                      const kinds = d.description.getAllKinds();
-                      const deps = dependencyKinds.allDependencies;
-                      return boolFuncs(kinds === deps.implements).implies(implementing)
-                        && boolFuncs(kinds === deps.extends).implies(extending)
-                        && boolFuncs(kinds === deps.constructorCall).implies(constructorCall)
-                        && boolFuncs(kinds === deps.methodCall).implies(methodCall)
-                        && boolFuncs(kinds === deps.fieldAccess).implies(fieldAccess)
-                        && boolFuncs(kinds === deps.implementsAnonymous).implies(anonymousImplementation)
-                        && boolFuncs(d.getStartNode().getParent() === d.getEndNode()
-                          || d.getEndNode().getParent() === d.getStartNode()).implies(childAndParent);
-                    };
-                    applyFilter(kindFilter);
-                  }
-                })
-              })
-            })
-          })
-        })
-      })
-    };
+    this._filters.typeFilter = dependencies => dependencies.filter(kindFilter);
+    this._filters.apply();
   }
 
   resetFilterByKind() {

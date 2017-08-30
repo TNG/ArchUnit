@@ -318,14 +318,15 @@ describe("Dependencies", () => {
   it("does the filtering by kind (only show inheritance) correctly and resets it", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterDependenciesByKind()
-      .showImplementing(true)
-      .showExtending(true)
-      .showConstructorCall(false)
-      .showMethodCall(false)
-      .showFieldAccess(false)
-      .showAnonymousImplementing(false)
-      .showDepsBetweenChildAndParent(true);
+    graphWrapper.graph.filterDependenciesByKind({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: false,
+      showMethodCall: false,
+      showFieldAccess: false,
+      showAnonymousImplementing: false,
+      showDepsBetweenChildAndParent: true
+    });
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(implements)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
@@ -340,14 +341,15 @@ describe("Dependencies", () => {
 
   it("dies the filtering by kind (do not show inheritance) correcty and resets it", () => {
     const graphWrapper = testObjects.testGraph3();
-    graphWrapper.graph.filterDependenciesByKind()
-      .showImplementing(false)
-      .showExtending(false)
-      .showConstructorCall(true)
-      .showMethodCall(true)
-      .showFieldAccess(true)
-      .showAnonymousImplementing(true)
-      .showDepsBetweenChildAndParent(true);
+    graphWrapper.graph.filterDependenciesByKind({
+      showImplementing: false,
+      showExtending: false,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDependenciesBetweenClassAndItsInnerClasses: true
+    });
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
       "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
