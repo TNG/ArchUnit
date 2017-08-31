@@ -1,7 +1,7 @@
 'use strict';
 
-const dependencyKinds = require('./dependency-kinds.json');
-const nodeKinds = require('./node-kinds.json');
+const dependencyTypes = require('./dependency-types.json');
+const nodeTypes = require('./node-types.json');
 const createDependencyBuilder = require('./dependency.js').buildDependency;
 let buildDependency;
 
@@ -147,24 +147,24 @@ const Dependencies = class {
     this._filters.apply();
   }
 
-  filterByKind(typeFilterConfig) {
-    const kindFilter = dependency => {
+  filterByType(typeFilterConfig) {
+    const typeFilter = dependency => {
       const type = dependency.description.getDependencyTypesAsString();
-      return (type !== dependencyKinds.allDependencies.implements || typeFilterConfig.showImplementing)
-        && ((type !== dependencyKinds.allDependencies.extends || typeFilterConfig.showExtending))
-        && ((type !== dependencyKinds.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))
-        && ((type !== dependencyKinds.allDependencies.methodCall || typeFilterConfig.showMethodCall))
-        && ((type !== dependencyKinds.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
-        && ((type !== dependencyKinds.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
+      return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
+        && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
+        && ((type !== dependencyTypes.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))
+        && ((type !== dependencyTypes.allDependencies.methodCall || typeFilterConfig.showMethodCall))
+        && ((type !== dependencyTypes.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
+        && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
         && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
         && dependency.getEndNode().getParent() !== dependency.getStartNode())
         || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
     };
-    this._filters.typeFilter = dependencies => dependencies.filter(kindFilter);
+    this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
     this._filters.apply();
   }
 
-  resetFilterByKind() {
+  resetFilterByType() {
     this._filters.typeFilter = null;
     this._filters.apply();
   }
@@ -200,15 +200,15 @@ const Dependencies = class {
 const addDependenciesOf = dependencyGroup => ({
   ofJsonElement: jsonElement => ({
     toArray: arr => {
-      dependencyGroup.kinds.forEach(kind => {
-        if (jsonElement.hasOwnProperty(kind.name)) {
-          if (kind.isUnique && jsonElement[kind.name]) {
-            arr.push(buildDependency(jsonElement.fullName, jsonElement[kind.name]).withNewDescription()
-              .withKind(dependencyGroup.name, kind.dependency).build());
+      dependencyGroup.types.forEach(type => {
+        if (jsonElement.hasOwnProperty(type.name)) {
+          if (type.isUnique && jsonElement[type.name]) {
+            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withNewDescription()
+              .withType(dependencyGroup.name, type.dependency).build());
           }
-          else if (!kind.isUnique && jsonElement[kind.name].length !== 0) {
-            jsonElement[kind.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.target || d).withNewDescription().withKind(dependencyGroup.name, kind.dependency).withStartCodeUnit(d.startCodeUnit)
+          else if (!type.isUnique && jsonElement[type.name].length !== 0) {
+            jsonElement[type.name].forEach(d => arr.push(
+              buildDependency(jsonElement.fullName, d.target || d).withNewDescription().withType(dependencyGroup.name, type.dependency).withStartCodeUnit(d.startCodeUnit)
                 .withTargetElement(d.targetCodeElement).build()));
           }
         }
@@ -219,8 +219,8 @@ const addDependenciesOf = dependencyGroup => ({
 
 const addAllDependenciesOfJsonElement = jsonElement => ({
   toArray: arr => {
-    if (jsonElement.type !== nodeKinds.package) {
-      const groupedDependencies = dependencyKinds.groupedDependencies;
+    if (jsonElement.type !== nodeTypes.package) {
+      const groupedDependencies = dependencyTypes.groupedDependencies;
       addDependenciesOf(groupedDependencies.inheritance).ofJsonElement(jsonElement).toArray(arr);
       addDependenciesOf(groupedDependencies.access).ofJsonElement(jsonElement).toArray(arr);
     }

@@ -46,12 +46,12 @@ const init = (jsonToRoot, visualizer) => {
       this.root.resetFilterByType();
     }
 
-    filterDependenciesByKind(typeFilterConfig) {
-      this.root.filterDependenciesByKind(typeFilterConfig);
+    filterDependenciesByType(typeFilterConfig) {
+      this.root.filterDependenciesByType(typeFilterConfig);
     }
 
-    resetFilterDependenciesByKind() {
-      this.root.resetFilterDependenciesByKind();
+    resetFilterDependenciesByType() {
+      this.root.resetFilterDependenciesByType();
     }
 
     refresh() {
@@ -480,7 +480,7 @@ module.exports.create = () => {
             })
           .onDependencyFilterChanged(
             filter => {
-              graph.filterDependenciesByKind(filter);
+              graph.filterDependenciesByType(filter);
               updateEdgesWithoutAnimation();
             })
           .onNodeNameFilterChanged((filterString, exclude) => {

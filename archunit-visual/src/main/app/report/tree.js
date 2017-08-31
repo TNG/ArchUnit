@@ -1,7 +1,7 @@
 'use strict';
 
 const predicates = require('./predicates');
-const nodeKinds = require('./node-kinds.json');
+const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 
 const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
@@ -105,11 +105,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     }
 
     isPackage() {
-      return this.getType() === nodeKinds.package;
+      return this.getType() === nodeTypes.package;
     }
 
     isInterface() {
-      return this.getType() === nodeKinds.interface;
+      return this.getType() === nodeTypes.interface;
     }
 
     getName() {
@@ -360,8 +360,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     root._dependencies = jsonToDependencies(jsonRoot, root);
     root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
-    root.filterDependenciesByKind = (typeFilterConfig) => root._dependencies.filterByKind(typeFilterConfig);
-    root.resetFilterDependenciesByKind = () => root._dependencies.resetFilterByKind();
+    root.filterDependenciesByType = (typeFilterConfig) => root._dependencies.filterByType(typeFilterConfig);
+    root.resetFilterDependenciesByType = () => root._dependencies.resetFilterByType();
 
     return root;
   };

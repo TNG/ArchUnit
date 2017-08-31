@@ -2,7 +2,7 @@
   "groupedDependencies": {
     "inheritance": {
       "name": "inheritanceKind",
-      "kinds": [
+      "types": [
         {
           "name": "interfaces",
           "dependency": "implements",
@@ -22,7 +22,7 @@
     },
     "access": {
       "name": "accessKind",
-      "kinds": [
+      "types": [
         {
           "name": "methodCalls",
           "dependency": "methodCall",

@@ -315,10 +315,10 @@ describe("Dependencies", () => {
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
-  it("does the filtering by kind (only show inheritance) correctly and resets it", () => {
+  it("does the filtering by type (only show inheritance) correctly and resets it", () => {
     const graphWrapper = testObjects.testGraph2();
 
-    graphWrapper.graph.filterDependenciesByKind({
+    graphWrapper.graph.filterDependenciesByType({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: false,
@@ -335,13 +335,13 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterDependenciesByKind();
+    graphWrapper.graph.resetFilterDependenciesByType();
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
-  it("dies the filtering by kind (do not show inheritance) correcty and resets it", () => {
+  it("dies the filtering by type (do not show inheritance) correcty and resets it", () => {
     const graphWrapper = testObjects.testGraph3();
-    graphWrapper.graph.filterDependenciesByKind({
+    graphWrapper.graph.filterDependenciesByType({
       showImplementing: false,
       showExtending: false,
       showConstructorCall: true,
@@ -361,7 +361,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterDependenciesByKind();
+    graphWrapper.graph.resetFilterDependenciesByType();
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 

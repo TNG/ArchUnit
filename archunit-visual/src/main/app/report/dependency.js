@@ -1,6 +1,6 @@
 'use strict';
 
-const dependencyKinds = require('./dependency-kinds.json');
+const dependencyTypes = require('./dependency-types.json');
 
 let nodes;
 
@@ -10,9 +10,9 @@ const DependencyDescription = class {
 };
 
 const SingleDependencyDescription = class extends DependencyDescription {
-  constructor(kind) {
+  constructor(type) {
     super();
-    this.type = kind;
+    this.type = type;
   }
 
   getDependencyTypesAsString() {
@@ -21,8 +21,8 @@ const SingleDependencyDescription = class extends DependencyDescription {
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
-  constructor(kind) {
-    super(kind);
+  constructor(type) {
+    super(type);
     this.startCodeUnit = "";
     this.targetElement = "";
   }
@@ -31,11 +31,11 @@ const AccessDescription = class extends SingleDependencyDescription {
     return true;
   }
 
-  getInheritanceKind() {
+  getInheritanceType() {
     return "";
   }
 
-  getAccessKind() {
+  getAccessType() {
     return this.type;
   }
 
@@ -49,19 +49,19 @@ const AccessDescription = class extends SingleDependencyDescription {
 };
 
 const InheritanceDescription = class extends SingleDependencyDescription {
-  constructor(kind) {
-    super(kind);
+  constructor(type) {
+    super(type);
   }
 
   hasDescription() {
     return false;
   }
 
-  getInheritanceKind() {
+  getInheritanceType() {
     return this.type;
   }
 
-  getAccessKind() {
+  getAccessType() {
     return "";
   }
 
@@ -77,24 +77,24 @@ const InheritanceDescription = class extends SingleDependencyDescription {
 const GroupedDependencyDescription = class extends DependencyDescription {
   constructor() {
     super();
-    this.inheritanceKind = "";
-    this.accessKind = "";
+    this.inheritanceType = "";
+    this.accessType = "";
   }
 
   hasDescription() {
     return true;
   }
 
-  getInheritanceKind() {
-    return this.inheritanceKind;
+  getInheritanceType() {
+    return this.inheritanceType;
   }
 
-  getAccessKind() {
-    return this.accessKind;
+  getAccessType() {
+    return this.accessType;
   }
 
   getDependencyTypesAsString() {
-    return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
+    return this.inheritanceType + (this.inheritanceType && this.accessType ? " " : "") + this.accessType;
   }
 
   toString() {
@@ -102,12 +102,12 @@ const GroupedDependencyDescription = class extends DependencyDescription {
   }
 };
 
-const createDependencyDescription = (dependencyGroup, kind) => {
-  if (dependencyGroup === dependencyKinds.groupedDependencies.access.name) {
-    return new AccessDescription(kind);
+const createDependencyDescription = (dependencyGroup, type) => {
+  if (dependencyGroup === dependencyTypes.groupedDependencies.access.name) {
+    return new AccessDescription(type);
   }
-  else if (dependencyGroup === dependencyKinds.groupedDependencies.inheritance.name) {
-    return new InheritanceDescription(kind);
+  else if (dependencyGroup === dependencyTypes.groupedDependencies.inheritance.name) {
+    return new InheritanceDescription(type);
   }
 };
 
@@ -153,15 +153,15 @@ const Dependency = class {
   }
 };
 
-const groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
-  if (!kind1) {
-    return kind2;
+const groupTypesOfDifferentDepsBetweenSameElements = (type1, type2) => {
+  if (!type1) {
+    return type2;
   }
-  else if (!kind2) {
-    return kind1;
+  else if (!type2) {
+    return type1;
   }
   else {
-    return kind1 === kind2 ? kind1 : "several";
+    return type1 === type2 ? type1 : "several";
   }
 };
 
@@ -174,8 +174,8 @@ const buildDependency = (from, to) => {
   const builder = {
     withNewDescription: function () {
       const descriptionBuilder = {
-        withKind: function (kindgroup, kind) {
-          dependency.description = createDependencyDescription(kindgroup, kind);
+        withType: function (typegroup, type) {
+          dependency.description = createDependencyDescription(typegroup, type);
           return descriptionBuilder;
         },
         withStartCodeUnit: function (startCodeUnit) {
@@ -194,8 +194,8 @@ const buildDependency = (from, to) => {
     },
     withMergedDescriptions: function (description1, description2) {
       dependency.description = new GroupedDependencyDescription();
-      dependency.description.inheritanceKind = groupKindsOfDifferentDepsBetweenSameElements(description1.getInheritanceKind(), description2.getInheritanceKind());
-      dependency.description.accessKind = groupKindsOfDifferentDepsBetweenSameElements(description1.getAccessKind(), description2.getAccessKind());
+      dependency.description.inheritanceType = groupTypesOfDifferentDepsBetweenSameElements(description1.getInheritanceType(), description2.getInheritanceType());
+      dependency.description.accessType = groupTypesOfDifferentDepsBetweenSameElements(description1.getAccessType(), description2.getAccessType());
       return dependency;
     },
     withExistingDescription: function (description) {
@@ -207,7 +207,7 @@ const buildDependency = (from, to) => {
             }
             else {
               dependency.description = new GroupedDependencyDescription();
-              dependency.description.accessKind = "childrenAccess";
+              dependency.description.accessType = "childrenAccess";
             }
           }
           else {
@@ -222,7 +222,7 @@ const buildDependency = (from, to) => {
             }
             else {
               dependency.description = new GroupedDependencyDescription();
-              dependency.description.accessKind = "childrenAccess";
+              dependency.description.accessType = "childrenAccess";
             }
           }
           else {
