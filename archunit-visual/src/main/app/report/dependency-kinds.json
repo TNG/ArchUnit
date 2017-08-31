@@ -12,6 +12,11 @@
           "name": "superclass",
           "dependency": "extends",
           "isUnique": true
+        },
+        {
+          "name": "anonymousImplementation",
+          "dependency": "implementsAnonymous",
+          "isUnique": false
         }
       ]
     },
@@ -31,11 +36,6 @@
         {
           "name": "constructorCalls",
           "dependency": "constructorCall",
-          "isUnique": false
-        },
-        {
-          "name": "anonymousImplementation",
-          "dependency": "implementsAnonymous",
           "isUnique": false
         }
       ]

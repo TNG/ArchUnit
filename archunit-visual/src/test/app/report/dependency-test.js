@@ -7,10 +7,6 @@ const testObjects = require("./test-object-creator.js");
 const createDependencyBuilder = require('./main-files').get('dependency').buildDependency;
 
 const CodeElement = {
-  absent: {
-    key: 0,
-    title: ""
-  },
   single: name => ({
     key: 1,
     title: name
@@ -36,8 +32,7 @@ describe("Dependency", () => {
 
     const description1 = buildDescription().withKinds("", "methodCall").withCodeElements(
         CodeElement.single("startMethod(arg1, arg2)"), CodeElement.single("targetMethod()"));
-    const description2 = buildDescription().withKinds("implements", "").withCodeElements(
-        CodeElement.absent, CodeElement.absent);
+    const description2 = buildDescription().withKinds("implements", "").withCodeElements();
     const act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     const exp = "implements methodCall";
     expect(act.description.toString()).to.equal(exp);
@@ -52,8 +47,7 @@ describe("Dependency", () => {
         CodeElement.single("testclass1()"), CodeElement.single("field1"));
     const description2 = buildDescription().withKinds("", "methodCall").withCodeElements(
         CodeElement.single("testclass1()"), CodeElement.single("targetMethod()"));
-    const description3 = buildDescription().withKinds("extends", "").withCodeElements(
-        CodeElement.absent, CodeElement.absent);
+    const description3 = buildDescription().withKinds("extends", "").withCodeElements();
     let act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     act = buildDependency(from, to).withMergedDescriptions(act.description, description3);
     const exp = "extends several";

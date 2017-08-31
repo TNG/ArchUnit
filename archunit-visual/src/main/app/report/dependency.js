@@ -5,45 +5,11 @@ const dependencyKinds = require('./dependency-kinds.json');
 let nodes;
 
 const CodeElement = {
-  absent: {
-    key: 0,
-    title: ""
-  },
   single: function (name) {
-    if (name) {
-      return {
-        key: 1,
-        title: name
-      }
+    return {
+      key: 1,
+      title: name
     }
-    else {
-      return CodeElement.absent;
-    }
-  },
-  several: {
-    key: 2,
-    title: "[...]"
-  },
-  groupExistingCodeElements: (codeElement1, codeElement2) => {
-    if (CodeElement.areEqual(codeElement1, codeElement2)) {
-      return codeElement1;
-    }
-    else if (CodeElement.isAbsent(codeElement1)) {
-      return codeElement2;
-    }
-    else if (CodeElement.isAbsent(codeElement2)) {
-      return codeElement1;
-    }
-    else {
-      return CodeElement.several;
-    }
-  },
-  isAbsent: codeElement => {
-    return codeElement.key === CodeElement.absent.key;
-  },
-  areEqual: (codeElement1, codeElement2) => {
-    return codeElement1.key === codeElement2.key &&
-      codeElement1.title === codeElement2.title;
   }
 };
 
@@ -67,8 +33,6 @@ const SingleDependencyDescription = class extends DependencyDescription {
 const AccessDescription = class extends SingleDependencyDescription {
   constructor() {
     super();
-    this.startCodeUnit = CodeElement.absent;
-    this.targetElement = CodeElement.absent;
   }
 
   hasDescription() {
@@ -153,9 +117,9 @@ const Dependency = class {
 
   getDescriptionRelativeToPredecessors(from, to) {
     let start = this.from.substring(from.length + 1);
-    start += ((start && !CodeElement.isAbsent(this.description.startCodeUnit)) ? "." : "") + (this.description.startCodeUnit.title);
+    start += ((start && this.description.startCodeUnit) ? "." : "") + (this.description.startCodeUnit.title);
     let end = this.to.substring(to.length + 1);
-    end += ((end && !CodeElement.isAbsent(this.description.targetElement)) ? "." : "") + (this.description.targetElement.title);
+    end += ((end && this.description.targetElement) ? "." : "") + (this.description.targetElement.title);
     return start + "->" + end;
   }
 };
