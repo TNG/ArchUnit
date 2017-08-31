@@ -6,7 +6,7 @@ const expect = require("chai").expect;
 const testObjects = require("./test-object-creator.js");
 
 const depsOfTree2WithTestFolded = [
-  "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+  "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
   "com.tngtech.test->com.tngtech.class2()",
   "com.tngtech.test->com.tngtech.main.class1()",
   "com.tngtech.test->com.tngtech.interface1()",
@@ -16,12 +16,12 @@ const depsOfTree2WithTestFolded = [
 
 const depsOfTree2WithMainFolded = [
   "com.tngtech.main->com.tngtech.interface1()",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
+  "com.tngtech.test.testclass1->com.tngtech.class2(several)",
   "com.tngtech.test.testclass1->com.tngtech.main()",
   "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
   "com.tngtech.class2->com.tngtech.main()",
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
@@ -85,8 +85,8 @@ describe("Dependencies", () => {
 
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
-      "com.tngtech.main.class1->com.tngtech.test.testclass1(startMethod(arg1, arg2) childrenAccess InnerTestClass1.targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2([...] several field1)",
+      "com.tngtech.main.class1->com.tngtech.test.testclass1(childrenAccess)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(startMethod(arg) constructorCall testclass1())",
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
@@ -135,8 +135,8 @@ describe("Dependencies", () => {
 
     graphWrapper.getNode("com.tngtech.test").changeFold();
     let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
+      "com.tngtech.main.class3->com.tngtech.interface1(implements methodCall)",
       "com.tngtech.test->com.tngtech.class2()",
       "com.tngtech.test->com.tngtech.main.class1()",
       "com.tngtech.test->com.tngtech.interface1()",
@@ -149,12 +149,12 @@ describe("Dependencies", () => {
     graphWrapper.getNode("com.tngtech.main").changeFold();
     exp = [
       "com.tngtech.main->com.tngtech.interface1()",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() extends several [...])",
+      "com.tngtech.test.testclass1->com.tngtech.class2(extends several)",
       "com.tngtech.test.testclass1->com.tngtech.main()",
       "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])",
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
       "com.tngtech.class2->com.tngtech.main()",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
@@ -166,9 +166,9 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
       "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
@@ -185,7 +185,7 @@ describe("Dependencies", () => {
     graphWrapper.getNode("com.tngtech.test").changeFold();
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
       "com.tngtech.test->com.tngtech.class2()",
       "com.tngtech.test->com.tngtech.main.class1()",
       "com.tngtech.test->com.tngtech.interface1()",
@@ -208,7 +208,7 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
       "com.tngtech.test->com.tngtech.class2()",
       "com.tngtech.test->com.tngtech.main.class1()",
       "com.tngtech.test->com.tngtech.interface1()",
@@ -219,9 +219,9 @@ describe("Dependencies", () => {
 
     graphWrapper.getNode("com.tngtech.test").changeFold();
     exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
       "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
@@ -239,7 +239,7 @@ describe("Dependencies", () => {
     graphWrapper.getNode("com.tngtech.test").changeFold();
 
     let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
       "com.tngtech.test->com.tngtech.class2()",
       "com.tngtech.test->com.tngtech.main.class1()",
       "com.tngtech.test->com.tngtech.interface1()",
@@ -250,9 +250,9 @@ describe("Dependencies", () => {
 
     graphWrapper.getNode("com.tngtech.test").changeFold();
     exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
       "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
@@ -269,7 +269,7 @@ describe("Dependencies", () => {
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     graphWrapper.getNode("com.tngtech.test").changeFold();
     const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) implements methodCall targetMethod())",
+      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
       "com.tngtech.test->com.tngtech.class2()",
       "com.tngtech.test->com.tngtech.main.class1()",
       "com.tngtech.test->com.tngtech.interface1()",
@@ -292,10 +292,10 @@ describe("Dependencies", () => {
 
     graphWrapper.graph.filterNodesByType({showInterfaces: false, showClasses: true});
     const exp = [
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])",
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
       "com.tngtech.class2->com.tngtech.main.class1(extends)"
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
@@ -353,11 +353,11 @@ describe("Dependencies", () => {
     const exp = [
       "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
       "com.tngtech.main.class3->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
-      "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() several [...])",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1([...] fieldAccess field1)",
+      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
       "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1([...] constructorCall [...])"
+      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)"
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 

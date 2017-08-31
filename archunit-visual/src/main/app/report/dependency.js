@@ -43,7 +43,7 @@ const CodeElement = {
   },
   areEqual: (codeElement1, codeElement2) => {
     return codeElement1.key === codeElement2.key &&
-        codeElement1.title === codeElement2.title;
+      codeElement1.title === codeElement2.title;
   }
 };
 
@@ -51,21 +51,10 @@ const DependencyDescription = class {
   constructor() {
     this.inheritanceKind = "";
     this.accessKind = "";
-    this.startCodeUnit = CodeElement.absent;
-    this.targetElement = CodeElement.absent;
   }
 
   getAllKinds() {
     return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
-  }
-
-  hasDescription() {
-    return !CodeElement.isAbsent(this.startCodeUnit) || !CodeElement.isAbsent(this.targetElement);
-  }
-
-  toString() {
-    const allKinds = this.getAllKinds();
-    return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
   }
 };
 
@@ -78,6 +67,17 @@ const SingleDependencyDescription = class extends DependencyDescription {
 const AccessDescription = class extends SingleDependencyDescription {
   constructor() {
     super();
+    this.startCodeUnit = CodeElement.absent;
+    this.targetElement = CodeElement.absent;
+  }
+
+  hasDescription() {
+    return true;
+  }
+
+  toString() {
+    const allKinds = this.getAllKinds();
+    return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
   }
 };
 
@@ -85,11 +85,27 @@ const InheritanceDescription = class extends SingleDependencyDescription {
   constructor() {
     super();
   }
+
+  hasDescription() {
+    return false;
+  }
+
+  toString() {
+    return this.getAllKinds();
+  }
 };
 
 const GroupedDependencyDescription = class extends DependencyDescription {
   constructor() {
     super();
+  }
+
+  hasDescription() {
+    return true;
+  }
+
+  toString() {
+    return this.getAllKinds();
   }
 };
 
@@ -112,7 +128,6 @@ const Dependency = class {
      * @type {boolean}
      */
     this.mustShareNodes = false;
-    this.description = new DependencyDescription();
     this.containsPkg = containsPackage(this.from, this.to);
   }
 
@@ -157,13 +172,6 @@ const groupKindsOfDifferentDepsBetweenSameElements = (kind1, kind2) => {
   }
 };
 
-const getCodeElementWhenParentFolded = (description, codeElement, dependencyEnd, foldedElement) => {
-  if (description.inheritanceKind) {
-    return codeElement;
-  }
-  return CodeElement.single(dependencyEnd.substring(foldedElement.length + 1) + (!CodeElement.isAbsent(codeElement) ? "." + codeElement.title : ""));
-};
-
 const containsPackage = (from, to) => {
   return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
 };
@@ -193,10 +201,9 @@ const buildDependency = (from, to) => {
       return descriptionBuilder;
     },
     withMergedDescriptions: function (description1, description2) {
+      dependency.description = new GroupedDependencyDescription();
       dependency.description.inheritanceKind = groupKindsOfDifferentDepsBetweenSameElements(description1.inheritanceKind, description2.inheritanceKind);
       dependency.description.accessKind = groupKindsOfDifferentDepsBetweenSameElements(description1.accessKind, description2.accessKind);
-      dependency.description.startCodeUnit = CodeElement.groupExistingCodeElements(description1.startCodeUnit, description2.startCodeUnit);
-      dependency.description.targetElement = CodeElement.groupExistingCodeElements(description1.targetElement, description2.targetElement);
       return dependency;
     },
     withExistingDescription: function (description) {
@@ -207,10 +214,12 @@ const buildDependency = (from, to) => {
               dependency.description = description;
             }
             else {
+              dependency.description = new GroupedDependencyDescription();
               dependency.description.accessKind = "childrenAccess";
-              dependency.description.startCodeUnit = description.startCodeUnit;
-              dependency.description.targetElement = getCodeElementWhenParentFolded(description, description.targetElement, targetBeforeFolding, to);
             }
+          }
+          else {
+            dependency.description = new GroupedDependencyDescription();
           }
           return dependency;
         },
@@ -220,10 +229,12 @@ const buildDependency = (from, to) => {
               dependency.description = description;
             }
             else {
+              dependency.description = new GroupedDependencyDescription();
               dependency.description.accessKind = "childrenAccess";
-              dependency.description.startCodeUnit = getCodeElementWhenParentFolded(description, description.startCodeUnit, startBeforeFolding, from);
-              dependency.description.targetElement = description.targetElement;
             }
+          }
+          else {
+            dependency.description = new GroupedDependencyDescription();
           }
           return dependency;
         }

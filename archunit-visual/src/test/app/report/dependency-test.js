@@ -39,7 +39,7 @@ describe("Dependency", () => {
     const description2 = buildDescription().withKinds("implements", "").withCodeElements(
         CodeElement.absent, CodeElement.absent);
     const act = buildDependency(from, to).withMergedDescriptions(description1, description2);
-    const exp = "startMethod(arg1, arg2) implements methodCall targetMethod()";
+    const exp = "implements methodCall";
     expect(act.description.toString()).to.equal(exp);
   });
 
@@ -56,7 +56,7 @@ describe("Dependency", () => {
         CodeElement.absent, CodeElement.absent);
     let act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     act = buildDependency(from, to).withMergedDescriptions(act.description, description3);
-    const exp = "testclass1() extends several [...]";
+    const exp = "extends several";
     expect(act.description.toString()).to.equal(exp);
   });
 
@@ -68,7 +68,7 @@ describe("Dependency", () => {
     const description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
         CodeElement.single("innertestclass1()"), CodeElement.single("field1"));
     const act = buildDependency(from, to).withExistingDescription(description).whenStartIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
-    const exp = "InnerTestClass1.innertestclass1() childrenAccess field1";
+    const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
   });
 
@@ -92,7 +92,7 @@ describe("Dependency", () => {
     const description = buildDescription().withKinds("", "methodCall").withCodeElements(
         CodeElement.single("startMethod(arg1, arg2)"), CodeElement.single("targetMethod()"));
     const act = buildDependency(from, to).withExistingDescription(description).whenTargetIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
-    const exp = "startMethod(arg1, arg2) childrenAccess InnerTestClass1.targetMethod()";
+    const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
   });
 
