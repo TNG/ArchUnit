@@ -18,6 +18,14 @@ const SingleDependencyDescription = class extends DependencyDescription {
   getDependencyTypesAsString() {
     return this.type;
   }
+
+  getInheritanceType() {
+    return "";
+  }
+
+  getAccessType() {
+    return "";
+  }
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
@@ -29,10 +37,6 @@ const AccessDescription = class extends SingleDependencyDescription {
 
   hasDescription() {
     return true;
-  }
-
-  getInheritanceType() {
-    return "";
   }
 
   getAccessType() {
@@ -59,10 +63,6 @@ const InheritanceDescription = class extends SingleDependencyDescription {
 
   getInheritanceType() {
     return this.type;
-  }
-
-  getAccessType() {
-    return "";
   }
 
   hasTitle() {
