@@ -4,15 +4,6 @@ const dependencyKinds = require('./dependency-kinds.json');
 
 let nodes;
 
-const CodeElement = {
-  single: function (name) {
-    return {
-      key: 1,
-      title: name
-    }
-  }
-};
-
 const DependencyDescription = class {
   constructor() {
     this.inheritanceKind = "";
@@ -41,7 +32,7 @@ const AccessDescription = class extends SingleDependencyDescription {
 
   toString() {
     const allKinds = this.getAllKinds();
-    return this.startCodeUnit.title + (this.startCodeUnit.title && allKinds ? " " : "") + allKinds + (this.targetElement.title && allKinds ? " " : "") + this.targetElement.title;
+    return this.startCodeUnit + (this.startCodeUnit && allKinds ? " " : "") + allKinds + (this.targetElement && allKinds ? " " : "") + this.targetElement;
   }
 };
 
@@ -117,9 +108,9 @@ const Dependency = class {
 
   getDescriptionRelativeToPredecessors(from, to) {
     let start = this.from.substring(from.length + 1);
-    start += ((start && this.description.startCodeUnit) ? "." : "") + (this.description.startCodeUnit.title);
+    start += ((start && this.description.startCodeUnit) ? "." : "") + (this.description.startCodeUnit);
     let end = this.to.substring(to.length + 1);
-    end += ((end && this.description.targetElement) ? "." : "") + (this.description.targetElement.title);
+    end += ((end && this.description.targetElement) ? "." : "") + (this.description.targetElement);
     return start + "->" + end;
   }
 };
@@ -151,11 +142,11 @@ const buildDependency = (from, to) => {
           return descriptionBuilder;
         },
         withStartCodeUnit: function (startCodeUnit) {
-          dependency.description.startCodeUnit = CodeElement.single(startCodeUnit);
+          dependency.description.startCodeUnit = startCodeUnit;
           return descriptionBuilder;
         },
         withTargetElement: function (targetElement) {
-          dependency.description.targetElement = CodeElement.single(targetElement);
+          dependency.description.targetElement = targetElement;
           return descriptionBuilder;
         },
         build: function () {

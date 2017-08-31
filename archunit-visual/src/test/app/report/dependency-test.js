@@ -6,13 +6,6 @@ const testObjects = require("./test-object-creator.js");
 
 const createDependencyBuilder = require('./main-files').get('dependency').buildDependency;
 
-const CodeElement = {
-  single: name => ({
-    key: 1,
-    title: name
-  })
-};
-
 const buildDescription = () => ({
   withKinds: (inheritanceKind, accessKind) => ({
     withCodeElements: (startCodeUnit, targetElement) => ({
@@ -31,7 +24,7 @@ describe("Dependency", () => {
     const from = "com.tngtech.main.class1", to = "com.tngtech.interface1";
 
     const description1 = buildDescription().withKinds("", "methodCall").withCodeElements(
-        CodeElement.single("startMethod(arg1, arg2)"), CodeElement.single("targetMethod()"));
+      "startMethod(arg1, arg2)", "targetMethod()");
     const description2 = buildDescription().withKinds("implements", "").withCodeElements();
     const act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     const exp = "implements methodCall";
@@ -44,9 +37,9 @@ describe("Dependency", () => {
     const from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     const description1 = buildDescription().withKinds("", "fieldAccess").withCodeElements(
-        CodeElement.single("testclass1()"), CodeElement.single("field1"));
+      "testclass1()", "field1");
     const description2 = buildDescription().withKinds("", "methodCall").withCodeElements(
-        CodeElement.single("testclass1()"), CodeElement.single("targetMethod()"));
+      "testclass1()", "targetMethod()");
     const description3 = buildDescription().withKinds("extends", "").withCodeElements();
     let act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     act = buildDependency(from, to).withMergedDescriptions(act.description, description3);
@@ -60,7 +53,7 @@ describe("Dependency", () => {
     const from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
     const description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
-        CodeElement.single("innertestclass1()"), CodeElement.single("field1"));
+      "innertestclass1()", "field1");
     const act = buildDependency(from, to).withExistingDescription(description).whenStartIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
@@ -72,7 +65,7 @@ describe("Dependency", () => {
     const from = "com.tngtech.test", to = "com.tngtech.class2";
 
     const description = buildDescription().withKinds("", "fieldAccess").withCodeElements(
-        CodeElement.single("testclass1()"), CodeElement.single("field1"));
+      "testclass1()", "field1");
     const act = buildDependency(from, to).withExistingDescription(description).whenStartIsFolded("com.tngtech.test.testclass1");
     const exp = "";
     expect(act.description.toString()).to.equal(exp);
@@ -84,7 +77,7 @@ describe("Dependency", () => {
     const from = "com.tngtech.main.class1", to = "com.tngtech.test.testclass1";
 
     const description = buildDescription().withKinds("", "methodCall").withCodeElements(
-        CodeElement.single("startMethod(arg1, arg2)"), CodeElement.single("targetMethod()"));
+      "startMethod(arg1, arg2)", "targetMethod()");
     const act = buildDependency(from, to).withExistingDescription(description).whenTargetIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
@@ -96,7 +89,7 @@ describe("Dependency", () => {
     const from = "com.tngtech.main.class1", to = "com.tngtech.test";
 
     const description = buildDescription().withKinds("", "methodCall").withCodeElements(
-        CodeElement.single("startMethod(arg1, arg2)"), CodeElement.single("targetMethod()"));
+      "startMethod(arg1, arg2)", "targetMethod()");
     const act = buildDependency(from, to).withExistingDescription(description).whenTargetIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "";
     expect(act.description.toString()).to.equal(exp);
