@@ -203,13 +203,11 @@ const addDependenciesOf = dependencyGroup => ({
       dependencyGroup.types.forEach(type => {
         if (jsonElement.hasOwnProperty(type.name)) {
           if (type.isUnique && jsonElement[type.name]) {
-            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withNewDescription()
-              .withType(dependencyGroup.name, type.dependency).build());
+            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withSingleDescription(type.dependency));
           }
           else if (!type.isUnique && jsonElement[type.name].length !== 0) {
             jsonElement[type.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.target || d).withNewDescription().withType(dependencyGroup.name, type.dependency).withStartCodeUnit(d.startCodeUnit)
-                .withTargetElement(d.targetCodeElement).build()));
+              buildDependency(jsonElement.fullName, d.target || d).withSingleDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
           }
         }
       });

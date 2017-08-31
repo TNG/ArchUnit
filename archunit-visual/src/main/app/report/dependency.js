@@ -21,10 +21,10 @@ const SingleDependencyDescription = class extends DependencyDescription {
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
-  constructor(type) {
+  constructor(type, startCodeUnit, targetElement) {
     super(type);
-    this.startCodeUnit = "";
-    this.targetElement = "";
+    this.startCodeUnit = startCodeUnit;
+    this.targetElement = targetElement;
   }
 
   hasDescription() {
@@ -102,11 +102,11 @@ const GroupedDependencyDescription = class extends DependencyDescription {
   }
 };
 
-const createDependencyDescription = (dependencyGroup, type) => {
-  if (dependencyGroup === dependencyTypes.groupedDependencies.access.name) {
-    return new AccessDescription(type);
+const createDependencyDescription = (type, startCodeUnit, targetElement) => {
+  if (dependencyTypes.groupedDependencies.access.types.filter(accessType => accessType.dependency === type).length > 0) {
+    return new AccessDescription(type, startCodeUnit, targetElement);
   }
-  else if (dependencyGroup === dependencyTypes.groupedDependencies.inheritance.name) {
+  else if (dependencyTypes.groupedDependencies.inheritance.types.filter(inheritanceType => inheritanceType.dependency === type).length > 0) {
     return new InheritanceDescription(type);
   }
 };
@@ -171,26 +171,10 @@ const containsPackage = (from, to) => {
 
 const buildDependency = (from, to) => {
   const dependency = new Dependency(from, to);
-  const builder = {
-    withNewDescription: function () {
-      const descriptionBuilder = {
-        withType: function (typegroup, type) {
-          dependency.description = createDependencyDescription(typegroup, type);
-          return descriptionBuilder;
-        },
-        withStartCodeUnit: function (startCodeUnit) {
-          dependency.description.startCodeUnit = startCodeUnit;
-          return descriptionBuilder;
-        },
-        withTargetElement: function (targetElement) {
-          dependency.description.targetElement = targetElement;
-          return descriptionBuilder;
-        },
-        build: function () {
-          return dependency;
-        }
-      };
-      return descriptionBuilder;
+  return {
+    withSingleDescription: function (type, startCodeUnit = null, targetElement = null) {
+      dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
+      return dependency;
     },
     withMergedDescriptions: function (description1, description2) {
       dependency.description = new GroupedDependencyDescription();
@@ -231,12 +215,8 @@ const buildDependency = (from, to) => {
           return dependency;
         }
       }
-    },
-    build: function () {
-      return dependency;
     }
   };
-  return builder;
 };
 
 module.exports.buildDependency = nodeMap => {
