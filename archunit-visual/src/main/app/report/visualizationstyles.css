@@ -66,7 +66,7 @@ text.closeButton {
 }
 
 /*edges styles*/
-line.access {
+line.dependency {
     marker-end: url(#end_arrow);
     stroke: black;
 }

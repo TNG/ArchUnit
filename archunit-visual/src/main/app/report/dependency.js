@@ -103,7 +103,7 @@ const Dependency = class {
   }
 
   getClass() {
-    return "access " + this.description.getAllKinds();
+    return "dependency " + this.description.getAllKinds();
   }
 
   getDescriptionRelativeToPredecessors(from, to) {
