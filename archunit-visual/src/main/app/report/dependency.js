@@ -74,13 +74,25 @@ const DependencyDescription = class {
   }
 };
 
-const AccessDescription = class extends DependencyDescription {
+const SingleDependencyDescription = class extends DependencyDescription {
   constructor(containsPkg) {
     super(containsPkg);
   }
 };
 
-const InheritanceDescription = class extends DependencyDescription {
+const AccessDescription = class extends SingleDependencyDescription {
+  constructor(containsPkg) {
+    super(containsPkg);
+  }
+};
+
+const InheritanceDescription = class extends SingleDependencyDescription {
+  constructor(containsPkg) {
+    super(containsPkg);
+  }
+};
+
+const GroupedDependencyDescription = class extends DependencyDescription {
   constructor(containsPkg) {
     super(containsPkg);
   }
