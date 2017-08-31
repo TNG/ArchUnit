@@ -48,8 +48,7 @@ const CodeElement = {
 };
 
 const DependencyDescription = class {
-  constructor(containsPkg) {
-    this.containsPkg = containsPkg;
+  constructor() {
     this.inheritanceKind = "";
     this.accessKind = "";
     this.startCodeUnit = CodeElement.absent;
@@ -58,10 +57,6 @@ const DependencyDescription = class {
 
   getAllKinds() {
     return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
-  }
-
-  hasDetailedDescription() {
-    return !this.containsPkg && this.hasDescription();
   }
 
   hasDescription() {
@@ -75,35 +70,35 @@ const DependencyDescription = class {
 };
 
 const SingleDependencyDescription = class extends DependencyDescription {
-  constructor(containsPkg) {
-    super(containsPkg);
+  constructor() {
+    super();
   }
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
-  constructor(containsPkg) {
-    super(containsPkg);
+  constructor() {
+    super();
   }
 };
 
 const InheritanceDescription = class extends SingleDependencyDescription {
-  constructor(containsPkg) {
-    super(containsPkg);
+  constructor() {
+    super();
   }
 };
 
 const GroupedDependencyDescription = class extends DependencyDescription {
-  constructor(containsPkg) {
-    super(containsPkg);
+  constructor() {
+    super();
   }
 };
 
-const createDependencyDescription = (dependencyGroup, containsPkg) => {
+const createDependencyDescription = (dependencyGroup) => {
   if (dependencyGroup === dependencyKinds.groupedDependencies.access.name) {
-    return new AccessDescription(containsPkg);
+    return new AccessDescription();
   }
   else if (dependencyGroup === dependencyKinds.groupedDependencies.inheritance.name) {
-    return new InheritanceDescription(containsPkg);
+    return new InheritanceDescription();
   }
 };
 
@@ -117,7 +112,12 @@ const Dependency = class {
      * @type {boolean}
      */
     this.mustShareNodes = false;
-    this.description = new DependencyDescription(containsPackage(this.from, this.to));
+    this.description = new DependencyDescription();
+    this.containsPkg = containsPackage(this.from, this.to);
+  }
+
+  hasDetailedDescription() {
+    return !this.containsPkg && this.description.hasDescription();
   }
 
   getStartNode() {
@@ -174,7 +174,7 @@ const buildDependency = (from, to) => {
     withNewDescription: function () {
       const descriptionBuilder = {
         withKind: function (kindgroup, kind) {
-          dependency.description = createDependencyDescription(kindgroup, dependency.description.containsPkg);
+          dependency.description = createDependencyDescription(kindgroup);
           dependency.description[kindgroup] = kind;
           return descriptionBuilder;
         },

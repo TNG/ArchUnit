@@ -168,7 +168,7 @@ module.exports.create = () => {
       .attr('y2', e => e.visualData.endPoint.y);
 
     const hoverAreas = newEdges
-      .filter(e => e.description.hasDetailedDescription())
+      .filter(e => e.hasDetailedDescription())
       .append('line')
       .attr('id', 'area')
       .attr('class', 'area')
@@ -391,7 +391,7 @@ module.exports.create = () => {
   function showEdges(edges) {
     edges.style('visibility', 'visible');
     edges.select('line').attr('class', e => e.getClass());
-    edges.select('#area').style('pointer-events', e => e.description.hasDetailedDescription() ? 'all' : 'none');
+    edges.select('#area').style('pointer-events', e => e.hasDetailedDescription() ? 'all' : 'none');
   }
 
   function runTransition(transition, transitionRunner) {
