@@ -6,70 +6,108 @@ let nodes;
 
 const DependencyDescription = class {
   constructor() {
-    this.inheritanceKind = "";
-    this.accessKind = "";
-  }
-
-  getAllKinds() {
-    return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
   }
 };
 
 const SingleDependencyDescription = class extends DependencyDescription {
-  constructor() {
+  constructor(kind) {
     super();
+    this.type = kind;
+  }
+
+  getDependencyTypesAsString() {
+    return this.type;
   }
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
-  constructor() {
-    super();
+  constructor(kind) {
+    super(kind);
+    this.startCodeUnit = "";
+    this.targetElement = "";
   }
 
   hasDescription() {
     return true;
   }
 
+  getInheritanceKind() {
+    return "";
+  }
+
+  getAccessKind() {
+    return this.type;
+  }
+
+  hasTitle() {
+    return true;
+  }
+
   toString() {
-    const allKinds = this.getAllKinds();
-    return this.startCodeUnit + (this.startCodeUnit && allKinds ? " " : "") + allKinds + (this.targetElement && allKinds ? " " : "") + this.targetElement;
+    return this.startCodeUnit + " " + this.type + " " + this.targetElement;
   }
 };
 
 const InheritanceDescription = class extends SingleDependencyDescription {
-  constructor() {
-    super();
+  constructor(kind) {
+    super(kind);
   }
 
   hasDescription() {
     return false;
   }
 
+  getInheritanceKind() {
+    return this.type;
+  }
+
+  getAccessKind() {
+    return "";
+  }
+
+  hasTitle() {
+    return false;
+  }
+
   toString() {
-    return this.getAllKinds();
+    return this.type;
   }
 };
 
 const GroupedDependencyDescription = class extends DependencyDescription {
   constructor() {
     super();
+    this.inheritanceKind = "";
+    this.accessKind = "";
   }
 
   hasDescription() {
     return true;
   }
 
+  getInheritanceKind() {
+    return this.inheritanceKind;
+  }
+
+  getAccessKind() {
+    return this.accessKind;
+  }
+
+  getDependencyTypesAsString() {
+    return this.inheritanceKind + (this.inheritanceKind && this.accessKind ? " " : "") + this.accessKind;
+  }
+
   toString() {
-    return this.getAllKinds();
+    return this.getDependencyTypesAsString();
   }
 };
 
-const createDependencyDescription = (dependencyGroup) => {
+const createDependencyDescription = (dependencyGroup, kind) => {
   if (dependencyGroup === dependencyKinds.groupedDependencies.access.name) {
-    return new AccessDescription();
+    return new AccessDescription(kind);
   }
   else if (dependencyGroup === dependencyKinds.groupedDependencies.inheritance.name) {
-    return new InheritanceDescription();
+    return new InheritanceDescription(kind);
   }
 };
 
@@ -103,7 +141,7 @@ const Dependency = class {
   }
 
   getClass() {
-    return "dependency " + this.description.getAllKinds();
+    return "dependency " + this.description.getDependencyTypesAsString();
   }
 
   getDescriptionRelativeToPredecessors(from, to) {
@@ -137,8 +175,7 @@ const buildDependency = (from, to) => {
     withNewDescription: function () {
       const descriptionBuilder = {
         withKind: function (kindgroup, kind) {
-          dependency.description = createDependencyDescription(kindgroup);
-          dependency.description[kindgroup] = kind;
+          dependency.description = createDependencyDescription(kindgroup, kind);
           return descriptionBuilder;
         },
         withStartCodeUnit: function (startCodeUnit) {
@@ -157,8 +194,8 @@ const buildDependency = (from, to) => {
     },
     withMergedDescriptions: function (description1, description2) {
       dependency.description = new GroupedDependencyDescription();
-      dependency.description.inheritanceKind = groupKindsOfDifferentDepsBetweenSameElements(description1.inheritanceKind, description2.inheritanceKind);
-      dependency.description.accessKind = groupKindsOfDifferentDepsBetweenSameElements(description1.accessKind, description2.accessKind);
+      dependency.description.inheritanceKind = groupKindsOfDifferentDepsBetweenSameElements(description1.getInheritanceKind(), description2.getInheritanceKind());
+      dependency.description.accessKind = groupKindsOfDifferentDepsBetweenSameElements(description1.getAccessKind(), description2.getAccessKind());
       return dependency;
     },
     withExistingDescription: function (description) {

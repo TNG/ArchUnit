@@ -12,7 +12,9 @@ const buildDescription = () => ({
       inheritanceKind: inheritanceKind,
       accessKind: accessKind,
       startCodeUnit: startCodeUnit,
-      targetElement: targetElement
+      targetElement: targetElement,
+      getInheritanceKind: () => inheritanceKind,
+      getAccessKind: () => accessKind
     })
   })
 });
@@ -23,8 +25,7 @@ describe("Dependency", () => {
     const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.main.class1", to = "com.tngtech.interface1";
 
-    const description1 = buildDescription().withKinds("", "methodCall").withCodeElements(
-      "startMethod(arg1, arg2)", "targetMethod()");
+    const description1 = buildDescription().withKinds("", "methodCall").withCodeElements("startMethod(arg1, arg2)", "targetMethod()");
     const description2 = buildDescription().withKinds("implements", "").withCodeElements();
     const act = buildDependency(from, to).withMergedDescriptions(description1, description2);
     const exp = "implements methodCall";

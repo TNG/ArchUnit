@@ -149,7 +149,7 @@ const Dependencies = class {
 
   filterByKind(typeFilterConfig) {
     const kindFilter = dependency => {
-      const type = dependency.description.getAllKinds();
+      const type = dependency.description.getDependencyTypesAsString();
       return (type !== dependencyKinds.allDependencies.implements || typeFilterConfig.showImplementing)
         && ((type !== dependencyKinds.allDependencies.extends || typeFilterConfig.showExtending))
         && ((type !== dependencyKinds.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))
@@ -186,7 +186,7 @@ const Dependencies = class {
     };
     const startMatching = getDetailedDependenciesMatching(this._filtered, d => d.from, from);
     let targetMatching = getDetailedDependenciesMatching(startMatching, d => d.to, to);
-    targetMatching = targetMatching.filter(d => !d.description.inheritanceKind);
+    targetMatching = targetMatching.filter(d => d.description.hasTitle());
     const detailedDeps = targetMatching.map(d => ({
       description: d.getDescriptionRelativeToPredecessors(from, to),
       cssClass: d.getClass()
