@@ -37,7 +37,7 @@ const unique = dependencies => {
   tmp.forEach(e => {
     if (map.has(e[0])) {
       const old = map.get(e[0]);
-      const newDep = buildDependency(e[1].from, e[1].to).withMergedDescriptions(old.description, e[1].description);
+      const newDep = buildDependency(e[1].from, e[1].to).withGroupedDependencyDescription(old.description, e[1].description);
       map.set(e[0], newDep);
     }
     else {
@@ -203,11 +203,11 @@ const addDependenciesOf = dependencyGroup => ({
       dependencyGroup.types.forEach(type => {
         if (jsonElement.hasOwnProperty(type.name)) {
           if (type.isUnique && jsonElement[type.name]) {
-            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withSingleDescription(type.dependency));
+            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withSingleDependencyDescription(type.dependency));
           }
           else if (!type.isUnique && jsonElement[type.name].length !== 0) {
             jsonElement[type.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.target || d).withSingleDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
+              buildDependency(jsonElement.fullName, d.target || d).withSingleDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
           }
         }
       });

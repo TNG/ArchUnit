@@ -172,11 +172,11 @@ const containsPackage = (from, to) => {
 const buildDependency = (from, to) => {
   const dependency = new Dependency(from, to);
   return {
-    withSingleDescription: function (type, startCodeUnit = null, targetElement = null) {
+    withSingleDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
       dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
       return dependency;
     },
-    withMergedDescriptions: function (description1, description2) {
+    withGroupedDependencyDescription: function (description1, description2) {
       dependency.description = new GroupedDependencyDescription();
       dependency.description.inheritanceType = groupTypesOfDifferentDepsBetweenSameElements(description1.getInheritanceType(), description2.getInheritanceType());
       dependency.description.accessType = groupTypesOfDifferentDepsBetweenSameElements(description1.getAccessType(), description2.getAccessType());

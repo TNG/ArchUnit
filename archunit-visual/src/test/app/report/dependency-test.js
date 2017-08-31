@@ -27,7 +27,7 @@ describe("Dependency", () => {
 
     const description1 = buildDescription().withTypes("", "methodCall").withCodeElements("startMethod(arg1, arg2)", "targetMethod()");
     const description2 = buildDescription().withTypes("implements", "").withCodeElements();
-    const act = buildDependency(from, to).withMergedDescriptions(description1, description2);
+    const act = buildDependency(from, to).withGroupedDependencyDescription(description1, description2);
     const exp = "implements methodCall";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -42,8 +42,8 @@ describe("Dependency", () => {
     const description2 = buildDescription().withTypes("", "methodCall").withCodeElements(
       "testclass1()", "targetMethod()");
     const description3 = buildDescription().withTypes("extends", "").withCodeElements();
-    let act = buildDependency(from, to).withMergedDescriptions(description1, description2);
-    act = buildDependency(from, to).withMergedDescriptions(act.description, description3);
+    let act = buildDependency(from, to).withGroupedDependencyDescription(description1, description2);
+    act = buildDependency(from, to).withGroupedDependencyDescription(act.description, description3);
     const exp = "extends several";
     expect(act.description.toString()).to.equal(exp);
   });
