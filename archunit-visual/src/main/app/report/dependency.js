@@ -50,6 +50,18 @@ const AccessDescription = class extends SingleDependencyDescription {
   toString() {
     return this.startCodeUnit + " " + this.type + " " + this.targetElement;
   }
+
+  mergeAccessTypeWithOtherAccessType(accessType) {
+    if (accessType) {
+      return accessType === this.type ? accessType : "several";
+    } else {
+      return this.type;
+    }
+  }
+
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
+    return inheritanceType;
+  }
 };
 
 const InheritanceDescription = class extends SingleDependencyDescription {
@@ -71,6 +83,18 @@ const InheritanceDescription = class extends SingleDependencyDescription {
 
   toString() {
     return this.type;
+  }
+
+  mergeAccessTypeWithOtherAccessType(accessType) {
+    return accessType;
+  }
+
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
+    if (inheritanceType) {
+      return inheritanceType === this.type ? inheritanceType : "several";
+    } else {
+      return this.type;
+    }
   }
 };
 
@@ -99,6 +123,27 @@ const GroupedDependencyDescription = class extends DependencyDescription {
 
   toString() {
     return this.getDependencyTypesAsString();
+  }
+
+  addDependencyDescription(dependencyDescription) {
+    this.accessType = dependencyDescription.mergeAccessTypeWithOtherAccessType(this.accessType);
+    this.inheritanceType = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceType);
+  }
+
+  mergeAccessTypeWithOtherAccessType(accessType) {
+    if (accessType) {
+      return accessType === this.accessType ? accessType : "several";
+    } else {
+      return this.accessType;
+    }
+  }
+
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
+    if (inheritanceType) {
+      return inheritanceType === this.inheritanceType ? inheritanceType : "several";
+    } else {
+      return this.inheritanceType;
+    }
   }
 };
 
@@ -174,6 +219,11 @@ const buildDependency = (from, to) => {
   return {
     withSingleDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
       dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
+      return dependency;
+    },
+    withGroupedDependencyDescriptionFromSingleDependencyDescription: function (dependencies) {
+      dependency.description = new GroupedDependencyDescription();
+      dependencies.forEach(d => dependency.description.addDependencyDescription(d.description));
       return dependency;
     },
     withGroupedDependencyDescription: function (description1, description2) {

@@ -31,20 +31,27 @@ const filter = dependencies => ({
 });
 
 
-const unique = dependencies => {
+const unite = dependencies => {
   const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
   const map = new Map();
   tmp.forEach(e => {
     if (map.has(e[0])) {
-      const old = map.get(e[0]);
-      const newDep = buildDependency(e[1].from, e[1].to).withGroupedDependencyDescription(old.description, e[1].description);
-      map.set(e[0], newDep);
+      map.get(e[0]).push(e[1]);
     }
     else {
-      map.set(e[0], e[1]);
+      map.set(e[0], [e[1]]);
     }
   });
-  return [...map.values()];
+  const unitedDependencies = Array.from(map).map(([, dependencies]) => {
+    if (dependencies.length === 1) {
+      return dependencies[0];
+    }
+    else {
+      return buildDependency(dependencies[0].from, dependencies[0].to)
+        .withGroupedDependencyDescriptionFromSingleDependencyDescription(dependencies);
+    }
+  });
+  return unitedDependencies;
 };
 
 const transform = dependencies => ({
@@ -54,7 +61,7 @@ const transform = dependencies => ({
         to: transformer => {
           const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
           const rest = dependencies.filter(r => !matching.includes(r));
-          let folded = unique(matching.map(transformer));
+          let folded = unite(matching.map(transformer));
           if (yes) {
             folded = folded.filter(r => r.from !== r.to);
           }
@@ -93,7 +100,7 @@ const changeFold = (dependencies, callback) => {
 const reapplyFilters = (dependencies, filters) => {
   dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
     dependencies._all);
-  dependencies._uniqued = unique(Array.from(dependencies._filtered));
+  dependencies._uniqued = unite(Array.from(dependencies._filtered));
   recreateVisible(dependencies);
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
@@ -116,7 +123,7 @@ const Dependencies = class {
     this._transformers = new Map();
     this._all = all;
     this._filtered = this._all;
-    this._uniqued = unique(Array.from(this._filtered));
+    this._uniqued = unite(Array.from(this._filtered));
     this.setVisibleDependencies(this._uniqued);
     this.observers = [];
     this._filters = newFilters(this);
