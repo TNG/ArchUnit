@@ -153,7 +153,7 @@ const Dependencies = class {
 
   filterByType(typeFilterConfig) {
     const typeFilter = dependency => {
-      const type = dependency.description.getDependencyTypesAsString();
+      const type = dependency.description.getDependencyTypeNamesAsString();
       return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
         && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
         && ((type !== dependencyTypes.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))

@@ -4,37 +4,41 @@ const dependencyTypes = require('./dependency-types.json');
 
 let nodes;
 
+const mergeTypeNames = (ownTypeName, otherTypeName) => {
+  if (otherTypeName) {
+    return otherTypeName === ownTypeName ? otherTypeName : "several";
+  } else {
+    return ownTypeName;
+  }
+};
+
 const SingleDependencyDescription = class {
-  constructor(type) {
-    this.type = type;
+  constructor(typeName) {
+    this.typeName = typeName;
   }
 
-  getDependencyTypesAsString() {
-    return this.type;
+  getDependencyTypeNamesAsString() {
+    return this.typeName;
   }
 
-  getInheritanceType() {
-    return "";
+  mergeAccessTypeWithOtherAccessType(accessTypeName) {
+    return accessTypeName;
   }
 
-  getAccessType() {
-    return "";
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
+    return inheritanceTypeName;
   }
 };
 
 const AccessDescription = class extends SingleDependencyDescription {
-  constructor(type, startCodeUnit, targetElement) {
-    super(type);
+  constructor(typeName, startCodeUnit, targetElement) {
+    super(typeName);
     this.startCodeUnit = startCodeUnit;
     this.targetElement = targetElement;
   }
 
-  hasDescription() {
+  hasDetailedDescription() {
     return true;
-  }
-
-  getAccessType() {
-    return this.type;
   }
 
   hasTitle() {
@@ -42,33 +46,21 @@ const AccessDescription = class extends SingleDependencyDescription {
   }
 
   toString() {
-    return this.startCodeUnit + " " + this.type + " " + this.targetElement;
+    return this.startCodeUnit + " " + this.typeName + " " + this.targetElement;
   }
 
-  mergeAccessTypeWithOtherAccessType(accessType) {
-    if (accessType) {
-      return accessType === this.type ? accessType : "several";
-    } else {
-      return this.type;
-    }
-  }
-
-  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
-    return inheritanceType;
+  mergeAccessTypeWithOtherAccessType(accessTypeName) {
+    return mergeTypeNames(this.typeName, accessTypeName);
   }
 };
 
 const InheritanceDescription = class extends SingleDependencyDescription {
-  constructor(type) {
-    super(type);
+  constructor(typeName) {
+    super(typeName);
   }
 
-  hasDescription() {
+  hasDetailedDescription() {
     return false;
-  }
-
-  getInheritanceType() {
-    return this.type;
   }
 
   hasTitle() {
@@ -76,67 +68,43 @@ const InheritanceDescription = class extends SingleDependencyDescription {
   }
 
   toString() {
-    return this.type;
+    return this.typeName;
   }
 
-  mergeAccessTypeWithOtherAccessType(accessType) {
-    return accessType;
-  }
-
-  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
-    if (inheritanceType) {
-      return inheritanceType === this.type ? inheritanceType : "several";
-    } else {
-      return this.type;
-    }
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
+    return mergeTypeNames(this.typeName, inheritanceTypeName);
   }
 };
 
 const GroupedDependencyDescription = class {
-  constructor(accessType = "", inheritanceType = "") {
-    this.inheritanceType = inheritanceType;
-    this.accessType = accessType;
+  constructor(accessTypeName = "", inheritanceTypeName = "") {
+    this.accessTypeName = accessTypeName;
+    this.inheritanceTypeName = inheritanceTypeName;
   }
 
-  hasDescription() {
+  hasDetailedDescription() {
     return true;
   }
 
-  getInheritanceType() {
-    return this.inheritanceType;
-  }
-
-  getAccessType() {
-    return this.accessType;
-  }
-
-  getDependencyTypesAsString() {
-    return this.inheritanceType + (this.inheritanceType && this.accessType ? " " : "") + this.accessType;
+  getDependencyTypeNamesAsString() {
+    return this.inheritanceTypeName + (this.inheritanceTypeName && this.accessTypeName ? " " : "") + this.accessTypeName;
   }
 
   toString() {
-    return this.getDependencyTypesAsString();
+    return this.getDependencyTypeNamesAsString();
   }
 
   addDependencyDescription(dependencyDescription) {
-    this.accessType = dependencyDescription.mergeAccessTypeWithOtherAccessType(this.accessType);
-    this.inheritanceType = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceType);
+    this.accessTypeName = dependencyDescription.mergeAccessTypeWithOtherAccessType(this.accessTypeName);
+    this.inheritanceTypeName = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceTypeName);
   }
 
-  mergeAccessTypeWithOtherAccessType(accessType) {
-    if (accessType) {
-      return accessType === this.accessType ? accessType : "several";
-    } else {
-      return this.accessType;
-    }
+  mergeAccessTypeWithOtherAccessType(accessTypeName) {
+    return mergeTypeNames(this.accessTypeName, accessTypeName);
   }
 
-  mergeInheritanceTypeWithOtherInheritanceType(inheritanceType) {
-    if (inheritanceType) {
-      return inheritanceType === this.inheritanceType ? inheritanceType : "several";
-    } else {
-      return this.inheritanceType;
-    }
+  mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
+    return mergeTypeNames(this.inheritanceTypeName, inheritanceTypeName);
   }
 };
 
@@ -163,7 +131,7 @@ const Dependency = class {
   }
 
   hasDetailedDescription() {
-    return !this.containsPkg && this.description.hasDescription();
+    return !this.containsPkg && this.description.hasDetailedDescription();
   }
 
   getStartNode() {
@@ -179,7 +147,7 @@ const Dependency = class {
   }
 
   getClass() {
-    return "dependency " + this.description.getDependencyTypesAsString();
+    return "dependency " + this.description.getDependencyTypeNamesAsString();
   }
 
   getDescriptionRelativeToPredecessors(from, to) {
