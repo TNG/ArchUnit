@@ -53,7 +53,7 @@ describe("Dependency", () => {
 
     const description = buildDescription().withTypes("", "fieldAccess").withCodeElements(
       "innertestclass1()", "field1");
-    const act = buildDependency(from, to).withExistingDescription(description).whenStartIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
+    const act = buildDependency(from, to).afterFoldingOneNode(description, from === "com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -65,7 +65,7 @@ describe("Dependency", () => {
 
     const description = buildDescription().withTypes("", "fieldAccess").withCodeElements(
       "testclass1()", "field1");
-    const act = buildDependency(from, to).withExistingDescription(description).whenStartIsFolded("com.tngtech.test.testclass1");
+    const act = buildDependency(from, to).afterFoldingOneNode(description, from === "com.tngtech.test.testclass1");
     const exp = "";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -77,7 +77,7 @@ describe("Dependency", () => {
 
     const description = buildDescription().withTypes("", "methodCall").withCodeElements(
       "startMethod(arg1, arg2)", "targetMethod()");
-    const act = buildDependency(from, to).withExistingDescription(description).whenTargetIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
+    const act = buildDependency(from, to).afterFoldingOneNode(description, to === "com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "childrenAccess";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -89,7 +89,7 @@ describe("Dependency", () => {
 
     const description = buildDescription().withTypes("", "methodCall").withCodeElements(
       "startMethod(arg1, arg2)", "targetMethod()");
-    const act = buildDependency(from, to).withExistingDescription(description).whenTargetIsFolded("com.tngtech.test.testclass1.InnerTestClass1");
+    const act = buildDependency(from, to).afterFoldingOneNode(description, to === "com.tngtech.test.testclass1.InnerTestClass1");
     const exp = "";
     expect(act.description.toString()).to.equal(exp);
   });

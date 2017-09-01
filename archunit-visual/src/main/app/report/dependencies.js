@@ -75,11 +75,9 @@ const transform = dependencies => ({
 const foldTransformer = foldedElement => {
   return dependencies => {
     const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-      .to(r =>
-        buildDependency(r.from, foldedElement).withExistingDescription(r.description).whenTargetIsFolded(r.to));
+      .to(r => buildDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
     return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-      .to(r =>
-        buildDependency(foldedElement, r.to).withExistingDescription(r.description).whenStartIsFolded(r.from));
+      .to(r => buildDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
   }
 };
 

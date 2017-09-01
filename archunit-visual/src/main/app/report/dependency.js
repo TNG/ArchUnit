@@ -93,9 +93,9 @@ const InheritanceDescription = class extends SingleDependencyDescription {
 };
 
 const GroupedDependencyDescription = class {
-  constructor() {
-    this.inheritanceType = "";
-    this.accessType = "";
+  constructor(accessType = "", inheritanceType = "") {
+    this.inheritanceType = inheritanceType;
+    this.accessType = accessType;
   }
 
   hasDescription() {
@@ -207,39 +207,17 @@ const buildDependency = (from, to) => {
       dependencies.forEach(d => dependency.description.addDependencyDescription(d.description));
       return dependency;
     },
-    withExistingDescription: function (description) {
-      return {
-        whenTargetIsFolded: function (targetBeforeFolding) {
-          if (!containsPackage(from, to)) {
-            if (targetBeforeFolding === to) {
-              dependency.description = description;
-            }
-            else {
-              dependency.description = new GroupedDependencyDescription();
-              dependency.description.accessType = "childrenAccess";
-            }
-          }
-          else {
-            dependency.description = new GroupedDependencyDescription();
-          }
-          return dependency;
-        },
-        whenStartIsFolded: function (startBeforeFolding) {
-          if (!containsPackage(from, to)) {
-            if (startBeforeFolding === from) {
-              dependency.description = description;
-            }
-            else {
-              dependency.description = new GroupedDependencyDescription();
-              dependency.description.accessType = "childrenAccess";
-            }
-          }
-          else {
-            dependency.description = new GroupedDependencyDescription();
-          }
-          return dependency;
-        }
+    afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
+      if (containsPackage(from, to)) {
+        dependency.description = new GroupedDependencyDescription();
       }
+      else if (endNodeOfThisDependencyWasFolded) {
+        dependency.description = description;
+      }
+      else {
+        dependency.description = new GroupedDependencyDescription("childrenAccess");
+      }
+      return dependency;
     }
   };
 };
