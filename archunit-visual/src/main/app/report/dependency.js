@@ -202,9 +202,9 @@ const buildDependency = (from, to) => {
       dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
       return dependency;
     },
-    withGroupedDependencyDescriptionFromExistingDependencyDescriptions: function (dependencyDescriptions) {
+    byGroupingDependencies: function (dependencies) {
       dependency.description = new GroupedDependencyDescription();
-      dependencyDescriptions.forEach(d => dependency.description.addDependencyDescription(d));
+      dependencies.forEach(d => dependency.description.addDependencyDescription(d.description));
       return dependency;
     },
     withExistingDescription: function (description) {

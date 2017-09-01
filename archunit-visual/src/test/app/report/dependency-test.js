@@ -27,7 +27,7 @@ describe("Dependency", () => {
 
     const dependency1 = buildDependency(from, to).withSingleDependencyDescription("methodCall", "startMethod(arg1, arg2)", "targetMethod()");
     const dependency2 = buildDependency(from, to).withSingleDependencyDescription("implements");
-    const act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([dependency1.description, dependency2.description]);
+    const act = buildDependency(from, to).byGroupingDependencies([dependency1, dependency2]);
     const exp = "implements methodCall";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -40,8 +40,8 @@ describe("Dependency", () => {
     const dependency1 = buildDependency(from, to).withSingleDependencyDescription("fieldAccess", "testclass1()", "field1");
     const dependency2 = buildDependency(from, to).withSingleDependencyDescription("methodCall", "testclass1()", "targetMethod()");
     const dependency3 = buildDependency(from, to).withSingleDependencyDescription("extends");
-    let act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([dependency1.description, dependency2.description]);
-    act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([act.description, dependency3.description]);
+    let act = buildDependency(from, to).byGroupingDependencies([dependency1, dependency2]);
+    act = buildDependency(from, to).byGroupingDependencies([act, dependency3]);
     const exp = "extends several";
     expect(act.description.toString()).to.equal(exp);
   });
