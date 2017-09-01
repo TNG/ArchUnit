@@ -31,7 +31,7 @@ const filter = dependencies => ({
 });
 
 
-const unite = dependencies => {
+const uniteDependencies = dependencies => {
   const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
   const map = new Map();
   tmp.forEach(e => {
@@ -60,7 +60,7 @@ const transform = dependencies => ({
         to: transformer => {
           const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
           const rest = dependencies.filter(r => !matching.includes(r));
-          let folded = unite(matching.map(transformer));
+          let folded = uniteDependencies(matching.map(transformer));
           if (yes) {
             folded = folded.filter(r => r.from !== r.to);
           }
@@ -97,7 +97,7 @@ const changeFold = (dependencies, callback) => {
 const reapplyFilters = (dependencies, filters) => {
   dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
     dependencies._all);
-  dependencies._uniqued = unite(Array.from(dependencies._filtered));
+  dependencies._uniqued = uniteDependencies(Array.from(dependencies._filtered));
   recreateVisible(dependencies);
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
@@ -115,12 +115,18 @@ const newFilters = (dependencies) => ({
   }
 });
 
+const makeUniqueByProperty = (arr, propertyFunc) => {
+  const map = new Map();
+  arr.forEach(d => map.set(propertyFunc(d), d));
+  return [...map.values()];
+};
+
 const Dependencies = class {
   constructor(all) {
     this._transformers = new Map();
     this._all = all;
     this._filtered = this._all;
-    this._uniqued = unite(Array.from(this._filtered));
+    this._uniqued = uniteDependencies(Array.from(this._filtered));
     this.setVisibleDependencies(this._uniqued);
     this.observers = [];
     this._filters = newFilters(this);
@@ -178,67 +184,63 @@ const Dependencies = class {
   }
 
   getDetailedDependenciesOf(from, to) {
-    const getDetailedDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
-      const matching = filter(dependencies).by(propertyFunc);
+    const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
+      const matchingDependencies = filter(dependencies).by(propertyFunc);
       const startNode = nodes.getByName(depEnd);
       if (startNode.isPackage() || startNode.isCurrentlyLeaf()) {
-        return matching.startsWith(depEnd);
+        return matchingDependencies.startsWith(depEnd);
       }
       else {
-        return matching.equals(depEnd);
+        return matchingDependencies.equals(depEnd);
       }
     };
-    const startMatching = getDetailedDependenciesMatching(this._filtered, d => d.from, from);
-    let targetMatching = getDetailedDependenciesMatching(startMatching, d => d.to, to);
-    targetMatching = targetMatching.filter(d => d.description.hasTitle());
-    const detailedDeps = targetMatching.map(d => ({
+    let matching = this._filtered.filter(d => d.description.hasTitle());
+    matching = getDependenciesMatching(matching, d => d.from, from);
+    matching = getDependenciesMatching(matching, d => d.to, to);
+    const detailedDeps = matching.map(d => ({
       description: d.toShortStringRelativeToPredecessors(from, to),
       cssClass: d.getClass()
     }));
-    const map = new Map();
-    detailedDeps.forEach(d => map.set(d.description, d));
-    return [...map.values()];
+    return makeUniqueByProperty(detailedDeps, d => d.description);
   }
 };
 
-const addDependenciesOf = dependencyGroup => ({
-  ofJsonElement: jsonElement => ({
-    toArray: arr => {
-      dependencyGroup.types.forEach(type => {
-        if (jsonElement.hasOwnProperty(type.name)) {
-          if (type.isUnique && jsonElement[type.name]) {
-            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name]).withSingleDependencyDescription(type.dependency));
-          }
-          else if (!type.isUnique && jsonElement[type.name].length !== 0) {
-            jsonElement[type.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.target || d).withSingleDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
-          }
+const addAllDependenciesOfJsonElementToArray = (jsonElement, arr) => {
+  const allDependencyTypes = dependencyTypes.groupedDependencies.inheritance.types
+    .concat(dependencyTypes.groupedDependencies.access.types);
+
+  if (jsonElement.type !== nodeTypes.package) {
+    const presentDependencyTypes = allDependencyTypes.filter(type => jsonElement.hasOwnProperty(type.name));
+    presentDependencyTypes.forEach(type => {
+        if (type.isUnique && jsonElement[type.name]) {
+          arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name])
+            .withSingleDependencyDescription(type.dependency));
         }
-      });
-    }
-  })
-});
-
-const addAllDependenciesOfJsonElement = jsonElement => ({
-  toArray: arr => {
-    if (jsonElement.type !== nodeTypes.package) {
-      const groupedDependencies = dependencyTypes.groupedDependencies;
-      addDependenciesOf(groupedDependencies.inheritance).ofJsonElement(jsonElement).toArray(arr);
-      addDependenciesOf(groupedDependencies.access).ofJsonElement(jsonElement).toArray(arr);
-    }
-
-    if (jsonElement.hasOwnProperty("children")) {
-      jsonElement.children.forEach(c => addAllDependenciesOfJsonElement(c).toArray(arr));
-    }
+        else if (!type.isUnique && jsonElement[type.name].length > 0) {
+          jsonElement[type.name].forEach(d => arr.push(
+            buildDependency(jsonElement.fullName, d.target || d)
+              .withSingleDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
+        }
+      }
+    );
   }
-});
+
+  if (jsonElement.hasOwnProperty("children")) {
+    jsonElement.children.forEach(c => addAllDependenciesOfJsonElementToArray(c, arr));
+  }
+};
+
+const collectAllDependenciesOfJsonElement = jsonElement => {
+  const res = [];
+  addAllDependenciesOfJsonElementToArray(jsonElement, res);
+  return res;
+};
 
 const jsonToDependencies = (jsonRoot, nodeMap) => {
-  const arr = [];
   nodes = nodeMap;
   buildDependency = createDependencyBuilder(nodeMap);
-  addAllDependenciesOfJsonElement(jsonRoot).toArray(arr);
-  return new Dependencies(arr);
+  const allDependencies = collectAllDependenciesOfJsonElement(jsonRoot);
+  return new Dependencies(allDependencies);
 };
 
 module.exports.jsonToDependencies = jsonToDependencies;
