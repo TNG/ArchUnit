@@ -146,8 +146,8 @@ const Dependencies = class {
   }
 
   setNodeFilters(filters) {
-    this._filters.nameFilter = filtered_deps => Array.from(filters.values()).reduce((deps, filter) =>
-      deps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), filtered_deps);
+    this._filters.nameFilter = dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
+      filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
     this._filters.apply();
   }
 
@@ -192,7 +192,7 @@ const Dependencies = class {
     let targetMatching = getDetailedDependenciesMatching(startMatching, d => d.to, to);
     targetMatching = targetMatching.filter(d => d.description.hasTitle());
     const detailedDeps = targetMatching.map(d => ({
-      description: d.getDescriptionRelativeToPredecessors(from, to),
+      description: d.toShortStringRelativeToPredecessors(from, to),
       cssClass: d.getClass()
     }));
     const map = new Map();

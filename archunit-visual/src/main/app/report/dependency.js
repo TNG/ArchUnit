@@ -117,6 +117,8 @@ const createDependencyDescription = (type, startCodeUnit, targetElement) => {
   }
 };
 
+const combinePathAndCodeUnit = (path, codeUnit) => (path || "") + ((path && codeUnit) ? "." : "") + (codeUnit || "");
+
 const Dependency = class {
   constructor(from, to) {
     this.from = from;
@@ -150,11 +152,9 @@ const Dependency = class {
     return "dependency " + this.description.getDependencyTypeNamesAsString();
   }
 
-  getDescriptionRelativeToPredecessors(from, to) {
-    let start = this.from.substring(from.length + 1);
-    start += ((start && this.description.startCodeUnit) ? "." : "") + (this.description.startCodeUnit);
-    let end = this.to.substring(to.length + 1);
-    end += ((end && this.description.targetElement) ? "." : "") + (this.description.targetElement);
+  toShortStringRelativeToPredecessors(from, to) {
+    const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
+    const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
     return start + "->" + end;
   }
 };
