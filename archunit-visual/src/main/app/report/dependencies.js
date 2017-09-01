@@ -72,33 +72,30 @@ const transform = dependencies => ({
 });
 
 
-const foldTransformer = foldedElement => {
-  return dependencies => {
+const foldTransformer = foldedElement => (
+  dependencies => {
     const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
       .to(r => buildDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
     return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
       .to(r => buildDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
   }
-};
+);
 
-const recalculateVisible = (transformers, dependencies) => Array.from(transformers)
+const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
   .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-const recreateVisible = dependencies => {
-  const after = recalculateVisible(dependencies._transformers.values(), dependencies._uniqued);
-  dependencies.setVisibleDependencies(after);
-};
-
-const changeFold = (dependencies, callback) => {
-  callback(dependencies);
-  recreateVisible(dependencies);
+const recreateVisibleDependencies = dependencies => {
+  const after = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
+  dependencies._visibleDependencies = after;
+  dependencies._visibleDependencies.forEach(d => d.mustShareNodes =
+    dependencies._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
 };
 
 const reapplyFilters = (dependencies, filters) => {
   dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
     dependencies._all);
-  dependencies._uniqued = uniteDependencies(Array.from(dependencies._filtered));
-  recreateVisible(dependencies);
+  dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
+  recreateVisibleDependencies(dependencies);
   dependencies.observers.forEach(f => f(dependencies.getVisible()));
 };
 
@@ -126,8 +123,8 @@ const Dependencies = class {
     this._transformers = new Map();
     this._all = all;
     this._filtered = this._all;
-    this._uniqued = uniteDependencies(Array.from(this._filtered));
-    this.setVisibleDependencies(this._uniqued);
+    this._filteredUniqued = uniteDependencies(Array.from(this._filtered));
+    recreateVisibleDependencies(this);
     this.observers = [];
     this._filters = newFilters(this);
   }
@@ -136,18 +133,14 @@ const Dependencies = class {
     this.observers.push(observerFunction);
   }
 
-  setVisibleDependencies(deps) {
-    this._visibleDependencies = deps;
-    this._visibleDependencies.forEach(d => d.mustShareNodes =
-      this._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
-  }
-
   changeFold(foldedElement, isFolded) {
     if (isFolded) {
-      changeFold(this, dependencies => dependencies._transformers.set(foldedElement, foldTransformer(foldedElement)));
+      this._transformers.set(foldedElement, foldTransformer(foldedElement));
+      recreateVisibleDependencies(this);
     }
     else {
-      changeFold(this, dependencies => dependencies._transformers.delete(foldedElement));
+      this._transformers.delete(foldedElement);
+      recreateVisibleDependencies(this);
     }
   }
 
