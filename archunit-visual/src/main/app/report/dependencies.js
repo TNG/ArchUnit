@@ -48,7 +48,7 @@ const unite = dependencies => {
     }
     else {
       return buildDependency(dependencies[0].from, dependencies[0].to)
-        .withGroupedDependencyDescriptionFromSingleDependencyDescription(dependencies);
+        .withGroupedDependencyDescriptionFromExistingDependencyDescriptions(dependencies.map(d => d.description));
     }
   });
   return unitedDependencies;

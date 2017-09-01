@@ -198,18 +198,6 @@ const Dependency = class {
   }
 };
 
-const groupTypesOfDifferentDepsBetweenSameElements = (type1, type2) => {
-  if (!type1) {
-    return type2;
-  }
-  else if (!type2) {
-    return type1;
-  }
-  else {
-    return type1 === type2 ? type1 : "several";
-  }
-};
-
 const containsPackage = (from, to) => {
   return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
 };
@@ -221,15 +209,9 @@ const buildDependency = (from, to) => {
       dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
       return dependency;
     },
-    withGroupedDependencyDescriptionFromSingleDependencyDescription: function (dependencies) {
+    withGroupedDependencyDescriptionFromExistingDependencyDescriptions: function (dependencyDescriptions) {
       dependency.description = new GroupedDependencyDescription();
-      dependencies.forEach(d => dependency.description.addDependencyDescription(d.description));
-      return dependency;
-    },
-    withGroupedDependencyDescription: function (description1, description2) {
-      dependency.description = new GroupedDependencyDescription();
-      dependency.description.inheritanceType = groupTypesOfDifferentDepsBetweenSameElements(description1.getInheritanceType(), description2.getInheritanceType());
-      dependency.description.accessType = groupTypesOfDifferentDepsBetweenSameElements(description1.getAccessType(), description2.getAccessType());
+      dependencyDescriptions.forEach(d => dependency.description.addDependencyDescription(d));
       return dependency;
     },
     withExistingDescription: function (description) {

@@ -25,9 +25,9 @@ describe("Dependency", () => {
     const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.main.class1", to = "com.tngtech.interface1";
 
-    const description1 = buildDescription().withTypes("", "methodCall").withCodeElements("startMethod(arg1, arg2)", "targetMethod()");
-    const description2 = buildDescription().withTypes("implements", "").withCodeElements();
-    const act = buildDependency(from, to).withGroupedDependencyDescription(description1, description2);
+    const dependency1 = buildDependency(from, to).withSingleDependencyDescription("methodCall", "startMethod(arg1, arg2)", "targetMethod()");
+    const dependency2 = buildDependency(from, to).withSingleDependencyDescription("implements");
+    const act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([dependency1.description, dependency2.description]);
     const exp = "implements methodCall";
     expect(act.description.toString()).to.equal(exp);
   });
@@ -37,13 +37,11 @@ describe("Dependency", () => {
     const buildDependency = createDependencyBuilder(graphWrapper.graph.root);
     const from = "com.tngtech.test.testclass1", to = "com.tngtech.class2";
 
-    const description1 = buildDescription().withTypes("", "fieldAccess").withCodeElements(
-      "testclass1()", "field1");
-    const description2 = buildDescription().withTypes("", "methodCall").withCodeElements(
-      "testclass1()", "targetMethod()");
-    const description3 = buildDescription().withTypes("extends", "").withCodeElements();
-    let act = buildDependency(from, to).withGroupedDependencyDescription(description1, description2);
-    act = buildDependency(from, to).withGroupedDependencyDescription(act.description, description3);
+    const dependency1 = buildDependency(from, to).withSingleDependencyDescription("fieldAccess", "testclass1()", "field1");
+    const dependency2 = buildDependency(from, to).withSingleDependencyDescription("methodCall", "testclass1()", "targetMethod()");
+    const dependency3 = buildDependency(from, to).withSingleDependencyDescription("extends");
+    let act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([dependency1.description, dependency2.description]);
+    act = buildDependency(from, to).withGroupedDependencyDescriptionFromExistingDependencyDescriptions([act.description, dependency3.description]);
     const exp = "extends several";
     expect(act.description.toString()).to.equal(exp);
   });
