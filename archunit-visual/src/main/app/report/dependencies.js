@@ -12,20 +12,12 @@ const fullnameSeparators = {
   classSeparator: "$"
 };
 
-const startsWithFullnameSeparator = string => string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
+const isEmptyOrStartsWithFullnameSeparator = string => !string || string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
 
 const filter = dependencies => ({
   by: propertyFunc => ({
-    startsWith: prefix => dependencies.filter(r => {
-      const property = propertyFunc(r);
-      if (property.startsWith(prefix)) {
-        const rest = property.substring(prefix.length);
-        return rest ? startsWithFullnameSeparator(rest) : true;
-      }
-      else {
-        return false;
-      }
-    }),
+    startsWith: prefix => dependencies.filter(r =>
+    propertyFunc(r).startsWith(prefix) && isEmptyOrStartsWithFullnameSeparator(propertyFunc(r).substring(prefix.length))),
     equals: fullName => dependencies.filter(r => propertyFunc(r) === fullName)
   })
 });
@@ -34,14 +26,9 @@ const filter = dependencies => ({
 const uniteDependencies = dependencies => {
   const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
   const map = new Map();
-  tmp.forEach(e => {
-    if (map.has(e[0])) {
-      map.get(e[0]).push(e[1]);
-    }
-    else {
-      map.set(e[0], [e[1]]);
-    }
-  });
+  tmp.forEach(e => map.set(e[0], []));
+  tmp.forEach(e => map.get(e[0]).push(e[1]));
+
   const unitedDependencies = Array.from(map).map(([, dependencies]) => {
     if (dependencies.length === 1) {
       return dependencies[0];
