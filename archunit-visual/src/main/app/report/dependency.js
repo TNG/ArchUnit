@@ -4,14 +4,8 @@ const dependencyTypes = require('./dependency-types.json');
 
 let nodes;
 
-const DependencyDescription = class {
-  constructor() {
-  }
-};
-
-const SingleDependencyDescription = class extends DependencyDescription {
+const SingleDependencyDescription = class {
   constructor(type) {
-    super();
     this.type = type;
   }
 
@@ -98,9 +92,8 @@ const InheritanceDescription = class extends SingleDependencyDescription {
   }
 };
 
-const GroupedDependencyDescription = class extends DependencyDescription {
+const GroupedDependencyDescription = class {
   constructor() {
-    super();
     this.inheritanceType = "";
     this.accessType = "";
   }
