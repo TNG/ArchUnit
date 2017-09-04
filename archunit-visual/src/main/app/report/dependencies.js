@@ -29,7 +29,7 @@ const uniteDependencies = dependencies => {
   tmp.forEach(e => map.set(e[0], []));
   tmp.forEach(e => map.get(e[0]).push(e[1]));
 
-  const unitedDependencies = Array.from(map).map(([, dependencies]) => {
+  return Array.from(map).map(([, dependencies]) => {
     if (dependencies.length === 1) {
       return dependencies[0];
     }
@@ -37,18 +37,17 @@ const uniteDependencies = dependencies => {
       return buildDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
     }
   });
-  return unitedDependencies;
 };
 
 const transform = dependencies => ({
   where: propertyFunc => ({
     startsWith: prefix => ({
-      eliminateSelfDeps: yes => ({
+      eliminateSelfDeps: noSelfDeps => ({
         to: transformer => {
           const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
           const rest = dependencies.filter(r => !matching.includes(r));
           let folded = uniteDependencies(matching.map(transformer));
-          if (yes) {
+          if (noSelfDeps) {
             folded = folded.filter(r => r.from !== r.to);
           }
           return [...rest, ...folded];
@@ -71,11 +70,14 @@ const foldTransformer = foldedElement => (
 const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
   .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
+const setMustShareNodes = (dependency, dependencies) => {
+  dependency.mustShareNodes =
+    dependencies._visibleDependencies.filter(e => e.from === dependency.to && e.to === dependency.from).length > 0;
+};
+
 const recreateVisibleDependencies = dependencies => {
-  const after = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
-  dependencies._visibleDependencies = after;
-  dependencies._visibleDependencies.forEach(d => d.mustShareNodes =
-    dependencies._visibleDependencies.filter(e => e.from === d.to && e.to === d.from).length > 0);
+  dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
+  dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
 };
 
 const reapplyFilters = (dependencies, filters) => {
