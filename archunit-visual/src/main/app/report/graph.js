@@ -339,23 +339,15 @@ module.exports.create = () => {
   let updatePromise = Promise.all([]);
 
   function updateVisualization() {
-    updatePromise.then(() => {
+    updatePromise = updatePromise.then(() => {
       visualizer.update(graph);
-      updatePromise = Promise.all([updateNodes(), updateEdgesWithAnimation()]);
+      return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
     });
   }
 
   function updateNodes() {
-    const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
-
-    const transition = translater.transition().duration(TRANSITION_DURATION);
-    adaptSVGSizeAndPositionWithTransition(transition);
-
-    const nodeTransition = nodes.transition().duration(TRANSITION_DURATION);
-    graph.root.updateView(TRANSITION_DURATION);
-
-    return runTransition(nodeTransition, t => positionTextOfAllNodes(t))
-      .then(() => nodes.each(node => node._view.show()));
+    adaptSVGSizeAndPositionWithTransition(translater.transition().duration(TRANSITION_DURATION));
+    return graph.root.updateView(TRANSITION_DURATION);
   }
 
   function updateEdges(edges) {
