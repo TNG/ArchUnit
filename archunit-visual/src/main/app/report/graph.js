@@ -356,8 +356,7 @@ module.exports.create = () => {
     adaptSVGSizeAndPositionWithTransition(transition);
 
     const nodeTransition = nodes.transition().duration(TRANSITION_DURATION);
-    nodeTransition.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    nodeTransition.select('circle').attr('r', d => d.visualData.r);
+    graph.root.updateView(TRANSITION_DURATION);
 
     return runTransition(nodeTransition, t => positionTextOfAllNodes(t))
       .then(() => nodes.each(node => node._view.show()));

@@ -20,6 +20,12 @@ const View = class {
     d3.select(this._svgElement).style('visibility', 'visible');
   }
 
+  update(nodeVisualData, transitionDuration) {
+    const transition = d3.select(this._svgElement).transition().duration(transitionDuration);
+    transition.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`);
+    transition.select('circle').attr('r', nodeVisualData.r);
+  }
+
   onClick(handler) {
     d3.select(this._svgElement).on('click', handler);
   }

@@ -253,6 +253,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged, onMoved));
     }
 
+    updateView(transitionDuration) {
+      this._view.update(this.visualData, transitionDuration);
+      this.getCurrentChildren().forEach(child => child.updateView(transitionDuration));
+    }
+
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node. The coordinates of the circle of any node will be shifted, when
