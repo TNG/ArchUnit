@@ -145,19 +145,6 @@ module.exports.create = () => {
           return (node && node.getFullName()) || d3.select(this).attr("id")
         });
 
-    nodes
-      .filter(d => !d.isRoot())
-      .append('circle')
-      .attr('r', d => d.visualData.r);
-
-    nodes
-      .append('text')
-      .text(node => node.getName());
-
-    nodes
-      .append('title')
-      .text(node => node.getName());
-
     positionTextOfAllNodes(nodes);
   }
 

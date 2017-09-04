@@ -19,6 +19,16 @@ const View = class {
       .attr('class', node.getClass())
       .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
       .node();
+
+    if (!node.isRoot()) {
+      d3.select(this._svgElement)
+        .append('circle')
+        .attr('r', node.visualData.r);
+    }
+
+    d3.select(this._svgElement)
+      .append('text')
+      .text(node.getName());
   }
 
   //FIXME: work with inherit
