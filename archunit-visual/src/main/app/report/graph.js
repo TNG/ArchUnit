@@ -336,9 +336,6 @@ module.exports.create = () => {
     });
   }
 
-  let visualizationIsUpdatedAtTheMoment = false;
-  let numberOfWaitingInvokes = 0;
-
   let updatePromise = Promise.all([]);
 
   function updateVisualization() {
