@@ -350,7 +350,7 @@ module.exports.create = () => {
 
   function updateNodes() {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
-    nodes.exit().style('visibility', 'hidden');
+    nodes.exit().each(node => node._view.hide());
 
     const transition = translater.transition().duration(TRANSITION_DURATION);
     adaptSVGSizeAndPositionWithTransition(transition);
@@ -360,7 +360,7 @@ module.exports.create = () => {
     nodeTransition.select('circle').attr('r', d => d.visualData.r);
 
     return runTransition(nodeTransition, t => positionTextOfAllNodes(t))
-      .then(() => nodes.style('visibility', 'visible'));
+      .then(() => nodes.each(node => node._view.show()));
   }
 
   function updateEdges(edges) {

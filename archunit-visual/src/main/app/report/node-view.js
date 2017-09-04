@@ -12,6 +12,14 @@ const View = class {
       .node();
   }
 
+  hide() {
+    d3.select(this._svgElement).style('visibility', 'hidden');
+  }
+
+  show() {
+    d3.select(this._svgElement).style('visibility', 'visible');
+  }
+
   onClick(handler) {
     d3.select(this._svgElement).on('click', handler);
   }
