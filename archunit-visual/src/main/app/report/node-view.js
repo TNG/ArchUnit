@@ -17,6 +17,7 @@ const init = (transitionDuration) => {
     constructor(parentSvgElement, node) {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
+        .data([node])
         .attr('id', node.getFullName())
         .attr('class', node.getClass())
         .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
