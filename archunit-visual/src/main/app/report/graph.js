@@ -347,7 +347,6 @@ module.exports.create = () => {
 
   function updateNodes() {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
-    nodes.exit().each(node => node._view.hide());
 
     const transition = translater.transition().duration(TRANSITION_DURATION);
     adaptSVGSizeAndPositionWithTransition(transition);

@@ -255,7 +255,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     updateView(transitionDuration) {
       this._view.update(this.visualData, transitionDuration);
-      this.getCurrentChildren().forEach(child => child.updateView(transitionDuration));
+      if (this._folded) {
+        this._originalChildren.forEach(child => child._view.hide());
+      }
+      else {
+        this.getCurrentChildren().forEach(child => child.updateView(transitionDuration));
+      }
     }
 
     /**
