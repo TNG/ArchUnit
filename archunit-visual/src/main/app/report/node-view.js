@@ -28,7 +28,8 @@ const View = class {
 
     d3.select(this._svgElement)
       .append('text')
-      .text(node.getName());
+      .text(node.getName())
+      .attr('dy', node.getText().getY());
   }
 
   //FIXME: work with inherit

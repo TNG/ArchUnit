@@ -139,13 +139,6 @@ module.exports.create = () => {
       updateVisualizationAfterDragging(node);
     };
     graph.root.initView(gTree.node(), updateVisualization, onMoved);
-    const nodes =
-      gTree.selectAll('.node')
-        .data(graph.getVisibleNodes(), function (node) {
-          return (node && node.getFullName()) || d3.select(this).attr("id")
-        });
-
-    positionTextOfAllNodes(nodes);
   }
 
   function initializeDeps() {
@@ -310,10 +303,6 @@ module.exports.create = () => {
           }
         }, DETAILED_DEPENDENCIES_HIDE_DURATION);
       });
-  }
-
-  function positionTextOfAllNodes(selection) {
-    return selection.select('text').attr('dy', node => node.getText().getY());
   }
 
   function updateVisualizationAfterDragging(node) {
