@@ -339,22 +339,13 @@ module.exports.create = () => {
   let visualizationIsUpdatedAtTheMoment = false;
   let numberOfWaitingInvokes = 0;
 
+  let updatePromise = Promise.all([]);
+
   function updateVisualization() {
-    if (visualizationIsUpdatedAtTheMoment) {
-      numberOfWaitingInvokes++;
-    }
-    else {
-      visualizationIsUpdatedAtTheMoment = true;
+    updatePromise.then(() => {
       visualizer.update(graph);
-      const onAnimationEnd = () => {
-        visualizationIsUpdatedAtTheMoment = false;
-        if (numberOfWaitingInvokes > 0) {
-          numberOfWaitingInvokes--;
-          updateVisualization();
-        }
-      };
-      Promise.all([updateNodes(), updateEdgesWithAnimation()]).then(onAnimationEnd);
-    }
+      updatePromise = Promise.all([updateNodes(), updateEdgesWithAnimation()]);
+    });
   }
 
   function updateNodes() {
