@@ -264,12 +264,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged, onMoved));
     }
 
-    updateView(transitionDuration) {
+    updateView() {
       if (this._folded) {
         this.getOriginalDescendants().forEach(descendant => descendant._view.hide());
       }
-      const promise = this._view.update(this.visualData, this._text.getY(), transitionDuration);
-      return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView(transitionDuration))]).then(() => this.getCurrentChildren().forEach(child => child._view.show()));
+      const promise = this._view.update(this.visualData, this._text.getY()).then(() => this._view.show());
+      return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);
     }
 
     /**
