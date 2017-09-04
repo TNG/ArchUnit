@@ -37,7 +37,8 @@ const init = (getNodeView, getVisualizationStyles, getCalculateTextWidth) => {
 module.exports.newInstance = overrides => {
   overrides = overrides || {};
 
-  const getNodeView = () => overrides.NodeView || require('./node-view');
+  const TRANSITION_DURATION = 300;
+  const getNodeView = () => overrides.NodeView || require('./node-view').init(TRANSITION_DURATION).View;
   const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
   const getCalculateTextWidth = () => overrides.calculateTextWidth || require('./text-width-calculator');
 
