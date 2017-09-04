@@ -102,13 +102,26 @@ module.exports.create = () => {
 
   let graph;
 
+  function adaptSVGSizeAndPosition() {
+    adaptSVGSize();
+    adaptSVGPosition(translater);
+  }
+
   function adaptSVGSize() {
     svg.attr('width', Math.max(parseInt(2 * graph.root.visualData.r + 4),
       d3.select('#container').node().getBoundingClientRect().width));
     svg.attr('height', Math.max(parseInt(2 * graph.root.visualData.r + 4),
       d3.select('#container').node().getBoundingClientRect().height));
-    translater.attr('transform',
+  }
+
+  function adaptSVGPosition(svgSelection) {
+    svgSelection.attr('transform',
       `translate(${parseInt(svg.attr('width')) / 2 - graph.root.visualData.r}, ${parseInt(svg.attr('height')) / 2 - graph.root.visualData.r})`);
+  }
+
+  function adaptSVGSizeAndPositionWithTransition(transition) {
+    adaptSVGSize();
+    adaptSVGPosition(transition);
   }
 
   function initializeGraph() {
@@ -340,7 +353,6 @@ module.exports.create = () => {
           updateVisualization();
         }
       };
-      adaptSVGSize();
       Promise.all([updateNodes(), updateEdgesWithAnimation()]).then(onAnimationEnd);
     }
   }
@@ -349,12 +361,14 @@ module.exports.create = () => {
     const nodes = gTree.selectAll('g').data(graph.getVisibleNodes(), d => d.getFullName());
     nodes.exit().style('visibility', 'hidden');
 
-    const transition = nodes.transition().duration(TRANSITION_DURATION);
+    const transition = translater.transition().duration(TRANSITION_DURATION);
+    adaptSVGSizeAndPositionWithTransition(transition);
 
-    transition.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    transition.select('circle').attr('r', d => d.visualData.r);
+    const nodeTransition = nodes.transition().duration(TRANSITION_DURATION);
+    nodeTransition.attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
+    nodeTransition.select('circle').attr('r', d => d.visualData.r);
 
-    return runTransition(transition, t => positionTextOfAllNodes(t))
+    return runTransition(nodeTransition, t => positionTextOfAllNodes(t))
       .then(() => nodes.style('visibility', 'visible'));
   }
 
@@ -452,14 +466,14 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, visualizer).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      adaptSVGSize();
+      adaptSVGSizeAndPosition();
       initializeGraph();
       graph.foldAllNodes();
       updateVisualization();
 
 
       // FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
-      graph.render = adaptSVGSize;
+      graph.render = adaptSVGSizeAndPosition;
       graph.attachToMenu = menu => {
         menu.initializeSettings(
           {
