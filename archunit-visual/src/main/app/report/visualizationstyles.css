@@ -65,6 +65,11 @@ text.closeButton {
     font-weight: normal;
 }
 
+.class text, .abstractclass text, .interface text {
+    font-style: normal;
+    font-weight: bold;
+}
+
 /*edges styles*/
 line.dependency {
     marker-end: url(#end_arrow);

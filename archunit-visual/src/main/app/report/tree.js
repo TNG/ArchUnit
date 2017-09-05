@@ -48,14 +48,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     move(dx, dy, parent) {
       const newX = this.x + dx;
       const newY = this.y + dy;
-      const centerDistance = Vector.between({x: newX, y: newY}, parent.getCoords()).length();
+      const centerDistance = new Vector(newX, newY).length();
       const insideOfParent = centerDistance + this.r <= parent.getRadius();
       if (parent.isRoot() || insideOfParent) {
         this.x = newX;
         this.y = newY;
-        return true;
       }
-      return false;
     }
 
     update(x, y, r) {
@@ -193,6 +191,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return [this, ...this.getDescendants()];
     }
 
+    getSelfAndPredecessors() {
+      const result = [];
+      let current = this;
+      while (current) {
+        result.push(current);
+        current = current._parent;
+      }
+      return result;
+    }
+
     getVisibleDependencies() {
       return getDependencies(this).getVisible();
     }
@@ -248,6 +256,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return {x: this.getX(), y: this.getY()};
     }
 
+    getAbsoluteVisualData() {
+      const selfAndPredecessors = this.getSelfAndPredecessors();
+      return {
+        r: this.visualData.r,
+        x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.x, 0),
+        y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.y, 0),
+      }
+    }
+
     initView(svgElement, onNodeFoldChanged, onMoved) {
       this._view = new View(svgElement, this);
       if (!this.isRoot() && !this.isLeaf()) {
@@ -261,7 +278,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
         this.drag(dx, dy);
         onMoved(this);
       });
-      this._originalChildren.forEach(child => child.initView(svgElement, onNodeFoldChanged, onMoved));
+      this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged, onMoved));
     }
 
     updateView() {
@@ -297,27 +314,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       }
     }
 
-    /**
-     * We need to recursively shift the circle packings back in place (that went out of sync, stepping backwards
-     * through the tree in _prepareLayout() )
-     *
-     * @private
-     */
-    _finishLayout() {
-      this.getCurrentChildren().forEach(child => {
-        child.visualData.update(child.getParent().getX() + child.getX(), child.getParent().getY() + child.getY());
-        child._finishLayout();
-      });
-    }
-
     relayout() {
       this._prepareLayout();
 
       if (this.isRoot()) {
         this.visualData.update(this.getRadius(), this.getRadius()); // Shift root to the middle
       }
-
-      this._finishLayout();
     }
 
     /**
@@ -327,9 +329,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
      * @param dy The delta in y-direction
      */
     drag(dx, dy) {
-      if (this.visualData.move(dx, dy, this.getParent())) {
-        this.getOriginalChildren().forEach(node => node.drag(dx, dy));
-      }
+      this.visualData.move(dx, dy, this.getParent());
     }
 
     resetFiltering() {

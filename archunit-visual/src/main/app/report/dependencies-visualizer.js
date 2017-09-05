@@ -72,7 +72,7 @@ const VisualData = class {
 
 const refreshVisualData = dependency => {
   dependency.visualData = new VisualData();
-  dependency.visualData.recalc(dependency.mustShareNodes, dependency.getStartNode().visualData, dependency.getEndNode().visualData);
+  dependency.visualData.recalc(dependency.mustShareNodes, dependency.getStartNode().getAbsoluteVisualData(), dependency.getEndNode().getAbsoluteVisualData());
 };
 
 const refreshVisualDataOf = (nodeFullName, dependencies) => {

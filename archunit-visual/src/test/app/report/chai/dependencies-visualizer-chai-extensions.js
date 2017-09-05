@@ -15,37 +15,43 @@ const distance = (x1, y1, x2, y2) => {
 
 const endNodesAreOverlapping = d => {
   const startNode = d.getStartNode(), endNode = d.getEndNode();
-  const middleDiff = distance(startNode.visualData.x, startNode.visualData.y, endNode.visualData.x, endNode.visualData.y);
-  return middleDiff < startNode.visualData.r + endNode.visualData.r;
+  const startAbsVisualData = startNode.getAbsoluteVisualData();
+  const endAbsVisualData = endNode.getAbsoluteVisualData();
+  const middleDiff = distance(startAbsVisualData.x, startAbsVisualData.y, endAbsVisualData.x, endAbsVisualData.y);
+  return middleDiff < startAbsVisualData.r + endAbsVisualData.r;
 };
 
 const endPositionsAreNotCorrect = d => {
   const start = d.getStartNode(), end = d.getEndNode();
-  const startDistance = distance(start.visualData.x, start.visualData.y, d.visualData.startPoint.x, d.visualData.startPoint.y),
-      endDistance = distance(end.visualData.x, end.visualData.y, d.visualData.endPoint.x, d.visualData.endPoint.y);
-  return haveDiffBiggerThan(startDistance, start.visualData.r, MAX_POSITION_DIFF) ||
-      haveDiffBiggerThan(endDistance, end.visualData.r, MAX_POSITION_DIFF);
+  const startAbsVisualData = start.getAbsoluteVisualData();
+  const endAbsVisualData = end.getAbsoluteVisualData();
+  const startDistance = distance(startAbsVisualData.x, startAbsVisualData.y, d.visualData.startPoint.x, d.visualData.startPoint.y),
+    endDistance = distance(endAbsVisualData.x, endAbsVisualData.y, d.visualData.endPoint.x, d.visualData.endPoint.y);
+  return haveDiffBiggerThan(startDistance, startAbsVisualData.r, MAX_POSITION_DIFF) ||
+    haveDiffBiggerThan(endDistance, endAbsVisualData.r, MAX_POSITION_DIFF);
 };
 
 const distanceIsNotCorrect = d => {
   const start = d.getStartNode(), end = d.getEndNode();
-  const expDistance = distance(start.visualData.x, start.visualData.y, end.visualData.x, end.visualData.y);
+  const startAbsVisualData = start.getAbsoluteVisualData();
+  const endAbsVisualData = end.getAbsoluteVisualData();
+  const expDistance = distance(startAbsVisualData.x, startAbsVisualData.y, endAbsVisualData.x, endAbsVisualData.y);
   let actDistance;
   const edgeLength = distance(d.visualData.startPoint.x, d.visualData.startPoint.y, d.visualData.endPoint.x, d.visualData.endPoint.y);
   if (endNodesAreOverlapping(d)) {
     let biggerRadius, smallerRadius;
-    if (end.visualData.r >= start.visualData.r) {
-      biggerRadius = end.visualData.r,
-          smallerRadius = start.visualData.r;
+    if (endAbsVisualData.r >= startAbsVisualData.r) {
+      biggerRadius = endAbsVisualData.r,
+        smallerRadius = startAbsVisualData.r;
     }
     else {
-      biggerRadius = start.visualData.r,
-          smallerRadius = end.visualData.r;
+      biggerRadius = startAbsVisualData.r,
+        smallerRadius = endAbsVisualData.r;
     }
     actDistance = edgeLength - biggerRadius + smallerRadius;
   }
   else {
-    actDistance = start.visualData.r + end.visualData.r + edgeLength;
+    actDistance = startAbsVisualData.r + endAbsVisualData.r + edgeLength;
   }
   return (d.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, 2 * d.lineDiff))
       || (!d.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, MAX_LENGTH_DIFF));

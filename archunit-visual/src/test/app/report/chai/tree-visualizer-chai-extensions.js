@@ -46,9 +46,11 @@ Assertion.addMethod('haveChildrenWithinCircle', function (circlePadding) {
   const childrenNotWithinNode = [];
 
   node.getOriginalChildren().forEach(c => {
-    const distanceFromNodeMiddleToChildRim = distance(node.visualData.x, node.visualData.y, c.visualData.x, c.visualData.y)
-        + c.visualData.r;
-    if (node.visualData.r - distanceFromNodeMiddleToChildRim < circlePadding / 2) {
+    const nodeAbsVisualData = node.getAbsoluteVisualData();
+    const cAbsVisualData = c.getAbsoluteVisualData();
+    const distanceFromNodeMiddleToChildRim = distance(nodeAbsVisualData.x, nodeAbsVisualData.y, cAbsVisualData.x, cAbsVisualData.y)
+      + cAbsVisualData.r;
+    if (nodeAbsVisualData.r - distanceFromNodeMiddleToChildRim < circlePadding / 2) {
       childrenNotWithinNode.push(c);
     }
   });
@@ -69,8 +71,10 @@ Assertion.addMethod('doNotOverlap', function (circlePadding) {
 
   nodes.forEach(c => {
     nodes.filter(d => d !== c).forEach(d => {
-      const diff = distance(c.visualData.x, c.visualData.y, d.visualData.x, d.visualData.y);
-      const minExpDiff = c.visualData.r + d.visualData.r + circlePadding;
+      const cAbsVisualData = c.getAbsoluteVisualData();
+      const dAbsVisualData = d.getAbsoluteVisualData();
+      const diff = distance(cAbsVisualData.x, cAbsVisualData.y, dAbsVisualData.x, dAbsVisualData.y);
+      const minExpDiff = cAbsVisualData.r + dAbsVisualData.r + circlePadding;
       if (diff + MAX_RADIUS_DIFF < minExpDiff) {
         nodesOverlapping.add(c.getFullName(), c);
         nodesOverlapping.add(d.getFullName(), d);
@@ -90,7 +94,7 @@ Assertion.addMethod('doNotOverlap', function (circlePadding) {
 Assertion.addMethod('locatedWithin', function (parent) {
   const node = this._obj;
 
-  const centerDifference = Vector.between(node.getCoords(), parent.getCoords()).length();
+  const centerDifference = Vector.between(node.getAbsoluteVisualData(), parent.getAbsoluteVisualData()).length();
   const circleRadiusContainingNode = centerDifference + node.getRadius();
 
   new Assertion(circleRadiusContainingNode).to.be.at.most(parent.getRadius());

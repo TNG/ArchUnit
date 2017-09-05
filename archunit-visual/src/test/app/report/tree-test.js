@@ -313,7 +313,7 @@ describe("Dragging nodes", () => {
   });
 
   const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
-    const result = new Map(root.getSelfAndDescendants().map(node => [node, node.getCoords()]));
+    const result = new Map(root.getSelfAndDescendants().map(node => [node, node.getAbsoluteVisualData()]));
     toDrag.getSelfAndDescendants().forEach(node => {
       const coords = result.get(node);
       coords.x += dx;
@@ -336,7 +336,7 @@ describe("Dragging nodes", () => {
     toDrag.drag(dx, dy);
 
     root.getSelfAndDescendants().forEach(node => {
-      expect(node.getCoords()).to.deep.equal(expectedCoordsByNode.get(node))
+      expect(node.getAbsoluteVisualData()).to.deep.equal(expectedCoordsByNode.get(node))
     });
   });
 

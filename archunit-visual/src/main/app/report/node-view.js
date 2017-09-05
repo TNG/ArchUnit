@@ -53,7 +53,7 @@ const init = (transitionDuration) => {
     }
 
     onClick(handler) {
-      d3.select(this._svgElement).on('click', handler);
+      d3.select(this._svgElement).select('circle').on('click', handler);
     }
 
     onDrag(handler) {
