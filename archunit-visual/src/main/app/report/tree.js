@@ -279,10 +279,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);
     }
 
-    updatePositionOfView() {
-      this._view.updatePosition(this.visualData);
-    }
-
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node. The coordinates of the circle of any node will be shifted, when
@@ -324,6 +320,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
      */
     drag(dx, dy) {
       this.visualData.move(dx, dy, this.getParent());
+      this._view.updatePosition(this.visualData);
     }
 
     resetFiltering() {

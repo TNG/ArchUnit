@@ -30,12 +30,16 @@ describe("Visual data of dependency", () => {
 
   it("refreshes its end positions correctly if a node is dragged", () => {
     const graphWrapper = testObjects.testGraph2();
+    graphWrapper.graph.root.callOnSelfThenEveryDescendant(node => node._view = {
+      updatePosition: () => {
+      }
+    });
     visualizer.visualizeGraph(graphWrapper.graph);
 
     const toChange = "com.tngtech.test.testclass1";
     const node = graphWrapper.getNode(toChange);
     node.drag(10, -20);
-    visualizer.drag(graphWrapper.graph, node);
+    graphWrapper.graph.getVisibleDependencies().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData());
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
