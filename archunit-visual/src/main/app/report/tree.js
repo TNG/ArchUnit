@@ -211,20 +211,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return result;
     }
 
-    getOriginalDescendants() {
-      const result = [];
-      this._originalChildren.forEach(child => child.callOnSelfThenEveryOriginalDescendant(node => result.push(node)));
-      return result;
-    }
-
     callOnSelfThenEveryDescendant(fun) {
       fun(this);
       this.getCurrentChildren().forEach(c => c.callOnSelfThenEveryDescendant(fun));
-    }
-
-    callOnSelfThenEveryOriginalDescendant(fun) {
-      fun(this);
-      this._originalChildren.forEach(c => c.callOnSelfThenEveryOriginalDescendant(fun));
     }
 
     callOnEveryDescendantThenSelf(fun) {
@@ -283,7 +272,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     updateView() {
       if (this._folded) {
-        this.getOriginalDescendants().forEach(descendant => descendant._view.hide());
+        this._originalChildren.forEach(descendant => descendant._view.hide());
       }
       const promise = this._view.update(this.visualData, this._text.getY()).then(() => this._view.show());
       return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);

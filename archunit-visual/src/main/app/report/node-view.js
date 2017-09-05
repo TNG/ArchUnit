@@ -35,13 +35,12 @@ const init = (transitionDuration) => {
         .attr('dy', node.getText().getY());
     }
 
-    //FIXME: work with inherit
     hide() {
       d3.select(this._svgElement).style('visibility', 'hidden');
     }
 
     show() {
-      d3.select(this._svgElement).style('visibility', 'visible');
+      d3.select(this._svgElement).style('visibility', 'inherit');
     }
 
     update(nodeVisualData, textOffset) {
