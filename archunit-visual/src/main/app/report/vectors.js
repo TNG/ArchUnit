@@ -35,7 +35,27 @@ const vectors = {
 
   angleToVector: vector => Math.asin((Math.sign(vector.x) || 1) * vector.y / getLength(vector)),
 
-  getAngleDeg: angleRad => Math.round(angleRad * (180 / Math.PI))
+  getAngleDeg: angleRad => Math.round(angleRad * (180 / Math.PI)),
+
+  /**
+   * @param radiusOuterCircle radius of the outer circle
+   * @param innerCircleVisualData visualData of the inner circle (including radius, x and y coordinate relative
+   * to the middle point of the outer circle)
+   * @param shiftVector vector that corresponds to the user's shift
+   * @return the vector of the middle point of the inner circle, so that the inner circle is just withing the
+   * outer circle (considering the shift direction)
+   */
+  getMaximumShiftedVectorWithinCircle: (radiusOuterCircle, innerCircleVisualData, shiftVector) => {
+    const c1 = shiftVector.x * shiftVector.x + shiftVector.y * shiftVector.y;
+    const c2 = Math.pow(radiusOuterCircle - innerCircleVisualData.r, 2);
+    const c3 = -Math.pow(innerCircleVisualData.y * shiftVector.x - innerCircleVisualData.x * shiftVector.y, 2);
+    const c4 = -(innerCircleVisualData.x * shiftVector.x + innerCircleVisualData.y * shiftVector.y);
+    const scale = (c4 + Math.sqrt(c3 + c2 * c1)) / c1;
+    return {
+      x: innerCircleVisualData.x + scale * shiftVector.x,
+      y: innerCircleVisualData.y + scale * shiftVector.y
+    };
+  }
 };
 
 const Vector = class {

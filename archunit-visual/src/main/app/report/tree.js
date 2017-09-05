@@ -3,6 +3,7 @@
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
+const vectors = require('./vectors').vectors;
 
 const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
 
@@ -45,16 +46,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       this.r = r;
     }
 
-    // FIXME: It would appear smoother, if we would shorten dx and dy to the minimal possible delta, if otherwise we would end up outside of the parent
     move(dx, dy, parent) {
-      const newX = this.x + dx;
-      const newY = this.y + dy;
+      let newX = this.x + dx;
+      let newY = this.y + dy;
       const centerDistance = new Vector(newX, newY).length();
-      const insideOfParent = centerDistance + this.r <= parent.getRadius();
-      if (parent.isRoot() || insideOfParent) {
-        this.x = newX;
-        this.y = newY;
+      if (centerDistance + this.r > parent.getRadius() && !parent.isRoot()) {
+        const maximumVector = vectors.getMaximumShiftedVectorWithinCircle(parent.getRadius(), this, {x: dx, y: dy});
+        newX = Math.trunc(maximumVector.x);
+        newY = Math.trunc(maximumVector.y);
       }
+      this.x = newX;
+      this.y = newY;
     }
 
     update(x, y, r) {
