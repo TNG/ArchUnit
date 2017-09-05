@@ -10,10 +10,6 @@ const init = (getNodeView, getVisualizationStyles, getCalculateTextWidth) => {
     return require('./visualization-functions').newInstance(getCalculateTextWidth());
   };
 
-  const getGraphVisualizer = () => {
-    return require('./graph-visualizer').newInstance(require('./dependencies-visualizer'))
-  };
-
   const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
 
   const getJsonToRoot = () => {
@@ -23,7 +19,7 @@ const init = (getNodeView, getVisualizationStyles, getCalculateTextWidth) => {
   };
 
   const getJsonToGraph = () => {
-    return require('./graph').init(getJsonToRoot(), getGraphVisualizer()).jsonToGraph
+    return require('./graph').init(getJsonToRoot()).jsonToGraph
   };
 
   return {
