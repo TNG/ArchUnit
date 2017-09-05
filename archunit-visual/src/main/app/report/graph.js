@@ -317,8 +317,7 @@ module.exports.create = () => {
   function updateVisualization() {
     updatePromise = updatePromise.then(() => {
       visualizer.update(graph);
-      updateNodes();
-      return Promise.all([updateEdgesWithAnimation()]);
+      return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
     });
   }
 

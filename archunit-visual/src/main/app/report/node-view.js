@@ -13,6 +13,10 @@ const init = (transitionDuration) => {
     }
   };
 
+  const filterOnlyImmediateChildren = (selection, parentSelection) => selection.filter(function () {
+    return this.parentNode === parentSelection.node();
+  });
+
   const View = class {
     constructor(parentSvgElement, node) {
       this._svgElement = d3.select(parentSvgElement)
@@ -41,13 +45,14 @@ const init = (transitionDuration) => {
 
     show() {
       d3.select(this._svgElement).style('visibility', 'inherit');
+      return Promise.resolve();
     }
 
     update(nodeVisualData, textOffset) {
       const transition = d3.select(this._svgElement).transition().duration(transitionDuration);
       const transformPromise = createPromiseOnEndOfTransition(transition, t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
-      const radiusPromise = createPromiseOnEndOfTransition(transition.select('circle'), t => t.attr('r', nodeVisualData.r));
-      const textPromise = createPromiseOnEndOfTransition(transition.select('text'), t => t.attr('dy', textOffset));
+      const radiusPromise = createPromiseOnEndOfTransition(filterOnlyImmediateChildren(transition.select('circle'), transition), t => t.attr('r', nodeVisualData.r));
+      const textPromise = createPromiseOnEndOfTransition(filterOnlyImmediateChildren(transition.select('text'), transition), t => t.attr('dy', textOffset));
       return Promise.all([transformPromise, radiusPromise, textPromise]);
     }
 
