@@ -8,6 +8,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
+  const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   const NodeDescription = class {
     constructor(name, fullName, type) {
@@ -271,9 +272,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     }
 
     updateView() {
-      if (this._folded) {
-        this._originalChildren.forEach(descendant => descendant._view.hide());
-      }
+      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       const promise = this._view.update(this.visualData, this._text.getY()).then(() => this._view.show());
       return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);
     }
