@@ -56,6 +56,10 @@ const init = (transitionDuration) => {
       return Promise.all([transformPromise, radiusPromise, textPromise]);
     }
 
+    updatePosition(nodeCoords) {
+      d3.select(this._svgElement).attr('transform', `translate(${nodeCoords.x}, ${nodeCoords.y})`);
+    }
+
     onClick(handler) {
       filterOnlyImmediateChildren(d3.select(this._svgElement).selectAll('circle, text'), d3.select(this._svgElement)).on('click', handler);
     }

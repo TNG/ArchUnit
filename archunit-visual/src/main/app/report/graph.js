@@ -136,7 +136,10 @@ module.exports.create = () => {
   function initializeTree() {
     const onMoved = node => {
       visualizer.drag(graph, node);
-      updateVisualizationAfterDragging(node);
+      node.updatePositionOfView();
+      updateLinePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
+      || d.to.startsWith(node.getFullName())), () => {
+      });
     };
     graph.root.initView(gTree.node(), updateVisualization, onMoved);
   }
@@ -303,13 +306,6 @@ module.exports.create = () => {
           }
         }, DETAILED_DEPENDENCIES_HIDE_DURATION);
       });
-  }
-
-  function updateVisualizationAfterDragging(node) {
-    gTree.selectAll('g').filter(d => d.isChildOf(node)).attr('transform', d => `translate(${d.visualData.x}, ${d.visualData.y})`);
-    updateLinePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
-    || d.to.startsWith(node.getFullName())), () => {
-    });
   }
 
   let updatePromise = Promise.all([]);
