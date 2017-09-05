@@ -28,8 +28,6 @@ const VisualData = class {
   constructor() {
     this.startPoint = {};
     this.endPoint = {};
-    this.middlePoint = {};
-    this.angleDeg = 0;
     this.angleRad = 0;
     this.visible = false;
   }
@@ -64,9 +62,7 @@ const VisualData = class {
 
     this.startPoint = vectors.vectorOf(visualStartNode.x + startDirectionVector.x, visualStartNode.y + startDirectionVector.y);
     this.endPoint = vectors.vectorOf(visualEndNode.x + endDirectionVector.x, visualEndNode.y + endDirectionVector.y);
-    this.middlePoint = vectors.vectorOf((this.endPoint.x + this.startPoint.x) / 2, (this.endPoint.y + this.startPoint.y) / 2);
     this.angleRad = vectors.angleToVector(vectors.getDefaultIfNull(direction));
-    this.angleDeg = vectors.getAngleDeg(this.angleRad);
   }
 };
 
