@@ -18,16 +18,16 @@ const VisualData = class {
     this.visible = false;
   }
 
-  recalc(mustShareNodes, visualStartNode, visualEndNode) {
+  recalc(mustShareNodes, absVisualStartNode, absVisualEndNode) {
     const lineDiff = 20;
-    const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(visualStartNode, visualEndNode),
-      nodes = [visualStartNode, visualEndNode].sort((a, b) => a.r - b.r);
+    const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode),
+      nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
 
-    const direction = vectors.vectorOf(visualEndNode.x - visualStartNode.x,
-      visualEndNode.y - visualStartNode.y);
+    const direction = vectors.vectorOf(absVisualEndNode.x - absVisualStartNode.x,
+      absVisualEndNode.y - absVisualStartNode.y);
 
     let startDirectionVector = vectors.cloneVector(direction);
-    if (oneIsInOther && visualStartNode === nodes[0]) {
+    if (oneIsInOther && absVisualStartNode === nodes[0]) {
       startDirectionVector = vectors.getRevertedVector(startDirectionVector);
     }
     startDirectionVector = vectors.getDefaultIfNull(startDirectionVector);
@@ -35,20 +35,20 @@ const VisualData = class {
 
     if (mustShareNodes) {
       let orthogonalVector = vectors.norm(vectors.getOrthogonalVector(startDirectionVector), lineDiff / 2);
-      if (oneIsInOther && visualStartNode === nodes[1]) {
+      if (oneIsInOther && absVisualStartNode === nodes[1]) {
         orthogonalVector = vectors.getRevertedVector(orthogonalVector);
       }
-      startDirectionVector = vectors.norm(startDirectionVector, visualStartNode.r);
-      endDirectionVector = vectors.norm(endDirectionVector, visualEndNode.r);
+      startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);
+      endDirectionVector = vectors.norm(endDirectionVector, absVisualEndNode.r);
       startDirectionVector = vectors.addVectors(startDirectionVector, orthogonalVector);
       endDirectionVector = vectors.addVectors(endDirectionVector, orthogonalVector);
     }
 
-    startDirectionVector = vectors.norm(startDirectionVector, visualStartNode.r);
-    endDirectionVector = vectors.norm(endDirectionVector, visualEndNode.r);
+    startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);
+    endDirectionVector = vectors.norm(endDirectionVector, absVisualEndNode.r);
 
-    this.startPoint = vectors.vectorOf(visualStartNode.x + startDirectionVector.x, visualStartNode.y + startDirectionVector.y);
-    this.endPoint = vectors.vectorOf(visualEndNode.x + endDirectionVector.x, visualEndNode.y + endDirectionVector.y);
+    this.startPoint = vectors.vectorOf(absVisualStartNode.x + startDirectionVector.x, absVisualStartNode.y + startDirectionVector.y);
+    this.endPoint = vectors.vectorOf(absVisualEndNode.x + endDirectionVector.x, absVisualEndNode.y + endDirectionVector.y);
   }
 };
 
@@ -191,6 +191,10 @@ const Dependency = class {
 
   getEndNode() {
     return nodes.getByName(this.to);
+  }
+
+  updateVisualData() {
+    this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
   }
 
   toString() {

@@ -1,15 +1,11 @@
 'use strict';
 
-const refreshVisualData = dependency => {
-  dependency.visualData.recalc(dependency.mustShareNodes, dependency.getStartNode().getAbsoluteVisualData(), dependency.getEndNode().getAbsoluteVisualData());
-};
-
 const refreshVisualDataOf = (nodeFullName, dependencies) => {
-  dependencies.filter(d => d.from.startsWith(nodeFullName) || d.to.startsWith(nodeFullName)).forEach(d => refreshVisualData(d));
+  dependencies.filter(d => d.from.startsWith(nodeFullName) || d.to.startsWith(nodeFullName)).forEach(d => d.updateVisualData());
 };
 
 const refreshVisualDataOfDependencies = dependencies => {
-  dependencies.forEach(d => refreshVisualData(d));
+  dependencies.forEach(d => d.updateVisualData());
 };
 
 const visualizeDependencies = dependencies => {
