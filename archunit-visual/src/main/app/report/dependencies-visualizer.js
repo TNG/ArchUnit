@@ -2,26 +2,9 @@
 
 const vectors = require('./vectors.js').vectors;
 
-const lineDiff = 20;
-
 const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
   const middleDiff = vectors.distance(node1, node2);
   return middleDiff + Math.min(node1.r, node2.r) < Math.max(node1.r, node2.r);
-};
-
-const getSmallerAndBiggerNode = (node1, node2) => {
-  if (node2.r >= node1.r) {
-    return {
-      bigger: node2,
-      smaller: node1
-    }
-  }
-  else {
-    return {
-      bigger: node1,
-      smaller: node2
-    }
-  }
 };
 
 const VisualData = class {
@@ -32,14 +15,15 @@ const VisualData = class {
   }
 
   recalc(mustShareNodes, visualStartNode, visualEndNode) {
+    const lineDiff = 20;
     const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(visualStartNode, visualEndNode),
-        nodes = getSmallerAndBiggerNode(visualStartNode, visualEndNode);
+      nodes = [visualStartNode, visualEndNode].sort((a, b) => a.r - b.r);
 
     const direction = vectors.vectorOf(visualEndNode.x - visualStartNode.x,
-        visualEndNode.y - visualStartNode.y);
+      visualEndNode.y - visualStartNode.y);
 
     let startDirectionVector = vectors.cloneVector(direction);
-    if (oneIsInOther && visualStartNode === nodes.smaller) {
+    if (oneIsInOther && visualStartNode === nodes[0]) {
       startDirectionVector = vectors.getRevertedVector(startDirectionVector);
     }
     startDirectionVector = vectors.getDefaultIfNull(startDirectionVector);
@@ -47,7 +31,7 @@ const VisualData = class {
 
     if (mustShareNodes) {
       let orthogonalVector = vectors.norm(vectors.getOrthogonalVector(startDirectionVector), lineDiff / 2);
-      if (oneIsInOther && visualStartNode === nodes.bigger) {
+      if (oneIsInOther && visualStartNode === nodes[1]) {
         orthogonalVector = vectors.getRevertedVector(orthogonalVector);
       }
       startDirectionVector = vectors.norm(startDirectionVector, visualStartNode.r);
