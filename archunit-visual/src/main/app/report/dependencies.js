@@ -122,6 +122,11 @@ const Dependencies = class {
     this.observers.push(observerFunction);
   }
 
+  updateVisualData() {
+    this.getVisible().forEach(d => d.updateVisualData());
+    this.addObserver(dependencies => dependencies.forEach(d => d.updateVisualData()));
+  }
+
   changeFold(foldedElement, isFolded) {
     if (isFolded) {
       this._transformers.set(foldedElement, foldTransformer(foldedElement));

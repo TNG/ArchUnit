@@ -1,6 +1,6 @@
 'use strict';
 
-const init = (jsonToRoot, visualizer) => {
+const init = (jsonToRoot) => {
   const Graph = class {
     constructor(root) {
       this.root = root;
@@ -63,7 +63,6 @@ const init = (jsonToRoot, visualizer) => {
     jsonToGraph: jsonRoot => {
       const root = jsonToRoot(jsonRoot);
       const graph = new Graph(root);
-      visualizer.visualizeGraph(graph);
       return graph;
     }
   };
@@ -98,7 +97,6 @@ module.exports.create = () => {
   const calculateTextWidth = require('./text-width-calculator');
   const appContext = require('./app-context').newInstance();
   const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
-  const visualizer = require('./graph-visualizer').newInstance(require('./dependencies-visualizer'));
 
   let graph;
 
@@ -413,7 +411,7 @@ module.exports.create = () => {
         return reject(error);
       }
 
-      const jsonToGraph = init(jsonToRoot, visualizer).jsonToGraph;
+      const jsonToGraph = init(jsonToRoot).jsonToGraph;
       graph = jsonToGraph(jsonroot);
       adaptSVGSizeAndPosition();
       initializeGraph();

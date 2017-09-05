@@ -5,12 +5,10 @@ const expect = require("chai").expect;
 
 const testObjects = require("./test-object-creator.js");
 
-const visualizer = require('./main-files').get('graph-visualizer').newInstance(require('./main-files').get('dependencies-visualizer'));
-
 describe("Visualizer", () => {
   it("visualizes the dependencies correctly", () => {
     const graphWrapper = testObjects.testGraph2();
-    visualizer.visualizeGraph(graphWrapper.graph);
+    graphWrapper.graph.root._dependencies.updateVisualData();
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 });
@@ -18,13 +16,13 @@ describe("Visualizer", () => {
 describe("Visual data of dependency", () => {
   it("calc their end positions correctly", () => {
     const graph = testObjects.testGraph2().graph;
-    visualizer.visualizeGraph(graph);
+    graph.root._dependencies.updateVisualData();
     expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 
   it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
     const graph = testObjects.testGraphWithOverlappingNodesAndMutualDependencies().graph;
-    visualizer.visualizeGraph(graph);
+    graph.root._dependencies.updateVisualData();
     expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
 
@@ -34,7 +32,7 @@ describe("Visual data of dependency", () => {
       updatePosition: () => {
       }
     });
-    visualizer.visualizeGraph(graphWrapper.graph);
+    graphWrapper.graph.root._dependencies.updateVisualData();
 
     const toChange = "com.tngtech.test.testclass1";
     const node = graphWrapper.getNode(toChange);
@@ -46,7 +44,7 @@ describe("Visual data of dependency", () => {
 
   it("refreshes its end positions correctly if a node changes its radius on folding", () => {
     const graphWrapper = testObjects.testGraph2();
-    visualizer.visualizeGraph(graphWrapper.graph);
+    graphWrapper.graph.root._dependencies.updateVisualData();
 
     const toChange = "com.tngtech.main";
     const node = graphWrapper.getNode(toChange);

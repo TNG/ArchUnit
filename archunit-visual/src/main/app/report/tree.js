@@ -369,6 +369,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     root.getByName = name => map.get(name);
 
     root._dependencies = jsonToDependencies(jsonRoot, root);
+    root._dependencies.updateVisualData();
     root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
     root.filterDependenciesByType = (typeFilterConfig) => root._dependencies.filterByType(typeFilterConfig);
     root.resetFilterDependenciesByType = () => root._dependencies.resetFilterByType();
