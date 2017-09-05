@@ -133,7 +133,7 @@ module.exports.create = () => {
 
   function initializeTree() {
     const onMoved = node => {
-      graph.getVisibleDependencies().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData());
+      graph.root._dependencies.updateVisualDataOfDependenciesOfNode(node);
       updateLinePositionWithoutAnimation(gEdges.selectAll('g').filter(d => d.from.startsWith(node.getFullName())
       || d.to.startsWith(node.getFullName())), () => {
       });

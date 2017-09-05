@@ -127,6 +127,10 @@ const Dependencies = class {
     this.addObserver(dependencies => dependencies.forEach(d => d.updateVisualData()));
   }
 
+  updateVisualDataOfDependenciesOfNode(node) {
+    this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
+  }
+
   changeFold(foldedElement, isFolded) {
     if (isFolded) {
       this._transformers.set(foldedElement, foldTransformer(foldedElement));
