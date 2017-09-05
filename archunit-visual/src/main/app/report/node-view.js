@@ -57,7 +57,7 @@ const init = (transitionDuration) => {
     }
 
     onClick(handler) {
-      d3.select(this._svgElement).select('circle').on('click', handler);
+      filterOnlyImmediateChildren(d3.select(this._svgElement).selectAll('circle, text'), d3.select(this._svgElement)).on('click', handler);
     }
 
     onDrag(handler) {
