@@ -52,7 +52,7 @@ describe("Visual data of dependency", () => {
     const node = graphWrapper.getNode(toChange);
     node.changeFold();
     graphWrapper.graph.root.relayout();
-    visualizer.update(graphWrapper.graph);
+    graphWrapper.graph.getVisibleDependencies().forEach(d => d.updateVisualData());
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
