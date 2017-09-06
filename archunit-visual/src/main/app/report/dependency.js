@@ -205,6 +205,10 @@ const init = (View, nodeMap) => {
       this._view = new View(svgElement, this);
     }
 
+    getIdentifyingString() {
+      return this.from + '-' + this.to;
+    }
+
     toString() {
       return this.from + "->" + this.to + "(" + this.description.toString() + ")";
     }
