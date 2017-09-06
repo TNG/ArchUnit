@@ -45,7 +45,6 @@ const init = (transitionDuration) => {
 
     show() {
       d3.select(this._svgElement).style('visibility', 'inherit');
-      return Promise.resolve();
     }
 
     updateWithTransition(nodeVisualData, textOffset) {
