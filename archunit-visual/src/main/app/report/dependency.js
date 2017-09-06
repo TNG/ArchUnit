@@ -201,7 +201,7 @@ const init = (View, nodeMap) => {
       this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
     }
 
-    initView(svgElement) {
+    refreshView(svgElement) {
       this._view = new View(svgElement, this);
     }
 
@@ -252,7 +252,7 @@ const init = (View, nodeMap) => {
   };
 
   return buildDependency;
-}
+};
 
 module.exports.init = (View, nodeMap) => ({
   buildDependency: init(View, nodeMap)

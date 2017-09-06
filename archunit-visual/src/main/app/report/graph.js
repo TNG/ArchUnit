@@ -315,19 +315,15 @@ module.exports.create = () => {
     createNewEdges(edges.enter());
   }
 
-  function updateEdgesVisibility(edges) {
-    hideEdges(edges.exit());
-  }
-
   function updateEdgesWithoutAnimation() {
     const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
-    updateEdgesVisibility(edges);
+    hideEdges(edges.exit());
     updateLinePositionWithoutAnimation(edges, updateEdges);
   }
 
   function updateEdgesWithAnimation() {
     const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
-    updateEdgesVisibility(edges);
+    hideEdges(edges.exit());
     return updateLinePositionWithAnimation(edges);
   }
 

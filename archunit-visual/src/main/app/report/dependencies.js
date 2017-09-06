@@ -132,8 +132,8 @@ const init = (View) => {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
     }
 
-    initViews(svgElement) {
-      this.getVisible().forEach(d => d.initView(svgElement));
+    refreshViews(svgElement) {
+      this.getVisible().forEach(d => d.refreshView(svgElement));
     }
 
     changeFold(foldedElement, isFolded) {
