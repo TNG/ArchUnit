@@ -16,7 +16,8 @@ const buildDescription = () => ({
       startCodeUnit: startCodeUnit,
       targetElement: targetElement,
       getInheritanceType: () => inheritanceType,
-      getAccessType: () => accessType
+      getAccessType: () => accessType,
+      hasDetailedDescription: () => true
     })
   })
 });
