@@ -275,7 +275,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     updateView() {
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
-      const promise = this._view.update(this.visualData, this._text.getY()).then(() => this._view.show());
+      const promise = this._view.updateWithTransition(this.visualData, this._text.getY()).then(() => this._view.show());
       return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);
     }
 

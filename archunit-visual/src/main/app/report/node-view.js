@@ -48,7 +48,7 @@ const init = (transitionDuration) => {
       return Promise.resolve();
     }
 
-    update(nodeVisualData, textOffset) {
+    updateWithTransition(nodeVisualData, textOffset) {
       const transition = d3.select(this._svgElement).transition().duration(transitionDuration);
       const transformPromise = createPromiseOnEndOfTransition(transition, t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
       const radiusPromise = createPromiseOnEndOfTransition(filterOnlyImmediateChildren(transition.select('circle'), transition), t => t.attr('r', nodeVisualData.r));
