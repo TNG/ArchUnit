@@ -18,7 +18,6 @@ const init = (View, nodeMap) => {
     constructor() {
       this.startPoint = {};
       this.endPoint = {};
-      this.visible = false;
     }
 
     recalc(mustShareNodes, absVisualStartNode, absVisualEndNode) {

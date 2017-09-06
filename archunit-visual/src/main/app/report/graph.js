@@ -127,10 +127,6 @@ module.exports.create = () => {
     initializeDeps();
   }
 
-  function setVisible(selection, value) {
-    selection.each(x => x.visualData.visible = value);
-  }
-
   function initializeTree() {
     const onMoved = node => {
       graph.root._dependencies.updateVisualDataOfDependenciesOfNode(node);
@@ -148,8 +144,6 @@ module.exports.create = () => {
 
   function createNewEdges(selection) {
     const newEdges = selection.append('g');
-
-    setVisible(newEdges, true);
 
     newEdges
       .append('line')
@@ -326,9 +320,6 @@ module.exports.create = () => {
 
   function updateEdgesVisibility(edges) {
     hideEdges(edges.exit());
-    setVisible(edges.filter(function () {
-      return d3.select(this).style('visibility') === 'visible';
-    }), true);
   }
 
   function updateEdgesWithoutAnimation() {
@@ -344,7 +335,6 @@ module.exports.create = () => {
   }
 
   function hideEdges(edges) {
-    setVisible(edges, false);
     edges.style('visibility', 'hidden');
     edges.select('#area').style('pointer-events', 'none');
   }
