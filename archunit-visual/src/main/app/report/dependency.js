@@ -127,13 +127,14 @@ const init = (View, nodeMap) => {
   };
 
   const GroupedDependencyDescription = class {
-    constructor(accessTypeName = "", inheritanceTypeName = "") {
+    constructor(hasDetailedDescription = false, accessTypeName = "", inheritanceTypeName = "") {
       this.accessTypeName = accessTypeName;
       this.inheritanceTypeName = inheritanceTypeName;
+      this._hasDetailedDescription = hasDetailedDescription;
     }
 
     hasDetailedDescription() {
-      return true;
+      return this._hasDetailedDescription;
     }
 
     getDependencyTypeNamesAsString() {
@@ -147,6 +148,7 @@ const init = (View, nodeMap) => {
     addDependencyDescription(dependencyDescription) {
       this.accessTypeName = dependencyDescription.mergeAccessTypeWithOtherAccessType(this.accessTypeName);
       this.inheritanceTypeName = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceTypeName);
+      this._hasDetailedDescription = this._hasDetailedDescription || dependencyDescription.hasDetailedDescription();
     }
 
     mergeAccessTypeWithOtherAccessType(accessTypeName) {
@@ -236,13 +238,13 @@ const init = (View, nodeMap) => {
       },
       afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
         if (containsPackage(from, to)) {
-          dependency.description = new GroupedDependencyDescription();
+          dependency.description = new GroupedDependencyDescription(false);
         }
         else if (endNodeOfThisDependencyWasFolded) {
           dependency.description = description;
         }
         else {
-          dependency.description = new GroupedDependencyDescription("childrenAccess");
+          dependency.description = new GroupedDependencyDescription(description.hasDetailedDescription(), "childrenAccess");
         }
         return dependency;
       }
