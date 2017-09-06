@@ -1,7 +1,7 @@
 'use strict';
 
 const d3 = require('d3');
-const clickAreaWith = 10;
+const clickAreaWidth = 10;
 
 const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
   selection
