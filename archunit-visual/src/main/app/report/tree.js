@@ -315,15 +315,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
-     * circle around those for the current node. The coordinates of the circle of any node will be shifted, when
-     * the next higher circle packing is created, thus the coordinates of the children run out of sync (we would
-     * have to adjust those recursively in every step, wasting performance).
-     * We'll fix this in _finishLayout().
-     *
-     * @private
+     * circle around those for the current node.
      */
-    _prepareLayout() {
-      this.getCurrentChildren().forEach(d => d._prepareLayout());
+    relayout() {
+      this.getCurrentChildren().forEach(d => d.relayout());
 
       if (this.isCurrentlyLeaf()) {
         this.visualData.update(0, 0, calculateDefaultRadius(this));
@@ -336,10 +331,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         this.visualData.update(circle.x, circle.y, r);
       }
-    }
-
-    relayout() {
-      this._prepareLayout();
 
       if (this.isRoot()) {
         this.visualData.update(this.getRadius(), this.getRadius()); // Shift root to the middle
