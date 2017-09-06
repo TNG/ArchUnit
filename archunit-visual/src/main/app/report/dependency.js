@@ -198,7 +198,7 @@ const init = (View, nodeMap) => {
     }
 
     updateVisualData() {
-      this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
+      this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
     refreshView(svgElement) {

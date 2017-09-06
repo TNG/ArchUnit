@@ -46,8 +46,8 @@ Assertion.addMethod('haveChildrenWithinCircle', function (circlePadding) {
   const childrenNotWithinNode = [];
 
   node.getOriginalChildren().forEach(c => {
-    const nodeAbsVisualData = node.getAbsoluteVisualData();
-    const cAbsVisualData = c.getAbsoluteVisualData();
+    const nodeAbsVisualData = node.getAbsoluteCoords();
+    const cAbsVisualData = c.getAbsoluteCoords();
     const distanceFromNodeMiddleToChildRim = distance(nodeAbsVisualData.x, nodeAbsVisualData.y, cAbsVisualData.x, cAbsVisualData.y)
       + cAbsVisualData.r;
     if (nodeAbsVisualData.r - distanceFromNodeMiddleToChildRim < circlePadding / 2) {
@@ -71,8 +71,8 @@ Assertion.addMethod('doNotOverlap', function (circlePadding) {
 
   nodes.forEach(c => {
     nodes.filter(d => d !== c).forEach(d => {
-      const cAbsVisualData = c.getAbsoluteVisualData();
-      const dAbsVisualData = d.getAbsoluteVisualData();
+      const cAbsVisualData = c.getAbsoluteCoords();
+      const dAbsVisualData = d.getAbsoluteCoords();
       const diff = distance(cAbsVisualData.x, cAbsVisualData.y, dAbsVisualData.x, dAbsVisualData.y);
       const minExpDiff = cAbsVisualData.r + dAbsVisualData.r + circlePadding;
       if (diff + MAX_RADIUS_DIFF < minExpDiff) {
@@ -94,7 +94,7 @@ Assertion.addMethod('doNotOverlap', function (circlePadding) {
 Assertion.addMethod('locatedWithin', function (parent) {
   const node = this._obj;
 
-  const centerDifference = Vector.between(node.getAbsoluteVisualData(), parent.getAbsoluteVisualData()).length();
+  const centerDifference = Vector.between(node.getAbsoluteCoords(), parent.getAbsoluteCoords()).length();
   const circleRadiusContainingNode = centerDifference + node.getRadius();
 
   new Assertion(circleRadiusContainingNode).to.be.at.most(parent.getRadius());

@@ -272,11 +272,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return this.visualData.r;
     }
 
-    getCoords() {
+    /**
+     * Coordinates ({x, y}) with respect to the parent node.
+     */
+    getRelativeCoords() {
       return {x: this.getX(), y: this.getY()};
     }
 
-    getAbsoluteVisualData() {
+    /**
+     * Coordinates ({x, y}) with respect to the root node.
+     */
+    getAbsoluteCoords() {
       const selfAndPredecessors = this.getSelfAndPredecessors();
       return {
         r: this.visualData.r,
