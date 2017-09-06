@@ -147,7 +147,6 @@ module.exports.create = () => {
 
     newEdges
       .append('line')
-      .attr('id', 'dep')
       .attr('class', e => e.getClass())
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
@@ -157,12 +156,10 @@ module.exports.create = () => {
     const hoverAreas = newEdges
       .filter(e => e.hasDetailedDescription())
       .append('line')
-      .attr('id', 'area')
       .attr('class', 'area')
       .style('visibility', 'hidden')
       .style('pointer-events', 'all')
       .style('stroke-width', clickAreaWidth)
-      .style('stroke', 'yellow')
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
@@ -336,13 +333,13 @@ module.exports.create = () => {
 
   function hideEdges(edges) {
     edges.style('visibility', 'hidden');
-    edges.select('#area').style('pointer-events', 'none');
+    edges.select('line.area').style('pointer-events', 'none');
   }
 
   function showEdges(edges) {
     edges.style('visibility', 'visible');
     edges.select('line').attr('class', e => e.getClass());
-    edges.select('#area').style('pointer-events', e => e.hasDetailedDescription() ? 'all' : 'none');
+    edges.select('line.area').style('pointer-events', e => e.hasDetailedDescription() ? 'all' : 'none');
   }
 
   function runTransition(transition, transitionRunner) {
@@ -362,7 +359,7 @@ module.exports.create = () => {
   }
 
   function updateLinePositionWithAnimation(edges) {
-    const dependencyTransition = edges.select('#dep').transition().duration(TRANSITION_DURATION);
+    const dependencyTransition = edges.select('line.dependency').transition().duration(TRANSITION_DURATION);
 
     const adaptStartAndEnd = selection => selection
       .attr('x1', e => e.visualData.startPoint.x)
@@ -377,7 +374,7 @@ module.exports.create = () => {
   }
 
   function updateLinePositionWithoutAnimation(edges, callback) {
-    edges.select('#dep')
+    edges.select('line.dependency')
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
@@ -388,7 +385,7 @@ module.exports.create = () => {
 
   function updateClickAreaPosition(edges) {
     edges
-      .select('#area')
+      .select('line.area')
       .attr('x1', e => e.visualData.startPoint.x)
       .attr('y1', e => e.visualData.startPoint.y)
       .attr('x2', e => e.visualData.endPoint.x)
