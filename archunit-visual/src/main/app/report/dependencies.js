@@ -133,11 +133,16 @@ const init = (View) => {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
     }
 
-    refreshViews(svgElement) {
+    _refreshViews(svgElement) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       this._lastStateVisibleDependencies.filter(d => !map.has(d.getIdentifyingString())).forEach(d => d.hide());
       this.getVisible().forEach(d => d.initView(svgElement));
+    }
+
+    initViews(svgElement, callback) {
+      this._refreshViews(svgElement);
+      this.getVisible().forEach(d => d.createViewIfNotExisting(callback));
     }
 
     changeFold(foldedElement, isFolded) {

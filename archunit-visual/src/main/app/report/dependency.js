@@ -205,6 +205,10 @@ const init = (View, nodeMap) => {
       this._view = new View(svgElement, this);
     }
 
+    createViewIfNotExisting(callback) {
+      this._view.createViewIfNotExisting(callback);
+    }
+
     hide() {
       this._view.hide();
     }
