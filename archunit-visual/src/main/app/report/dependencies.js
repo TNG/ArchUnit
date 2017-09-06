@@ -77,6 +77,7 @@ const init = (View) => {
   };
 
   const recreateVisibleDependencies = dependencies => {
+    dependencies._lastStateVisibleDependencies = dependencies._visibleDependencies;
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
   };
@@ -133,7 +134,10 @@ const init = (View) => {
     }
 
     refreshViews(svgElement) {
-      this.getVisible().forEach(d => d.refreshView(svgElement));
+      const map = new Map();
+      this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
+      this._lastStateVisibleDependencies.filter(d => !map.has(d.getIdentifyingString())).forEach(d => d.hide());
+      this.getVisible().forEach(d => d.initView(svgElement));
     }
 
     changeFold(foldedElement, isFolded) {

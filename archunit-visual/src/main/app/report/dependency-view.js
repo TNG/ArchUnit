@@ -28,6 +28,7 @@ const init = (transitionDuration) => {
 
       this._svgElement =
         d3.select(parentSvgElement).select(`g[id='${dependency.getIdentifyingString()}']`).data([dependency]).node();
+      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
     }
 
     show(dependency) {
@@ -38,10 +39,6 @@ const init = (transitionDuration) => {
     hide() {
       d3.select(this._svgElement).style('visibility', 'hidden');
       d3.select(this._svgElement).select('line.area').style('pointer-events', 'none');
-    }
-
-    updateClass(dependency) {
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
     }
 
     _updateAreaPosition(dependency) {
@@ -60,13 +57,13 @@ const init = (transitionDuration) => {
       return promise;
     }
 
-    createIfNotExisting(dependency) {
+    createIfNotExisting(dependency, callback) {
       if (d3.select(this._svgElement).empty()) {
-        this._createNew(dependency);
+        this._createNew(dependency, callback);
       }
     }
 
-    _createNew(dependency) {
+    _createNew(dependency, callback) {
       d3.select(this._svgElement)
         .append('g')
         .attr('id', dependency.getIdentifyingString())
@@ -84,6 +81,7 @@ const init = (transitionDuration) => {
           .style('visibility', 'hidden')
           .style('pointer-events', 'all')
           .style('stroke-width', clickAreaWidth);
+        callback(d3.select(this._svgElement).select('line.area'));
       }
       this.updatePositionWithoutTransition();
     }

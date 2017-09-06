@@ -201,8 +201,12 @@ const init = (View, nodeMap) => {
       this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
-    refreshView(svgElement) {
+    initView(svgElement) {
       this._view = new View(svgElement, this);
+    }
+
+    hide() {
+      this._view.hide();
     }
 
     getIdentifyingString() {
