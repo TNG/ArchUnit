@@ -3,7 +3,6 @@
 /*
  * Some poor man's DI solution...
  */
-
 const init = (getNodeView, getDependencyView, getVisualizationStyles, getCalculateTextWidth) => {
 
   const getVisualizationFunctions = () => {
@@ -30,10 +29,11 @@ const init = (getNodeView, getDependencyView, getVisualizationStyles, getCalcula
   }
 };
 
+const TRANSITION_DURATION = 300;
+
 module.exports.newInstance = overrides => {
   overrides = overrides || {};
 
-  const TRANSITION_DURATION = 300;
   const getNodeView = () => overrides.NodeView || require('./node-view').init(TRANSITION_DURATION).View;
   const getDependencyView = () => overrides.DependencyView || require('./dependency-view').init(TRANSITION_DURATION).View;
   const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();

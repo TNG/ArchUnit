@@ -3,7 +3,40 @@
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
-const vectors = require('./vectors').vectors;
+``
+
+// FIXME: Test missing!! (There is only one for not dragging out)
+/**
+ * Takes an enclosing circle radius and an inner circle relative to the enclosing circle's center.
+ * Furthermore takes a translation vector with respect to the inner circle.
+ * Calculates the x- and y- coordinate for a maximal translation of the inner circle,
+ * keeping the inner circle fully enclosed within the outer circle.
+ *
+ * @param innerCircle (tuple consisting of x, y, r, where x and y coordinate are relative to the middle point of the enclosing circle)
+ */
+const translate = innerCircle => ({
+  /**
+   * @param enclosingCircleRadius radius of the outer circle
+   */
+  withinEnclosingCircleOfRadius: enclosingCircleRadius => ({
+    /**
+     * @param translationVector translation vector to be applied to an inner circle
+     * @return the center coordinates of the inner circle after translation, with respect to the enclosing circle's center.
+     * Keeps the inner circle enclosed within the outer circle.
+     */
+    asFarAsPossibleInTheDirectionOf: translationVector => {
+      const c1 = translationVector.x * translationVector.x + translationVector.y * translationVector.y;
+      const c2 = Math.pow(enclosingCircleRadius - innerCircle.r, 2);
+      const c3 = -Math.pow(innerCircle.y * translationVector.x - innerCircle.x * translationVector.y, 2);
+      const c4 = -(innerCircle.x * translationVector.x + innerCircle.y * translationVector.y);
+      const scale = (c4 + Math.sqrt(c3 + c2 * c1)) / c1;
+      return {
+        newX: Math.trunc(innerCircle.x + scale * translationVector.x),
+        newY: Math.trunc(innerCircle.y + scale * translationVector.y)
+      };
+    }
+  })
+});
 
 const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
 
@@ -51,9 +84,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       let newY = this.y + dy;
       const centerDistance = new Vector(newX, newY).length();
       if (centerDistance + this.r > parent.getRadius() && !parent.isRoot()) {
-        const maximumVector = vectors.getMaximumShiftedVectorWithinCircle(parent.getRadius(), this, {x: dx, y: dy});
-        newX = Math.trunc(maximumVector.x);
-        newY = Math.trunc(maximumVector.y);
+        ({newX, newY} = translate(this)
+          .withinEnclosingCircleOfRadius(parent.getRadius())
+          .asFarAsPossibleInTheDirectionOf({x: dx, y: dy}));
       }
       this.x = newX;
       this.y = newY;
@@ -195,13 +228,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     }
 
     getSelfAndPredecessors() {
-      const result = [];
-      let current = this;
-      while (current) {
-        result.push(current);
-        current = current._parent;
-      }
-      return result;
+      const predecessors = this._parent ? this._parent.getSelfAndPredecessors() : [];
+      return [this, ...predecessors];
     }
 
     getVisibleDependencies() {
