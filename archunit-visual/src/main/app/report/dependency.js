@@ -206,7 +206,7 @@ const init = (View, nodeMap) => {
     }
 
     createViewIfNotExisting(callback) {
-      this._view.createViewIfNotExisting(callback);
+      this._view.createIfNotExisting(this, callback);
     }
 
     hide() {

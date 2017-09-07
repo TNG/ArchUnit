@@ -138,8 +138,7 @@ module.exports.create = () => {
   }
 
   function initializeDeps() {
-    const edges = gEdges.selectAll().data(graph.getVisibleDependencies()).enter();
-    createNewEdges(edges);
+    graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
   }
 
   function createNewEdges(selection) {

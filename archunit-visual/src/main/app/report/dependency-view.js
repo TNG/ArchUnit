@@ -25,10 +25,13 @@ const init = (transitionDuration) => {
   const View = class {
     constructor(parentSvgElement, dependency) {
       dependency.anyProperty = transitionDuration;
-
+      this._parentSvgElement = parentSvgElement;
       this._svgElement =
-        d3.select(parentSvgElement).select(`g[id='${dependency.getIdentifyingString()}']`).data([dependency]).node();
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
+        d3.select(parentSvgElement).select(`g[id='${dependency.getIdentifyingString()}']`).node();
+      if (!d3.select(this._svgElement).empty()) {
+        d3.select(this._svgElement).data([dependency]);
+        d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
+      }
     }
 
     show(dependency) {
@@ -64,7 +67,8 @@ const init = (transitionDuration) => {
     }
 
     _createNew(dependency, callback) {
-      d3.select(this._svgElement)
+      this._svgElement =
+        d3.select(this._parentSvgElement)
         .append('g')
         .attr('id', dependency.getIdentifyingString())
         .data([dependency])
@@ -83,7 +87,7 @@ const init = (transitionDuration) => {
           .style('stroke-width', clickAreaWidth);
         callback(d3.select(this._svgElement).select('line.area'));
       }
-      this.updatePositionWithoutTransition();
+      this.updatePositionWithoutTransition(dependency);
     }
   };
 

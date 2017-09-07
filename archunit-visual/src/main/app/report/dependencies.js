@@ -77,7 +77,7 @@ const init = (View) => {
   };
 
   const recreateVisibleDependencies = dependencies => {
-    dependencies._lastStateVisibleDependencies = dependencies._visibleDependencies;
+    dependencies._lastStateVisibleDependencies = dependencies._visibleDependencies || [];
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
   };
