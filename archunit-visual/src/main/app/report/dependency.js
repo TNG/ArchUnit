@@ -205,6 +205,10 @@ const init = (View, nodeMap) => {
       this._view = new View(svgElement, this, callback);
     }
 
+    updateViewWithoutTransition() {
+      this._view.updatePositionWithoutTransition(this);
+    }
+
     show() {
       this._view.show(this);
     }
