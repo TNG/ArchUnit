@@ -4,6 +4,8 @@ const dependencyTypes = require('./dependency-types.json');
 const nodeTypes = require('./node-types.json');
 const initDependency = require('./dependency.js').init;
 
+const d3 = require('d3');
+
 const init = (View) => {
   let nodes = new Map();
   let buildDependency;
@@ -77,10 +79,8 @@ const init = (View) => {
   };
 
   const recreateVisibleDependencies = dependencies => {
-    dependencies._lastStateVisibleDependencies = dependencies._visibleDependencies || [];
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
-    dependencies._hideOldViews();
   };
 
   const reapplyFilters = (dependencies, filters) => {
@@ -134,14 +134,11 @@ const init = (View) => {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
     }
 
-    _hideOldViews() {
+    _refreshViews(svgElement, callback) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
-      this._lastStateVisibleDependencies.filter(d => !map.has(d.getIdentifyingString())).forEach(d => d.hide());
-    }
-
-    _refreshViews(svgElement, callback) {
-      this._hideOldViews();
+      //FIXME: there must be a better solution
+      d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
       this.getVisible().forEach(d => d.initView(svgElement, callback));
     }
 
