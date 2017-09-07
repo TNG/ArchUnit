@@ -321,8 +321,8 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithAnimation() {
-    const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
-    hideEdges(edges.exit());
+    graph.root._dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
+    const edges = gEdges.selectAll('g').filter(d => graph.root._dependencies.getVisible().includes(d));
     return updateLinePositionWithAnimation(edges);
   }
 
@@ -347,7 +347,7 @@ module.exports.create = () => {
       transitionRunner(transition).on('end', () => {
         if (!wasTriggered) {
           wasTriggered = true;
-          resolve();
+          return resolve();
         }
       });
     });
@@ -363,7 +363,7 @@ module.exports.create = () => {
       .attr('y2', e => e.visualData.endPoint.y);
 
     return runTransition(dependencyTransition, adaptStartAndEnd).then(() => {
-      updateEdges(edges);
+      graph.root._dependencies.getVisible().forEach(d => d.show());
       updateClickAreaPosition(edges);
     });
   }

@@ -210,11 +210,15 @@ const init = (View, nodeMap) => {
     }
 
     show() {
-      this._view.show(this);
+      if (this._view) {
+        this._view.show(this);
+      }
     }
 
     hide() {
-      this._view.hide();
+      if (this._view) {
+        this._view.hide();
+      }
     }
 
     getIdentifyingString() {
