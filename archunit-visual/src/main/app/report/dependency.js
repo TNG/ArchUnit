@@ -201,12 +201,12 @@ const init = (View, nodeMap) => {
       this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
-    initView(svgElement) {
-      this._view = new View(svgElement, this);
+    initView(svgElement, callback) {
+      this._view = new View(svgElement, this, callback);
     }
 
-    createViewIfNotExisting(callback) {
-      this._view.createIfNotExisting(this, callback);
+    show() {
+      this._view.show(this);
     }
 
     hide() {
@@ -222,7 +222,7 @@ const init = (View, nodeMap) => {
     }
 
     getClass() {
-      return "dependency " + this.description.getDependencyTypeNamesAsString();
+      return 'dependency ' + this.description.getDependencyTypeNamesAsString();
     }
 
     toShortStringRelativeToPredecessors(from, to) {
