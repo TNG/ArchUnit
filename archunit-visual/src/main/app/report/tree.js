@@ -107,6 +107,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
+      root.relayout();
     },
 
     values: function () {
@@ -219,6 +220,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return false;
     }
 
+    //FIXME: is the return-value really necessary?
     changeFold() {
       const foldChanged = fold(this, !this._folded);
       if (foldChanged) {

@@ -32,20 +32,16 @@ const init = (jsonToRoot, jsonToDependencies) => {
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false);
-      //FIXME: move invoke of refresh into node
-      this.refresh();
       this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     filterNodesByNameNotContaining(filterString) {
       this.root.filterByName(filterString, true);
-      this.refresh();
       this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
-      this.refresh();
       this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
