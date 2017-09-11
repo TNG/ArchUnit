@@ -75,11 +75,6 @@ module.exports.create = () => {
    * padding between a line and its title
    */
   const TEXT_PADDING = 5;
-  /*
-   * the width of the click area of the lines
-   */
-  const clickAreaWidth = 10;
-
   const DETAILED_DEPENDENCIES_HIDE_DURATION = 200;
   const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
   const TRANSITION_DURATION = 300;
@@ -137,32 +132,6 @@ module.exports.create = () => {
 
   function initializeDeps() {
     graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
-  }
-
-  function createNewEdges(selection) {
-    const newEdges = selection.append('g');
-
-    newEdges
-      .append('line')
-      .attr('class', e => e.getClass())
-      .attr('x1', e => e.visualData.startPoint.x)
-      .attr('y1', e => e.visualData.startPoint.y)
-      .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y);
-
-    const hoverAreas = newEdges
-      .filter(e => e.hasDetailedDescription())
-      .append('line')
-      .attr('class', 'area')
-      .style('visibility', 'hidden')
-      .style('pointer-events', 'all')
-      .style('stroke-width', clickAreaWidth)
-      .attr('x1', e => e.visualData.startPoint.x)
-      .attr('y1', e => e.visualData.startPoint.y)
-      .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y);
-
-    initializeDetailedDeps(hoverAreas);
   }
 
   function initializeDetailedDeps(hoverAreas) {
@@ -307,11 +276,6 @@ module.exports.create = () => {
     return graph.root.updateView(TRANSITION_DURATION);
   }
 
-  function updateEdges(edges) {
-    showEdges(edges);
-    createNewEdges(edges.enter());
-  }
-
   function updateEdgesWithoutAnimation() {
     graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
     graph.root._dependencies.updateViewsWithoutTransition();
@@ -321,17 +285,6 @@ module.exports.create = () => {
     graph.root._dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
     const edges = gEdges.selectAll('g').filter(d => graph.root._dependencies.getVisible().includes(d));
     return updateLinePositionWithAnimation(edges);
-  }
-
-  function hideEdges(edges) {
-    edges.style('visibility', 'hidden');
-    edges.select('line.area').style('pointer-events', 'none');
-  }
-
-  function showEdges(edges) {
-    edges.style('visibility', 'visible');
-    edges.select('line').attr('class', e => e.getClass());
-    edges.select('line.area').style('pointer-events', e => e.hasDetailedDescription() ? 'all' : 'none');
   }
 
   function runTransition(transition, transitionRunner) {
@@ -363,16 +316,6 @@ module.exports.create = () => {
       graph.root._dependencies.getVisible().forEach(d => d.show());
       updateClickAreaPosition(edges);
     });
-  }
-
-  function updateLinePositionWithoutAnimation(edges, callback) {
-    edges.select('line.dependency')
-      .attr('x1', e => e.visualData.startPoint.x)
-      .attr('y1', e => e.visualData.startPoint.y)
-      .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y);
-    callback(edges);
-    updateClickAreaPosition(edges);
   }
 
   function updateClickAreaPosition(edges) {
