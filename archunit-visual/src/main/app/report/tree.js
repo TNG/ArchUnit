@@ -3,7 +3,6 @@
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
-``
 
 // FIXME: Test missing!! (There is only one for not dragging out)
 /**
@@ -118,6 +117,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
     }
   });
+
+  let updatePromise = Promise.all([]);
 
   const Node = class {
     constructor(jsonNode) {
@@ -295,14 +296,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       this._view = new View(svgElement, this);
       if (!this.isRoot() && !this.isLeaf()) {
         this._view.onClick(() => {
-          if (this.changeFold()) {
-            onNodeFoldChanged();
-          }
+          updatePromise = updatePromise.then(() => {
+            if (this.changeFold()) {
+              return onNodeFoldChanged();
+            }
+          });
         });
       }
       this._view.onDrag((dx, dy) => {
-        this.drag(dx, dy);
-        onMoved(this);
+        updatePromise.then(() => {
+          this.drag(dx, dy);
+          onMoved(this);
+        });
       });
       this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged, onMoved));
     }

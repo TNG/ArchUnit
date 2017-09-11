@@ -137,7 +137,6 @@ const init = (View) => {
     _refreshViews(svgElement, callback) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
-      //FIXME: there must be a better solution
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
       this.getVisible().forEach(d => d.initView(svgElement, callback));
     }

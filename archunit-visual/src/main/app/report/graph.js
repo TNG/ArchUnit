@@ -124,8 +124,10 @@ module.exports.create = () => {
 
   function initializeTree() {
     const onMoved = node => {
-      graph.root._dependencies.updateVisualDataOfDependenciesOfNode(node);
-      graph.root._dependencies.updateViewsWithoutTransitionOfNode(node);
+      updatePromise.then(() => {
+        graph.root._dependencies.updateVisualDataOfDependenciesOfNode(node);
+        graph.root._dependencies.updateViewsWithoutTransitionOfNode(node);
+      });
     };
     graph.root.initView(gTree.node(), updateVisualization, onMoved);
   }
@@ -269,6 +271,7 @@ module.exports.create = () => {
       graph.getVisibleDependencies().forEach(d => d.updateVisualData());
       return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
     });
+    return updatePromise;
   }
 
   function updateNodes() {
@@ -297,8 +300,6 @@ module.exports.create = () => {
       adaptSVGSizeAndPosition();
       initializeGraph();
       graph.foldAllNodes();
-      updateVisualization();
-
 
       // FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.render = adaptSVGSizeAndPosition;
