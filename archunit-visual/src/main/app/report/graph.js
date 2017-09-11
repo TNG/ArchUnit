@@ -283,48 +283,7 @@ module.exports.create = () => {
 
   function updateEdgesWithAnimation() {
     graph.root._dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
-    const edges = gEdges.selectAll('g').filter(d => graph.root._dependencies.getVisible().includes(d));
-    return updateLinePositionWithAnimation(edges);
-  }
-
-  function runTransition(transition, transitionRunner) {
-    return new Promise(resolve => {
-      if (transition.empty()) {
-        return resolve();
-      }
-
-      let wasTriggered = false;
-      transitionRunner(transition).on('end', () => {
-        if (!wasTriggered) {
-          wasTriggered = true;
-          return resolve();
-        }
-      });
-    });
-  }
-
-  function updateLinePositionWithAnimation(edges) {
-    const dependencyTransition = edges.select('line.dependency').transition().duration(TRANSITION_DURATION);
-
-    const adaptStartAndEnd = selection => selection
-      .attr('x1', e => e.visualData.startPoint.x)
-      .attr('y1', e => e.visualData.startPoint.y)
-      .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y);
-
-    return runTransition(dependencyTransition, adaptStartAndEnd).then(() => {
-      graph.root._dependencies.getVisible().forEach(d => d.show());
-      updateClickAreaPosition(edges);
-    });
-  }
-
-  function updateClickAreaPosition(edges) {
-    edges
-      .select('line.area')
-      .attr('x1', e => e.visualData.startPoint.x)
-      .attr('y1', e => e.visualData.startPoint.y)
-      .attr('x2', e => e.visualData.endPoint.x)
-      .attr('y2', e => e.visualData.endPoint.y);
+    return graph.root._dependencies.updateViewsWithTransition().then(() => graph.root._dependencies._showAllVisibleDependencies());
   }
 
   return new Promise((resolve, reject) => {

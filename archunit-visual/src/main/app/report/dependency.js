@@ -209,6 +209,10 @@ const init = (View, nodeMap) => {
       this._view.updatePositionWithoutTransition(this);
     }
 
+    updateViewWithTransition() {
+      return this._view.updatePositionWithTransition(this);
+    }
+
     show() {
       if (this._view) {
         this._view.show(this);
