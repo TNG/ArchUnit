@@ -1,9 +1,10 @@
 'use strict';
 
-const init = (jsonToRoot) => {
+const init = (jsonToRoot, jsonToDependencies) => {
   const Graph = class {
-    constructor(root) {
+    constructor(root, dependencies) {
       this.root = root;
+      this.dependencies = dependencies;
     }
 
     getVisibleNodes() {
@@ -11,47 +12,53 @@ const init = (jsonToRoot) => {
     }
 
     getVisibleDependencies() {
-      return this.root.getVisibleDependencies();
+      return this.dependencies.getVisible();
     }
 
     foldAllNodes() {
       this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
-          node.fold();
+          if (node.fold()) {
+            this.dependencies.changeFold(node.getFullName(), node.isFolded());
+          }
         }
       });
       this.refresh();
     }
 
     getDetailedDependenciesOf(from, to) {
-      return this.root.getDetailedDependenciesOf(from, to);
+      return this.dependencies.getDetailedDependenciesOf(from, to);
     }
 
     filterNodesByNameContaining(filterString) {
-      this.root.filterByName(filterString, false); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.root.filterByName(filterString, false);
+      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
     }
 
     filterNodesByNameNotContaining(filterString) {
-      this.root.filterByName(filterString, true); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.root.filterByName(filterString, true);
+      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
     }
 
     filterNodesByType(filter) {
-      this.root.filterByType(filter.showInterfaces, filter.showClasses); // FIXME: Filtering belongs to Graph, not to Node (node._filters only gets filled on root anyway)
+      this.root.filterByType(filter.showInterfaces, filter.showClasses);
+      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
     }
 
     resetFilterNodesByType() {
       this.root.resetFilterByType();
+      this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     filterDependenciesByType(typeFilterConfig) {
-      this.root.filterDependenciesByType(typeFilterConfig);
+      this.dependencies.filterByType(typeFilterConfig);
     }
 
     resetFilterDependenciesByType() {
-      this.root.resetFilterDependenciesByType();
+      this.dependencies.resetFilterByType();
     }
 
     refresh() {
@@ -62,7 +69,9 @@ const init = (jsonToRoot) => {
   return {
     jsonToGraph: jsonRoot => {
       const root = jsonToRoot(jsonRoot);
-      const graph = new Graph(root);
+      const dependencies = jsonToDependencies(jsonRoot, root);
+      dependencies.updateVisualData();
+      const graph = new Graph(root, dependencies);
       return graph;
     }
   };
@@ -92,6 +101,7 @@ module.exports.create = () => {
   const calculateTextWidth = require('./text-width-calculator');
   const appContext = require('./app-context').newInstance();
   const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
+  const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
 
   let graph;
 
@@ -125,15 +135,18 @@ module.exports.create = () => {
   function initializeTree() {
     const onMoved = node => {
       updatePromise.then(() => {
-        graph.root._dependencies.updateVisualDataOfDependenciesOfNode(node);
-        graph.root._dependencies.updateViewsWithoutTransitionOfNode(node);
+        graph.dependencies.updateVisualDataOfDependenciesOfNode(node);
+        graph.dependencies.updateViewsWithoutTransitionOfNode(node);
       });
     };
-    graph.root.initView(gTree.node(), updateVisualization, onMoved);
+    graph.root.initView(gTree.node(), node => {
+      graph.dependencies.changeFold(node.getFullName(), node.isFolded());
+      return updateVisualization();
+    }, onMoved);
   }
 
   function initializeDeps() {
-    graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies.initViews(gEdges.node(), initializeDetailedDeps);
   }
 
   function initializeDetailedDeps(hoverAreas) {
@@ -280,13 +293,13 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithoutAnimation() {
-    graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
-    graph.root._dependencies.updateViewsWithoutTransition();
+    graph.dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies.updateViewsWithoutTransition();
   }
 
   function updateEdgesWithAnimation() {
-    graph.root._dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
-    return graph.root._dependencies.updateViewsWithTransition().then(() => graph.root._dependencies._showAllVisibleDependencies());
+    graph.dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
+    return graph.dependencies.updateViewsWithTransition().then(() => graph.dependencies._showAllVisibleDependencies());
   }
 
   return new Promise((resolve, reject) => {
@@ -295,7 +308,7 @@ module.exports.create = () => {
         return reject(error);
       }
 
-      const jsonToGraph = init(jsonToRoot).jsonToGraph;
+      const jsonToGraph = init(jsonToRoot, jsonToDependencies).jsonToGraph;
       graph = jsonToGraph(jsonroot);
       adaptSVGSizeAndPosition();
       initializeGraph();

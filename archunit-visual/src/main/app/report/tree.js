@@ -37,7 +37,7 @@ const translate = innerCircle => ({
   })
 });
 
-const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
+const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
@@ -65,10 +65,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
       root = root._parent;
     }
     return root;
-  };
-
-  const getDependencies = node => {
-    return getRoot(node)._dependencies;
   };
 
   const VisualData = class {
@@ -199,17 +195,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     }
 
     fold() {
-      const wasFolded = fold(this, true);
-      if (wasFolded) {
-        getDependencies(this).changeFold(this.getFullName(), this.isFolded());
-      }
-      return wasFolded;
+      return fold(this, true);
     }
 
     changeFold() {
       const foldChanged = fold(this, !this._folded);
       if (foldChanged) {
-        getDependencies(this).changeFold(this.getFullName(), this.isFolded());
         getRoot(this).relayout();
       }
       return foldChanged;
@@ -231,10 +222,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     getSelfAndPredecessors() {
       const predecessors = this._parent ? this._parent.getSelfAndPredecessors() : [];
       return [this, ...predecessors];
-    }
-
-    getVisibleDependencies() {
-      return getDependencies(this).getVisible();
     }
 
     getDescendants() {
@@ -298,7 +285,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
         this._view.onClick(() => {
           updatePromise = updatePromise.then(() => {
             if (this.changeFold()) {
-              return onNodeFoldChanged();
+              return onNodeFoldChanged(this);
             }
           });
         });
@@ -371,7 +358,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
       this._filters.nameFilter = node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
       this._filters.apply();
-      getDependencies(this).setNodeFilters(getRoot(this).getFilters());
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -381,13 +367,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
 
       this._filters.typeFilter = node => node.matchesOrHasChildThatMatches(predicate);
       this._filters.apply();
-      getDependencies(this).setNodeFilters(getRoot(this).getFilters());
     }
 
     resetFilterByType() {
       this._filters.typeFilter = null;
       this._filters.apply();
-      getDependencies(this).setNodeFilters(getRoot(this).getFilters());
     }
   };
 
@@ -398,18 +382,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonT
     root.callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
     root.getByName = name => map.get(name);
 
-    root._dependencies = jsonToDependencies(jsonRoot, root);
-    root._dependencies.updateVisualData();
-    root.getDetailedDependenciesOf = (from, to) => root._dependencies.getDetailedDependenciesOf(from, to);
-    root.filterDependenciesByType = (typeFilterConfig) => root._dependencies.filterByType(typeFilterConfig);
-    root.resetFilterDependenciesByType = () => root._dependencies.resetFilterByType();
-
     return root;
   };
 };
 
-module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies) => {
+module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return {
-    jsonToRoot: init(View, NodeText, visualizationFunctions, visualizationStyles, jsonToDependencies)
+    jsonToRoot: init(View, NodeText, visualizationFunctions, visualizationStyles)
   };
 };
