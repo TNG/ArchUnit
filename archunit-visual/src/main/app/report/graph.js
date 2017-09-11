@@ -5,6 +5,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
+      this.root.callOnSelfThenEveryDescendant(node => node._onDrag = () => this.dependencies.updateVisualDataOfDependenciesOfNode(node));
     }
 
     getVisibleNodes() {
@@ -32,20 +33,20 @@ const init = (jsonToRoot, jsonToDependencies) => {
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
+      this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     filterNodesByNameNotContaining(filterString) {
       this.root.filterByName(filterString, true);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
+      this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.refresh();
+      this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
     resetFilterNodesByType() {
@@ -135,7 +136,6 @@ module.exports.create = () => {
   function initializeTree() {
     const onMoved = node => {
       updatePromise.then(() => {
-        graph.dependencies.updateVisualDataOfDependenciesOfNode(node);
         graph.dependencies.updateViewsWithoutTransitionOfNode(node);
       });
     };

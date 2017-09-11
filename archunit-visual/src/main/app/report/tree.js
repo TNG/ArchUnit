@@ -130,6 +130,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
+      this._updateViewOnDrag = () => {
+      };
+      this._onDrag = () => {
+      };
+
       if (this.isRoot()) {
         this.relayout();
       }
@@ -281,6 +286,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, onNodeFoldChanged, onMoved) {
       this._view = new View(svgElement, this);
+      this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
+
       if (!this.isRoot() && !this.isLeaf()) {
         this._view.onClick(() => {
           updatePromise = updatePromise.then(() => {
@@ -290,12 +297,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           });
         });
       }
+
       this._view.onDrag((dx, dy) => {
         updatePromise.then(() => {
           this.drag(dx, dy);
           onMoved(this);
         });
       });
+
       this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged, onMoved));
     }
 
@@ -337,7 +346,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     drag(dx, dy) {
       this.visualData.move(dx, dy, this.getParent());
-      this._view.updatePosition(this.visualData);
+      this._updateViewOnDrag();
+      this._onDrag();
     }
 
     resetFiltering() {
