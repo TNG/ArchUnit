@@ -118,10 +118,13 @@ const init = (View) => {
       this._filteredUniqued = uniteDependencies(Array.from(this._filtered));
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
+      this._updateViewsOnNodeDragged = () => {
+      };
     }
 
     updateOnNodeDragged(node) {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
+      this._updateViewsOnNodeDragged(node);
     }
 
     _reassignViews(svgElement, callback) {
@@ -138,6 +141,7 @@ const init = (View) => {
     initViews(svgElement, callback) {
       this._svgElement = svgElement;
       this._callback = callback;
+      this._updateViewsOnNodeDragged = node => this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateViewWithoutTransition());
     }
 
     refreshViews() {
@@ -147,10 +151,6 @@ const init = (View) => {
 
     updateViewsWithoutTransition() {
       this.getVisible().forEach(d => d.updateViewWithoutTransition());
-    }
-
-    updateViewsWithoutTransitionOfNode(node) {
-      this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateViewWithoutTransition());
     }
 
     updateViewsWithTransition() {

@@ -120,14 +120,9 @@ module.exports.create = () => {
   }
 
   function initializeTree() {
-    const onMoved = node => {
-      updatePromise.then(() => {
-        graph.dependencies.updateViewsWithoutTransitionOfNode(node);
-      });
-    };
     graph.root.initView(gTree.node(), () => {
       return updateVisualization();
-    }, onMoved);
+    });
   }
 
   function initializeDeps() {

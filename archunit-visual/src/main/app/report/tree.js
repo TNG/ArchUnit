@@ -303,7 +303,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    initView(svgElement, onNodeFoldChanged, onMoved) {
+    initView(svgElement, onNodeFoldChanged) {
       this._view = new View(svgElement, this);
       this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
 
@@ -320,11 +320,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._view.onDrag((dx, dy) => {
         updatePromise.then(() => {
           this.drag(dx, dy);
-          onMoved(this);
         });
       });
 
-      this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged, onMoved));
+      this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged));
     }
 
     updateView() {
