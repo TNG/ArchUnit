@@ -37,7 +37,7 @@ describe("Visual data of dependency", () => {
     const toChange = "com.tngtech.test.testclass1";
     const node = graphWrapper.getNode(toChange);
     node.drag(10, -20);
-    graphWrapper.graph.dependencies.updateVisualDataOfDependenciesOfNode(node);
+    graphWrapper.graph.dependencies.updateOnNodeDragged(node);
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });

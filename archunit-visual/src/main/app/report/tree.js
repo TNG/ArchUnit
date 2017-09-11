@@ -140,6 +140,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    setOnDrag(onDrag) {
+      this._onDrag = onDrag;
+      this._originalChildren.forEach(child => child.setOnDrag(onDrag));
+    }
+
     isPackage() {
       return this.getType() === nodeTypes.package;
     }
@@ -347,7 +352,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     drag(dx, dy) {
       this.visualData.move(dx, dy, this.getParent());
       this._updateViewOnDrag();
-      this._onDrag();
+      this._onDrag(this);
     }
 
     resetFiltering() {

@@ -5,7 +5,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
-      this.root.callOnSelfThenEveryDescendant(node => node._onDrag = () => this.dependencies.updateVisualDataOfDependenciesOfNode(node));
+      this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
     }
 
     getVisibleNodes() {
