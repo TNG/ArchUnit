@@ -62,7 +62,6 @@ const init = (jsonToRoot, jsonToDependencies) => {
     jsonToGraph: jsonRoot => {
       const root = jsonToRoot(jsonRoot);
       const dependencies = jsonToDependencies(jsonRoot, root);
-      dependencies.updateVisualData();
       const graph = new Graph(root, dependencies);
       return graph;
     }

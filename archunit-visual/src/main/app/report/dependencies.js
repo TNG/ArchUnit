@@ -81,6 +81,7 @@ const init = (View) => {
   const recreateVisibleDependencies = dependencies => {
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
+    dependencies._visibleDependencies.forEach(d => d.updateVisualData());
   };
 
   const reapplyFilters = (dependencies, filters) => {
@@ -88,7 +89,6 @@ const init = (View) => {
       dependencies._all);
     dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
     recreateVisibleDependencies(dependencies);
-    dependencies.observers.forEach(f => f(dependencies.getVisible()));
   };
 
   const newFilters = (dependencies) => ({
@@ -117,17 +117,7 @@ const init = (View) => {
       this._filtered = this._all;
       this._filteredUniqued = uniteDependencies(Array.from(this._filtered));
       recreateVisibleDependencies(this);
-      this.observers = [];
       this._filters = newFilters(this);
-    }
-
-    addObserver(observerFunction) {
-      this.observers.push(observerFunction);
-    }
-
-    updateVisualData() {
-      this.getVisible().forEach(d => d.updateVisualData());
-      this.addObserver(dependencies => dependencies.forEach(d => d.updateVisualData()));
     }
 
     updateOnNodeDragged(node) {
@@ -170,7 +160,6 @@ const init = (View) => {
         this._transformers.delete(foldedElement);
       }
       recreateVisibleDependencies(this);
-      this.getVisible().forEach(d => d.updateVisualData());
     }
 
     setNodeFilters(filters) {
