@@ -136,7 +136,12 @@ const init = (View) => {
     }
 
     initViews(svgElement, callback) {
-      this._refreshViews(svgElement, callback);
+      this._svgElement = svgElement;
+      this._callback = callback;
+    }
+
+    refreshViews() {
+      this._refreshViews(this._svgElement, this._callback);
       this._showAllVisibleDependencies();
     }
 

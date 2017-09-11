@@ -132,6 +132,7 @@ module.exports.create = () => {
 
   function initializeDeps() {
     graph.dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies.refreshViews();
   }
 
   function initializeDetailedDeps(hoverAreas) {
@@ -277,7 +278,7 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithoutAnimation() {
-    graph.dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies.refreshViews();
     graph.dependencies.updateViewsWithoutTransition();
   }
 
