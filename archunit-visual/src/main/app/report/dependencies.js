@@ -170,6 +170,7 @@ const init = (View) => {
         this._transformers.delete(foldedElement);
       }
       recreateVisibleDependencies(this);
+      this.getVisible().forEach(d => d.updateVisualData());
     }
 
     setNodeFilters(filters) {

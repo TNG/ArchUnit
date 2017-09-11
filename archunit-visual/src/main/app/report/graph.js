@@ -281,7 +281,6 @@ module.exports.create = () => {
 
   function updateVisualization() {
     updatePromise = updatePromise.then(() => {
-      graph.getVisibleDependencies().forEach(d => d.updateVisualData());
       return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
     });
     return updatePromise;
