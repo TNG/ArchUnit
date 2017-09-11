@@ -228,7 +228,7 @@ describe("Tree", () => {
       "com.tngtech.class2"];
     expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp);
 
-    root.resetFilterByType();
+    root.filterByType(true, true);
     exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
       "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
       "com.tngtech.class2", "com.tngtech.class3"];

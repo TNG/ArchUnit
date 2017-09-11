@@ -101,7 +101,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     nameFilter: null,
 
     apply: function () {
-      root.resetFiltering();
+      root._resetFiltering();
       const applyFilter = (node, filters) => {
         node._filteredChildren = filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren);
         node._filteredChildren.forEach(c => applyFilter(c, filters));
@@ -355,8 +355,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._onDrag(this);
     }
 
-    resetFiltering() {
-      this.getOriginalChildren().forEach(node => node.resetFiltering());
+    _resetFiltering() {
+      this.getOriginalChildren().forEach(node => node._resetFiltering());
       this._filteredChildren = this.getOriginalChildren();
     }
 
@@ -381,11 +381,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
       this._filters.typeFilter = node => node.matchesOrHasChildThatMatches(predicate);
-      this._filters.apply();
-    }
-
-    resetFilterByType() {
-      this._filters.typeFilter = null;
       this._filters.apply();
     }
   };

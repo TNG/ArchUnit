@@ -196,11 +196,6 @@ const init = (View) => {
       this._filters.apply();
     }
 
-    resetFilterByType() {
-      this._filters.typeFilter = null;
-      this._filters.apply();
-    }
-
     getVisible() {
       return this._visibleDependencies;
     }

@@ -49,17 +49,8 @@ const init = (jsonToRoot, jsonToDependencies) => {
       this.dependencies.setNodeFilters(this.root.getFilters());
     }
 
-    resetFilterNodesByType() {
-      this.root.resetFilterByType();
-      this.dependencies.setNodeFilters(this.root.getFilters());
-    }
-
     filterDependenciesByType(typeFilterConfig) {
       this.dependencies.filterByType(typeFilterConfig);
-    }
-
-    resetFilterDependenciesByType() {
-      this.dependencies.resetFilterByType();
     }
 
     refresh() {

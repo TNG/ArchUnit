@@ -346,7 +346,7 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterNodesByType();
+    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
@@ -357,7 +357,7 @@ describe("Dependencies", () => {
     graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false});
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies([]);
 
-    graphWrapper.graph.resetFilterNodesByType();
+    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
@@ -370,7 +370,7 @@ describe("Dependencies", () => {
       showConstructorCall: false,
       showMethodCall: false,
       showFieldAccess: false,
-      showAnonymousImplementing: false,
+      showAnonymousImplementation: false,
       showDepsBetweenChildAndParent: true
     });
     const exp = [
@@ -381,7 +381,15 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterDependenciesByType();
+    graphWrapper.graph.filterDependenciesByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDepsBetweenChildAndParent: true
+    });
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
@@ -407,7 +415,15 @@ describe("Dependencies", () => {
     ];
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.resetFilterDependenciesByType();
+    graphWrapper.graph.filterDependenciesByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDependenciesBetweenClassAndItsInnerClasses: true
+    });
     expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
