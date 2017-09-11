@@ -315,9 +315,8 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithoutAnimation() {
-    const edges = gEdges.selectAll('g').data(graph.getVisibleDependencies(), e => e.from + "->" + e.to);
-    hideEdges(edges.exit());
-    updateLinePositionWithoutAnimation(edges, updateEdges);
+    graph.root._dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.root._dependencies.updateViewsWithoutTransition();
   }
 
   function updateEdgesWithAnimation() {

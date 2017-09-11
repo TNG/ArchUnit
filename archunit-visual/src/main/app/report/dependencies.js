@@ -151,6 +151,10 @@ const init = (View) => {
       this._showAllVisibleDependencies();
     }
 
+    updateViewsWithoutTransition() {
+      this.getVisible().forEach(d => d.updateViewWithoutTransition());
+    }
+
     updateViewsWithoutTransitionOfNode(node) {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateViewWithoutTransition());
     }
