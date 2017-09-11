@@ -124,7 +124,7 @@ const init = (View) => {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateVisualData())
     }
 
-    _refreshViews(svgElement, callback) {
+    _reassignViews(svgElement, callback) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
@@ -141,7 +141,7 @@ const init = (View) => {
     }
 
     refreshViews() {
-      this._refreshViews(this._svgElement, this._callback);
+      this._reassignViews(this._svgElement, this._callback);
       this._showAllVisibleDependencies();
     }
 

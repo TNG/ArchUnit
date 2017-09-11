@@ -283,7 +283,7 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithAnimation() {
-    graph.dependencies._refreshViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies._reassignViews(gEdges.node(), initializeDetailedDeps);
     return graph.dependencies.updateViewsWithTransition().then(() => graph.dependencies._showAllVisibleDependencies());
   }
 
