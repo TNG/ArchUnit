@@ -6,6 +6,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
       this.root = root;
       this.dependencies = dependencies;
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
+      this.root.setOnFold(node => this.dependencies.changeFold(node.getFullName(), node.isFolded()));
     }
 
     getVisibleNodes() {
@@ -19,9 +20,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
     foldAllNodes() {
       this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
-          if (node.fold()) {
-            this.dependencies.changeFold(node.getFullName(), node.isFolded());
-          }
+          node.fold();
         }
       });
       this.refresh();
@@ -33,6 +32,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false);
+      //FIXME: move invoke of refresh into node
       this.refresh();
       this.dependencies.setNodeFilters(this.root.getFilters());
     }
@@ -129,8 +129,7 @@ module.exports.create = () => {
         graph.dependencies.updateViewsWithoutTransitionOfNode(node);
       });
     };
-    graph.root.initView(gTree.node(), node => {
-      graph.dependencies.changeFold(node.getFullName(), node.isFolded());
+    graph.root.initView(gTree.node(), () => {
       return updateVisualization();
     }, onMoved);
   }

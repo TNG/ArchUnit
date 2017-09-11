@@ -134,6 +134,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       };
       this._onDrag = () => {
       };
+      this._onFold = () => {
+      };
 
       if (this.isRoot()) {
         this.relayout();
@@ -143,6 +145,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     setOnDrag(onDrag) {
       this._onDrag = onDrag;
       this._originalChildren.forEach(child => child.setOnDrag(onDrag));
+    }
+
+    setOnFold(onFold) {
+      this._onFold = onFold;
+      this._originalChildren.forEach(child => child.setOnFold(onFold));
     }
 
     isPackage() {
@@ -205,13 +212,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     fold() {
-      return fold(this, true);
+      if (fold(this, true)) {
+        this._onFold(this);
+        return true;
+      }
+      return false;
     }
 
     changeFold() {
       const foldChanged = fold(this, !this._folded);
       if (foldChanged) {
         getRoot(this).relayout();
+        this._onFold(this);
       }
       return foldChanged;
     }
