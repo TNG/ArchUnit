@@ -328,7 +328,7 @@ describe("Dragging nodes", () => {
 
     toDrag.drag(dx, dy);
 
-    expect(toDrag.getRelativeCoords()).to.deep.equal(expected);
+    tree.updatePromise.then(() => expect(toDrag.getRelativeCoords()).to.deep.equal(expected), () => assert.fail());
   });
 
   const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
@@ -358,9 +358,11 @@ describe("Dragging nodes", () => {
 
     toDrag.drag(dx, dy);
 
-    root.getSelfAndDescendants().forEach(node => {
-      expect(node.getAbsoluteCoords()).to.deep.equal(expectedCoordsByNode.get(node))
-    });
+    root.updatePromise.then(() => {
+      root.getSelfAndDescendants().forEach(node => {
+        expect(node.getAbsoluteCoords()).to.deep.equal(expectedCoordsByNode.get(node))
+      });
+    }, () => assert.fail());
   });
 
   it("can't be dragged out of its parent", () => {
@@ -404,9 +406,14 @@ describe("Dragging nodes", () => {
     const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
 
     toDrag.drag(deltaOutsideOfParent, 0);
-    expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
 
-    toDrag.drag(0, deltaOutsideOfParent);
-    expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
+    tree.updatePromise.then(() => {
+      expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
+
+      toDrag.drag(0, deltaOutsideOfParent);
+      tree.root.updatePromise.then(() => {
+        expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
+      }, () => assert.fail());
+    }, () => assert.fail());
   });
 });

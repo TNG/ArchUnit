@@ -316,9 +316,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
 
       this._view.onDrag((dx, dy) => {
-        getRoot(this).updatePromise.then(() => {
-          this.drag(dx, dy);
-        });
+        this.drag(dx, dy);
       });
 
       this._originalChildren.forEach(child => child.initView(this._view._svgElement, callback));
@@ -361,9 +359,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param dy The delta in y-direction
      */
     drag(dx, dy) {
-      this.visualData.move(dx, dy, this.getParent());
-      this._updateViewOnDrag();
-      this._onDrag(this);
+      getRoot(this).updatePromise.then(() => {
+        this.visualData.move(dx, dy, this.getParent());
+        this._updateViewOnDrag();
+        this._onDrag(this);
+      });
     }
 
     _resetFiltering() {
