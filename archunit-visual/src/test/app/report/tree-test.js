@@ -27,13 +27,6 @@ describe("Node", () => {
     root.updatePromise.then(() => expect(root.isCurrentlyLeaf()).to.equal(true), () => assert.fail());
   });
 
-  it("knows if it is child of an other node", () => {
-    const tree = testObjects.testTree1();
-    expect(tree.root.isChildOf(tree.getNode("com.tngtech.class2"))).to.equal(false);
-    expect(tree.getNode("com.tngtech.class2").isChildOf(tree.root)).to.equal(true);
-    expect(tree.root.isChildOf(tree.root)).to.equal(true);
-  });
-
   it("can fold single node", () => {
     const root = testObjects.testTree1().root;
     root.changeFold();
@@ -316,7 +309,7 @@ describe("Layout of nodes", () => {
 describe("Dragging nodes", () => {
   it("can be dragged", () => {
     const tree = testTree('root.SomeClass1', 'root.SomeClass2');
-    tree.callOnSelfThenEveryDescendant(node => node._view = {
+    tree._callOnSelfThenEveryDescendant(node => node._view = {
       updatePosition: () => {
       }
     });
@@ -326,9 +319,12 @@ describe("Dragging nodes", () => {
     const dy = -3;
     const expected = {x: toDrag.getX() + dx, y: toDrag.getY() + dy};
 
-    toDrag.drag(dx, dy);
+    toDrag._drag(dx, dy);
 
-    tree.updatePromise.then(() => expect(toDrag.getRelativeCoords()).to.deep.equal(expected), () => assert.fail());
+    tree.updatePromise.then(() => expect({
+      x: toDrag.getX(),
+      y: toDrag.getY()
+    }).to.deep.equal(expected), () => assert.fail());
   });
 
   const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
@@ -346,7 +342,7 @@ describe("Dragging nodes", () => {
       'root.SomeClass',
       'root.sub.SubClass1',
       'root.sub.SubClass2');
-    root.callOnSelfThenEveryDescendant(node => node._view = {
+    root._callOnSelfThenEveryDescendant(node => node._view = {
       updatePosition: () => {
       }
     });
@@ -356,7 +352,7 @@ describe("Dragging nodes", () => {
 
     const expectedCoordsByNode = expectedCoordsAfterDrag(root, toDrag, dx, dy);
 
-    toDrag.drag(dx, dy);
+    toDrag._drag(dx, dy);
 
     root.updatePromise.then(() => {
       root.getSelfAndDescendants().forEach(node => {
@@ -370,7 +366,7 @@ describe("Dragging nodes", () => {
       'root.other',
       'root.parent.SomeClass1',
       'root.parent.SomeClass2');
-    tree.callOnSelfThenEveryDescendant(node => node._view = {
+    tree._callOnSelfThenEveryDescendant(node => node._view = {
       updatePosition: () => {
       }
     });
@@ -381,10 +377,10 @@ describe("Dragging nodes", () => {
 
     const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
 
-    toDrag.drag(deltaOutsideOfParent, 0);
+    toDrag._drag(deltaOutsideOfParent, 0);
     expect(toDrag).to.be.locatedWithin(parent);
 
-    toDrag.drag(0, deltaOutsideOfParent);
+    toDrag._drag(0, deltaOutsideOfParent);
     expect(toDrag).to.be.locatedWithin(parent);
   });
 
@@ -392,7 +388,7 @@ describe("Dragging nodes", () => {
     const tree = testTree(
       'root.SomeClass1',
       'root.SomeClass2');
-    tree.callOnSelfThenEveryDescendant(node => node._view = {
+    tree._callOnSelfThenEveryDescendant(node => node._view = {
       updatePosition: () => {
       }
     });
@@ -405,13 +401,13 @@ describe("Dragging nodes", () => {
     const oldY = toDrag.getY();
     const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
 
-    toDrag.drag(deltaOutsideOfParent, 0);
+    toDrag._drag(deltaOutsideOfParent, 0);
 
     tree.updatePromise.then(() => {
       expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
 
-      toDrag.drag(0, deltaOutsideOfParent);
-      tree.root.updatePromise.then(() => {
+      toDrag._drag(0, deltaOutsideOfParent);
+      tree.updatePromise.then(() => {
         expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
       }, () => assert.fail());
     }, () => assert.fail());

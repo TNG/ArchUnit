@@ -25,7 +25,7 @@ describe("Visual data of dependency", () => {
 
   it("refreshes its end positions correctly if a node is dragged", () => {
     const graphWrapper = testObjects.testGraph2();
-    graphWrapper.graph.root.callOnSelfThenEveryDescendant(node => node._view = {
+    graphWrapper.graph.root._callOnSelfThenEveryDescendant(node => node._view = {
       updatePosition: () => {
       }
     });

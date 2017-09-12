@@ -268,7 +268,7 @@ module.exports.create = () => {
 
   function updateNodes() {
     adaptSVGSizeAndPositionWithTransition(translater.transition().duration(TRANSITION_DURATION));
-    return graph.root.updateView(TRANSITION_DURATION);
+    return graph.root._updateView(TRANSITION_DURATION);
   }
 
   function updateEdgesWithoutAnimation() {

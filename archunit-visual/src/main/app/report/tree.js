@@ -52,7 +52,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   };
 
   const fold = (node, folded) => {
-    if (!node.isLeaf()) {
+    if (!node._isLeaf()) {
       node._folded = folded;
       return true;
     }
@@ -153,11 +153,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     isPackage() {
-      return this.getType() === nodeTypes.package;
+      return this._description.type === nodeTypes.package;
     }
 
     isInterface() {
-      return this.getType() === nodeTypes.interface;
+      return this._description.type === nodeTypes.interface;
     }
 
     getName() {
@@ -170,10 +170,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     getText() {
       return this._text;
-    }
-
-    getType() {
-      return this._description.type;
     }
 
     getParent() {
@@ -192,19 +188,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return !this._parent;
     }
 
-    isLeaf() {
+    _isLeaf() {
       return this._filteredChildren.length === 0;
     }
 
     isCurrentlyLeaf() {
-      return this.isLeaf() || this._folded;
-    }
-
-    isChildOf(node) {
-      if (node === this) {
-        return true; // FIXME: Why does a method called 'isChildOf' return true for the node itself??
-      }
-      return node.getDescendants().indexOf(this) !== -1;
+      return this._isLeaf() || this._folded;
     }
 
     isFolded() {
@@ -233,12 +222,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     getClass() {
-      const foldableStyle = this.isLeaf() ? "not-foldable" : "foldable";
-      return `node ${this.getType()} ${foldableStyle}`;
+      const foldableStyle = this._isLeaf() ? "not-foldable" : "foldable";
+      return `node ${this._description.type} ${foldableStyle}`;
     }
 
     getSelfAndDescendants() {
-      return [this, ...this.getDescendants()];
+      return [this, ...this._getDescendants()];
     }
 
     getSelfAndPredecessors() {
@@ -246,15 +235,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this, ...predecessors];
     }
 
-    getDescendants() {
+    _getDescendants() {
       const result = [];
-      this.getCurrentChildren().forEach(child => child.callOnSelfThenEveryDescendant(node => result.push(node)));
+      this.getCurrentChildren().forEach(child => child._callOnSelfThenEveryDescendant(node => result.push(node)));
       return result;
     }
 
-    callOnSelfThenEveryDescendant(fun) {
+    _callOnSelfThenEveryDescendant(fun) {
       fun(this);
-      this.getCurrentChildren().forEach(c => c.callOnSelfThenEveryDescendant(fun));
+      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(fun));
     }
 
     callOnEveryDescendantThenSelf(fun) {
@@ -266,8 +255,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param predicate A predicate (i.e. function Node -> boolean)
      * @return true, iff this Node or any child (after filtering) matches the predicate
      */
-    matchesOrHasChildThatMatches(predicate) {
-      return predicate(this) || this._filteredChildren.some(node => node.matchesOrHasChildThatMatches(predicate));
+    _matchesOrHasChildThatMatches(predicate) {
+      return predicate(this) || this._filteredChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
 
     getX() {
@@ -280,13 +269,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     getRadius() {
       return this.visualData.r;
-    }
-
-    /**
-     * Coordinates ({x, y}) with respect to the parent node.
-     */
-    getRelativeCoords() {
-      return {x: this.getX(), y: this.getY()};
     }
 
     /**
@@ -306,26 +288,26 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
       this._updateViewOnFold = () => {
         callback();
-        return getRoot(this).updateView();
+        return getRoot(this)._updateView();
       };
 
-      if (!this.isRoot() && !this.isLeaf()) {
+      if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
           this.changeFold();
         });
       }
 
       this._view.onDrag((dx, dy) => {
-        this.drag(dx, dy);
+        this._drag(dx, dy);
       });
 
       this._originalChildren.forEach(child => child.initView(this._view._svgElement, callback));
     }
 
-    updateView() {
+    _updateView() {
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       const promise = this._view.updateWithTransition(this.visualData, this._text.getY()).then(() => this._view.show());
-      return Promise.all([promise, ...this.getCurrentChildren().map(child => child.updateView())]);
+      return Promise.all([promise, ...this.getCurrentChildren().map(child => child._updateView())]);
     }
 
     /**
@@ -358,7 +340,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param dx The delta in x-direction
      * @param dy The delta in y-direction
      */
-    drag(dx, dy) {
+    _drag(dx, dy) {
       getRoot(this).updatePromise.then(() => {
         this.visualData.move(dx, dy, this.getParent());
         this._updateViewOnDrag();
@@ -382,7 +364,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-      this._filters.nameFilter = node => node.matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+      this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
       this._filters.apply();
     }
 
@@ -391,7 +373,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
-      this._filters.typeFilter = node => node.matchesOrHasChildThatMatches(predicate);
+      this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
       this._filters.apply();
     }
   };
@@ -400,7 +382,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     const root = new Node(jsonRoot);
 
     const map = new Map();
-    root.callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
+    root._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
     root.getByName = name => map.get(name);
 
     return root;
