@@ -120,6 +120,7 @@ const init = (View) => {
       this._filters = newFilters(this);
       this._updateViewsOnNodeDragged = () => {
       };
+      this._updateViewsOnNodeFolded = () => Promise.resolve();
     }
 
     updateOnNodeDragged(node) {
@@ -142,6 +143,10 @@ const init = (View) => {
       this._svgElement = svgElement;
       this._callback = callback;
       this._updateViewsOnNodeDragged = node => this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateViewWithoutTransition());
+      this._updateViewsOnNodeFolded = () => {
+        this._reassignViews(this._svgElement, this._callback);
+        return this.updateViewsWithTransition().then(() => this._showAllVisibleDependencies());
+      };
     }
 
     refreshViews() {
@@ -157,14 +162,15 @@ const init = (View) => {
       return Promise.all(this.getVisible().map(d => d.updateViewWithTransition()));
     }
 
-    changeFold(foldedElement, isFolded) {
+    updateOnNodeFolded(foldedNode, isFolded) {
       if (isFolded) {
-        this._transformers.set(foldedElement, foldTransformer(foldedElement));
+        this._transformers.set(foldedNode, foldTransformer(foldedNode));
       }
       else {
-        this._transformers.delete(foldedElement);
+        this._transformers.delete(foldedNode);
       }
       recreateVisibleDependencies(this);
+      return this._updateViewsOnNodeFolded();
     }
 
     setNodeFilters(filters) {

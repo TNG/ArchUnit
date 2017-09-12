@@ -1,6 +1,7 @@
 'use strict';
 
 const expect = require("chai").expect;
+const assert = require("chai").assert;
 require('./chai/tree-chai-extensions');
 require('./chai/tree-visualizer-chai-extensions');
 
@@ -22,9 +23,8 @@ describe("Node", () => {
   it("knows if it is currently leaf", () => {
     const root = testObjects.testTree1().root;
     expect(root.isCurrentlyLeaf()).to.equal(false);
-
     root.changeFold();
-    expect(root.isCurrentlyLeaf()).to.equal(true);
+    root.updatePromise.then(() => expect(root.isCurrentlyLeaf()).to.equal(true), () => assert.fail());
   });
 
   it("knows if it is child of an other node", () => {
@@ -37,7 +37,7 @@ describe("Node", () => {
   it("can fold single node", () => {
     const root = testObjects.testTree1().root;
     root.changeFold();
-    expect(root.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech"]);
+    root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech"]), () => assert.fail());
   });
 
   it("can unfold single node", () => {
@@ -45,17 +45,17 @@ describe("Node", () => {
     const allNodes1 = testObjects.allNodes(root);
     root.changeFold();
     root.changeFold();
-    expect(root.getSelfAndDescendants()).to.containOnlyNodes(allNodes1);
+    root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(allNodes1), () => assert.fail());
   });
 
   it("can be folded and unfolded without changing the fold-state of its children", () => {
     const tree = testObjects.testTree2();
     tree.getNode("com.tngtech.test.subtest").changeFold();
     const toFold = tree.getNode("com.tngtech.test");
-    toFold.changeFold();
-    toFold.changeFold();
     const exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    toFold.changeFold();
+    toFold.changeFold();
+    tree.root.updatePromise.then(() => expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
   });
 
   it("Adds CSS to make the mouse a pointer, if there are children to unfold", () => {
@@ -77,10 +77,9 @@ describe("Tree", () => {
     const tree = testObjects.testTree1();
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.class2", "com.tngtech.class3"];
     expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-
-    tree.getNode("com.tngtech.main").changeFold();
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    tree.getNode("com.tngtech.main").changeFold();
+    tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
   });
 
   it("can inclusively filter classes", function () {
@@ -114,74 +113,90 @@ describe("Tree", () => {
   it("can filter, fold, unfold and reset filter in this order", function () {
     const tree = testObjects.testTree2();
     tree.root.filterByName("subtest", true);
-    tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.root.filterByName("", false);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    tree.root.updatePromise.then(() => {
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+        "com.tngtech.test", "com.tngtech.test.testclass1"];
+      tree.getNode("com.tngtech.main").changeFold();
+      tree.root.updatePromise.then(() => {
+        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+        tree.root.filterByName("", false);
+        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+          "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
+          "com.tngtech.test.subtest.subtestclass1"];
+        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      }, () => assert.fail());
+    }, () => assert.fail());
   });
 
+  //FIXME: make test less ugly
   it("can filter, fold, reset filter and unfold in this order", function () {
     const tree = testObjects.testTree2();
     tree.root.filterByName("subtest", true);
-    tree.getNode("com.tngtech.main").changeFold();
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.root.filterByName("", false);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
     tree.getNode("com.tngtech.main").changeFold();
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    tree.root.updatePromise.then(() => {
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      tree.root.filterByName("", false);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
+        "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+        "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
+        "com.tngtech.test.subtest.subtestclass1"];
+      tree.getNode("com.tngtech.main").changeFold();
+      tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
+    }, () => assert.fail());
   });
 
   it("can fold, filter, unfold and reset filter in this order", function () {
     const tree = testObjects.testTree2();
+    //FIXME: at the end filtering should consider the promise in node by itsef
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.filterByName("subtest", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-      "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.getNode("com.tngtech.main").changeFold();
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.root.filterByName("", false);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    tree.root.updatePromise.then(() => {
+      tree.root.filterByName("subtest", true);
+      let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
+        "com.tngtech.test.testclass1"];
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+        "com.tngtech.test", "com.tngtech.test.testclass1"];
+      tree.getNode("com.tngtech.main").changeFold();
+      tree.root.updatePromise.then(() => {
+        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+        tree.root.filterByName("", false);
+        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+          "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
+          "com.tngtech.test.subtest.subtestclass1"];
+        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      }, () => assert.fail());
+    }, () => assert.fail());
   });
 
   it("can fold, filter, reset the filter and unfold in this order", function () {
     const tree = testObjects.testTree2();
-    tree.getNode("com.tngtech.main").changeFold();
-    tree.root.filterByName("subtest", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-      "com.tngtech.test.testclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.root.filterByName("", false);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    tree.getNode("com.tngtech.main").changeFold();
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-      "com.tngtech.test.subtest.subtestclass1"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+    tree.getNode("com.tngtech.main").changeFold()
+    tree.root.updatePromise.then(() => {
+      tree.root.filterByName("subtest", true);
+      let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
+        "com.tngtech.test.testclass1"];
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      tree.root.filterByName("", false);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
+        "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
+        "com.tngtech.test.subtest.subtestclass1"];
+      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
+        "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
+        "com.tngtech.test.subtest.subtestclass1"];
+      tree.getNode("com.tngtech.main").changeFold()
+      tree.root.updatePromise.then(() => {
+        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
+      }, () => assert.fail());
+    }, () => assert.fail());
   });
 
   it("can filter by type to hide interfaces", function () {

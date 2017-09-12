@@ -115,8 +115,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   });
 
-  let updatePromise = Promise.all([]);
-
   const Node = class {
     constructor(jsonNode) {
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
@@ -131,14 +129,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
-      this._updateViewOnDrag = () => {
-      };
       this._onDrag = () => {
       };
-      this._onFold = () => {
+      this._onFold = () => Promise.resolve();
+      this._updateViewOnDrag = () => {
       };
+      this._updateViewOnFold = () => Promise.resolve();
 
       if (this.isRoot()) {
+        this.updatePromise = Promise.resolve();
         this.relayout();
       }
     }
@@ -220,14 +219,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return false;
     }
 
-    //FIXME: is the return-value really necessary?
     changeFold() {
-      const foldChanged = fold(this, !this._folded);
-      if (foldChanged) {
-        getRoot(this).relayout();
-        this._onFold(this);
-      }
-      return foldChanged;
+      getRoot(this).updatePromise = getRoot(this).updatePromise.then(() => {
+        if (fold(this, !this._folded)) {
+          getRoot(this).relayout();
+          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
+        }
+      });
     }
 
     getFilters() {
@@ -303,27 +301,27 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    initView(svgElement, onNodeFoldChanged) {
+    initView(svgElement, callback) {
       this._view = new View(svgElement, this);
       this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
+      this._updateViewOnFold = () => {
+        callback();
+        return getRoot(this).updateView();
+      };
 
       if (!this.isRoot() && !this.isLeaf()) {
         this._view.onClick(() => {
-          updatePromise = updatePromise.then(() => {
-            if (this.changeFold()) {
-              return onNodeFoldChanged(this);
-            }
-          });
+          this.changeFold();
         });
       }
 
       this._view.onDrag((dx, dy) => {
-        updatePromise.then(() => {
+        getRoot(this).updatePromise.then(() => {
           this.drag(dx, dy);
         });
       });
 
-      this._originalChildren.forEach(child => child.initView(this._view._svgElement, onNodeFoldChanged));
+      this._originalChildren.forEach(child => child.initView(this._view._svgElement, callback));
     }
 
     updateView() {

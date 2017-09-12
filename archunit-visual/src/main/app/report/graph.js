@@ -6,7 +6,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
       this.root = root;
       this.dependencies = dependencies;
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
-      this.root.setOnFold(node => this.dependencies.changeFold(node.getFullName(), node.isFolded()));
+      this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
     }
 
     getVisibleNodes() {
@@ -120,9 +120,8 @@ module.exports.create = () => {
   }
 
   function initializeTree() {
-    graph.root.initView(gTree.node(), () => {
-      return updateVisualization();
-    });
+    graph.root.initView(gTree.node(),
+      () => adaptSVGSizeAndPositionWithTransition(translater.transition().duration(TRANSITION_DURATION)));
   }
 
   function initializeDeps() {
