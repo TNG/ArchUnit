@@ -22,7 +22,10 @@ import java.util.Set;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.properties.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -125,5 +128,79 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
             classes.add(dependency.getTargetClass());
         }
         return JavaClasses.of(classes);
+    }
+
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependency(Class<?> originClass, Class<?> targetClass) {
+            return dependencyOrigin(originClass).and(dependencyTarget(targetClass))
+                    .as("dependency %s -> %s", originClass.getName(), targetClass.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependency(String originClassName, String targetClassName) {
+            return dependencyOrigin(originClassName).and(dependencyTarget(targetClassName))
+                    .as("dependency %s -> %s", originClassName, targetClassName);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependency(DescribedPredicate<? super JavaClass> originPredicate, DescribedPredicate<? super JavaClass> targetPredicate) {
+            return dependencyOrigin(originPredicate).and(dependencyTarget(targetPredicate))
+                    .as("dependency %s -> %s", originPredicate.getDescription(), targetPredicate.getDescription());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyOrigin(Class<?> clazz) {
+            return dependencyOrigin(clazz.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyOrigin(String className) {
+            return dependencyOrigin(HasName.Predicates.name(className).as(className));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyOrigin(final DescribedPredicate<? super JavaClass> predicate) {
+            return Functions.GET_ORIGIN_CLASS.is(predicate).as("origin " + predicate.getDescription());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyTarget(Class<?> clazz) {
+            return dependencyTarget(clazz.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyTarget(String className) {
+            return dependencyTarget(HasName.Predicates.name(className).as(className));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<Dependency> dependencyTarget(final DescribedPredicate<? super JavaClass> predicate) {
+            return Functions.GET_TARGET_CLASS.is(predicate).as("target " + predicate.getDescription());
+        }
+    }
+
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<Dependency, JavaClass> GET_ORIGIN_CLASS = new ChainableFunction<Dependency, JavaClass>() {
+            @Override
+            public JavaClass apply(Dependency input) {
+                return input.getOriginClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<Dependency, JavaClass> GET_TARGET_CLASS = new ChainableFunction<Dependency, JavaClass>() {
+            @Override
+            public JavaClass apply(Dependency input) {
+                return input.getTargetClass();
+            }
+        };
     }
 }
