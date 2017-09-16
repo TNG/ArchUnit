@@ -31,8 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -76,7 +76,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
-    private Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
+    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
         @Override
         public Set<JavaMember> get() {
             return ImmutableSet.<JavaMember>builder()
@@ -733,11 +733,20 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         private Functions() {
         }
 
+        // FIXME: All other Functions.* follow a different naming pattern (method name in capitals)
         @PublicAPI(usage = ACCESS)
-        public static final Function<JavaClass, String> SIMPLE_NAME = new Function<JavaClass, String>() {
+        public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = new ChainableFunction<JavaClass, String>() {
             @Override
             public String apply(JavaClass input) {
                 return input.getSimpleName();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, String> GET_PACKAGE = new ChainableFunction<JavaClass, String>() {
+            @Override
+            public String apply(JavaClass input) {
+                return input.getPackage();
             }
         };
     }

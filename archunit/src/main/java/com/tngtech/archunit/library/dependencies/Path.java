@@ -38,10 +38,6 @@ class Path<T, ATTACHMENT> {
         this(other.getEdges());
     }
 
-    Path(Edge<T, ATTACHMENT> edge) {
-        this(Collections.singletonList(edge));
-    }
-
     Path(List<Edge<T, ATTACHMENT>> edges) {
         this.edges = new ArrayList<>(edges);
         validateEdgesConnect();

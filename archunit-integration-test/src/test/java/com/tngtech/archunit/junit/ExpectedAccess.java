@@ -1,6 +1,7 @@
 package com.tngtech.archunit.junit;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.junit.ExpectedMember.ExpectedConstructorTarget;
@@ -10,7 +11,7 @@ import com.tngtech.archunit.junit.ExpectedMember.ExpectedTarget;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
-public abstract class ExpectedAccess implements ExpectedDependency {
+public abstract class ExpectedAccess implements ExpectedRelation {
     private final ExpectedOrigin origin;
     private final ExpectedTarget target;
     private final int lineNumber;
@@ -21,8 +22,9 @@ public abstract class ExpectedAccess implements ExpectedDependency {
         this.lineNumber = lineNumber;
     }
 
-    String expectedMessage() {
-        return target.messageFor(this);
+    @Override
+    public void associateLines(LineAssociation association) {
+        association.associateIfStringIsContained(target.messageFor(this));
     }
 
     ExpectedOrigin getOrigin() {
@@ -39,7 +41,7 @@ public abstract class ExpectedAccess implements ExpectedDependency {
 
     @Override
     public String toString() {
-        return expectedMessage();
+        return target.messageFor(this);
     }
 
     public static ExpectedAccessViolationCreationProcess accessFrom(Class<?> origin, String method, Class<?>... paramTypes) {
@@ -50,11 +52,22 @@ public abstract class ExpectedAccess implements ExpectedDependency {
         return new ExpectedAccessViolationCreationProcess(origin, method, paramTypes);
     }
 
-    boolean matches(JavaAccess<?> access) {
+    @Override
+    public boolean correspondsTo(Object object) {
+        if (!(object instanceof JavaAccess<?>)) {
+            return false;
+        }
+        JavaAccess<?> access = (JavaAccess<?>) object;
         return getOrigin().matches(access.getOrigin()) &&
                 getTarget().matches(access.getTarget()) &&
                 (getLineNumber() == access.getLineNumber());
     }
+
+    /**
+     * Instead of matching a violation corresponding to a {@link JavaAccess}, the resulting {@link ExpectedRelation}
+     * will match an equivalent {@link Dependency}.
+     */
+    public abstract ExpectedDependency asDependency();
 
     public static class ExpectedAccessViolationCreationProcess {
         private ExpectedOrigin origin;
@@ -131,19 +144,33 @@ public abstract class ExpectedAccess implements ExpectedDependency {
         }
     }
 
-    static class ExpectedFieldAccess extends ExpectedAccess {
+    public static class ExpectedFieldAccess extends ExpectedAccess {
         private ExpectedFieldAccess(ExpectedOrigin origin, ExpectedTarget target, int lineNumber) {
             super(origin, target, lineNumber);
         }
+
+        @Override
+        public ExpectedDependency asDependency() {
+            return ExpectedDependency.accessFrom(getOrigin().getDeclaringClass())
+                    .toFieldDeclaredIn(getTarget().getDeclaringClass())
+                    .inLineNumber(getLineNumber());
+        }
     }
 
-    static class ExpectedCall extends ExpectedAccess {
+    public static class ExpectedCall extends ExpectedAccess {
         private ExpectedCall(ExpectedOrigin origin, ExpectedTarget target, int lineNumber) {
             super(origin, target, lineNumber);
         }
 
         boolean isToConstructor() {
             return getTarget().getMemberName().equals(CONSTRUCTOR_NAME);
+        }
+
+        @Override
+        public ExpectedDependency asDependency() {
+            return ExpectedDependency.accessFrom(getOrigin().getDeclaringClass())
+                    .toCodeUnitDeclaredIn(getTarget().getDeclaringClass())
+                    .inLineNumber(getLineNumber());
         }
     }
 }

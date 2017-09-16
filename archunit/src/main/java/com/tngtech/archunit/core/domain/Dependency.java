@@ -24,7 +24,7 @@ import com.google.common.collect.ComparisonChain;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.properties.HasDescription;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

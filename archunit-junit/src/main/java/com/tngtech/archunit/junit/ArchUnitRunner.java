@@ -55,7 +55,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 @PublicAPI(usage = ACCESS)
 public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
-    private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static reference
+    private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
     @Internal
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {

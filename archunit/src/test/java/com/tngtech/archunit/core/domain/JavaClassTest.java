@@ -319,6 +319,13 @@ public class JavaClassTest {
     }
 
     @Test
+    public void function_getPackage() {
+        assertThat(JavaClass.Functions.GET_PACKAGE.apply(javaClassViaReflection(List.class)))
+                .as("result of GET_PACKAGE(clazz)")
+                .isEqualTo(List.class.getPackage().getName());
+    }
+
+    @Test
     public void predicate_withType() {
         assertThat(type(Parent.class).apply(javaClassViaReflection(Parent.class)))
                 .as("type(Parent) matches JavaClass Parent").isTrue();

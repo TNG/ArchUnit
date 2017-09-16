@@ -32,7 +32,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
-    private String description;
+    private final String description;
 
     public ArchCondition(String description) {
         this.description = checkNotNull(description);

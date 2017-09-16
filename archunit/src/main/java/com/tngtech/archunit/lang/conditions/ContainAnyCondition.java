@@ -49,8 +49,8 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
     static class AnyConditionEvent implements ConditionEvent {
         private final Collection<?> correspondingObjects;
-        private Collection<ConditionEvent> violating;
-        private Collection<ConditionEvent> allowed;
+        private final Collection<ConditionEvent> violating;
+        private final Collection<ConditionEvent> allowed;
 
         private AnyConditionEvent(Collection<?> correspondingObjects, ConditionEvents events) {
             this(correspondingObjects, events.getAllowed(), events.getViolating());

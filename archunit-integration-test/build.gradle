@@ -10,4 +10,6 @@ dependencies {
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
 
+test.mustRunAfter(project(':archunit').test)
+
 [project(':archunit'), project(':archunit-junit')].each { test.dependsOn(it.finishArchive) }

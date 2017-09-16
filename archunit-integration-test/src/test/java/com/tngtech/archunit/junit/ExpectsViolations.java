@@ -10,5 +10,7 @@ public interface ExpectsViolations {
 
     ExpectsViolations by(ExpectedCall call);
 
+    ExpectsViolations by(ExpectedDependency inheritance);
+
     ExpectsViolations by(MessageAssertionChain.Link assertion);
 }

@@ -18,7 +18,6 @@ package com.tngtech.archunit.base;
 import java.util.Iterator;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;

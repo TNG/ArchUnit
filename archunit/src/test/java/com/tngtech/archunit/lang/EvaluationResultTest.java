@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.domain.properties.HasDescription;
+import com.tngtech.archunit.base.HasDescription;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;

@@ -15,27 +15,20 @@
  */
 package com.tngtech.archunit.lang.conditions;
 
-import java.util.Set;
-
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaAccess;
 
 class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     private final Function<JavaAccess<?>, String> getPackage;
-    private final Set<PackageMatcher> packageMatchers;
+    private final PackageMatchers packageMatchers;
 
     private JavaAccessPackagePredicate(String[] packageIdentifiers, Function<JavaAccess<?>, String> getPackage) {
         super(String.format("any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
         this.getPackage = getPackage;
-        ImmutableSet.Builder<PackageMatcher> matchers = ImmutableSet.builder();
-        for (String identifier : packageIdentifiers) {
-            matchers.add(PackageMatcher.of(identifier));
-        }
-        packageMatchers = matchers.build();
+        packageMatchers = PackageMatchers.of(packageIdentifiers);
     }
 
     static Creator forAccessOrigin() {
@@ -58,11 +51,7 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
 
     @Override
     public boolean apply(JavaAccess<?> input) {
-        boolean matches = false;
-        for (PackageMatcher matcher : packageMatchers) {
-            matches = matches || matcher.matches(getPackage.apply(input));
-        }
-        return matches;
+        return packageMatchers.apply(getPackage.apply(input));
     }
 
     static class Creator {
