@@ -4,6 +4,7 @@ import com.tngtech.archunit.example.SomeMediator;
 import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
+import com.tngtech.archunit.example.service.ServiceInterface;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.junit.LayeredArchitectureTest;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
 import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
+import static com.tngtech.archunit.junit.ExpectedDependency.inheritanceFrom;
 import static java.lang.System.lineSeparator;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
@@ -35,24 +37,32 @@ public class LayeredArchitectureIntegrationTest {
                 "where layer 'Services' may only be accessed by layers ['Controllers']" + lineSeparator() +
                 "where layer 'Persistence' may only be accessed by layers ['Services']")
 
+                .by(inheritanceFrom(DaoCallingService.class)
+                        .implementing(ServiceInterface.class))
+
                 .by(callFrom(DaoCallingService.class, "violateLayerRules")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
-                        .inLine(14))
+                        .inLine(14)
+                        .asDependency())
 
                 .by(callFrom(SomeMediator.class, "violateLayerRulesIndirectly")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
-                        .inLine(15))
+                        .inLine(15)
+                        .asDependency())
 
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toConstructor(UseCaseTwoController.class)
-                        .inLine(12))
+                        .inLine(12)
+                        .asDependency())
 
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toMethod(UseCaseTwoController.class, "doSomethingTwo")
-                        .inLine(13))
+                        .inLine(13)
+                        .asDependency())
 
                 .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(UseCaseOneTwoController.class, "someString")
-                        .inLine(11));
+                        .inLine(11)
+                        .asDependency());
     }
 }

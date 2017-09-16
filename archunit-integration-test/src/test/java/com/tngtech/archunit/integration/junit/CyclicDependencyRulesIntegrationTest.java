@@ -44,7 +44,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.integration.junit.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
-import static com.tngtech.archunit.junit.ExpectedInheritance.inheritanceFrom;
+import static com.tngtech.archunit.junit.ExpectedDependency.inheritanceFrom;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example.cycle")

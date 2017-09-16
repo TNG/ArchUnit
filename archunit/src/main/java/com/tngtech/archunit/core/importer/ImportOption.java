@@ -51,7 +51,7 @@ public interface ImportOption {
             }
         },
         DONT_INCLUDE_JARS {
-            private DontIncludeJars dontIncludeJars = new DontIncludeJars();
+            private final DontIncludeJars dontIncludeJars = new DontIncludeJars();
 
             @Override
             public boolean includes(Location location) {

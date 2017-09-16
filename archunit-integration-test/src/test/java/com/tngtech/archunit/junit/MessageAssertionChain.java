@@ -28,6 +28,7 @@ import com.tngtech.archunit.Internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.MessageAssertionChain.Link.Result.difference;
+import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
 
 public class MessageAssertionChain {
@@ -43,7 +44,7 @@ public class MessageAssertionChain {
         for (Link link : links) {
             descriptions.add(link.getDescription());
         }
-        return Joiner.on(System.lineSeparator()).join(descriptions);
+        return Joiner.on(lineSeparator()).join(descriptions);
     }
 
     static Link matchesLine(final String pattern) {
@@ -73,7 +74,7 @@ public class MessageAssertionChain {
             public Result filterMatching(List<String> lines) {
                 List<String> result = new ArrayList<>(lines);
                 boolean matches = result.remove(expectedLine);
-                return new Result(matches, result, "Lines were: " + lines);
+                return new Result(matches, result, describeLines(lines));
             }
 
             @Override
@@ -83,10 +84,14 @@ public class MessageAssertionChain {
         };
     }
 
+    private static String describeLines(List<String> lines) {
+        return "Lines were >>>>>>>>" + lineSeparator() + Joiner.on(lineSeparator()).join(lines) + lineSeparator() + "<<<<<<<<";
+    }
+
     static Link containsConsecutiveLines(final List<String> expectedLines) {
         checkArgument(!expectedLines.isEmpty(), "Asserting zero consecutive lines makes no sense");
-        final String linesDesription = Joiner.on(System.lineSeparator()).join(expectedLines);
-        final String description = "Message contains consecutive lines " + System.lineSeparator() + linesDesription;
+        final String linesDescription = Joiner.on(lineSeparator()).join(expectedLines);
+        final String description = "Message contains consecutive lines " + lineSeparator() + linesDescription;
 
         return new Link() {
             @Override
@@ -126,7 +131,7 @@ public class MessageAssertionChain {
     }
 
     void evaluate(AssertionError error) {
-        List<String> remainingLines = Splitter.on(System.lineSeparator()).splitToList(error.getMessage());
+        List<String> remainingLines = Splitter.on(lineSeparator()).splitToList(error.getMessage());
         for (Link link : links) {
             Link.Result result = link.filterMatching(remainingLines);
             if (!result.matches) {
@@ -143,7 +148,7 @@ public class MessageAssertionChain {
         String message = "Expected: " + link.getDescription();
         String mismatchDescription = result.mismatchDescription
                 .or("The following lines were unexpected: " + result.remainingLines);
-        message += System.lineSeparator() + "But: " + mismatchDescription;
+        message += lineSeparator() + "But: " + mismatchDescription;
         return message;
     }
 
@@ -164,7 +169,7 @@ public class MessageAssertionChain {
             }
 
             static Result failure(List<String> lines) {
-                return failure(lines, "Lines were " + Joiner.on(System.lineSeparator()).join(lines));
+                return failure(lines, describeLines(lines));
             }
 
             static Result failure(List<String> lines, String mismatchDescription, Object... args) {
@@ -204,8 +209,8 @@ public class MessageAssertionChain {
                     return this;
                 }
 
-                public Builder containsConsecutiveLines(List<String> lines) {
-                    subLinks.add(MessageAssertionChain.containsConsecutiveLines(lines));
+                public Builder matchesLine(String pattern) {
+                    subLinks.add(MessageAssertionChain.matchesLine(pattern));
                     return this;
                 }
 
@@ -226,10 +231,9 @@ public class MessageAssertionChain {
                     if (!description.isPresent() || !part.isPresent()) {
                         return description.or(part);
                     }
-                    return Optional.of(description.get() + System.lineSeparator() + part.get());
+                    return Optional.of(description.get() + lineSeparator() + part.get());
                 }
             }
         }
     }
-
 }

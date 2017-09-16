@@ -36,15 +36,6 @@ public final class Guava {
         };
     }
 
-    static <F, T> com.google.common.base.Function<F, T> toGuava(final Function<F, T> function) {
-        return new com.google.common.base.Function<F, T>() {
-            @Override
-            public T apply(F input) {
-                return function.apply(input);
-            }
-        };
-    }
-
     @Internal
     public static final class Maps {
         public static <K, V> Map<K, V> filterValues(Map<K, V> map, DescribedPredicate<? super V> predicate) {

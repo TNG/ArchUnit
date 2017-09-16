@@ -18,11 +18,13 @@ package com.tngtech.archunit.lang.conditions;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -46,7 +48,9 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -226,6 +230,19 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyBeAccessedByAnyPackage(String... packageIdentifiers) {
         return new AllAccessesToClassCondition("only be accessed by",
                 JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
+     * @return A condition matching {@link JavaClass classes} depending on this class (e.g. calling methods of this class)
+     * with a package matching any of the identifiers
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyHaveDependentsInAnyPackage(String... packageIdentifiers) {
+        String description = String.format("only have dependents in any package ['%s']",
+                Joiner.on("', '").join(packageIdentifiers));
+        return new AllDependenciesOnClassCondition(description,
+                dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))));
     }
 
     @PublicAPI(usage = ACCESS)

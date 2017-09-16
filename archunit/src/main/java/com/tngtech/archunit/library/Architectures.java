@@ -36,10 +36,8 @@ import com.tngtech.archunit.lang.Priority;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
 
@@ -139,8 +137,8 @@ public final class Architectures {
                 SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
                 packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
 
-                EvaluationResult partial = all(classes().that(resideInAnyPackage(toArray(packagesOfOwnLayer))))
-                        .should(onlyBeAccessedByAnyPackage(toArray(packagesOfAllowedAccessors)))
+                EvaluationResult partial = classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
+                        .should(onlyHaveDependentsInAnyPackage(toArray(packagesOfAllowedAccessors)))
                         .evaluate(classes);
 
                 result.add(partial);

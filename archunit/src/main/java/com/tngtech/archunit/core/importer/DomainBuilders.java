@@ -336,7 +336,7 @@ public final class DomainBuilders {
     @Internal
     public static final class JavaAnnotationBuilder {
         private JavaType type;
-        private Map<String, ValueBuilder> values = new HashMap<>();
+        private final Map<String, ValueBuilder> values = new HashMap<>();
         private ClassesByTypeName importedClasses;
 
         JavaAnnotationBuilder() {

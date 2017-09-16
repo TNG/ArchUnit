@@ -21,7 +21,7 @@ import java.util.TreeSet;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.domain.properties.HasDescription;
+import com.tngtech.archunit.base.HasDescription;
 
 public class FailureReport implements CollectsLines {
     private final Set<String> failureMessages = new TreeSet<>();

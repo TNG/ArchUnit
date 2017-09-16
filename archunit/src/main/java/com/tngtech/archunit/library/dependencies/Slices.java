@@ -279,7 +279,7 @@ public final class Slices implements DescribedIterable<Slice> {
     }
 
     private static class SliceBuilders {
-        Map<List<String>, Slice.Builder> sliceBuilders = new HashMap<>();
+        private final Map<List<String>, Slice.Builder> sliceBuilders = new HashMap<>();
 
         void add(Optional<List<String>> matchingGroups, JavaClass clazz) {
             if (matchingGroups.isPresent()) {

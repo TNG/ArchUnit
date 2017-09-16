@@ -8,6 +8,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
@@ -22,9 +23,10 @@ import org.junit.runners.model.Statement;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
 class HandlingAssertion implements ExpectsViolations, TestRule {
-    private final Set<ExpectedFieldAccess> expectedFieldAccesses = new HashSet<>();
-    private final Set<ExpectedCall> expectedMethodCalls = new HashSet<>();
-    private final Set<ExpectedCall> expectedConstructorCalls = new HashSet<>();
+    private final Set<ExpectedRelation> expectedFieldAccesses = new HashSet<>();
+    private final Set<ExpectedRelation> expectedMethodCalls = new HashSet<>();
+    private final Set<ExpectedRelation> expectedConstructorCalls = new HashSet<>();
+    private final Set<ExpectedRelation> expectedDependencies = new HashSet<>();
 
     @Override
     public ExpectsViolations ofRule(String ruleText) {
@@ -48,6 +50,12 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     @Override
+    public ExpectsViolations by(ExpectedDependency inheritance) {
+        expectedDependencies.add(inheritance);
+        return this;
+    }
+
+    @Override
     public ExpectsViolations by(MessageAssertionChain.Link assertion) {
         return this;
     }
@@ -67,12 +75,13 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
         checkConstructorCalls(result);
         checkCalls(result);
         checkAccesses(result);
+        checkDependencies(result);
     }
 
     // Too bad Java erases types, otherwise a lot of boilerplate could be avoided here :-(
     // This way we must write explicitly ViolationHandler<ConcreteType> or the bound wont work correctly
     private void checkFieldAccesses(EvaluationResult result) {
-        final Set<ExpectedFieldAccess> left = new HashSet<>(this.expectedFieldAccesses);
+        final Set<ExpectedRelation> left = new HashSet<>(this.expectedFieldAccesses);
         result.handleViolations(new ViolationHandler<JavaFieldAccess>() {
             @Override
             public void handle(Collection<JavaFieldAccess> violatingObjects, String message) {
@@ -83,7 +92,7 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     private void checkMethodCalls(EvaluationResult result) {
-        final Set<ExpectedCall> left = new HashSet<>(expectedMethodCalls);
+        final Set<ExpectedRelation> left = new HashSet<>(expectedMethodCalls);
         result.handleViolations(new ViolationHandler<JavaMethodCall>() {
             @Override
             public void handle(Collection<JavaMethodCall> violatingObjects, String message) {
@@ -94,7 +103,7 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     private void checkConstructorCalls(EvaluationResult result) {
-        final Set<ExpectedCall> left = new HashSet<>(expectedConstructorCalls);
+        final Set<ExpectedRelation> left = new HashSet<>(expectedConstructorCalls);
         result.handleViolations(new ViolationHandler<JavaConstructorCall>() {
             @Override
             public void handle(Collection<JavaConstructorCall> violatingObjects, String message) {
@@ -105,7 +114,7 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     private void checkCalls(EvaluationResult result) {
-        final Set<ExpectedCall> left = new HashSet<>(Sets.union(expectedConstructorCalls, expectedMethodCalls));
+        final Set<ExpectedRelation> left = new HashSet<>(Sets.union(expectedConstructorCalls, expectedMethodCalls));
         result.handleViolations(new ViolationHandler<JavaCall<?>>() {
             @Override
             public void handle(Collection<JavaCall<?>> violatingObjects, String message) {
@@ -116,7 +125,7 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     private void checkAccesses(EvaluationResult result) {
-        final Set<ExpectedAccess> left = new HashSet<ExpectedAccess>() {
+        final Set<ExpectedRelation> left = new HashSet<ExpectedRelation>() {
             {
                 addAll(expectedConstructorCalls);
                 addAll(expectedMethodCalls);
@@ -132,11 +141,21 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
         checkEmpty(left);
     }
 
-    private void removeExpectedAccesses(Collection<? extends JavaAccess<?>> violatingObjects, Set<? extends ExpectedAccess> left) {
-        JavaAccess<?> violatingObject = getOnlyElement(violatingObjects);
-        for (Iterator<? extends ExpectedAccess> actualMethodCalls = left.iterator(); actualMethodCalls.hasNext(); ) {
-            ExpectedAccess next = actualMethodCalls.next();
-            if (next.matches(violatingObject)) {
+    private void checkDependencies(EvaluationResult result) {
+        final Set<ExpectedRelation> left = new HashSet<>(expectedDependencies);
+        result.handleViolations(new ViolationHandler<JavaClass>() {
+            @Override
+            public void handle(Collection<JavaClass> violatingObjects, String message) {
+                removeExpectedAccesses(violatingObjects, left);
+            }
+        });
+    }
+
+    private void removeExpectedAccesses(Collection<?> violatingObjects, Set<? extends ExpectedRelation> left) {
+        Object violatingObject = getOnlyElement(violatingObjects);
+        for (Iterator<? extends ExpectedRelation> actualMethodCalls = left.iterator(); actualMethodCalls.hasNext(); ) {
+            ExpectedRelation next = actualMethodCalls.next();
+            if (next.correspondsTo(violatingObject)) {
                 actualMethodCalls.remove();
                 return;
             }

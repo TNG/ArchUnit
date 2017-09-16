@@ -75,19 +75,6 @@ class ClassCache {
         return result;
     }
 
-    // Would be great, if we could just pass the import option on to the ClassFileImporter, but this would be
-    // problematic with respect to caching classes for certain Location combinations
-    private Set<Location> filter(Set<Location> locations, Class<? extends ImportOption> importOption) {
-        ImportOption option = newInstanceOf(importOption);
-        Set<Location> result = new HashSet<>();
-        for (Location location : locations) {
-            if (option.includes(location)) {
-                result.add(location);
-            }
-        }
-        return result;
-    }
-
     private static <T> T newInstanceOf(Class<T> type) {
         try {
             return type.newInstance();
