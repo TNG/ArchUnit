@@ -312,7 +312,11 @@ public class JavaClassTest {
     }
 
     @Test
-    public void function_simpleName() {
+    public void function_getSimpleName() {
+        assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
+                .as("result of GET_SIMPLE_NAME(clazz)")
+                .isEqualTo(List.class.getSimpleName());
+
         assertThat(JavaClass.Functions.SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
                 .as("result of SIMPLE_NAME(clazz)")
                 .isEqualTo(List.class.getSimpleName());

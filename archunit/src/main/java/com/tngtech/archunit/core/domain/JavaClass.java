@@ -49,7 +49,7 @@ import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Functions.SIMPLE_NAME;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -733,14 +733,20 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         private Functions() {
         }
 
-        // FIXME: All other Functions.* follow a different naming pattern (method name in capitals)
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = new ChainableFunction<JavaClass, String>() {
+        public static final ChainableFunction<JavaClass, String> GET_SIMPLE_NAME = new ChainableFunction<JavaClass, String>() {
             @Override
             public String apply(JavaClass input) {
                 return input.getSimpleName();
             }
         };
+
+        /**
+         * @deprecated Violates the conventions for Functions.* that simply reflect class methods. Use {@link #GET_SIMPLE_NAME}
+         */
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = GET_SIMPLE_NAME;
 
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, String> GET_PACKAGE = new ChainableFunction<JavaClass, String>() {
@@ -770,7 +776,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleName(final String name) {
-            return equalTo(name).onResultOf(SIMPLE_NAME).as("simple name '%s'", name);
+            return equalTo(name).onResultOf(GET_SIMPLE_NAME).as("simple name '%s'", name);
         }
 
         @PublicAPI(usage = ACCESS)
