@@ -73,15 +73,35 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
     }
 
     @Override
-    public ExpectedViolation byAccess(ExpectedFieldAccess access) {
-        assertionChain.add(containsLine(access.expectedMessage()));
+    public ExpectedViolation by(ExpectedFieldAccess access) {
+        access.associateLines(toAssertionChain());
         return this;
     }
 
     @Override
-    public ExpectedViolation byCall(ExpectedCall call) {
-        assertionChain.add(containsLine(call.expectedMessage()));
+    public ExpectedViolation by(ExpectedCall call) {
+        call.associateLines(toAssertionChain());
         return this;
+    }
+
+    @Override
+    public ExpectsViolations by(ExpectedDependency dependency) {
+        dependency.associateLines(toAssertionChain());
+        return this;
+    }
+
+    private ExpectedRelation.LineAssociation toAssertionChain() {
+        return new ExpectedRelation.LineAssociation() {
+            @Override
+            public void associateIfPatternMatches(String pattern) {
+                assertionChain.add(matchesLine(pattern));
+            }
+
+            @Override
+            public void associateIfStringIsContained(String string) {
+                assertionChain.add(containsLine(string));
+            }
+        };
     }
 
     @Override

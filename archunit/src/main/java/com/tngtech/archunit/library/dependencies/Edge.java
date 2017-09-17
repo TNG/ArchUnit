@@ -25,14 +25,14 @@ import com.google.common.collect.ImmutableList;
 class Edge<T, ATTACHMENT> {
     private final T from;
     private final T to;
-    private List<ATTACHMENT> attachments = new ArrayList<>();
+    private final List<ATTACHMENT> attachments = new ArrayList<>();
 
     Edge(T from, T to) {
         this.from = from;
         this.to = to;
     }
 
-    public Edge(T from, T to, Collection<ATTACHMENT> attachments) {
+    Edge(T from, T to, Collection<ATTACHMENT> attachments) {
         this(from, to);
         this.attachments.addAll(attachments);
     }
@@ -45,7 +45,7 @@ class Edge<T, ATTACHMENT> {
         return to;
     }
 
-    public List<ATTACHMENT> getAttachments() {
+    List<ATTACHMENT> getAttachments() {
         return ImmutableList.copyOf(attachments);
     }
 

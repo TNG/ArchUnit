@@ -25,7 +25,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class AbstractClassesTransformer<T> implements ClassesTransformer<T> {
-    private String description;
+    private final String description;
 
     protected AbstractClassesTransformer(String description) {
         this.description = description;

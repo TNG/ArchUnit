@@ -55,7 +55,7 @@ def createLicense = { licenseInfo, preProcessLicenseText = null ->
     """${sourceName}
 ${sourceUrl}
 
-${'-'.multiply(Math.max(sourceName.length(), sourceUrl.length()))}
+${('-' * Math.max(sourceName.length(), sourceUrl.length()))}
 
 ${text}
 """

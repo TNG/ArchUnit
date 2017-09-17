@@ -11,8 +11,11 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.testobjects.ADependingOnB;
+import com.tngtech.archunit.core.domain.testobjects.B;
+import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
+import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import org.assertj.core.api.AbstractBooleanAssert;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
@@ -49,10 +52,10 @@ public class JavaClassTest {
         assertThat(javaClass.getMethods()).hasSize(2);
 
         for (JavaField field : javaClass.getFields()) {
-            org.assertj.core.api.Assertions.assertThat(field.getOwner()).isSameAs(javaClass);
+            assertThat(field.getOwner()).isSameAs(javaClass);
         }
         for (JavaCodeUnit method : javaClass.getCodeUnits()) {
-            Assertions.assertThat(method.getOwner()).isSameAs(javaClass);
+            assertThat(method.getOwner()).isSameAs(javaClass);
         }
     }
 
@@ -239,32 +242,91 @@ public class JavaClassTest {
     }
 
     @Test
-    public void dependencies() {
+    public void direct_dependencies_from_self() {
         JavaClass javaClass = importClasses(ADependingOnB.class, B.class).get(ADependingOnB.class);
 
-        Dependency dependency = getDependencyToB(javaClass.getDirectDependencies());
-
-        assertThat(dependency.getOriginClass()).matches(ADependingOnB.class);
-        assertThat(dependency.getTargetClass()).matches(B.class);
-        assertThat(dependency.getDescription())
-                .contains(ADependingOnB.class.getName())
-                .contains(B.class.getName());
-    }
-
-    private Dependency getDependencyToB(Set<Dependency> dependencies) {
-        for (Dependency dependency : dependencies) {
-            if (dependency.getTargetClass().isEquivalentTo(B.class)) {
-                return dependency;
-            }
-        }
-        throw new AssertionError("Couldn't find any dependency to B");
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .hasSize(6)
+                .areAtLeastOne(extendsDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(implementsDependency()
+                        .from(ADependingOnB.class)
+                        .to(InterfaceForA.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(4))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(5))
+                .areAtLeastOne(setFieldDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "field")
+                        .inLineNumber(6))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "call")
+                        .inLineNumber(7));
     }
 
     @Test
-    public void function_simpleName() {
+    public void direct_dependencies_to_self() {
+        JavaClasses classes = importClasses(ADependingOnB.class, SuperA.class, InterfaceForA.class, B.class);
+
+        assertThat(classes.get(B.class).getDirectDependenciesToSelf())
+                .hasSize(3)
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(5))
+                .areAtLeastOne(setFieldDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "field")
+                        .inLineNumber(6))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(B.class, "call")
+                        .inLineNumber(7));
+
+        assertThat(classes.get(SuperA.class).getDirectDependenciesToSelf())
+                .hasSize(2)
+                .areAtLeastOne(extendsDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(callDependency()
+                        .from(ADependingOnB.class)
+                        .to(SuperA.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(4));
+
+        assertThat(classes.get(InterfaceForA.class).getDirectDependenciesToSelf())
+                .hasSize(1)
+                .areAtLeastOne(implementsDependency()
+                        .from(ADependingOnB.class)
+                        .to(InterfaceForA.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void function_getSimpleName() {
+        assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
+                .as("result of GET_SIMPLE_NAME(clazz)")
+                .isEqualTo(List.class.getSimpleName());
+
         assertThat(JavaClass.Functions.SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
                 .as("result of SIMPLE_NAME(clazz)")
                 .isEqualTo(List.class.getSimpleName());
+    }
+
+    @Test
+    public void function_getPackage() {
+        assertThat(JavaClass.Functions.GET_PACKAGE.apply(javaClassViaReflection(List.class)))
+                .as("result of GET_PACKAGE(clazz)")
+                .isEqualTo(List.class.getPackage().getName());
     }
 
     @Test
@@ -400,6 +462,78 @@ public class JavaClassTest {
                 .as("predicate matches").isFalse();
         assertThat(equivalentTo(Parent.class).getDescription())
                 .as("description").isEqualTo("equivalent to " + Parent.class.getName());
+    }
+
+    private static DependencyConditionCreation callDependency() {
+        return new DependencyConditionCreation("calls");
+    }
+
+    private static DependencyConditionCreation setFieldDependency() {
+        return new DependencyConditionCreation("sets");
+    }
+
+    private static DependencyConditionCreation implementsDependency() {
+        return new DependencyConditionCreation("implements");
+    }
+
+    private static DependencyConditionCreation extendsDependency() {
+        return new DependencyConditionCreation("extends");
+    }
+
+    private static class DependencyConditionCreation {
+        private final String descriptionPart;
+
+        DependencyConditionCreation(String descriptionPart) {
+            this.descriptionPart = descriptionPart;
+        }
+
+        Step2 from(Class<?> origin) {
+            return new Step2(origin);
+        }
+
+        private class Step2 {
+            private final Class<?> origin;
+
+            Step2(Class<?> origin) {
+                this.origin = origin;
+            }
+
+            Step3 to(Class<?> target) {
+                return new Step3(target);
+            }
+
+            Step3 to(Class<?> target, String targetName) {
+                return new Step3(target, targetName);
+            }
+
+            private class Step3 {
+                private final Class<?> target;
+                private final String targetDescription;
+
+                Step3(Class<?> target) {
+                    this.target = target;
+                    targetDescription = target.getSimpleName();
+                }
+
+                Step3(Class<?> target, String targetName) {
+                    this.target = target;
+                    targetDescription = target.getSimpleName() + "." + targetName;
+                }
+
+                Condition<Dependency> inLineNumber(final int lineNumber) {
+                    return new Condition<Dependency>(String.format(
+                            "%s %s %s in line %d", origin.getName(), descriptionPart, targetDescription, lineNumber)) {
+                        @Override
+                        public boolean matches(Dependency value) {
+                            return value.getOriginClass().isEquivalentTo(origin) &&
+                                    value.getTargetClass().isEquivalentTo(target) &&
+                                    value.getDescription().matches(String.format(".*%s.*%s.*%s.*:%d.*",
+                                            origin.getSimpleName(), descriptionPart, targetDescription, lineNumber));
+                        }
+                    };
+                }
+            }
+        }
     }
 
     private void assertIllegalArgumentException(String expectedMessagePart, Runnable runnable) {
@@ -626,14 +760,4 @@ public class JavaClassTest {
         void parentMethod();
     }
 
-    private static class ADependingOnB {
-        public ADependingOnB(B b) {
-            b.call();
-        }
-    }
-
-    private static class B {
-        void call() {
-        }
-    }
 }

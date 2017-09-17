@@ -29,7 +29,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  */
 @PublicAPI(usage = INHERITANCE)
 public abstract class DescribedPredicate<T> {
-    private String description;
+    private final String description;
 
     public abstract boolean apply(T input);
 
@@ -97,7 +97,7 @@ public abstract class DescribedPredicate<T> {
         return (DescribedPredicate<T>) ALWAYS_TRUE;
     }
 
-    private static DescribedPredicate<Object> ALWAYS_TRUE = new DescribedPredicate<Object>("always true") {
+    private static final DescribedPredicate<Object> ALWAYS_TRUE = new DescribedPredicate<Object>("always true") {
         @Override
         public boolean apply(Object input) {
             return true;

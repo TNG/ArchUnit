@@ -37,6 +37,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElem
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ArchConditionsTest {
@@ -88,6 +89,9 @@ public class ArchConditionsTest {
 
         assertThat(onlyBeAccessedByAnyPackage("..one..", "..two..").getDescription())
                 .isEqualTo("only be accessed by any package ['..one..', '..two..']");
+
+        assertThat(onlyHaveDependentsInAnyPackage("..one..", "..two..").getDescription())
+                .isEqualTo("only have dependents in any package ['..one..', '..two..']");
 
         assertThat(callCodeUnitWhere(predicateWithDescription("something")).getDescription())
                 .isEqualTo("call code unit where something");

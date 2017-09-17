@@ -54,7 +54,7 @@ public class ProGuardTest {
     private Set<String> findGuavaDependenciesIn(JavaClasses archunitJunitClasses) {
         Set<String> guavaDependencies = new TreeSet<>();
         for (JavaClass javaClass : archunitJunitClasses) {
-            for (Dependency dependency : javaClass.getDirectDependencies()) {
+            for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
                 if (dependency.getTargetClass().getPackage().startsWith("com.google")) {
                     guavaDependencies.add(dependency.getTargetClass().getName().replaceAll("\\$.*", ""));
                 }
