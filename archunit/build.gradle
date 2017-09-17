@@ -30,3 +30,5 @@ def configureDependenciesAfterShadow = { pom ->
 }
 install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfterShadow
 uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
+
+addTestJarTo this

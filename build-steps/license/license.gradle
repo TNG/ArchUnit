@@ -2,10 +2,9 @@ String archUnitLicenseFile = 'licenses/archunit.license'
 String guavaLicenseFile = 'licenses/guava.license'
 String asmLicenseFile = 'licenses/asm.license'
 
-def addonFile = { rootProject.file("build-utils/license/${it}") }
-
+def scriptRoot = currentScriptRootOf this
 def fillTemplateFile = {
-    addonFile(it).text.
+    new File(scriptRoot, it).text.
             replace('${year}', year).
             replace('${owner}', "${company.name}")
 }
