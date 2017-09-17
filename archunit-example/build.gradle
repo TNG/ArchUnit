@@ -5,6 +5,7 @@ dependencies {
     compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
 
     testCompile project(path: ':archunit')
+    testCompile project(path: ':archunit', configuration: 'tests')
     testCompile project(path: ':archunit-junit')
     testCompile dependency.junit
     testCompile dependency.assertj
@@ -14,15 +15,4 @@ dependencies {
     testCompile dependency.log4j_slf4j
 }
 
-task testJar(type: Jar, dependsOn: testClasses) {
-    classifier 'tests'
-    from sourceSets.test.output
-}
-
-configurations {
-    tests
-}
-
-artifacts {
-    tests testJar
-}
+addTestJarTo this

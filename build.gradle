@@ -1,27 +1,10 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import proguard.gradle.ProGuardTask
-
-import java.nio.file.Files
-
-import static java.nio.charset.StandardCharsets.UTF_8
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'net.sf.proguard:proguard-gradle:5.3.3'
-    }
-}
-
 plugins {
     id 'com.gradle.build-scan' version '1.8'
     id 'com.github.johnrengelman.shadow' version '2.0.0'
 }
 
-def thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
+def productionProjectNames = ['archunit', 'archunit-junit']
 
 ext {
     year = "${Calendar.getInstance().get(Calendar.YEAR)}"
@@ -43,6 +26,8 @@ ext {
             name: 'TNG Technology Consulting GmbH',
             url : 'https://www.tngtech.com/'
     ]
+
+    thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
     asmRelocationPackage = "${thirdPartyRelocationPackage}.org.objectweb.asm"
     guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
@@ -67,6 +52,28 @@ ext {
     }
 
     tempJar = { File jarFile -> postfixedJar(jarFile, 'tmp') }
+
+    productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
+    addModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
+
+    addTestJarTo = { proj ->
+        proj.with {
+            configurations {
+                tests.extendsFrom testRuntime
+            }
+
+            task testJar(type: Jar) {
+                classifier = 'tests'
+                from sourceSets.test.output
+            }
+
+            artifacts {
+                tests testJar
+            }
+        }
+    }
+
+    currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
 }
 
 task wrapper(type: Wrapper) {
@@ -76,135 +83,28 @@ task wrapper(type: Wrapper) {
 allprojects {
     group = 'com.tngtech.archunit'
     version = '0.5.0-SNAPSHOT'
-
-    repositories {
-        mavenCentral()
-    }
 }
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
 
-def productionProjectNames = ['archunit', 'archunit-junit']
-ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
-
-
 subprojects {
     apply plugin: 'java'
 
-    ext.repackagesAsm = false
-    def addModuleDescription = { "${it} - Module '${project.name}'" }
-    description addModuleDescription(rootProject.description)
+    description addModuleDescription(rootProject.description, project)
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
 
-    tasks.withType(Jar) {
-        manifest {
-            attributes(
-                    'Built-By': "Gradle ${gradle.gradleVersion}",
-                    'Built-Date': new Date().format('yyyy-MM-dd'),
-                    'Specification-Title': addModuleDescription(app.name),
-                    'Specification-Version': version,
-                    'Specification-Vendor': company.name,
-                    'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
-                    'Implementation-Version': version,
-                    'Implementation-Vendor': company.name,
-                    'Issue-Tracker': app.urls.issues,
-                    'Documentation-URL': app.urls.doc,
-                    'Copyright': "${year} ${company.name}",
-                    'License': app.license.name
-            )
-        }
+    repositories {
+        mavenCentral()
     }
+
     test {
         testLogging {
             events "failed"
             exceptionFormat "full"
         }
-    }
-}
 
-ext.shadowConfig = { classifierName ->
-    return {
-        classifier = classifierName
-
-        exclude 'org/apache/**'
-        exclude 'Log4j*'
-        exclude 'META-INF/**'
-
-        relocate 'org.objectweb.asm', asmRelocationPackage
-        relocate 'com.google', guavaRelocationPackage
-    }
-}
-
-def configureShadow = {
-    shadowJar shadowConfig('shadow')
-}
-
-def configureProGuard = {
-    configurations {
-        proguard
-    }
-
-    dependencies {
-        proguard 'com.google.code.findbugs:jsr305:3.0.1'
-    }
-
-    task shrinkDependencies(type: ProGuardTask, dependsOn: shadowJar) {
-        delegate.ext.archivePath = postfixedJar(jar.archivePath, 'proguard')
-
-        injars shadowJar.archivePath
-        outjars archivePath
-
-        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
-        libraryjars configurations.compile
-        libraryjars configurations.proguard
-
-        dontoptimize
-        dontobfuscate
-        dontwarn '**.com.google.j2objc.annotations.**'
-        dontwarn 'org.codehaus.**'
-        dontwarn 'org.slf4j.impl.**'
-
-        keep "class !${guavaRelocationPackage}.** {*;}"
-
-        file("$rootProject.projectDir/proguard-keepclassmembers.txt").eachLine(UTF_8.name()) {
-            keepclassmembers "class ${thirdPartyRelocationPackage}.**${it}** {*;}"
-        }
-    }
-    assemble.dependsOn(shrinkDependencies)
-
-    task finishArchive {
-        doLast {
-            assert jar.archivePath.delete()
-            Files.copy(shrinkDependencies.archivePath.toPath(), jar.archivePath.toPath())
-        }
-        mustRunAfter jar
-    }
-    build.dependsOn(finishArchive)
-}
-
-productionProjects*.with {
-    apply plugin: 'com.github.johnrengelman.shadow'
-
-    delegate.with configureShadow
-    delegate.with configureProGuard
-
-    task testJar(type: ShadowJar) {
-        from sourceSets.test.output
-        configurations = [configurations.tests]
-    }
-    testJar shadowConfig('tests')
-
-    configurations {
-        tests
-    }
-
-    artifacts {
-        tests testJar
-    }
-
-    test {
         if (!project.hasProperty('allTests')) {
             useJUnit {
                 excludeCategories 'com.tngtech.archunit.Slow'
@@ -213,4 +113,4 @@ productionProjects*.with {
     }
 }
 
-apply from: 'build-utils/build-utils.gradle'
+apply from: 'build-steps/build-steps.gradle'
