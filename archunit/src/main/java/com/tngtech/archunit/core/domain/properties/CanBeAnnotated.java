@@ -72,7 +72,7 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static boolean isAnnotatedWith(Collection<JavaAnnotation> annotations,
-                                              DescribedPredicate<? super JavaAnnotation> predicate) {
+                DescribedPredicate<? super JavaAnnotation> predicate) {
             for (JavaAnnotation annotation : annotations) {
                 if (predicate.apply(annotation)) {
                     return true;

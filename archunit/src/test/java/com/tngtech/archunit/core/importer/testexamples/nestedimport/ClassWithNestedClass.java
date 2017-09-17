@@ -2,9 +2,12 @@ package com.tngtech.archunit.core.importer.testexamples.nestedimport;
 
 public class ClassWithNestedClass {
 
-    private class PrivateNestedClass {}
+    private class PrivateNestedClass {
+    }
 
-    public class NestedClass {}
+    public class NestedClass {
+    }
 
-    public static class StaticNestedClass {}
+    public static class StaticNestedClass {
+    }
 }

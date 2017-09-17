@@ -85,7 +85,10 @@ public class JavaTypeTest {
 
     @Test
     public void anonymous_type() {
-        JavaType anonymousType = JavaType.From.name(new Serializable() {}.getClass().getName());
+        Serializable input = new Serializable() {
+        };
+
+        JavaType anonymousType = JavaType.From.name(input.getClass().getName());
 
         assertThat(anonymousType.getName()).isEqualTo(getClass().getName() + "$1");
         assertThat(anonymousType.getSimpleName()).isEmpty();

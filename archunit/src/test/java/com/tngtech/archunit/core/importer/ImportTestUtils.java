@@ -56,7 +56,8 @@ public class ImportTestUtils {
         return finish(fieldBuildersFor(inputClass, importedClasses), owner, importedClasses);
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass,
+            ClassesByTypeName importedClasses) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         for (Field field : inputClass.getDeclaredFields()) {
             fieldBuilders.add(new DomainBuilders.JavaFieldBuilder()
@@ -69,7 +70,8 @@ public class ImportTestUtils {
         return fieldBuilders;
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass,
+            ClassesByTypeName importedClasses) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
@@ -83,7 +85,8 @@ public class ImportTestUtils {
         return methodBuilders;
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass,
+            ClassesByTypeName importedClasses) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
@@ -97,7 +100,8 @@ public class ImportTestUtils {
         return constructorBuilders;
     }
 
-    private static <T> Set<T> finish(Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner, ClassesByTypeName importedClasses) {
+    private static <T> Set<T> finish(Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner,
+            ClassesByTypeName importedClasses) {
         ImmutableSet.Builder<T> result = ImmutableSet.builder();
         for (DomainBuilders.BuilderWithBuildParameter<JavaClass, T> builder : builders) {
             result.add(builder.build(owner, importedClasses));
@@ -109,7 +113,8 @@ public class ImportTestUtils {
         return javaAnnotationBuildersFrom(reflectionAnnotations, simpleImportedClasses());
     }
 
-    private static Set<DomainBuilders.JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations, ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations,
+            ClassesByTypeName importedClasses) {
         ImmutableSet.Builder<DomainBuilders.JavaAnnotationBuilder> result = ImmutableSet.builder();
         for (Annotation annotation : reflectionAnnotations) {
             result.add(javaAnnotationBuilderFrom(annotation, importedClasses));
@@ -274,7 +279,8 @@ public class ImportTestUtils {
     }
 
     private static DomainBuilders.JavaAnnotationBuilder javaAnnotationBuilderFrom(Annotation annotation, ClassesByTypeName importedClasses) {
-        DomainBuilders.JavaAnnotationBuilder builder = new DomainBuilders.JavaAnnotationBuilder().withType(JavaType.From.name(annotation.annotationType().getName()));
+        DomainBuilders.JavaAnnotationBuilder builder = new DomainBuilders.JavaAnnotationBuilder()
+                .withType(JavaType.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, importedClasses).entrySet()) {
             builder.addProperty(entry.getKey(), DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(entry.getValue()));
         }

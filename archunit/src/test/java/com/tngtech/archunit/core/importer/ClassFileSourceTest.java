@@ -66,7 +66,9 @@ public class ClassFileSourceTest {
 
     @Test
     @UseDataProvider("expected_classes")
-    public void classes_from_file_path_are_filtered(Set<String> givenFiles, ImportOptions importOptions, final Set<String> expectedIncluded) throws IOException {
+    public void classes_from_file_path_are_filtered(
+            Set<String> givenFiles, ImportOptions importOptions, final Set<String> expectedIncluded) throws IOException {
+
         File dir = tempDir.newFolder();
         for (String file : givenFiles) {
             File newFile = new File(dir, file);

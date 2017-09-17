@@ -675,7 +675,6 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-
     private interface AnnotationArrayContext {
         String getDeclaringAnnotationTypeName();
 

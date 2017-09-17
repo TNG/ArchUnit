@@ -101,7 +101,9 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public abstract static class JavaMemberBuilder<OUTPUT, SELF extends JavaMemberBuilder<OUTPUT, SELF>> implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
+    public abstract static class JavaMemberBuilder<OUTPUT, SELF extends JavaMemberBuilder<OUTPUT, SELF>>
+            implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
+
         private String name;
         private String descriptor;
         private Set<JavaAnnotationBuilder> annotations;

@@ -93,7 +93,8 @@ public interface JavaType {
         }
 
         private static boolean isArray(String typeName) {
-            return typeName.startsWith("[") || typeName.endsWith("]"); // We support class name ([Ljava.lang.Object;) and canonical name java.lang.Object[]
+            // We support class name ([Ljava.lang.Object;) and canonical name java.lang.Object[]
+            return typeName.startsWith("[") || typeName.endsWith("]");
         }
 
         private static String ensureCorrectArrayTypeName(String name) {

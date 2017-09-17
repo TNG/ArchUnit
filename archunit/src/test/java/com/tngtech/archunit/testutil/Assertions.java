@@ -758,7 +758,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             });
         }
 
-
         public ConstructorCallAssertion isTo(JavaConstructor target) {
             return isTo(targetFrom(target));
         }

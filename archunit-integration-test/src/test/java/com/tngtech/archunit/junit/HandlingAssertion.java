@@ -160,12 +160,14 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
                 return;
             }
         }
-        throw new RuntimeException("Unexpected access: " + violatingObject); // NOTE: Don't throw AssertionError, since that will be caught and analyzed
+        // NOTE: Don't throw AssertionError, since that will be caught and analyzed
+        throw new RuntimeException("Unexpected access: " + violatingObject);
     }
 
     private void checkEmpty(Set<?> set) {
         if (!set.isEmpty()) {
-            throw new RuntimeException("Unhandled accesses: " + set); // NOTE: Don't throw AssertionError, since that will be caught and analyzed
+            // NOTE: Don't throw AssertionError, since that will be caught and analyzed
+            throw new RuntimeException("Unhandled accesses: " + set);
         }
     }
 }

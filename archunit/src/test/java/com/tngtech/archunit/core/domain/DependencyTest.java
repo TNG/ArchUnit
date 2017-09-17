@@ -123,13 +123,17 @@ public class DependencyTest {
         return MoreObjects.toStringHelper(this).toString();
     }
 
-    private static class DependencyClass {}
+    private static class DependencyClass {
+    }
 
-    private interface DependencyInterface {}
+    private interface DependencyInterface {
+    }
 
-    private static class Origin {}
+    private static class Origin {
+    }
 
-    private static class Target {}
+    private static class Target {
+    }
 
     private static class DependencyAssertion {
         private final Dependency input;

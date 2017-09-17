@@ -108,7 +108,8 @@ public class ShouldAccessClassesThatTest {
 
     @Test
     public void resideInAnyPackage() {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class, ClassAccessingConstructor.class);
@@ -116,7 +117,8 @@ public class ShouldAccessClassesThatTest {
 
     @Test
     public void resideOutsideOfPackages() {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClasses().should().accessClassesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
         ).on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class);

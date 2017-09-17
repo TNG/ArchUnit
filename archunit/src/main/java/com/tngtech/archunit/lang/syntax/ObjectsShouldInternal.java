@@ -38,22 +38,22 @@ class ObjectsShouldInternal<T> implements ArchRule {
     final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition;
 
     ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
-                          Priority priority,
-                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            Priority priority,
+            Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this(classesTransformer, priority, new ConditionAggregator<>(AddMode.<T>and()), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
-                          Priority priority,
-                          ArchCondition<T> condition,
-                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            Priority priority,
+            ArchCondition<T> condition,
+            Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this(classesTransformer, priority, new ConditionAggregator<>(condition, AddMode.<T>and()), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
-                          Priority priority,
-                          ConditionAggregator<T> conditionAggregator,
-                          Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            Priority priority,
+            ConditionAggregator<T> conditionAggregator,
+            Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this.conditionAggregator = conditionAggregator;
         this.classesTransformer = classesTransformer;
         this.priority = priority;

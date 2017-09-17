@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.base;
 
-
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkArgument;

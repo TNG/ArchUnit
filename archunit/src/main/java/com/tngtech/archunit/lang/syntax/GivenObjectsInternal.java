@@ -31,8 +31,8 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
     }
 
     GivenObjectsInternal(Priority priority,
-                         ClassesTransformer<T> classesTransformer,
-                         Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+            ClassesTransformer<T> classesTransformer,
+            Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this(priority, classesTransformer, prepareCondition, new PredicateAggregator<T>(), Optional.<String>absent());
     }
 
@@ -55,10 +55,10 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
     private static class GivenObjectsFactory<T> implements AbstractGivenObjects.Factory<T, GivenObjectsInternal<T>> {
         @Override
         public GivenObjectsInternal<T> create(Priority priority,
-                                              ClassesTransformer<T> classesTransformer,
-                                              Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
-                                              PredicateAggregator<T> relevantObjectsPredicates,
-                                              Optional<String> overriddenDescription) {
+                ClassesTransformer<T> classesTransformer,
+                Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
+                PredicateAggregator<T> relevantObjectsPredicates,
+                Optional<String> overriddenDescription) {
 
             return new GivenObjectsInternal<>(
                     priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
