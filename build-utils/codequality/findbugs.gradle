@@ -1,9 +1,11 @@
+def codequalityRoot = buildscript.sourceFile.parentFile
+
 productionProjects*.with {
     apply plugin: 'findbugs'
 
     findbugs {
         sourceSets = [sourceSets.main]
-        excludeFilter = file("$rootProject.projectDir/findbugs-excludes.xml")
+        excludeFilter = new File(codequalityRoot, 'findbugs-excludes.xml')
     }
 
     tasks.withType(FindBugs) {
