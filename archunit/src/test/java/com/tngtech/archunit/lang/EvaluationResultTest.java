@@ -47,7 +47,6 @@ public class EvaluationResultTest {
         assertThat(actual).containsOnly("message: expected", "second message: also expected");
     }
 
-
     private EvaluationResult evaluationResultWith(ConditionEvent... events) {
         return new EvaluationResult(hasDescription("unimportant"), events(events), Priority.MEDIUM);
     }

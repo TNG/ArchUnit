@@ -345,7 +345,8 @@ public class AnnotationProxyTest {
             enumConstants = {TestEnum.SECOND, TestEnum.THIRD},
             subAnnotation = @SubAnnotation("custom"),
             subAnnotations = {@SubAnnotation("customOne"), @SubAnnotation("customTwo")})
-    private static class Irrelevant {}
+    private static class Irrelevant {
+    }
 
     private void ensureInSync(TestAnnotation annotation, Map<String, String> result) {
         Set<String> necessaryKeysAsSanityCheck = new HashSet<>();

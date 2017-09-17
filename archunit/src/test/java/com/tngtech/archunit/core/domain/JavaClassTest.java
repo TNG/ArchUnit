@@ -71,7 +71,10 @@ public class JavaClassTest {
 
     @Test
     public void anonymous_class_has_package_of_declaring_class() {
-        JavaClass anonymous = javaClassViaReflection(new Serializable() {}.getClass());
+        Serializable input = new Serializable() {
+        };
+
+        JavaClass anonymous = javaClassViaReflection(input.getClass());
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }

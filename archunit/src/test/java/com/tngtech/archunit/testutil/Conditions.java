@@ -6,7 +6,8 @@ import org.assertj.core.api.Condition;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 
 public final class Conditions {
-    private Conditions() {}
+    private Conditions() {
+    }
 
     public static <T> Condition<Iterable<? extends T>> containing(final Condition<T> condition) {
         return new Condition<Iterable<? extends T>>() {

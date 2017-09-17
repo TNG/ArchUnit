@@ -314,7 +314,7 @@ public class ClassesShouldTest {
     @Test
     @UseDataProvider("visibility_rules")
     public void visibility(ArchRule rule, JavaModifier modifier,
-                           Class<?> satisfied, Class<?> violated) {
+            Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -337,7 +337,7 @@ public class ClassesShouldTest {
     @Test
     @UseDataProvider("not_visibility_rules")
     public void notVisibility(ArchRule rule, JavaModifier modifier,
-                              Class<?> satisfied, Class<?> violated) {
+            Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -401,7 +401,7 @@ public class ClassesShouldTest {
     @Test
     @UseDataProvider("modifiers_rules")
     public void modifiers(ArchRule rule, String havePrefix, JavaModifier modifier,
-                          Class<?> satisfied, Class<?> violated) {
+            Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -888,8 +888,8 @@ public class ClassesShouldTest {
     }
 
     private void checkTestStillValid(String[] packages,
-                                     Set<Class<?>> inSomePackage,
-                                     Set<Class<?>> notInAnyPackage) {
+            Set<Class<?>> inSomePackage,
+            Set<Class<?>> notInAnyPackage) {
         for (Class<?> c : inSomePackage) {
             assertThat(packageMatches(c, packages)).as("Package matches").isTrue();
         }
@@ -908,9 +908,9 @@ public class ClassesShouldTest {
     }
 
     private void checkTestStillValid(String thePackage,
-                                     Set<Class<?>> inPackage,
-                                     Set<Class<?>> inSuperPackage,
-                                     Set<Class<?>> inSubPackage) {
+            Set<Class<?>> inPackage,
+            Set<Class<?>> inSuperPackage,
+            Set<Class<?>> inSubPackage) {
         for (Class<?> c : inPackage) {
             assertThat(c.getPackage().getName()).isEqualTo(thePackage);
         }
@@ -1073,5 +1073,6 @@ public class ClassesShouldTest {
     }
 
     @SomeAnnotation
-    private static class SomeAnnotatedClass {}
+    private static class SomeAnnotatedClass {
+    }
 }

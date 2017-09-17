@@ -1,3 +1,4 @@
 package com.tngtech.archunit.core.domain.testobjects;
 
-public interface SuperInterface {}
+public interface SuperInterface {
+}

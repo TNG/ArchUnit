@@ -35,11 +35,11 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
     private final Optional<String> overriddenDescription;
 
     AbstractGivenObjects(Factory<T, SELF> factory,
-                         Priority priority,
-                         ClassesTransformer<T> classesTransformer,
-                         Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
-                         PredicateAggregator<T> relevantObjectsPredicates,
-                         Optional<String> overriddenDescription) {
+            Priority priority,
+            ClassesTransformer<T> classesTransformer,
+            Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
+            PredicateAggregator<T> relevantObjectsPredicates,
+            Optional<String> overriddenDescription) {
         this.factory = factory;
         this.prepareCondition = prepareCondition;
         this.classesTransformer = classesTransformer;
@@ -82,9 +82,9 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
 
     interface Factory<T, GIVEN extends AbstractGivenObjects<T, GIVEN>> {
         GIVEN create(Priority priority,
-                     ClassesTransformer<T> classesTransformer,
-                     Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
-                     PredicateAggregator<T> relevantObjectsPredicates,
-                     Optional<String> overriddenDescription);
+                ClassesTransformer<T> classesTransformer,
+                Function<ArchCondition<T>, ArchCondition<T>> prepareCondition,
+                PredicateAggregator<T> relevantObjectsPredicates,
+                Optional<String> overriddenDescription);
     }
 }

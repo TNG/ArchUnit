@@ -173,7 +173,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             private final Optional<String> overriddenDescription;
 
             private SimpleArchRule(Priority priority, ClassesTransformer<T> classesTransformer, ArchCondition<T> condition,
-                                   Optional<String> overriddenDescription) {
+                    Optional<String> overriddenDescription) {
                 this.priority = priority;
                 this.classesTransformer = classesTransformer;
                 this.condition = condition;

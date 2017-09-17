@@ -116,8 +116,13 @@ class RawAccessRecord {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
             CodeUnit codeUnit = (CodeUnit) o;
             return Objects.equals(name, codeUnit.name) &&
                     Objects.equals(parameters, codeUnit.parameters) &&
@@ -396,7 +401,8 @@ class RawAccessRecord {
         }
     }
 
-    static class Builder extends BaseBuilder<Builder> {}
+    static class Builder extends BaseBuilder<Builder> {
+    }
 
     static class BaseBuilder<SELF extends BaseBuilder<SELF>> {
         CodeUnit caller;

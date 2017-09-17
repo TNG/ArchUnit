@@ -353,8 +353,13 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
-        return tryFindMatchingCodeUnit(codeUnits, name, parameters).getOrThrow(new IllegalArgumentException("No code unit with name '" + name + "' and parameters " + parameters +
-                " in codeUnits " + codeUnits + " of class " + getName()));
+        Optional<T> codeUnit = tryFindMatchingCodeUnit(codeUnits, name, parameters);
+        if (!codeUnit.isPresent()) {
+            throw new IllegalArgumentException(
+                    String.format("No code unit with name '%s' and parameters %s in codeUnits %s of class %s",
+                            name, parameters, codeUnits, getName()));
+        }
+        return codeUnit.get();
     }
 
     private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {

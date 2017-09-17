@@ -265,7 +265,6 @@ public class ClassFileImporterTest {
     public void imports_interfaces() throws Exception {
         JavaClass simpleInterface = classesIn("testexamples/simpleimport").get(InterfaceToImport.class);
 
-
         assertThat(simpleInterface.getName()).as("full name").isEqualTo(InterfaceToImport.class.getName());
         assertThat(simpleInterface.getSimpleName()).as("simple name").isEqualTo(InterfaceToImport.class.getSimpleName());
         assertThat(simpleInterface.getPackage()).as("package").isEqualTo(InterfaceToImport.class.getPackage().getName());

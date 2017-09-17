@@ -53,8 +53,8 @@ public abstract class RandomSyntaxTestBase {
 
     @Test
     @UseDataProvider("random_rules")
-    public void rule_has_expected_description_and_can_be_evaluated_without_error(DescribedRule describedRule,
-                                                                                 String expectedDescription) {
+    public void rule_has_expected_description_and_can_be_evaluated_without_error(
+            DescribedRule describedRule, String expectedDescription) {
         ArchRule archRule = describedRule.archRule;
 
         assertThat(archRule.getDescription()).as("description of constructed ArchRule").isEqualTo(expectedDescription);
@@ -185,8 +185,12 @@ public abstract class RandomSyntaxTestBase {
             this(expectedDescription, currentValue, method, getParametersFor(method));
         }
 
-        private PartialStep(ExpectedDescription expectedDescription, TypedValue currentValue, Method method,
-                            Parameters parameters) {
+        private PartialStep(
+                ExpectedDescription expectedDescription,
+                TypedValue currentValue,
+                Method method,
+                Parameters parameters) {
+
             super(expectedDescription, currentValue);
             this.method = method;
             this.parameters = parameters;
@@ -563,7 +567,8 @@ public abstract class RandomSyntaxTestBase {
         }
 
         private String createCallDetailsForStringArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
-            List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(index).value); // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
+            // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
+            List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(index).value);
             return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
         }
 

@@ -45,9 +45,10 @@ public class ArchConditionsTest {
     public void never_call_method_where_target_owner_is_assignable_to() throws NoSuchMethodException {
         JavaClass callingClass = javaClassViaReflection(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
-        JavaMethod dontCallMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
+        JavaClass someClass = javaClassViaReflection(SomeClass.class);
+        JavaMethod dontCallMe = javaMethodViaReflection(someClass, SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
         JavaMethodCall callToDontCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(dontCallMe);
-        JavaMethod callMe = javaMethodViaReflection(javaClassViaReflection(SomeClass.class), SomeSuperClass.class.getDeclaredMethod("callMe"));
+        JavaMethod callMe = javaMethodViaReflection(someClass, SomeSuperClass.class.getDeclaredMethod("callMe"));
         JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
         ConditionEvents events =

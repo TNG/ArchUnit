@@ -130,9 +130,9 @@ public final class Slices implements DescribedIterable<Slice> {
         }
 
         private Transformer(String packageIdentifier,
-                            String description,
-                            Optional<String> namingPattern,
-                            SlicesPredicateAggregator predicate) {
+                String description,
+                Optional<String> namingPattern,
+                SlicesPredicateAggregator predicate) {
 
             this.packageIdentifier = checkNotNull(packageIdentifier);
             this.description = checkNotNull(description);

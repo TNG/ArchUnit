@@ -40,22 +40,22 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         implements ClassesShould, ClassesShouldConjunction {
 
     ClassesShouldInternal(ClassesTransformer<JavaClass> classesTransformer,
-                          Priority priority,
-                          Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
+            Priority priority,
+            Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
         super(classesTransformer, priority, prepareCondition);
     }
 
     ClassesShouldInternal(ClassesTransformer<JavaClass> classesTransformer,
-                          Priority priority,
-                          ArchCondition<JavaClass> condition,
-                          Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
+            Priority priority,
+            ArchCondition<JavaClass> condition,
+            Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
         super(classesTransformer, priority, condition, prepareCondition);
     }
 
     private ClassesShouldInternal(ClassesTransformer<JavaClass> classesTransformer,
-                                  Priority priority,
-                                  ConditionAggregator<JavaClass> conditionAggregator,
-                                  Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
+            Priority priority,
+            ConditionAggregator<JavaClass> conditionAggregator,
+            Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
         super(classesTransformer, priority, conditionAggregator, prepareCondition);
     }
 

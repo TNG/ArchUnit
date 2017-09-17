@@ -147,7 +147,8 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<Dependency> dependency(DescribedPredicate<? super JavaClass> originPredicate, DescribedPredicate<? super JavaClass> targetPredicate) {
+        public static DescribedPredicate<Dependency> dependency(DescribedPredicate<? super JavaClass> originPredicate,
+                DescribedPredicate<? super JavaClass> targetPredicate) {
             return dependencyOrigin(originPredicate).and(dependencyTarget(targetPredicate))
                     .as("dependency %s -> %s", originPredicate.getDescription(), targetPredicate.getDescription());
         }

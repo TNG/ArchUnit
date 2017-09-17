@@ -47,13 +47,13 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     private final FinishedRule finishedRule = new FinishedRule();
 
     ClassesShouldThatInternal(ClassesShouldInternal classesShould,
-                              Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
+            Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
         this(classesShould, new PredicateAggregator<JavaClass>(), createCondition);
     }
 
     private ClassesShouldThatInternal(ClassesShouldInternal classesShould,
-                                      PredicateAggregator<JavaClass> predicateAggregator,
-                                      Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
+            PredicateAggregator<JavaClass> predicateAggregator,
+            Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
         this.classesShould = classesShould;
         this.predicateAggregator = predicateAggregator;
         this.createCondition = createCondition;

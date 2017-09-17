@@ -91,8 +91,8 @@ public final class Architectures {
         }
 
         private LayeredArchitecture(Map<String, LayerDefinition> layerDefinitions,
-                                    Set<LayerDependencySpecification> dependencySpecifications,
-                                    Optional<String> overriddenDescription) {
+                Set<LayerDependencySpecification> dependencySpecifications,
+                Optional<String> overriddenDescription) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
             this.overriddenDescription = overriddenDescription;

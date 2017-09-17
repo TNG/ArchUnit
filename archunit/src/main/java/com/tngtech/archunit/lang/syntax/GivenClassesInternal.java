@@ -36,7 +36,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
     }
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,
-                         Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
+            Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
         this(priority, classesTransformer, prepareCondition, new PredicateAggregator<JavaClass>(), Optional.<String>absent());
     }
 
@@ -80,10 +80,10 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
     private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {
         @Override
         public GivenClassesInternal create(Priority priority,
-                                           ClassesTransformer<JavaClass> classesTransformer,
-                                           Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition,
-                                           PredicateAggregator<JavaClass> relevantObjectsPredicates,
-                                           Optional<String> overriddenDescription) {
+                ClassesTransformer<JavaClass> classesTransformer,
+                Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition,
+                PredicateAggregator<JavaClass> relevantObjectsPredicates,
+                Optional<String> overriddenDescription) {
             return new GivenClassesInternal(
                     priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
         }

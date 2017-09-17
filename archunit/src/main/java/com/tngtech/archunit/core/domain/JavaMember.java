@@ -133,7 +133,6 @@ public abstract class JavaMember implements
         return getClass().getSimpleName() + '{' + getFullName() + '}';
     }
 
-
     /**
      * Resolves the respective {@link Member} from the classpath.<br>
      * NOTE: This method will throw an exception, if the owning {@link Class} or any of its dependencies

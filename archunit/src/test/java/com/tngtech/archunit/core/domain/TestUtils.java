@@ -301,9 +301,9 @@ public class TestUtils {
         }
 
         private <T extends JavaCall<?>> T findMethod(Set<T> callsFromSelf,
-                                                     Class<?> targetOwner,
-                                                     String methodName,
-                                                     Class<?>[] paramTypes) {
+                Class<?> targetOwner,
+                String methodName,
+                Class<?>[] paramTypes) {
 
             List<String> paramNames = JavaClass.namesOf(paramTypes);
             for (T call : callsFromSelf) {

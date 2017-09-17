@@ -57,8 +57,8 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         }
 
         OnlyConditionEvent(Collection<?> correspondingObjects,
-                           Collection<ConditionEvent> allowed,
-                           Collection<ConditionEvent> violating) {
+                Collection<ConditionEvent> allowed,
+                Collection<ConditionEvent> violating) {
             this.correspondingObjects = correspondingObjects;
             this.allowed = allowed;
             this.violating = violating;
