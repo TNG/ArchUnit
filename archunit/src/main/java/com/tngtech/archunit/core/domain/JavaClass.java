@@ -26,12 +26,13 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -48,7 +49,7 @@ import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Functions.SIMPLE_NAME;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -75,7 +76,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
-    private Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
+    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
         @Override
         public Set<JavaMember> get() {
             return ImmutableSet.<JavaMember>builder()
@@ -462,22 +463,64 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    /**
+     * @deprecated Use {@link #getDirectDependenciesFromSelf()} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependencies() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaAccess<?> access : filterTargetNotSelf(getAccessesFromSelf())) { // Includes direct super class due to super(..) call
-            result.add(Dependency.from(access));
+        return getDirectDependenciesFromSelf();
+    }
+
+    /**
+     * Returns all dependencies originating directly from this class (i.e. not just from a superclass),
+     * where a dependency can be
+     * <ul>
+     * <li>field access</li>
+     * <li>method call</li>
+     * <li>constructor call</li>
+     * <li>extending a class</li>
+     * <li>implementing an interface</li>
+     * </ul>
+     *
+     * @return All dependencies originating directly from this class (i.e. where this class is the origin)
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDirectDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesFromSelf());
+        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
+            result.add(Dependency.fromInheritance(this, superType));
         }
-        for (JavaClass i : getInterfaces()) {
-            result.add(Dependency.from(this, i));
+        return result.build();
+    }
+
+    private ImmutableSet.Builder<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
+            result.add(Dependency.from(access));
         }
         return result;
     }
 
-    private Set<JavaAccess<?>> filterTargetNotSelf(Set<? extends JavaAccess<?>> accesses) {
+    /**
+     * Like {@link #getDirectDependenciesFromSelf()}, but instead returns all dependencies where this class
+     * is target.
+     *
+     * @return Dependencies where this class is the target.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDirectDependenciesToSelf() {
+        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesToSelf());
+        for (JavaClass subClass : getSubClasses()) {
+            result.add(Dependency.fromInheritance(subClass, this));
+        }
+        return result.build();
+    }
+
+    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
         Set<JavaAccess<?>> result = new HashSet<>();
         for (JavaAccess<?> access : accesses) {
-            if (!access.getTarget().getOwner().equals(this)) {
+            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
                 result.add(access);
             }
         }
@@ -691,10 +734,25 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static final Function<JavaClass, String> SIMPLE_NAME = new Function<JavaClass, String>() {
+        public static final ChainableFunction<JavaClass, String> GET_SIMPLE_NAME = new ChainableFunction<JavaClass, String>() {
             @Override
             public String apply(JavaClass input) {
                 return input.getSimpleName();
+            }
+        };
+
+        /**
+         * @deprecated Violates the conventions for Functions.* that simply reflect class methods. Use {@link #GET_SIMPLE_NAME}
+         */
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = GET_SIMPLE_NAME;
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, String> GET_PACKAGE = new ChainableFunction<JavaClass, String>() {
+            @Override
+            public String apply(JavaClass input) {
+                return input.getPackage();
             }
         };
     }
@@ -718,7 +776,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleName(final String name) {
-            return equalTo(name).onResultOf(SIMPLE_NAME).as("simple name '%s'", name);
+            return equalTo(name).onResultOf(GET_SIMPLE_NAME).as("simple name '%s'", name);
         }
 
         @PublicAPI(usage = ACCESS)

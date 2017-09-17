@@ -19,7 +19,7 @@ import org.junit.Test;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
 import static com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules.init;
-import static com.tngtech.archunit.junit.ExpectedAccess.from;
+import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
 
 public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Rule
@@ -29,10 +29,10 @@ public class SessionBeanRulesIntegrationTest extends SessionBeanRulesTest {
     @Override
     public void stateless_session_beans_should_not_have_state() {
         expectedViolation.ofRule("No Stateless Session Bean should have state")
-                .byAccess(from(ClassViolatingSessionBeanRules.class, "setState", String.class)
+                .by(accessFrom(ClassViolatingSessionBeanRules.class, "setState", String.class)
                         .setting().field(ClassViolatingSessionBeanRules.class, "state")
                         .inLine(25))
-                .byAccess(from(OtherClassViolatingSessionBeanRules.class, init)
+                .by(accessFrom(OtherClassViolatingSessionBeanRules.class, init)
                         .setting().field(ClassViolatingSessionBeanRules.class, "state")
                         .inLine(13));
 

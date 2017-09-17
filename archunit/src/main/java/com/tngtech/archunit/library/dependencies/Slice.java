@@ -24,10 +24,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
-import com.tngtech.archunit.core.domain.properties.HasDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -80,7 +80,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     public Set<Dependency> getDependencies() {
         Set<Dependency> result = new HashSet<>();
         for (JavaClass javaClass : this) {
-            for (Dependency dependency : javaClass.getDirectDependencies()) {
+            for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
                 if (!contains(dependency.getTargetClass())) {
                     result.add(dependency);
                 }
@@ -126,7 +126,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
 
     static class Builder {
         private final List<String> matchingGroups;
-        private Set<JavaClass> classes = new HashSet<>();
+        private final Set<JavaClass> classes = new HashSet<>();
 
         private Builder(List<String> matchingGroups) {
             this.matchingGroups = matchingGroups;

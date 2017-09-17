@@ -32,7 +32,7 @@ abstract class AllAttributesMatchCondition<T> extends ArchCondition<JavaClass> {
     }
 
     @Override
-    public void check(JavaClass item, ConditionEvents events) {
+    public final void check(JavaClass item, ConditionEvents events) {
         containOnlyElementsThat(condition).check(relevantAttributes(item), events);
     }
 

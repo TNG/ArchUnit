@@ -40,8 +40,12 @@ abstract class ExpectedMember {
         return params;
     }
 
-    public String getMemberName() {
+    String getMemberName() {
         return memberName;
+    }
+
+    Class<?> getDeclaringClass() {
+        return clazz;
     }
 
     @Override

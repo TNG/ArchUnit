@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.base;
 
-class RuleEvaluationException extends RuntimeException {
-    RuleEvaluationException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
+import com.tngtech.archunit.PublicAPI;
 
-    RuleEvaluationException(String format, Object... args) {
-        super(String.format(format, args));
-    }
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public interface HasDescription {
+    @PublicAPI(usage = ACCESS)
+    String getDescription();
 }
