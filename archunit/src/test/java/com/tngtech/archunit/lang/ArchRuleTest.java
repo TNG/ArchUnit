@@ -111,6 +111,13 @@ public class ArchRuleTest {
                 "classes should access classes that have fully qualified name 'foo', because this is the way");
     }
 
+    @Test
+    public void reports_number_of_violations() {
+        EvaluationResult result = all(classes()).should(addFixedNumberOfViolations(3)).evaluate(javaClassesViaReflection(Object.class, String.class));
+
+        assertThat(result.getFailureReport().toString()).contains("(6 times)");
+    }
+
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {
         File ignoreFile = ignoreFile();
         ignoreFile.delete();
@@ -165,6 +172,17 @@ public class ArchRuleTest {
             public void check(JavaClass item, ConditionEvents events) {
                 for (String message : messages) {
                     events.add(SimpleConditionEvent.violated(item, message));
+                }
+            }
+        };
+    }
+
+    private static ArchCondition<JavaClass> addFixedNumberOfViolations(final int number) {
+        return new ArchCondition<JavaClass>(String.format("be violated exactly %d times", number)) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                for (int i = 0; i < number; i++) {
+                    events.add(SimpleConditionEvent.violated(item, item.getSimpleName() + " violation " + i));
                 }
             }
         };
