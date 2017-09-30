@@ -10,4 +10,4 @@ dependencies {
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
 
-[project(':archunit'), project(':archunit-junit')].each { test.dependsOn(it.finishArchive) }
+test.dependsOn(':archunit:finishArchive', ':archunit-junit:removeDuplicateThirdParty')
