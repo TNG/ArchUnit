@@ -1,7 +1,7 @@
 language: java
 
 script:
-  - ./gradlew -PallTests -PscanBuild clean build install runMavenTest
+  - ./gradlew --no-daemon -PallTests -PscanBuild clean build install runMavenTest
 
 jdk:
   - oraclejdk8
