@@ -29,9 +29,8 @@ class ConfiguredMessageFormat {
 
     String formatFailure(HasDescription rule, Collection<String> failureMessages, Priority priority) {
         String violationTexts = Joiner.on(System.lineSeparator()).join(failureMessages);
-        String priorityPrefix = String.format("Architecture Violation [Priority: %s] - ", priority.asString());
-        String message = String.format("Rule '%s' was violated:%n%s", rule.getDescription(), violationTexts);
-        return priorityPrefix + message;
+        return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%d times):%n%s",
+                priority.asString(), rule.getDescription(), failureMessages.size(), violationTexts);
     }
 
     <T> String formatRuleText(HasDescription itemsUnderTest, ArchCondition<T> condition) {
