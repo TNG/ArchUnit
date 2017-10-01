@@ -90,7 +90,7 @@ def configureProGuard = {
 
     task finishArchive(dependsOn: shrinkDependencies) {
         doLast {
-            assert jar.archivePath.delete()
+            jar.archivePath.delete()
             Files.copy(shrinkDependencies.archivePath.toPath(), jar.archivePath.toPath())
         }
         mustRunAfter jar
