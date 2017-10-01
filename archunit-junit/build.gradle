@@ -52,9 +52,8 @@ task removeDuplicateThirdParty(type: Jar, dependsOn: [shrinkDependencies, projec
         assert shrinkDependencies.archivePath.delete()
         assert tempPath.renameTo(shrinkDependencies.archivePath)
     }
-
-    finalizedBy finishArchive
 }
+finishArchive.dependsOn removeDuplicateThirdParty
 assemble.dependsOn removeDuplicateThirdParty
 
 def configureDependenciesAfterShadow = { pom ->
