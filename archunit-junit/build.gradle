@@ -54,7 +54,6 @@ task removeDuplicateThirdParty(type: Jar, dependsOn: [shrinkDependencies, projec
     }
 }
 finishArchive.dependsOn removeDuplicateThirdParty
-assemble.dependsOn removeDuplicateThirdParty
 
 def configureDependenciesAfterShadow = { pom ->
     pom.dependencies.removeAll {
