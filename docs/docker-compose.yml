@@ -2,12 +2,13 @@ version: "3.0"
 
 services:
   site:
-    command: jekyll serve
+    build: .
     image: archunit/jekyll:latest
+    command: jekyll serve --trace --host 0.0.0.0 --watch --incremental
+    environment:
+      - JEKYLL_ENV=development
     volumes:
       - $PWD:/srv/jekyll
+      - $PWD/_config-dev.yml:/srv/jekyll/_config.yml
     ports:
       - 4000:4000
-      - 35729:35729
-      - 3000:3000
-      -   80:4000

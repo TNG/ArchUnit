@@ -1,13 +1,10 @@
-FROM ruby:2.3-alpine
+FROM jekyll/jekyll:3.6
 
 MAINTAINER Peter Gafert <peter.gafert@tngtech.com>
+
+WORKDIR /srv/jekyll
 
 COPY Gemfile .
 COPY Gemfile.lock .
 
-RUN apk update && \
-    apk add make gcc musl-dev nodejs python
 RUN bundle install
-
-WORKDIR /srv/jekyll
-EXPOSE 4000

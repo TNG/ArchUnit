@@ -8,3 +8,4 @@ target
 .classpath
 _site
 .sass-cache
+.jekyll-metadata
