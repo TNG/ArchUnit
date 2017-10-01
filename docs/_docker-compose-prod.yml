@@ -1,0 +1,12 @@
+# docker-compose definition for generating a release-version.
+#
+version: '2'
+
+services:
+  jekyll:
+    build: .
+    image: archunit/jekyll:latest
+    command: jekyll build --destination zz-site --no-watch
+    volumes:
+      - .:/srv/jekyll
+      - $PWD/_config.yml:/srv/jekyll/_config.yml
