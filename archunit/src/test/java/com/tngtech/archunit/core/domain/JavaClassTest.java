@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,16 +16,21 @@ import com.tngtech.archunit.core.domain.testobjects.ADependingOnB;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -34,13 +40,17 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(DataProviderRunner.class)
 public class JavaClassTest {
 
     @Test
@@ -118,10 +128,8 @@ public class JavaClassTest {
 
     @Test
     public void all_classes_self_is_assignable_to() {
-        JavaClass clazz = importClasses(
-                ChildWithFieldAndMethod.class,
-                ParentWithFieldAndMethod.class,
-                InterfaceWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+        JavaClass clazz = importClasses(ChildWithFieldAndMethod.class, ParentWithFieldAndMethod.class, InterfaceWithFieldAndMethod.class)
+                .get(ChildWithFieldAndMethod.class);
 
         assertThat(clazz.getAllClassesSelfIsAssignableTo())
                 .extracting("name")
@@ -420,6 +428,51 @@ public class JavaClassTest {
         assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
     }
 
+    @DataProvider
+    public static Object[][] implement_match_cases() {
+        return testForEach(
+                implement(List.class),
+                implement(Collection.class),
+                implement(List.class.getName()),
+                implement(Collection.class.getName()),
+                implement(name(List.class.getName())),
+                implement(name(Collection.class.getName())));
+    }
+
+    @Test
+    @UseDataProvider("implement_match_cases")
+    public void predicate_implement_matches(DescribedPredicate<JavaClass> expectedMatch) {
+        assertThat(expectedMatch.apply(classWithHierarchy(ArrayList.class))).as("predicate matches").isTrue();
+    }
+
+    @DataProvider
+    public static Object[][] implement_mismatch_cases() {
+        return testForEach(
+                implement(ArrayList.class),
+                implement(AbstractList.class),
+                implement(String.class),
+                implement(ArrayList.class.getName()),
+                implement(AbstractList.class.getName()),
+                implement(String.class.getName()),
+                implement(name(ArrayList.class.getName())),
+                implement(name(AbstractList.class.getName())),
+                implement(name(String.class.getName())));
+    }
+
+    @Test
+    @UseDataProvider("implement_mismatch_cases")
+    public void predicate_implement_mismatches(DescribedPredicate<JavaClass> expectedMismatch) {
+        assertThat(expectedMismatch.apply(classWithHierarchy(ArrayList.class))).as("predicate matches").isFalse();
+    }
+
+    @Test
+    public void predicate_implement_descriptions() {
+        assertThat(implement(List.class).getDescription()).isEqualTo("implement " + List.class.getName());
+        assertThat(implement(List.class.getName()).getDescription()).isEqualTo("implement " + List.class.getName());
+        assertThat(implement(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
+                .isEqualTo("implement custom");
+    }
+
     @Test
     public void predicate_interfaces() {
         assertThat(INTERFACES.apply(javaClassViaReflection(Serializable.class))).as("Predicate matches").isTrue();
@@ -465,6 +518,11 @@ public class JavaClassTest {
                 .as("predicate matches").isFalse();
         assertThat(equivalentTo(Parent.class).getDescription())
                 .as("description").isEqualTo("equivalent to " + Parent.class.getName());
+    }
+
+    private JavaClass classWithHierarchy(Class<?> clazz) {
+        Set<Class<?>> classesToImport = getHierarchy(clazz);
+        return importClasses(classesToImport.toArray(new Class[classesToImport.size()])).get(clazz);
     }
 
     private static DependencyConditionCreation callDependency() {

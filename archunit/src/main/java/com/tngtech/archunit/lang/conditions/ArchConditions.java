@@ -51,8 +51,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
@@ -469,7 +467,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(Class<?> interfaceType) {
-        return createImplementsCondition(implementPredicate(assignableTo(interfaceType)));
+        return createImplementsCondition(JavaClass.Predicates.implement(interfaceType));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -479,7 +477,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(String interfaceTypeName) {
-        return createImplementsCondition(implementPredicate(assignableTo(interfaceTypeName)));
+        return createImplementsCondition(JavaClass.Predicates.implement(interfaceTypeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -489,18 +487,12 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
-        return createImplementsCondition(implementPredicate(assignableTo(predicate)));
+        return createImplementsCondition(JavaClass.Predicates.implement(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notImplement(DescribedPredicate<? super JavaClass> predicate) {
         return not(implement(predicate));
-    }
-
-    // Conscious copy to keep visibility reduced -> ClassesThatPredicates
-    private static DescribedPredicate<JavaClass> implementPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
-        return DescribedPredicate.not(INTERFACES).and(assignablePredicate)
-                .as(assignablePredicate.getDescription().replace("assignable to", "implement"));
     }
 
     private static ArchCondition<JavaClass> createImplementsCondition(final DescribedPredicate<? super JavaClass> implement) {

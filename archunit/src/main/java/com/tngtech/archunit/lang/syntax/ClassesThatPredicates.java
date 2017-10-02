@@ -23,7 +23,6 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
@@ -92,11 +91,5 @@ class ClassesThatPredicates {
 
     static DescribedPredicate<HasModifiers> dontHaveModifier(JavaModifier modifier) {
         return dont(have(modifier(modifier)));
-    }
-
-    // Conscious copy to keep visibility reduced -> ArchConditions
-    static DescribedPredicate<JavaClass> implementPredicate(DescribedPredicate<JavaClass> assignablePredicate) {
-        return not(INTERFACES).and(assignablePredicate)
-                .as(assignablePredicate.getDescription().replace("assignable to", "implement"));
     }
 }

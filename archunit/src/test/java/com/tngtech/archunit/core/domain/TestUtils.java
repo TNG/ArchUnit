@@ -32,6 +32,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -66,6 +67,14 @@ public class TestUtils {
 
     public static JavaClasses importClasses(Class<?>... classes) {
         return new ClassFileImporter().importClasses(classes);
+    }
+
+    public static JavaClasses importHierarchies(Class<?>... classes) {
+        Set<Class<?>> hierarchies = new HashSet<>();
+        for (Class<?> clazz : classes) {
+            hierarchies.addAll(getHierarchy(clazz));
+        }
+        return new ClassFileImporter().importClasses(hierarchies);
     }
 
     public static ImportedContext withinImportedClasses(Class<?>... contextClasses) {
@@ -169,8 +178,8 @@ public class TestUtils {
         return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
     }
 
-    public static Class[] asClasses(List<JavaClass> parameters) {
-        List<Class> result = new ArrayList<>();
+    public static Class<?>[] asClasses(List<JavaClass> parameters) {
+        List<Class<?>> result = new ArrayList<>();
         for (JavaClass javaClass : parameters) {
             result.add(javaClass.reflect());
         }
