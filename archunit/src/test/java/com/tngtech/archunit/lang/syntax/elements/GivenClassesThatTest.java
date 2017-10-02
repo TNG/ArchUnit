@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -253,6 +254,11 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+
+        classes = filterResultOf(classes().that().implement(AbstractList.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(classes).isEmpty();
     }
 
     @Test
@@ -269,6 +275,11 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+
+        classes = filterResultOf(classes().that().implement(AbstractList.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(classes).isEmpty();
     }
 
     @Test
@@ -285,6 +296,11 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+
+        classes = filterResultOf(classes().that().implement(classWithNameOf(AbstractList.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(classes).isEmpty();
     }
 
     @Test
@@ -301,6 +317,11 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
+
+        classes = filterResultOf(classes().that().areAssignableTo(AbstractList.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test
@@ -317,6 +338,11 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
+
+        classes = filterResultOf(classes().that().areAssignableTo(AbstractList.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test
@@ -333,6 +359,11 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
+
+        classes = filterResultOf(classes().that().areAssignableTo(classWithNameOf(AbstractList.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test

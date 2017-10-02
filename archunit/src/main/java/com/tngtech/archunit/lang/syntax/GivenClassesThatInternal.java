@@ -31,7 +31,6 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
-import static com.tngtech.archunit.lang.syntax.ClassesThatPredicates.implementPredicate;
 
 class GivenClassesThatInternal implements GivenClassesThat {
     private final GivenClassesInternal givenClasses;
@@ -94,32 +93,32 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction implement(Class<?> type) {
-        return givenWith(implementPredicate(assignableTo(type)));
+        return givenWith(JavaClass.Predicates.implement(type));
     }
 
     @Override
     public GivenClassesConjunction dontImplement(Class<?> type) {
-        return givenWith(dont(implementPredicate(assignableTo(type))));
+        return givenWith(dont(JavaClass.Predicates.implement(type)));
     }
 
     @Override
     public GivenClassesConjunction implement(String typeName) {
-        return givenWith(implementPredicate(assignableTo(typeName)));
+        return givenWith(JavaClass.Predicates.implement(typeName));
     }
 
     @Override
     public GivenClassesConjunction dontImplement(String typeName) {
-        return givenWith(dont(implementPredicate(assignableTo(typeName))));
+        return givenWith(dont(JavaClass.Predicates.implement(typeName)));
     }
 
     @Override
     public GivenClassesConjunction implement(DescribedPredicate<? super JavaClass> predicate) {
-        return givenWith(implementPredicate(assignableTo(predicate)));
+        return givenWith(JavaClass.Predicates.implement(predicate));
     }
 
     @Override
     public GivenClassesConjunction dontImplement(DescribedPredicate<? super JavaClass> predicate) {
-        return givenWith(dont(implementPredicate(assignableTo(predicate))));
+        return givenWith(dont(JavaClass.Predicates.implement(predicate)));
     }
 
     @Override

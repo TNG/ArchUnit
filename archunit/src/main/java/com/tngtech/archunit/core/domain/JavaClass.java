@@ -824,6 +824,24 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             };
         }
 
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> implement(final Class<?> type) {
+            return implement(type.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> implement(final String typeName) {
+            return implement(GET_NAME.is(equalTo(typeName)).as(typeName));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> implement(final DescribedPredicate<? super JavaClass> predicate) {
+            DescribedPredicate<JavaClass> selfIsImplementation = not(INTERFACES);
+            DescribedPredicate<JavaClass> interfacePredicate = predicate.<JavaClass>forSubType().and(INTERFACES);
+            return selfIsImplementation.and(assignableTo(interfacePredicate))
+                    .as("implement " + predicate.getDescription());
+        }
+
         /**
          * Offers a syntax to identify packages similar to AspectJ. In particular '*' stands for any sequence of
          * characters, '..' stands for any sequence of packages.

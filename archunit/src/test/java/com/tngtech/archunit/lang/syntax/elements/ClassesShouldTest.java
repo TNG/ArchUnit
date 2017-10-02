@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -19,7 +21,6 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -36,6 +37,8 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.core.domain.TestUtils.importHierarchies;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.bePackagePrivate;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.bePrivate;
@@ -469,26 +472,57 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
-    public static Object[][] implement_rules() {
+    public static Object[][] implement_satisfied_rules() {
         return $$(
-                $(classes().should().implement(Collection.class), ArrayList.class, List.class),
-                $(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class, List.class),
-                $(classes().should().implement(Collection.class.getName()), ArrayList.class, List.class),
-                $(classes().should(ArchConditions.implement(Collection.class.getName())), ArrayList.class, List.class),
-                $(classes().should().implement(getNameIsEqualToNameOf(Collection.class)), ArrayList.class, List.class),
-                $(classes().should(ArchConditions.implement(getNameIsEqualToNameOf(Collection.class))),
-                        ArrayList.class, List.class));
+                $(classes().should().implement(Collection.class), ArrayList.class),
+                $(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class),
+                $(classes().should().implement(Collection.class.getName()), ArrayList.class),
+                $(classes().should(ArchConditions.implement(Collection.class.getName())), ArrayList.class),
+                $(classes().should().implement(name(Collection.class.getName()).as(Collection.class.getName())), ArrayList.class),
+                $(classes().should(ArchConditions.implement(name(Collection.class.getName()).as(Collection.class.getName()))), ArrayList.class));
     }
 
     @Test
-    @UseDataProvider("implement_rules")
-    public void implement(ArchRule rule, Class<?> satisfied, Class<?> violated) {
-        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+    @UseDataProvider("implement_satisfied_rules")
+    public void implement_satisfied(ArchRule rule, Class<?> satisfied) {
+        EvaluationResult result = rule.evaluate(importHierarchies(satisfied));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should implement %s", Collection.class.getName()))
-                .contains(String.format("class %s doesn't implement %s", violated.getName(), Collection.class.getName()))
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static List<List<?>> implement_not_satisfied_rules() {
+        return ImmutableList.<List<?>>builder()
+                .addAll(implementNotSatisfiedCases(Collection.class, List.class))
+                .addAll(implementNotSatisfiedCases(AbstractList.class, ArrayList.class))
+                .build();
+    }
+
+    private static List<List<?>> implementNotSatisfiedCases(Class<?> classToCheckAgainst, Class<?> violating) {
+        return ImmutableList.<List<?>>of(
+                ImmutableList.of(classes().should().implement(classToCheckAgainst),
+                        classToCheckAgainst, violating),
+                ImmutableList.of(classes().should(ArchConditions.implement(classToCheckAgainst)),
+                        classToCheckAgainst, violating),
+                ImmutableList.of(classes().should().implement(classToCheckAgainst.getName()),
+                        classToCheckAgainst, violating),
+                ImmutableList.of(classes().should(ArchConditions.implement(classToCheckAgainst.getName())),
+                        classToCheckAgainst, violating),
+                ImmutableList.of(classes().should().implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName())),
+                        classToCheckAgainst, violating),
+                ImmutableList.of(classes().should(ArchConditions.implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName()))),
+                        classToCheckAgainst, violating));
+    }
+
+    @Test
+    @UseDataProvider("implement_not_satisfied_rules")
+    public void implement_not_satisfied(ArchRule rule, Class<?> classToCheckAgainst, Class<?> violating) {
+        EvaluationResult result = rule.evaluate(importHierarchies(violating));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should implement %s", classToCheckAgainst.getName()))
+                .contains(String.format("class %s doesn't implement %s", violating.getName(), classToCheckAgainst.getName()));
     }
 
     @DataProvider
@@ -498,8 +532,8 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.notImplement(Collection.class)), List.class, ArrayList.class),
                 $(classes().should().notImplement(Collection.class.getName()), List.class, ArrayList.class),
                 $(classes().should(ArchConditions.notImplement(Collection.class.getName())), List.class, ArrayList.class),
-                $(classes().should().notImplement(getNameIsEqualToNameOf(Collection.class)), List.class, ArrayList.class),
-                $(classes().should(ArchConditions.notImplement(getNameIsEqualToNameOf(Collection.class))),
+                $(classes().should().notImplement(name(Collection.class.getName()).as(Collection.class.getName())), List.class, ArrayList.class),
+                $(classes().should(ArchConditions.notImplement(name(Collection.class.getName()).as(Collection.class.getName()))),
                         List.class, ArrayList.class));
     }
 
@@ -521,8 +555,8 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.beAssignableTo(Collection.class)), List.class, String.class),
                 $(classes().should().beAssignableTo(Collection.class.getName()), List.class, String.class),
                 $(classes().should(ArchConditions.beAssignableTo(Collection.class.getName())), List.class, String.class),
-                $(classes().should().beAssignableTo(getNameIsEqualToNameOf(Collection.class)), List.class, String.class),
-                $(classes().should(ArchConditions.beAssignableTo(getNameIsEqualToNameOf(Collection.class))),
+                $(classes().should().beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), List.class, String.class),
+                $(classes().should(ArchConditions.beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))),
                         List.class, String.class));
     }
 
@@ -544,8 +578,8 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.notBeAssignableTo(Collection.class)), String.class, List.class),
                 $(classes().should().notBeAssignableTo(Collection.class.getName()), String.class, List.class),
                 $(classes().should(ArchConditions.notBeAssignableTo(Collection.class.getName())), String.class, List.class),
-                $(classes().should().notBeAssignableTo(getNameIsEqualToNameOf(Collection.class)), String.class, List.class),
-                $(classes().should(ArchConditions.notBeAssignableTo(getNameIsEqualToNameOf(Collection.class))),
+                $(classes().should().notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), String.class, List.class),
+                $(classes().should(ArchConditions.notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))),
                         String.class, List.class));
     }
 
@@ -567,8 +601,8 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.beAssignableFrom(List.class)), Collection.class, String.class),
                 $(classes().should().beAssignableFrom(List.class.getName()), Collection.class, String.class),
                 $(classes().should(ArchConditions.beAssignableFrom(List.class.getName())), Collection.class, String.class),
-                $(classes().should().beAssignableFrom(getNameIsEqualToNameOf(List.class)), Collection.class, String.class),
-                $(classes().should(ArchConditions.beAssignableFrom(getNameIsEqualToNameOf(List.class))),
+                $(classes().should().beAssignableFrom(name(List.class.getName()).as(List.class.getName())), Collection.class, String.class),
+                $(classes().should(ArchConditions.beAssignableFrom(name(List.class.getName()).as(List.class.getName()))),
                         Collection.class, String.class));
     }
 
@@ -590,8 +624,8 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.notBeAssignableFrom(List.class)), String.class, Collection.class),
                 $(classes().should().notBeAssignableFrom(List.class.getName()), String.class, Collection.class),
                 $(classes().should(ArchConditions.notBeAssignableFrom(List.class.getName())), String.class, Collection.class),
-                $(classes().should().notBeAssignableFrom(getNameIsEqualToNameOf(List.class)), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeAssignableFrom(getNameIsEqualToNameOf(List.class))),
+                $(classes().should().notBeAssignableFrom(name(List.class.getName()).as(List.class.getName())), String.class, Collection.class),
+                $(classes().should(ArchConditions.notBeAssignableFrom(name(List.class.getName()).as(List.class.getName()))),
                         String.class, Collection.class));
     }
 
@@ -881,10 +915,6 @@ public class ClassesShouldTest {
 
     private static DescribedPredicate<JavaAccess<?>> accessTargetIs(Class<?> type) {
         return JavaAccess.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
-    }
-
-    private static DescribedPredicate<HasName> getNameIsEqualToNameOf(Class<?> type) {
-        return HasName.Functions.GET_NAME.is(DescribedPredicate.equalTo(type.getName())).as(type.getName());
     }
 
     private void checkTestStillValid(String[] packages,
