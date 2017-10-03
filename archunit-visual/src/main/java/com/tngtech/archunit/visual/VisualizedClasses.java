@@ -15,17 +15,17 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.collect.Iterables;
-import com.tngtech.archunit.core.domain.Dependency;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class VisualizedClasses {
+import com.google.common.collect.Iterables;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+
+class VisualizedClasses {
     private static final String INNER_CLASS_SEPARATOR = "$";
 
     private Map<String, JavaClass> classes = new HashMap<>();
@@ -33,7 +33,7 @@ public class VisualizedClasses {
     private Map<String, JavaClass> dependencies = new HashMap<>();
     private Set<String> packages = new HashSet<>();
 
-    public VisualizedClasses(JavaClasses classes, VisualizationContext context) {
+    private VisualizedClasses(JavaClasses classes, VisualizationContext context) {
         addClasses(classes, context);
         addDependencies(context);
         addPackages();
@@ -54,7 +54,7 @@ public class VisualizedClasses {
     private void addDependencies(VisualizationContext context) {
         for (JavaClass c : classes.values()) {
             if (context.isElementIncluded(c.getName())) {
-                for (Dependency dep : c.getDirectDependencies()) {
+                for (Dependency dep : c.getDirectDependenciesFromSelf()) {
                     if (context.isElementIncluded(dep.getTargetClass().getName()) &&
                             !classes.keySet().contains(dep.getTargetClass().getName()) &&
                             !innerClasses.keySet().contains(dep.getTargetClass().getName())) {

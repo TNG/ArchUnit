@@ -19,7 +19,6 @@ import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 class JsonJavaClass extends JsonJavaElement {
-    static final String INNER_CLASS_SEPARATOR = "$";
     private static final String TYPE = "class";
 
     @Expose
@@ -33,9 +32,5 @@ class JsonJavaClass extends JsonJavaElement {
     JsonJavaClass(JavaClass clazz, boolean withSuperclass) {
         super(clazz.getSimpleName(), clazz.getName(), TYPE);
         this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";
-    }
-
-    boolean directlyExtends(String fullName) {
-        return superclass.equals(fullName);
     }
 }

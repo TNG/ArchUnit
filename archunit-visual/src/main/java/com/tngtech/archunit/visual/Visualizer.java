@@ -33,18 +33,18 @@ import static com.google.common.io.Files.copy;
 
 public class Visualizer {
 
-    private static final String JSONFILENAME = "classes.json";
-    private static final String VIOLATIONS_FILENAME = "violations.json";
+    private static final String JSON_FILE_NAME = "classes.json";
+    private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
 
     public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         targetDir.mkdirs();
-        try (FileWriter classesWriter = new FileWriter(new File(targetDir, JSONFILENAME))) {
+        try (FileWriter classesWriter = new FileWriter(new File(targetDir, JSON_FILE_NAME))) {
             new JsonExporter().export(classes, classesWriter, context);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        try (FileWriter violationsWriter = new FileWriter(new File(targetDir, VIOLATIONS_FILENAME))) {
+        try (FileWriter violationsWriter = new FileWriter(new File(targetDir, VIOLATIONS_FILE_NAME))) {
             new JsonViolationExporter().export(evaluationResult, violationsWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -15,24 +15,25 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.tngtech.archunit.core.domain.*;
-import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.lang.ViolationHandler;
-
-import java.io.*;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 
-public class JsonViolationExporter {
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.ViolationHandler;
+
+class JsonViolationExporter {
 
     private final Gson gson = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    public void export(EvaluationResult result, Writer writer) {
+    void export(EvaluationResult result, Writer writer) {
         final List<JsonViolation> violations = Lists.newArrayList();
         extractFieldAccesses(result, violations);
         extractJavaCalls(result, violations);

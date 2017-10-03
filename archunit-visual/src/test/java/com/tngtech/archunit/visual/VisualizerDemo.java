@@ -1,12 +1,12 @@
 package com.tngtech.archunit.visual;
 
+import java.io.File;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
-
-import java.io.File;
 
 public class VisualizerDemo {
     @Test

@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.gson.annotations.Expose;
 
 abstract class JsonJavaElement extends JsonElement {
     @Expose
@@ -48,8 +48,8 @@ abstract class JsonJavaElement extends JsonElement {
         return children;
     }
 
-    void addInterface(String fullnameInterface) {
-        interfaces.add(fullnameInterface);
+    void addInterface(String className) {
+        interfaces.add(className);
     }
 
     void addFieldAccess(JsonAccess access) {
@@ -64,7 +64,7 @@ abstract class JsonJavaElement extends JsonElement {
         constructorCalls.add(access);
     }
 
-    void addAnonymousImplementation(String fullnameInterface) {
-        anonymousImplementation.add(fullnameInterface);
+    void addAnonymousImplementation(String className) {
+        anonymousImplementation.add(className);
     }
 }

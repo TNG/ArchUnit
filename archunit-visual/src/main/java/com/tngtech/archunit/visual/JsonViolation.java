@@ -20,11 +20,11 @@ import com.tngtech.archunit.core.domain.JavaAccess;
 
 public class JsonViolation {
     @Expose
-    protected String origin;
+    private String origin;
     @Expose
-    protected String target;
+    private String target;
 
-    public JsonViolation(String origin, String target) {
+    private JsonViolation(String origin, String target) {
         this.origin = origin;
         this.target = target;
     }

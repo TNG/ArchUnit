@@ -15,14 +15,14 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public class VisualizationContext {
+class VisualizationContext {
     private final Set<String> rootPackages;
 
     private VisualizationContext(Set<String> rootPackages) {
@@ -49,22 +49,19 @@ public class VisualizationContext {
         return false;
     }
 
-    public static class Builder {
+    static class Builder {
         private Set<String> rootPackages = new HashSet<>();
 
-        public Builder() {
-        }
-
-        public Builder includeOnly(String... rootPackages) {
+        Builder includeOnly(String... rootPackages) {
             return includeOnly(ImmutableSet.copyOf(rootPackages));
         }
 
-        public Builder includeOnly(Set<String> rootPackages) {
+        Builder includeOnly(Set<String> rootPackages) {
             this.rootPackages = rootPackages;
             return this;
         }
 
-        public VisualizationContext build() {
+        VisualizationContext build() {
             return new VisualizationContext(rootPackages);
         }
     }

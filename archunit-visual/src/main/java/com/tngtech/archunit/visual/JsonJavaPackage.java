@@ -15,13 +15,13 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.gson.annotations.Expose;
+
 class JsonJavaPackage extends JsonElement {
-    static final String PACKAGE_SEPARATOR = ".";
+    private static final String PACKAGE_SEPARATOR = ".";
     private static final String TYPE = "package";
 
     private boolean isDefault;
