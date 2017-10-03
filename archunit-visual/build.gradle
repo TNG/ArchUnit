@@ -104,4 +104,7 @@ task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir', 'esl
 
 task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'eslint', 'browserify']) {}
 
-jar.dependsOn buildReport
+assemble.dependsOn buildReport
+
+// FIXME: Enable this, once the code is consolidated
+[findbugsMain, findbugsTest]*.enabled = false
