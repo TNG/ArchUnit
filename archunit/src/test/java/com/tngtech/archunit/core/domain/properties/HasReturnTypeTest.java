@@ -4,14 +4,14 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.returnType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HasReturnTypeTest {
     @Test
     public void predicate_on_return_type_by_Class() {
-        HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
+        HasReturnType hasReturnTypeString = newHasReturnType(importClassWithContext(String.class));
 
         assertThat(returnType(String.class).apply(hasReturnTypeString)).as("predicate matches").isTrue();
         assertThat(returnType(Object.class).apply(hasReturnTypeString)).as("predicate matches").isFalse();
@@ -20,7 +20,7 @@ public class HasReturnTypeTest {
 
     @Test
     public void predicate_on_return_type_by_String() {
-        HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
+        HasReturnType hasReturnTypeString = newHasReturnType(importClassWithContext(String.class));
 
         assertThat(returnType(String.class.getName()).apply(hasReturnTypeString)).as("predicate matches").isTrue();
         assertThat(returnType(String.class.getSimpleName()).apply(hasReturnTypeString)).as("predicate matches").isFalse();
@@ -31,7 +31,7 @@ public class HasReturnTypeTest {
 
     @Test
     public void predicate_on_return_type_by_Predicate() {
-        HasReturnType hasReturnTypeString = newHasReturnType(javaClassViaReflection(String.class));
+        HasReturnType hasReturnTypeString = newHasReturnType(importClassWithContext(String.class));
 
         assertThat(returnType(DescribedPredicate.<JavaClass>alwaysTrue()).apply(hasReturnTypeString)).isTrue();
         assertThat(returnType(DescribedPredicate.<JavaClass>alwaysFalse()).apply(hasReturnTypeString)).isFalse();
@@ -42,7 +42,7 @@ public class HasReturnTypeTest {
 
     @Test
     public void function_get_return_type() {
-        JavaClass expectedType = javaClassViaReflection(String.class);
+        JavaClass expectedType = importClassWithContext(String.class);
         assertThat(HasReturnType.Functions.GET_RETURN_TYPE.apply(newHasReturnType(expectedType)))
                 .as("result of GET_RETURN_TYPE").isEqualTo(expectedType);
     }

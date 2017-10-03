@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -54,7 +54,7 @@ public class SelectedClassResolverFromClasspathTest {
 
     private void simulatePossibleUriImportOf(Class<?>... classes) {
         for (Class<?> clazz : classes) {
-            JavaClass classToReturn = javaClassViaReflection(clazz);
+            JavaClass classToReturn = importClassWithContext(clazz);
             when(classUriImporter.tryImport(uriFor(clazz))).thenReturn(Optional.of(classToReturn));
         }
     }

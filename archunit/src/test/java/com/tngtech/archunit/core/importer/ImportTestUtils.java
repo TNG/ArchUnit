@@ -109,10 +109,6 @@ public class ImportTestUtils {
         return result.build();
     }
 
-    private static Set<DomainBuilders.JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations) {
-        return javaAnnotationBuildersFrom(reflectionAnnotations, simpleImportedClasses());
-    }
-
     private static Set<DomainBuilders.JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations,
             ClassesByTypeName importedClasses) {
         ImmutableSet.Builder<DomainBuilders.JavaAnnotationBuilder> result = ImmutableSet.builder();
@@ -151,10 +147,10 @@ public class ImportTestUtils {
                 return classes.toArray(new JavaClass[classes.size()]);
             }
             if (result instanceof Enum<?>) {
-                return ImportTestUtils.enumConstant((Enum) result);
+                return ImportTestUtils.enumConstant((Enum<?>) result);
             }
             if (result instanceof Enum[]) {
-                return enumConstants((Enum[]) result);
+                return enumConstants((Enum<?>[]) result);
             }
             if (result instanceof Annotation) {
                 return javaAnnotationFrom((Annotation) result);
@@ -176,9 +172,9 @@ public class ImportTestUtils {
         return result.build();
     }
 
-    private static JavaEnumConstant[] enumConstants(Enum[] enums) {
+    private static JavaEnumConstant[] enumConstants(Enum<?>[] enums) {
         List<JavaEnumConstant> result = new ArrayList<>();
-        for (Enum e : enums) {
+        for (Enum<?> e : enums) {
             result.add(ImportTestUtils.enumConstant(e));
         }
         return result.toArray(new JavaEnumConstant[result.size()]);
@@ -214,17 +210,6 @@ public class ImportTestUtils {
                 .withLineNumber(lineNumber)
                 .withAccessType(accessType)
                 .build();
-    }
-
-    public static JavaMethod javaMethodViaReflection(JavaClass clazz, Method method) {
-        return new DomainBuilders.JavaMethodBuilder()
-                .withReturnType(JavaType.From.name(method.getReturnType().getName()))
-                .withParameters(typesFrom(method.getParameterTypes()))
-                .withName(method.getName())
-                .withDescriptor(Type.getMethodDescriptor(method))
-                .withAnnotations(ImportTestUtils.javaAnnotationBuildersFrom(method.getAnnotations()))
-                .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
-                .build(clazz, simpleImportedClasses());
     }
 
     private static List<JavaType> typesFrom(Class<?>[] classes) {
@@ -287,21 +272,11 @@ public class ImportTestUtils {
         return builder;
     }
 
-    public static JavaField javaFieldViaReflection(Field field, JavaClass owner) {
-        return new DomainBuilders.JavaFieldBuilder()
-                .withName(field.getName())
-                .withDescriptor(Type.getDescriptor(field.getType()))
-                .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations()))
-                .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                .withType(JavaType.From.name(field.getType().getName()))
-                .build(owner, simpleImportedClasses());
-    }
-
     public static ImportedTestClasses simpleImportedClasses() {
         return new ImportedTestClasses();
     }
 
-    public static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
+    private static JavaClass simulateImport(Class<?> owner, ImportedTestClasses importedClasses) {
         JavaClass javaClass = ImportTestUtils.javaClassFor(owner);
         importedClasses.register(javaClass);
         ImportContext context = simulateImportContext(owner, importedClasses);

@@ -7,9 +7,8 @@ import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaMethodViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
@@ -18,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JavaAccessTest {
     @Test
     public void when_the_origin_is_an_inner_class_the_toplevel_class_is_displayed_as_location() {
-        TestJavaAccess access = javaAccessFrom(javaClassViaReflection(SomeClass.Inner.class), "foo")
+        TestJavaAccess access = javaAccessFrom(importClassWithContext(SomeClass.Inner.class), "foo")
                 .to(SomeEnum.class, "bar")
                 .inLineNumber(7);
 
@@ -27,7 +26,7 @@ public class JavaAccessTest {
 
     @Test
     public void location_of_origin_of_deeper_inner_class_hierarchies() {
-        JavaClass innerClass = javaClassesViaReflection(SomeClass.Inner.InnerInner.class, SomeClass.Inner.class, SomeClass.class)
+        JavaClass innerClass = importClassesWithContext(SomeClass.Inner.InnerInner.class, SomeClass.Inner.class, SomeClass.class)
                 .get(SomeClass.Inner.InnerInner.class);
         TestJavaAccess access = javaAccessFrom(innerClass, "bar")
                 .to(SomeEnum.class, "bar")
@@ -38,8 +37,8 @@ public class JavaAccessTest {
 
     @Test
     public void get_functions() {
-        JavaAccess<?> access = simulateCall().from(javaMethodViaReflection(getClass(), "toString"), 5)
-                .to(javaMethodViaReflection(getClass(), "hashCode"));
+        JavaAccess<?> access = simulateCall().from(importClassWithContext(getClass()).getMethod("toString"), 5)
+                .to(importClassWithContext(getClass()).getMethod("hashCode"));
 
         assertThat(Get.origin().apply(access)).isEqualTo(access.getOrigin());
         assertThat(Get.target().apply(access)).isEqualTo(access.getTarget());
@@ -58,7 +57,7 @@ public class JavaAccessTest {
     }
 
     private TestJavaAccess anyAccess() {
-        return javaAccessFrom(javaClassViaReflection(SomeClass.Inner.class), "foo")
+        return javaAccessFrom(importClassWithContext(SomeClass.Inner.class), "foo")
                 .to(SomeEnum.class, "bar")
                 .inLineNumber(7);
     }
@@ -92,11 +91,11 @@ public class JavaAccessTest {
             private JavaMethod target;
 
             private Creator(JavaClass owner, String name) {
-                this.origin = javaMethodViaReflection(owner, name);
+                this.origin = owner.getMethod(name);
             }
 
             public Creator to(Class<?> owner, String name) {
-                this.target = javaMethodViaReflection(owner, name);
+                this.target = importClassWithContext(owner).getMethod(name);
                 return this;
             }
 

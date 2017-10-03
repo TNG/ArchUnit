@@ -17,12 +17,10 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Test;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaMethodViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -43,13 +41,11 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 public class ArchConditionsTest {
     @Test
     public void never_call_method_where_target_owner_is_assignable_to() throws NoSuchMethodException {
-        JavaClass callingClass = javaClassViaReflection(CallingClass.class);
+        JavaClass callingClass = importClassWithContext(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
-        JavaClass someClass = javaClassViaReflection(SomeClass.class);
-        JavaMethod dontCallMe = javaMethodViaReflection(someClass, SomeSuperClass.class.getDeclaredMethod("dontCallMe"));
+        JavaClass someClass = importClassWithContext(SomeClass.class);
+        JavaMethod dontCallMe = someClass.getMethod("dontCallMe");
         JavaMethodCall callToDontCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(dontCallMe);
-        JavaMethod callMe = javaMethodViaReflection(someClass, SomeSuperClass.class.getDeclaredMethod("callMe"));
-        JavaMethodCall callToCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(callMe);
 
         ConditionEvents events =
                 check(never(callMethodWhere(target(name("dontCallMe"))
@@ -61,15 +57,12 @@ public class ArchConditionsTest {
         never(callMethodWhere(target(name("dontCallMe")).and(target(owner(type(SomeSuperClass.class))))))
                 .check(callingClass, events);
         assertThat(events).containNoViolation();
-        assertThat(getOnlyElement(events.getAllowed())).extracting("allowed")
-                .extracting(TO_STRING_LEXICOGRAPHICALLY)
-                .containsOnly(callToCallMe.getDescription() + callToDontCallMe.getDescription());
     }
 
     @Test
     public void access_class() {
-        JavaClass clazz = javaClassViaReflection(CallingClass.class);
-        JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeSuperClass.class, "callMe");
+        JavaClass clazz = importClassWithContext(CallingClass.class);
+        JavaCall<?> call = simulateCall().from(clazz, "call").to(SomeClass.class, "callMe");
 
         ConditionEvents events = check(never(accessClassesThat(nameMatching(".*Some.*"))), clazz);
 
@@ -150,13 +143,13 @@ public class ArchConditionsTest {
     }
 
     private static class SomeClass extends SomeSuperClass {
-    }
-
-    private static class SomeSuperClass {
         void dontCallMe() {
         }
 
         void callMe() {
         }
+    }
+
+    private static class SomeSuperClass {
     }
 }

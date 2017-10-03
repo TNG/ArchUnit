@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
@@ -57,7 +57,7 @@ public class ArchRuleTest {
         expectAssertionErrorWithMessages("first", "second");
 
         all(classes()).should(conditionThatReportsErrors("first", "second"))
-                .check(javaClassesViaReflection(EvaluationResultTest.class));
+                .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
     @Test
@@ -67,7 +67,7 @@ public class ArchRuleTest {
         expectAssertionErrorWithMessages("third one more", "fourth");
 
         all(classes()).should(conditionThatReportsErrors("first one", "second two", "third one more", "fourth"))
-                .check(javaClassesViaReflection(EvaluationResultTest.class));
+                .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class ArchRuleTest {
         writeIgnoreFileWithPatterns(".*");
 
         all(classes()).should(conditionThatReportsErrors("first one", "second two"))
-                .check(javaClassesViaReflection(EvaluationResultTest.class));
+                .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class ArchRuleTest {
         assertThat(description).isEqualTo("rule text overridden");
 
         String failures = ruleWithOverriddenDescription
-                .evaluate(javaClassesViaReflection(EvaluationResultTest.class))
+                .evaluate(importClassesWithContext(EvaluationResultTest.class))
                 .getFailureReport().toString();
         assertThat(failures).contains("rule text overridden");
     }
@@ -113,7 +113,7 @@ public class ArchRuleTest {
 
     @Test
     public void reports_number_of_violations() {
-        EvaluationResult result = all(classes()).should(addFixedNumberOfViolations(3)).evaluate(javaClassesViaReflection(Object.class, String.class));
+        EvaluationResult result = all(classes()).should(addFixedNumberOfViolations(3)).evaluate(importClassesWithContext(Object.class, String.class));
 
         assertThat(result.getFailureReport().toString()).contains("(6 times)");
     }
