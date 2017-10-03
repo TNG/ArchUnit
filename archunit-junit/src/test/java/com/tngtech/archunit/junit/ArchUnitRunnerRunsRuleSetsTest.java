@@ -23,7 +23,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.ArchTestWithRuleLibrary.someOtherMethodRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
@@ -58,7 +58,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @InjectMocks
     private ArchUnitRunner runnerForRuleLibrary = newRunnerFor(ArchTestWithRuleLibrary.class);
 
-    private JavaClasses cachedClasses = javaClassesViaReflection(ArchUnitRunnerRunsRuleSetsTest.class);
+    private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
 
     @Before
     public void setUp() {

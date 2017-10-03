@@ -5,12 +5,12 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
-    private static final JavaClass SOME_CLASS = javaClassViaReflection(SomeClass.class);
-    private static final JavaClass SOME_OTHER_CLASS = javaClassViaReflection(SomeOtherClass.class);
+    private static final JavaClass SOME_CLASS = importClassWithContext(SomeClass.class);
+    private static final JavaClass SOME_OTHER_CLASS = importClassWithContext(SomeOtherClass.class);
     private static final ImmutableMap<String, JavaClass> BY_TYPE_NAME = ImmutableMap.of(
             SomeClass.class.getName(), SOME_CLASS,
             SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
@@ -56,7 +56,7 @@ public class JavaClassesTest {
 
     @Test
     public void javaClasses_of_iterable() {
-        ImmutableSet<JavaClass> iterable = ImmutableSet.of(javaClassViaReflection(JavaClassesTest.class), javaClassViaReflection(JavaClass.class));
+        ImmutableSet<JavaClass> iterable = ImmutableSet.of(importClassWithContext(JavaClassesTest.class), importClassWithContext(JavaClass.class));
         JavaClasses classes = JavaClasses.of(iterable);
 
         assertThat(ImmutableSet.copyOf(classes)).isEqualTo(iterable);

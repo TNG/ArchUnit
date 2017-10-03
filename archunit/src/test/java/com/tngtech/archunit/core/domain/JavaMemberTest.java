@@ -7,39 +7,39 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
-import static com.tngtech.archunit.core.domain.TestUtils.javaFieldViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaMemberTest {
     @Test
     public void isAnnotatedWith_type() {
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField").isAnnotatedWith(Deprecated.class))
+        assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Deprecated.class))
                 .as("field is annotated with @Deprecated").isTrue();
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField").isAnnotatedWith(Retention.class))
+        assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Retention.class))
                 .as("field is annotated with @Retention").isFalse();
     }
 
     @Test
     public void isAnnotatedWith_typeName() {
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField").isAnnotatedWith(Deprecated.class.getName()))
+        assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Deprecated.class.getName()))
                 .as("field is annotated with @Deprecated").isTrue();
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField").isAnnotatedWith(Retention.class.getName()))
+        assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Retention.class.getName()))
                 .as("field is annotated with @Retention").isFalse();
     }
 
     @Test
     public void isAnnotatedWith_predicate() {
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField")
+        assertThat(importField(SomeClass.class, "someField")
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
                 .as("predicate matches").isTrue();
-        assertThat(javaFieldViaReflection(SomeClass.class, "someField")
+        assertThat(importField(SomeClass.class, "someField")
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
     @Test
     public void predicate_declaredIn() {
-        JavaField field = javaFieldViaReflection(SomeClass.class, "someField");
+        JavaField field = importField(SomeClass.class, "someField");
 
         assertThat(declaredIn(SomeClass.class).apply(field))
                 .as("predicate matches").isTrue();
@@ -61,6 +61,10 @@ public class JavaMemberTest {
                 .as("description").isEqualTo("declared in " + SomeClass.class.getName());
         assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
                 .as("description").isEqualTo("declared in custom");
+    }
+
+    private static JavaField importField(Class<?> owner, String name) {
+        return importClassWithContext(owner).getField(name);
     }
 
     private static class SomeClass {

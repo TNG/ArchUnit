@@ -22,7 +22,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
@@ -486,7 +486,7 @@ public class GivenClassesThatTest {
         }
 
         public List<JavaClass> on(Class<?>... toCheck) {
-            JavaClasses classes = javaClassesViaReflection(toCheck);
+            JavaClasses classes = importClassesWithContext(toCheck);
             ArchCondition<JavaClass> condition = spy(new ArchCondition<JavaClass>("ignored") {
                 @Override
                 public void check(JavaClass item, ConditionEvents events) {

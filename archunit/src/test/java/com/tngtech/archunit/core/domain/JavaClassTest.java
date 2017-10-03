@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -36,9 +37,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyP
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -55,7 +56,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_fields_and_methods() {
-        JavaClass javaClass = javaClassViaReflection(ClassWithTwoFieldsAndTwoMethods.class);
+        JavaClass javaClass = importClassWithContext(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
@@ -71,7 +72,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = javaClassViaReflection(ClassWithSeveralConstructors.class);
+        JavaClass javaClass = importClassWithContext(ClassWithSeveralConstructors.class);
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -84,28 +85,29 @@ public class JavaClassTest {
         Serializable input = new Serializable() {
         };
 
-        JavaClass anonymous = javaClassViaReflection(input.getClass());
+        JavaClass anonymous = importClassWithContext(input.getClass());
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void inner_class_has_package_of_declaring_class() {
-        JavaClass anonymous = javaClassViaReflection(ClassWithInnerClass.Inner.class);
+        JavaClass anonymous = importClassWithContext(ClassWithInnerClass.Inner.class);
 
         assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void Array_class_has_default_package() {
-        JavaClass arrayType = javaClassViaReflection(JavaClassTest[].class);
+        JavaClass arrayType = importClassWithContext(Arrays.class)
+                .getMethod("toString", Object[].class).getParameters().get(0);
 
         assertThat(arrayType.getPackage()).isEmpty();
     }
 
     @Test
     public void superclasses_are_found() {
-        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
@@ -116,7 +118,7 @@ public class JavaClassTest {
 
     @Test
     public void hierarchy_is_found() {
-        JavaClass clazz = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
@@ -142,46 +144,46 @@ public class JavaClassTest {
 
     @Test
     public void isAnnotatedWith_type() {
-        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class))
+        assertThat(importClassWithContext(Parent.class).isAnnotatedWith(SomeAnnotation.class))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
-        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class))
+        assertThat(importClassWithContext(Parent.class).isAnnotatedWith(Retention.class))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
     }
 
     @Test
     public void isAnnotatedWith_typeName() {
-        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(SomeAnnotation.class.getName()))
+        assertThat(importClassWithContext(Parent.class).isAnnotatedWith(SomeAnnotation.class.getName()))
                 .as("Parent is annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
-        assertThat(javaClassViaReflection(Parent.class).isAnnotatedWith(Retention.class.getName()))
+        assertThat(importClassWithContext(Parent.class).isAnnotatedWith(Retention.class.getName()))
                 .as("Parent is annotated with @" + Retention.class.getSimpleName()).isFalse();
     }
 
     @Test
     public void predicate_isAnnotatedWith() {
-        assertThat(javaClassViaReflection(Parent.class)
+        assertThat(importClassWithContext(Parent.class)
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
                 .as("predicate matches").isTrue();
-        assertThat(javaClassViaReflection(Parent.class)
+        assertThat(importClassWithContext(Parent.class)
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
     @Test
     public void allAccesses_contains_accesses_from_superclass() {
-        JavaClass javaClass = javaClassesViaReflection(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
-        JavaClass anotherClass = javaClassViaReflection(Object.class);
+        JavaClass anotherClass = importClassWithContext(Object.class);
         simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
         simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
-                .containsOnly(javaClass, javaClass.getSuperClass().get());
+                .contains(javaClass, javaClass.getSuperClass().get());
     }
 
     @Test
     public void JavaClass_is_equivalent_to_reflect_type() {
-        JavaClass list = javaClassViaReflection(List.class);
+        JavaClass list = importClassWithContext(List.class);
 
         assertThat(list.isEquivalentTo(List.class)).as("JavaClass is List.class").isTrue();
         assertThat(list.isEquivalentTo(Collection.class)).as("JavaClass is Collection.class").isFalse();
@@ -324,27 +326,27 @@ public class JavaClassTest {
 
     @Test
     public void function_getSimpleName() {
-        assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
+        assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(importClassWithContext(List.class)))
                 .as("result of GET_SIMPLE_NAME(clazz)")
                 .isEqualTo(List.class.getSimpleName());
 
-        assertThat(JavaClass.Functions.SIMPLE_NAME.apply(javaClassViaReflection(List.class)))
+        assertThat(JavaClass.Functions.SIMPLE_NAME.apply(importClassWithContext(List.class)))
                 .as("result of SIMPLE_NAME(clazz)")
                 .isEqualTo(List.class.getSimpleName());
     }
 
     @Test
     public void function_getPackage() {
-        assertThat(JavaClass.Functions.GET_PACKAGE.apply(javaClassViaReflection(List.class)))
+        assertThat(JavaClass.Functions.GET_PACKAGE.apply(importClassWithContext(List.class)))
                 .as("result of GET_PACKAGE(clazz)")
                 .isEqualTo(List.class.getPackage().getName());
     }
 
     @Test
     public void predicate_withType() {
-        assertThat(type(Parent.class).apply(javaClassViaReflection(Parent.class)))
+        assertThat(type(Parent.class).apply(importClassWithContext(Parent.class)))
                 .as("type(Parent) matches JavaClass Parent").isTrue();
-        assertThat(type(Parent.class).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
+        assertThat(type(Parent.class).apply(importClassWithContext(SuperClassWithFieldAndMethod.class)))
                 .as("type(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
 
         assertThat(type(System.class).getDescription()).isEqualTo("type java.lang.System");
@@ -352,9 +354,9 @@ public class JavaClassTest {
 
     @Test
     public void predicate_simpleName() {
-        assertThat(simpleName(Parent.class.getSimpleName()).apply(javaClassViaReflection(Parent.class)))
+        assertThat(simpleName(Parent.class.getSimpleName()).apply(importClassWithContext(Parent.class)))
                 .as("simpleName(Parent) matches JavaClass Parent").isTrue();
-        assertThat(simpleName(Parent.class.getSimpleName()).apply(javaClassViaReflection(SuperClassWithFieldAndMethod.class)))
+        assertThat(simpleName(Parent.class.getSimpleName()).apply(importClassWithContext(SuperClassWithFieldAndMethod.class)))
                 .as("simpleName(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
 
         assertThat(simpleName("Simple").getDescription()).isEqualTo("simple name 'Simple'");
@@ -475,8 +477,8 @@ public class JavaClassTest {
 
     @Test
     public void predicate_interfaces() {
-        assertThat(INTERFACES.apply(javaClassViaReflection(Serializable.class))).as("Predicate matches").isTrue();
-        assertThat(INTERFACES.apply(javaClassViaReflection(Object.class))).as("Predicate matches").isFalse();
+        assertThat(INTERFACES.apply(importClassWithContext(Serializable.class))).as("Predicate matches").isTrue();
+        assertThat(INTERFACES.apply(importClassWithContext(Object.class))).as("Predicate matches").isFalse();
         assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
     }
 
@@ -697,7 +699,7 @@ public class JavaClassTest {
                 Class<?>[] types = ImmutableSet.<Class<?>>builder()
                         .addAll(additionalTypes).add(firstType).add(secondType)
                         .build().toArray(new Class<?>[0]);
-                JavaClass javaClass = javaClassesViaReflection(types).get(secondType);
+                JavaClass javaClass = importClassesWithContext(types).get(secondType);
                 for (DescribedPredicate<JavaClass> predicate : assignable) {
                     assignableAssertion.add(assertThat(predicate.apply(javaClass))
                             .as(message + secondType.getSimpleName()));

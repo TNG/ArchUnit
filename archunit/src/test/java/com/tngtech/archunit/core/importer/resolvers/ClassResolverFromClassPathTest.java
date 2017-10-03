@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -28,7 +28,7 @@ public class ClassResolverFromClassPathTest {
 
     @Test
     public void finds_uri_of_class_on_classpath() throws URISyntaxException {
-        JavaClass expectedJavaClass = javaClassViaReflection(Object.class);
+        JavaClass expectedJavaClass = importClassWithContext(Object.class);
         when(uriImporter.tryImport(uriOf(Object.class))).thenReturn(Optional.of(expectedJavaClass));
 
         resolver.setClassUriImporter(uriImporter);

@@ -14,7 +14,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_C
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -31,12 +31,12 @@ public class DependencyTest {
 
     @Test
     public void Dependency_from_origin_and_target() {
-        JavaClass target = javaClassViaReflection(DependencyClass.class);
-        Dependency dependency = Dependency.fromInheritance(javaClassViaReflection(getClass()), target);
+        JavaClass target = importClassWithContext(DependencyClass.class);
+        Dependency dependency = Dependency.fromInheritance(importClassWithContext(getClass()), target);
         assertDependency(target, dependency, "extends");
 
-        target = javaClassViaReflection(DependencyInterface.class);
-        dependency = Dependency.fromInheritance(javaClassViaReflection(getClass()), target);
+        target = importClassWithContext(DependencyInterface.class);
+        dependency = Dependency.fromInheritance(importClassWithContext(getClass()), target);
         assertDependency(target, dependency, "implements");
     }
 
@@ -108,7 +108,7 @@ public class DependencyTest {
 
     private static Dependency createDependency(Class<?> originClass, Class<?> targetClass) {
         return Dependency.fromInheritance(
-                javaClassViaReflection(originClass), javaClassViaReflection(targetClass));
+                importClassWithContext(originClass), importClassWithContext(targetClass));
     }
 
     private void assertDependency(JavaClass target, Dependency dependency, String dependencyType) {

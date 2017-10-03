@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.FAILING_FIELD_NAME;
@@ -61,7 +61,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     @InjectMocks
     private ArchUnitRunner runner = ArchUnitRunnerTestUtils.newRunnerFor(SomeArchTest.class);
 
-    private JavaClasses cachedClasses = javaClassesViaReflection(Object.class);
+    private JavaClasses cachedClasses = importClassesWithContext(Object.class);
 
     @Before
     public void setUp() {

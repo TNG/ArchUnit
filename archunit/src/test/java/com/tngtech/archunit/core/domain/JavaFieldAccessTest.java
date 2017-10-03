@@ -17,9 +17,7 @@ import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.accessType;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.target;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaFieldViaReflection;
-import static com.tngtech.archunit.core.domain.TestUtils.javaMethodViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -29,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JavaFieldAccessTest {
     @Test
     public void equals_should_work() throws Exception {
-        JavaClass clazz = javaClassViaReflection(SomeClass.class);
+        JavaClass clazz = importClassWithContext(SomeClass.class);
         JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
                 .withOrigin(accessFieldMethod(clazz))
                 .build();
@@ -55,7 +53,7 @@ public class JavaFieldAccessTest {
                 .withTarget(targetFrom(clazz.getField("intField")))
                 .build();
         JavaFieldAccess otherCaller = stringFieldAccessRecordBuilder(clazz)
-                .withOrigin(javaMethodViaReflection(clazz, "accessInt"))
+                .withOrigin(clazz.getMethod("accessInt"))
                 .build();
 
         assertThat(access).isNotEqualTo(otherAccessType);
@@ -67,7 +65,7 @@ public class JavaFieldAccessTest {
     @Test
     public void fieldAccess_should_have_same_name_as_target() throws Exception {
 
-        JavaClass clazz = javaClassViaReflection(SomeClass.class);
+        JavaClass clazz = importClassWithContext(SomeClass.class);
 
         JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
                 .withOrigin(accessFieldMethod(clazz))
@@ -113,17 +111,17 @@ public class JavaFieldAccessTest {
     }
 
     private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
-        JavaClass clazz = javaClassViaReflection(SomeClass.class);
+        JavaClass clazz = importClassWithContext(SomeClass.class);
         return new JavaFieldAccessTestBuilder()
                 .withOrigin(accessFieldMethod(clazz))
-                .withTarget(targetFrom(javaFieldViaReflection(clazz, "stringField")))
+                .withTarget(targetFrom(clazz.getField("stringField")))
                 .withAccessType(accessType)
                 .withLineNumber(31)
                 .build();
     }
 
     private JavaFieldAccessTestBuilder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
-        return stringFieldAccessBuilder(targetFrom(javaFieldViaReflection(clazz, name)));
+        return stringFieldAccessBuilder(targetFrom(clazz.getField(name)));
     }
 
     private JavaFieldAccessTestBuilder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
@@ -134,7 +132,7 @@ public class JavaFieldAccessTest {
     }
 
     private JavaMethod accessFieldMethod(JavaClass clazz) throws NoSuchMethodException {
-        return javaMethodViaReflection(clazz, "accessStringField");
+        return clazz.getMethod("accessStringField");
     }
 
     private static class SomeClass {

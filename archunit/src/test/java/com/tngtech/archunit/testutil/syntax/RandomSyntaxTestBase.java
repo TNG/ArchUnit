@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassesViaReflection;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,13 +59,13 @@ public abstract class RandomSyntaxTestBase {
 
         assertThat(archRule.getDescription()).as("description of constructed ArchRule").isEqualTo(expectedDescription);
 
-        archRule.evaluate(javaClassesViaReflection());
-        archRule.check(javaClassesViaReflection());
+        archRule.evaluate(importClassesWithContext());
+        archRule.check(importClassesWithContext());
 
         ArchRule overriddenText = archRule.as("overridden rule text");
         assertThat(overriddenText.getDescription()).isEqualTo("overridden rule text");
         assertThat(overriddenText.evaluate(
-                javaClassesViaReflection()).getFailureReport().toString()).contains(
+                importClassesWithContext()).getFailureReport().toString()).contains(
                 "overridden rule text");
     }
 
