@@ -19,8 +19,7 @@ public class VisualizerDemo {
         EvaluationResult evaluationResult = ArchRuleDefinition.noClasses().should().callMethod(Object.class, "toString").evaluate(classes);
 
         new Visualizer().visualize(classes, evaluationResult,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"), new VisualizationContext.Builder()
-                        .includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io")
-                        .build());
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"),
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
     }
 }

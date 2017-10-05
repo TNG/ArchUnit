@@ -15,28 +15,27 @@ public class VisualizationContextTest {
     public void default_VisualizationContext_includes_everything() {
         JavaClasses classes = importClasses(SomeClass.class, SubPkgClass.class, File.class);
 
-        VisualizationContext defaultContext = new VisualizationContext.Builder().build();
+        VisualizationContext context = VisualizationContext.everything();
 
-        assertThat(defaultContext.isElementIncluded(classes.get(SomeClass.class)))
+        assertThat(context.isElementIncluded(classes.get(SomeClass.class)))
                 .as(SomeClass.class.getSimpleName() + " is included").isTrue();
-        assertThat(defaultContext.isElementIncluded(classes.get(File.class)))
+        assertThat(context.isElementIncluded(classes.get(File.class)))
                 .as(SomeClass.class.getSimpleName() + " is included").isTrue();
-        assertThat(defaultContext.filterIncluded(classes)).containsOnlyElementsOf(classes);
+        assertThat(context.filterIncluded(classes)).containsOnlyElementsOf(classes);
     }
 
     @Test
     public void configured_VisualizationContext_includes_only_specific_packages() {
         JavaClasses classes = importClasses(SomeClass.class, SubPkgClass.class, File.class);
 
-        VisualizationContext defaultContext = new VisualizationContext.Builder()
-                .includeOnly(SubPkgClass.class.getPackage().getName(), File.class.getPackage().getName())
-                .build();
+        VisualizationContext context = VisualizationContext.includeOnly(
+                SubPkgClass.class.getPackage().getName(), File.class.getPackage().getName());
 
-        assertThat(defaultContext.isElementIncluded(classes.get(SomeClass.class)))
+        assertThat(context.isElementIncluded(classes.get(SomeClass.class)))
                 .as(SomeClass.class.getSimpleName() + " is included").isFalse();
-        assertThat(defaultContext.isElementIncluded(classes.get(File.class)))
+        assertThat(context.isElementIncluded(classes.get(File.class)))
                 .as(SomeClass.class.getSimpleName() + " is included").isTrue();
-        assertThat(defaultContext.filterIncluded(classes))
+        assertThat(context.filterIncluded(classes))
                 .containsOnly(classes.get(SubPkgClass.class), classes.get(File.class));
     }
 
@@ -46,11 +45,9 @@ public class VisualizationContextTest {
 
         String rightPackage = SomeClass.class.getPackage().getName();
         String incompleteSubString = rightPackage.substring(0, rightPackage.length() - 1);
-        VisualizationContext defaultContext = new VisualizationContext.Builder()
-                .includeOnly(incompleteSubString)
-                .build();
+        VisualizationContext context = VisualizationContext.includeOnly(incompleteSubString);
 
-        assertThat(defaultContext.isElementIncluded(classes.get(SomeClass.class)))
+        assertThat(context.isElementIncluded(classes.get(SomeClass.class)))
                 .as(SomeClass.class.getSimpleName() + " is included").isFalse();
     }
 }

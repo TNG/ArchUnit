@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -23,11 +22,8 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
-class VisualizationContext {
-    private final Set<String> rootPackages;
-
-    private VisualizationContext(Set<String> rootPackages) {
-        this.rootPackages = ImmutableSet.copyOf(rootPackages);
+abstract class VisualizationContext {
+    private VisualizationContext() {
     }
 
     boolean isElementIncluded(Optional<JavaClass> javaClassOptional) {
@@ -38,17 +34,7 @@ class VisualizationContext {
         return isElementIncluded(javaClass.getName());
     }
 
-    private boolean isElementIncluded(String fullName) {
-        if (rootPackages.isEmpty()) {
-            return true;
-        }
-        for (String s : rootPackages) {
-            if (fullName.equals(s) || (fullName.startsWith(s) && fullName.substring(s.length()).matches("(\\.|\\$).*"))) {
-                return true;
-            }
-        }
-        return false;
-    }
+    abstract boolean isElementIncluded(String fullName);
 
     Set<JavaClass> filterIncluded(JavaClasses classes) {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
@@ -60,20 +46,47 @@ class VisualizationContext {
         return result.build();
     }
 
-    static class Builder {
-        private Set<String> rootPackages = new HashSet<>();
+    static VisualizationContext includeOnly(String rootPackage, String... furtherRootPackages) {
+        return new Restricted(ImmutableSet.<String>builder()
+                .add(rootPackage)
+                .add(furtherRootPackages)
+                .build());
+    }
 
-        Builder includeOnly(String... rootPackages) {
-            return includeOnly(ImmutableSet.copyOf(rootPackages));
+    static VisualizationContext everything() {
+        return new Everything();
+    }
+
+    private static class Restricted extends VisualizationContext {
+        private final Set<String> rootPackages;
+
+        private Restricted(Set<String> rootPackages) {
+            this.rootPackages = ImmutableSet.copyOf(rootPackages);
         }
 
-        Builder includeOnly(Set<String> rootPackages) {
-            this.rootPackages = rootPackages;
-            return this;
+        @Override
+        boolean isElementIncluded(String fullName) {
+            for (String pkg : rootPackages) {
+                if (isInPackage(fullName, pkg)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        VisualizationContext build() {
-            return new VisualizationContext(rootPackages);
+        private boolean isInPackage(String fullName, String pkg) {
+            if (!fullName.startsWith(pkg)) {
+                return false;
+            }
+            String rest = fullName.substring(pkg.length());
+            return rest.isEmpty() || rest.startsWith(".");
+        }
+    }
+
+    private static class Everything extends VisualizationContext {
+        @Override
+        boolean isElementIncluded(String fullName) {
+            return true;
         }
     }
 }
