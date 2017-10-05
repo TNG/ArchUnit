@@ -25,12 +25,12 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
-class VisualizedClasses {
+class ClassesToVisualize {
     private Map<String, JavaClass> classes = new HashMap<>();
     private Map<String, JavaClass> innerClasses = new HashMap<>();
     private Map<String, JavaClass> dependencies = new HashMap<>();
 
-    private VisualizedClasses(JavaClasses classes, VisualizationContext context) {
+    private ClassesToVisualize(JavaClasses classes, VisualizationContext context) {
         Set<JavaClass> includedClasses = context.filterIncluded(classes);
         addClasses(includedClasses);
         addDependencies(context);
@@ -82,7 +82,7 @@ class VisualizedClasses {
         return Iterables.concat(getClasses(), getInnerClasses(), getDependencies());
     }
 
-    static VisualizedClasses from(JavaClasses classes, VisualizationContext context) {
-        return new VisualizedClasses(classes, context);
+    static ClassesToVisualize from(JavaClasses classes, VisualizationContext context) {
+        return new ClassesToVisualize(classes, context);
     }
 }

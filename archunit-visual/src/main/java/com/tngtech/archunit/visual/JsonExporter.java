@@ -36,22 +36,22 @@ class JsonExporter {
             .create();
 
     void export(JavaClasses classes, Writer writer, VisualizationContext context) {
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, context);
-        JsonJavaPackage root = createPackageClassTree(visualizedClasses, context);
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, context);
+        JsonJavaPackage root = createPackageClassTree(classesToVisualize, context);
         writeToWriter(root, writer);
     }
 
-    private JsonJavaPackage createPackageClassTree(VisualizedClasses visualizedClasses, VisualizationContext context) {
-        JsonJavaPackage root = JsonJavaPackage.createPackageStructure(visualizedClasses.getPackages());
-        insertVisualizedClassesToRoot(visualizedClasses, context, root);
+    private JsonJavaPackage createPackageClassTree(ClassesToVisualize classesToVisualize, VisualizationContext context) {
+        JsonJavaPackage root = JsonJavaPackage.createPackageStructure(classesToVisualize.getPackages());
+        insertVisualizedClassesToRoot(classesToVisualize, context, root);
         root.normalize();
         return root;
     }
 
-    private void insertVisualizedClassesToRoot(VisualizedClasses visualizedClasses, VisualizationContext context, JsonJavaPackage root) {
-        insertClassesToRoot(visualizedClasses.getClasses(), context, root);
-        insertInnerClassesToRoot(visualizedClasses.getInnerClasses(), context, root);
-        insertDependenciesToRoot(visualizedClasses.getDependencies(), root);
+    private void insertVisualizedClassesToRoot(ClassesToVisualize classesToVisualize, VisualizationContext context, JsonJavaPackage root) {
+        insertClassesToRoot(classesToVisualize.getClasses(), context, root);
+        insertInnerClassesToRoot(classesToVisualize.getInnerClasses(), context, root);
+        insertDependenciesToRoot(classesToVisualize.getDependencies(), root);
     }
 
     private void insertClassesToRoot(Iterable<JavaClass> classes, VisualizationContext context, JsonJavaPackage root) {

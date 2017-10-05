@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class VisualizedClassesTest {
+public class ClassesToVisualizeTest {
     private static final Class<?> SUB_PKG_CLASS_DEPENDENCY = File.class;
     private static final Set<Class<?>> EXTRA_DEPENDENCIES_OF_TEST_CLASSES = ImmutableSet.of(
             Object.class, String.class, SUB_PKG_CLASS_DEPENDENCY);
@@ -29,42 +29,42 @@ public class VisualizedClassesTest {
     public void contain_non_filtered_classes() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder().build());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder().build());
         Iterable<String> expected = Iterables.concat(namesOf(classes), namesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
-        assertThat(namesOf(visualizedClasses.getAll())).containsOnlyElementsOf(expected);
+        assertThat(namesOf(classesToVisualize.getAll())).containsOnlyElementsOf(expected);
 
-        visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder()
+        classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder()
                 .includeOnly(SubPkgClass.class.getPackage().getName())
                 .build());
-        assertThat(visualizedClasses.getAll()).doesNotContain(classes.get(SomeClass.class));
-        assertThat(namesOf(visualizedClasses.getAll())).doesNotContain(SUB_PKG_CLASS_DEPENDENCY.getName());
+        assertThat(classesToVisualize.getAll()).doesNotContain(classes.get(SomeClass.class));
+        assertThat(namesOf(classesToVisualize.getAll())).doesNotContain(SUB_PKG_CLASS_DEPENDENCY.getName());
     }
 
     @Test
     public void contain_non_inner_classes() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder().build());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder().build());
 
-        assertThat(visualizedClasses.getClasses()).containsOnlyElementsOf(nonInnerClassesIn(classes));
+        assertThat(classesToVisualize.getClasses()).containsOnlyElementsOf(nonInnerClassesIn(classes));
     }
 
     @Test
     public void contain_inner_classes() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder().build());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder().build());
 
-        assertThat(visualizedClasses.getInnerClasses()).containsOnlyElementsOf(innerClassesIn(classes));
+        assertThat(classesToVisualize.getInnerClasses()).containsOnlyElementsOf(innerClassesIn(classes));
     }
 
     @Test
     public void contain_dependencies() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder().build());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder().build());
 
-        assertThat(namesOf(visualizedClasses.getDependencies()))
+        assertThat(namesOf(classesToVisualize.getDependencies()))
                 .containsOnlyElementsOf(namesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
     }
 
@@ -72,12 +72,12 @@ public class VisualizedClassesTest {
     public void contain_packages() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        VisualizedClasses visualizedClasses = VisualizedClasses.from(classes, new VisualizationContext.Builder().build());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, new VisualizationContext.Builder().build());
 
         Set<String> expectedPackages = Sets.union(
                 ImmutableSet.of(SomeClass.class.getPackage().getName(), SubPkgClass.class.getPackage().getName()),
                 packagesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
-        assertThat(visualizedClasses.getPackages()).containsOnlyElementsOf(expectedPackages);
+        assertThat(classesToVisualize.getPackages()).containsOnlyElementsOf(expectedPackages);
     }
 
     private Set<String> namesOf(Set<Class<?>> classes) {
