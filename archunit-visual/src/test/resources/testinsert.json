@@ -5,33 +5,54 @@
         {
           "children": [
             {
-              "superclass": "",
-              "interfaces": [],
-              "fieldAccesses": [],
-              "methodCalls": [],
-              "constructorCalls": [],
-              "anonymousImplementation": [],
-              "children": [],
-              "name": "class2",
-              "fullName": "com.tngtech.pkg.class2",
-              "type": "class"
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "superclass": "",
+                          "interfaces": [],
+                          "fieldAccesses": [],
+                          "methodCalls": [],
+                          "constructorCalls": [],
+                          "anonymousImplementation": [],
+                          "children": [],
+                          "name": "SubPkgClass",
+                          "fullName": "com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass",
+                          "type": "class"
+                        }
+                      ],
+                      "name": "subpkg",
+                      "fullName": "com.tngtech.archunit.visual.testclasses.subpkg",
+                      "type": "package"
+                    },
+                    {
+                      "superclass": "",
+                      "interfaces": [],
+                      "fieldAccesses": [],
+                      "methodCalls": [],
+                      "constructorCalls": [],
+                      "anonymousImplementation": [],
+                      "children": [],
+                      "name": "SomeClass",
+                      "fullName": "com.tngtech.archunit.visual.testclasses.SomeClass",
+                      "type": "class"
+                    }
+                  ],
+                  "name": "testclasses",
+                  "fullName": "com.tngtech.archunit.visual.testclasses",
+                  "type": "package"
+                }
+              ],
+              "name": "visual",
+              "fullName": "com.tngtech.archunit.visual",
+              "type": "package"
             }
           ],
-          "name": "pkg",
-          "fullName": "com.tngtech.pkg",
+          "name": "archunit",
+          "fullName": "com.tngtech.archunit",
           "type": "package"
-        },
-        {
-          "superclass": "",
-          "interfaces": [],
-          "fieldAccesses": [],
-          "methodCalls": [],
-          "constructorCalls": [],
-          "anonymousImplementation": [],
-          "children": [],
-          "name": "class1",
-          "fullName": "com.tngtech.class1",
-          "type": "class"
         }
       ],
       "name": "tngtech",

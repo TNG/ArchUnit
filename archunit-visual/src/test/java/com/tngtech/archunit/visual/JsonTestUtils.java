@@ -1,5 +1,15 @@
 package com.tngtech.archunit.visual;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -8,13 +18,6 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import org.assertj.guava.api.Assertions;
 import org.assertj.guava.api.OptionalAssert;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
-import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,22 +42,6 @@ final class JsonTestUtils {
                 return input.fullName;
             }
         });
-    }
-
-    private static <T> Constructor<T> getPrivateConstructor(Class<T> clazz, Class<?>... parameterTypes) throws NoSuchMethodException {
-        Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
-        constructor.setAccessible(true);
-        return constructor;
-    }
-
-    static JsonJavaClass createJsonJavaClass(String name, String fullname) throws Exception {
-        Constructor<JsonJavaClass> jsonJavaClassConstructor = JsonTestUtils.getPrivateConstructor(JsonJavaClass.class, String.class, String.class);
-        return jsonJavaClassConstructor.newInstance(name, fullname);
-    }
-
-    static JsonJavaInterface createJsonJavaInterface(String name, String fullname) throws Exception {
-        Constructor<JsonJavaInterface> jsonJavaInterfaceConstructor = getPrivateConstructor(JsonJavaInterface.class, String.class, String.class);
-        return jsonJavaInterfaceConstructor.newInstance(name, fullname);
     }
 
     static Map<Object, Object> jsonToMap(File file) {

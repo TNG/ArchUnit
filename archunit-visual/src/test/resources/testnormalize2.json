@@ -3,12 +3,6 @@
     {
       "children": [
         {
-          "children": [],
-          "name": "subpkg",
-          "fullName": "com.tngtech.pkg1.subpkg",
-          "type": "package"
-        },
-        {
           "superclass": "",
           "interfaces": [],
           "fieldAccesses": [],
@@ -16,23 +10,29 @@
           "constructorCalls": [],
           "anonymousImplementation": [],
           "children": [],
-          "name": "class1",
-          "fullName": "com.tngtech.pkg1.class1",
+          "name": "SubPkgClass",
+          "fullName": "com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass",
           "type": "class"
         }
       ],
-      "name": "pkg1",
-      "fullName": "com.tngtech.pkg1",
+      "name": "subpkg",
+      "fullName": "com.tngtech.archunit.visual.testclasses.subpkg",
       "type": "package"
     },
     {
+      "superclass": "",
+      "interfaces": [],
+      "fieldAccesses": [],
+      "methodCalls": [],
+      "constructorCalls": [],
+      "anonymousImplementation": [],
       "children": [],
-      "name": "pkg2.subpkg2",
-      "fullName": "com.tngtech.pkg2.subpkg2",
-      "type": "package"
+      "name": "SomeClass",
+      "fullName": "com.tngtech.archunit.visual.testclasses.SomeClass",
+      "type": "class"
     }
   ],
-  "name": "com.tngtech",
-  "fullName": "com.tngtech",
+  "name": "com.tngtech.archunit.visual.testclasses",
+  "fullName": "com.tngtech.archunit.visual.testclasses",
   "type": "package"
 }

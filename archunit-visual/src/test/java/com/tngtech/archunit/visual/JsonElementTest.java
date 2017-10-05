@@ -1,13 +1,15 @@
 package com.tngtech.archunit.visual;
 
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.TestUtils;
+import com.tngtech.archunit.visual.testclasses.SomeClass;
+import com.tngtech.archunit.visual.testclasses.SomeInterface;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.lang.reflect.Constructor;
 
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -15,42 +17,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class JsonElementTest {
-
     @DataProvider
     public static Object[][] elements_with_name() {
-        try {
-            Constructor<JsonJavaInterface> jsonJavaInterfaceConstructor = JsonJavaInterface.class.getDeclaredConstructor(String.class, String.class);
-            jsonJavaInterfaceConstructor.setAccessible(true);
-            Constructor<JsonJavaClass> jsonJavaClassConstructor = JsonJavaClass.class.getDeclaredConstructor(String.class, String.class);
-            jsonJavaClassConstructor.setAccessible(true);
-            return $$(
-                    $(jsonJavaInterfaceConstructor.newInstance("class1", "com.tngtech.pkg.class1")),
-                    $(jsonJavaClassConstructor.newInstance("class1", "com.tngtech.pkg.class1")),
-                    $(new JsonJavaPackage("class1", "com.tngtech.pkg.class1"))
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @DataProvider
-    public static Object[][] root_package() {
+        JavaClasses classes = TestUtils.importClasses(SomeInterface.class, SomeClass.class);
         return $$(
-                $(new JsonJavaPackage("com", "com"))
-        );
+                $(new JsonJavaInterface(classes.get(SomeInterface.class)), SomeInterface.class.getPackage().getName()),
+                $(new JsonJavaClass(classes.get(SomeClass.class), true), SomeClass.class.getPackage().getName()),
+                $(new JsonJavaPackage("sub", "com.tngtech.pkg.sub"), "com.tngtech.pkg"));
     }
 
     @Test
     @UseDataProvider("elements_with_name")
-    public void testGetPathOf(JsonElement element) {
-        assertThat(element.getPath()).as("path of element").isEqualTo("com.tngtech.pkg");
+    public void path_of_single_root(JsonElement element, String expectedPath) {
+        assertThat(element.getPath()).as("path of element").isEqualTo(expectedPath);
     }
 
     @Test
-    @UseDataProvider("root_package")
-    public void testGetPathOfRootPackage(JsonElement element) {
-        assertThat(element.getPath()).as("path of element").isEqualTo("default");
+    public void testGetPathOfRootPackage() {
+        assertThat(new JsonJavaPackage("com", "com").getPath()).as("path of element").isEqualTo("default");
     }
 
     private static boolean hasFullName(Optional<? extends JsonElement> act, String expectedFullName) {

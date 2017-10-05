@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.visual.testclasses.OtherClass;
 import com.tngtech.archunit.visual.testclasses.SomeClass;
+import com.tngtech.archunit.visual.testclasses.SomeInterface;
 import com.tngtech.archunit.visual.testclasses.ThirdClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SecondSubPkgClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass;
@@ -102,11 +103,14 @@ public class ClassesToVisualizeTest {
     private Set<JavaClass> nonInnerClassesIn(JavaClasses classes) {
         return ImmutableSet.of(
                 classes.get(SomeClass.class), classes.get(OtherClass.class), classes.get(ThirdClass.class),
-                classes.get(SubPkgClass.class), classes.get(SecondSubPkgClass.class), classes.get(ThirdSubPkgClass.class)
+                classes.get(SubPkgClass.class), classes.get(SecondSubPkgClass.class), classes.get(ThirdSubPkgClass.class),
+                classes.get(SomeInterface.class)
         );
     }
 
     private Set<JavaClass> innerClassesIn(JavaClasses classes) {
-        return ImmutableSet.of(classes.get(SomeClass.InnerClass.class), classes.get(SubPkgClass.InnerSubPkgClass.class));
+        return ImmutableSet.of(
+                classes.get(SomeClass.InnerClass.class), classes.get(SubPkgClass.InnerSubPkgClass.class),
+                classes.get(SomeInterface.InnerInterface.class));
     }
 }

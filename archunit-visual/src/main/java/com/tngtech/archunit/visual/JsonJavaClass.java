@@ -24,11 +24,6 @@ class JsonJavaClass extends JsonJavaElement {
     @Expose
     private String superclass;
 
-    private JsonJavaClass(String name, String fullname) {
-        super(name, fullname, TYPE);
-        this.superclass = "";
-    }
-
     JsonJavaClass(JavaClass clazz, boolean withSuperclass) {
         super(clazz.getSimpleName(), clazz.getName(), TYPE);
         this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";

@@ -20,10 +20,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 class JsonJavaInterface extends JsonJavaElement {
     private static final String TYPE = "interface";
 
-    private JsonJavaInterface(String name, String fullname) {
-        super(name, fullname, TYPE);
-    }
-
     JsonJavaInterface(JavaClass javaClass) {
         super(javaClass.getSimpleName(), javaClass.getName(), TYPE);
     }

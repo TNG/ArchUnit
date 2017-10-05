@@ -30,8 +30,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
-
-    private Gson gson = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
@@ -77,7 +76,7 @@ class JsonExporter {
     }
 
     private void writeToWriter(JsonJavaPackage root, Writer writer) {
-        gson.toJson(root, writer);
+        GSON.toJson(root, writer);
     }
 
     private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass anonymousInnerClass) {
