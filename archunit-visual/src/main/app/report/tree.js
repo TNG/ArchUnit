@@ -51,14 +51,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  const getRoot = node => {
-    let root = node;
-    while (root._parent) {
-      root = root._parent;
-    }
-    return root;
-  };
-
   const VisualData = class {
     constructor(x = 0, y = 0, r = 0) {
       this.x = x;
@@ -204,7 +196,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           return Promise.all([this._onFold(this), this._updateViewOnFold()]);
         });
       }
-    };
+    }
 
     fold() {
       this._setFolded(true);
