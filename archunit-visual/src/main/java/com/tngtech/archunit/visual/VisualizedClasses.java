@@ -26,48 +26,35 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
 class VisualizedClasses {
-    private static final String INNER_CLASS_SEPARATOR = "$";
-
     private Map<String, JavaClass> classes = new HashMap<>();
     private Map<String, JavaClass> innerClasses = new HashMap<>();
     private Map<String, JavaClass> dependencies = new HashMap<>();
-    private Set<String> packages = new HashSet<>();
 
     private VisualizedClasses(JavaClasses classes, VisualizationContext context) {
-        addClasses(classes, context);
+        Set<JavaClass> includedClasses = context.filterIncluded(classes);
+        addClasses(includedClasses);
         addDependencies(context);
-        addPackages();
     }
 
-    private void addClasses(JavaClasses classes, VisualizationContext context) {
-        for (JavaClass c : classes) {
-            if (context.isElementIncluded(c.getName())) {
-                if (c.getName().contains(INNER_CLASS_SEPARATOR)) {
-                    innerClasses.put(c.getName(), c);
-                } else if (!c.getSimpleName().isEmpty()) {
-                    this.classes.put(c.getName(), c);
-                }
+    private void addClasses(Set<JavaClass> classes) {
+        for (JavaClass clazz : classes) {
+            if (clazz.getEnclosingClass().isPresent()) {
+                innerClasses.put(clazz.getName(), clazz);
+            } else if (!clazz.getSimpleName().isEmpty()) {
+                this.classes.put(clazz.getName(), clazz);
             }
         }
     }
 
     private void addDependencies(VisualizationContext context) {
-        for (JavaClass c : classes.values()) {
-            if (context.isElementIncluded(c.getName())) {
-                for (Dependency dep : c.getDirectDependenciesFromSelf()) {
-                    if (context.isElementIncluded(dep.getTargetClass().getName()) &&
-                            !classes.keySet().contains(dep.getTargetClass().getName()) &&
-                            !innerClasses.keySet().contains(dep.getTargetClass().getName())) {
-                        dependencies.put(dep.getTargetClass().getName(), dep.getTargetClass());
-                    }
+        for (JavaClass clazz : classes.values()) {
+            for (Dependency dependency : clazz.getDirectDependenciesFromSelf()) {
+                if (context.isElementIncluded(dependency.getTargetClass()) &&
+                        !classes.keySet().contains(dependency.getTargetClass().getName()) &&
+                        !innerClasses.keySet().contains(dependency.getTargetClass().getName())) {
+                    dependencies.put(dependency.getTargetClass().getName(), dependency.getTargetClass());
                 }
             }
-        }
-    }
-
-    private void addPackages() {
-        for (JavaClass c : getAll()) {
-            packages.add(c.getPackage());
         }
     }
 
@@ -84,11 +71,15 @@ class VisualizedClasses {
     }
 
     Set<String> getPackages() {
-        return packages;
+        Set<String> result = new HashSet<>();
+        for (JavaClass c : getAll()) {
+            result.add(c.getPackage());
+        }
+        return result;
     }
 
     Iterable<JavaClass> getAll() {
-        return Iterables.concat(classes.values(), innerClasses.values(), dependencies.values());
+        return Iterables.concat(getClasses(), getInnerClasses(), getDependencies());
     }
 
     static VisualizedClasses from(JavaClasses classes, VisualizationContext context) {

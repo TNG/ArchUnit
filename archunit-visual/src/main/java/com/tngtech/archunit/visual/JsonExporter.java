@@ -15,14 +15,19 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.*;
-
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
 
@@ -119,16 +124,16 @@ class JsonExporter {
 
     private void parseImplementationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass javaClass : c.getAllInterfaces()) {
-            if (context.isElementIncluded(javaClass.getName())) {
+            if (context.isElementIncluded(javaClass)) {
                 res.addInterface(javaClass.getName());
             }
         }
     }
 
-    private void parseAnonymousImplementationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
-        for (JavaClass i : c.getAllInterfaces()) {
-            if (context.isElementIncluded(i.getName())) {
-                res.addAnonymousImplementation(i.getName());
+    private void parseAnonymousImplementationToJavaElement(JavaClass clazz, VisualizationContext context, JsonJavaElement res) {
+        for (JavaClass anInterface : clazz.getAllInterfaces()) {
+            if (context.isElementIncluded(anInterface)) {
+                res.addAnonymousImplementation(anInterface.getName());
             }
         }
     }

@@ -21,6 +21,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 
 class VisualizationContext {
     private final Set<String> rootPackages;
@@ -37,7 +38,7 @@ class VisualizationContext {
         return isElementIncluded(javaClass.getName());
     }
 
-    boolean isElementIncluded(String fullName) {
+    private boolean isElementIncluded(String fullName) {
         if (rootPackages.isEmpty()) {
             return true;
         }
@@ -47,6 +48,16 @@ class VisualizationContext {
             }
         }
         return false;
+    }
+
+    Set<JavaClass> filterIncluded(JavaClasses classes) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaClass clazz : classes) {
+            if (isElementIncluded(clazz)) {
+                result.add(clazz);
+            }
+        }
+        return result.build();
     }
 
     static class Builder {
