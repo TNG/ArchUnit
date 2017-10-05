@@ -18,12 +18,11 @@ const init = (jsonToRoot, jsonToDependencies) => {
     }
 
     foldAllNodes() {
-      this.root.callOnEveryDescendantThenSelf(node => {
+      this.root.updatePromise.then(() => this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           node.fold();
         }
-      });
-      this.refresh();
+      }));
     }
 
     getDetailedDependenciesOf(from, to) {
@@ -263,7 +262,6 @@ module.exports.create = () => {
     updatePromise = updatePromise.then(() => {
       return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
     });
-    return updatePromise;
   }
 
   function updateNodes() {
@@ -291,9 +289,8 @@ module.exports.create = () => {
       graph = jsonToGraph(jsonroot);
       adaptSVGSizeAndPosition();
       initializeGraph();
-      graph.foldAllNodes();
 
-      // FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
+      //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.render = adaptSVGSizeAndPosition;
       graph.attachToMenu = menu => {
         menu.initializeSettings(
@@ -337,7 +334,6 @@ module.exports.create = () => {
             visualizationStyles.getLineStyle("several", "grouped access")
           ]);
       };
-
 
       resolve(graph);
     });

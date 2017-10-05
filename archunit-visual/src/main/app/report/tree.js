@@ -51,14 +51,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  const fold = (node, folded) => {
-    if (!node._isLeaf()) {
-      node._folded = folded;
-      return true;
-    }
-    return false;
-  };
-
   const getRoot = node => {
     let root = node;
     while (root._parent) {
@@ -116,10 +108,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   });
 
   const Node = class {
-    constructor(jsonNode) {
+    constructor(jsonNode, root) {
+      this._root = root;
+      if (!root) {
+        this._root = this;
+      }
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild));
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root));
       this._originalChildren.forEach(c => c._parent = this);
 
       this._filteredChildren = this._originalChildren;
@@ -136,7 +132,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       };
       this._updateViewOnFold = () => Promise.resolve();
 
-      if (this.isRoot()) {
+      if (!root) {
         this.updatePromise = Promise.resolve();
         this.relayout();
       }
@@ -200,21 +196,22 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._folded;
     }
 
-    fold() {
-      if (fold(this, true)) {
-        this._onFold(this);
-        return true;
+    _setFolded(folded) {
+      if (!this._isLeaf()) {
+        this._root.updatePromise = this._root.updatePromise.then(() => {
+          this._folded = folded;
+          this._root.relayout();
+          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
+        });
       }
-      return false;
+    };
+
+    fold() {
+      this._setFolded(true);
     }
 
     changeFold() {
-      getRoot(this).updatePromise = getRoot(this).updatePromise.then(() => {
-        if (fold(this, !this._folded)) {
-          getRoot(this).relayout();
-          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
-        }
-      });
+      this._setFolded(!this._folded);
     }
 
     getFilters() {
@@ -288,7 +285,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
       this._updateViewOnFold = () => {
         callback();
-        return getRoot(this)._updateView();
+        return this._root._updateView();
       };
 
       if (!this.isRoot() && !this._isLeaf()) {
@@ -341,7 +338,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param dy The delta in y-direction
      */
     _drag(dx, dy) {
-      getRoot(this).updatePromise.then(() => {
+      this._root.updatePromise.then(() => {
         this.visualData.move(dx, dy, this.getParent());
         this._updateViewOnDrag();
         this._onDrag(this);
