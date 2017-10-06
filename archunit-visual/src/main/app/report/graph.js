@@ -1,5 +1,7 @@
 'use strict';
 
+const d3 = require('d3');
+
 const init = (jsonToRoot, jsonToDependencies) => {
   const Graph = class {
     constructor(root, dependencies) {
@@ -7,6 +9,7 @@ const init = (jsonToRoot, jsonToDependencies) => {
       this.dependencies = dependencies;
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
+      this.updatePromise = Promise.resolve();
     }
 
     getVisibleNodes() {
@@ -51,6 +54,31 @@ const init = (jsonToRoot, jsonToDependencies) => {
     refresh() {
       this.root.relayout();
     }
+
+    render() {
+      this.renderSize();
+      this.renderPosition(d3.select('#visualization').select('#translater'));
+    }
+
+    renderWithTransition() {
+      const TRANSITION_DURATION = 300;
+      this.renderSize();
+      this.renderPosition(d3.select('#visualization').select('#translater').transition().duration(TRANSITION_DURATION));
+    }
+
+    renderSize() {
+      const svg = d3.select('#visualization');
+      svg.attr('width', Math.max(parseInt(2 * this.root.visualData.r + 4),
+        d3.select('#container').node().getBoundingClientRect().width));
+      svg.attr('height', Math.max(parseInt(2 * this.root.visualData.r + 4),
+        d3.select('#container').node().getBoundingClientRect().height));
+    }
+
+    renderPosition(selection) {
+      const svg = d3.select('#visualization');
+      selection.attr('transform',
+        `translate(${parseInt(svg.attr('width')) / 2 - this.root.visualData.r}, ${parseInt(svg.attr('height')) / 2 - this.root.visualData.r})`);
+    }
   };
 
   return {
@@ -91,36 +119,13 @@ module.exports.create = () => {
 
   let graph;
 
-  function adaptSVGSizeAndPosition() {
-    adaptSVGSize();
-    adaptSVGPosition(translater);
-  }
-
-  function adaptSVGSize() {
-    svg.attr('width', Math.max(parseInt(2 * graph.root.visualData.r + 4),
-      d3.select('#container').node().getBoundingClientRect().width));
-    svg.attr('height', Math.max(parseInt(2 * graph.root.visualData.r + 4),
-      d3.select('#container').node().getBoundingClientRect().height));
-  }
-
-  function adaptSVGPosition(svgSelection) {
-    svgSelection.attr('transform',
-      `translate(${parseInt(svg.attr('width')) / 2 - graph.root.visualData.r}, ${parseInt(svg.attr('height')) / 2 - graph.root.visualData.r})`);
-  }
-
-  function adaptSVGSizeAndPositionWithTransition(transition) {
-    adaptSVGSize();
-    adaptSVGPosition(transition);
-  }
-
   function initializeGraph() {
     initializeTree();
     initializeDeps();
   }
 
   function initializeTree() {
-    graph.root.initView(gTree.node(),
-      () => adaptSVGSizeAndPositionWithTransition(translater.transition().duration(TRANSITION_DURATION)));
+    graph.root.initView(gTree.node(), () => graph.renderWithTransition());
   }
 
   function initializeDeps() {
@@ -265,8 +270,8 @@ module.exports.create = () => {
   }
 
   function updateNodes() {
-    adaptSVGSizeAndPositionWithTransition(translater.transition().duration(TRANSITION_DURATION));
-    return graph.root._updateView(TRANSITION_DURATION);
+    graph.renderWithTransition();
+    return graph.root._updateView();
   }
 
   function updateEdgesWithoutAnimation() {
@@ -287,11 +292,10 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      adaptSVGSizeAndPosition();
+      graph.render();
       initializeGraph();
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
-      graph.render = adaptSVGSizeAndPosition;
       graph.attachToMenu = menu => {
         menu.initializeSettings(
           {
