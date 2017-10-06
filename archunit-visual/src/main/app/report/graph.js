@@ -10,8 +10,13 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = Promise.resolve();
     }
 
-    initView(svg) {
-      this._view = new View(svg);
+    initView(svg, initializeDetailedDeps) {
+      this._view = new View(svg, this.root.visualData.r);
+
+      this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.visualData.r));
+
+      this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
+      this.dependencies.refreshViews();
     }
 
     getVisibleNodes() {
@@ -92,20 +97,6 @@ module.exports.create = () => {
   const graphView = appContext.getGraphView();
 
   let graph;
-
-  function initializeGraph() {
-    initializeTree();
-    initializeDeps();
-  }
-
-  function initializeTree() {
-    graph.root.initView(graph._view._gTree, () => graph._view.renderWithTransition(graph.root.visualData.r));
-  }
-
-  function initializeDeps() {
-    graph.dependencies.initViews(graph._view._gEdges, initializeDetailedDeps);
-    graph.dependencies.refreshViews();
-  }
 
   function initializeDetailedDeps(hoverAreas) {
     const shouldBeHidden = new Map();
@@ -254,7 +245,7 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithAnimation() {
-    graph.dependencies._reassignViews(graph._view._gEdges, initializeDetailedDeps);
+    graph.dependencies._reassignViews(graph._view.gEdges, initializeDetailedDeps);
     return graph.dependencies.updateViewsWithTransition().then(() => graph.dependencies._showAllVisibleDependencies());
   }
 
@@ -266,9 +257,7 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      graph.initView(svg.node());
-      graph._view.render(graph.root.visualData.r);
-      initializeGraph();
+      graph.initView(svg.node(), initializeDetailedDeps);
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.attachToMenu = menu => {

@@ -5,11 +5,12 @@ const d3 = require('d3');
 const init = (transitionDuration) => {
 
   const View = class {
-    constructor(svg) {
+    constructor(svg, rootRadius) {
       this._svg = svg;
       this._translater = d3.select(this._svg).append('g').attr('id', 'translater').node();
-      this._gTree = d3.select(this._translater).append('g').node();
-      this._gEdges = d3.select(this._translater).append('g').node();
+      this.gTree = d3.select(this._translater).append('g').node();
+      this.gEdges = d3.select(this._translater).append('g').node();
+      this.render(rootRadius);
     }
 
     render(rootRadius) {
