@@ -56,7 +56,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = x;
       this.y = y;
       this.r = r;
-      this._onMove = () => {
+      this._updateViewOnMove = () => {
       };
       this._onUpdate = () => {
       };
@@ -74,7 +74,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = newX;
       this.y = newY;
 
-      this._onMove();
+      this._updateViewOnMove();
     }
 
     update(x, y, r) {
@@ -125,8 +125,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
-      this._onDrag = () => {
-      };
       this._onFold = () => Promise.resolve();
       this._updateViewOnFold = () => Promise.resolve();
 
@@ -280,7 +278,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, callback) {
       this._view = new View(svgElement, this);
-      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
+      this.visualData._updateViewOnMove = () => this._view.updatePosition(this.visualData);
       this._updateViewOnFold = () => {
         callback();
         return this._root._updateView();
