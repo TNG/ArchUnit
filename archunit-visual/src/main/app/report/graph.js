@@ -250,7 +250,7 @@ module.exports.create = () => {
   }
 
   return new Promise((resolve, reject) => {
-    d3.json('classes.json', function (error, jsonroot) {
+    d3.json('80/classes.json', function (error, jsonroot) {
       if (error) {
         return reject(error);
       }
