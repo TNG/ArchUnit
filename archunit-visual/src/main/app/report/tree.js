@@ -56,6 +56,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = x;
       this.y = y;
       this.r = r;
+      this._onMove = () => {
+      };
+      this._onUpdate = () => {
+      };
     }
 
     move(dx, dy, parent) {
@@ -69,6 +73,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
       this.x = newX;
       this.y = newY;
+
+      this._onMove();
     }
 
     update(x, y, r) {
@@ -77,6 +83,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (r) {
         this.r = r;
       }
+
+      this._onUpdate();
     }
   };
 
@@ -120,8 +128,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._onDrag = () => {
       };
       this._onFold = () => Promise.resolve();
-      this._updateViewOnDrag = () => {
-      };
       this._updateViewOnFold = () => Promise.resolve();
 
       if (!root) {
@@ -274,7 +280,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, callback) {
       this._view = new View(svgElement, this);
-      this._updateViewOnDrag = () => this._view.updatePosition(this.visualData);
+      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
       this._updateViewOnFold = () => {
         callback();
         return this._root._updateView();
@@ -332,7 +338,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _drag(dx, dy) {
       this._root.updatePromise.then(() => {
         this.visualData.move(dx, dy, this.getParent());
-        this._updateViewOnDrag();
         this._onDrag(this);
       });
     }

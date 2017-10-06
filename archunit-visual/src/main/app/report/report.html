@@ -46,7 +46,6 @@
     webComponentsInitialized
   ]).then(results => {
     const graph = results[0];
-    graph.foldAllNodes();
     graph.attachToMenu(document.querySelector('#menu'));
     document.body.onresize = graph.render;
   });

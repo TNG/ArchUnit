@@ -18,11 +18,11 @@ const init = (jsonToRoot, jsonToDependencies) => {
     }
 
     foldAllNodes() {
-      this.root.updatePromise.then(() => this.root.callOnEveryDescendantThenSelf(node => {
+      this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           node.fold();
         }
-      }));
+      });
     }
 
     getDetailedDependenciesOf(from, to) {
