@@ -3,7 +3,7 @@
 /*
  * Some poor man's DI solution...
  */
-const init = (getNodeView, getDependencyView, getVisualizationStyles, getCalculateTextWidth) => {
+const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth) => {
 
   const getVisualizationFunctions = () => {
     return require('./visualization-functions').newInstance(getCalculateTextWidth());
@@ -16,7 +16,7 @@ const init = (getNodeView, getDependencyView, getVisualizationStyles, getCalcula
   const getJsonToDependencies = () => require('./dependencies').init(getDependencyView()).jsonToDependencies;
 
   const getJsonToGraph = () => {
-    return require('./graph').init(getJsonToRoot(), getJsonToDependencies()).jsonToGraph;
+    return require('./graph').init(getJsonToRoot(), getJsonToDependencies(), getGraphView()).jsonToGraph;
   };
 
   return {
@@ -24,6 +24,7 @@ const init = (getNodeView, getDependencyView, getVisualizationStyles, getCalcula
     getVisualizationStyles,
     getJsonToRoot,
     getJsonToDependencies,
+    getGraphView,
     getJsonToGraph
   }
 };
@@ -35,8 +36,9 @@ module.exports.newInstance = overrides => {
 
   const getNodeView = () => overrides.NodeView || require('./node-view').init(TRANSITION_DURATION).View;
   const getDependencyView = () => overrides.DependencyView || require('./dependency-view').init(TRANSITION_DURATION).View;
+  const getGraphView = () => overrides.GraphView || require('./graph-view').init(TRANSITION_DURATION).View;
   const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
   const getCalculateTextWidth = () => overrides.calculateTextWidth || require('./text-width-calculator');
 
-  return init(getNodeView, getDependencyView, getVisualizationStyles, getCalculateTextWidth);
+  return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth);
 };

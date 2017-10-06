@@ -1,8 +1,6 @@
 'use strict';
 
-const d3 = require('d3');
-
-const init = (jsonToRoot, jsonToDependencies) => {
+const init = (jsonToRoot, jsonToDependencies, View) => {
   const Graph = class {
     constructor(root, dependencies) {
       this.root = root;
@@ -10,6 +8,10 @@ const init = (jsonToRoot, jsonToDependencies) => {
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
+    }
+
+    initView(svg) {
+      this._view = new View(svg);
     }
 
     getVisibleNodes() {
@@ -54,31 +56,6 @@ const init = (jsonToRoot, jsonToDependencies) => {
     refresh() {
       this.root.relayout();
     }
-
-    render() {
-      this.renderSize();
-      this.renderPosition(d3.select('#visualization').select('#translater'));
-    }
-
-    renderWithTransition() {
-      const TRANSITION_DURATION = 300;
-      this.renderSize();
-      this.renderPosition(d3.select('#visualization').select('#translater').transition().duration(TRANSITION_DURATION));
-    }
-
-    renderSize() {
-      const svg = d3.select('#visualization');
-      svg.attr('width', Math.max(parseInt(2 * this.root.visualData.r + 4),
-        d3.select('#container').node().getBoundingClientRect().width));
-      svg.attr('height', Math.max(parseInt(2 * this.root.visualData.r + 4),
-        d3.select('#container').node().getBoundingClientRect().height));
-    }
-
-    renderPosition(selection) {
-      const svg = d3.select('#visualization');
-      selection.attr('transform',
-        `translate(${parseInt(svg.attr('width')) / 2 - this.root.visualData.r}, ${parseInt(svg.attr('height')) / 2 - this.root.visualData.r})`);
-    }
   };
 
   return {
@@ -100,15 +77,11 @@ module.exports.create = () => {
   const TEXT_PADDING = 5;
   const DETAILED_DEPENDENCIES_HIDE_DURATION = 200;
   const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
-  const TRANSITION_DURATION = 300;
 
   const d3 = require('d3');
   const isFixed = new Map();
 
   const svg = d3.select('#visualization'),
-    translater = svg.select('#translater'),
-    gTree = translater.append('g'),
-    gEdges = translater.append('g'),
     gAllDetailedDeps = svg.append('g');
 
   const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
@@ -116,6 +89,7 @@ module.exports.create = () => {
   const appContext = require('./app-context').newInstance();
   const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
   const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
+  const graphView = appContext.getGraphView();
 
   let graph;
 
@@ -125,11 +99,11 @@ module.exports.create = () => {
   }
 
   function initializeTree() {
-    graph.root.initView(gTree.node(), () => graph.renderWithTransition());
+    graph.root.initView(graph._view._gTree, () => graph._view.renderWithTransition(graph.root.visualData.r));
   }
 
   function initializeDeps() {
-    graph.dependencies.initViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies.initViews(graph._view._gEdges, initializeDetailedDeps);
     graph.dependencies.refreshViews();
   }
 
@@ -270,7 +244,7 @@ module.exports.create = () => {
   }
 
   function updateNodes() {
-    graph.renderWithTransition();
+    graph._view.renderWithTransition(graph.root.visualData.r);
     return graph.root._updateView();
   }
 
@@ -280,7 +254,7 @@ module.exports.create = () => {
   }
 
   function updateEdgesWithAnimation() {
-    graph.dependencies._reassignViews(gEdges.node(), initializeDetailedDeps);
+    graph.dependencies._reassignViews(graph._view._gEdges, initializeDetailedDeps);
     return graph.dependencies.updateViewsWithTransition().then(() => graph.dependencies._showAllVisibleDependencies());
   }
 
@@ -290,9 +264,10 @@ module.exports.create = () => {
         return reject(error);
       }
 
-      const jsonToGraph = init(jsonToRoot, jsonToDependencies).jsonToGraph;
+      const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      graph.render();
+      graph.initView(svg.node());
+      graph._view.render(graph.root.visualData.r);
       initializeGraph();
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
