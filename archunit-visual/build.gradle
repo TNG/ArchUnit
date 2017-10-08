@@ -62,14 +62,12 @@ task cleanNode(type: Delete) {
 
 task cleanAll(dependsOn: [clean, cleanNode])
 
-task mocha(type: NodeTask, dependsOn: 'setupNode') {
-    script = file('./node_modules/mocha/bin/mocha')
-    args = ['--reporter', 'spec', 'src/test/app/report/**/*.js']
+task mocha(type: NpmTask, dependsOn: 'setupNode') {
+    args = ['run', 'test']
 }
 
-task eslint(type: NodeTask, dependsOn: 'setupNode') {
-    script = file('./node_modules/eslint/bin/eslint.js')
-    args = ['src/**/*.{js,html}']
+task eslint(type: NpmTask, dependsOn: 'setupNode') {
+    args = ['run', 'lint']
 }
 
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"

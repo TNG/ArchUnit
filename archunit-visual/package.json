@@ -29,7 +29,8 @@
       "ShadyCSS": true
     },
     "plugins": [
-      "html"
+      "html",
+      "promise"
     ],
     "rules": {
       "curly": "error",
@@ -47,10 +48,10 @@
     "chai": "^3.5.0",
     "eslint": "^4.1.0",
     "eslint-plugin-html": "^3.0.0",
+    "eslint-plugin-promise": "^3.5.0",
     "http-server": "^0.10.0",
     "mocha": "^3.4.2",
-    "nodemon": "^1.11.0",
-    "proxyquire": "^1.8.0"
+    "nodemon": "^1.11.0"
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^1.0.1",
