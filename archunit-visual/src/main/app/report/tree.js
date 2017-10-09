@@ -62,9 +62,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       };
     }
 
-    _setPosition(x, y) {
-      this.x = x;
-      this.y = y;
+    changeRadius(r) {
+      this.r = r;
+    }
+
+    changePosition(position) {
+      this.x = position.x;
+      this.y = position.y;
     }
 
     move(dx, dy, parent) {
@@ -76,18 +80,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           .withinEnclosingCircleOfRadius(parent.getRadius())
           .asFarAsPossibleInTheDirectionOf({x: dx, y: dy}));
       }
-      this._setPosition(newX, newY);
+      this.x = newX;
+      this.y = newY;
 
       return this._onMove();
-    }
-
-    change(x, y, r) {
-      this._setPosition(x, y);
-      if (r) {
-        this.r = r;
-      }
-
-      return this._onChange();
     }
   };
 
@@ -316,19 +312,26 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.getCurrentChildren().forEach(d => d.relayout());
 
       if (this.isCurrentlyLeaf()) {
-        this.visualData.change(0, 0, calculateDefaultRadius(this));
+        this.visualData.changePosition({x: 0, y:0});
+        this.visualData.changeRadius(calculateDefaultRadius(this));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        this.visualData.change(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
+        this.visualData.changePosition({x:onlyChild.visualData.x, y:onlyChild.visualData.y});
+        this.visualData.changeRadius(3 * onlyChild.getRadius());
       } else {
-        const childCircles = this.getCurrentChildren().map(c => c.visualData);
+        const childCircles = this.getCurrentChildren().map(c => ({
+          r: c.visualData.r,
+          nodeVisualData: c.visualData
+        }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
+        childCircles.forEach(c => c.nodeVisualData.changePosition(c));
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        this.visualData.change(circle.x, circle.y, r);
+        this.visualData.changeRadius(r);
+        this.visualData.changePosition(circle);
       }
 
       if (this.isRoot()) {
-        this.visualData.change(this.getRadius(), this.getRadius()); // Shift root to the middle
+        this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()}); // Shift root to the middle
       }
     }
 
