@@ -5,6 +5,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
+      this._updateView = () => {};
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -17,6 +18,16 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
       this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
       this.dependencies.refreshViews();
+
+      this._updateView = (initializeDetailedDeps) => {
+        this._view.renderWithTransition(this.root.visualData.r);
+        this.updatePromise = this.updatePromise.then(()=> {
+          return Promise.all([this.root._updateView(), (() => {
+            this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
+            return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
+          })()]);
+        })
+      };
     }
 
     getVisibleNodes() {
@@ -39,37 +50,31 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       return this.dependencies.getDetailedDependenciesOf(from, to);
     }
 
-    filterNodesByNameContaining(filterString) {
+    filterNodesByNameContaining(filterString, initializeDetailedDeps) {
       this.root.filterByName(filterString, false);
       this.dependencies.setNodeFilters(this.root.getFilters());
+      this._updateView(initializeDetailedDeps);
     }
 
-    filterNodesByNameNotContaining(filterString) {
+    filterNodesByNameNotContaining(filterString, initializeDetailedDeps) {
       this.root.filterByName(filterString, true);
       this.dependencies.setNodeFilters(this.root.getFilters());
+      this._updateView(initializeDetailedDeps);
     }
 
-    filterNodesByType(filter) {
+    filterNodesByType(filter, initializeDetailedDeps) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
       this.dependencies.setNodeFilters(this.root.getFilters());
+      this._updateView(initializeDetailedDeps);
     }
 
     filterDependenciesByType(typeFilterConfig) {
       this.dependencies.filterByType(typeFilterConfig);
     }
 
-    refresh() {
+    refresh(initializeDetailedDeps) {
       this.root.relayout();
-    }
-
-    updateView(initializeDetailedDeps) {
-      this._view.renderWithTransition(this.root.visualData.r);
-      this.updatePromise = this.updatePromise.then(()=> {
-        return Promise.all([this.root._updateView(), (() => {
-          this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
-          return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
-        })()]);
-      })
+      this._updateView(initializeDetailedDeps);
     }
   };
 
@@ -263,13 +268,11 @@ module.exports.create = () => {
             (circleFontSize, circlePadding) => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
-              graph.refresh();
-              graph.updateView(initializeDetailedDeps);
+              graph.refresh(initializeDetailedDeps);
             })
           .onNodeTypeFilterChanged(
             filter => {
-              graph.filterNodesByType(filter);
-              graph.updateView(initializeDetailedDeps);
+              graph.filterNodesByType(filter, initializeDetailedDeps);
             })
           .onDependencyFilterChanged(
             filter => {
@@ -278,11 +281,10 @@ module.exports.create = () => {
             })
           .onNodeNameFilterChanged((filterString, exclude) => {
             if (exclude) {
-              graph.filterNodesByNameNotContaining(filterString);
+              graph.filterNodesByNameNotContaining(filterString, initializeDetailedDeps);
             } else {
-              graph.filterNodesByNameContaining(filterString);
+              graph.filterNodesByNameContaining(filterString, initializeDetailedDeps);
             }
-            graph.updateView(initializeDetailedDeps);
           })
           .initializeLegend([
             visualizationStyles.getLineStyle("constructorCall", "constructor call"),
