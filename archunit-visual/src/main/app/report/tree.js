@@ -94,7 +94,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     apply: function () {
       root._resetFiltering();
       const applyFilter = (node, filters) => {
-        node._filteredChildren = filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren);
+        node.setFilteredChildren(filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren));
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
@@ -121,6 +121,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._folded = false;
       this._filters = newFilters(this);
 
+      this._onCurrentChildrenChanged = () => {};
+
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
@@ -132,6 +134,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.updatePromise = new Promise(resolve => resolve());
         this.relayout();
       }
+    }
+
+    setFilteredChildren(filteredChildren) {
+      this._filteredChildren = filteredChildren;
+      this._onCurrentChildrenChanged();
     }
 
     setOnDrag(onDrag) {
@@ -196,6 +203,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (!this._isLeaf()) {
         this._root.updatePromise = this._root.updatePromise.then(() => {
           this._folded = getFolded();
+          this._onCurrentChildrenChanged();
           this._root.relayout();
           return Promise.all([this._onFold(this), this._updateViewOnFold()]);
         });
@@ -278,8 +286,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, callback) {
       this._view = new View(svgElement, this);
+      this._onCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       this.visualData._onMove = () => this._view.updatePosition(this.visualData);
-      //this.visualData._onChange = () => this._view.updateWithTransition(this.visualData, this._text.getY());
       this._updateViewOnFold = () => {
         callback();
         return this._root._updateView();
@@ -299,7 +307,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _updateView() {
-      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       const promise = this._view.updateWithTransition(this.visualData, this._text.getY()).then(() => this._view.show());
       return Promise.all([promise, ...this.getCurrentChildren().map(child => child._updateView())]);
     }
@@ -312,12 +319,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.getCurrentChildren().forEach(d => d.relayout());
 
       if (this.isCurrentlyLeaf()) {
-        this.visualData.changePosition({x: 0, y:0});
         this.visualData.changeRadius(calculateDefaultRadius(this));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        this.visualData.changePosition({x:onlyChild.visualData.x, y:onlyChild.visualData.y});
-        this.visualData.changeRadius(3 * onlyChild.getRadius());
+        onlyChild.visualData.changePosition({x: 0, y:0});
+        this.visualData.changeRadius(2 * onlyChild.getRadius());
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r,
@@ -350,7 +356,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _resetFiltering() {
       this.getOriginalChildren().forEach(node => node._resetFiltering());
-      this._filteredChildren = this.getOriginalChildren();
+      this.setFilteredChildren(this.getOriginalChildren());
     }
 
     /**
