@@ -125,11 +125,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
-      this._onFold = () => Promise.resolve();
-      this._updateViewOnFold = () => Promise.resolve();
+      this._onFold = () => new Promise(resolve => resolve());
+      this._onDrag = () => {};
+      this._updateViewOnFold = () => new Promise(resolve => resolve());
 
       if (!root) {
-        this.updatePromise = Promise.resolve();
+        this.updatePromise = new Promise(resolve => resolve());
         this.relayout();
       }
     }
@@ -192,10 +193,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._folded;
     }
 
-    _setFolded(folded) {
+    _setFolded(getFolded) {
       if (!this._isLeaf()) {
         this._root.updatePromise = this._root.updatePromise.then(() => {
-          this._folded = folded;
+          this._folded = getFolded();
           this._root.relayout();
           return Promise.all([this._onFold(this), this._updateViewOnFold()]);
         });
@@ -203,11 +204,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     fold() {
-      this._setFolded(true);
+      this._setFolded(() => true);
     }
 
     changeFold() {
-      this._setFolded(!this._folded);
+      this._setFolded(() => !this._folded);
     }
 
     getFilters() {

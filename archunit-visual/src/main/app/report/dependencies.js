@@ -120,7 +120,7 @@ const init = (View) => {
       this._filters = newFilters(this);
       this._updateViewsOnNodeDragged = () => {
       };
-      this._updateViewsOnNodeFolded = () => Promise.resolve();
+      this._updateViewsOnNodeFolded = () => new Promise(resolve => resolve());
     }
 
     updateOnNodeDragged(node) {

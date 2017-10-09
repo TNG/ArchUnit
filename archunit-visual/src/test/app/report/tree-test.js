@@ -1,7 +1,6 @@
 'use strict';
 
 const expect = require("chai").expect;
-const assert = require("chai").assert;
 require('./chai/tree-chai-extensions');
 require('./chai/tree-visualizer-chai-extensions');
 
@@ -24,13 +23,13 @@ describe("Node", () => {
     const root = testObjects.testTree1().root;
     expect(root.isCurrentlyLeaf()).to.equal(false);
     root.changeFold();
-    root.updatePromise.then(() => expect(root.isCurrentlyLeaf()).to.equal(true), () => assert.fail());
+    return root.updatePromise.then(() => expect(root.isCurrentlyLeaf()).to.equal(true));
   });
 
   it("can fold single node", () => {
     const root = testObjects.testTree1().root;
     root.changeFold();
-    root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech"]), () => assert.fail());
+    return root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech"]));
   });
 
   it("can unfold single node", () => {
@@ -38,7 +37,7 @@ describe("Node", () => {
     const allNodes1 = testObjects.allNodes(root);
     root.changeFold();
     root.changeFold();
-    root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(allNodes1), () => assert.fail());
+    return root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(allNodes1));
   });
 
   it("can be folded and unfolded without changing the fold-state of its children", () => {
@@ -48,7 +47,7 @@ describe("Node", () => {
     const exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
     toFold.changeFold();
     toFold.changeFold();
-    tree.root.updatePromise.then(() => expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
+    return tree.root.updatePromise.then(() => expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp));
   });
 
   it("Adds CSS to make the mouse a pointer, if there are children to unfold", () => {
@@ -72,7 +71,7 @@ describe("Tree", () => {
     expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
+    return tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
   });
 
   it("can inclusively filter classes", function () {
@@ -109,20 +108,20 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.updatePromise.then(() => {
+    return tree.root.updatePromise.then(() => {
       expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1"];
       tree.getNode("com.tngtech.main").changeFold();
-      tree.root.updatePromise.then(() => {
+      return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
         tree.root.filterByName("", false);
         exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
           "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
           "com.tngtech.test.subtest.subtestclass1"];
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      }, () => assert.fail());
-    }, () => assert.fail());
+      });
+    });
   });
 
   //FIXME: make test less ugly
@@ -132,7 +131,7 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.updatePromise.then(() => {
+    return tree.root.updatePromise.then(() => {
       expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       tree.root.filterByName("", false);
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
@@ -142,15 +141,15 @@ describe("Tree", () => {
         "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
         "com.tngtech.test.subtest.subtestclass1"];
       tree.getNode("com.tngtech.main").changeFold();
-      tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp), () => assert.fail());
-    }, () => assert.fail());
+      return tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
+    });
   });
 
   it("can fold, filter, unfold and reset filter in this order", function () {
     const tree = testObjects.testTree2();
     //FIXME: at the end filtering should consider the promise in node by itsef
     tree.getNode("com.tngtech.main").changeFold();
-    tree.root.updatePromise.then(() => {
+    return tree.root.updatePromise.then(() => {
       tree.root.filterByName("subtest", true);
       let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
         "com.tngtech.test.testclass1"];
@@ -158,21 +157,21 @@ describe("Tree", () => {
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1"];
       tree.getNode("com.tngtech.main").changeFold();
-      tree.root.updatePromise.then(() => {
+      return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
         tree.root.filterByName("", false);
         exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
           "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
           "com.tngtech.test.subtest.subtestclass1"];
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      }, () => assert.fail());
-    }, () => assert.fail());
+      });
+    });
   });
 
   it("can fold, filter, reset the filter and unfold in this order", function () {
     const tree = testObjects.testTree2();
     tree.getNode("com.tngtech.main").changeFold()
-    tree.root.updatePromise.then(() => {
+    return tree.root.updatePromise.then(() => {
       tree.root.filterByName("subtest", true);
       let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
         "com.tngtech.test.testclass1"];
@@ -186,10 +185,10 @@ describe("Tree", () => {
         "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
         "com.tngtech.test.subtest.subtestclass1"];
       tree.getNode("com.tngtech.main").changeFold()
-      tree.root.updatePromise.then(() => {
+      return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      }, () => assert.fail());
-    }, () => assert.fail());
+      });
+    });
   });
 
   it("can filter by type to hide interfaces", function () {
@@ -321,10 +320,10 @@ describe("Dragging nodes", () => {
 
     toDrag._drag(dx, dy);
 
-    tree.updatePromise.then(() => expect({
+    return tree.updatePromise.then(() => expect({
       x: toDrag.getX(),
       y: toDrag.getY()
-    }).to.deep.equal(expected), () => assert.fail());
+    }).to.deep.equal(expected));
   });
 
   const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
@@ -354,11 +353,11 @@ describe("Dragging nodes", () => {
 
     toDrag._drag(dx, dy);
 
-    root.updatePromise.then(() => {
+    return root.updatePromise.then(() => {
       root.getSelfAndDescendants().forEach(node => {
         expect(node.getAbsoluteCoords()).to.deep.equal(expectedCoordsByNode.get(node))
       });
-    }, () => assert.fail());
+    });
   });
 
   it("can't be dragged out of its parent", () => {
@@ -403,13 +402,13 @@ describe("Dragging nodes", () => {
 
     toDrag._drag(deltaOutsideOfParent, 0);
 
-    tree.updatePromise.then(() => {
+    return tree.updatePromise.then(() => {
       expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
 
       toDrag._drag(0, deltaOutsideOfParent);
-      tree.updatePromise.then(() => {
+      return tree.updatePromise.then(() => {
         expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
-      }, () => assert.fail());
-    }, () => assert.fail());
+      });
+    });
   });
 });
