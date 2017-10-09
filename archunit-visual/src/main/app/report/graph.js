@@ -6,6 +6,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.root = root;
       this.dependencies = dependencies;
       this._updateView = () => {};
+      this._updateDependencyViews = () => {};
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -27,6 +28,11 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
             return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
           })()]);
         })
+      };
+
+      this._updateDependencyViews = () => {
+        this.dependencies.refreshViews();
+        this.dependencies.updateViewsWithoutTransition();
       };
     }
 
@@ -70,6 +76,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
     filterDependenciesByType(typeFilterConfig) {
       this.dependencies.filterByType(typeFilterConfig);
+      this._updateDependencyViews();
     }
 
     refresh(initializeDetailedDeps) {
@@ -241,11 +248,6 @@ module.exports.create = () => {
       });
   }
 
-  function updateEdgesWithoutAnimation() {
-    graph.dependencies.refreshViews();
-    graph.dependencies.updateViewsWithoutTransition();
-  }
-
   return new Promise((resolve, reject) => {
     d3.json('80/classes.json', function (error, jsonroot) {
       if (error) {
@@ -277,7 +279,6 @@ module.exports.create = () => {
           .onDependencyFilterChanged(
             filter => {
               graph.filterDependenciesByType(filter);
-              updateEdgesWithoutAnimation();
             })
           .onNodeNameFilterChanged((filterString, exclude) => {
             if (exclude) {
