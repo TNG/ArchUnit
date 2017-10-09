@@ -86,8 +86,8 @@ module.exports.create = () => {
   const d3 = require('d3');
   const isFixed = new Map();
 
-  const svg = d3.select('#visualization'),
-    gAllDetailedDeps = svg.append('g');
+  const svg = d3.select('#visualization');
+  let gAllDetailedDeps;
 
   const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
   const calculateTextWidth = require('./text-width-calculator');
@@ -258,6 +258,7 @@ module.exports.create = () => {
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
       graph.initView(svg.node(), initializeDetailedDeps);
+      gAllDetailedDeps = svg.append('g');
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.attachToMenu = menu => {
