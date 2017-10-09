@@ -56,10 +56,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = x;
       this.y = y;
       this.r = r;
-      this._updateViewOnMove = () => {
+      this._onMove = () => {
       };
-      this._onUpdate = () => {
+      this._onChange = () => {
       };
+    }
+
+    _setPosition(x, y) {
+      this.x = x;
+      this.y = y;
     }
 
     move(dx, dy, parent) {
@@ -71,20 +76,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           .withinEnclosingCircleOfRadius(parent.getRadius())
           .asFarAsPossibleInTheDirectionOf({x: dx, y: dy}));
       }
-      this.x = newX;
-      this.y = newY;
+      this._setPosition(newX, newY);
 
-      this._updateViewOnMove();
+      return this._onMove();
     }
 
-    update(x, y, r) {
-      this.x = x;
-      this.y = y;
+    change(x, y, r) {
+      this._setPosition(x, y);
       if (r) {
         this.r = r;
       }
 
-      this._onUpdate();
+      return this._onChange();
     }
   };
 
@@ -279,7 +282,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, callback) {
       this._view = new View(svgElement, this);
-      this.visualData._updateViewOnMove = () => this._view.updatePosition(this.visualData);
+      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
+      //this.visualData._onChange = () => this._view.updateWithTransition(this.visualData, this._text.getY());
       this._updateViewOnFold = () => {
         callback();
         return this._root._updateView();
@@ -312,19 +316,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.getCurrentChildren().forEach(d => d.relayout());
 
       if (this.isCurrentlyLeaf()) {
-        this.visualData.update(0, 0, calculateDefaultRadius(this));
+        this.visualData.change(0, 0, calculateDefaultRadius(this));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        this.visualData.update(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
+        this.visualData.change(onlyChild.getX(), onlyChild.getY(), 3 * onlyChild.getRadius());
       } else {
         const childCircles = this.getCurrentChildren().map(c => c.visualData);
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        this.visualData.update(circle.x, circle.y, r);
+        this.visualData.change(circle.x, circle.y, r);
       }
 
       if (this.isRoot()) {
-        this.visualData.update(this.getRadius(), this.getRadius()); // Shift root to the middle
+        this.visualData.change(this.getRadius(), this.getRadius()); // Shift root to the middle
       }
     }
 

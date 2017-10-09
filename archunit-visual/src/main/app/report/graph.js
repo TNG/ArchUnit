@@ -61,6 +61,16 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     refresh() {
       this.root.relayout();
     }
+
+    updateView(initializeDetailedDeps) {
+      this._view.renderWithTransition(this.root.visualData.r);
+      this.updatePromise = this.updatePromise.then(()=> {
+        return Promise.all([this.root._updateView(), (() => {
+          this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
+          return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
+        })()]);
+      })
+    }
   };
 
   return {
@@ -226,27 +236,9 @@ module.exports.create = () => {
       });
   }
 
-  let updatePromise = Promise.all([]);
-
-  function updateVisualization() {
-    updatePromise = updatePromise.then(() => {
-      return Promise.all([updateNodes(), updateEdgesWithAnimation()]);
-    });
-  }
-
-  function updateNodes() {
-    graph._view.renderWithTransition(graph.root.visualData.r);
-    return graph.root._updateView();
-  }
-
   function updateEdgesWithoutAnimation() {
     graph.dependencies.refreshViews();
     graph.dependencies.updateViewsWithoutTransition();
-  }
-
-  function updateEdgesWithAnimation() {
-    graph.dependencies._reassignViews(graph._view.gEdges, initializeDetailedDeps);
-    return graph.dependencies.updateViewsWithTransition().then(() => graph.dependencies._showAllVisibleDependencies());
   }
 
   return new Promise((resolve, reject) => {
@@ -272,12 +264,12 @@ module.exports.create = () => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
               graph.refresh();
-              updateVisualization();
+              graph.updateView(initializeDetailedDeps);
             })
           .onNodeTypeFilterChanged(
             filter => {
               graph.filterNodesByType(filter);
-              updateVisualization();
+              graph.updateView(initializeDetailedDeps);
             })
           .onDependencyFilterChanged(
             filter => {
@@ -290,7 +282,7 @@ module.exports.create = () => {
             } else {
               graph.filterNodesByNameContaining(filterString);
             }
-            updateVisualization();
+            graph.updateView(initializeDetailedDeps);
           })
           .initializeLegend([
             visualizationStyles.getLineStyle("constructorCall", "constructor call"),
