@@ -26,9 +26,10 @@ const init = (transitionDuration) => {
       this.isRoot = node.isRoot();
       this.fullName = node._description.fullName;
 
-      d3.select(this._svgElement)
+      this._circle = d3.select(this._svgElement)
         .append('circle')
-        .attr('r', node.visualData.r);
+        .attr('r', node.visualData.r)
+        .node();
 
       if (node.isRoot()) {
         d3.select(this._svgElement)
@@ -36,10 +37,11 @@ const init = (transitionDuration) => {
           .style('visibility', 'hidden')
       }
 
-      d3.select(this._svgElement)
+      this._text = d3.select(this._svgElement)
         .append('text')
         .text(node.getName())
-        .attr('dy', node.getText().getY());
+        .attr('dy', node.getText().getY())
+        .node();
     }
 
     hide() {
@@ -51,10 +53,9 @@ const init = (transitionDuration) => {
     }
 
     updateWithTransition(nodeVisualData, textOffset) {
-      const transition = d3.select(this._svgElement).transition().duration(transitionDuration);
-      const transformPromise = createPromiseOnEndOfTransition(transition, t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
-      const radiusPromise = createPromiseOnEndOfTransition(transition.select('circle'), t => t.attr('r', nodeVisualData.r));
-      const textPromise = createPromiseOnEndOfTransition(transition.select('text'), t => t.attr('dy', textOffset));
+      const transformPromise = createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
+      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', nodeVisualData.r));
+      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
       return Promise.all([transformPromise, radiusPromise, textPromise]);
     }
 
