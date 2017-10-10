@@ -22,10 +22,10 @@ describe("Graph", () => {
       expect(graph).to.containOnlyClasses('my.company.SomeClass', 'my.company.OtherClass');
 
       graph.filterNodesByNameContaining('SomeClass');
-      expect(graph).to.containOnlyClasses('my.company.SomeClass');
-
-      graph.filterNodesByNameNotContaining('SomeClass');
-      expect(graph).to.containOnlyClasses('my.company.OtherClass');
+      return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.SomeClass')).then(() => {
+        graph.filterNodesByNameNotContaining('SomeClass');
+        return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.OtherClass'));
+      }) ;
     });
 
     it('should filter out a node not matching a part with wildcard', () => {
@@ -36,16 +36,19 @@ describe("Graph", () => {
         'my.company.second.OtherClass');
 
       graph.filterNodesByNameContaining('my.*.first');
-      expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass');
-
-      graph.filterNodesByNameContaining('company*.Some');
-      expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass');
-
-      graph.filterNodesByNameNotContaining('company*.Some');
-      expect(graph).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass');
-
-      graph.filterNodesByNameContaining('company*.Some ');
-      expect(graph).to.containNoClasses();
+      return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
+        .then(() => {
+          graph.filterNodesByNameContaining('company*.Some');
+          return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
+            .then(() => {
+              graph.filterNodesByNameNotContaining('company*.Some');
+              return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
+                .then(() => {
+                  graph.filterNodesByNameContaining('company*.Some ');
+                  return graph.updatePromise.then(() => expect(graph).to.containNoClasses());
+                });
+            });
+        });
     });
   });
 });

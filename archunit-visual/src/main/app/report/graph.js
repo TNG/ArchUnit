@@ -5,8 +5,11 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
-      this._updateView = () => {};
-      this._updateDependencyViews = () => {};
+      this._updateView = () => {
+      };
+      this._updateDependencyViews = () => {
+      };
+      this._updateTreeView = () => Promise.resolve();
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -21,13 +24,13 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.dependencies.refreshViews();
 
       this._updateView = (initializeDetailedDeps) => {
-        this.updatePromise = this.updatePromise.then(()=> {
-          return Promise.all([this.root._updateView(), (() => {
-            this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
-            return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
-          })()]);
-        })
+        return Promise.all([(() => {
+          this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
+          return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
+        })()]);
       };
+
+      this._updateTreeView = () => this.root._updateView();
 
       this._updateDependencyViews = () => {
         this.dependencies.refreshViews();
@@ -56,21 +59,27 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     }
 
     filterNodesByNameContaining(filterString, initializeDetailedDeps) {
-      this.root.filterByName(filterString, false);
-      this.dependencies.setNodeFilters(this.root.getFilters());
-      this._updateView(initializeDetailedDeps);
+      this.updatePromise = this.updatePromise.then(() => {
+        const prom = this.root.filterByName(filterString, false);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+      });
     }
 
     filterNodesByNameNotContaining(filterString, initializeDetailedDeps) {
-      this.root.filterByName(filterString, true);
-      this.dependencies.setNodeFilters(this.root.getFilters());
-      this._updateView(initializeDetailedDeps);
+      this.updatePromise = this.updatePromise.then(() => {
+        const prom = this.root.filterByName(filterString, true);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+      });
     }
 
     filterNodesByType(filter, initializeDetailedDeps) {
-      this.root.filterByType(filter.showInterfaces, filter.showClasses);
-      this.dependencies.setNodeFilters(this.root.getFilters());
-      this._updateView(initializeDetailedDeps);
+      this.updatePromise = this.updatePromise.then(() => {
+        const prom = this.root.filterByType(filter.showInterfaces, filter.showClasses);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+      });
     }
 
     filterDependenciesByType(typeFilterConfig) {
@@ -79,8 +88,10 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     }
 
     refresh(initializeDetailedDeps) {
-      this.root.relayout();
-      this._updateView(initializeDetailedDeps);
+      this.updatePromise = this.updatePromise.then(() => {
+        const prom = this.root.relayout();
+        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+      });
     }
   };
 

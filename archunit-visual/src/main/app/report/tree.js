@@ -98,7 +98,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
-      root.relayout();
+      return root.relayout();
     },
 
     values: function () {
@@ -122,6 +122,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._filters = newFilters(this);
 
       this._updateViewOnCurrentChildrenChanged = () => {};
+
+      this._updateViewOnFold = () => Promise.resolve();
 
       this.visualData = new VisualData();
       this._text = new NodeText(this);
@@ -205,7 +207,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           this._folded = getFolded();
           this._updateViewOnCurrentChildrenChanged();
           this._root.relayout();
-          return Promise.all([this._onFold(this), this._root._updateView()]);
+          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
         });
       }
     }
@@ -290,6 +292,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData._onMove = () => this._view.updatePosition(this.visualData);
       this._onRadiusChanged = onRadiusChanged;
 
+      this._updateViewOnFold = () => this._root._updateView();
+
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
           this.changeFold();
@@ -336,6 +340,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (this.isRoot()) {
         this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()}); // Shift root to the middle
       }
+      return Promise.resolve();
     }
 
     /**
@@ -368,7 +373,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
       this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-      this._filters.apply();
+      return this._filters.apply();
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -377,7 +382,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
       this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
-      this._filters.apply();
+      return this._filters.apply();
     }
   };
 
