@@ -22,7 +22,7 @@ subprojects {
             attributes(
                     'Built-By': "Gradle ${gradle.gradleVersion}",
                     'Built-Date': new Date().format('yyyy-MM-dd'),
-                    'Specification-Title': addModuleDescription(app.name, project),
+                    'Specification-Title': createModuleDescription(app.name, project),
                     'Specification-Version': version,
                     'Specification-Vendor': company.name,
                     'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",

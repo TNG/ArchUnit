@@ -23,8 +23,8 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.originOwnerEqualsTargetOwner;
@@ -35,6 +35,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+@Category(Example.class)
 public class SessionBeanRulesTest {
     private JavaClasses classes;
 
@@ -43,7 +44,6 @@ public class SessionBeanRulesTest {
         classes = new ClassFileImporter().importPackagesOf(ClassViolatingSessionBeanRules.class);
     }
 
-    @Ignore
     @Test
     public void stateless_session_beans_should_not_have_state() {
         noClasses().should()
@@ -51,7 +51,6 @@ public class SessionBeanRulesTest {
                 .as("No Stateless Session Bean should have state").check(classes);
     }
 
-    @Ignore
     @Test
     public void business_interface_implementations_should_be_unique() {
         classes().that(are(BUSINESS_INTERFACES)).should(HAVE_AN_UNIQUE_IMPLEMENTATION).check(classes);

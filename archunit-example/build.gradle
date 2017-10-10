@@ -16,3 +16,11 @@ dependencies {
 }
 
 addTestJarTo this
+
+test {
+    if (!project.hasProperty('example')) {
+        useJUnit {
+            excludeCategories 'com.tngtech.archunit.exampletest.Example'
+        }
+    }
+}
