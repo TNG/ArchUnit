@@ -82,13 +82,14 @@ const init = (View) => {
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
     dependencies._visibleDependencies.forEach(d => d.updateVisualData());
+    return dependencies._updateViewsOnNodeFolded();
   };
 
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
       dependencies._all);
     dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
-    recreateVisibleDependencies(dependencies);
+    return recreateVisibleDependencies(dependencies);
   };
 
   const newFilters = (dependencies) => ({
@@ -96,7 +97,7 @@ const init = (View) => {
     nameFilter: null,
 
     apply: function () {
-      reapplyFilters(dependencies, this.values());
+      return reapplyFilters(dependencies, this.values());
     },
 
     values: function () {
@@ -112,6 +113,7 @@ const init = (View) => {
 
   const Dependencies = class {
     constructor(all) {
+      this._updateViewsOnNodeFolded = () => new Promise(resolve => resolve());
       this._transformers = new Map();
       this._all = all;
       this._filtered = this._all;
@@ -120,7 +122,6 @@ const init = (View) => {
       this._filters = newFilters(this);
       this._updateViewsOnNodeDragged = () => {
       };
-      this._updateViewsOnNodeFolded = () => new Promise(resolve => resolve());
     }
 
     updateOnNodeDragged(node) {
@@ -169,14 +170,13 @@ const init = (View) => {
       else {
         this._transformers.delete(foldedNode);
       }
-      recreateVisibleDependencies(this);
-      return this._updateViewsOnNodeFolded();
+      return recreateVisibleDependencies(this);
     }
 
     setNodeFilters(filters) {
       this._filters.nameFilter = dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
         filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
-      this._filters.apply();
+      return this._filters.apply();
     }
 
     filterByType(typeFilterConfig) {
@@ -193,7 +193,7 @@ const init = (View) => {
           || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
-      this._filters.apply();
+      return this._filters.apply();
     }
 
     getVisible() {

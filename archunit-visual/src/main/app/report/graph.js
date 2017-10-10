@@ -55,33 +55,32 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       return this.dependencies.getDetailedDependenciesOf(from, to);
     }
 
-    filterNodesByNameContaining(filterString, initializeDetailedDeps) {
+    filterNodesByNameContaining(filterString) {
       this.updatePromise = this.updatePromise.then(() => {
-        const prom = this.root.filterByName(filterString, false);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
+        const nodePromise = this.root.filterByName(filterString, false);
+        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([nodePromise, depPromise]);
       });
     }
 
-    filterNodesByNameNotContaining(filterString, initializeDetailedDeps) {
+    filterNodesByNameNotContaining(filterString) {
       this.updatePromise = this.updatePromise.then(() => {
-        const prom = this.root.filterByName(filterString, true);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
+        const nodePromise = this.root.filterByName(filterString, true);
+        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([nodePromise, depPromise]);
       });
     }
 
-    filterNodesByType(filter, initializeDetailedDeps) {
+    filterNodesByType(filter) {
       this.updatePromise = this.updatePromise.then(() => {
-        const prom = this.root.filterByType(filter.showInterfaces, filter.showClasses);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
+        const nodePromise = this.root.filterByType(filter.showInterfaces, filter.showClasses);
+        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
+        return Promise.all([nodePromise, depPromise]);
       });
     }
 
     filterDependenciesByType(typeFilterConfig) {
-      this.dependencies.filterByType(typeFilterConfig);
-      this._updateDependencyViews();
+      this.updatePromise = this.updatePromise.then(() => this.dependencies.filterByType(typeFilterConfig));
     }
 
     refresh(initializeDetailedDeps) {
@@ -281,7 +280,7 @@ module.exports.create = () => {
             })
           .onNodeTypeFilterChanged(
             filter => {
-              graph.filterNodesByType(filter, initializeDetailedDeps);
+              graph.filterNodesByType(filter);
             })
           .onDependencyFilterChanged(
             filter => {
@@ -289,9 +288,9 @@ module.exports.create = () => {
             })
           .onNodeNameFilterChanged((filterString, exclude) => {
             if (exclude) {
-              graph.filterNodesByNameNotContaining(filterString, initializeDetailedDeps);
+              graph.filterNodesByNameNotContaining(filterString);
             } else {
-              graph.filterNodesByNameContaining(filterString, initializeDetailedDeps);
+              graph.filterNodesByNameContaining(filterString);
             }
           })
           .initializeLegend([
