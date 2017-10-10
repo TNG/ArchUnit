@@ -289,8 +289,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._onCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       this.visualData._onMove = () => this._view.updatePosition(this.visualData);
       this._updateViewOnFold = () => {
-        callback();
-        return this._root._updateView();
+        return Promise.all([callback(), this._root._updateView()]);
       };
 
       if (!this.isRoot() && !this._isLeaf()) {
