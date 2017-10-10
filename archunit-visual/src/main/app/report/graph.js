@@ -9,7 +9,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       };
       this._updateDependencyViews = () => {
       };
-      this._updateTreeView = () => Promise.resolve();
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -60,7 +59,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = this.updatePromise.then(() => {
         const prom = this.root.filterByName(filterString, false);
         this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
       });
     }
 
@@ -68,7 +67,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = this.updatePromise.then(() => {
         const prom = this.root.filterByName(filterString, true);
         this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
       });
     }
 
@@ -76,7 +75,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = this.updatePromise.then(() => {
         const prom = this.root.filterByType(filter.showInterfaces, filter.showClasses);
         this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
       });
     }
 
@@ -88,7 +87,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     refresh(initializeDetailedDeps) {
       this.updatePromise = this.updatePromise.then(() => {
         const prom = this.root.relayout();
-        return Promise.all([prom, this._updateTreeView(), this._updateView(initializeDetailedDeps)]);
+        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
       });
     }
   };
