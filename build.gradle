@@ -54,7 +54,7 @@ ext {
     tempJar = { File jarFile -> postfixedJar(jarFile, 'tmp') }
 
     productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
-    addModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
+    createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     addTestJarTo = { proj ->
         proj.with {
@@ -90,7 +90,7 @@ description = 'A Java architecture test library, to specify and assert architect
 subprojects {
     apply plugin: 'java'
 
-    description addModuleDescription(rootProject.description, project)
+    description createModuleDescription(rootProject.description, project)
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'

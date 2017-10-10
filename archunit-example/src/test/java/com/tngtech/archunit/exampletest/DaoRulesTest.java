@@ -8,11 +8,12 @@ import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
+@Category(Example.class)
 public class DaoRulesTest {
     private JavaClasses classes;
 
@@ -21,14 +22,12 @@ public class DaoRulesTest {
         classes = new ClassFileImporter().importPackagesOf(InWrongPackageDao.class, OtherDao.class, ServiceViolatingDaoRules.class);
     }
 
-    @Ignore
     @Test
     public void DAOs_must_reside_in_a_dao_package() {
         classes().that().haveNameMatching(".*Dao").should().resideInAPackage("..dao..")
                 .as("DAOs should reside in a package '..dao..'").check(classes);
     }
 
-    @Ignore
     @Test
     public void entities_must_reside_in_a_domain_package() {
         classes().that().areAnnotatedWith(Entity.class).should().resideInAPackage("..domain..")

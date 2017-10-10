@@ -10,8 +10,8 @@ import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.lang.ArchCondition;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -25,6 +25,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
+@Category(Example.class)
 public class ThirdPartyRulesTest {
     protected static final String THIRD_PARTY_CLASS_RULE_TEXT =
             "not instantiate " +
@@ -39,7 +40,6 @@ public class ThirdPartyRulesTest {
         classes = new ClassFileImporter().importPackagesOf(ClassViolatingThirdPartyRules.class);
     }
 
-    @Ignore
     @Test
     public void third_party_class_should_only_be_instantiated_via_workaround() {
         classes().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
