@@ -30,8 +30,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
         })()]);
       };
 
-      this._updateTreeView = () => this.root._updateView();
-
       this._updateDependencyViews = () => {
         this.dependencies.refreshViews();
         this.dependencies.updateViewsWithoutTransition();

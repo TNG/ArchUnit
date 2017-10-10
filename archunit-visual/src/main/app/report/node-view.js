@@ -4,14 +4,8 @@ const d3 = require('d3');
 
 const init = (transitionDuration) => {
 
-  const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
-    if (transition.empty()) {
-      return Promise.resolve();
-    }
-    else {
-      return new Promise(resolve => transitionRunner(transition).on('end', resolve));
-    }
-  };
+  const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
+    new Promise(resolve => transitionRunner(transition).on('end', resolve));
 
   const View = class {
     constructor(parentSvgElement, node) {
@@ -52,15 +46,18 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).style('visibility', 'inherit');
     }
 
-    updateWithTransition(nodeVisualData, textOffset) {
-      const transformPromise = createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
-      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', nodeVisualData.r));
-      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
-      return Promise.all([transformPromise, radiusPromise, textPromise]);
-    }
-
     updatePosition(nodeCoords) {
       d3.select(this._svgElement).attr('transform', `translate(${nodeCoords.x}, ${nodeCoords.y})`);
+    }
+
+    transitRadius(r, textOffset) {
+      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', r));
+      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
+      return Promise.all([radiusPromise, textPromise]);
+    }
+
+    transitPosition(nodeVisualData) {
+      return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
     }
 
     onClick(handler) {

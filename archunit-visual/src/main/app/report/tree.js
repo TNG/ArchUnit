@@ -60,15 +60,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       };
       this._onChange = () => {
       };
+
+      this._onRadiusChanged = () => Promise.resolve();
+      this._onPositionChanged = () => Promise.resolve();
     }
 
     changeRadius(r) {
       this.r = r;
+      return this._onRadiusChanged();
     }
 
     changePosition(position) {
       this.x = position.x;
       this.y = position.y;
+      return this._onPositionChanged();
     }
 
     move(dx, dy, parent) {
@@ -123,14 +128,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._updateViewOnCurrentChildrenChanged = () => {};
 
-      this._updateViewOnFold = () => Promise.resolve();
-
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
       this._onFold = () => new Promise(resolve => resolve());
       this._onDrag = () => {};
-      this._onRadiusChanged = () => Promise.resolve();
 
       if (!root) {
         this.updatePromise = new Promise(resolve => resolve());
@@ -206,8 +208,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._root.updatePromise = this._root.updatePromise.then(() => {
           this._folded = getFolded();
           this._updateViewOnCurrentChildrenChanged();
-          this._root.relayout();
-          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
+          const prom = this._root.relayout();
+          return Promise.all([prom, this._onFold(this)]);
         });
       }
     }
@@ -290,9 +292,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._view = new View(svgElement, this);
       this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       this.visualData._onMove = () => this._view.updatePosition(this.visualData);
-      this._onRadiusChanged = onRadiusChanged;
 
-      this._updateViewOnFold = () => this._root._updateView();
+      this.visualData._onRadiusChanged = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
+      this.visualData._onPositionChanged = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
 
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
@@ -307,40 +309,35 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._originalChildren.forEach(child => child.initView(this._view._svgElement, () => Promise.resolve()));
     }
 
-    _updateView() {
-      const promise = this._view.updateWithTransition(this.visualData, this._text.getY()).then(() => this._view.show());
-      return Promise.all([this._onRadiusChanged(), promise, ...this.getCurrentChildren().map(child => child._updateView())]);
-    }
-
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node.
      */
     relayout() {
-      this.getCurrentChildren().forEach(d => d.relayout());
+      const childrenPromises = this.getCurrentChildren().map(d => d.relayout());
 
+      let promises = [];
       if (this.isCurrentlyLeaf()) {
-        this.visualData.changeRadius(calculateDefaultRadius(this));
+        promises.push(this.visualData.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        onlyChild.visualData.changePosition({x: 0, y:0});
-        this.visualData.changeRadius(2 * onlyChild.getRadius());
+        promises.push(onlyChild.visualData.changePosition({x: 0, y:0}));
+        promises.push(this.visualData.changeRadius(2 * onlyChild.getRadius()));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r,
           nodeVisualData: c.visualData
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        childCircles.forEach(c => c.nodeVisualData.changePosition(c));
+        promises = childCircles.map(c => c.nodeVisualData.changePosition(c));
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        this.visualData.changeRadius(r);
-        this.visualData.changePosition(circle);
+        promises.push(this.visualData.changeRadius(r));
       }
 
       if (this.isRoot()) {
-        this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()}); // Shift root to the middle
+         promises.push(this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
       }
-      return Promise.resolve();
+      return Promise.all([...childrenPromises, ...promises]);
     }
 
     /**
