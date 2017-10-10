@@ -128,7 +128,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._onFold = () => new Promise(resolve => resolve());
       this._onDrag = () => {};
-      this._updateViewOnFold = () => new Promise(resolve => resolve());
+      this._onRadiusChanged = () => Promise.resolve();
 
       if (!root) {
         this.updatePromise = new Promise(resolve => resolve());
@@ -205,7 +205,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           this._folded = getFolded();
           this._onCurrentChildrenChanged();
           this._root.relayout();
-          return Promise.all([this._onFold(this), this._updateViewOnFold()]);
+          return Promise.all([this._onFold(this), this._root._updateView()]);
         });
       }
     }
@@ -284,13 +284,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    initView(svgElement, callback) {
+    initView(svgElement, onRadiusChanged) {
       this._view = new View(svgElement, this);
       this._onCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
       this.visualData._onMove = () => this._view.updatePosition(this.visualData);
-      this._updateViewOnFold = () => {
-        return Promise.all([callback(), this._root._updateView()]);
-      };
+      this._onRadiusChanged = onRadiusChanged;
 
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
@@ -302,12 +300,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._drag(dx, dy);
       });
 
-      this._originalChildren.forEach(child => child.initView(this._view._svgElement, callback));
+      this._originalChildren.forEach(child => child.initView(this._view._svgElement, () => Promise.resolve()));
     }
 
     _updateView() {
       const promise = this._view.updateWithTransition(this.visualData, this._text.getY()).then(() => this._view.show());
-      return Promise.all([promise, ...this.getCurrentChildren().map(child => child._updateView())]);
+      return Promise.all([this._onRadiusChanged(), promise, ...this.getCurrentChildren().map(child => child._updateView())]);
     }
 
     /**
