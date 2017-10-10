@@ -21,9 +21,8 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.dependencies.refreshViews();
 
       this._updateView = (initializeDetailedDeps) => {
-        this._view.renderWithTransition(this.root.visualData.r);
         this.updatePromise = this.updatePromise.then(()=> {
-          return Promise.all([this.root._updateView(), (() => {
+          return Promise.all([this._view.renderWithTransition(this.root.visualData.r), this.root._updateView(), (() => {
             this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
             return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
           })()]);

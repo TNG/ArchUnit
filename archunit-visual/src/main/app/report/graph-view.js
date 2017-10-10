@@ -4,6 +4,15 @@ const d3 = require('d3');
 
 const init = (transitionDuration) => {
 
+  const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
+    if (transition.empty()) {
+      return Promise.resolve();
+    }
+    else {
+      return new Promise(resolve => transitionRunner(transition).on('end', resolve));
+    }
+  };
+
   const View = class {
     constructor(svg, rootRadius) {
       this._svg = svg;
@@ -20,7 +29,7 @@ const init = (transitionDuration) => {
 
     renderWithTransition(rootRadius) {
       this.renderSize(rootRadius);
-      this.renderPosition(d3.select(this._translater).transition().duration(transitionDuration), rootRadius);
+      return createPromiseOnEndOfTransition(d3.select(this._translater).transition().duration(transitionDuration), t => this.renderPosition(t, rootRadius));
     }
 
     renderSize(rootRadius) {
@@ -31,7 +40,7 @@ const init = (transitionDuration) => {
     }
 
     renderPosition(selection, rootRadius) {
-      selection.attr('transform',
+      return selection.attr('transform',
         `translate(${parseInt(d3.select(this._svg).attr('width')) / 2 - rootRadius}, ${parseInt(d3.select(this._svg).attr('height')) / 2 - rootRadius})`);
     }
   };
