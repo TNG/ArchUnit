@@ -13,10 +13,6 @@ const init = (transitionDuration) => {
     }
   };
 
-  const filterOnlyImmediateChildren = (selection, parentSelection) => selection.filter(function () {
-    return this.parentNode === parentSelection.node();
-  });
-
   const View = class {
     constructor(parentSvgElement, node) {
       this._svgElement = d3.select(parentSvgElement)
@@ -27,10 +23,17 @@ const init = (transitionDuration) => {
         .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
         .node();
 
-      if (!node.isRoot()) {
+      this.isRoot = node.isRoot();
+      this.fullName = node._description.fullName;
+
+      d3.select(this._svgElement)
+        .append('circle')
+        .attr('r', node.visualData.r);
+
+      if (node.isRoot()) {
         d3.select(this._svgElement)
-          .append('circle')
-          .attr('r', node.visualData.r);
+          .select('circle')
+          .style('visibility', 'hidden')
       }
 
       d3.select(this._svgElement)
@@ -50,8 +53,8 @@ const init = (transitionDuration) => {
     updateWithTransition(nodeVisualData, textOffset) {
       const transition = d3.select(this._svgElement).transition().duration(transitionDuration);
       const transformPromise = createPromiseOnEndOfTransition(transition, t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
-      const radiusPromise = createPromiseOnEndOfTransition(filterOnlyImmediateChildren(transition.select('circle'), transition), t => t.attr('r', nodeVisualData.r));
-      const textPromise = createPromiseOnEndOfTransition(filterOnlyImmediateChildren(transition.select('text'), transition), t => t.attr('dy', textOffset));
+      const radiusPromise = createPromiseOnEndOfTransition(transition.select('circle'), t => t.attr('r', nodeVisualData.r));
+      const textPromise = createPromiseOnEndOfTransition(transition.select('text'), t => t.attr('dy', textOffset));
       return Promise.all([transformPromise, radiusPromise, textPromise]);
     }
 
@@ -60,7 +63,8 @@ const init = (transitionDuration) => {
     }
 
     onClick(handler) {
-      filterOnlyImmediateChildren(d3.select(this._svgElement).selectAll('circle, text'), d3.select(this._svgElement)).on('click', handler);
+      d3.select(this._svgElement).select('circle').on('click', handler);
+      d3.select(this._svgElement).select('text').on('click', handler);
     }
 
     onDrag(handler) {
