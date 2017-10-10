@@ -374,18 +374,20 @@ describe("Dependencies", () => {
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
 
-    graphWrapper.graph.filterDependenciesByType({
-      showImplementing: true,
-      showExtending: true,
-      showConstructorCall: true,
-      showMethodCall: true,
-      showFieldAccess: true,
-      showAnonymousImplementation: true,
-      showDepsBetweenChildAndParent: true
+    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp))
+      .then(() => {
+        graphWrapper.graph.filterDependenciesByType({
+          showImplementing: true,
+          showExtending: true,
+          showConstructorCall: true,
+          showMethodCall: true,
+          showFieldAccess: true,
+          showAnonymousImplementation: true,
+          showDepsBetweenChildAndParent: true
+        });
+        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies));
     });
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the filtering by type (do not show inheritance) correcty and resets it", () => {
@@ -408,18 +410,19 @@ describe("Dependencies", () => {
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)"
     ];
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp);
-
-    graphWrapper.graph.filterDependenciesByType({
-      showImplementing: true,
-      showExtending: true,
-      showConstructorCall: true,
-      showMethodCall: true,
-      showFieldAccess: true,
-      showAnonymousImplementation: true,
-      showDependenciesBetweenClassAndItsInnerClasses: true
-    });
-    expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies);
+    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(exp))
+      .then(() => {
+        graphWrapper.graph.filterDependenciesByType({
+          showImplementing: true,
+          showExtending: true,
+          showConstructorCall: true,
+          showMethodCall: true,
+          showFieldAccess: true,
+          showAnonymousImplementation: true,
+          showDependenciesBetweenClassAndItsInnerClasses: true
+        });
+        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.getVisibleDependencies()).to.containExactlyDependencies(graphWrapper.allDependencies));
+      });
   });
 
   it("lists correctly the detailed dependencies of class", () => {

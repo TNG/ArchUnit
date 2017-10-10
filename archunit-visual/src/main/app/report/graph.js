@@ -7,8 +7,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.dependencies = dependencies;
       this._updateView = () => {
       };
-      this._updateDependencyViews = () => {
-      };
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -27,11 +25,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
           this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
           return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
         })()]);
-      };
-
-      this._updateDependencyViews = () => {
-        this.dependencies.refreshViews();
-        this.dependencies.updateViewsWithoutTransition();
       };
     }
 
@@ -83,10 +76,10 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = this.updatePromise.then(() => this.dependencies.filterByType(typeFilterConfig));
     }
 
-    refresh(initializeDetailedDeps) {
+    refresh() {
       this.updatePromise = this.updatePromise.then(() => {
         const prom = this.root.relayout();
-        return Promise.all([prom, this._updateView(initializeDetailedDeps)]);
+        return Promise.all([prom, this.dependencies.updateViews()]);
       });
     }
   };
@@ -276,7 +269,7 @@ module.exports.create = () => {
             (circleFontSize, circlePadding) => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
-              graph.refresh(initializeDetailedDeps);
+              graph.refresh();
             })
           .onNodeTypeFilterChanged(
             filter => {

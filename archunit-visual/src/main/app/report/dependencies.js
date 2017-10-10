@@ -82,7 +82,7 @@ const init = (View) => {
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
     dependencies._visibleDependencies.forEach(d => d.updateVisualData());
-    return dependencies._updateViewsOnNodeFolded();
+    return dependencies.updateViews();
   };
 
   const reapplyFilters = (dependencies, filters) => {
@@ -113,7 +113,7 @@ const init = (View) => {
 
   const Dependencies = class {
     constructor(all) {
-      this._updateViewsOnNodeFolded = () => new Promise(resolve => resolve());
+      this.updateViews = () => new Promise(resolve => resolve());
       this._transformers = new Map();
       this._all = all;
       this._filtered = this._all;
@@ -144,7 +144,7 @@ const init = (View) => {
       this._svgElement = svgElement;
       this._callback = callback;
       this._updateViewsOnNodeDragged = node => this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.updateViewWithoutTransition());
-      this._updateViewsOnNodeFolded = () => {
+      this.updateViews = () => {
         this._reassignViews(this._svgElement, this._callback);
         return this.updateViewsWithTransition().then(() => this._showAllVisibleDependencies());
       };
