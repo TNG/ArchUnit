@@ -39,7 +39,6 @@ def nodeDir = "${project.projectDir}/nodejs"
 
 node {
     version = nodeVersion
-    npmVersion = '4.0.2'
     distBaseUrl = 'https://nodejs.org/dist'
     download = true
     workDir = file(nodeDir)
