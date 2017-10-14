@@ -20,7 +20,6 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
   };
 
   return {
-    getVisualizationFunctions,
     getVisualizationStyles,
     getJsonToRoot,
     getJsonToDependencies,
