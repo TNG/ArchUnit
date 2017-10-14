@@ -51,8 +51,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     jsonToGraph: jsonRoot => {
       const root = jsonToRoot(jsonRoot);
       const dependencies = jsonToDependencies(jsonRoot, root);
-      const graph = new Graph(root, dependencies);
-      return graph;
+      return new Graph(root, dependencies);
     }
   };
 };
