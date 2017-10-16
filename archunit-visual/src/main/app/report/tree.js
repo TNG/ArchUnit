@@ -101,7 +101,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
-      return root.relayout();
+      const rootProm = root.relayout();
+      const depProm = root._onFiltersChanged();
+      return Promise.all([rootProm, depProm]);
     },
 
     values: function () {
@@ -133,6 +135,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._onFold = () => new Promise(resolve => resolve());
       this._onDrag = () => {
       };
+      this._onFiltersChanged = () => Promise.resolve();
 
       if (!root) {
         this.updatePromise = this.relayout();
@@ -152,6 +155,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     setOnFold(onFold) {
       this._onFold = onFold;
       this._originalChildren.forEach(child => child.setOnFold(onFold));
+    }
+
+    setOnFiltersChanged(onFiltersChanged) {
+      this._onFiltersChanged = onFiltersChanged;
+      this._originalChildren.forEach(child => child.setOnFiltersChanged(onFiltersChanged));
     }
 
     isPackage() {

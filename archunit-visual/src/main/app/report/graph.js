@@ -7,6 +7,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.dependencies = dependencies;
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
+      this.root.setOnFiltersChanged(() => this.dependencies.setNodeFilters(this.root.getFilters()));
       this.updatePromise = Promise.resolve();
     }
 
@@ -40,27 +41,15 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     }
 
     filterNodesByNameContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => {
-        const nodePromise = this.root.filterByName(filterString, false);
-        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([nodePromise, depPromise]);
-      });
+      this.updatePromise = this.updatePromise.then(() => this.root.filterByName(filterString, false));
     }
 
     filterNodesByNameNotContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => {
-        const nodePromise = this.root.filterByName(filterString, true);
-        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([nodePromise, depPromise]);
-      });
+      this.updatePromise = this.updatePromise.then(() => this.root.filterByName(filterString, true));
     }
 
     filterNodesByType(filter) {
-      this.updatePromise = this.updatePromise.then(() => {
-        const nodePromise = this.root.filterByType(filter.showInterfaces, filter.showClasses);
-        const depPromise = this.dependencies.setNodeFilters(this.root.getFilters());
-        return Promise.all([nodePromise, depPromise]);
-      });
+      this.updatePromise = this.updatePromise.then(() => this.root.filterByType(filter.showInterfaces, filter.showClasses));
     }
 
     filterDependenciesByType(typeFilterConfig) {
