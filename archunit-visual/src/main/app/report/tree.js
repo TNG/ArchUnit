@@ -97,7 +97,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     apply: function () {
       root._resetFiltering();
       const applyFilter = (node, filters) => {
-        node.setFilteredChildren(filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren));
+        node._setFilteredChildren(filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren));
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
@@ -142,7 +142,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    setFilteredChildren(filteredChildren) {
+    _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
       this._updateViewOnCurrentChildrenChanged();
     }
@@ -367,7 +367,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _resetFiltering() {
       this.getOriginalChildren().forEach(node => node._resetFiltering());
-      this.setFilteredChildren(this.getOriginalChildren());
+      this._setFilteredChildren(this.getOriginalChildren());
     }
 
     /**

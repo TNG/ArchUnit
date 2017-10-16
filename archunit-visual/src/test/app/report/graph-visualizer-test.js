@@ -8,19 +8,19 @@ const testObjects = require("./test-object-creator.js");
 describe("Visualizer", () => {
   it("visualizes the dependencies correctly", () => {
     const graphWrapper = testObjects.testGraph2();
-    expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+    expect(graphWrapper.graph.dependencies.getVisible()).to.haveCorrectEndPositions();
   });
 });
 
 describe("Visual data of dependency", () => {
   it("calc their end positions correctly", () => {
     const graph = testObjects.testGraph2().graph;
-    expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+    expect(graph.dependencies.getVisible()).to.haveCorrectEndPositions();
   });
 
   it("calc their end positions correctly if having overlapping nodes and mutual dependencies", () => {
     const graph = testObjects.testGraphWithOverlappingNodesAndMutualDependencies().graph;
-    expect(graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+    expect(graph.dependencies.getVisible()).to.haveCorrectEndPositions();
   });
 
   it("refreshes its end positions correctly if a node is dragged", () => {
@@ -35,7 +35,7 @@ describe("Visual data of dependency", () => {
     node._drag(10, -20);
     graphWrapper.graph.dependencies.jumpSpecificToTheirPositions(node);
 
-    expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+    expect(graphWrapper.graph.dependencies.getVisible()).to.haveCorrectEndPositions();
   });
 
   it("refreshes its end positions correctly if a node changes its radius on folding", () => {
@@ -45,8 +45,8 @@ describe("Visual data of dependency", () => {
     const node = graphWrapper.getNode(toChange);
     node.changeFold();
     graphWrapper.graph.root.relayout();
-    graphWrapper.graph.getVisibleDependencies().forEach(d => d.visualData.recalc(d.getStartNode().getAbsoluteCoords(), d.getEndNode().getAbsoluteCoords()));
+    graphWrapper.graph.dependencies.getVisible().forEach(d => d.visualData.recalc(d.getStartNode().getAbsoluteCoords(), d.getEndNode().getAbsoluteCoords()));
 
-    expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
+    expect(graphWrapper.graph.dependencies.getVisible()).to.haveCorrectEndPositions();
   });
 });

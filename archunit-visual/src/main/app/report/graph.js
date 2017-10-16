@@ -20,14 +20,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
     }
 
-    getVisibleNodes() {
-      return this.root.getSelfAndDescendants();
-    }
-
-    getVisibleDependencies() {
-      return this.dependencies.getVisible();
-    }
-
     foldAllNodes() {
       this.root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
@@ -57,10 +49,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     }
 
     refresh() {
-      this.updatePromise = this.updatePromise.then(() => {
-        const prom = this.root.relayout();
-        return Promise.all([prom, this.dependencies.updateViews()]);
-      });
+      this.updatePromise = this.updatePromise.then(() => this.root.relayout());
     }
   };
 

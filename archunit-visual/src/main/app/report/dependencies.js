@@ -122,11 +122,13 @@ const init = (View) => {
     }
 
     initViews(svgElement, callback) {
-      this._svgElement = svgElement;
-      this._callback = callback;
-      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(this._svgElement, this._callback);
-      this._reassignViews(this._svgElement, this._callback);
+      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, callback);
+      this._reassignViews(svgElement, callback);
       this.getVisible().forEach(d => d.show());
+    }
+
+    _jumpAllToPositions() {
+      this.getVisible().forEach(d => d.jumpToPosition())
     }
 
     jumpSpecificToTheirPositions(node) {
@@ -135,10 +137,6 @@ const init = (View) => {
 
     moveAllToTheirPositions() {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
-    }
-
-    _jumpAllToPositions() {
-      this.getVisible().forEach(d => d.jumpToPosition())
     }
 
     _reassignViews(svgElement, callback) {
