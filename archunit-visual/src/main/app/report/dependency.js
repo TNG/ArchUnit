@@ -19,6 +19,13 @@ const init = (View, nodeMap) => {
       this.startPoint = {};
       this.endPoint = {};
       this.mustShareNodes = false;
+      this._updateViewOnJumpedToPosition = () => {
+      };
+    }
+
+    jumpToPosition(absVisualStartNode, absVisualEndNode) {
+      this.recalc(absVisualStartNode, absVisualEndNode);
+      this._updateViewOnJumpedToPosition();
     }
 
     recalc(absVisualStartNode, absVisualEndNode) {
@@ -203,10 +210,11 @@ const init = (View, nodeMap) => {
 
     initView(svgElement, callback) {
       this._view = new View(svgElement, this, callback);
+      this.visualData._updateViewOnJumpedToPosition = () => this._view.jumpToPosition(this);
     }
 
-    updateViewWithoutTransition() {
-      this._view.updatePositionWithoutTransition(this);
+    jumpToPosition() {
+      this.visualData.jumpToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
     updateViewWithTransition() {

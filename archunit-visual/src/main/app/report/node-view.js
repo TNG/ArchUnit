@@ -46,17 +46,17 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).style('visibility', 'inherit');
     }
 
-    updatePosition(nodeCoords) {
+    jumpToPosition(nodeCoords) {
       d3.select(this._svgElement).attr('transform', `translate(${nodeCoords.x}, ${nodeCoords.y})`);
     }
 
-    transitRadius(r, textOffset) {
+    moveToRadius(r, textOffset) {
       const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', r));
       const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
       return Promise.all([radiusPromise, textPromise]);
     }
 
-    transitPosition(nodeVisualData) {
+    moveToPosition(nodeVisualData) {
       return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
     }
 

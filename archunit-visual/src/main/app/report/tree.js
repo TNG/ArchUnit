@@ -86,7 +86,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = newX;
       this.y = newY;
 
-      return this._updateViewOnJumpedToPosition();
+      this._updateViewOnJumpedToPosition();
     }
   };
 
@@ -145,7 +145,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     setOnDrag(onDrag) {
-      this._onDrag = onDrag;
+      this._onDrag = () => onDrag(this);
       this._originalChildren.forEach(child => child.setOnDrag(onDrag));
     }
 
@@ -292,9 +292,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
 
-      this.visualData._updateViewOnJumpedToPosition = () => this._view.updatePosition(this.visualData);
-      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
-      this.visualData._updateViewOnMovedToPosition = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
+      this.visualData._updateViewOnJumpedToPosition = () => this._view.jumpToPosition(this.visualData);
+      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
+      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this.visualData).then(() => this._view.show());
 
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
@@ -351,7 +351,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _drag(dx, dy) {
       this._root.updatePromise.then(() => {
         this.visualData.jumpToPosition(dx, dy, this.getParent());
-        this._onDrag(this);
+        this._onDrag();
       });
     }
 

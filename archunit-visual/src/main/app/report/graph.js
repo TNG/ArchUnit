@@ -5,8 +5,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
-      this._updateView = () => {
-      };
       this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.updatePromise = Promise.resolve();
@@ -19,13 +17,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
       this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
       this.dependencies.refreshViews();
-
-      this._updateView = (initializeDetailedDeps) => {
-        return Promise.all([(() => {
-          this.dependencies._reassignViews(this._view.gEdges, initializeDetailedDeps);
-          return this.dependencies.updateViewsWithTransition().then(() => this.dependencies._showAllVisibleDependencies());
-        })()]);
-      };
     }
 
     getVisibleNodes() {

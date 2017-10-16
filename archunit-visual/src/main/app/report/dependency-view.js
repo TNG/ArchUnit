@@ -52,7 +52,7 @@ const init = (transitionDuration) => {
 
       callback(d3.select(this._svgElement).select('line.area'));
 
-      this.updatePositionWithoutTransition(dependency);
+      this.jumpToPosition(dependency);
     }
 
     show(dependency) {
@@ -69,7 +69,7 @@ const init = (transitionDuration) => {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), dependency.visualData);
     }
 
-    updatePositionWithoutTransition(dependency) {
+    jumpToPosition(dependency) {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependency.visualData);
       this._updateAreaPosition(dependency);
     }
