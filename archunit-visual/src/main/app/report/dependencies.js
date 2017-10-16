@@ -155,10 +155,6 @@ const init = (View) => {
       this._showAllVisibleDependencies();
     }
 
-    updateViewsWithoutTransition() {
-      this.getVisible().forEach(d => d.updateViewWithoutTransition());
-    }
-
     updateViewsWithTransition() {
       return Promise.all(this.getVisible().map(d => d.updateViewWithTransition()));
     }

@@ -58,8 +58,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.r = r;
       this._onMove = () => {
       };
-      this._onChange = () => {
-      };
 
       this._onRadiusChanged = () => Promise.resolve();
       this._onPositionChanged = () => Promise.resolve();
@@ -291,9 +289,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     initView(svgElement, onRadiusChanged) {
       this._view = new View(svgElement, this);
-      this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
-      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
 
+      this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
+
+      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
       this.visualData._onRadiusChanged = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
       this.visualData._onPositionChanged = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
 
