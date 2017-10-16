@@ -57,21 +57,21 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.y = y;
       this.r = r;
 
-      this._onMovedToRadius = () => Promise.resolve();
-      this._onMovedToPosition = () => Promise.resolve();
-      this._onJumpedToPosition = () => {
+      this._updateViewOnMovedToRadius = () => Promise.resolve();
+      this._updateViewOnMovedToPosition = () => Promise.resolve();
+      this._updateViewOnJumpedToPosition = () => {
       };
     }
 
     moveToRadius(r) {
       this.r = r;
-      return this._onMovedToRadius();
+      return this._updateViewOnMovedToRadius();
     }
 
     moveToPosition(position) {
       this.x = position.x;
       this.y = position.y;
-      return this._onMovedToPosition();
+      return this._updateViewOnMovedToPosition();
     }
 
     jumpToPosition(dx, dy, parent) {
@@ -86,7 +86,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = newX;
       this.y = newY;
 
-      return this._onJumpedToPosition();
+      return this._updateViewOnJumpedToPosition();
     }
   };
 
@@ -292,9 +292,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
 
-      this.visualData._onJumpedToPosition = () => this._view.updatePosition(this.visualData);
-      this.visualData._onMovedToRadius = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
-      this.visualData._onMovedToPosition = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
+      this.visualData._updateViewOnJumpedToPosition = () => this._view.updatePosition(this.visualData);
+      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
+      this.visualData._updateViewOnMovedToPosition = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
 
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
