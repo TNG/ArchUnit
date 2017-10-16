@@ -144,6 +144,7 @@ const init = (View) => {
         this._reassignViews(this._svgElement, this._callback);
         return this.updateViewsWithTransition().then(() => this._showAllVisibleDependencies());
       };
+      this.refreshViews();
     }
 
     refreshViews() {

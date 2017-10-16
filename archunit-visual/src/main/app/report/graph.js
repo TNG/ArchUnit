@@ -17,7 +17,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.visualData.r));
 
       this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
-      this.dependencies.refreshViews();
     }
 
     getVisibleNodes() {
