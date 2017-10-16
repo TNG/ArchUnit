@@ -56,25 +56,25 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = x;
       this.y = y;
       this.r = r;
-      this._onMove = () => {
+
+      this._onMovedToRadius = () => Promise.resolve();
+      this._onMovedToPosition = () => Promise.resolve();
+      this._onJumpedToPosition = () => {
       };
-
-      this._onRadiusChanged = () => Promise.resolve();
-      this._onPositionChanged = () => Promise.resolve();
     }
 
-    changeRadius(r) {
+    moveToRadius(r) {
       this.r = r;
-      return this._onRadiusChanged();
+      return this._onMovedToRadius();
     }
 
-    changePosition(position) {
+    moveToPosition(position) {
       this.x = position.x;
       this.y = position.y;
-      return this._onPositionChanged();
+      return this._onMovedToPosition();
     }
 
-    move(dx, dy, parent) {
+    jumpToPosition(dx, dy, parent) {
       let newX = this.x + dx;
       let newY = this.y + dy;
       const centerDistance = new Vector(newX, newY).length();
@@ -86,7 +86,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = newX;
       this.y = newY;
 
-      return this._onMove();
+      return this._onJumpedToPosition();
     }
   };
 
@@ -292,9 +292,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
 
-      this.visualData._onMove = () => this._view.updatePosition(this.visualData);
-      this.visualData._onRadiusChanged = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
-      this.visualData._onPositionChanged = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
+      this.visualData._onJumpedToPosition = () => this._view.updatePosition(this.visualData);
+      this.visualData._onMovedToRadius = () => Promise.all([this._view.transitRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
+      this.visualData._onMovedToPosition = () => this._view.transitPosition(this.visualData).then(() => this._view.show());
 
       if (!this.isRoot() && !this._isLeaf()) {
         this._view.onClick(() => {
@@ -318,24 +318,26 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       let promises = [];
       if (this.isCurrentlyLeaf()) {
-        promises.push(this.visualData.changeRadius(calculateDefaultRadius(this)));
+        promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.changePosition({x: 0, y: 0}));
-        promises.push(this.visualData.changeRadius(2 * onlyChild.getRadius()));
+        promises.push(onlyChild.visualData.moveToPosition({x: 0, y: 0}));
+        promises.push(this.visualData.moveToRadius(2 * onlyChild.getRadius()));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r,
           nodeVisualData: c.visualData
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        promises = childCircles.map(c => c.nodeVisualData.changePosition(c));
+        promises = childCircles.map(c => c.nodeVisualData.moveToPosition(c));
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.visualData.changeRadius(r));
+        promises.push(this.visualData.moveToRadius(r));
       }
 
       if (this.isRoot()) {
-        promises.push(this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
+        promises.push(this.visualData.moveToPosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
+
+        //TODO: update Deps-VisualData and Views here
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -348,7 +350,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     _drag(dx, dy) {
       this._root.updatePromise.then(() => {
-        this.visualData.move(dx, dy, this.getParent());
+        this.visualData.jumpToPosition(dx, dy, this.getParent());
         this._onDrag(this);
       });
     }
