@@ -43,8 +43,8 @@ describe("Dependencies", () => {
     const hasEndNodes = (from, to) => d => (d.from === from || d.to === from) && (d.from === to || d.to === to);
     const filter = d => hasEndNodes("com.tngtech.test.subtest.subtestclass1", "com.tngtech.interface1")(d)
     || hasEndNodes("com.tngtech.class2", "com.tngtech.class2$InnerClass2")(d);
-    graphWrapper.graph.getVisibleDependencies().filter(filter).forEach(d => expect(d.mustShareNodes).to.equal(true));
-    graphWrapper.graph.getVisibleDependencies().filter(d => !filter(d)).forEach(d => expect(d.mustShareNodes).to.equal(false));
+    graphWrapper.graph.getVisibleDependencies().filter(filter).forEach(d => expect(d.visualData.mustShareNodes).to.equal(true));
+    graphWrapper.graph.getVisibleDependencies().filter(d => !filter(d)).forEach(d => expect(d.visualData.mustShareNodes).to.equal(false));
   });
 
   it("transform if origin is folded and origin is a package", () => {

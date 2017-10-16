@@ -18,9 +18,10 @@ const init = (View, nodeMap) => {
     constructor() {
       this.startPoint = {};
       this.endPoint = {};
+      this.mustShareNodes = false;
     }
 
-    recalc(mustShareNodes, absVisualStartNode, absVisualEndNode) {
+    recalc(absVisualStartNode, absVisualEndNode) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode),
         nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
@@ -35,7 +36,7 @@ const init = (View, nodeMap) => {
       startDirectionVector = vectors.getDefaultIfNull(startDirectionVector);
       let endDirectionVector = oneIsInOther ? vectors.cloneVector(startDirectionVector) : vectors.getRevertedVector(startDirectionVector);
 
-      if (mustShareNodes) {
+      if (this.mustShareNodes) {
         let orthogonalVector = vectors.norm(vectors.getOrthogonalVector(startDirectionVector), lineDiff / 2);
         if (oneIsInOther && absVisualStartNode === nodes[1]) {
           orthogonalVector = vectors.getRevertedVector(orthogonalVector);
@@ -180,7 +181,6 @@ const init = (View, nodeMap) => {
        * In this case, the lines must have some space between each other
        * @type {boolean}
        */
-      this.mustShareNodes = false;
       this.containsPkg = containsPackage(this.from, this.to);
       this.visualData = new VisualData();
     }
@@ -198,7 +198,7 @@ const init = (View, nodeMap) => {
     }
 
     updateVisualData() {
-      this.visualData.recalc(this.mustShareNodes, this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
+      this.visualData.recalc(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
     initView(svgElement, callback) {

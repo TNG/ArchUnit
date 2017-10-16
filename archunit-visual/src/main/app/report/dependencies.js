@@ -74,7 +74,7 @@ const init = (View) => {
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
   const setMustShareNodes = (dependency, dependencies) => {
-    dependency.mustShareNodes =
+    dependency.visualData.mustShareNodes =
       dependencies._visibleDependencies.filter(e => e.from === dependency.to && e.to === dependency.from).length > 0;
   };
 

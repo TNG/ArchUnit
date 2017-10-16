@@ -53,8 +53,8 @@ const distanceIsNotCorrect = d => {
   else {
     actDistance = startAbsVisualData.r + endAbsVisualData.r + edgeLength;
   }
-  return (d.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, 2 * d.lineDiff))
-      || (!d.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, MAX_LENGTH_DIFF));
+  return (d.visualData.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, 2 * d.lineDiff))
+      || (!d.visualData.mustShareNodes && haveDiffBiggerThan(actDistance, expDistance, MAX_LENGTH_DIFF));
 };
 
 Assertion.addMethod('haveCorrectEndPositions', function () {
