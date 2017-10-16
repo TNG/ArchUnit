@@ -74,7 +74,7 @@ const init = (transitionDuration) => {
       this._updateAreaPosition(dependency);
     }
 
-    updatePositionWithTransition(dependency) {
+    moveToPosition(dependency) {
       const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
       const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
       this._updateAreaPosition(dependency);

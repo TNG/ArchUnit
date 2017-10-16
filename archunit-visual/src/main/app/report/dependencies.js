@@ -81,15 +81,14 @@ const init = (View) => {
   const recreateVisibleDependencies = dependencies => {
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
-    dependencies._visibleDependencies.forEach(d => d.updateVisualData());
-    return dependencies.updateViews();
+    dependencies._updateViewsOnVisibleDependenciesChanged();
   };
 
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
       dependencies._all);
     dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
-    return recreateVisibleDependencies(dependencies);
+    recreateVisibleDependencies(dependencies);
   };
 
   const newFilters = (dependencies) => ({
@@ -97,7 +96,7 @@ const init = (View) => {
     nameFilter: null,
 
     apply: function () {
-      return reapplyFilters(dependencies, this.values());
+      reapplyFilters(dependencies, this.values());
     },
 
     values: function () {
@@ -113,7 +112,7 @@ const init = (View) => {
 
   const Dependencies = class {
     constructor(all) {
-      this.updateViews = () => new Promise(resolve => resolve());
+      this._updateViewsOnVisibleDependenciesChanged = () => Promise.resolve();
       this._transformers = new Map();
       this._all = all;
       this._filtered = this._all;
@@ -122,8 +121,24 @@ const init = (View) => {
       this._filters = newFilters(this);
     }
 
-    updateOnNodeDragged(node) {
+    initViews(svgElement, callback) {
+      this._svgElement = svgElement;
+      this._callback = callback;
+      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(this._svgElement, this._callback);
+      this._reassignViews(this._svgElement, this._callback);
+      this.getVisible().forEach(d => d.show());
+    }
+
+    jumpSpecificToTheirPositions(node) {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.jumpToPosition());
+    }
+
+    moveAllToTheirPositions() {
+      return Promise.all(this.getVisible().map(d => d.moveToPosition()));
+    }
+
+    _jumpAllToPositions() {
+      this.getVisible().forEach(d => d.jumpToPosition())
     }
 
     _reassignViews(svgElement, callback) {
@@ -133,29 +148,6 @@ const init = (View) => {
       this.getVisible().forEach(d => d.initView(svgElement, callback));
     }
 
-    _showAllVisibleDependencies() {
-      this.getVisible().forEach(d => d.show());
-    }
-
-    initViews(svgElement, callback) {
-      this._svgElement = svgElement;
-      this._callback = callback;
-      this.updateViews = () => {
-        this._reassignViews(this._svgElement, this._callback);
-        return this.updateViewsWithTransition().then(() => this._showAllVisibleDependencies());
-      };
-      this.refreshViews();
-    }
-
-    refreshViews() {
-      this._reassignViews(this._svgElement, this._callback);
-      this._showAllVisibleDependencies();
-    }
-
-    updateViewsWithTransition() {
-      return Promise.all(this.getVisible().map(d => d.updateViewWithTransition()));
-    }
-
     updateOnNodeFolded(foldedNode, isFolded) {
       if (isFolded) {
         this._transformers.set(foldedNode, foldTransformer(foldedNode));
@@ -163,13 +155,13 @@ const init = (View) => {
       else {
         this._transformers.delete(foldedNode);
       }
-      return recreateVisibleDependencies(this);
+      recreateVisibleDependencies(this);
     }
 
     setNodeFilters(filters) {
       this._filters.nameFilter = dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
         filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
-      return this._filters.apply();
+      this._filters.apply();
     }
 
     filterByType(typeFilterConfig) {
@@ -186,7 +178,8 @@ const init = (View) => {
           || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
-      return this._filters.apply();
+      this._filters.apply();
+      this._jumpAllToPositions();
     }
 
     getVisible() {

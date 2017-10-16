@@ -5,9 +5,10 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
-      this.root.setOnDrag(node => this.dependencies.updateOnNodeDragged(node));
+      this.root.setOnDrag(node => this.dependencies.jumpSpecificToTheirPositions(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.root.setOnFiltersChanged(() => this.dependencies.setNodeFilters(this.root.getFilters()));
+      this.root.setOnLayoutChanged(() => this.dependencies.moveAllToTheirPositions());
       this.updatePromise = Promise.resolve();
     }
 
@@ -52,7 +53,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     }
 
     filterDependenciesByType(typeFilterConfig) {
-      this.updatePromise = this.updatePromise.then(() => this.dependencies.filterByType(typeFilterConfig));
+      this.updatePromise.then(() => this.dependencies.filterByType(typeFilterConfig));
     }
 
     refresh() {

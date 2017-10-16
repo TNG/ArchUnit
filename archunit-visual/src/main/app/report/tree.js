@@ -101,9 +101,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
-      const rootProm = root.relayout();
-      const depProm = root._onFiltersChanged();
-      return Promise.all([rootProm, depProm]);
+      root._onFiltersChanged();
+      return root.relayout();
     },
 
     values: function () {
@@ -136,6 +135,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._onDrag = () => {
       };
       this._onFiltersChanged = () => Promise.resolve();
+      this._onLayoutChanged = () => Promise.resolve();
 
       if (!root) {
         this.updatePromise = this.relayout();
@@ -159,7 +159,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     setOnFiltersChanged(onFiltersChanged) {
       this._onFiltersChanged = onFiltersChanged;
-      this._originalChildren.forEach(child => child.setOnFiltersChanged(onFiltersChanged));
+    }
+
+    setOnLayoutChanged(onLayoutChanged) {
+      this._onLayoutChanged = onLayoutChanged;
     }
 
     isPackage() {
@@ -215,8 +218,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._root.updatePromise = this._root.updatePromise.then(() => {
           this._folded = getFolded();
           this._updateViewOnCurrentChildrenChanged();
-          const prom = this._root.relayout();
-          return Promise.all([prom, this._onFold(this)]);
+          this._onFold(this);
+          return this._root.relayout();
         });
       }
     }
@@ -344,8 +347,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       if (this.isRoot()) {
         promises.push(this.visualData.moveToPosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
-
-        //TODO: update Deps-VisualData and Views here
+        promises.push(this._onLayoutChanged());
       }
       return Promise.all([...childrenPromises, ...promises]);
     }

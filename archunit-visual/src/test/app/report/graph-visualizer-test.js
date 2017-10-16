@@ -33,7 +33,7 @@ describe("Visual data of dependency", () => {
     const toChange = "com.tngtech.test.testclass1";
     const node = graphWrapper.getNode(toChange);
     node._drag(10, -20);
-    graphWrapper.graph.dependencies.updateOnNodeDragged(node);
+    graphWrapper.graph.dependencies.jumpSpecificToTheirPositions(node);
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });
@@ -45,7 +45,7 @@ describe("Visual data of dependency", () => {
     const node = graphWrapper.getNode(toChange);
     node.changeFold();
     graphWrapper.graph.root.relayout();
-    graphWrapper.graph.getVisibleDependencies().forEach(d => d.updateVisualData());
+    graphWrapper.graph.getVisibleDependencies().forEach(d => d.visualData.recalc(d.getStartNode().getAbsoluteCoords(), d.getEndNode().getAbsoluteCoords()));
 
     expect(graphWrapper.graph.getVisibleDependencies()).to.haveCorrectEndPositions();
   });

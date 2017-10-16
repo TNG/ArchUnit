@@ -21,11 +21,17 @@ const init = (View, nodeMap) => {
       this.mustShareNodes = false;
       this._updateViewOnJumpedToPosition = () => {
       };
+      this._updateViewOnMovedToPosition = () => Promise.resolve();
     }
 
     jumpToPosition(absVisualStartNode, absVisualEndNode) {
       this.recalc(absVisualStartNode, absVisualEndNode);
       this._updateViewOnJumpedToPosition();
+    }
+
+    moveToPosition(absVisualStartNode, absVisualEndNode) {
+      this.recalc(absVisualStartNode, absVisualEndNode);
+      return this._updateViewOnMovedToPosition();
     }
 
     recalc(absVisualStartNode, absVisualEndNode) {
@@ -204,21 +210,21 @@ const init = (View, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    updateVisualData() {
-      this.visualData.recalc(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
-    }
-
     initView(svgElement, callback) {
       this._view = new View(svgElement, this, callback);
-      this.visualData._updateViewOnJumpedToPosition = () => this._view.jumpToPosition(this);
+      this.visualData._updateViewOnJumpedToPosition = () => {
+        this._view.jumpToPosition(this);
+        this.show();
+      };
+      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this).then(() => this.show());
     }
 
     jumpToPosition() {
       this.visualData.jumpToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
-    updateViewWithTransition() {
-      return this._view.updatePositionWithTransition(this);
+    moveToPosition() {
+      return this.visualData.moveToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
     show() {
