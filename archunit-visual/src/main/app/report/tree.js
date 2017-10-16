@@ -126,17 +126,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._folded = false;
       this._filters = newFilters(this);
 
-      this._updateViewOnCurrentChildrenChanged = () => {};
+      this._updateViewOnCurrentChildrenChanged = () => {
+      };
 
       this.visualData = new VisualData();
       this._text = new NodeText(this);
 
       this._onFold = () => new Promise(resolve => resolve());
-      this._onDrag = () => {};
+      this._onDrag = () => {
+      };
 
       if (!root) {
-        this.updatePromise = new Promise(resolve => resolve());
-        this.relayout();
+        this.updatePromise = this.relayout();
       }
     }
 
@@ -321,7 +322,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         promises.push(this.visualData.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.changePosition({x: 0, y:0}));
+        promises.push(onlyChild.visualData.changePosition({x: 0, y: 0}));
         promises.push(this.visualData.changeRadius(2 * onlyChild.getRadius()));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
@@ -335,7 +336,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
 
       if (this.isRoot()) {
-         promises.push(this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
+        promises.push(this.visualData.changePosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
