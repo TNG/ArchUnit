@@ -274,14 +274,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return predicate(this) || this._filteredChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
 
-    getX() {
-      return this.visualData.x;
-    }
-
-    getY() {
-      return this.visualData.y;
-    }
-
     getRadius() {
       return this.visualData.r;
     }

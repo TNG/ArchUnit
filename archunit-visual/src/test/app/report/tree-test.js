@@ -316,13 +316,13 @@ describe("Dragging nodes", () => {
     const toDrag = tree.getByName('root.SomeClass1');
     const dx = 1;
     const dy = -3;
-    const expected = {x: toDrag.getX() + dx, y: toDrag.getY() + dy};
+    const expected = {x: toDrag.visualData.x + dx, y: toDrag.visualData.y + dy};
 
     toDrag._drag(dx, dy);
 
     return tree.updatePromise.then(() => expect({
-      x: toDrag.getX(),
-      y: toDrag.getY()
+      x: toDrag.visualData.x,
+      y: toDrag.visualData.y
     }).to.deep.equal(expected));
   });
 
@@ -396,18 +396,18 @@ describe("Dragging nodes", () => {
     const parent = toDrag.getParent();
     expect(parent).to.be.root();
 
-    const oldX = toDrag.getX();
-    const oldY = toDrag.getY();
+    const oldX = toDrag.visualData.x;
+    const oldY = toDrag.visualData.y;
     const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
 
     toDrag._drag(deltaOutsideOfParent, 0);
 
     return tree.updatePromise.then(() => {
-      expect(toDrag.getX()).to.equal(oldX + deltaOutsideOfParent);
+      expect(toDrag.visualData.x).to.equal(oldX + deltaOutsideOfParent);
 
       toDrag._drag(0, deltaOutsideOfParent);
       return tree.updatePromise.then(() => {
-        expect(toDrag.getY()).to.equal(oldY + deltaOutsideOfParent);
+        expect(toDrag.visualData.y).to.equal(oldY + deltaOutsideOfParent);
       });
     });
   });
