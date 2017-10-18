@@ -26,8 +26,8 @@ import org.junit.runners.model.FrameworkMethod;
 class ArchTestMethodExecution extends ArchTestExecution {
     private final Method testMethod;
 
-    ArchTestMethodExecution(Class<?> testClass, Method testMethod) {
-        super(testClass);
+    ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean forceIgnore) {
+        super(testClass, testMethod, forceIgnore);
         this.testMethod = validatePublicStatic(testMethod);
     }
 
