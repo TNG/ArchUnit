@@ -16,6 +16,8 @@
 package com.tngtech.archunit.junit;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 
@@ -28,9 +30,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 abstract class ArchTestExecution {
     final Class<?> testClass;
+    private final boolean ignore;
 
-    ArchTestExecution(Class<?> testClass) {
+    ArchTestExecution(Class<?> testClass, AnnotatedElement ruleDeclaration, boolean forceIgnore) {
         this.testClass = testClass;
+        this.ignore = forceIgnore || elementShouldBeIgnored(testClass, ruleDeclaration);
     }
 
     static <T extends Member> T validatePublicStatic(T member) {
@@ -53,7 +57,16 @@ abstract class ArchTestExecution {
     abstract <T extends Annotation> T getAnnotation(Class<T> type);
 
     boolean ignore() {
-        return testClass.getAnnotation(ArchIgnore.class) != null || getAnnotation(ArchIgnore.class) != null;
+        return ignore;
+    }
+
+    static boolean elementShouldBeIgnored(Field field) {
+        return elementShouldBeIgnored(field.getDeclaringClass(), field);
+    }
+
+    private static boolean elementShouldBeIgnored(Class<?> testClass, AnnotatedElement ruleDeclaration) {
+        return testClass.getAnnotation(ArchIgnore.class) != null ||
+                ruleDeclaration.getAnnotation(ArchIgnore.class) != null;
     }
 
     abstract static class Result {

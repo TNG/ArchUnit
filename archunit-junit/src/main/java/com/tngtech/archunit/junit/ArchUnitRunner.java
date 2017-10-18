@@ -33,6 +33,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnored;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -80,9 +81,10 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
         if (ruleField.getType() == ArchRules.class) {
-            return getArchRules(ruleField).asTestExecutions();
+            boolean ignore = elementShouldBeIgnored(ruleField.getField());
+            return getArchRules(ruleField).asTestExecutions(ignore);
         }
-        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField()));
+        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), false));
     }
 
     private ArchRules getArchRules(FrameworkField ruleField) {
@@ -97,7 +99,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     private Collection<ArchTestExecution> findArchRuleMethods() {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
-            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod()));
+            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), false));
         }
         return result;
     }
