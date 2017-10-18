@@ -1,6 +1,7 @@
 package com.tngtech.archunit.junit;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -14,6 +15,7 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.mockito.Mockito.mock;
 
 public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
     public ArchUnitIntegrationTestRunner(Class<?> testClass) throws InitializationError {
@@ -113,7 +115,7 @@ public class ArchUnitIntegrationTestRunner extends ArchUnitRunner {
         private JavaClasses classes;
 
         ClassesCaptor() {
-            super(Object.class);
+            super(Object.class, mock(AnnotatedElement.class), false);
         }
 
         @Override
