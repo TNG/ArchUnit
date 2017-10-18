@@ -29,6 +29,7 @@ import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 
@@ -56,21 +57,21 @@ public final class ArchRules {
         return new ArchRules(definitionLocation);
     }
 
-    Set<ArchTestExecution> asTestExecutions() {
+    Set<ArchTestExecution> asTestExecutions(boolean forceIgnore) {
         ImmutableSet.Builder<ArchTestExecution> result = ImmutableSet.builder();
         for (Field field : fields) {
-            result.addAll(archRuleExecutionsOf(field));
+            result.addAll(archRuleExecutionsOf(field, forceIgnore));
         }
         for (Method method : methods) {
-            result.add(new ArchTestMethodExecution(method.getDeclaringClass(), method));
+            result.add(new ArchTestMethodExecution(method.getDeclaringClass(), method, forceIgnore));
         }
         return result.build();
     }
 
-    private Set<ArchTestExecution> archRuleExecutionsOf(Field field) {
+    private Set<ArchTestExecution> archRuleExecutionsOf(Field field, boolean forceIgnore) {
         return ArchRules.class.isAssignableFrom(field.getType()) ?
-                getArchRulesIn(field).asTestExecutions() :
-                Collections.<ArchTestExecution>singleton(new ArchRuleExecution(field.getDeclaringClass(), field));
+                getArchRulesIn(field).asTestExecutions(forceIgnore || elementShouldBeIgnored(field)) :
+                Collections.<ArchTestExecution>singleton(new ArchRuleExecution(field.getDeclaringClass(), field, forceIgnore));
     }
 
     private ArchRules getArchRulesIn(Field field) {
