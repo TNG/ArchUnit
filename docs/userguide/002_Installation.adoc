@@ -1,0 +1,55 @@
+== Installation
+
+To use ArchUnit, it is sufficient to include the respective Jar files into the classpath.
+Most commonly, this is done by adding the dependency to your dependency management tool,
+which is illustrated for Maven and Gradle in the following section. Alternatively you
+can obtain the necessary Jar files directly from
+http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.tngtech.archunit%22[Maven Central].
+
+=== JUnit 4
+
+To use ArchUnit in combination with JUnit 4, include the following dependency from
+Maven Central:
+
+[source,xml,options="nowrap"]
+.pom.xml
+----
+<dependency>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit-junit</artifactId>
+    <version>0.4.0</version>
+    <scope>test</scope>
+</dependency>
+----
+
+[source,groovy,options="nowrap"]
+.build.gradle
+----
+dependencies {
+   testCompile 'com.tngtech.archunit:archunit-junit:0.4.0'
+}
+----
+
+=== Other test frameworks
+
+ArchUnit works with any test framework that executes Java code. To use ArchUnit in such a
+context, include the core ArchUnit dependency from Maven Central:
+
+[source,xml,options="nowrap"]
+.pom.xml
+----
+<dependency>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit</artifactId>
+    <version>0.4.0</version>
+    <scope>test</scope>
+</dependency>
+----
+
+[source,groovy,options="nowrap"]
+.build.gradle
+----
+dependencies {
+   testCompile 'com.tngtech.archunit:archunit:0.4.0'
+}
+----
