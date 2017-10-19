@@ -24,26 +24,17 @@ const init = (transitionDuration) => {
 
   const View = class {
     constructor(parentSvgElement, dependency) {
-      //FIXME: this should be unnecessary now...
-      this._svgElement = d3.select(parentSvgElement).select(`g[id='${dependency.getIdentifyingString()}']`).node();
-      if (d3.select(this._svgElement).empty()) {
-        this._createNewSvgElements(parentSvgElement, dependency);
-      }
-      d3.select(this._svgElement).data([dependency]);
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
-    }
-
-    _createNewSvgElements(parentSvgElement, dependency) {
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
+          .data([dependency])
           .attr('id', dependency.getIdentifyingString())
           .style('visibility', 'hidden')
           .node();
 
       d3.select(this._svgElement)
         .append('line')
-        .attr('class', 'dependency');
+        .attr('class', dependency.getClass());
 
       d3.select(this._svgElement)
         .append('line')
