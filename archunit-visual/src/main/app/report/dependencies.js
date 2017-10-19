@@ -6,9 +6,11 @@ const initDependency = require('./dependency.js').init;
 
 const d3 = require('d3');
 
-const init = (View) => {
+const init = (View, DetailedView) => {
   let nodes = new Map();
-  let buildDependency;
+  let createElementaryDependency;
+  let createDependency;
+  let createNewDependency;
 
   const fullnameSeparators = {
     packageSeparator: ".",
@@ -33,12 +35,7 @@ const init = (View) => {
     tmp.forEach(e => map.get(e[0]).push(e[1]));
 
     return Array.from(map).map(([, dependencies]) => {
-      if (dependencies.length === 1) {
-        return dependencies[0];
-      }
-      else {
-        return buildDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
-      }
+      return createDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
     });
   };
 
@@ -64,9 +61,9 @@ const init = (View) => {
   const foldTransformer = foldedElement => (
     dependencies => {
       const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-        .to(r => buildDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
+        .to(r => createNewDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
       return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-        .to(r => buildDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
+        .to(r => createNewDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
     }
   );
 
@@ -86,7 +83,7 @@ const init = (View) => {
 
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
-      dependencies._all);
+      dependencies._elementary);
     dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
     recreateVisibleDependencies(dependencies);
   };
@@ -114,16 +111,16 @@ const init = (View) => {
     constructor(all) {
       this._updateViewsOnVisibleDependenciesChanged = () => Promise.resolve();
       this._transformers = new Map();
-      this._all = all;
-      this._filtered = this._all;
+      this._elementary = all;
+      this._filtered = this._elementary;
       this._filteredUniqued = uniteDependencies(Array.from(this._filtered));
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
     }
 
-    initViews(svgElement, callback) {
-      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, callback);
-      this._reassignViews(svgElement, callback);
+    initViews(svgElement, svgElementForDetailed, create, hide) {
+      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, svgElementForDetailed, create, hide);
+      this._reassignViews(svgElement, svgElementForDetailed, create, hide);
       this.getVisible().forEach(d => d.show());
     }
 
@@ -139,11 +136,11 @@ const init = (View) => {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
     }
 
-    _reassignViews(svgElement, callback) {
+    _reassignViews(svgElement, svgElementForDetailed, create, hide) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, callback));
+      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, create, hide));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {
@@ -214,13 +211,13 @@ const init = (View) => {
       const presentDependencyTypes = allDependencyTypes.filter(type => jsonElement.hasOwnProperty(type.name));
       presentDependencyTypes.forEach(type => {
           if (type.isUnique && jsonElement[type.name]) {
-            arr.push(buildDependency(jsonElement.fullName, jsonElement[type.name])
-              .withSingleDependencyDescription(type.dependency));
+            arr.push(createElementaryDependency(jsonElement.fullName, jsonElement[type.name])
+              .withDependencyDescription(type.dependency));
           }
           else if (!type.isUnique && jsonElement[type.name].length > 0) {
             jsonElement[type.name].forEach(d => arr.push(
-              buildDependency(jsonElement.fullName, d.target || d)
-                .withSingleDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
+              createElementaryDependency(jsonElement.fullName, d.target || d)
+                .withDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
           }
         }
       );
@@ -239,7 +236,10 @@ const init = (View) => {
 
   const jsonToDependencies = (jsonRoot, nodeMap) => {
     nodes = nodeMap;
-    buildDependency = initDependency(View, nodeMap).buildDependency;
+    const dependencyCreator = initDependency(View, DetailedView, nodeMap);
+    createElementaryDependency = dependencyCreator.createElementaryDependency;
+    createDependency = dependencyCreator.createDependency;
+    createNewDependency = dependencyCreator.createNewDependency;
     const allDependencies = collectAllDependenciesOfJsonElement(jsonRoot);
     return new Dependencies(allDependencies);
   };
@@ -247,6 +247,6 @@ const init = (View) => {
   return jsonToDependencies;
 };
 
-module.exports.init = (View) => ({
-  jsonToDependencies: init(View)
+module.exports.init = (View, DetailedView) => ({
+  jsonToDependencies: init(View, DetailedView)
 });

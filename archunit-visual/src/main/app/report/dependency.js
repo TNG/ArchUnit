@@ -2,12 +2,12 @@
 
 const dependencyTypes = require('./dependency-types.json');
 
-
 const vectors = require('./vectors.js').vectors;
 
-const init = (View, nodeMap) => {
+const init = (View, DetailedView, nodeMap) => {
 
   const nodes = nodeMap;
+  const allDependencies = new Map();
 
   const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
     const middleDiff = vectors.distance(node1, node2);
@@ -70,12 +70,13 @@ const init = (View, nodeMap) => {
 
   const mergeTypeNames = (ownTypeName, otherTypeName) => {
     if (otherTypeName) {
-      return otherTypeName === ownTypeName ? otherTypeName : "several";
+      return otherTypeName === ownTypeName ? otherTypeName : 'several';
     } else {
       return ownTypeName;
     }
   };
 
+  //FIXME: rename to ElementaryDescritpion
   const SingleDependencyDescription = class {
     constructor(typeName) {
       this.typeName = typeName;
@@ -91,6 +92,10 @@ const init = (View, nodeMap) => {
 
     mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
       return inheritanceTypeName;
+    }
+
+    toString() {
+      return this.typeName;
     }
   };
 
@@ -109,9 +114,9 @@ const init = (View, nodeMap) => {
       return true;
     }
 
-    toString() {
-      return this.startCodeUnit + " " + this.typeName + " " + this.targetElement;
-    }
+    /*toString() {
+      return this.startCodeUnit + ' ' + this.typeName + ' ' + this.targetElement;
+    }*/
 
     mergeAccessTypeWithOtherAccessType(accessTypeName) {
       return mergeTypeNames(this.typeName, accessTypeName);
@@ -131,17 +136,13 @@ const init = (View, nodeMap) => {
       return false;
     }
 
-    toString() {
-      return this.typeName;
-    }
-
     mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
       return mergeTypeNames(this.typeName, inheritanceTypeName);
     }
   };
 
   const GroupedDependencyDescription = class {
-    constructor(hasDetailedDescription = false, accessTypeName = "", inheritanceTypeName = "") {
+    constructor(hasDetailedDescription = false, accessTypeName = '', inheritanceTypeName = '') {
       this.accessTypeName = accessTypeName;
       this.inheritanceTypeName = inheritanceTypeName;
       this._hasDetailedDescription = hasDetailedDescription;
@@ -152,7 +153,7 @@ const init = (View, nodeMap) => {
     }
 
     getDependencyTypeNamesAsString() {
-      return this.inheritanceTypeName + (this.inheritanceTypeName && this.accessTypeName ? " " : "") + this.accessTypeName;
+      return this.inheritanceTypeName + (this.inheritanceTypeName && this.accessTypeName ? ' ' : '') + this.accessTypeName;
     }
 
     toString() {
@@ -183,7 +184,7 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const combinePathAndCodeUnit = (path, codeUnit) => (path || "") + ((path && codeUnit) ? "." : "") + (codeUnit || "");
+  const combinePathAndCodeUnit = (path, codeUnit) => (path || '') + ((path && codeUnit) ? '.' : '') + (codeUnit || '');
 
   const Dependency = class {
     constructor(from, to) {
@@ -210,8 +211,19 @@ const init = (View, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    initView(svgElement, callback) {
-      this._view = new View(svgElement, this, callback);
+    initView(svgElement, svgElementForDetailed, create, hide) {
+      if (!this._view) {
+        this._view = new View(svgElement, this);
+      }
+      else {
+        this._view.refresh(this);
+      }
+      if (!this._detailedView) {
+        this._detailedView = new DetailedView(svgElementForDetailed, this, create, hide);
+        this._view.onMouseOver(coords => this._detailedView.fadeIn(coords));
+        this._view.onMouseOut(() => this._detailedView.fadeOut());
+      }
+
       this.visualData._updateViewOnJumpedToPosition = () => {
         this._view.jumpToPosition(this);
         this.show();
@@ -258,18 +270,32 @@ const init = (View, nodeMap) => {
     return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
   };
 
-  const buildDependency = (from, to) => {
+  const createElementaryDependency = (from, to) => {
     const dependency = new Dependency(from, to);
     return {
-      withSingleDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
+      withDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
         dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
         return dependency;
-      },
+      }
+    };
+  };
+
+  const createDependency = (from, to) => {
+    const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new Dependency(from, to);
+    allDependencies.set(`${from}-${to}`, dependency);
+    return {
       byGroupingDependencies: function (dependencies) {
-        dependency.description = new GroupedDependencyDescription();
-        dependencies.forEach(d => dependency.description.addDependencyDescription(d.description));
+        const newDescription = new GroupedDependencyDescription(dependencies.length === 1);
+        dependencies.forEach(d => newDescription.addDependencyDescription(d.description));
+        dependency.description = newDescription;
         return dependency;
-      },
+      }
+    };
+  };
+
+  const createNewDependency = (from, to) => {
+    const dependency = new Dependency(from, to);
+    return {
       afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
         if (containsPackage(from, to)) {
           dependency.description = new GroupedDependencyDescription(false);
@@ -278,16 +304,18 @@ const init = (View, nodeMap) => {
           dependency.description = description;
         }
         else {
-          dependency.description = new GroupedDependencyDescription(description.hasDetailedDescription(), "childrenAccess");
+          dependency.description = new GroupedDependencyDescription(description.hasDetailedDescription(), 'childrenAccess');
         }
         return dependency;
       }
     };
   };
 
-  return buildDependency;
+  return {
+    createElementaryDependency: createElementaryDependency,
+    createDependency: createDependency,
+    createNewDependency: createNewDependency
+  };
 };
 
-module.exports.init = (View, nodeMap) => ({
-  buildDependency: init(View, nodeMap)
-});
+module.exports.init = (View, DetailedView, nodeMap) => init(View, DetailedView, nodeMap);

@@ -79,10 +79,10 @@ const testGraph1 = () => {
 };
 
 const allDeps1 = [
-  "com.tngtech.main.class1->com.tngtech.interface1(startMethod(arg1, arg2) methodCall targetMethod())",
-  "com.tngtech.test.testclass1->com.tngtech.class2(testclass1() fieldAccess field1)",
+  "com.tngtech.main.class1->com.tngtech.interface1(methodCall)",
+  "com.tngtech.test.testclass1->com.tngtech.class2(fieldAccess)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(startMethod(arg) constructorCall testclass1())",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
   "com.tngtech.class2->com.tngtech.main.class1(extends)",
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
@@ -128,7 +128,7 @@ const allDeps2 = [
   "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
   "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
   "com.tngtech.class2->com.tngtech.main.class1(extends)",
   "com.tngtech.class2->com.tngtech.interface1(implements)"
@@ -216,7 +216,7 @@ const allDeps3 = [
   "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
   "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(startMethod1() methodCall targetMethod())",
+  "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
   "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
   "com.tngtech.class2->com.tngtech.main.class1(extends)",
   "com.tngtech.class2->com.tngtech.interface1(implements)"

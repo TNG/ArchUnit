@@ -12,12 +12,14 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = Promise.resolve();
     }
 
-    initView(svg, initializeDetailedDeps) {
+    initView(svg, svgElementForDetailed, create, hide) {
       this._view = new View(svg, this.root.visualData.r);
 
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
 
-      this.dependencies.initViews(this._view.gEdges, initializeDetailedDeps);
+      //FIXME: statt svgElementForDetailed lieber an g der jeweiligen Dependency dranhängen und vllt auch detailed
+      // view in dependency-view rein
+      this.dependencies.initViews(this._view.gEdges, svgElementForDetailed, create, hide);
     }
 
     foldAllNodes() {
@@ -70,11 +72,8 @@ module.exports.create = () => {
    * padding between a line and its title
    */
   const TEXT_PADDING = 5;
-  const DETAILED_DEPENDENCIES_HIDE_DURATION = 200;
-  const DETAILED_DEPENDENCIES_APPEAR_DURATION = 300;
 
   const d3 = require('d3');
-  const isFixed = new Map();
 
   const svg = d3.select('#visualization');
   let gAllDetailedDeps;
@@ -88,133 +87,118 @@ module.exports.create = () => {
 
   let graph;
 
-  function initializeDetailedDeps(hoverAreas) {
-    const shouldBeHidden = new Map();
+  const hideDetailedDeps = (e, gDetailedDeps) => {
+    if (!gDetailedDeps.empty() && !e._detailedView._isFixed) {
+      gDetailedDeps.select('.frame').style('visibility', 'hidden');
+      gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
+      gDetailedDeps.select('text').style('visibility', 'hidden');
+    }
+  };
 
-    const hideDetailedDeps = gDetailedDeps => {
-      if (!gDetailedDeps.empty() && !isFixed.get(gDetailedDeps.attr('id'))) {
-        gDetailedDeps.select('.frame').style('visibility', 'hidden');
-        gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
-        gDetailedDeps.select('text').style('visibility', 'hidden');
-      }
-    };
+  const showDetailedDeps = e => {
+    e._detailedView._shouldBeHidden = false;
+    const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+    gDetailedDeps.select('.frame').style('visibility', 'visible');
+    gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
+    gDetailedDeps.select('text').style('visibility', 'visible');
+  };
 
-    const showDetailedDeps = e => {
-      shouldBeHidden.set(`${e.from}-${e.to}`, false);
-      const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-      gDetailedDeps.select('.frame').style('visibility', 'visible');
-      gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
-      gDetailedDeps.select('text').style('visibility', 'visible');
-    };
+  const createDetailedDepsIfNecessary = e => {
+    if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
+      const gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
 
-    const createDetailedDepsIfNecessary = e => {
-      if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
-        const gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
-        gDetailedDeps.append('rect').attr('class', 'frame');
-        gDetailedDeps.append('text').attr('class', 'access');
+      //FIXME: use d3 data (of course with an array of the element!)
+      gDetailedDeps.node()._data = e;
+      gDetailedDeps.append('rect').attr('class', 'frame');
+      gDetailedDeps.append('text').attr('class', 'access');
 
-        const fixDetailedDeps = () => {
-          if (gDetailedDeps.select('.closeButton').empty()) {
-            const fontSize = visualizationStyles.getDependencyTitleFontSize();
-            gDetailedDeps.append('text')
-              .attr('class', 'closeButton')
-              .text('x')
-              .attr('dx', gDetailedDeps.select('.hoverArea').attr('width') / 2 - fontSize / 2)
-              .attr('dy', fontSize)
-              .on('click', function () {
-                isFixed.set(`${e.from}-${e.to}`, false);
-                hideDetailedDeps(gDetailedDeps);
-                d3.select(this).remove();
-              });
-            isFixed.set(`${e.from}-${e.to}`, true);
-          }
-        };
-
-        gDetailedDeps.append('rect').attr('class', 'hoverArea')
-          .on('mouseover', () => showDetailedDeps(e))
-          .on('mouseout', () => hideDetailedDeps(gDetailedDeps))
-          .on('click', () => {
-            fixDetailedDeps();
-          });
-
-        const drag = d3.drag().on('drag', () => {
-          fixDetailedDeps();
-          gDetailedDeps.attr('transform', () => {
-            const transform = gDetailedDeps.attr('transform');
-            const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
-            return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
-          });
-        });
-        gDetailedDeps.call(drag);
-      }
-    };
-
-    const updateDetailedDeps = (e, coordinates) => {
-      const detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
-      if (detailedDeps.length > 0) {
-        const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-        const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
-
-        gDetailedDeps.attr('transform', () => {
-          //ensure that the rect is visible on the left side
-          let x = Math.max(maxWidth / 2, coordinates[0]);
-          //ensure that the rect is visible on the right side
-          x = Math.min(x, svg.attr('width') - maxWidth / 2);
-          return `translate(${x}, ${coordinates[1]})`;
-        });
-
-        const tspans = gDetailedDeps.select('text.access')
-          .selectAll('tspan')
-          .data(detailedDeps);
-
-        const fontSize = visualizationStyles.getDependencyTitleFontSize();
-        tspans.exit().remove();
-
-        tspans.enter()
-          .append('tspan');
-
-        gDetailedDeps.select('text')
-          .selectAll('tspan')
-          .text(d => d.description)
-          .attr('class', d => d.cssClass)
-          .attr("x", -maxWidth / 2)
-          .attr("dy", () => fontSize + TEXT_PADDING);
-
-        gDetailedDeps.selectAll('rect')
-          .attr('x', -maxWidth / 2 - TEXT_PADDING)
-          .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
-          .attr('width', maxWidth + fontSize);
-      }
-    };
-
-    hoverAreas
-      .on('mouseover', function (e) {
-        if (!isFixed.get(`${e.from}-${e.to}`)) {
-          shouldBeHidden.set(`${e.from}-${e.to}`, false);
-          const coordinates = d3.mouse(svg.node());
-          setTimeout(() => {
-            if (!shouldBeHidden.get(`${e.from}-${e.to}`)) {
-              gAllDetailedDeps.selectAll('g').each(function () {
-                hideDetailedDeps(d3.select(this));
-              });
-              createDetailedDepsIfNecessary(e);
-              updateDetailedDeps(e, coordinates);
-              showDetailedDeps(e);
-            }
-          }, DETAILED_DEPENDENCIES_APPEAR_DURATION);
+      const fixDetailedDeps = () => {
+        if (gDetailedDeps.select('.closeButton').empty()) {
+          const fontSize = visualizationStyles.getDependencyTitleFontSize();
+          gDetailedDeps.append('text')
+            .attr('class', 'closeButton')
+            .text('x')
+            .attr('dx', gDetailedDeps.select('.hoverArea').attr('width') / 2 - fontSize / 2)
+            .attr('dy', fontSize)
+            .on('click', function () {
+              e._detailedView._isFixed = false;
+              hideDetailedDeps(e, gDetailedDeps);
+              d3.select(this).remove();
+            });
+          e._detailedView._isFixed = true;
         }
+      };
+
+      gDetailedDeps.append('rect').attr('class', 'hoverArea')
+        .on('mouseover', () => showDetailedDeps(e))
+        .on('mouseout', () => hideDetailedDeps(e, gDetailedDeps))
+        .on('click', () => {
+          fixDetailedDeps();
+        });
+
+      const drag = d3.drag().on('drag', () => {
+        fixDetailedDeps();
+        gDetailedDeps.attr('transform', () => {
+          const transform = gDetailedDeps.attr('transform');
+          const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
+          return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
+        });
+      });
+      gDetailedDeps.call(drag);
+    }
+  };
+
+  const updateDetailedDeps = (e, coordinates) => {
+    const detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
+    if (detailedDeps.length > 0) {
+
+      const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
+      const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
+
+      gDetailedDeps.attr('transform', () => {
+        //ensure that the rect is visible on the left side
+        let x = Math.max(maxWidth / 2, coordinates[0]);
+        //ensure that the rect is visible on the right side
+        x = Math.min(x, svg.attr('width') - maxWidth / 2);
+        return `translate(${x}, ${coordinates[1]})`;
       });
 
-    hoverAreas
-      .on('mouseout', e => {
-        shouldBeHidden.set(`${e.from}-${e.to}`, true);
-        setTimeout(() => {
-          if (shouldBeHidden.get(`${e.from}-${e.to}`)) {
-            hideDetailedDeps(gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
-          }
-        }, DETAILED_DEPENDENCIES_HIDE_DURATION);
-      });
-  }
+      const tspans = gDetailedDeps.select('text.access')
+        .selectAll('tspan')
+        .data(detailedDeps);
+
+      const fontSize = visualizationStyles.getDependencyTitleFontSize();
+      tspans.exit().remove();
+
+      tspans.enter()
+        .append('tspan');
+
+      gDetailedDeps.select('text')
+        .selectAll('tspan')
+        .text(d => d.description)
+        .attr('class', d => d.cssClass)
+        .attr("x", -maxWidth / 2)
+        .attr("dy", () => fontSize + TEXT_PADDING);
+
+      gDetailedDeps.selectAll('rect')
+        .attr('x', -maxWidth / 2 - TEXT_PADDING)
+        .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
+        .attr('width', maxWidth + fontSize);
+    }
+  };
+
+  const create = (e, coordinates) => {
+    gAllDetailedDeps.selectAll('g').each(function () {
+      hideDetailedDeps(this._data, d3.select(this));
+    });
+    createDetailedDepsIfNecessary(e);
+    updateDetailedDeps(e, coordinates);
+    showDetailedDeps(e);
+  };
+
+  const hide = (e) => {
+    hideDetailedDeps(e, gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
+  };
 
   return new Promise((resolve, reject) => {
     d3.json('80/classes.json', function (error, jsonroot) {
@@ -224,7 +208,7 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      graph.initView(svg.node(), initializeDetailedDeps);
+      graph.initView(svg.node(), gAllDetailedDeps, create, hide);
       gAllDetailedDeps = svg.append('g');
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'

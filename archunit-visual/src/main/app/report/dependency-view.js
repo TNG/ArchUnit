@@ -23,16 +23,17 @@ const init = (transitionDuration) => {
   };
 
   const View = class {
-    constructor(parentSvgElement, dependency, callback) {
+    constructor(parentSvgElement, dependency) {
+      //FIXME: this should be unnecessary now...
       this._svgElement = d3.select(parentSvgElement).select(`g[id='${dependency.getIdentifyingString()}']`).node();
       if (d3.select(this._svgElement).empty()) {
-        this._createNewSvgElements(parentSvgElement, dependency, callback);
+        this._createNewSvgElements(parentSvgElement, dependency);
       }
       d3.select(this._svgElement).data([dependency]);
       d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
     }
 
-    _createNewSvgElements(parentSvgElement, dependency, callback) {
+    _createNewSvgElements(parentSvgElement, dependency) {
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
@@ -50,9 +51,11 @@ const init = (transitionDuration) => {
         .style('visibility', 'hidden')
         .style('stroke-width', clickAreaWidth);
 
-      callback(d3.select(this._svgElement).select('line.area'));
-
       this.jumpToPosition(dependency);
+    }
+
+    refresh(dependency) {
+      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
     }
 
     show(dependency) {
@@ -79,6 +82,19 @@ const init = (transitionDuration) => {
       const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
       this._updateAreaPosition(dependency);
       return promise;
+    }
+
+    onMouseOver(handler) {
+      d3.select(this._svgElement).select('line.area').on('mouseover', function () {
+        const coordinates = d3.mouse(d3.select('#visualization').node());
+        handler(coordinates);
+      });
+    }
+
+    onMouseOut(handler) {
+      d3.select(this._svgElement).select('line.area').on('mouseout', () => {
+        handler();
+      });
     }
   };
 
