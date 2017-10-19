@@ -872,6 +872,42 @@ public class ClassesShouldTest {
                         ClassWithFieldMethodAndConstructor.class, ""));
     }
 
+    @DataProvider
+    public static Object[][] beInterfaces_rules() {
+        return $$(
+                $(classes().should().beInterfaces(), Collection.class, String.class),
+                $(classes().should(ArchConditions.beInterfaces()), Collection.class, String.class));
+    }
+
+    @Test
+    @UseDataProvider("beInterfaces_rules")
+    public void beInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be interfaces")
+                .contains(String.format("class %s is not an interface", violated.getName()))
+                .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeInterfaces_rules() {
+        return $$(
+                $(classes().should().notBeInterfaces(), String.class, Collection.class),
+                $(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
+    }
+
+    @Test
+    @UseDataProvider("notBeInterfaces_rules")
+    public void notBeInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be interfaces")
+                .contains(String.format("class %s is an interface", violated.getName()))
+                .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
+    }
+
     private String singleLineFailureReportOf(EvaluationResult result) {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
