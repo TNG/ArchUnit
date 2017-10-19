@@ -423,6 +423,22 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areInterfaces_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areInterfaces())
+                .on(List.class, String.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Collection.class);
+    }
+
+    @Test
+    public void areNotInterfaces_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotInterfaces())
+                .on(List.class, String.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, Integer.class);
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaClass> classes = filterResultOf(
                 classes().that().haveNameMatching(".*\\..*i.*")

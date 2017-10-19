@@ -13,6 +13,7 @@ import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessi
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.otheraccess.ClassAlsoAccessingOtherClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
@@ -532,6 +533,26 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
+    @Ignore("Only applicable starting with Java 8 (access from default methods)")
+    public void areInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport (
+                classes().should().onlyBeAccessed().byClassesThat().areInterfaces())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+    }
+
+    @Test
+    @Ignore("Only applicable starting with Java 8 (access from default methods)")
+    public void areNotInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areNotInterfaces())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+    }
+
+    @Test
     public void accesses_by_the_class_itself_are_ignored() {
         ClassesShouldConjunction rule = classes().should().onlyBeAccessed()
                 .byClassesThat(classWithNameOf(ClassAccessingClassAccessingItself.class));
@@ -640,6 +661,20 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     interface SomeInterface {
+    }
+
+    private static class ClassBeingAccessedByInterface {
+        static final String SOME_CONSTANT = "Some value";
+    }
+
+    interface InterfaceAccessingAClass {
+        // TODO: this does not count as an access?
+        String SOME_CONSTANT = ClassBeingAccessedByInterface.SOME_CONSTANT;
+
+        // TODO Java 1.8: uncomment this access and enable tests areInterfaces_predicate and areNotInterfaces_predicate
+        // default void call() {
+        //     new ClassBeingAccessedByInterface();
+        // }
     }
 
     private static class ClassImplementingSomeInterface implements SomeInterface {

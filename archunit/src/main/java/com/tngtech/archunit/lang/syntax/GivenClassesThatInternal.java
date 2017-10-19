@@ -192,6 +192,16 @@ class GivenClassesThatInternal implements GivenClassesThat {
     }
 
     @Override
+    public GivenClassesConjunction areInterfaces() {
+        return givenWith(are(JavaClass.Predicates.INTERFACES));
+    }
+
+    @Override
+    public GivenClassesConjunction areNotInterfaces() {
+        return givenWith(are(not(JavaClass.Predicates.INTERFACES)));
+    }
+
+    @Override
     public GivenClassesConjunction arePublic() {
         return givenWith(ClassesThatPredicates.arePublic());
     }
