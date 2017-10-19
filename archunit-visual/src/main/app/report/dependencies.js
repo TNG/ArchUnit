@@ -13,8 +13,8 @@ const init = (View, DetailedView) => {
   let transformDependency;
 
   const fullnameSeparators = {
-    packageSeparator: ".",
-    classSeparator: "$"
+    packageSeparator: '.',
+    classSeparator: '$'
   };
 
   const isEmptyOrStartsWithFullnameSeparator = string => !string || string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
@@ -34,9 +34,8 @@ const init = (View, DetailedView) => {
     tmp.forEach(e => map.set(e[0], []));
     tmp.forEach(e => map.get(e[0]).push(e[1]));
 
-    return Array.from(map).map(([, dependencies]) => {
-      return getUniqueDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
-    });
+    return Array.from(map).map(([, dependencies]) =>
+      getUniqueDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies));
   };
 
   const transform = dependencies => ({
@@ -223,7 +222,7 @@ const init = (View, DetailedView) => {
       );
     }
 
-    if (jsonElement.hasOwnProperty("children")) {
+    if (jsonElement.hasOwnProperty('children')) {
       jsonElement.children.forEach(c => addAllDependenciesOfJsonElementToArray(c, arr));
     }
   };

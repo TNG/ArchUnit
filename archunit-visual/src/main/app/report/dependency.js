@@ -76,8 +76,7 @@ const init = (View, DetailedView, nodeMap) => {
     }
   };
 
-  //FIXME: rename to ElementaryDescritpion
-  const SingleDependencyDescription = class {
+  const ElementaryDependencyDescription = class {
     constructor(typeName) {
       this.typeName = typeName;
     }
@@ -99,7 +98,7 @@ const init = (View, DetailedView, nodeMap) => {
     }
   };
 
-  const AccessDescription = class extends SingleDependencyDescription {
+  const AccessDescription = class extends ElementaryDependencyDescription {
     constructor(typeName, startCodeUnit, targetElement) {
       super(typeName);
       this.startCodeUnit = startCodeUnit;
@@ -114,16 +113,12 @@ const init = (View, DetailedView, nodeMap) => {
       return true;
     }
 
-    /*toString() {
-      return this.startCodeUnit + ' ' + this.typeName + ' ' + this.targetElement;
-    }*/
-
     mergeAccessTypeWithOtherAccessType(accessTypeName) {
       return mergeTypeNames(this.typeName, accessTypeName);
     }
   };
 
-  const InheritanceDescription = class extends SingleDependencyDescription {
+  const InheritanceDescription = class extends ElementaryDependencyDescription {
     constructor(typeName) {
       super(typeName);
     }
@@ -252,7 +247,7 @@ const init = (View, DetailedView, nodeMap) => {
     }
 
     toString() {
-      return this.from + "->" + this.to + "(" + this.description.toString() + ")";
+      return this.from + '->' + this.to + '(' + this.description.toString() + ')';
     }
 
     getClass() {
@@ -262,7 +257,7 @@ const init = (View, DetailedView, nodeMap) => {
     toShortStringRelativeToPredecessors(from, to) {
       const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
       const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
-      return start + "->" + end;
+      return start + '->' + end;
     }
   };
 
