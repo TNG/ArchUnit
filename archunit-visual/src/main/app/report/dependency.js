@@ -280,7 +280,7 @@ const init = (View, DetailedView, nodeMap) => {
     };
   };
 
-  const createDependency = (from, to) => {
+  const getUniqueDependency = (from, to) => {
     const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new Dependency(from, to);
     allDependencies.set(`${from}-${to}`, dependency);
     return {
@@ -293,7 +293,7 @@ const init = (View, DetailedView, nodeMap) => {
     };
   };
 
-  const createNewDependency = (from, to) => {
+  const transformDependency = (from, to) => {
     const dependency = new Dependency(from, to);
     return {
       afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
@@ -313,8 +313,8 @@ const init = (View, DetailedView, nodeMap) => {
 
   return {
     createElementaryDependency: createElementaryDependency,
-    createDependency: createDependency,
-    createNewDependency: createNewDependency
+    getUniqueDependency: getUniqueDependency,
+    transformDependency: transformDependency
   };
 };
 

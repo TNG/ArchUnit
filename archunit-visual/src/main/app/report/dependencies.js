@@ -9,8 +9,8 @@ const d3 = require('d3');
 const init = (View, DetailedView) => {
   let nodes = new Map();
   let createElementaryDependency;
-  let createDependency;
-  let createNewDependency;
+  let getUniqueDependency;
+  let transformDependency;
 
   const fullnameSeparators = {
     packageSeparator: ".",
@@ -35,7 +35,7 @@ const init = (View, DetailedView) => {
     tmp.forEach(e => map.get(e[0]).push(e[1]));
 
     return Array.from(map).map(([, dependencies]) => {
-      return createDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
+      return getUniqueDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies);
     });
   };
 
@@ -61,9 +61,9 @@ const init = (View, DetailedView) => {
   const foldTransformer = foldedElement => (
     dependencies => {
       const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-        .to(r => createNewDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
+        .to(r => transformDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
       return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-        .to(r => createNewDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
+        .to(r => transformDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
     }
   );
 
@@ -238,8 +238,8 @@ const init = (View, DetailedView) => {
     nodes = nodeMap;
     const dependencyCreator = initDependency(View, DetailedView, nodeMap);
     createElementaryDependency = dependencyCreator.createElementaryDependency;
-    createDependency = dependencyCreator.createDependency;
-    createNewDependency = dependencyCreator.createNewDependency;
+    getUniqueDependency = dependencyCreator.getUniqueDependency;
+    transformDependency = dependencyCreator.transformDependency;
     const allDependencies = collectAllDependenciesOfJsonElement(jsonRoot);
     return new Dependencies(allDependencies);
   };
