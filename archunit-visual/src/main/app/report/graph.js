@@ -5,7 +5,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(root, dependencies) {
       this.root = root;
       this.dependencies = dependencies;
-      this.root.setOnDrag(node => this.dependencies.jumpSpecificToTheirPositions(node));
+      this.root.setOnDrag(node => this.dependencies.jumpSpecificDependenciesToTheirPositions(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.root.setOnFiltersChanged(() => this.dependencies.setNodeFilters(this.root.getFilters()));
       this.root.setOnLayoutChanged(() => this.dependencies.moveAllToTheirPositions());

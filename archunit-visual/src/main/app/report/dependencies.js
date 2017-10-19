@@ -123,11 +123,11 @@ const init = (View, DetailedView) => {
       this.getVisible().forEach(d => d.show());
     }
 
-    _jumpAllToPositions() {
+    _jumpAllToTheirPositions() {
       this.getVisible().forEach(d => d.jumpToPosition())
     }
 
-    jumpSpecificToTheirPositions(node) {
+    jumpSpecificDependenciesToTheirPositions(node) {
       this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.jumpToPosition());
     }
 
@@ -173,7 +173,7 @@ const init = (View, DetailedView) => {
       };
       this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
       this._filters.apply();
-      this._jumpAllToPositions();
+      this._jumpAllToTheirPositions();
     }
 
     getVisible() {

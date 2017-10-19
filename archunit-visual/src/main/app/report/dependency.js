@@ -275,6 +275,8 @@ const init = (View, DetailedView, nodeMap) => {
     };
   };
 
+  //TODO: maybe rename into getDependencyGroup and maybe separate classes for such a DependencyGroup and a
+  // ElementaryDependency
   const getUniqueDependency = (from, to) => {
     const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new Dependency(from, to);
     allDependencies.set(`${from}-${to}`, dependency);
