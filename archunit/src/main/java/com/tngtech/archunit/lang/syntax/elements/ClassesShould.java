@@ -670,4 +670,21 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
+
+
+    /**
+     * Asserts that classes are interfaces.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beInterfaces();
+
+    /**
+     * Asserts that classes are not interfaces.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeInterfaces();
 }
