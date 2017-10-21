@@ -51,12 +51,28 @@ class ClassCache {
 
     private LocationsKey locationsToImport(Class<?> testClass) {
         AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
+        Set<Location> declaredLocations = ImmutableSet.<Location>builder()
+                .addAll(getLocationsOfPackages(analyzeClasses))
+                .addAll(getLocationsOfProviders(analyzeClasses))
+                .build();
+        Set<Location> locations = declaredLocations.isEmpty() ? Locations.inClassPath() : declaredLocations;
+        return new LocationsKey(analyzeClasses.importOptions(), locations);
+    }
+
+    private Set<Location> getLocationsOfPackages(AnalyzeClasses analyzeClasses) {
         Set<String> packages = ImmutableSet.<String>builder()
                 .add(analyzeClasses.packages())
                 .addAll(toPackageStrings(analyzeClasses.packagesOf()))
                 .build();
-        Set<Location> locations = packages.isEmpty() ? Locations.inClassPath() : locationsOf(packages);
-        return new LocationsKey(analyzeClasses.importOptions(), locations);
+        return locationsOf(packages);
+    }
+
+    private Set<Location> getLocationsOfProviders(AnalyzeClasses analyzeClasses) {
+        Set<Location> result = new HashSet<>();
+        for (Class<? extends LocationProvider> providerClass : analyzeClasses.locations()) {
+            result.addAll(newInstanceOf(providerClass).get());
+        }
+        return result;
     }
 
     private Set<String> toPackageStrings(Class<?>[] classes) {
