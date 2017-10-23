@@ -140,7 +140,7 @@ const init = (View, DetailedView, visualizationStyles) => {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, fun => this.getVisible().forEach(d => fun(d._detailedView)), visualizationStyles, (from, to) => this.getDetailedDependenciesOf(from, to)));
+      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, fun => this.getVisible().forEach(d => fun(d._detailedView)), (from, to) => this.getDetailedDependenciesOf(from, to)));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {

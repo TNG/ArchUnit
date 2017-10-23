@@ -208,7 +208,7 @@ const init = (View, DetailedView, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    initView(svgElement, svgElementForDetailed, callForAllDetailedViews, visualizationStyles, getDetailedDependencies) {
+    initView(svgElement, svgElementForDetailed, callForAllDetailedViews, getDetailedDependencies) {
       if (!this._view) {
         this._view = new View(svgElement, this);
       }
