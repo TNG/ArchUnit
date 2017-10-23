@@ -4,9 +4,10 @@ const dependencyTypes = require('./dependency-types.json');
 const nodeTypes = require('./node-types.json');
 const initDependency = require('./dependency.js').init;
 
-const d3 = require('d3');
+const init = (View, DetailedView) => {
 
-const init = (View, DetailedView, visualizationStyles) => {
+  const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
+
   let nodes = new Map();
   let createElementaryDependency;
   let getUniqueDependency;
@@ -75,15 +76,16 @@ const init = (View, DetailedView, visualizationStyles) => {
   };
 
   const recreateVisibleDependencies = dependencies => {
+    const visibleDependenciesBefore = dependencies._visibleDependencies;
+    dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
     dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
-    dependencies._updateViewsOnVisibleDependenciesChanged();
+    dependencies._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
   };
 
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
       dependencies._elementary);
-    dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
     recreateVisibleDependencies(dependencies);
   };
 
@@ -119,8 +121,8 @@ const init = (View, DetailedView, visualizationStyles) => {
 
     initViews(svgElement, createDetailedDepsSvg) {
       const svgForDetailedDeps = createDetailedDepsSvg().node();
-      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, svgForDetailedDeps);
-      this._reassignViews(svgElement, svgForDetailedDeps);
+      this._updateViewsOnVisibleDependenciesChanged = (depsBefore) => this._reassignViews(svgElement, svgForDetailedDeps, depsBefore);
+      this._reassignViews(svgElement, svgForDetailedDeps, []);
       this.getVisible().forEach(d => d.show());
     }
 
@@ -136,10 +138,8 @@ const init = (View, DetailedView, visualizationStyles) => {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
     }
 
-    _reassignViews(svgElement, svgElementForDetailed) {
-      const map = new Map();
-      this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
-      d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
+    _reassignViews(svgElement, svgElementForDetailed, visibleDependenciesBefore) {
+      arrayDifference(visibleDependenciesBefore, this.getVisible()).forEach(d => d.hide());
       this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, fun => this.getVisible().forEach(d => fun(d._detailedView)), (from, to) => this.getDetailedDependenciesOf(from, to)));
     }
 
@@ -247,6 +247,6 @@ const init = (View, DetailedView, visualizationStyles) => {
   return jsonToDependencies;
 };
 
-module.exports.init = (View, DetailedView, visualizationStyles) => ({
-  jsonToDependencies: init(View, DetailedView, visualizationStyles)
+module.exports.init = (View, DetailedView) => ({
+  jsonToDependencies: init(View, DetailedView)
 });

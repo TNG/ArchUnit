@@ -72,7 +72,6 @@ module.exports.create = () => {
   const d3 = require('d3');
 
   const svg = d3.select('#visualization');
-  let gAllDetailedDeps;
 
   const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
   const appContext = require('./app-context').newInstance();
@@ -90,7 +89,7 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      const createDetailedDepsParent = () => gAllDetailedDeps = svg.append('g');
+      const createDetailedDepsParent = () => svg.append('g');
       graph.initView(svg.node(), createDetailedDepsParent);
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
