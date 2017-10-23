@@ -5,16 +5,14 @@ const d3 = require('d3');
 const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => {
 
   const View = class {
-    constructor(parentSvgElement, dependency, create, callForAllDetailedViews, visualizationStyles, getDetailedDependencies) {
+    constructor(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, visualizationStyles, getDetailedDependencies) {
       //FIXME: only save string out of from and to instead of whole object
-      this._dependency = dependency;
       this._isFixed = false;
-      this._createOfGraph = create;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._visualizationStyles = visualizationStyles;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
-      this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', `${dependency.from}-${dependency.to}`).node();
+      this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', dependencyIdentifier).node();
     }
 
     show(coordinates) {
@@ -22,7 +20,6 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
       if (detailedDeps.length > 0) {
         this.createIfNecessary();
         this._update(coordinates, detailedDeps);
-        this._createOfGraph(this._dependency, coordinates);
       }
     }
 
@@ -83,6 +80,10 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
         .attr('x', -maxWidth / 2 - textPadding)
         .attr('height', detailedDeps.length * (fontSize + textPadding) + 2 * textPadding)
         .attr('width', maxWidth + fontSize);
+
+      this._shouldBeHidden = false;
+      d3.select(this._svgElement).style('visibility', 'visible');
+      d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'all');
     }
 
     _unfix() {
