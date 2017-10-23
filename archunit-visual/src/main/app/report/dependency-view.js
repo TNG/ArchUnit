@@ -42,6 +42,7 @@ const init = (transitionDuration) => {
         .style('visibility', 'hidden')
         .style('stroke-width', clickAreaWidth);
 
+      //FIXME: save dependency here
       this.jumpToPosition(dependency);
     }
 

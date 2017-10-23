@@ -68,9 +68,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 module.exports.init = init; // FIXME: Make create() the only public API
 
 module.exports.create = () => {
-  /*
-   * padding between a line and its title
-   */
+
   const TEXT_PADDING = 5;
 
   const d3 = require('d3');
@@ -94,47 +92,7 @@ module.exports.create = () => {
     gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
   };
 
-  const updateDetailedDeps = (e, coordinates) => {
-    const detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
-    if (detailedDeps.length > 0) {
-
-      const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-      const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * TEXT_PADDING + 10;
-
-      gDetailedDeps.attr('transform', () => {
-        //ensure that the rect is visible on the left side
-        let x = Math.max(maxWidth / 2, coordinates[0]);
-        //ensure that the rect is visible on the right side
-        x = Math.min(x, svg.attr('width') - maxWidth / 2);
-        return `translate(${x}, ${coordinates[1]})`;
-      });
-
-      const tspans = gDetailedDeps.select('text.access')
-        .selectAll('tspan')
-        .data(detailedDeps);
-
-      const fontSize = visualizationStyles.getDependencyTitleFontSize();
-      tspans.exit().remove();
-
-      tspans.enter()
-        .append('tspan');
-
-      gDetailedDeps.select('text')
-        .selectAll('tspan')
-        .text(d => d.description)
-        .attr('class', d => d.cssClass)
-        .attr("x", -maxWidth / 2)
-        .attr("dy", () => fontSize + TEXT_PADDING);
-
-      gDetailedDeps.selectAll('rect')
-        .attr('x', -maxWidth / 2 - TEXT_PADDING)
-        .attr('height', detailedDeps.length * (fontSize + TEXT_PADDING) + 2 * TEXT_PADDING)
-        .attr('width', maxWidth + fontSize);
-    }
-  };
-
   const create = (e, coordinates) => {
-    updateDetailedDeps(e, coordinates);
     showDetailedDeps(e);
   };
 
