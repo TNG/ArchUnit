@@ -27,14 +27,13 @@ const init = (transitionDuration) => {
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
-          .data([dependency])
           .attr('id', dependency.getIdentifyingString())
           .style('visibility', 'hidden')
           .node();
 
       d3.select(this._svgElement)
         .append('line')
-        .attr('class', dependency.getClass());
+        .attr('class', dependency.getTypeNames());
 
       d3.select(this._svgElement)
         .append('line')
@@ -43,11 +42,11 @@ const init = (transitionDuration) => {
         .style('stroke-width', clickAreaWidth);
 
       //FIXME: save dependency here
-      this.jumpToPosition(dependency);
+      this.jumpToPosition(dependency.visualData);
     }
 
     refresh(dependency) {
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getClass());
+      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getTypeNames());
     }
 
     show(dependency) {
@@ -60,19 +59,19 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).select('line.area').style('pointer-events', 'none');
     }
 
-    _updateAreaPosition(dependency) {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), dependency.visualData);
+    _updateAreaPosition(dependencyVisualData) {
+      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), dependencyVisualData);
     }
 
-    jumpToPosition(dependency) {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependency.visualData);
-      this._updateAreaPosition(dependency);
+    jumpToPosition(dependencyVisualData) {
+      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependencyVisualData);
+      this._updateAreaPosition(dependencyVisualData);
     }
 
-    moveToPosition(dependency) {
+    moveToPosition(dependencyVisualData) {
       const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
-      const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
-      this._updateAreaPosition(dependency);
+      const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependencyVisualData));
+      this._updateAreaPosition(dependencyVisualData);
       return promise;
     }
 

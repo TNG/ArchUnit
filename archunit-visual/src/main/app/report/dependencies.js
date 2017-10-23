@@ -197,7 +197,7 @@ const init = (View, DetailedView) => {
       matching = getDependenciesMatching(matching, d => d.to, to);
       const detailedDeps = matching.map(d => ({
         description: d.toShortStringRelativeToPredecessors(from, to),
-        cssClass: d.getClass()
+        cssClass: d.getTypeNames()
       }));
       return makeUniqueByProperty(detailedDeps, d => d.description);
     }

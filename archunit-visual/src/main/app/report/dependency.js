@@ -222,10 +222,10 @@ const init = (View, DetailedView, nodeMap) => {
       }
 
       this.visualData._updateViewOnJumpedToPosition = () => {
-        this._view.jumpToPosition(this);
+        this._view.jumpToPosition(this.visualData);
         this.show();
       };
-      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this).then(() => this.show());
+      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this.visualData).then(() => this.show());
     }
 
     jumpToPosition() {
@@ -252,7 +252,7 @@ const init = (View, DetailedView, nodeMap) => {
       return `${this.from}->${this.to}(${this.description.toString()})`;
     }
 
-    getClass() {
+    getTypeNames() {
       return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
     }
 
