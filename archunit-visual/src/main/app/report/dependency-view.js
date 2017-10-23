@@ -11,7 +11,7 @@ const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
     .attr('y2', visualData.endPoint.y);
 };
 
-const init = (transitionDuration) => {
+const init = (DetailedView, transitionDuration) => {
 
   const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
     if (transition.empty()) {
@@ -23,7 +23,7 @@ const init = (transitionDuration) => {
   };
 
   const View = class {
-    constructor(parentSvgElement, dependency) {
+    constructor(parentSvgElement, dependency, callForAllViews, getDetailedDependencies) {
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
@@ -42,6 +42,15 @@ const init = (transitionDuration) => {
         .style('stroke-width', clickAreaWidth);
 
       this.jumpToPosition(dependency.visualData);
+
+      this._createDetailedView(parentSvgElement, dependency.getIdentifyingString(),
+        fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
+    }
+
+    _createDetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
+      this._detailedView = new DetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies);
+      this.onMouseOver(coords => this._detailedView.fadeIn(coords));
+      this.onMouseOut(() => this._detailedView.fadeOut());
     }
 
     refresh(dependency) {
@@ -91,6 +100,6 @@ const init = (transitionDuration) => {
   return View;
 };
 
-module.exports.init = (transitionDuration) => ({
-  View: init(transitionDuration)
+module.exports.init = (DetailedView, transitionDuration) => ({
+  View: init(DetailedView, transitionDuration)
 });

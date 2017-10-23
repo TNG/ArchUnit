@@ -4,7 +4,7 @@ const dependencyTypes = require('./dependency-types.json');
 
 const vectors = require('./vectors.js').vectors;
 
-const init = (View, DetailedView, nodeMap) => {
+const init = (View, nodeMap) => {
 
   const nodes = nodeMap;
   //FIXME: maybe store in dependencies instead of here??
@@ -208,17 +208,12 @@ const init = (View, DetailedView, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    initView(svgElement, callForAllDetailedViews, getDetailedDependencies) {
+    initView(svgElement, callForAllViews, getDetailedDependencies) {
       if (!this._view) {
-        this._view = new View(svgElement, this);
+        this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
       }
       else {
         this._view.refresh(this);
-      }
-      if (!this._detailedView) {
-        this._detailedView = new DetailedView(svgElement, this.getIdentifyingString(), callForAllDetailedViews, () => getDetailedDependencies(this.from, this.to));
-        this._view.onMouseOver(coords => this._detailedView.fadeIn(coords));
-        this._view.onMouseOut(() => this._detailedView.fadeOut());
       }
 
       this.visualData._updateViewOnJumpedToPosition = () => {
@@ -317,4 +312,4 @@ const init = (View, DetailedView, nodeMap) => {
   };
 };
 
-module.exports.init = (View, DetailedView, nodeMap) => init(View, DetailedView, nodeMap);
+module.exports.init = (View, nodeMap) => init(View, nodeMap);

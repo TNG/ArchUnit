@@ -4,7 +4,7 @@ const dependencyTypes = require('./dependency-types.json');
 const nodeTypes = require('./node-types.json');
 const initDependency = require('./dependency.js').init;
 
-const init = (View, DetailedView) => {
+const init = (View) => {
 
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
@@ -139,7 +139,8 @@ const init = (View, DetailedView) => {
 
     _reassignViews(svgElement, visibleDependenciesBefore) {
       arrayDifference(visibleDependenciesBefore, this.getVisible()).forEach(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, fun => this.getVisible().forEach(d => fun(d._detailedView)), (from, to) => this.getDetailedDependenciesOf(from, to)));
+      this.getVisible().forEach(d => d.initView(svgElement, fun => this.getVisible().forEach(d => fun(d._view)),
+        (from, to) => this.getDetailedDependenciesOf(from, to)));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {
@@ -235,7 +236,7 @@ const init = (View, DetailedView) => {
 
   const jsonToDependencies = (jsonRoot, nodeMap) => {
     nodes = nodeMap;
-    const dependencyCreator = initDependency(View, DetailedView, nodeMap);
+    const dependencyCreator = initDependency(View, nodeMap);
     createElementaryDependency = dependencyCreator.createElementaryDependency;
     getUniqueDependency = dependencyCreator.getUniqueDependency;
     transformDependency = dependencyCreator.transformDependency;
@@ -246,6 +247,6 @@ const init = (View, DetailedView) => {
   return jsonToDependencies;
 };
 
-module.exports.init = (View, DetailedView) => ({
-  jsonToDependencies: init(View, DetailedView)
+module.exports.init = (View) => ({
+  jsonToDependencies: init(View)
 });
