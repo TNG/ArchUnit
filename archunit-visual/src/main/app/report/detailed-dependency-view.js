@@ -6,11 +6,18 @@ const init = (appearDuration, hideDuration) => {
 
   const View = class {
     constructor(parentSvgElement, dependency, create, callForAllDetailedViews) {
+      //FIXME: only save string out of from and to instead of whole object
       this._dependency = dependency;
       this._isFixed = false;
       this._create = create;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._parentSvgElement = parentSvgElement;
+    }
+
+    createIfNecessary() {
+      if (d3.select(this._parentSvgElement).select(`g[id='${this._dependency.from}-${this._dependency.to}']`).empty()) {
+
+      }
     }
 
     hideIfNotFixed() {

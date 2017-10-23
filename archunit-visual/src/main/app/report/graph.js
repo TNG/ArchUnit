@@ -18,7 +18,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
 
       //FIXME: statt svgElementForDetailed lieber an g der jeweiligen Dependency dranhängen und vllt auch detailed
-      // view in dependency-view rein
+      // view in dependency-view rein (dann wird es automatisch mitgeschoben, was ja auf jeden Fall erwünscht ist)
       this.dependencies.initViews(this._view.gEdges, createDetailedDepsSvg, create);
     }
 
@@ -98,8 +98,6 @@ module.exports.create = () => {
     if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
       const gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
 
-      //FIXME: use d3 data (of course with an array of the element!)
-      gDetailedDeps.node()._data = e;
       gDetailedDeps.append('rect').attr('class', 'frame');
       gDetailedDeps.append('text').attr('class', 'access');
 
@@ -121,7 +119,7 @@ module.exports.create = () => {
       };
 
       gDetailedDeps.append('rect').attr('class', 'hoverArea')
-        .on('mouseover', () => showDetailedDeps(e))
+        .on('mouseover', () => e._detailedView._shouldBeHidden = false)
         .on('mouseout', () => e._detailedView.fadeOut())
         .on('click', () => {
           fixDetailedDeps();
