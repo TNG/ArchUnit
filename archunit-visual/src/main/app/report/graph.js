@@ -69,15 +69,12 @@ module.exports.init = init; // FIXME: Make create() the only public API
 
 module.exports.create = () => {
 
-  const TEXT_PADDING = 5;
-
   const d3 = require('d3');
 
   const svg = d3.select('#visualization');
   let gAllDetailedDeps;
 
   const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
-  const calculateTextWidth = require('./text-width-calculator');
   const appContext = require('./app-context').newInstance();
   const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
   const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
@@ -92,7 +89,7 @@ module.exports.create = () => {
     gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
   };
 
-  const create = (e, coordinates) => {
+  const create = (e) => {
     showDetailedDeps(e);
   };
 
