@@ -14,7 +14,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
     initView(svg) {
       this._view = new View(svg, this.root.visualData.r);
-
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
       this.dependencies.initViews(this._view.gEdges);
     }
@@ -25,10 +24,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
           node.fold();
         }
       });
-    }
-
-    getDetailedDependenciesOf(from, to) {
-      return this.dependencies.getDetailedDependenciesOf(from, to);
     }
 
     filterNodesByNameContaining(filterString) {
