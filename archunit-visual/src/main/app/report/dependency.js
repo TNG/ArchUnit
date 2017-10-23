@@ -149,7 +149,8 @@ const init = (View, DetailedView, nodeMap) => {
     }
 
     getDependencyTypeNamesAsString() {
-      return this.inheritanceTypeName + (this.inheritanceTypeName && this.accessTypeName ? ' ' : '') + this.accessTypeName;
+      const separator = this.inheritanceTypeName && this.accessTypeName ? ' ' : '';
+      return this.inheritanceTypeName + separator + this.accessTypeName;
     }
 
     toString() {
@@ -215,7 +216,7 @@ const init = (View, DetailedView, nodeMap) => {
         this._view.refresh(this);
       }
       if (!this._detailedView) {
-        this._detailedView = new DetailedView(svgElementForDetailed, `${this.from}-${this.to}`, callForAllDetailedViews, () => getDetailedDependencies(this.from, this.to));
+        this._detailedView = new DetailedView(svgElementForDetailed, this.getIdentifyingString(), callForAllDetailedViews, () => getDetailedDependencies(this.from, this.to));
         this._view.onMouseOver(coords => this._detailedView.fadeIn(coords));
         this._view.onMouseOut(() => this._detailedView.fadeOut());
       }
@@ -244,21 +245,21 @@ const init = (View, DetailedView, nodeMap) => {
     }
 
     getIdentifyingString() {
-      return this.from + '-' + this.to;
+      return `${this.from}-${this.to}`;
     }
 
     toString() {
-      return this.from + '->' + this.to + '(' + this.description.toString() + ')';
+      return `${this.from}->${this.to}(${this.description.toString()})`;
     }
 
     getClass() {
-      return 'dependency ' + this.description.getDependencyTypeNamesAsString();
+      return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
     }
 
     toShortStringRelativeToPredecessors(from, to) {
       const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
       const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
-      return start + '->' + end;
+      return `${start}->${end}`;
     }
   };
 
