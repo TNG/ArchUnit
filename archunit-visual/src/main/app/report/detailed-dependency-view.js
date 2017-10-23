@@ -18,6 +18,25 @@ const init = (appearDuration, hideDuration) => {
     createIfNecessary() {
       if (d3.select(this._parentSvgElement).select(`g[id='${this._dependency.from}-${this._dependency.to}']`).empty()) {
 
+        const svg = d3.select(this._parentSvgElement).append('g').attr('id', `${this._dependency.from}-${this._dependency.to}`);
+
+        svg.append('rect').attr('class', 'frame');
+        svg.append('text').attr('class', 'access');
+
+        svg.append('rect').attr('class', 'hoverArea')
+          .on('mouseover', () => this._shouldBeHidden = false)
+          .on('mouseout', () => this.fadeOut())
+          .on('click', () => this.fix());
+
+        const drag = d3.drag().on('drag', () => {
+          this.fix();
+          svg.attr('transform', () => {
+            const transform = svg.attr('transform');
+            const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
+            return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
+          });
+        });
+        svg.call(drag);
       }
     }
 
@@ -52,16 +71,13 @@ const init = (appearDuration, hideDuration) => {
       }
     }
 
-    _createSvgElements() {
-
-    }
-
     fadeIn(coordinates) {
       if (!this._isFixed) {
         this._shouldBeHidden = false;
         setTimeout(() => {
           if (!this._shouldBeHidden) {
             this._callForAllDetailedViews(d => d.hideIfNotFixed());
+            this.createIfNecessary();
             this._create(this._dependency, coordinates);
           }
         }, appearDuration);

@@ -94,32 +94,6 @@ module.exports.create = () => {
     gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
   };
 
-  const createDetailedDepsIfNecessary = e => {
-    if (gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`).empty()) {
-      const gDetailedDeps = gAllDetailedDeps.append('g').attr('id', `${e.from}-${e.to}`);
-
-      gDetailedDeps.append('rect').attr('class', 'frame');
-      gDetailedDeps.append('text').attr('class', 'access');
-
-      gDetailedDeps.append('rect').attr('class', 'hoverArea')
-        .on('mouseover', () => e._detailedView._shouldBeHidden = false)
-        .on('mouseout', () => e._detailedView.fadeOut())
-        .on('click', () => {
-          e._detailedView.fix();
-        });
-
-      const drag = d3.drag().on('drag', () => {
-        e._detailedView.fix();
-        gDetailedDeps.attr('transform', () => {
-          const transform = gDetailedDeps.attr('transform');
-          const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
-          return `translate(${translateBefore[0] + d3.event.dx}, ${translateBefore[1] + d3.event.dy})`
-        });
-      });
-      gDetailedDeps.call(drag);
-    }
-  };
-
   const updateDetailedDeps = (e, coordinates) => {
     const detailedDeps = graph.getDetailedDependenciesOf(e.from, e.to);
     if (detailedDeps.length > 0) {
@@ -160,7 +134,6 @@ module.exports.create = () => {
   };
 
   const create = (e, coordinates) => {
-    createDetailedDepsIfNecessary(e);
     updateDetailedDeps(e, coordinates);
     showDetailedDeps(e);
   };
