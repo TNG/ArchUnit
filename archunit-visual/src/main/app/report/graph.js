@@ -12,14 +12,14 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = Promise.resolve();
     }
 
-    initView(svg, svgElementForDetailed, create, hide) {
+    initView(svg, createDetailedDepsSvg, create) {
       this._view = new View(svg, this.root.visualData.r);
 
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
 
       //FIXME: statt svgElementForDetailed lieber an g der jeweiligen Dependency dranhängen und vllt auch detailed
       // view in dependency-view rein
-      this.dependencies.initViews(this._view.gEdges, svgElementForDetailed, create, hide);
+      this.dependencies.initViews(this._view.gEdges, createDetailedDepsSvg, create);
     }
 
     foldAllNodes() {
@@ -87,20 +87,11 @@ module.exports.create = () => {
 
   let graph;
 
-  const hideDetailedDeps = (e, gDetailedDeps) => {
-    if (!gDetailedDeps.empty() && !e._detailedView._isFixed) {
-      gDetailedDeps.select('.frame').style('visibility', 'hidden');
-      gDetailedDeps.select('.hoverArea').style('pointer-events', 'none');
-      gDetailedDeps.select('text').style('visibility', 'hidden');
-    }
-  };
-
   const showDetailedDeps = e => {
     e._detailedView._shouldBeHidden = false;
     const gDetailedDeps = gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`);
-    gDetailedDeps.select('.frame').style('visibility', 'visible');
+    gDetailedDeps.style('visibility', 'visible');
     gDetailedDeps.select('.hoverArea').style('pointer-events', 'all');
-    gDetailedDeps.select('text').style('visibility', 'visible');
   };
 
   const createDetailedDepsIfNecessary = e => {
@@ -122,7 +113,7 @@ module.exports.create = () => {
             .attr('dy', fontSize)
             .on('click', function () {
               e._detailedView._isFixed = false;
-              hideDetailedDeps(e, gDetailedDeps);
+              e._detailedView.hideIfNotFixed();
               d3.select(this).remove();
             });
           e._detailedView._isFixed = true;
@@ -131,7 +122,7 @@ module.exports.create = () => {
 
       gDetailedDeps.append('rect').attr('class', 'hoverArea')
         .on('mouseover', () => showDetailedDeps(e))
-        .on('mouseout', () => hideDetailedDeps(e, gDetailedDeps))
+        .on('mouseout', () => e._detailedView.fadeOut())
         .on('click', () => {
           fixDetailedDeps();
         });
@@ -188,16 +179,9 @@ module.exports.create = () => {
   };
 
   const create = (e, coordinates) => {
-    gAllDetailedDeps.selectAll('g').each(function () {
-      hideDetailedDeps(this._data, d3.select(this));
-    });
     createDetailedDepsIfNecessary(e);
     updateDetailedDeps(e, coordinates);
     showDetailedDeps(e);
-  };
-
-  const hide = (e) => {
-    hideDetailedDeps(e, gAllDetailedDeps.select(`g[id='${e.from}-${e.to}']`));
   };
 
   return new Promise((resolve, reject) => {
@@ -208,8 +192,8 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      graph.initView(svg.node(), gAllDetailedDeps, create, hide);
-      gAllDetailedDeps = svg.append('g');
+      const createDetailedDepsParent = () => gAllDetailedDeps = svg.append('g');
+      graph.initView(svg.node(), createDetailedDepsParent, create);
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.attachToMenu = menu => {

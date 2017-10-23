@@ -117,9 +117,10 @@ const init = (View, DetailedView) => {
       this._filters = newFilters(this);
     }
 
-    initViews(svgElement, svgElementForDetailed, create, hide) {
-      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, svgElementForDetailed, create, hide);
-      this._reassignViews(svgElement, svgElementForDetailed, create, hide);
+    initViews(svgElement, createDetailedDepsSvg, create) {
+      const svgForDetailedDeps = createDetailedDepsSvg().node();
+      this._updateViewsOnVisibleDependenciesChanged = () => this._reassignViews(svgElement, svgForDetailedDeps, create);
+      this._reassignViews(svgElement, svgForDetailedDeps, create);
       this.getVisible().forEach(d => d.show());
     }
 
@@ -135,11 +136,11 @@ const init = (View, DetailedView) => {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
     }
 
-    _reassignViews(svgElement, svgElementForDetailed, create, hide) {
+    _reassignViews(svgElement, svgElementForDetailed, create) {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, create, hide));
+      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, create, fun => this.getVisible().forEach(d => fun(d._detailedView))));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {

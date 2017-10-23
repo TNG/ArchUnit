@@ -7,6 +7,7 @@ const vectors = require('./vectors.js').vectors;
 const init = (View, DetailedView, nodeMap) => {
 
   const nodes = nodeMap;
+  //FIXME: maybe store in dependencies instead of here??
   const allDependencies = new Map();
 
   const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
@@ -206,7 +207,7 @@ const init = (View, DetailedView, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    initView(svgElement, svgElementForDetailed, create, hide) {
+    initView(svgElement, svgElementForDetailed, create, callForAllDetailedViews) {
       if (!this._view) {
         this._view = new View(svgElement, this);
       }
@@ -214,7 +215,7 @@ const init = (View, DetailedView, nodeMap) => {
         this._view.refresh(this);
       }
       if (!this._detailedView) {
-        this._detailedView = new DetailedView(svgElementForDetailed, this, create, hide);
+        this._detailedView = new DetailedView(svgElementForDetailed, this, create, callForAllDetailedViews);
         this._view.onMouseOver(coords => this._detailedView.fadeIn(coords));
         this._view.onMouseOut(() => this._detailedView.fadeOut());
       }
