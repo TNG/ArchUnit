@@ -1,15 +1,14 @@
 'use strict';
 
 const d3 = require('d3');
+const textPadding = 5;
 
-const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => {
+const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
-    constructor(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, visualizationStyles, getDetailedDependencies) {
-      //FIXME: only save string out of from and to instead of whole object
+    constructor(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
       this._isFixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
-      this._visualizationStyles = visualizationStyles;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
       this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', dependencyIdentifier).node();
@@ -31,15 +30,15 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
 
     _create() {
       this._svgElement = this._createSvgElement();
-      d3.select(this._svgElement).append('rect').attr('class', 'frame');
+      d3.select(this._svgElement).append('rect').attr('class', 'frame')
       d3.select(this._svgElement).append('text').attr('class', 'access');
       d3.select(this._svgElement).append('rect').attr('class', 'hoverArea')
         .on('mouseover', () => this._shouldBeHidden = false)
         .on('mouseout', () => this.fadeOut())
-        .on('click', () => this.fix());
+        .on('click', () => this._fix());
 
       const drag = d3.drag().on('drag', () => {
-        this.fix();
+        this._fix();
         d3.select(this._svgElement).attr('transform', () => {
           const transform = d3.select(this._svgElement).attr('transform');
           const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
@@ -64,7 +63,7 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
         .selectAll('tspan')
         .data(detailedDeps);
 
-      const fontSize = this._visualizationStyles.getDependencyTitleFontSize();
+      const fontSize = visualizationStyles.getDependencyTitleFontSize();
 
       tspans.exit().remove();
       tspans.enter().append('tspan');
@@ -86,15 +85,9 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
       d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'all');
     }
 
-    _unfix() {
-      this._isFixed = false;
-      this.hideIfNotFixed();
-      d3.select(this._svgElement).select('text.closeButton').remove();
-    }
-
-    fix() {
+    _fix() {
       if (!this._isFixed) {
-        const fontSize = this._visualizationStyles.getDependencyTitleFontSize();
+        const fontSize = visualizationStyles.getDependencyTitleFontSize();
         const dx = d3.select(this._svgElement).select('.hoverArea').attr('width') / 2 - fontSize / 2;
         d3.select(this._svgElement).append('text')
           .attr('class', 'closeButton')
@@ -106,7 +99,13 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
       }
     }
 
-    hideIfNotFixed() {
+    _unfix() {
+      this._isFixed = false;
+      this._hideIfNotFixed();
+      d3.select(this._svgElement).select('text.closeButton').remove();
+    }
+
+    _hideIfNotFixed() {
       if (!this._isFixed) {
         d3.select(this._svgElement).style('visibility', 'hidden');
         d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'none');
@@ -118,10 +117,10 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
         this._shouldBeHidden = false;
         setTimeout(() => {
           if (!this._shouldBeHidden) {
-            this._callForAllDetailedViews(d => d.hideIfNotFixed());
+            this._callForAllDetailedViews(d => d._hideIfNotFixed());
             this.show(coordinates);
           }
-        }, appearDuration);
+        }, transitionDuration);
       }
     }
 
@@ -129,15 +128,15 @@ const init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => 
       this._shouldBeHidden = true;
       setTimeout(() => {
         if (this._shouldBeHidden) {
-          this.hideIfNotFixed();
+          this._hideIfNotFixed();
         }
-      }, hideDuration);
+      }, transitionDuration);
     }
   };
 
   return View;
 };
 
-module.exports.init = (appearDuration, hideDuration, textPadding, calculateTextWidth) => ({
-  View: init(appearDuration, hideDuration, textPadding, calculateTextWidth)
+module.exports.init = (appearDuration, hideDuration, textPadding, calculateTextWidth, visualizationStyles) => ({
+  View: init(appearDuration, hideDuration, textPadding, calculateTextWidth, visualizationStyles)
 });

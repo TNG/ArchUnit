@@ -30,19 +30,16 @@ const init = (getNodeView, getDependencyView, getDetailedDependencyView, getGrap
 };
 
 const TRANSITION_DURATION = 300;
-const APPEAR_DURATION = 200;
-const HIDE_DURATION = 300;
-const TEXT_PADDING = 5;
 
 module.exports.newInstance = overrides => {
   overrides = overrides || {};
 
   const getCalculateTextWidth = () => overrides.calculateTextWidth || require('./text-width-calculator');
+  const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
   const getNodeView = () => overrides.NodeView || require('./node-view').init(TRANSITION_DURATION).View;
   const getDependencyView = () => overrides.DependencyView || require('./dependency-view').init(TRANSITION_DURATION).View;
-  const getDetailedDependencyView = () => overrides.DetailedDependencyView || require('./detailed-dependency-view').init(APPEAR_DURATION, HIDE_DURATION, TEXT_PADDING, getCalculateTextWidth()).View;
+  const getDetailedDependencyView = () => overrides.DetailedDependencyView || require('./detailed-dependency-view').init(TRANSITION_DURATION, getCalculateTextWidth(), getVisualizationStyles()).View;
   const getGraphView = () => overrides.GraphView || require('./graph-view').init(TRANSITION_DURATION).View;
-  const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
 
   return init(getNodeView, getDependencyView, getDetailedDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth);
 };
