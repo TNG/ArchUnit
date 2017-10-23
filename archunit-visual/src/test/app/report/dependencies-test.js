@@ -432,7 +432,7 @@ describe("Dependencies", () => {
       "testclass1()->field1",
       "testclass1()->targetMethod()"
     ];
-    const act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
+    const act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
       .map(d => d.description);
     expect(act).to.containExactlyDependencies(exp);
   });
@@ -440,7 +440,7 @@ describe("Dependencies", () => {
   it("lists correctly the detailed dependencies of class with inner classes depending on the fold-state of the class", () => {
     const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
 
-    let act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
+    let act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
       .map(d => d.description);
     let exp = [
       "testclass1()->field1"
@@ -449,7 +449,7 @@ describe("Dependencies", () => {
 
     graphWrapper.getNode("com.tngtech.test.testclass1").changeFold();
     return graphWrapper.graph.root.updatePromise.then(() => {
-      act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
+      act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
         .map(d => d.description);
       exp = [
         "testclass1()->field1",
@@ -469,7 +469,7 @@ describe("Dependencies", () => {
       "testclass1.testclass1()->targetMethod()",
       "subtest.subtestclass1.startMethod1()->targetMethod()",
     ];
-    const act = graphWrapper.graph.getDetailedDependenciesOf("com.tngtech.test", "com.tngtech.class2").map(d => d.description);
+    const act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test", "com.tngtech.class2").map(d => d.description);
     expect(act).to.containExactlyDependencies(exp);
   });
 });
