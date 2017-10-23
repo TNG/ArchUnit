@@ -12,14 +12,11 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.updatePromise = Promise.resolve();
     }
 
-    initView(svg, createDetailedDepsSvg) {
+    initView(svg) {
       this._view = new View(svg, this.root.visualData.r);
 
       this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
-
-      //FIXME: statt svgElementForDetailed lieber an g der jeweiligen Dependency dranhängen und vllt auch detailed
-      // view in dependency-view rein (dann wird es automatisch mitgeschoben, was ja auf jeden Fall erwünscht ist)
-      this.dependencies.initViews(this._view.gEdges, createDetailedDepsSvg);
+      this.dependencies.initViews(this._view.gEdges);
     }
 
     foldAllNodes() {
@@ -89,8 +86,7 @@ module.exports.create = () => {
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
       graph = jsonToGraph(jsonroot);
-      const createDetailedDepsParent = () => svg.append('g');
-      graph.initView(svg.node(), createDetailedDepsParent);
+      graph.initView(svg.node());
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.attachToMenu = menu => {

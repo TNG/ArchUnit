@@ -119,10 +119,9 @@ const init = (View, DetailedView) => {
       this._filters = newFilters(this);
     }
 
-    initViews(svgElement, createDetailedDepsSvg) {
-      const svgForDetailedDeps = createDetailedDepsSvg().node();
-      this._updateViewsOnVisibleDependenciesChanged = (depsBefore) => this._reassignViews(svgElement, svgForDetailedDeps, depsBefore);
-      this._reassignViews(svgElement, svgForDetailedDeps, []);
+    initViews(svgElement) {
+      this._updateViewsOnVisibleDependenciesChanged = depsBefore => this._reassignViews(svgElement, depsBefore);
+      this._reassignViews(svgElement, []);
       this.getVisible().forEach(d => d.show());
     }
 
@@ -138,9 +137,9 @@ const init = (View, DetailedView) => {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
     }
 
-    _reassignViews(svgElement, svgElementForDetailed, visibleDependenciesBefore) {
+    _reassignViews(svgElement, visibleDependenciesBefore) {
       arrayDifference(visibleDependenciesBefore, this.getVisible()).forEach(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, fun => this.getVisible().forEach(d => fun(d._detailedView)), (from, to) => this.getDetailedDependenciesOf(from, to)));
+      this.getVisible().forEach(d => d.initView(svgElement, fun => this.getVisible().forEach(d => fun(d._detailedView)), (from, to) => this.getDetailedDependenciesOf(from, to)));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {

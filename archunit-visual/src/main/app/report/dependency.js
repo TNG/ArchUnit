@@ -208,7 +208,7 @@ const init = (View, DetailedView, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    initView(svgElement, svgElementForDetailed, callForAllDetailedViews, getDetailedDependencies) {
+    initView(svgElement, callForAllDetailedViews, getDetailedDependencies) {
       if (!this._view) {
         this._view = new View(svgElement, this);
       }
@@ -216,7 +216,7 @@ const init = (View, DetailedView, nodeMap) => {
         this._view.refresh(this);
       }
       if (!this._detailedView) {
-        this._detailedView = new DetailedView(svgElementForDetailed, this.getIdentifyingString(), callForAllDetailedViews, () => getDetailedDependencies(this.from, this.to));
+        this._detailedView = new DetailedView(svgElement, this.getIdentifyingString(), callForAllDetailedViews, () => getDetailedDependencies(this.from, this.to));
         this._view.onMouseOver(coords => this._detailedView.fadeIn(coords));
         this._view.onMouseOut(() => this._detailedView.fadeOut());
       }

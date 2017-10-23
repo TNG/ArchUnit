@@ -11,7 +11,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
-      this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', dependencyIdentifier).node();
+      this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', `detailed_${dependencyIdentifier}`).node();
     }
 
     show(coordinates) {
