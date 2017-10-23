@@ -61,27 +61,23 @@ module.exports.init = init; // FIXME: Make create() the only public API
 
 module.exports.create = () => {
 
-  const d3 = require('d3');
-
-  const svg = d3.select('#visualization');
-
-  const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
-  const appContext = require('./app-context').newInstance();
-  const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
-  const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
-  const graphView = appContext.getGraphView();
-
-  let graph;
-
   return new Promise((resolve, reject) => {
+    const d3 = require('d3');
+
     d3.json('80/classes.json', function (error, jsonroot) {
       if (error) {
         return reject(error);
       }
 
+      const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
+      const appContext = require('./app-context').newInstance();
+      const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
+      const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
+      const graphView = appContext.getGraphView();
+
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
-      graph = jsonToGraph(jsonroot);
-      graph.initView(svg.node());
+      const graph = jsonToGraph(jsonroot);
+      graph.initView(d3.select('#visualization').node());
 
       //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
       graph.attachToMenu = menu => {
