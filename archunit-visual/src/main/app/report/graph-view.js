@@ -17,8 +17,8 @@ const init = (transitionDuration) => {
     constructor(svg, rootRadius) {
       this._svg = svg;
       this._translater = d3.select(this._svg).append('g').attr('id', 'translater').node();
-      this.gTree = d3.select(this._translater).append('g').node();
-      this.gEdges = d3.select(this._translater).append('g').node();
+      this.svgElementForNodes = d3.select(this._translater).append('g').node();
+      this.svgElementForDependencies = d3.select(this._translater).append('g').node();
       this.render(rootRadius);
     }
 

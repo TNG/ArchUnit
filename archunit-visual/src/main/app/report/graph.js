@@ -14,8 +14,8 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
     initView(svg) {
       this._view = new View(svg, this.root.visualData.r);
-      this.root.initView(this._view.gTree, () => this._view.renderWithTransition(this.root.getRadius()));
-      this.dependencies.initViews(this._view.gEdges);
+      this.root.initView(this._view.svgElementForNodes, () => this._view.renderWithTransition(this.root.getRadius()));
+      this.dependencies.initViews(this._view.svgElementForDependencies);
     }
 
     foldAllNodes() {
