@@ -6,7 +6,7 @@ const initDependency = require('./dependency.js').init;
 
 const d3 = require('d3');
 
-const init = (View, DetailedView) => {
+const init = (View, DetailedView, visualizationStyles) => {
   let nodes = new Map();
   let createElementaryDependency;
   let getUniqueDependency;
@@ -140,7 +140,7 @@ const init = (View, DetailedView) => {
       const map = new Map();
       this.getVisible().forEach(d => map.set(d.getIdentifyingString(), d));
       d3.select(svgElement).selectAll('g').filter(d => !map.has(d.getIdentifyingString())).each(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, create, fun => this.getVisible().forEach(d => fun(d._detailedView))));
+      this.getVisible().forEach(d => d.initView(svgElement, svgElementForDetailed, create, fun => this.getVisible().forEach(d => fun(d._detailedView)), visualizationStyles));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {
@@ -247,6 +247,6 @@ const init = (View, DetailedView) => {
   return jsonToDependencies;
 };
 
-module.exports.init = (View, DetailedView) => ({
-  jsonToDependencies: init(View, DetailedView)
+module.exports.init = (View, DetailedView, visualizationStyles) => ({
+  jsonToDependencies: init(View, DetailedView, visualizationStyles)
 });

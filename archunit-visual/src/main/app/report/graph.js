@@ -101,32 +101,15 @@ module.exports.create = () => {
       gDetailedDeps.append('rect').attr('class', 'frame');
       gDetailedDeps.append('text').attr('class', 'access');
 
-      const fixDetailedDeps = () => {
-        if (gDetailedDeps.select('.closeButton').empty()) {
-          const fontSize = visualizationStyles.getDependencyTitleFontSize();
-          gDetailedDeps.append('text')
-            .attr('class', 'closeButton')
-            .text('x')
-            .attr('dx', gDetailedDeps.select('.hoverArea').attr('width') / 2 - fontSize / 2)
-            .attr('dy', fontSize)
-            .on('click', function () {
-              e._detailedView._isFixed = false;
-              e._detailedView.hideIfNotFixed();
-              d3.select(this).remove();
-            });
-          e._detailedView._isFixed = true;
-        }
-      };
-
       gDetailedDeps.append('rect').attr('class', 'hoverArea')
         .on('mouseover', () => e._detailedView._shouldBeHidden = false)
         .on('mouseout', () => e._detailedView.fadeOut())
         .on('click', () => {
-          fixDetailedDeps();
+          e._detailedView.fix();
         });
 
       const drag = d3.drag().on('drag', () => {
-        fixDetailedDeps();
+        e._detailedView.fix();
         gDetailedDeps.attr('transform', () => {
           const transform = gDetailedDeps.attr('transform');
           const translateBefore = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",").map(s => parseInt(s));
