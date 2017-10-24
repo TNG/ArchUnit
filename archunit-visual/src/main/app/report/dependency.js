@@ -35,6 +35,7 @@ const init = (View, nodeMap) => {
       return this._updateViewOnMovedToPosition();
     }
 
+    // FIXME AU-24: Insufficient tests, I can comment out lines, e.g. in the mustShareNodes case, and everything is still green
     recalc(absVisualStartNode, absVisualEndNode) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode),

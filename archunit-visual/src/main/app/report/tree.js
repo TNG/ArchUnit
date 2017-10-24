@@ -278,6 +278,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this.visualData.r;
     }
 
+    // FIXME AU-24: I think this name got broken during rebase, coords don't have 'r' -> find better name
     /**
      * Coordinates ({x, y}) with respect to the root node.
      */

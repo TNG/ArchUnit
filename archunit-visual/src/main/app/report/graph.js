@@ -26,6 +26,9 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       });
     }
 
+    // FIXME AU-24: Filters do not belong to 'root', if graph coordinates everything.
+    // This is a remnant from the time when I wasn't sure if dependencies would be moved into the nodes.
+    // Since this didn't happen, Graph should be ne master of all filtering, i.e. also house the filters object
     filterNodesByNameContaining(filterString) {
       this.updatePromise = this.updatePromise.then(() => this.root.filterByName(filterString, false));
     }
@@ -78,7 +81,7 @@ module.exports.create = () => {
       const graph = jsonToGraph(jsonroot);
       graph.initView(d3.select('#visualization').node());
 
-      //FIXME: Only temporary, we need to decompose this further and separate d3 into something like 'renderer'
+      //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {
         menu.initializeSettings(
           {
