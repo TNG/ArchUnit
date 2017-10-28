@@ -6,4 +6,4 @@ script:
 jdk:
   - oraclejdk8
 
-sudo: false
+sudo: required
