@@ -44,6 +44,12 @@ public @interface AnalyzeClasses {
     Class<?>[] packagesOf() default {};
 
     /**
+     * @return Implementations of {@link LocationProvider}. Allows to completely customize the sources,
+     * where classes are imported from.
+     */
+    Class<? extends LocationProvider>[] locations() default {};
+
+    /**
      * Allows to filter the class import. The supplied types will be instantiated and used to create the
      * {@link ImportOptions} passed to the {@link ClassFileImporter}. Considering caching, compare the notes on
      * {@link ImportOption}.

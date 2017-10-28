@@ -1,10 +1,13 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Set;
+
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
@@ -15,6 +18,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
@@ -94,6 +98,13 @@ public class ClassCacheTest {
     }
 
     @Test
+    public void get_all_classes_by_LocationProvider() {
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviders.class);
+
+        assertThatClasses(classes).contain(String.class, Rule.class, getClass());
+    }
+
+    @Test
     public void filters_urls() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
 
@@ -156,6 +167,12 @@ public class ClassCacheTest {
     public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
     }
 
+    @AnalyzeClasses(
+            packagesOf = ClassCacheTest.class,
+            locations = {TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class})
+    public static class TestClassWithLocationProviders {
+    }
+
     public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
@@ -169,6 +186,20 @@ public class ClassCacheTest {
         @Override
         public boolean includes(Location location) {
             return filter.includes(location);
+        }
+    }
+
+    static class TestLocationProviderOfClass_String implements LocationProvider {
+        @Override
+        public Set<Location> get() {
+            return Locations.ofClass(String.class);
+        }
+    }
+
+    static class TestLocationProviderOfClass_Rule implements LocationProvider {
+        @Override
+        public Set<Location> get() {
+            return Locations.ofClass(Rule.class);
         }
     }
 }
