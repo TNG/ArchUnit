@@ -533,7 +533,6 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
-    @Ignore("Only applicable starting with Java 8 (access from default methods)")
     public void areInterfaces_predicate() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport (
                 classes().should().onlyBeAccessed().byClassesThat().areInterfaces())
@@ -543,7 +542,6 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
-    @Ignore("Only applicable starting with Java 8 (access from default methods)")
     public void areNotInterfaces_predicate() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classes().should().onlyBeAccessed().byClassesThat().areNotInterfaces())
@@ -664,17 +662,11 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     private static class ClassBeingAccessedByInterface {
-        static final String SOME_CONSTANT = "Some value";
+        static final Object SOME_CONSTANT = "Some value";
     }
 
     interface InterfaceAccessingAClass {
-        // TODO: this does not count as an access?
-        String SOME_CONSTANT = ClassBeingAccessedByInterface.SOME_CONSTANT;
-
-        // TODO Java 1.8: uncomment this access and enable tests areInterfaces_predicate and areNotInterfaces_predicate
-        // default void call() {
-        //     new ClassBeingAccessedByInterface();
-        // }
+        Object SOME_CONSTANT = ClassBeingAccessedByInterface.SOME_CONSTANT;
     }
 
     private static class ClassImplementingSomeInterface implements SomeInterface {
