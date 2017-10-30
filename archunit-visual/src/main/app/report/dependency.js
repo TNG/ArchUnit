@@ -188,11 +188,6 @@ const init = (View, nodeMap) => {
     constructor(from, to) {
       this.from = from;
       this.to = to;
-      this.visualData = new VisualData();
-    }
-
-    hasDetailedDescription() {
-      return !containsPackage(this.from, this.to) && this.description.hasDetailedDescription();
     }
 
     getStartNode() {
@@ -201,6 +196,33 @@ const init = (View, nodeMap) => {
 
     getEndNode() {
       return nodes.getByName(this.to);
+    }
+
+    toShortStringRelativeToPredecessors(from, to) {
+      const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
+      const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
+      return `${start}->${end}`;
+    }
+
+    getTypeNames() {
+      return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
+    }
+  };
+
+  const ElementaryDependency = class extends Dependency {
+    constructor(from, to) {
+      super(from, to);
+    }
+  };
+
+  const GroupedDependency = class extends Dependency {
+    constructor(from, to) {
+      super(from, to);
+      this.visualData = new VisualData();
+    }
+
+    hasDetailedDescription() {
+      return !containsPackage(this.from, this.to) && this.description.hasDetailedDescription();
     }
 
     initView(svgElement, callForAllViews, getDetailedDependencies) {
@@ -241,16 +263,6 @@ const init = (View, nodeMap) => {
     toString() {
       return `${this.from}->${this.to}(${this.description.toString()})`;
     }
-
-    getTypeNames() {
-      return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
-    }
-
-    toShortStringRelativeToPredecessors(from, to) {
-      const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
-      const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
-      return `${start}->${end}`;
-    }
   };
 
   const containsPackage = (from, to) => {
@@ -258,7 +270,7 @@ const init = (View, nodeMap) => {
   };
 
   const createElementaryDependency = (from, to) => {
-    const dependency = new Dependency(from, to);
+    const dependency = new ElementaryDependency(from, to);
     return {
       withDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
         dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
@@ -270,7 +282,7 @@ const init = (View, nodeMap) => {
   //TODO: maybe rename into getDependencyGroup and maybe separate classes for such a DependencyGroup and a
   // ElementaryDependency
   const getUniqueDependency = (from, to) => {
-    const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new Dependency(from, to);
+    const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new GroupedDependency (from, to);
     allDependencies.set(`${from}-${to}`, dependency);
     return {
       byGroupingDependencies: function (dependencies) {
@@ -283,7 +295,7 @@ const init = (View, nodeMap) => {
   };
 
   const transformDependency = (from, to) => {
-    const dependency = new Dependency(from, to);
+    const dependency = new ElementaryDependency(from, to);
     return {
       afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
         if (containsPackage(from, to)) {
