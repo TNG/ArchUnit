@@ -188,17 +188,11 @@ const init = (View, nodeMap) => {
     constructor(from, to) {
       this.from = from;
       this.to = to;
-      /**
-       * true, if there are two Dependencies (with different directions) between the same two nodes.
-       * In this case, the lines must have some space between each other
-       * @type {boolean}
-       */
-      this.containsPkg = containsPackage(this.from, this.to);
       this.visualData = new VisualData();
     }
 
     hasDetailedDescription() {
-      return !this.containsPkg && this.description.hasDetailedDescription();
+      return !containsPackage(this.from, this.to) && this.description.hasDetailedDescription();
     }
 
     getStartNode() {
