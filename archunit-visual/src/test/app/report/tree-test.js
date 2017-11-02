@@ -9,7 +9,31 @@ const testObjects = require("./test-object-creator.js");
 const testTree = testObjects.tree;
 const visualizationStyles = testObjects.visualizationStyles;
 const calculateTextWidth = testObjects.calculateTextWidth;
-const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
+const NodeView = class {
+  show() {
+  }
+
+  hide() {
+  }
+
+  jumpToPosition() {
+  }
+
+  moveToPosition() {
+    return Promise.resolve();
+  }
+
+  moveToRadius() {
+    return Promise.resolve();
+  }
+
+  onClick() {
+  }
+
+  onDrag() {
+  }
+};
+const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth, NodeView});
 const jsonToRoot = appContext.getJsonToRoot();
 
 describe("Node", () => {
@@ -308,10 +332,6 @@ describe("Layout of nodes", () => {
 describe("Dragging nodes", () => {
   it("can be dragged", () => {
     const tree = testTree('root.SomeClass1', 'root.SomeClass2');
-    tree._callOnSelfThenEveryDescendant(node => node._view = {
-      updatePosition: () => {
-      }
-    });
 
     const toDrag = tree.getByName('root.SomeClass1');
     const dx = 1;
@@ -341,10 +361,6 @@ describe("Dragging nodes", () => {
       'root.SomeClass',
       'root.sub.SubClass1',
       'root.sub.SubClass2');
-    root._callOnSelfThenEveryDescendant(node => node._view = {
-      updatePosition: () => {
-      }
-    });
 
     const toDrag = root.getByName('root.sub');
     const dx = -5, dy = 4;
@@ -365,10 +381,6 @@ describe("Dragging nodes", () => {
       'root.other',
       'root.parent.SomeClass1',
       'root.parent.SomeClass2');
-    tree._callOnSelfThenEveryDescendant(node => node._view = {
-      updatePosition: () => {
-      }
-    });
 
     const toDrag = tree.getByName('root.parent.SomeClass1');
     const parent = toDrag.getParent();
@@ -387,10 +399,6 @@ describe("Dragging nodes", () => {
     const tree = testTree(
       'root.SomeClass1',
       'root.SomeClass2');
-    tree._callOnSelfThenEveryDescendant(node => node._view = {
-      updatePosition: () => {
-      }
-    });
 
     const toDrag = tree.getByName('root.SomeClass1');
     const parent = toDrag.getParent();

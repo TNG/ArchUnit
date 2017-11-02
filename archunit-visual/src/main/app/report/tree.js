@@ -111,30 +111,31 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   });
 
   const Node = class {
-    constructor(jsonNode, root) {
+    constructor(jsonNode, root, svgContainer, onRadiusChanged = () => Promise.resolve()) {
       this._root = root;
       if (!root) {
         this._root = this;
       }
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
+      this.visualData = new VisualData();
+      this._text = new NodeText(this);
+      this._folded = false;
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root));
+      //FIXME: this is only provisional (to make isLeaf() work)
+      this._filteredChildren = Array.from(jsonNode.children || []);
+
+      this.initView(svgContainer, onRadiusChanged);
+
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root, this._view._svgElement));
       this._originalChildren.forEach(c => c._parent = this);
 
       this._filteredChildren = this._originalChildren;
-      this._folded = false;
       this._filters = newFilters(this);
 
       this._listener = [];
 
-      this._updateViewOnCurrentChildrenChanged = () => {
-      };
-
-      this.visualData = new VisualData();
-      this._text = new NodeText(this);
-
       if (!root) {
-        this.updatePromise = this.relayout();
+        this.updatePromise = Promise.resolve();
       }
     }
 
@@ -181,7 +182,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     isRoot() {
-      return !this._parent;
+      return this._root === this;
     }
 
     _isLeaf() {
@@ -280,7 +281,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
 
       this.visualData._updateViewOnJumpedToPosition = () => this._view.jumpToPosition(this.visualData);
-      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged()]);
+      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]);
       this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this.visualData).then(() => this._view.show());
 
       if (!this.isRoot() && !this._isLeaf()) {
@@ -292,8 +293,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._view.onDrag((dx, dy) => {
         this._drag(dx, dy);
       });
-
-      this._originalChildren.forEach(child => child.initView(this._view._svgElement, () => Promise.resolve()));
     }
 
     /**
@@ -371,8 +370,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  return jsonRoot => {
-    const root = new Node(jsonRoot);
+  return (jsonRoot, svgContainer, onRadiusChanged) => {
+    const root = new Node(jsonRoot, null, svgContainer, onRadiusChanged);
 
     const map = new Map();
     root._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));

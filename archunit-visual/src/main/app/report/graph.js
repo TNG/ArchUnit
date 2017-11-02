@@ -3,14 +3,13 @@
 const init = (jsonToRoot, jsonToDependencies, View) => {
   const Graph = class {
     constructor(jsonRoot, svg) {
-      this.root = jsonToRoot(jsonRoot);
+      this._view = new View(svg);
+      this.root = jsonToRoot(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = jsonToDependencies(jsonRoot, this.root);
       this.root.addListener(this.dependencies.createListener());
-      this.updatePromise = Promise.resolve();
-
-      this._view = new View(svg);
-      this.root.initView(this._view.svgElementForNodes, () => this._view.renderWithTransition(this.root.getRadius()));
       this.dependencies.initViews(this._view.svgElementForDependencies);
+
+      this.updatePromise = this.root.relayout();
     }
 
     foldAllNodes() {

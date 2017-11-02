@@ -14,13 +14,10 @@ const init = (transitionDuration) => {
         .data([node])
         .attr('id', node.getFullName())
         .attr('class', node.getClass())
-        .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
-        .style('visibility', 'hidden')
         .node();
 
       this._circle = d3.select(this._svgElement)
         .append('circle')
-        .attr('r', node.visualData.r)
         .node();
 
       if (node.isRoot()) {
@@ -32,7 +29,6 @@ const init = (transitionDuration) => {
       this._text = d3.select(this._svgElement)
         .append('text')
         .text(node.getName())
-        .attr('dy', node.getText().getY())
         .node();
     }
 
