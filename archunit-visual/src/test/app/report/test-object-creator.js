@@ -4,7 +4,59 @@ const testJson = require("./test-json-creator");
 const visualizationStyles = require('./stubs').visualizationStylesStub();
 visualizationStyles.setCirclePadding(10);
 const calculateTextWidth = text => text.length * 7;
-const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth});
+
+const GraphView = class {
+  renderWithTransition() {
+    return Promise.resolve();
+  }
+};
+
+const NodeView = class {
+  show() {
+  }
+
+  hide() {
+  }
+
+  jumpToPosition() {
+  }
+
+  moveToPosition() {
+    return Promise.resolve();
+  }
+
+  moveToRadius() {
+    return Promise.resolve();
+  }
+
+  onClick() {
+  }
+
+  onDrag() {
+  }
+};
+const DependencyView = class {
+  show() {
+  }
+
+  hide() {
+  }
+
+  refresh() {
+  }
+
+  jumpToPosition() {
+  }
+
+  moveToPosition() {
+    return Promise.resolve();
+  }
+};
+
+const appContext = require('./main-files').get('app-context').newInstance({
+  GraphView, NodeView, DependencyView,
+  visualizationStyles, calculateTextWidth
+});
 
 const jsonToRoot = appContext.getJsonToRoot();
 const jsonToGraph = appContext.getJsonToGraph();

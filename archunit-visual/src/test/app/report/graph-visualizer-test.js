@@ -25,10 +25,6 @@ describe("Visual data of dependency", () => {
 
   it("refreshes its end positions correctly if a node is dragged", () => {
     const graphWrapper = testObjects.testGraph2();
-    graphWrapper.graph.root._callOnSelfThenEveryDescendant(node => node._view = {
-      updatePosition: () => {
-      }
-    });
 
     const toChange = "com.tngtech.test.testclass1";
     const node = graphWrapper.getNode(toChange);

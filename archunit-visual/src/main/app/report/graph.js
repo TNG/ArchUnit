@@ -2,15 +2,13 @@
 
 const init = (jsonToRoot, jsonToDependencies, View) => {
   const Graph = class {
-    constructor(jsonRoot) {
+    constructor(jsonRoot, svg) {
       this.root = jsonToRoot(jsonRoot);
       this.dependencies = jsonToDependencies(jsonRoot, this.root);
       this.root.addListener(this.dependencies.createListener());
       this.updatePromise = Promise.resolve();
-    }
 
-    initView(svg) {
-      this._view = new View(svg, this.root.visualData.r);
+      this._view = new View(svg);
       this.root.initView(this._view.svgElementForNodes, () => this._view.renderWithTransition(this.root.getRadius()));
       this.dependencies.initViews(this._view.svgElementForDependencies);
     }
@@ -48,8 +46,8 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
   };
 
   return {
-    jsonToGraph: jsonRoot => {
-      return new Graph(jsonRoot);
+    jsonToGraph: (jsonRoot, svg) => {
+      return new Graph(jsonRoot, svg);
     }
   };
 };
@@ -73,8 +71,7 @@ module.exports.create = () => {
       const graphView = appContext.getGraphView();
 
       const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
-      const graph = jsonToGraph(jsonroot);
-      graph.initView(d3.select('#visualization').node());
+      const graph = jsonToGraph(jsonroot, d3.select('#visualization').node());
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {

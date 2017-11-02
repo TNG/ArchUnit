@@ -14,12 +14,11 @@ const init = (transitionDuration) => {
   };
 
   const View = class {
-    constructor(svg, rootRadius) {
+    constructor(svg) {
       this._svg = svg;
       this._translater = d3.select(this._svg).append('g').attr('id', 'translater').node();
       this.svgElementForNodes = d3.select(this._translater).append('g').node();
       this.svgElementForDependencies = d3.select(this._translater).append('g').node();
-      this.render(rootRadius);
     }
 
     render(rootRadius) {
