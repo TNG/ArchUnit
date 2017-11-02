@@ -15,8 +15,8 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
   const getDependencies = () => require('./dependencies').init(getDependencyView()).Dependencies;
 
-  const getJsonToGraph = () => {
-    return require('./graph').init(getNode(), getDependencies(), getGraphView()).jsonToGraph;
+  const getGraph = () => {
+    return require('./graph').init(getNode(), getDependencies(), getGraphView()).Graph;
   };
 
   return {
@@ -24,7 +24,7 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
     getNode,
     getDependencies,
     getGraphView,
-    getJsonToGraph
+    getGraph
   }
 };
 

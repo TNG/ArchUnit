@@ -52,9 +52,7 @@ const init = (Node, Dependencies, View) => {
   };
 
   return {
-    jsonToGraph: (jsonRoot, svg) => {
-      return new Graph(jsonRoot, svg);
-    }
+    Graph
   };
 };
 
@@ -76,8 +74,8 @@ module.exports.create = () => {
       const Dependencies = appContext.getDependencies(); // FIXME: Correct dependency tree
       const graphView = appContext.getGraphView();
 
-      const jsonToGraph = init(Node, Dependencies, graphView).jsonToGraph;
-      const graph = jsonToGraph(jsonroot, d3.select('#visualization').node());
+      const Graph = init(Node, Dependencies, graphView).Graph;
+      const graph = new Graph(jsonroot, d3.select('#visualization').node());
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {

@@ -62,7 +62,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
 });
 
 const Node = appContext.getNode();
-const jsonToGraph = appContext.getJsonToGraph();
+const Graph = appContext.getGraph();
 
 const testTree1 = () => {
   const simpleJsonTree = testJson.package("com.tngtech")
@@ -130,7 +130,7 @@ const testGraph1 = () => {
       .build())
     .add(testJson.clazz("interface1", "interface").build())
     .build();
-  return jsonToGraph(simpleJsonTree);
+  return new Graph(simpleJsonTree);
 };
 
 const allDeps1 = [
@@ -174,7 +174,7 @@ const testGraph2 = () => {
       .build())
     .add(testJson.clazz("interface1", "interface").build())
     .build();
-  return jsonToGraph(simpleJsonTree);
+  return new Graph(simpleJsonTree);
 };
 
 const allDeps2 = [
@@ -222,7 +222,7 @@ const testGraphWithOverlappingNodesAndMutualDependencies = () => {
       .callingMethod("com.tngtech.test.subtest.subtestclass1", "startMethod()", "targetMethod()")
       .build())
     .build();
-  return jsonToGraph(simpleJsonTree);
+  return new Graph(simpleJsonTree);
 };
 
 const testGraph3 = () => {
@@ -261,7 +261,7 @@ const testGraph3 = () => {
       .build())
     .add(testJson.clazz("interface1", "interface").build())
     .build();
-  return jsonToGraph(simpleJsonTree);
+  return new Graph(simpleJsonTree);
 };
 
 const allDeps3 = [
@@ -401,7 +401,7 @@ module.exports.tree = (...classNames) => {
 };
 
 module.exports.graph = (...classNames) => {
-  return jsonToGraph(classNamesToJson(classNames));
+  return new Graph(classNamesToJson(classNames));
 };
 
 module.exports.calculateTextWidth = calculateTextWidth;
