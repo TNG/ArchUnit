@@ -66,16 +66,17 @@ const init = (DetailedView, transitionDuration) => {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), dependencyVisualData);
     }
 
-    jumpToPosition(dependencyVisualData) {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependencyVisualData);
-      this._updateAreaPosition(dependencyVisualData);
+    jumpToPositionAndShow(dependency) {
+      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependency.visualData);
+      this._updateAreaPosition(dependency.visualData);
+      this.show(dependency);
     }
 
-    moveToPosition(dependencyVisualData) {
+    moveToPositionAndShow(dependency) {
       const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
-      const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependencyVisualData));
-      this._updateAreaPosition(dependencyVisualData);
-      return promise;
+      const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
+      this._updateAreaPosition(dependency.visualData);
+      return promise.then(() => this.show(dependency));
     }
 
     onMouseOver(handler) {

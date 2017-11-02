@@ -16,23 +16,21 @@ const init = (View, nodeMap) => {
   };
 
   const VisualData = class {
-    constructor() {
+    constructor(listener) {
+      this._listener = listener;
       this.startPoint = {};
       this.endPoint = {};
       this.mustShareNodes = false;
-      this._updateViewOnJumpedToPosition = () => {
-      };
-      this._updateViewOnMovedToPosition = () => Promise.resolve();
     }
 
     jumpToPosition(absVisualStartNode, absVisualEndNode) {
       this.recalc(absVisualStartNode, absVisualEndNode);
-      this._updateViewOnJumpedToPosition();
+      this._listener.onJumpedToPosition();
     }
 
     moveToPosition(absVisualStartNode, absVisualEndNode) {
       this.recalc(absVisualStartNode, absVisualEndNode);
-      return this._updateViewOnMovedToPosition();
+      return this._listener.onMovedToPosition();
     }
 
     // FIXME AU-24: Insufficient tests, I can comment out lines, e.g. in the mustShareNodes case, and everything is still green
@@ -241,8 +239,11 @@ const init = (View, nodeMap) => {
   const GroupedDependency = class extends ElementaryDependency {
     constructor(from, to, description, svgElement, callForAllViews, getDetailedDependencies) {
       super(from, to, description);
-      this.visualData = new VisualData();
-      this.initView(svgElement, callForAllViews, getDetailedDependencies);
+      this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
+      this.visualData = new VisualData({
+        onJumpedToPosition: () => this._view.jumpToPositionAndShow(this),
+        onMovedToPosition: () => this._view.moveToPositionAndShow(this)
+      });
     }
 
     withDescription(description) {
@@ -254,26 +255,12 @@ const init = (View, nodeMap) => {
       return !containsPackage(this.from, this.to) && this.description.hasDetailedDescription();
     }
 
-    initView(svgElement, callForAllViews, getDetailedDependencies) {
-      this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
-
-      this.visualData._updateViewOnJumpedToPosition = () => {
-        this._view.jumpToPosition(this.visualData);
-        this.show();
-      };
-      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this.visualData).then(() => this.show());
-    }
-
     jumpToPosition() {
       this.visualData.jumpToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
     }
 
     moveToPosition() {
       return this.visualData.moveToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
-    }
-
-    show() {
-      this._view.show(this);
     }
 
     hide() {

@@ -48,10 +48,10 @@ const DependencyView = class {
   refresh() {
   }
 
-  jumpToPosition() {
+  jumpToPositionAndShow() {
   }
 
-  moveToPosition() {
+  moveToPositionAndShow() {
     return Promise.resolve();
   }
 };
