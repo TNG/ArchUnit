@@ -108,10 +108,10 @@ const init = (View) => {
   };
 
   const Dependencies = class {
-    constructor(all) {
+    constructor(jsonRoot) {
       this._updateViewsOnVisibleDependenciesChanged = () => Promise.resolve();
       this._transformers = new Map();
-      this._elementary = all;
+      this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
       this._filtered = this._elementary;
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
@@ -233,12 +233,7 @@ const init = (View) => {
     if (jsonElement.hasOwnProperty('children')) {
       jsonElement.children.forEach(c => addAllDependenciesOfJsonElementToArray(c, arr));
     }
-  };
-
-  const collectAllDependenciesOfJsonElement = jsonElement => {
-    const res = [];
-    addAllDependenciesOfJsonElementToArray(jsonElement, res);
-    return res;
+    return arr;
   };
 
   const jsonToDependencies = (jsonRoot, nodeMap) => {
@@ -247,8 +242,7 @@ const init = (View) => {
     createElementaryDependency = dependencyCreator.createElementaryDependency;
     getUniqueDependency = dependencyCreator.getUniqueDependency;
     shiftElementaryDependency = dependencyCreator.shiftElementaryDependency;
-    const allDependencies = collectAllDependenciesOfJsonElement(jsonRoot);
-    return new Dependencies(allDependencies);
+    return new Dependencies(jsonRoot);
   };
 
   return jsonToDependencies;
