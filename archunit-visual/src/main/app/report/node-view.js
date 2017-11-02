@@ -17,9 +17,6 @@ const init = (transitionDuration) => {
         .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
         .node();
 
-      this.isRoot = node.isRoot();
-      this.fullName = node._description.fullName;
-
       this._circle = d3.select(this._svgElement)
         .append('circle')
         .attr('r', node.visualData.r)
