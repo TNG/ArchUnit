@@ -153,13 +153,13 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const EmptyDependencyDescription = class extends SingleDependencyDescription{
+  const EmptyDependencyDescription = class extends SingleDependencyDescription {
     hasDetailedDescription() {
       return false;
     }
 
     getDependencyTypeNamesAsString() {
-     return '';
+      return '';
     }
 
     toString() {
@@ -303,8 +303,6 @@ const init = (View, nodeMap) => {
     }
   });
 
-  //TODO: maybe rename into getDependencyGroup and maybe separate classes for such a DependencyGroup and a
-  // ElementaryDependency
   const getUniqueDependency = (from, to) => ({
     byGroupingDependencies: (dependencies) => {
       if (containsPackage(from, to)) {
@@ -318,24 +316,20 @@ const init = (View, nodeMap) => {
     }
   });
 
-  const transformDependency = (from, to) => {
-    return {
-      afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
-        if (containsPackage(from, to)) {
-          return new ElementaryDependency(from, to, new EmptyDependencyDescription());
-        }
-        if (endNodeOfThisDependencyWasFolded) {
-          return new ElementaryDependency(from, to, description);
-        }
-        return new ElementaryDependency(from, to, new ChildAccessDescription(description.hasDetailedDescription()));
-      }
-    };
+  const shiftElementaryDependency = (dependency, newFrom, newTo) => {
+    if (containsPackage(newFrom, newTo)) {
+      return new ElementaryDependency(newFrom, newTo, new EmptyDependencyDescription());
+    }
+    if (newFrom === dependency.from && newTo === dependency.to) {
+      return dependency;
+    }
+    return new ElementaryDependency(newFrom, newTo, new ChildAccessDescription(dependency.description.hasDetailedDescription()));
   };
 
   return {
     createElementaryDependency: createElementaryDependency,
     getUniqueDependency: getUniqueDependency,
-    transformDependency: transformDependency
+    shiftElementaryDependency: shiftElementaryDependency
   };
 };
 

@@ -11,7 +11,7 @@ const init = (View) => {
   let nodes = new Map();
   let createElementaryDependency;
   let getUniqueDependency;
-  let transformDependency;
+  let shiftElementaryDependency;
 
   const fullnameSeparators = {
     packageSeparator: '.',
@@ -61,9 +61,9 @@ const init = (View) => {
   const foldTransformer = foldedElement => (
     dependencies => {
       const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-        .to(r => transformDependency(r.from, foldedElement).afterFoldingOneNode(r.description, r.to === foldedElement));
+        .to(r => shiftElementaryDependency(r, r.from, foldedElement));
       return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-        .to(r => transformDependency(foldedElement, r.to).afterFoldingOneNode(r.description, r.from === foldedElement));
+        .to(r => shiftElementaryDependency(r, foldedElement, r.to));
     }
   );
 
@@ -237,7 +237,7 @@ const init = (View) => {
     const dependencyCreator = initDependency(View, nodeMap);
     createElementaryDependency = dependencyCreator.createElementaryDependency;
     getUniqueDependency = dependencyCreator.getUniqueDependency;
-    transformDependency = dependencyCreator.transformDependency;
+    shiftElementaryDependency = dependencyCreator.shiftElementaryDependency;
     const allDependencies = collectAllDependenciesOfJsonElement(jsonRoot);
     return new Dependencies(allDependencies);
   };
