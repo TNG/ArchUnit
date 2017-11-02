@@ -5,9 +5,8 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
     constructor(jsonRoot, svg) {
       this._view = new View(svg);
       this.root = jsonToRoot(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
-      this.dependencies = jsonToDependencies(jsonRoot, this.root);
+      this.dependencies = jsonToDependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
-      this.dependencies.initViews(this._view.svgElementForDependencies);
 
       this.updatePromise = this.root.relayout();
     }

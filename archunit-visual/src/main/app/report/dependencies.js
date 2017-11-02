@@ -108,13 +108,14 @@ const init = (View) => {
   };
 
   const Dependencies = class {
-    constructor(jsonRoot) {
+    constructor(jsonRoot, svgContainer) {
       this._updateViewsOnVisibleDependenciesChanged = () => Promise.resolve();
       this._transformers = new Map();
       this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
       this._filtered = this._elementary;
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
+      this.initViews(svgContainer);
     }
 
     createListener() {
@@ -236,13 +237,13 @@ const init = (View) => {
     return arr;
   };
 
-  const jsonToDependencies = (jsonRoot, nodeMap) => {
+  const jsonToDependencies = (jsonRoot, nodeMap, svgContainer) => {
     nodes = nodeMap;
     const dependencyCreator = initDependency(View, nodeMap);
     createElementaryDependency = dependencyCreator.createElementaryDependency;
     getUniqueDependency = dependencyCreator.getUniqueDependency;
     shiftElementaryDependency = dependencyCreator.shiftElementaryDependency;
-    return new Dependencies(jsonRoot);
+    return new Dependencies(jsonRoot, svgContainer);
   };
 
   return jsonToDependencies;
