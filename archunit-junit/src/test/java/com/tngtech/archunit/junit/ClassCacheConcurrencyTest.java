@@ -3,15 +3,12 @@ package com.tngtech.archunit.junit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.importer.ImportOptions;
-import com.tngtech.archunit.core.importer.Location;
-import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,85 +68,49 @@ public class ClassCacheConcurrencyTest {
         };
     }
 
-    @AnalyzeClasses(locations = FirstClassProvider.class)
+    @LocationOfClass(FirstClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass1 {
-    }
-
-    @AnalyzeClasses(locations = SecondClassProvider.class)
-    public static class TestClass2 {
-    }
-
-    @AnalyzeClasses(locations = ThirdClassProvider.class)
-    public static class TestClass3 {
-    }
-
-    @AnalyzeClasses(locations = FourthClassProvider.class)
-    public static class TestClass4 {
-    }
-
-    @AnalyzeClasses(locations = FifthClassProvider.class)
-    public static class TestClass5 {
-    }
-
-    @AnalyzeClasses(locations = SixthClassProvider.class)
-    public static class TestClass6 {
-    }
-
-    static class FirstClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(FirstClass.class);
-        }
     }
 
     private static class FirstClass {
     }
 
-    static class SecondClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(SecondClass.class);
-        }
+    @LocationOfClass(SecondClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
+    public static class TestClass2 {
     }
 
     private static class SecondClass {
     }
 
-    static class ThirdClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(ThirdClass.class);
-        }
+    @LocationOfClass(ThirdClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
+    public static class TestClass3 {
     }
 
     private static class ThirdClass {
     }
 
-    static class FourthClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(FourthClass.class);
-        }
+    @LocationOfClass(FourthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
+    public static class TestClass4 {
     }
 
     private static class FourthClass {
     }
 
-    static class FifthClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(FifthClass.class);
-        }
+    @LocationOfClass(FifthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
+    public static class TestClass5 {
     }
 
     private static class FifthClass {
     }
 
-    static class SixthClassProvider implements LocationProvider {
-        @Override
-        public Set<Location> get() {
-            return Locations.ofClass(SixthClass.class);
-        }
+    @LocationOfClass(SixthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
+    public static class TestClass6 {
     }
 
     private static class SixthClass {
