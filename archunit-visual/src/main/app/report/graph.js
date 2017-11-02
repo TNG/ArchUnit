@@ -1,11 +1,11 @@
 'use strict';
 
-const init = (jsonToRoot, jsonToDependencies, View) => {
+const init = (jsonToRoot, Dependencies, View) => {
   const Graph = class {
     constructor(jsonRoot, svg) {
       this._view = new View(svg);
       this.root = jsonToRoot(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
-      this.dependencies = jsonToDependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
+      this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.updatePromise = this.root.relayout();
     }
@@ -73,10 +73,10 @@ module.exports.create = () => {
       const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
       const appContext = require('./app-context').newInstance();
       const jsonToRoot = appContext.getJsonToRoot(); // FIXME: Correct dependency tree
-      const jsonToDependencies = appContext.getJsonToDependencies(); // FIXME: Correct dependency tree
+      const Dependencies = appContext.getDependencies(); // FIXME: Correct dependency tree
       const graphView = appContext.getGraphView();
 
-      const jsonToGraph = init(jsonToRoot, jsonToDependencies, graphView).jsonToGraph;
+      const jsonToGraph = init(jsonToRoot, Dependencies, graphView).jsonToGraph;
       const graph = jsonToGraph(jsonroot, d3.select('#visualization').node());
 
       //FIXME AU-24: Move this into graph
