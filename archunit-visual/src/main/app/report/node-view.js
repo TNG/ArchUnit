@@ -15,6 +15,7 @@ const init = (transitionDuration) => {
         .attr('id', node.getFullName())
         .attr('class', node.getClass())
         .attr('transform', `translate(${node.visualData.x}, ${node.visualData.y})`)
+        .style('visibility', 'hidden')
         .node();
 
       this._circle = d3.select(this._svgElement)
