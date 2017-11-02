@@ -8,7 +8,7 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('end', resolve));
 
   const View = class {
-    constructor(parentSvgElement, node) {
+    constructor(parentSvgElement, node, onClick, onDrag) {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
         .data([node])
@@ -30,6 +30,9 @@ const init = (transitionDuration) => {
         .append('text')
         .text(node.getName())
         .node();
+
+      this.onDrag(onDrag);
+      this.onClick(onClick);
     }
 
     hide() {

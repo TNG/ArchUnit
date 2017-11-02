@@ -52,26 +52,22 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   };
 
   const VisualData = class {
-    constructor(x = 0, y = 0, r = 0) {
+    constructor(listener, x = 0, y = 0, r = 0) {
       this.x = x;
       this.y = y;
       this.r = r;
-
-      this._updateViewOnMovedToRadius = () => Promise.resolve();
-      this._updateViewOnMovedToPosition = () => Promise.resolve();
-      this._updateViewOnJumpedToPosition = () => {
-      };
+      this._listener = listener;
     }
 
     moveToRadius(r) {
       this.r = r;
-      return this._updateViewOnMovedToRadius();
+      return this._listener.onMovedToRadius();
     }
 
     moveToPosition(position) {
       this.x = position.x;
       this.y = position.y;
-      return this._updateViewOnMovedToPosition();
+      return this._listener.onMovedToPosition();
     }
 
     jumpToPosition(dx, dy, parent) {
@@ -86,7 +82,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.x = newX;
       this.y = newY;
 
-      this._updateViewOnJumpedToPosition();
+      this._listener.onJumpedToPosition();
     }
   };
 
@@ -117,14 +113,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._root = this;
       }
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
-      this.visualData = new VisualData();
       this._text = new NodeText(this);
       this._folded = false;
 
       //FIXME: this is only provisional (to make isLeaf() work)
       this._filteredChildren = Array.from(jsonNode.children || []);
 
-      this.initView(svgContainer, onRadiusChanged);
+      this._view = new View(svgContainer, this, () => this.changeFoldIfInnerNode(), (dx, dy) => this._drag(dx, dy));
+      this.visualData = new VisualData({
+        onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
+        onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
+        onMovedToPosition: () => this._view.moveToPosition(this.visualData).then(() => this._view.show())
+      });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root, this._view._svgElement));
       this._originalChildren.forEach(c => c._parent = this);
@@ -216,6 +216,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._setFolded(() => !this._folded);
     }
 
+    changeFoldIfInnerNode() {
+      if (!this.isRoot() && !this._isLeaf()) {
+        this.changeFold();
+      }
+    }
+
     getFilters() {
       return this._filters;
     }
@@ -275,24 +281,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    initView(svgElement, onRadiusChanged) {
-      this._view = new View(svgElement, this);
-
-      this._updateViewOnCurrentChildrenChanged = () => arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
-
-      this.visualData._updateViewOnJumpedToPosition = () => this._view.jumpToPosition(this.visualData);
-      this.visualData._updateViewOnMovedToRadius = () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]);
-      this.visualData._updateViewOnMovedToPosition = () => this._view.moveToPosition(this.visualData).then(() => this._view.show());
-
-      if (!this.isRoot() && !this._isLeaf()) {
-        this._view.onClick(() => {
-          this.changeFold();
-        });
-      }
-
-      this._view.onDrag((dx, dy) => {
-        this._drag(dx, dy);
-      });
+    _updateViewOnCurrentChildrenChanged() {
+      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
     }
 
     /**
