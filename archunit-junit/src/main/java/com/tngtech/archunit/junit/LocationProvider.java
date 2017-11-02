@@ -31,5 +31,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  */
 @PublicAPI(usage = INHERITANCE)
 public interface LocationProvider {
-    Set<Location> get();
+    /**
+     * Returns locations to be imported for the current test run. The test class parameter
+     * can for example be used to evaluate custom annotations on the current test class.
+     *
+     * @param testClass The class object of the test currently executed
+     * @return The locations to import
+     */
+    Set<Location> get(Class<?> testClass);
 }

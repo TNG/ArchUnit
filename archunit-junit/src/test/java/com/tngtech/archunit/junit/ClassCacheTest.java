@@ -110,6 +110,11 @@ public class ClassCacheTest {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviders.class);
 
         assertThatClasses(classes).contain(String.class, Rule.class, getClass());
+
+        classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class);
+
+        assertThatClasses(classes).contain(String.class);
+        assertThatClasses(classes).dontContain(getClass());
     }
 
     @DataProvider
@@ -201,6 +206,11 @@ public class ClassCacheTest {
     public static class TestClassWithLocationProviders {
     }
 
+    @LocationOfClass(String.class)
+    @AnalyzeClasses(locations = {LocationOfClass.Provider.class})
+    public static class TestClassWithLocationProviderUsingTestClass {
+    }
+
     @AnalyzeClasses(locations = WrongLocationProviderWithConstructorParam.class)
     public static class TestClassWithIllegalLocationProviderWithConstructorParam {
     }
@@ -227,14 +237,14 @@ public class ClassCacheTest {
 
     static class TestLocationProviderOfClass_String implements LocationProvider {
         @Override
-        public Set<Location> get() {
+        public Set<Location> get(Class<?> testClass) {
             return Locations.ofClass(String.class);
         }
     }
 
     static class TestLocationProviderOfClass_Rule implements LocationProvider {
         @Override
-        public Set<Location> get() {
+        public Set<Location> get(Class<?> testClass) {
             return Locations.ofClass(Rule.class);
         }
     }
@@ -245,7 +255,7 @@ public class ClassCacheTest {
         }
 
         @Override
-        public Set<Location> get() {
+        public Set<Location> get(Class<?> testClass) {
             return Collections.emptySet();
         }
     }
@@ -255,7 +265,7 @@ public class ClassCacheTest {
         }
 
         @Override
-        public Set<Location> get() {
+        public Set<Location> get(Class<?> testClass) {
             return Collections.emptySet();
         }
     }

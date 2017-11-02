@@ -53,7 +53,7 @@ class ClassCache {
         AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
         Set<Location> declaredLocations = ImmutableSet.<Location>builder()
                 .addAll(getLocationsOfPackages(analyzeClasses))
-                .addAll(getLocationsOfProviders(analyzeClasses))
+                .addAll(getLocationsOfProviders(testClass, analyzeClasses))
                 .build();
         Set<Location> locations = declaredLocations.isEmpty() ? Locations.inClassPath() : declaredLocations;
         return new LocationsKey(analyzeClasses.importOptions(), locations);
@@ -67,10 +67,10 @@ class ClassCache {
         return locationsOf(packages);
     }
 
-    private Set<Location> getLocationsOfProviders(AnalyzeClasses analyzeClasses) {
+    private Set<Location> getLocationsOfProviders(Class<?> testClass, AnalyzeClasses analyzeClasses) {
         Set<Location> result = new HashSet<>();
         for (Class<? extends LocationProvider> providerClass : analyzeClasses.locations()) {
-            result.addAll(tryCreate(providerClass).get());
+            result.addAll(tryCreate(providerClass).get(testClass));
         }
         return result;
     }
