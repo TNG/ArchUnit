@@ -2,9 +2,9 @@
 
 const init = (jsonToRoot, jsonToDependencies, View) => {
   const Graph = class {
-    constructor(root, dependencies) {
-      this.root = root;
-      this.dependencies = dependencies;
+    constructor(jsonRoot) {
+      this.root = jsonToRoot(jsonRoot);
+      this.dependencies = jsonToDependencies(jsonRoot, this.root);
       this.root.setOnDrag(node => this.dependencies.jumpSpecificDependenciesToTheirPositions(node));
       this.root.setOnFold(node => this.dependencies.updateOnNodeFolded(node.getFullName(), node.isFolded()));
       this.root.setOnFiltersChanged(() => this.dependencies.setNodeFilters(this.root.getFilters()));
@@ -52,9 +52,7 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
 
   return {
     jsonToGraph: jsonRoot => {
-      const root = jsonToRoot(jsonRoot);
-      const dependencies = jsonToDependencies(jsonRoot, root);
-      return new Graph(root, dependencies);
+      return new Graph(jsonRoot);
     }
   };
 };
