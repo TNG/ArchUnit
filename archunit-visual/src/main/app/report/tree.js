@@ -326,7 +326,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
         promises.push(onlyChild.visualData.moveToPosition({x: 0, y: 0}));
-        promises.push(this.visualData.moveToRadius(2 * onlyChild.getRadius()));
+        promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r,
