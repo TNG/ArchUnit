@@ -37,7 +37,7 @@ const NodeView = class {
   }
 };
 const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth, NodeView});
-const jsonToRoot = appContext.getJsonToRoot();
+const Node = appContext.getNode();
 
 describe("Node", () => {
   it("knows if it is root", () => {
@@ -82,7 +82,7 @@ describe("Node", () => {
       .add(testJson.clazz("Class1", "abstractclass").build())
       .build();
 
-    const root = jsonToRoot(tree);
+    const root = new Node(tree);
 
     expect(root.getClass()).to.contain(' foldable');
     expect(root.getClass()).not.to.contain(' not-foldable');

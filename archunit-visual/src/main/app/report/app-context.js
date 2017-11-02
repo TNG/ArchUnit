@@ -11,17 +11,17 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
   const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
 
-  const getJsonToRoot = () => require('./tree').init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles()).jsonToRoot;
+  const getNode = () => require('./tree').init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles()).Node;
 
   const getDependencies = () => require('./dependencies').init(getDependencyView()).Dependencies;
 
   const getJsonToGraph = () => {
-    return require('./graph').init(getJsonToRoot(), getDependencies(), getGraphView()).jsonToGraph;
+    return require('./graph').init(getNode(), getDependencies(), getGraphView()).jsonToGraph;
   };
 
   return {
     getVisualizationStyles,
-    getJsonToRoot,
+    getNode,
     getDependencies,
     getGraphView,
     getJsonToGraph

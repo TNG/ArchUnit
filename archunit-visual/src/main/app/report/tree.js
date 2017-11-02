@@ -105,7 +105,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   });
 
   const Node = class {
-    constructor(jsonNode, root, svgContainer, onRadiusChanged = () => Promise.resolve()) {
+    constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null) {
       this._root = root;
       if (!root) {
         this._root = this;
@@ -121,7 +121,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         onMovedToPosition: () => this._view.moveToPosition(this.visualData).then(() => this._view.show())
       });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root, this._view._svgElement));
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root));
       this._originalChildren.forEach(c => c._parent = this);
 
       this._setFilteredChildren(this._originalChildren);
@@ -130,6 +130,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       if (!root) {
         this.updatePromise = Promise.resolve();
+        const map = new Map();
+        this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
+        this.getByName = name => map.get(name);
       }
     }
 
@@ -355,19 +358,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  return (jsonRoot, svgContainer, onRadiusChanged) => {
-    const root = new Node(jsonRoot, null, svgContainer, onRadiusChanged);
-
-    const map = new Map();
-    root._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
-    root.getByName = name => map.get(name);
-
-    return root;
-  };
+  return Node;
 };
 
 module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return {
-    jsonToRoot: init(View, NodeText, visualizationFunctions, visualizationStyles)
+    Node: init(View, NodeText, visualizationFunctions, visualizationStyles)
   };
 };

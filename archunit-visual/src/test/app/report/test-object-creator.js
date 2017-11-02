@@ -61,7 +61,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
   visualizationStyles, calculateTextWidth
 });
 
-const jsonToRoot = appContext.getJsonToRoot();
+const Node = appContext.getNode();
 const jsonToGraph = appContext.getJsonToGraph();
 
 const testTree1 = () => {
@@ -72,7 +72,7 @@ const testTree1 = () => {
     .add(testJson.clazz("class2", "class").build())
     .add(testJson.clazz("class3", "interface").build())
     .build();
-  return jsonToRoot(simpleJsonTree);
+  return new Node(simpleJsonTree);
 };
 
 const testTree2 = () => {
@@ -89,7 +89,7 @@ const testTree2 = () => {
     .add(testJson.clazz("class2", "class").build())
     .add(testJson.clazz("class3", "interface").build())
     .build();
-  return jsonToRoot(simpleJsonTree);
+  return new Node(simpleJsonTree);
 };
 
 const testTree3 = () => {
@@ -103,7 +103,7 @@ const testTree3 = () => {
       .add(testJson.clazz("subclass1", "interface").build())
       .build())
     .build();
-  return jsonToRoot(simpleJsonTree);
+  return new Node(simpleJsonTree);
 };
 
 const testGraph1 = () => {
@@ -397,7 +397,7 @@ const classNamesToJson = (classNames) => {
 };
 
 module.exports.tree = (...classNames) => {
-  return jsonToRoot(classNamesToJson(classNames));
+  return new Node(classNamesToJson(classNames));
 };
 
 module.exports.graph = (...classNames) => {
