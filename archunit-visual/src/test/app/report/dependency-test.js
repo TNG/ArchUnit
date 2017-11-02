@@ -6,7 +6,9 @@ const testObjects = require("./test-object-creator.js");
 
 const initDependency = require('./main-files').get('dependency').init;
 
-const ViewStub = {};
+const ViewStub = class{
+
+};
 
 describe("Dependency", () => {
   it("can be built by merging existing descriptions with different access groups", () => {

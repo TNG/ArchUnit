@@ -41,8 +41,6 @@ const init = (DetailedView, transitionDuration) => {
         .style('visibility', 'hidden')
         .style('stroke-width', clickAreaWidth);
 
-      this.jumpToPosition(dependency.visualData);
-
       this._createDetailedView(parentSvgElement, dependency.getIdentifyingString(),
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }

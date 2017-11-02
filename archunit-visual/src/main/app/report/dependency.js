@@ -194,9 +194,9 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const getOrCreateUniqueDependency = (from, to, description) => {
+  const getOrCreateUniqueDependency = (from, to, description, svgElement, callForAllViews, getDetailedDependencies) => {
     if (!allDependencies.has(`${from}-${to}`)) {
-      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description));
+      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description, svgElement, callForAllViews, getDetailedDependencies));
     }
     return allDependencies.get(`${from}-${to}`).withDescription(description)
   };
@@ -239,9 +239,10 @@ const init = (View, nodeMap) => {
   };
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(from, to, description) {
+    constructor(from, to, description, svgElement, callForAllViews, getDetailedDependencies) {
       super(from, to, description);
       this.visualData = new VisualData();
+      this.initView(svgElement, callForAllViews, getDetailedDependencies);
     }
 
     withDescription(description) {
@@ -303,15 +304,15 @@ const init = (View, nodeMap) => {
     }
   });
 
-  const getUniqueDependency = (from, to) => ({
+  const getUniqueDependency = (from, to, svgElement, callForAllViews, getDetailedDependencies) => ({
     byGroupingDependencies: (dependencies) => {
       if (containsPackage(from, to)) {
-        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription());
+        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription(), svgElement, callForAllViews, getDetailedDependencies);
       }
       else {
         const description = new GroupedDependencyDescription(dependencies.length === 1);
         dependencies.forEach(d => description.addDependencyDescription(d.description));
-        return getOrCreateUniqueDependency(from, to, description);
+        return getOrCreateUniqueDependency(from, to, description, svgElement, callForAllViews, getDetailedDependencies);
       }
     }
   });

@@ -29,14 +29,15 @@ const init = (View) => {
   });
 
 
-  const uniteDependencies = dependencies => {
+  const uniteDependencies = (dependencies, svgElement, callForAllViews, getDetailedDependencies) => {
     const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
     const map = new Map();
     tmp.forEach(e => map.set(e[0], []));
     tmp.forEach(e => map.get(e[0]).push(e[1]));
 
     return Array.from(map).map(([, dependencies]) =>
-      getUniqueDependency(dependencies[0].from, dependencies[0].to).byGroupingDependencies(dependencies));
+      getUniqueDependency(dependencies[0].from, dependencies[0].to, svgElement, callForAllViews, getDetailedDependencies)
+        .byGroupingDependencies(dependencies));
   };
 
   const transform = dependencies => ({
@@ -76,8 +77,12 @@ const init = (View) => {
   };
 
   const recreateVisibleDependencies = dependencies => {
-    const visibleDependenciesBefore = dependencies._visibleDependencies;
-    dependencies._visibleDependencies = uniteDependencies(applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filtered));
+    const visibleDependenciesBefore = dependencies._visibleDependencies || [];
+    dependencies._visibleDependencies = uniteDependencies(
+      applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filtered),
+      dependencies._svgContainer,
+      fun => dependencies.getVisible().forEach(d => fun(d._view)),
+      (from, to) => dependencies.getDetailedDependenciesOf(from, to));
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
     dependencies._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
   };
@@ -109,13 +114,12 @@ const init = (View) => {
 
   const Dependencies = class {
     constructor(jsonRoot, svgContainer) {
-      this._updateViewsOnVisibleDependenciesChanged = () => Promise.resolve();
       this._transformers = new Map();
       this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
       this._filtered = this._elementary;
+      this._svgContainer = svgContainer;
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
-      this.initViews(svgContainer);
     }
 
     createListener() {
@@ -127,10 +131,8 @@ const init = (View) => {
       }
     }
 
-    initViews(svgElement) {
-      this._updateViewsOnVisibleDependenciesChanged = depsBefore => this._reassignViews(svgElement, depsBefore);
-      this._reassignViews(svgElement, []);
-      this.getVisible().forEach(d => d.show());
+    _updateViewsOnVisibleDependenciesChanged(dependenciesBefore) {
+      arrayDifference(dependenciesBefore, this.getVisible()).forEach(d => d.hide());
     }
 
     _jumpAllToTheirPositions() {
@@ -143,12 +145,6 @@ const init = (View) => {
 
     moveAllToTheirPositions() {
       return Promise.all(this.getVisible().map(d => d.moveToPosition()));
-    }
-
-    _reassignViews(svgElement, visibleDependenciesBefore) {
-      arrayDifference(visibleDependenciesBefore, this.getVisible()).forEach(d => d.hide());
-      this.getVisible().forEach(d => d.initView(svgElement, fun => this.getVisible().forEach(d => fun(d._view)),
-        (from, to) => this.getDetailedDependenciesOf(from, to)));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {
