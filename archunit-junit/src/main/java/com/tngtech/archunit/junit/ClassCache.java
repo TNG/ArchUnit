@@ -70,9 +70,20 @@ class ClassCache {
     private Set<Location> getLocationsOfProviders(AnalyzeClasses analyzeClasses) {
         Set<Location> result = new HashSet<>();
         for (Class<? extends LocationProvider> providerClass : analyzeClasses.locations()) {
-            result.addAll(newInstanceOf(providerClass).get());
+            result.addAll(tryCreate(providerClass).get());
         }
         return result;
+    }
+
+    private LocationProvider tryCreate(Class<? extends LocationProvider> providerClass) {
+        try {
+            return newInstanceOf(providerClass);
+        } catch (RuntimeException e) {
+            String message = String.format(
+                    "Failed to create %s. It must be accessible and provide a public default constructor",
+                    LocationProvider.class.getSimpleName());
+            throw new ArchTestExecutionException(message, e);
+        }
     }
 
     private Set<String> toPackageStrings(Class<?>[] classes) {

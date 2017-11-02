@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -10,15 +11,21 @@ import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
@@ -27,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SuppressWarnings("unchecked")
+@RunWith(DataProviderRunner.class)
 public class ClassCacheTest {
 
     @Rule
@@ -104,6 +112,26 @@ public class ClassCacheTest {
         assertThatClasses(classes).contain(String.class, Rule.class, getClass());
     }
 
+    @DataProvider
+    public static Object[][] illegalLocationProviderClasses() {
+        return $$(
+                $(TestClassWithIllegalLocationProviderWithConstructorParam.class),
+                $(TestClassWithIllegalLocationProviderWithPrivateConstructor.class)
+        );
+    }
+
+    @Test
+    @UseDataProvider("illegalLocationProviderClasses")
+    public void rejects_LocationProviders_without_public_default_constructor(
+            Class<? extends LocationProvider> illegalProviderClass) {
+
+        thrown.expect(ArchTestExecutionException.class);
+        thrown.expectMessage("public default constructor");
+        thrown.expectMessage(LocationProvider.class.getSimpleName());
+
+        cache.getClassesToAnalyzeFor(illegalProviderClass);
+    }
+
     @Test
     public void filters_urls() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
@@ -173,6 +201,14 @@ public class ClassCacheTest {
     public static class TestClassWithLocationProviders {
     }
 
+    @AnalyzeClasses(locations = WrongLocationProviderWithConstructorParam.class)
+    public static class TestClassWithIllegalLocationProviderWithConstructorParam {
+    }
+
+    @AnalyzeClasses(locations = WrongLocationProviderWithPrivateConstructor.class)
+    public static class TestClassWithIllegalLocationProviderWithPrivateConstructor {
+    }
+
     public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
@@ -200,6 +236,27 @@ public class ClassCacheTest {
         @Override
         public Set<Location> get() {
             return Locations.ofClass(Rule.class);
+        }
+    }
+
+    static class WrongLocationProviderWithConstructorParam implements LocationProvider {
+        @SuppressWarnings("unused")
+        public WrongLocationProviderWithConstructorParam(String illegalParameter) {
+        }
+
+        @Override
+        public Set<Location> get() {
+            return Collections.emptySet();
+        }
+    }
+
+    static class WrongLocationProviderWithPrivateConstructor implements LocationProvider {
+        private WrongLocationProviderWithPrivateConstructor() {
+        }
+
+        @Override
+        public Set<Location> get() {
+            return Collections.emptySet();
         }
     }
 }
