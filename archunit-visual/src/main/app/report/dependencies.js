@@ -126,7 +126,6 @@ const init = (View) => {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
-        onFiltersChanged: filters => this.setNodeFilters(filters),
         onLayoutChanged: () => this.moveAllToTheirPositions()
       }
     }

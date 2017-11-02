@@ -97,8 +97,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         node._filteredChildren.forEach(c => applyFilter(c, filters));
       };
       applyFilter(root, this.values());
-      root._listener.forEach(listener => listener.onFiltersChanged(root.getFilters()));
-      return root.relayout();
     },
 
     values: function () {
@@ -127,9 +125,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._originalChildren.forEach(c => c._parent = this);
 
       this._setFilteredChildren(this._originalChildren);
-
       this._filters = newFilters(this);
-
       this._listener = [];
 
       if (!root) {
@@ -346,7 +342,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
       this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-      return this._filters.apply();
+      this._filters.apply();
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -355,7 +351,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
       this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
-      return this._filters.apply();
+      this._filters.apply();
     }
   };
 

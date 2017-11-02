@@ -7,7 +7,6 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       this.root = jsonToRoot(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = jsonToDependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
-
       this.updatePromise = this.root.relayout();
     }
 
@@ -19,19 +18,28 @@ const init = (jsonToRoot, jsonToDependencies, View) => {
       });
     }
 
-    // FIXME AU-24: Filters do not belong to 'root', if graph coordinates everything.
-    // This is a remnant from the time when I wasn't sure if dependencies would be moved into the nodes.
-    // Since this didn't happen, Graph should be ne master of all filtering, i.e. also house the filters object
     filterNodesByNameContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => this.root.filterByName(filterString, false));
+      this.updatePromise = this.updatePromise.then(() => {
+        this.root.filterByName(filterString, false);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return this.root.relayout();
+      });
     }
 
     filterNodesByNameNotContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => this.root.filterByName(filterString, true));
+      this.updatePromise = this.updatePromise.then(() => {
+        this.root.filterByName(filterString, true);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return this.root.relayout();
+      });
     }
 
     filterNodesByType(filter) {
-      this.updatePromise = this.updatePromise.then(() => this.root.filterByType(filter.showInterfaces, filter.showClasses));
+      this.updatePromise = this.updatePromise.then(() => {
+        this.root.filterByType(filter.showInterfaces, filter.showClasses);
+        this.dependencies.setNodeFilters(this.root.getFilters());
+        return this.root.relayout();
+      });
     }
 
     filterDependenciesByType(typeFilterConfig) {
