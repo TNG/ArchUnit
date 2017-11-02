@@ -15,21 +15,8 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.util.Set;
-
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.importer.Location;
-
-import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
-
-/**
- * Allows to provide a custom implementation, that supplies {@link Location Locations}
- * to be imported by the {@link ArchUnitRunner}.
- * <p>
- * The implementation must offer a public default (i.e. no arg) constructor.
- * </p>
- */
-@PublicAPI(usage = INHERITANCE)
-public interface LocationProvider {
-    Set<Location> get();
+class ArchTestExecutionException extends RuntimeException {
+    ArchTestExecutionException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
 }
