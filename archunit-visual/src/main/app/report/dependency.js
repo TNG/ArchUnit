@@ -255,12 +255,7 @@ const init = (View, nodeMap) => {
     }
 
     initView(svgElement, callForAllViews, getDetailedDependencies) {
-      if (!this._view) {
-        this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
-      }
-      else {
-        this._view.refresh(this);
-      }
+      this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
 
       this.visualData._updateViewOnJumpedToPosition = () => {
         this._view.jumpToPosition(this.visualData);

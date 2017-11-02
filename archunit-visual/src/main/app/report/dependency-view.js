@@ -51,11 +51,8 @@ const init = (DetailedView, transitionDuration) => {
       this.onMouseOut(() => this._detailedView.fadeOut());
     }
 
-    refresh(dependency) {
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getTypeNames());
-    }
-
     show(dependency) {
+      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getTypeNames());
       d3.select(this._svgElement).style('visibility', 'visible');
       d3.select(this._svgElement).select('line.area').style('pointer-events', dependency.hasDetailedDescription() ? 'all' : 'none');
     }
