@@ -13,7 +13,6 @@ const init = (transitionDuration) => {
         .append('g')
         .data([node])
         .attr('id', node.getFullName())
-        .attr('class', node.getClass())
         .node();
 
       this._circle = d3.select(this._svgElement)
@@ -33,6 +32,10 @@ const init = (transitionDuration) => {
 
       this.onDrag(onDrag);
       this.onClick(onClick);
+    }
+
+    updateNodeType(nodeType) {
+      d3.select(this._svgElement).attr('class', nodeType);
     }
 
     hide() {

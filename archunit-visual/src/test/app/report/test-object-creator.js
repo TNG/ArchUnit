@@ -34,6 +34,9 @@ const NodeView = class {
 
   onDrag() {
   }
+
+  updateNodeType() {
+  }
 };
 const DependencyView = class {
   show() {

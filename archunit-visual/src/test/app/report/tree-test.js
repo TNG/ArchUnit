@@ -32,6 +32,9 @@ const NodeView = class {
 
   onDrag() {
   }
+
+  updateNodeType() {
+  }
 };
 const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth, NodeView});
 const jsonToRoot = appContext.getJsonToRoot();

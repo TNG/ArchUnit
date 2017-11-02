@@ -116,9 +116,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._text = new NodeText(this);
       this._folded = false;
 
-      //FIXME: this is only provisional (to make isLeaf() work)
-      this._filteredChildren = Array.from(jsonNode.children || []);
-
       this._view = new View(svgContainer, this, () => this.changeFoldIfInnerNode(), (dx, dy) => this._drag(dx, dy));
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
@@ -129,7 +126,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._root, this._view._svgElement));
       this._originalChildren.forEach(c => c._parent = this);
 
-      this._filteredChildren = this._originalChildren;
+      this._setFilteredChildren(this._originalChildren);
+
       this._filters = newFilters(this);
 
       this._listener = [];
@@ -282,6 +280,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _updateViewOnCurrentChildrenChanged() {
+      this._view.updateNodeType(this.getClass());
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
     }
 
