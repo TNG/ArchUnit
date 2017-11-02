@@ -117,6 +117,15 @@ const init = (View) => {
       this._filters = newFilters(this);
     }
 
+    createListener() {
+      return {
+        onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
+        onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
+        onFiltersChanged: filters => this.setNodeFilters(filters),
+        onLayoutChanged: () => this.moveAllToTheirPositions()
+      }
+    }
+
     initViews(svgElement) {
       this._updateViewsOnVisibleDependenciesChanged = depsBefore => this._reassignViews(svgElement, depsBefore);
       this._reassignViews(svgElement, []);
