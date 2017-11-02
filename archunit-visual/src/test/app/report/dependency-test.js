@@ -46,10 +46,8 @@ describe("Dependency", () => {
 
     const dependency1 = createElementaryDependency(from, to).withDependencyDescription("fieldAccess", "testclass1()", "field1");
     const dependency2 = createElementaryDependency(from, to).withDependencyDescription("methodCall", "testclass1()", "targetMethod()");
-    const dependency3 = createElementaryDependency(from, to).withDependencyDescription("extends");
-    let act = getUniqueDependency(from, to).byGroupingDependencies([dependency1, dependency2]);
-    act = getUniqueDependency(from, to).byGroupingDependencies([act, dependency3]);
-    const exp = "extends several";
+    const act = getUniqueDependency(from, to).byGroupingDependencies([dependency1, dependency2]);
+    const exp = "several";
     expect(act.description.toString()).to.equal(exp);
   });
 

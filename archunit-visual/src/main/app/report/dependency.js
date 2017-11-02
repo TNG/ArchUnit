@@ -78,7 +78,7 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const ElementaryDependencyDescription = class {
+  const SingleDependencyDescription = class {
     constructor(typeName) {
       this.typeName = typeName;
     }
@@ -100,7 +100,7 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const AccessDescription = class extends ElementaryDependencyDescription {
+  const AccessDescription = class extends SingleDependencyDescription {
     constructor(typeName, startCodeUnit, targetElement) {
       super(typeName);
       this.startCodeUnit = startCodeUnit;
@@ -120,7 +120,7 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const InheritanceDescription = class extends ElementaryDependencyDescription {
+  const InheritanceDescription = class extends SingleDependencyDescription {
     constructor(typeName) {
       super(typeName);
     }
@@ -135,6 +135,35 @@ const init = (View, nodeMap) => {
 
     mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
       return mergeTypeNames(this.typeName, inheritanceTypeName);
+    }
+  };
+
+  const ChildAccessDescription = class extends SingleDependencyDescription {
+    constructor(hasDetailedDescription) {
+      super('childrenAccess');
+      this._hasDetailedDescription = hasDetailedDescription;
+    }
+
+    hasDetailedDescription() {
+      return this._hasDetailedDescription;
+    }
+
+    mergeAccessTypeWithOtherAccessType(accessTypeName) {
+      return mergeTypeNames(this.typeName, accessTypeName);
+    }
+  };
+
+  const EmptyDependencyDescription = class extends SingleDependencyDescription{
+    hasDetailedDescription() {
+      return false;
+    }
+
+    getDependencyTypeNamesAsString() {
+     return '';
+    }
+
+    toString() {
+      return this.getDependencyTypeNamesAsString();
     }
   };
 
@@ -163,14 +192,13 @@ const init = (View, nodeMap) => {
       this.inheritanceTypeName = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceTypeName);
       this._hasDetailedDescription = this._hasDetailedDescription || dependencyDescription.hasDetailedDescription();
     }
+  };
 
-    mergeAccessTypeWithOtherAccessType(accessTypeName) {
-      return mergeTypeNames(this.accessTypeName, accessTypeName);
+  const getOrCreateUniqueDependency = (from, to, description) => {
+    if (!allDependencies.has(`${from}-${to}`)) {
+      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description));
     }
-
-    mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
-      return mergeTypeNames(this.inheritanceTypeName, inheritanceTypeName);
-    }
+    return allDependencies.get(`${from}-${to}`).withDescription(description)
   };
 
   const createDependencyDescription = (type, startCodeUnit, targetElement) => {
@@ -184,10 +212,11 @@ const init = (View, nodeMap) => {
 
   const combinePathAndCodeUnit = (path, codeUnit) => (path || '') + ((path && codeUnit) ? '.' : '') + (codeUnit || '');
 
-  const Dependency = class {
-    constructor(from, to) {
+  const ElementaryDependency = class {
+    constructor(from, to, description) {
       this.from = from;
       this.to = to;
+      this.description = description;
     }
 
     getStartNode() {
@@ -209,16 +238,15 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const ElementaryDependency = class extends Dependency {
-    constructor(from, to) {
-      super(from, to);
-    }
-  };
-
-  const GroupedDependency = class extends Dependency {
-    constructor(from, to) {
-      super(from, to);
+  const GroupedDependency = class extends ElementaryDependency {
+    constructor(from, to, description) {
+      super(from, to, description);
       this.visualData = new VisualData();
+    }
+
+    withDescription(description) {
+      this.description = description;
+      return this;
     }
 
     hasDetailedDescription() {
@@ -269,45 +297,37 @@ const init = (View, nodeMap) => {
     return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
   };
 
-  const createElementaryDependency = (from, to) => {
-    const dependency = new ElementaryDependency(from, to);
-    return {
-      withDependencyDescription: function (type, startCodeUnit = null, targetElement = null) {
-        dependency.description = createDependencyDescription(type, startCodeUnit, targetElement);
-        return dependency;
-      }
-    };
-  };
+  const createElementaryDependency = (from, to) => ({
+    withDependencyDescription: (type, startCodeUnit = null, targetElement = null) => {
+      return new ElementaryDependency(from, to, createDependencyDescription(type, startCodeUnit, targetElement));
+    }
+  });
 
   //TODO: maybe rename into getDependencyGroup and maybe separate classes for such a DependencyGroup and a
   // ElementaryDependency
-  const getUniqueDependency = (from, to) => {
-    const dependency = allDependencies.has(`${from}-${to}`) ? allDependencies.get(`${from}-${to}`) : new GroupedDependency (from, to);
-    allDependencies.set(`${from}-${to}`, dependency);
-    return {
-      byGroupingDependencies: function (dependencies) {
-        const newDescription = new GroupedDependencyDescription(dependencies.length === 1);
-        dependencies.forEach(d => newDescription.addDependencyDescription(d.description));
-        dependency.description = newDescription;
-        return dependency;
+  const getUniqueDependency = (from, to) => ({
+    byGroupingDependencies: (dependencies) => {
+      if (containsPackage(from, to)) {
+        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription());
       }
-    };
-  };
+      else {
+        const description = new GroupedDependencyDescription(dependencies.length === 1);
+        dependencies.forEach(d => description.addDependencyDescription(d.description));
+        return getOrCreateUniqueDependency(from, to, description);
+      }
+    }
+  });
 
   const transformDependency = (from, to) => {
-    const dependency = new ElementaryDependency(from, to);
     return {
       afterFoldingOneNode: function (description, endNodeOfThisDependencyWasFolded) {
         if (containsPackage(from, to)) {
-          dependency.description = new GroupedDependencyDescription(false);
+          return new ElementaryDependency(from, to, new EmptyDependencyDescription());
         }
-        else if (endNodeOfThisDependencyWasFolded) {
-          dependency.description = description;
+        if (endNodeOfThisDependencyWasFolded) {
+          return new ElementaryDependency(from, to, description);
         }
-        else {
-          dependency.description = new GroupedDependencyDescription(description.hasDetailedDescription(), 'childrenAccess');
-        }
-        return dependency;
+        return new ElementaryDependency(from, to, new ChildAccessDescription(description.hasDetailedDescription()));
       }
     };
   };

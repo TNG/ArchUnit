@@ -46,7 +46,7 @@ const init = (View) => {
           to: transformer => {
             const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
             const rest = dependencies.filter(r => !matching.includes(r));
-            let folded = uniteDependencies(matching.map(transformer));
+            let folded = matching.map(transformer);
             if (noSelfDeps) {
               folded = folded.filter(r => r.from !== r.to);
             }
@@ -77,8 +77,7 @@ const init = (View) => {
 
   const recreateVisibleDependencies = dependencies => {
     const visibleDependenciesBefore = dependencies._visibleDependencies;
-    dependencies._filteredUniqued = uniteDependencies(Array.from(dependencies._filtered));
-    dependencies._visibleDependencies = applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filteredUniqued);
+    dependencies._visibleDependencies = uniteDependencies(applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filtered));
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
     dependencies._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
   };
@@ -114,7 +113,6 @@ const init = (View) => {
       this._transformers = new Map();
       this._elementary = all;
       this._filtered = this._elementary;
-      this._filteredUniqued = uniteDependencies(Array.from(this._filtered));
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
     }
