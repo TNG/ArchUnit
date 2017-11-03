@@ -127,6 +127,27 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
         }
     }
 
+    public static ClassAssertionCreator clazz(Class<?> clazz) {
+        return new ClassAssertionCreator(clazz);
+    }
+
+    @Internal
+    public static class ClassAssertionCreator {
+        private final Class<?> clazz;
+
+        private ClassAssertionCreator(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+
+        public MessageAssertionChain.Link havingNameMatching(String regex) {
+            return containsLine("class %s matches '%s'", clazz.getName(), regex);
+        }
+
+        public MessageAssertionChain.Link beingAnInterface() {
+            return containsLine("class %s is an interface", clazz.getName());
+        }
+    }
+
     private class ExpectedViolationStatement extends Statement {
         private final Statement base;
 
