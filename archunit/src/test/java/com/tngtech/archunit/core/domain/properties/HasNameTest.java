@@ -4,6 +4,7 @@ import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -30,6 +31,21 @@ public class HasNameTest {
         assertThat(name("Foo").apply(newHasName("some.Foo"))).isFalse();
 
         assertThat(name("some.Foo").getDescription()).isEqualTo("name 'some.Foo'");
+    }
+
+    @Test
+    public void match_against_suffix() {
+        HasName input = newHasName("some.Foo");
+        assertThat(nameEndingWith(".Foo").apply(input)).isTrue();
+        // Full match test
+        assertThat(nameEndingWith("some.Foo").apply(input)).isTrue();
+        assertThat(nameEndingWith("").apply(input)).isTrue();
+        assertThat(nameEndingWith(" ").apply(input)).isFalse();
+
+        assertThat(nameEndingWith(".Fo").apply(input)).isFalse();
+        assertThat(nameEndingWith("some.Fo").apply(input)).isFalse();
+
+        assertThat(nameEndingWith("some.Foo").getDescription()).isEqualTo("name ending with 'some.Foo'");
     }
 
     private AbstractBooleanAssert assertMatches(String input, String regex) {
