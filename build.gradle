@@ -73,6 +73,18 @@ ext {
         }
     }
 
+    configureSlowTestsFor = { proj ->
+        proj.with {
+            test {
+                if (!project.hasProperty('allTests')) {
+                    useJUnit {
+                        excludeCategories 'com.tngtech.archunit.Slow'
+                    }
+                }
+            }
+        }
+    }
+
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
 }
 
@@ -103,12 +115,6 @@ subprojects {
         testLogging {
             events "failed"
             exceptionFormat "full"
-        }
-
-        if (!project.hasProperty('allTests')) {
-            useJUnit {
-                excludeCategories 'com.tngtech.archunit.Slow'
-            }
         }
     }
 }

@@ -16,6 +16,8 @@ dependencies {
     testCompile project(path: ':archunit', configuration: 'tests')
 }
 
+configureSlowTestsFor this
+
 shadowJar {
     dependencies {
         exclude(project(':archunit'))
