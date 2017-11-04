@@ -208,6 +208,16 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
+    public ClassesShouldConjunction areInterfaces() {
+        return shouldWith(are(JavaClass.Predicates.INTERFACES));
+    }
+
+    @Override
+    public ClassesShouldConjunction areNotInterfaces() {
+        return shouldWith(are(not(JavaClass.Predicates.INTERFACES)));
+    }
+
+    @Override
     public ClassesShouldConjunction arePublic() {
         return shouldWith(ClassesThatPredicates.arePublic());
     }

@@ -384,6 +384,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return new OnlyBeAccessedSpecificationInternal(this);
     }
 
+    @Override
+    public ClassesShouldConjunction beInterfaces() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beInterfaces()));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeInterfaces() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeInterfaces()));
+    }
+
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
         return new ClassesShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }

@@ -451,4 +451,22 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
+
+
+    /**
+     * Matches interfaces.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areInterfaces();
+
+    /**
+     * Matches everything except interfaces.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotInterfaces();
+
 }

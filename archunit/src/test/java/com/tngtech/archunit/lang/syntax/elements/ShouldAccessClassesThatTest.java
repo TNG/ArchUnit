@@ -444,6 +444,26 @@ public class ShouldAccessClassesThatTest {
     }
 
     @Test
+    public void areInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areInterfaces())
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingCollection.class);
+    }
+
+    @Test
+    public void areNotInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areNotInterfaces())
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
     public void accessClassesThat_predicate() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))))

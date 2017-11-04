@@ -569,6 +569,22 @@ public final class ArchConditions {
         return not(beAssignableFrom(predicate));
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beInterfaces() {
+        return new ArchCondition<JavaClass>("be interfaces") {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean isInterface = item.isInterface();
+                events.add(new SimpleConditionEvent(item, isInterface, String.format("class %s is %s interface", item.getName(), isInterface ? "an" : "not an")));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeInterfaces() {
+        return not(beInterfaces());
+    }
+
     private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {
         return new ArchCondition<JavaClass>(be(assignable).getDescription()) {
             @Override
