@@ -51,6 +51,16 @@ public interface HasName {
         }
 
         @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameEndingWith(final String suffix) {
+            return new DescribedPredicate<HasName>(String.format("name ending with '%s'", suffix)) {
+                @Override
+                public boolean apply(HasName input) {
+                    return input.getName().endsWith(suffix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasName> name(final String name) {
             return new DescribedPredicate<HasName>(String.format("name '%s'", name)) {
                 @Override
