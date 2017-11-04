@@ -161,6 +161,10 @@ public final class Architectures {
             return new LayeredArchitecture(layerDefinitions, dependencySpecifications, Optional.of(newDescription));
         }
 
+        public LayeredArchitecture ignoreDependency(Class<?> from, Class<?> to) {
+            return this;
+        }
+
         private String[] toArray(Set<String> strings) {
             return strings.toArray(new String[strings.size()]);
         }
