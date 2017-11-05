@@ -6,6 +6,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameStartingWith;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class HasNameTest {
@@ -34,9 +35,26 @@ public class HasNameTest {
     }
 
     @Test
+    public void match_against_prefix() {
+        HasName.AndSimpleName input = newHasName("some.Foo");
+        assertThat(simpleClassNameStartingWith("F").apply(input)).isTrue();
+        assertThat(simpleClassNameStartingWith("Fo").apply(input)).isTrue();
+        assertThat(simpleClassNameStartingWith("Foo").apply(input)).isTrue();
+        assertThat(simpleClassNameStartingWith(".Foo").apply(input)).isFalse();
+        assertThat(simpleClassNameStartingWith("").apply(input)).isTrue();
+
+        assertThat(simpleClassNameStartingWith("some").apply(input)).isFalse();
+
+        // Full match test
+        assertThat(simpleClassNameStartingWith("some.Foo").apply(input)).isFalse();
+
+        assertThat(simpleClassNameStartingWith("some.Foo").getDescription()).isEqualTo("simple class name starting with 'some.Foo'");
+    }
+
+    @Test
     public void match_against_suffix() {
         HasName.AndSimpleName input = newHasName("some.Foo");
-        assertThat(simpleClassNameEndingWith(".Foo").apply(input)).isTrue();
+
         assertThat(simpleClassNameEndingWith("Foo").apply(input)).isTrue();
         assertThat(simpleClassNameEndingWith("").apply(input)).isTrue();
 
@@ -45,7 +63,7 @@ public class HasNameTest {
         assertThat(simpleClassNameEndingWith(" ").apply(input)).isFalse();
         assertThat(simpleClassNameEndingWith(".").apply(input)).isFalse();
 
-        assertThat(simpleClassNameEndingWith(".Fo").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith(".Foo").apply(input)).isFalse();
         assertThat(simpleClassNameEndingWith("some.Fo").apply(input)).isFalse();
 
         assertThat(simpleClassNameEndingWith("some.Foo").getDescription()).isEqualTo("simple class name ending with 'some.Foo'");
@@ -70,7 +88,7 @@ public class HasNameTest {
                     return name;
                 }
 
-                return name.substring(i);
+                return name.substring(i + 1);
             }
         };
     }
