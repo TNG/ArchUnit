@@ -4,7 +4,7 @@ import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -35,17 +35,20 @@ public class HasNameTest {
 
     @Test
     public void match_against_suffix() {
-        HasName input = newHasName("some.Foo");
-        assertThat(nameEndingWith(".Foo").apply(input)).isTrue();
+        HasName.AndSimpleName input = newHasName("some.Foo");
+        assertThat(simpleClassNameEndingWith(".Foo").apply(input)).isTrue();
+        assertThat(simpleClassNameEndingWith("Foo").apply(input)).isTrue();
+        assertThat(simpleClassNameEndingWith("").apply(input)).isTrue();
+
         // Full match test
-        assertThat(nameEndingWith("some.Foo").apply(input)).isTrue();
-        assertThat(nameEndingWith("").apply(input)).isTrue();
-        assertThat(nameEndingWith(" ").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith("some.Foo").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith(" ").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith(".").apply(input)).isFalse();
 
-        assertThat(nameEndingWith(".Fo").apply(input)).isFalse();
-        assertThat(nameEndingWith("some.Fo").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith(".Fo").apply(input)).isFalse();
+        assertThat(simpleClassNameEndingWith("some.Fo").apply(input)).isFalse();
 
-        assertThat(nameEndingWith("some.Foo").getDescription()).isEqualTo("name ending with 'some.Foo'");
+        assertThat(simpleClassNameEndingWith("some.Foo").getDescription()).isEqualTo("simple class name ending with 'some.Foo'");
     }
 
     private AbstractBooleanAssert assertMatches(String input, String regex) {
@@ -53,11 +56,21 @@ public class HasNameTest {
                 .as(input + " =~ " + regex);
     }
 
-    private HasName newHasName(final String name) {
-        return new HasName() {
+    private HasName.AndSimpleName newHasName(final String name) {
+        return new HasName.AndSimpleName() {
             @Override
             public String getName() {
                 return name;
+            }
+
+            @Override
+            public String getSimpleName() {
+                int i = name.lastIndexOf('.');
+                if (i == -1) {
+                    return name;
+                }
+
+                return name.substring(i);
             }
         };
     }

@@ -80,13 +80,13 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction haveNameEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveNameEndsWith(suffix)));
+    public ClassesShouldConjunction haveSimpleClassNameEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameEndingWith(suffix)));
     }
 
     @Override
-    public ClassesShouldConjunction haveNameNotEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveNameNotEndsWith(suffix)));
+    public ClassesShouldConjunction haveSimpleClassNameNotEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameNotEndingWith(suffix)));
     }
 
     @Override

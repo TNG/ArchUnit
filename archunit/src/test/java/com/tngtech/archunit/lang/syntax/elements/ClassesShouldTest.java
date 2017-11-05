@@ -188,47 +188,47 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
-    public static Object[][] haveNameEndsWith_rules() {
+    public static Object[][] haveSimpleClassnameEndingWith_rules() {
         String className = RightNamedClass.class.getSimpleName();
         String prefix = className.substring(1, className.length());
         return $$(
-                $(classes().should().haveNameEndingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveNameEndsWith(prefix)), prefix)
+                $(classes().should().haveSimpleClassNameEndingWith(prefix), prefix),
+                $(classes().should(ArchConditions.haveSimpleClassNameEndingWith(prefix)), prefix)
         );
     }
 
     @Test
-    @UseDataProvider("haveNameEndsWith_rules")
-    public void haveNameEndsWith(ArchRule rule, String suffix) {
+    @UseDataProvider("haveSimpleClassnameEndingWith_rules")
+    public void haveSimpleClassNameEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have name ending with '%s'", suffix))
-                .contains(String.format("classname of %s doesn't end with '%s'",
+                .contains(String.format("classes should have simple class name ending with '%s'", suffix))
+                .contains(String.format("simple class name of %s doesn't end with '%s'",
                         WrongNamedClass.class.getName(), suffix))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
     @DataProvider
-    public static Object[][] haveNameNotEndsWith_rules() {
+    public static Object[][] haveSimpleClassNameNotEndingWith_rules() {
         String className = WrongNamedClass.class.getSimpleName();
         String prefix = className.substring(1, className.length());
         return $$(
-                $(classes().should().haveNameNotEndingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveNameNotEndsWith(prefix)), prefix)
+                $(classes().should().haveSimpleClassNameNotEndingWith(prefix), prefix),
+                $(classes().should(ArchConditions.haveSimpleClassNameNotEndingWith(prefix)), prefix)
         );
     }
 
     @Test
-    @UseDataProvider("haveNameNotEndsWith_rules")
-    public void haveNameNotEndsWith(ArchRule rule, String suffix) {
+    @UseDataProvider("haveSimpleClassNameNotEndingWith_rules")
+    public void haveSimpleClassNameNotEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have name not ending with '%s'", suffix))
-                .contains(String.format("classname of %s ends with '%s'",
+                .contains(String.format("classes should have simple class name not ending with '%s'", suffix))
+                .contains(String.format("simple class name of %s ends with '%s'",
                         WrongNamedClass.class.getName(), suffix))
                 .doesNotContain(RightNamedClass.class.getName());
     }

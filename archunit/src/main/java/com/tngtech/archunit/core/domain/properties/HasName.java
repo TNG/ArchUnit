@@ -32,6 +32,11 @@ public interface HasName {
         String getFullName();
     }
 
+    interface AndSimpleName extends HasName {
+        @PublicAPI(usage = ACCESS)
+        String getSimpleName();
+    }
+
     final class Predicates {
         private Predicates() {
         }
@@ -51,11 +56,11 @@ public interface HasName {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameEndingWith(final String suffix) {
-            return new DescribedPredicate<HasName>(String.format("name ending with '%s'", suffix)) {
+        public static DescribedPredicate<AndSimpleName> simpleClassNameEndingWith(final String suffix) {
+            return new DescribedPredicate<AndSimpleName>(String.format("simple class name ending with '%s'", suffix)) {
                 @Override
-                public boolean apply(HasName input) {
-                    return input.getName().endsWith(suffix);
+                public boolean apply(AndSimpleName input) {
+                    return input.getSimpleName().endsWith(suffix);
                 }
             };
         }

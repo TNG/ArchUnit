@@ -54,7 +54,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
-public class JavaClass implements HasName, HasAnnotations, HasModifiers {
+public class JavaClass implements HasName.AndSimpleName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
     private final JavaType javaType;
     private final boolean isInterface;
@@ -106,7 +106,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return javaType.getName();
     }
 
-    @PublicAPI(usage = ACCESS)
+    @Override
     public String getSimpleName() {
         return javaType.getSimpleName();
     }

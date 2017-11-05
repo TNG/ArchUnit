@@ -74,22 +74,22 @@ public interface ClassesShould {
     ClassesShouldConjunction notHaveSimpleName(String name);
 
     /**
-     * Asserts that classes have a fully qualified class name having a given suffix.
+     * Asserts that classes' simple class names end with a given suffix.
      *
-     * @param suffix A suffix the fully qualified class name should match against
+     * @param suffix A suffix the simple class name should match against
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction haveNameEndingWith(String suffix);
+    ClassesShouldConjunction haveSimpleClassNameEndingWith(String suffix);
 
     /**
-     * Asserts that classes have a fully qualified class name not having a given suffix.
+     * Asserts that classes' simple class names do not end with a given suffix.
      *
-     * @param suffix A suffix the fully qualified class name should not match against
+     * @param suffix A suffix the simple class name should not match against
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction haveNameNotEndingWith(String suffix);
+    ClassesShouldConjunction haveSimpleClassNameNotEndingWith(String suffix);
 
     /**
      * Asserts that classes have a fully qualified class name matching a given regular expression.
