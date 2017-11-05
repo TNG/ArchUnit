@@ -56,6 +56,16 @@ public interface HasName {
         }
 
         @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<AndSimpleName> simpleClassNameStartingWith(final String prefix) {
+            return new DescribedPredicate<AndSimpleName>(String.format("simple class name starting with '%s'", prefix)) {
+                @Override
+                public boolean apply(AndSimpleName input) {
+                    return input.getSimpleName().startsWith(prefix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<AndSimpleName> simpleClassNameEndingWith(final String suffix) {
             return new DescribedPredicate<AndSimpleName>(String.format("simple class name ending with '%s'", suffix)) {
                 @Override

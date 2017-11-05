@@ -73,6 +73,25 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveSimpleName(String name);
 
+
+    /**
+     * Asserts that classes' simple class names start with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should match against
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleClassNameStartingWith(String prefix);
+
+    /**
+     * Asserts that classes' simple class names do not start with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should not match against
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleClassNameNotStartingWith(String prefix);
+
     /**
      * Asserts that classes' simple class names end with a given suffix.
      *
