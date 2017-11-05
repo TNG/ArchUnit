@@ -57,7 +57,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
@@ -312,23 +312,23 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> haveNameEndsWith(final String suffix) {
-        final DescribedPredicate<HasName> predicate = have(nameEndingWith(suffix));
+    public static ArchCondition<JavaClass> haveSimpleClassNameEndingWith(final String suffix) {
+        final DescribedPredicate<HasName.AndSimpleName> predicate = have(simpleClassNameEndingWith(suffix));
 
         return new ArchCondition<JavaClass>(predicate.getDescription()) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = predicate.apply(item);
                 String infix = satisfied ? "ends with" : "doesn't end with";
-                String message = String.format("classname of %s %s '%s'", item.getName(), infix, suffix);
+                String message = String.format("simple class name of %s %s '%s'", item.getName(), infix, suffix);
                 events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> haveNameNotEndsWith(String suffix) {
-        return not(haveNameEndsWith(suffix)).as("have name not ending with '%s'", suffix);
+    public static ArchCondition<JavaClass> haveSimpleClassNameNotEndingWith(String suffix) {
+        return not(haveSimpleClassNameEndingWith(suffix)).as("have simple class name not ending with '%s'", suffix);
     }
 
     @PublicAPI(usage = ACCESS)
