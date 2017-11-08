@@ -32,6 +32,11 @@ public interface HasName {
         String getFullName();
     }
 
+    interface AndSimpleName extends HasName {
+        @PublicAPI(usage = ACCESS)
+        String getSimpleName();
+    }
+
     final class Predicates {
         private Predicates() {
         }
@@ -46,6 +51,26 @@ public interface HasName {
                 @Override
                 public boolean apply(HasName input) {
                     return pattern.matcher(input.getName()).matches();
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<AndSimpleName> simpleClassNameStartingWith(final String prefix) {
+            return new DescribedPredicate<AndSimpleName>(String.format("simple class name starting with '%s'", prefix)) {
+                @Override
+                public boolean apply(AndSimpleName input) {
+                    return input.getSimpleName().startsWith(prefix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<AndSimpleName> simpleClassNameEndingWith(final String suffix) {
+            return new DescribedPredicate<AndSimpleName>(String.format("simple class name ending with '%s'", suffix)) {
+                @Override
+                public boolean apply(AndSimpleName input) {
+                    return input.getSimpleName().endsWith(suffix);
                 }
             };
         }
