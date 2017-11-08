@@ -57,7 +57,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.simpleClassNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.be;
@@ -308,6 +310,46 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notHaveSimpleName(String name) {
         return not(haveSimpleName(name));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleClassNameStartingWith(final String prefix) {
+        final DescribedPredicate<HasName.AndSimpleName> predicate = have(simpleClassNameStartingWith(prefix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String infix = satisfied ? "starts with" : "doesn't start with";
+                String message = String.format("simple class name of %s %s '%s'", item.getName(), infix, prefix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleClassNameNotStartingWith(String prefix) {
+        return not(haveSimpleClassNameStartingWith(prefix)).as("have simple class name not starting with '%s'", prefix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleClassNameEndingWith(final String suffix) {
+        final DescribedPredicate<HasName.AndSimpleName> predicate = have(simpleClassNameEndingWith(suffix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String infix = satisfied ? "ends with" : "doesn't end with";
+                String message = String.format("simple class name of %s %s '%s'", item.getName(), infix, suffix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleClassNameNotEndingWith(String suffix) {
+        return not(haveSimpleClassNameEndingWith(suffix)).as("have simple class name not ending with '%s'", suffix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -575,7 +617,8 @@ public final class ArchConditions {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean isInterface = item.isInterface();
-                events.add(new SimpleConditionEvent(item, isInterface, String.format("class %s is %s interface", item.getName(), isInterface ? "an" : "not an")));
+                events.add(new SimpleConditionEvent(item, isInterface,
+                        String.format("class %s is %s interface", item.getName(), isInterface ? "an" : "not an")));
             }
         };
     }
