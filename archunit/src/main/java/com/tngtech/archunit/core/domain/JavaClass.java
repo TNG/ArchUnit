@@ -54,7 +54,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
-public class JavaClass implements HasName.AndSimpleName, HasAnnotations, HasModifiers {
+public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
     private final JavaType javaType;
     private final boolean isInterface;
@@ -106,7 +106,7 @@ public class JavaClass implements HasName.AndSimpleName, HasAnnotations, HasModi
         return javaType.getName();
     }
 
-    @Override
+    @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
         return javaType.getSimpleName();
     }
@@ -782,6 +782,26 @@ public class JavaClass implements HasName.AndSimpleName, HasAnnotations, HasModi
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleName(final String name) {
             return equalTo(name).onResultOf(GET_SIMPLE_NAME).as("simple name '%s'", name);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameStartingWith(final String prefix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name starting with '%s'", prefix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().startsWith(prefix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameEndingWith(final String suffix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name ending with '%s'", suffix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().endsWith(suffix);
+                }
+            };
         }
 
         @PublicAPI(usage = ACCESS)

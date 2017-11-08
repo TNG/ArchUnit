@@ -80,23 +80,23 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction haveSimpleClassNameStartingWith(String prefix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameStartingWith(prefix)));
+    public ClassesShouldConjunction haveSimpleNameStartingWith(String prefix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameStartingWith(prefix)));
     }
 
     @Override
-    public ClassesShouldConjunction haveSimpleClassNameNotStartingWith(String prefix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameNotStartingWith(prefix)));
+    public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotStartingWith(prefix)));
     }
 
     @Override
-    public ClassesShouldConjunction haveSimpleClassNameEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameEndingWith(suffix)));
+    public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameEndingWith(suffix)));
     }
 
     @Override
-    public ClassesShouldConjunction haveSimpleClassNameNotEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleClassNameNotEndingWith(suffix)));
+    public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotEndingWith(suffix)));
     }
 
     @Override

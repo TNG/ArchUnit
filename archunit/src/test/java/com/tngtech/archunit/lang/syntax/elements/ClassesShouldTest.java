@@ -188,97 +188,96 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
-    public static Object[][] haveSimpleClassnameStartingWith_rules() {
-        String className = RightNamedClass.class.getSimpleName();
-        String prefix = className.substring(0, className.length()-1);
+    public static Object[][] haveSimpleNameStartingWith_rules() {
+        String simpleName = RightNamedClass.class.getSimpleName();
+        String prefix = simpleName.substring(0, simpleName.length() - 1);
         return $$(
-                $(classes().should().haveSimpleClassNameStartingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleClassNameStartingWith(prefix)), prefix)
+                $(classes().should().haveSimpleNameStartingWith(prefix), prefix),
+                $(classes().should(ArchConditions.haveSimpleNameStartingWith(prefix)), prefix)
         );
     }
 
     @Test
-    @UseDataProvider("haveSimpleClassnameStartingWith_rules")
-    public void haveSimpleClassNameStartingWith(ArchRule rule, String suffix) {
+    @UseDataProvider("haveSimpleNameStartingWith_rules")
+    public void haveSimpleNameStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple class name starting with '%s'", suffix))
-                .contains(String.format("simple class name of %s doesn't start with '%s'",
+                .contains(String.format("classes should have simple name starting with '%s'", prefix))
+                .contains(String.format("simple name of %s doesn't start with '%s'",
+                        WrongNamedClass.class.getName(), prefix))
+                .doesNotContain(RightNamedClass.class.getName());
+    }
+
+    @DataProvider
+    public static Object[][] haveSimpleNameNotStartingWith_rules() {
+        String simpleName = WrongNamedClass.class.getSimpleName();
+        String prefix = simpleName.substring(0, simpleName.length() - 1);
+        return $$(
+                $(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
+                $(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveSimpleNameNotStartingWith_rules")
+    public void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                RightNamedClass.class, WrongNamedClass.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should have simple name not starting with '%s'", prefix))
+                .contains(String.format("simple name of %s starts with '%s'",
+                        WrongNamedClass.class.getName(), prefix))
+                .doesNotContain(RightNamedClass.class.getName());
+    }
+
+    @DataProvider
+    public static Object[][] haveSimpleNameEndingWith_rules() {
+        String simpleName = RightNamedClass.class.getSimpleName();
+        String suffix = simpleName.substring(1, simpleName.length());
+        return $$(
+                $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
+                $(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveSimpleNameEndingWith_rules")
+    public void haveSimpleNameEndingWith(ArchRule rule, String suffix) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                RightNamedClass.class, WrongNamedClass.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should have simple name ending with '%s'", suffix))
+                .contains(String.format("simple name of %s doesn't end with '%s'",
                         WrongNamedClass.class.getName(), suffix))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
     @DataProvider
-    public static Object[][] haveSimpleClassNameNotStartingWith_rules() {
-        String className = WrongNamedClass.class.getSimpleName();
-        String prefix = className.substring(0, className.length()-1);
+    public static Object[][] haveSimpleNameNotEndingWith_rules() {
+        String simpleName = WrongNamedClass.class.getSimpleName();
+        String suffix = simpleName.substring(1, simpleName.length());
         return $$(
-                $(classes().should().haveSimpleClassNameNotStartingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleClassNameNotStartingWith(prefix)), prefix)
+                $(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
+                $(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
         );
     }
 
     @Test
-    @UseDataProvider("haveSimpleClassNameNotStartingWith_rules")
-    public void haveSimpleClassNameNotStartingWith(ArchRule rule, String suffix) {
+    @UseDataProvider("haveSimpleNameNotEndingWith_rules")
+    public void haveSimpleNameNotEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple class name not starting with '%s'", suffix))
-                .contains(String.format("simple class name of %s starts with '%s'",
+                .contains(String.format("classes should have simple name not ending with '%s'", suffix))
+                .contains(String.format("simple name of %s ends with '%s'",
                         WrongNamedClass.class.getName(), suffix))
                 .doesNotContain(RightNamedClass.class.getName());
     }
-
-    @DataProvider
-    public static Object[][] haveSimpleClassnameEndingWith_rules() {
-        String className = RightNamedClass.class.getSimpleName();
-        String prefix = className.substring(1, className.length());
-        return $$(
-                $(classes().should().haveSimpleClassNameEndingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleClassNameEndingWith(prefix)), prefix)
-        );
-    }
-
-    @Test
-    @UseDataProvider("haveSimpleClassnameEndingWith_rules")
-    public void haveSimpleClassNameEndingWith(ArchRule rule, String suffix) {
-        EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
-
-        assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple class name ending with '%s'", suffix))
-                .contains(String.format("simple class name of %s doesn't end with '%s'",
-                        WrongNamedClass.class.getName(), suffix))
-                .doesNotContain(RightNamedClass.class.getName());
-    }
-
-    @DataProvider
-    public static Object[][] haveSimpleClassNameNotEndingWith_rules() {
-        String className = WrongNamedClass.class.getSimpleName();
-        String prefix = className.substring(1, className.length());
-        return $$(
-                $(classes().should().haveSimpleClassNameNotEndingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleClassNameNotEndingWith(prefix)), prefix)
-        );
-    }
-
-    @Test
-    @UseDataProvider("haveSimpleClassNameNotEndingWith_rules")
-    public void haveSimpleClassNameNotEndingWith(ArchRule rule, String suffix) {
-        EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
-
-        assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple class name not ending with '%s'", suffix))
-                .contains(String.format("simple class name of %s ends with '%s'",
-                        WrongNamedClass.class.getName(), suffix))
-                .doesNotContain(RightNamedClass.class.getName());
-    }
-
 
     @DataProvider
     public static Object[][] resideInAPackage_rules() {
