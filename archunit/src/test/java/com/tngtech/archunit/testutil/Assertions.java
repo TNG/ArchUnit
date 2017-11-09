@@ -617,6 +617,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
             return this;
         }
+
+        public ConditionEventsAssert haveAtLeastOneViolationMessageMatching(String regex) {
+            Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+            for (String message : messagesOf(actual.getViolating())) {
+                if (pattern.matcher(message).matches()) {
+                    return this;
+                }
+            }
+            throw new AssertionError(String.format("No message matches pattern '%s'", regex));
+        }
     }
 
     public static class AccessesAssertion {

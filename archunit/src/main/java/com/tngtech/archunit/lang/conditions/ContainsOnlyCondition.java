@@ -85,5 +85,14 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
                 event.handleWith(handler);
             }
         }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{" +
+                    "correspondingObjects=" + correspondingObjects +
+                    ", allowed=" + allowed +
+                    ", violating=" + violating +
+                    '}';
+        }
     }
 }

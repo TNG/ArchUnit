@@ -5,8 +5,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.TestUtils.AccessesSimulator;
@@ -21,6 +24,7 @@ import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -36,7 +40,9 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyEle
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static java.util.regex.Pattern.quote;
 
 public class ArchConditionsTest {
     @Test
@@ -101,6 +107,22 @@ public class ArchConditionsTest {
 
         assertThat(containOnlyElementsThat(conditionWithDescription("something")).getDescription())
                 .isEqualTo("contain only elements that something");
+    }
+
+    @Test
+    public void only_have_dependents_where() {
+        JavaClasses classes = importClasses(CallingClass.class, SomeClass.class);
+        JavaClass accessedClass = classes.get(SomeClass.class);
+
+        ConditionEvents events = check(onlyHaveDependentsWhere(DescribedPredicate.<Dependency>alwaysFalse()), accessedClass);
+        assertThat(events).haveAtLeastOneViolationMessageMatching(String.format(".*%s.*%s.*",
+                quote(CallingClass.class.getName()), quote(SomeClass.class.getName())));
+
+        events = check(onlyHaveDependentsWhere(DescribedPredicate.<Dependency>alwaysTrue()), accessedClass);
+        assertThat(events).containNoViolation();
+
+        DescribedPredicate<Dependency> customDescription = DescribedPredicate.<Dependency>alwaysTrue().as("custom");
+        assertThat(onlyHaveDependentsWhere(customDescription).getDescription()).isEqualTo("only have dependents where custom");
     }
 
     private ArchCondition<Object> conditionWithDescription(String description) {
