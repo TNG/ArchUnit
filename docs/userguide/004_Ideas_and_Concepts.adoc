@@ -1,0 +1,7 @@
+== Ideas and Concepts
+
+Much of ArchUnit's core API resembles the Java Reflection API. There are classes
+like `JavaMethod`, `JavaField`, and more, and the public API consists of methods like
+`getName()`, `getMethods()`, `getType()` or `getParameters()`.
+
+TO BE CONTINUED...
