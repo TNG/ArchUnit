@@ -26,6 +26,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -234,15 +235,28 @@ public final class ArchConditions {
 
     /**
      * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
-     * @return A condition matching {@link JavaClass classes} depending on this class (e.g. calling methods of this class)
+     * @return A condition matching {@link JavaClass classes} that have other classes
+     * depending on them (e.g. calling methods of this class)
      * with a package matching any of the identifiers
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsInAnyPackage(String... packageIdentifiers) {
         String description = String.format("only have dependents in any package ['%s']",
                 Joiner.on("', '").join(packageIdentifiers));
-        return new AllDependenciesOnClassCondition(description,
-                dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))));
+        return onlyHaveDependentsWhere(dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))))
+                .as(description);
+    }
+
+    /**
+     * @param predicate A predicate identifying relevant dependencies on this class
+     * @return A condition matching {@link JavaClass classes} that have other classes
+     * depending on them (e.g. calling methods of this class)
+     * where the respective dependency is matched by the predicate
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyHaveDependentsWhere(DescribedPredicate<? super Dependency> predicate) {
+        String description = "only have dependents where " + predicate.getDescription();
+        return new AllDependenciesOnClassCondition(description, predicate);
     }
 
     @PublicAPI(usage = ACCESS)
