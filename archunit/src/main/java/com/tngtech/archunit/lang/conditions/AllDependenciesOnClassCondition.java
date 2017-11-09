@@ -25,7 +25,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class AllDependenciesOnClassCondition extends AllAttributesMatchCondition<Dependency> {
-    AllDependenciesOnClassCondition(String description, final DescribedPredicate<Dependency> predicate) {
+    AllDependenciesOnClassCondition(String description, final DescribedPredicate<? super Dependency> predicate) {
         super(description, new ArchCondition<Dependency>(predicate.getDescription()) {
             @Override
             public void check(Dependency item, ConditionEvents events) {
