@@ -110,6 +110,7 @@ const init = (View) => {
     return [...map.values()];
   };
 
+  //FIXME: maybe set svgContainer already in initDependencies?
   const Dependencies = class {
     constructor(jsonRoot, nodeMap, svgContainer) {
       nodes = nodeMap;

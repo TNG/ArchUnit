@@ -104,6 +104,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   });
 
+  //FIXME: maybe set svgContainer already in initNodeView, because Node does not need to know the svg-container?
   const Node = class {
     constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null) {
       this._root = root;
