@@ -16,6 +16,8 @@ const appContext = require('./main-files').get('app-context').newInstance({
 const Node = appContext.getNode();
 const testJson = require("./test-json-creator");
 
+const MAXIMUM_DELTA = 0.0001;
+
 describe('Root', () => {
   it('should have no parent', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
@@ -137,7 +139,25 @@ describe('Inner node or leaf', () => {
 
 describe('Node layout', () => {
   it('should put every child node within its parent node', () => {
-
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class').build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .add(testJson.package('visual')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .add(testJson.clazz('SomeClass3', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.relayout();
+    return root.updatePromise.then(() => {
+      root.callOnEveryDescendantThenSelf(node => {
+        if (!node.isRoot()) {
+          expect(Math.sqrt(Math.pow(node.visualData.x, 2) + Math.pow(node.visualData.y, 2)) + node.visualData.r +
+            appContext.getVisualizationStyles().getCirclePadding()).to.be.at.most(node.getParent().visualData.r + MAXIMUM_DELTA);
+        }
+      });
+    });
   })
 });
 
