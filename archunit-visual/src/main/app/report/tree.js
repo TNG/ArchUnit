@@ -114,7 +114,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._text = new NodeText(this);
       this._folded = false;
 
-      this._view = new View(svgContainer, this, () => this.changeFoldIfInnerNode(), (dx, dy) => this._drag(dx, dy));
+      this._view = new View(svgContainer, this, () => this.changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
         onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
@@ -133,6 +133,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const map = new Map();
         this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
         this.getByName = name => map.get(name);
+        this.relayout = () => this.updatePromise = this.updatePromise.then(() => this._relayout())
       }
     }
 
@@ -195,27 +196,23 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _setFolded(getFolded) {
-      if (!this._isLeaf()) {
-        this._root.updatePromise = this._root.updatePromise.then(() => {
-          this._folded = getFolded();
-          this._updateViewOnCurrentChildrenChanged();
-          this._listener.forEach(listener => listener.onFold(this));
-          return this._root.relayout();
-        });
+      this._root.updatePromise.then(() => {
+        this._folded = getFolded();
+        this._updateViewOnCurrentChildrenChanged();
+        this._listener.forEach(listener => listener.onFold(this));
+      });
+    }
+
+    foldIfInnerNode() {
+      if (!this.isRoot() && !this._isLeaf()) {
+        this._setFolded(() => true);
       }
     }
 
-    fold() {
-      this._setFolded(() => true);
-    }
-
-    changeFold() {
-      this._setFolded(() => !this._folded);
-    }
-
-    changeFoldIfInnerNode() {
+    changeFoldIfInnerNodeAndRelayout() {
       if (!this.isRoot() && !this._isLeaf()) {
-        this.changeFold();
+        this._setFolded(() => !this._folded);
+        this._root.relayout();
       }
     }
 
@@ -287,8 +284,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node.
      */
-    relayout() {
-      const childrenPromises = this.getCurrentChildren().map(d => d.relayout());
+    _relayout() {
+      const childrenPromises = this.getCurrentChildren().map(d => d._relayout());
 
       let promises = [];
       if (this.isCurrentlyLeaf()) {

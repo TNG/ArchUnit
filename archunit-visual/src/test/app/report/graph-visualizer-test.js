@@ -39,8 +39,8 @@ describe("Visual data of dependency", () => {
 
     const toChange = "com.tngtech.main";
     const node = graphWrapper.getNode(toChange);
-    node.changeFold();
-    graphWrapper.graph.root.relayout();
+    node.changeFoldIfInnerNodeAndRelayout();
+    graphWrapper.graph.root._relayout();
     graphWrapper.graph.dependencies.getVisible().forEach(d => d.visualData.recalc(d.getStartNode().getAbsoluteCoords(), d.getEndNode().getAbsoluteCoords()));
 
     expect(graphWrapper.graph.dependencies.getVisible()).to.haveCorrectEndPositions();

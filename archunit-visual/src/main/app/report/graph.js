@@ -11,10 +11,9 @@ const init = (Node, Dependencies, View) => {
     }
 
     foldAllNodes() {
-      this.root.callOnEveryDescendantThenSelf(node => {
-        if (!node.isRoot()) {
-          node.fold();
-        }
+      this.updatePromise = this.updatePromise.then(() => {
+        this.root.callOnEveryDescendantThenSelf(node => node.foldIfInnerNode());
+        return this.root.relayout();
       });
     }
 
@@ -76,6 +75,7 @@ module.exports.create = () => {
 
       const Graph = init(Node, Dependencies, graphView).Graph;
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
+      graph.foldAllNodes();
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {

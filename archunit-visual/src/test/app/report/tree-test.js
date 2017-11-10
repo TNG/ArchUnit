@@ -36,7 +36,11 @@ const NodeView = class {
   updateNodeType() {
   }
 };
-const appContext = require('./main-files').get('app-context').newInstance({visualizationStyles, calculateTextWidth, NodeView});
+const appContext = require('./main-files').get('app-context').newInstance({
+  visualizationStyles,
+  calculateTextWidth,
+  NodeView
+});
 const Node = appContext.getNode();
 
 describe("Node", () => {
@@ -47,33 +51,36 @@ describe("Node", () => {
   });
 
   it("knows if it is currently leaf", () => {
-    const root = testObjects.testTree1().root;
-    expect(root.isCurrentlyLeaf()).to.equal(false);
-    root.changeFold();
-    return root.updatePromise.then(() => expect(root.isCurrentlyLeaf()).to.equal(true));
+    const tree = testObjects.testTree1();
+    const node = tree.getNode('com.tngtech.main');
+    expect(node.isCurrentlyLeaf()).to.equal(false);
+    node.changeFoldIfInnerNodeAndRelayout();
+    return tree.root.updatePromise.then(() => expect(node.isCurrentlyLeaf()).to.equal(true));
   });
 
   it("can fold single node", () => {
-    const root = testObjects.testTree1().root;
-    root.changeFold();
-    return root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech"]));
+    const tree = testObjects.testTree1();
+    const node = tree.getNode('com.tngtech.main');
+    node.changeFoldIfInnerNodeAndRelayout();
+    return tree.root.updatePromise.then(() => expect(node.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech.main"]));
   });
 
   it("can unfold single node", () => {
-    const root = testObjects.testTree1().root;
-    const allNodes1 = testObjects.allNodes(root);
-    root.changeFold();
-    root.changeFold();
-    return root.updatePromise.then(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(allNodes1));
+    const tree = testObjects.testTree1();
+    const node = tree.getNode('com.tngtech.main');
+    const allNodes1 = ['com.tngtech.main', 'com.tngtech.main.class1'];
+    node.changeFoldIfInnerNodeAndRelayout();
+    node.changeFoldIfInnerNodeAndRelayout();
+    return tree.root.updatePromise.then(() => expect(node.getSelfAndDescendants()).to.containOnlyNodes(allNodes1));
   });
 
   it("can be folded and unfolded without changing the fold-state of its children", () => {
     const tree = testObjects.testTree2();
-    tree.getNode("com.tngtech.test.subtest").changeFold();
+    tree.getNode("com.tngtech.test.subtest").changeFoldIfInnerNodeAndRelayout();
     const toFold = tree.getNode("com.tngtech.test");
     const exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    toFold.changeFold();
-    toFold.changeFold();
+    toFold.changeFoldIfInnerNodeAndRelayout();
+    toFold.changeFoldIfInnerNodeAndRelayout();
     return tree.root.updatePromise.then(() => expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp));
   });
 
@@ -97,7 +104,7 @@ describe("Tree", () => {
     let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.class2", "com.tngtech.class3"];
     expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
     exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
-    tree.getNode("com.tngtech.main").changeFold();
+    tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
     return tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
   });
 
@@ -134,12 +141,12 @@ describe("Tree", () => {
     tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    tree.getNode("com.tngtech.main").changeFold();
+    tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
     return tree.root.updatePromise.then(() => {
       expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1"];
-      tree.getNode("com.tngtech.main").changeFold();
+      tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
       return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
         tree.root.filterByName("", false);
@@ -157,7 +164,7 @@ describe("Tree", () => {
     tree.root.filterByName("subtest", true);
     let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
       "com.tngtech.test", "com.tngtech.test.testclass1"];
-    tree.getNode("com.tngtech.main").changeFold();
+    tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
     return tree.root.updatePromise.then(() => {
       expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       tree.root.filterByName("", false);
@@ -167,7 +174,7 @@ describe("Tree", () => {
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
         "com.tngtech.test.subtest.subtestclass1"];
-      tree.getNode("com.tngtech.main").changeFold();
+      tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
       return tree.root.updatePromise.then(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
     });
   });
@@ -175,7 +182,7 @@ describe("Tree", () => {
   it("can fold, filter, unfold and reset filter in this order", function () {
     const tree = testObjects.testTree2();
     //FIXME: at the end filtering should consider the promise in node by itsef
-    tree.getNode("com.tngtech.main").changeFold();
+    tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
     return tree.root.updatePromise.then(() => {
       tree.root.filterByName("subtest", true);
       let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
@@ -183,7 +190,7 @@ describe("Tree", () => {
       expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1"];
-      tree.getNode("com.tngtech.main").changeFold();
+      tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout();
       return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
         tree.root.filterByName("", false);
@@ -197,7 +204,7 @@ describe("Tree", () => {
 
   it("can fold, filter, reset the filter and unfold in this order", function () {
     const tree = testObjects.testTree2();
-    tree.getNode("com.tngtech.main").changeFold()
+    tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout()
     return tree.root.updatePromise.then(() => {
       tree.root.filterByName("subtest", true);
       let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
@@ -211,7 +218,7 @@ describe("Tree", () => {
       exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
         "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
         "com.tngtech.test.subtest.subtestclass1"];
-      tree.getNode("com.tngtech.main").changeFold()
+      tree.getNode("com.tngtech.main").changeFoldIfInnerNodeAndRelayout()
       return tree.root.updatePromise.then(() => {
         expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
       });
@@ -310,7 +317,7 @@ describe("Layout of nodes", () => {
       expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, 0);
       node.getOriginalChildren().forEach(c => checkText(c));
     };
-    checkText(graphWrapper.graph.root);
+    graphWrapper.graph.updatePromise.then(() => checkText(graphWrapper.graph.root));
   });
 
   it("draws children within parent", () => {
@@ -319,7 +326,7 @@ describe("Layout of nodes", () => {
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
-    checkLayout(graphWrapper.graph.root);
+    graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
   });
 
   it("draws children without overlap", () => {
@@ -328,7 +335,7 @@ describe("Layout of nodes", () => {
       expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
-    checkLayout(graphWrapper.graph.root);
+    graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
   });
 });
 
