@@ -130,11 +130,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener = [];
 
       if (!root) {
-        this.updatePromise = Promise.resolve();
+        this._updatePromise = Promise.resolve();
         const map = new Map();
         this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
         this.getByName = name => map.get(name);
-        this.relayout = () => this.updatePromise = this.updatePromise.then(() => this._relayout());
+        this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
+        this.relayout = () => this.doNext(() => this._relayout());
       }
     }
 
@@ -198,7 +199,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _setFolded(getFolded) {
-      this._root.updatePromise.then(() => {
+      this._root.doNext(() => {
         this._folded = getFolded();
         this._updateViewOnCurrentChildrenChanged();
         this._listener.forEach(listener => listener.onFold(this));
@@ -321,7 +322,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param dy The delta in y-direction
      */
     _drag(dx, dy) {
-      this._root.updatePromise.then(() => {
+      this._root.doNext(() => {
         this.visualData.jumpToPosition(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
       });
