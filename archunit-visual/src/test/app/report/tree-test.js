@@ -4,51 +4,167 @@ const expect = require("chai").expect;
 require('./chai/tree-chai-extensions');
 require('./chai/tree-visualizer-chai-extensions');
 
-const testJson = require("./test-json-creator");
 const testObjects = require("./test-object-creator.js");
 const testTree = testObjects.tree;
-const visualizationStyles = testObjects.visualizationStyles;
-const calculateTextWidth = testObjects.calculateTextWidth;
-const NodeView = class {
-  show() {
-  }
 
-  hide() {
-  }
-
-  jumpToPosition() {
-  }
-
-  moveToPosition() {
-    return Promise.resolve();
-  }
-
-  moveToRadius() {
-    return Promise.resolve();
-  }
-
-  onClick() {
-  }
-
-  onDrag() {
-  }
-
-  updateNodeType() {
-  }
-};
+const stubs = require('./stubs');
 const appContext = require('./main-files').get('app-context').newInstance({
-  visualizationStyles,
-  calculateTextWidth,
-  NodeView
+  visualizationStyles: stubs.visualizationStylesStub(10),
+  calculateTextWidth: stubs.calculateTextWidthStub,
+  NodeView: stubs.NodeViewStub
 });
 const Node = appContext.getNode();
+const testJson = require("./test-json-creator");
 
-describe("Node", () => {
-  it("knows if it is root", () => {
-    const tree = testObjects.testTree1();
-    expect(tree.root.isRoot()).to.equal(true);
-    expect(tree.getNode("com.tngtech.class2").isRoot()).to.equal(false);
+describe('Root', () => {
+  it('should have no parent', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit').build();
+    const root = new Node(jsonRoot);
+    expect(root.getParent()).to.equal(undefined);
   });
+
+  it('should know that it is the root', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    expect(root.isRoot()).to.equal(true);
+  });
+
+  it('does not fold or change its fold-state', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit').build();
+    const root = new Node(jsonRoot);
+    root.foldIfInnerNode();
+    expect(root.isFolded()).to.equal(false);
+    root.changeFoldIfInnerNodeAndRelayout();
+    expect(root.isFolded()).to.equal(false);
+  });
+});
+
+describe('Inner node', () => {
+  it('can fold', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.foldIfInnerNode();
+    return root.updatePromise.then(() => {
+      expect(innerNode.isFolded()).to.equal(true);
+      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+      expect(listenerStub.foldedNode()).to.equal(innerNode);
+    });
+  });
+
+  it('can change the fold-state to folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.changeFoldIfInnerNodeAndRelayout();
+    return root.updatePromise.then(() => {
+      expect(innerNode.isFolded()).to.equal(true);
+      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+      expect(listenerStub.foldedNode()).to.equal(innerNode);
+      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
+    });
+  });
+
+  it('can change the fold-state to unfolded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.changeFoldIfInnerNodeAndRelayout();
+    innerNode.changeFoldIfInnerNodeAndRelayout();
+    return root.updatePromise.then(() => {
+      expect(innerNode.isFolded()).to.equal(false);
+      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(false);
+      expect(listenerStub.foldedNode()).to.equal(innerNode);
+      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
+    });
+  });
+});
+
+describe('Leaf', () => {
+  it('should not fold or change its fold-state', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    const leaf = root.getByName('com.tngtech.archunit.SomeClass');
+    leaf.foldIfInnerNode();
+    expect(leaf.isFolded()).to.equal(false);
+    leaf.changeFoldIfInnerNodeAndRelayout();
+    expect(leaf.isFolded()).to.equal(false);
+  });
+});
+
+describe('Inner node or leaf', () => {
+  it('should know its parent', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    expect(root.getByName('com.tngtech.archunit.SomeClass').getParent()).to.equal(root);
+  });
+
+  it('should know that is not the root', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
+  });
+});
+
+describe('Node layout', () => {
+  it('should put every child node within its parent node', () => {
+
+  })
+});
+
+describe('Node', () => {
+  it('creates a correct tree', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('visual')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeTestClass', 'class')
+          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const exp = ['com.tngtech.archunit(package)', 'com.tngtech.archunit.SomeClass(class)',
+      'com.tngtech.archunit.SomeInterface(interface)', 'com.tngtech.archunit.visual(package)',
+      'com.tngtech.archunit.visual.SomeClass(class)', 'com.tngtech.archunit.test(package)',
+      'com.tngtech.archunit.test.SomeTestClass(class)', 'com.tngtech.archunit.test.SomeTestClass$SomeInnerClass(class)'];
+    const act = root.getSelfAndDescendants().map(node => `${node.getFullName()}(${node._description.type})`);
+    expect(act).to.deep.equal(exp);
+  });
+
+  //----------------------------------updated until here-------------------------------------
 
   it("knows if it is currently leaf", () => {
     const tree = testObjects.testTree1();
@@ -314,10 +430,10 @@ describe("Layout of nodes", () => {
   it("draws text within node circles", () => {
     const graphWrapper = testObjects.testGraph2();
     const checkText = node => {
-      expect(node).to.haveTextWithinCircle(calculateTextWidth, CIRCLE_TEXT_PADDING, 0);
+      expect(node).to.haveTextWithinCircle(stubs.calculateTextWidthStub, CIRCLE_TEXT_PADDING, 0);
       node.getOriginalChildren().forEach(c => checkText(c));
     };
-    graphWrapper.graph.updatePromise.then(() => checkText(graphWrapper.graph.root));
+    return graphWrapper.graph.updatePromise.then(() => checkText(graphWrapper.graph.root));
   });
 
   it("draws children within parent", () => {
@@ -326,7 +442,7 @@ describe("Layout of nodes", () => {
       expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
-    graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
+    return graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
   });
 
   it("draws children without overlap", () => {
@@ -335,7 +451,7 @@ describe("Layout of nodes", () => {
       expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
       node.getOriginalChildren().forEach(c => checkLayout(c));
     };
-    graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
+    return graphWrapper.graph.updatePromise.then(() => checkLayout(graphWrapper.graph.root));
   });
 });
 

@@ -12,12 +12,12 @@ module.exports = {
     const res = {
       fullName: pkgname,
       name: pkgname,
-      type: "package",
+      type: 'package',
       children: []
     };
     const builder = {
       add: function (child) {
-        changeFullName(child, res.fullName, ".");
+        changeFullName(child, res.fullName, '.');
         res.children.push(child);
         return builder;
       },
@@ -61,7 +61,7 @@ module.exports = {
         return builder;
       },
       havingInnerClass: function (innerClass) {
-        changeFullName(innerClass, res.fullName, "$");
+        changeFullName(innerClass, res.fullName, '$');
         res.children.push(innerClass);
         return builder;
       },

@@ -134,7 +134,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const map = new Map();
         this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
         this.getByName = name => map.get(name);
-        this.relayout = () => this.updatePromise = this.updatePromise.then(() => this._relayout())
+        this.relayout = () => this.updatePromise = this.updatePromise.then(() => this._relayout());
       }
     }
 
@@ -172,6 +172,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._parent;
     }
 
+    //FIXME: remove this method, as the original children do not to be accessed from outside
     getOriginalChildren() {
       return this._originalChildren;
     }

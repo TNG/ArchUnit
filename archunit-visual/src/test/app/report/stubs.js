@@ -1,13 +1,53 @@
 'use strict';
 
-const createVisualizationStylesStub = () => {
-  let circlePadding = 1;
-  let nodeFontSize = 10;
+const createVisualizationStylesStub = (circlePadding = 1, nodeFontSize = 10) => {
+  let _circlePadding = circlePadding;
+  let _nodeFontSize = nodeFontSize;
   return {
-    getCirclePadding: () => circlePadding,
-    setCirclePadding: padding => circlePadding = padding,
-    getNodeFontSize: () => nodeFontSize,
-    setNodeFontSize: fontSize => nodeFontSize = fontSize
+    getCirclePadding: () => _circlePadding,
+    setCirclePadding: padding => _circlePadding = padding,
+    getNodeFontSize: () => _nodeFontSize,
+    setNodeFontSize: fontSize => _nodeFontSize = fontSize
   };
 };
-module.exports.visualizationStylesStub = createVisualizationStylesStub;
+
+const calculateTextWidthStub = text => text.length * 7;
+
+const NodeViewStub = class {
+  constructor() {
+    this._cssClass = '';
+    this._isVisible = true;
+    this.show = () => this._isVisible = true;
+    this.hide = () => this._isVisible = false;
+    this.jumpToPosition = () => {
+    };
+    this.moveToPosition = () => Promise.resolve();
+    this.moveToRadius = () => Promise.resolve();
+    this.onClick = () => {
+    };
+    this.onDrag = () => {
+    };
+    this.updateNodeType = cssClass => this._cssClass = cssClass;
+  }
+};
+
+const createNodeListenerStub = () => {
+  let _onDragWasCalled = false;
+  let _foldedNode;
+  let _onLayoutChangedWasCalled = false;
+  return {
+    onDrag: () => _onDragWasCalled = true,
+    onFold: node => _foldedNode = node,
+    onLayoutChanged: () => _onLayoutChangedWasCalled = true,
+    onDragWasCalled: () => _onDragWasCalled,
+    foldedNode: () => _foldedNode,
+    onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled
+  }
+};
+
+module.exports = {
+  visualizationStylesStub: createVisualizationStylesStub,
+  calculateTextWidthStub: calculateTextWidthStub,
+  NodeViewStub: NodeViewStub,
+  NodeListenerStub: createNodeListenerStub
+};
