@@ -110,6 +110,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._root = root;
       if (!root) {
         this._root = this;
+        this._isVisible = true;
       }
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
@@ -119,7 +120,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
         onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
-        onMovedToPosition: () => this._view.moveToPosition(this.visualData).then(() => this._view.show())
+        onMovedToPosition: () => this._view.moveToPosition(this.visualData).then(() => this._view.showIfVisible(this))
       });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root));
@@ -200,11 +201,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _setFolded(getFolded) {
-      this._root.doNextAndWaitFor(() => {
-        this._folded = getFolded();
-        this._updateViewOnCurrentChildrenChanged();
-        this._listener.forEach(listener => listener.onFold(this));
-      });
+      this._folded = getFolded();
+      this._updateViewOnCurrentChildrenChanged();
+      this._listener.forEach(listener => listener.onFold(this));
     }
 
     foldIfInnerNode() {
@@ -281,7 +280,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this.getClass());
-      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._view.hide());
+      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
+      this.getCurrentChildren().forEach(child => child._isVisible = true);
+    }
+
+    hide() {
+      this._isVisible = false;
+      this._view.hide();
+    }
+
+    isVisible() {
+      return this._isVisible;
     }
 
     /**

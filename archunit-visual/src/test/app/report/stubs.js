@@ -28,6 +28,11 @@ const NodeViewStub = class {
     this.onDrag = () => {
     };
     this.updateNodeType = cssClass => this._cssClass = cssClass;
+    this.showIfVisible = node => {
+      if (node.isVisible()) {
+        this._isVisible = true;
+      }
+    };
   }
 };
 

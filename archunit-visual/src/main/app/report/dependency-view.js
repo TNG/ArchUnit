@@ -62,12 +62,9 @@ const init = (DetailedView, transitionDuration) => {
       d3.select(this._svgElement).select('line.area').style('pointer-events', 'none');
     }
 
-    _updateVisibility(dependency) {
+    _showIfVisible(dependency) {
       if (dependency.isVisible()) {
         this._show(dependency);
-      }
-      else {
-        this.hide();
       }
     }
 
@@ -75,17 +72,17 @@ const init = (DetailedView, transitionDuration) => {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), dependencyVisualData);
     }
 
-    jumpToPositionAndUpdateVisibility(dependency) {
+    jumpToPositionAndShowIfVisible(dependency) {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependency.visualData);
       this._updateAreaPosition(dependency.visualData);
-      this._updateVisibility(dependency);
+      this._showIfVisible(dependency);
     }
 
-    moveToPositionAndUpdateVisibility(dependency) {
+    moveToPositionAndShowIfVisible(dependency) {
       const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
       const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
       this._updateAreaPosition(dependency.visualData);
-      return promise.then(() => this._updateVisibility(dependency));
+      return promise.then(() => this._showIfVisible(dependency));
     }
 
     onMouseOver(handler) {

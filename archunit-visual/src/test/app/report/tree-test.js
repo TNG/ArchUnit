@@ -56,11 +56,9 @@ describe('Inner node', () => {
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
     innerNode.foldIfInnerNode();
-    return root.doNext(() => {
-      expect(innerNode.isFolded()).to.equal(true);
-      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
-      expect(listenerStub.foldedNode()).to.equal(innerNode);
-    });
+    expect(innerNode.isFolded()).to.equal(true);
+    expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+    expect(listenerStub.foldedNode()).to.equal(innerNode);
   });
 
   it('can change the fold-state to folded', () => {
@@ -75,12 +73,10 @@ describe('Inner node', () => {
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
     innerNode.changeFoldIfInnerNodeAndRelayout();
-    return root.doNext(() => {
-      expect(innerNode.isFolded()).to.equal(true);
-      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
-      expect(listenerStub.foldedNode()).to.equal(innerNode);
-      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
-    });
+    expect(innerNode.isFolded()).to.equal(true);
+    expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+    expect(listenerStub.foldedNode()).to.equal(innerNode);
+    root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
   });
 
   it('can change the fold-state to unfolded', () => {
@@ -96,12 +92,12 @@ describe('Inner node', () => {
     const innerNode = root.getByName('com.tngtech.archunit.test');
     innerNode.changeFoldIfInnerNodeAndRelayout();
     innerNode.changeFoldIfInnerNodeAndRelayout();
-    return root.doNext(() => {
-      expect(innerNode.isFolded()).to.equal(false);
-      expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(false);
-      expect(listenerStub.foldedNode()).to.equal(innerNode);
-      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
-    });
+    expect(innerNode.isFolded()).to.equal(false);
+    const promises = [];
+    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(false)));
+    expect(listenerStub.foldedNode()).to.equal(innerNode);
+    promises.push(root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
+    return Promise.all(promises);
   });
 });
 

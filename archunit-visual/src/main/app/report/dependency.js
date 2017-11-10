@@ -242,8 +242,8 @@ const init = (View, nodeMap) => {
       this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
       this._isVisible = false;
       this.visualData = new VisualData({
-        onJumpedToPosition: () => this._view.jumpToPositionAndUpdateVisibility(this),
-        onMovedToPosition: () => this._view.moveToPositionAndUpdateVisibility(this)
+        onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(this),
+        onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible(this)
       });
     }
 

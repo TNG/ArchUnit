@@ -37,6 +37,9 @@ const NodeView = class {
 
   updateNodeType() {
   }
+
+  showIfVisible() {
+  }
 };
 const DependencyView = class {
   show() {
@@ -48,10 +51,10 @@ const DependencyView = class {
   refresh() {
   }
 
-  jumpToPositionAndUpdateVisibility() {
+  jumpToPositionAndShowIfVisible() {
   }
 
-  moveToPositionAndUpdateVisibility() {
+  moveToPositionAndShowIfVisible() {
     return Promise.resolve();
   }
 };

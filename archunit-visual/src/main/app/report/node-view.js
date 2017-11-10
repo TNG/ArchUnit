@@ -46,6 +46,12 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).style('visibility', 'inherit');
     }
 
+    showIfVisible(node) {
+      if (node.isVisible()) {
+        this.show();
+      }
+    }
+
     jumpToPosition(nodeCoords) {
       d3.select(this._svgElement).attr('transform', `translate(${nodeCoords.x}, ${nodeCoords.y})`);
     }
