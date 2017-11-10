@@ -240,9 +240,10 @@ const init = (View, nodeMap) => {
     constructor(from, to, description, svgElement, callForAllViews, getDetailedDependencies) {
       super(from, to, description);
       this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
+      this._isVisible = false;
       this.visualData = new VisualData({
-        onJumpedToPosition: () => this._view.jumpToPositionAndShow(this),
-        onMovedToPosition: () => this._view.moveToPositionAndShow(this)
+        onJumpedToPosition: () => this._view.jumpToPositionAndUpdateVisibility(this),
+        onMovedToPosition: () => this._view.moveToPositionAndUpdateVisibility(this)
       });
     }
 
@@ -264,7 +265,12 @@ const init = (View, nodeMap) => {
     }
 
     hide() {
+      this._isVisible = false;
       this._view.hide();
+    }
+
+    isVisible() {
+      return this._isVisible;
     }
 
     getIdentifyingString() {

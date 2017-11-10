@@ -7,46 +7,38 @@ const init = (Node, Dependencies, View) => {
       this.root = new Node(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
-      this.updatePromise = this.root.relayout();
+      this.root.relayout();
     }
 
     foldAllNodes() {
-      this.updatePromise = this.updatePromise.then(() => {
-        this.root.callOnEveryDescendantThenSelf(node => node.foldIfInnerNode());
-        return this.root.relayout();
-      });
+      this.root.callOnEveryDescendantThenSelf(node => node.foldIfInnerNode());
+      this.root.relayout();
     }
 
     filterNodesByNameContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => {
-        this.root.filterByName(filterString, false);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return this.root.relayout();
-      });
+      this.root.filterByName(filterString, false);
+      this.dependencies.setNodeFilters(this.root.getFilters());
+      this.root.relayout();
     }
 
     filterNodesByNameNotContaining(filterString) {
-      this.updatePromise = this.updatePromise.then(() => {
-        this.root.filterByName(filterString, true);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return this.root.relayout();
-      });
+      this.root.filterByName(filterString, true);
+      this.dependencies.setNodeFilters(this.root.getFilters());
+      this.root.relayout();
     }
 
     filterNodesByType(filter) {
-      this.updatePromise = this.updatePromise.then(() => {
-        this.root.filterByType(filter.showInterfaces, filter.showClasses);
-        this.dependencies.setNodeFilters(this.root.getFilters());
-        return this.root.relayout();
-      });
+      this.root.filterByType(filter.showInterfaces, filter.showClasses);
+      this.dependencies.setNodeFilters(this.root.getFilters());
+      this.root.relayout();
     }
 
     filterDependenciesByType(typeFilterConfig) {
-      this.updatePromise.then(() => this.dependencies.filterByType(typeFilterConfig));
+      this.dependencies.filterByType(typeFilterConfig);
     }
 
     refresh() {
-      this.updatePromise = this.updatePromise.then(() => this.root.relayout());
+      this.root.relayout();
     }
   };
 

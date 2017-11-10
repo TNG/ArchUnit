@@ -22,9 +22,9 @@ describe("Graph", () => {
       expect(graph).to.containOnlyClasses('my.company.SomeClass', 'my.company.OtherClass');
 
       graph.filterNodesByNameContaining('SomeClass');
-      return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.SomeClass')).then(() => {
+      return graph.root.doNext(() => expect(graph).to.containOnlyClasses('my.company.SomeClass')).then(() => {
         graph.filterNodesByNameNotContaining('SomeClass');
-        return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.OtherClass'));
+        return graph.root.doNext(() => expect(graph).to.containOnlyClasses('my.company.OtherClass'));
       }) ;
     });
 
@@ -36,16 +36,16 @@ describe("Graph", () => {
         'my.company.second.OtherClass');
 
       graph.filterNodesByNameContaining('my.*.first');
-      return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
+      return graph.root.doNext(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
         .then(() => {
           graph.filterNodesByNameContaining('company*.Some');
-          return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
+          return graph.root.doNext(() => expect(graph).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
             .then(() => {
               graph.filterNodesByNameNotContaining('company*.Some');
-              return graph.updatePromise.then(() => expect(graph).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
+              return graph.root.doNext(() => expect(graph).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
                 .then(() => {
                   graph.filterNodesByNameContaining('company*.Some ');
-                  return graph.updatePromise.then(() => expect(graph).to.containNoClasses());
+                  return graph.root.doNext(() => expect(graph).to.containNoClasses());
                 });
             });
         });

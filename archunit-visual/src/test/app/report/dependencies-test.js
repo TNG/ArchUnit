@@ -51,14 +51,14 @@ describe("Dependencies", () => {
     const graphWrapper = testObjects.testGraph2();
     const node = graphWrapper.getNode("com.tngtech.test");
     node.changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithTestFolded));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithTestFolded));
   });
 
   it("transform if target is folded and target is a package", () => {
     const graphWrapper = testObjects.testGraph2();
     const node = graphWrapper.getNode("com.tngtech.main");
     node.changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithMainFolded));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithMainFolded));
   });
 
   it("transform if origin and target are folded and both are packages", () => {
@@ -78,7 +78,7 @@ describe("Dependencies", () => {
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
 
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp));
   });
 
   it("transform if class with inner class is folded", () => {
@@ -100,7 +100,7 @@ describe("Dependencies", () => {
       "com.tngtech.interface1->com.tngtech.test.subtest.subtestclass1(methodCall)"
     ];
 
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp));
   });
 
   it("transform reverse on unfold of a single package", () => {
@@ -110,7 +110,7 @@ describe("Dependencies", () => {
     node.changeFoldIfInnerNodeAndRelayout();
     node.changeFoldIfInnerNodeAndRelayout();
 
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
     });
   });
@@ -127,7 +127,7 @@ describe("Dependencies", () => {
     const node4 = graphWrapper.getNode("com.tngtech.main");
     node4.changeFoldIfInnerNodeAndRelayout();
 
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
   });
 
   it("transform reverse on unfold of a single package, when another package is folded", () => {
@@ -140,7 +140,7 @@ describe("Dependencies", () => {
     const node3 = graphWrapper.getNode("com.tngtech.test");
     node3.changeFoldIfInnerNodeAndRelayout();
 
-    return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithMainFolded));
+    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithMainFolded));
   });
 
   it("are uniqued and grouped correctly with complicated dependency structure", () => {
@@ -158,7 +158,7 @@ describe("Dependencies", () => {
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
 
       const node2 = graphWrapper.getNode("com.tngtech.test");
@@ -166,7 +166,7 @@ describe("Dependencies", () => {
       const node3 = graphWrapper.getNode("com.tngtech.main");
       node3.changeFoldIfInnerNodeAndRelayout();
 
-      return graphWrapper.graph.root.updatePromise.then(() => {
+      return graphWrapper.graph.root.doNext(() => {
         exp = [
           "com.tngtech.main->com.tngtech.interface1()",
           "com.tngtech.test.testclass1->com.tngtech.class2(extends several)",
@@ -195,10 +195,10 @@ describe("Dependencies", () => {
       "com.tngtech.class2->com.tngtech.main.class1(extends)",
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
-    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
+    return graphWrapper.graph.dependencies.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
       .then(() => {
         graphWrapper.graph.filterNodesByNameContaining("");
-        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
+        return graphWrapper.graph.dependencies.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
       });
   });
 
@@ -207,7 +207,7 @@ describe("Dependencies", () => {
 
     const node = graphWrapper.getNode("com.tngtech.test");
     node.changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       graphWrapper.graph.filterNodesByNameNotContaining("subtest");
       const exp = [
         "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
@@ -222,7 +222,7 @@ describe("Dependencies", () => {
       graphWrapper.graph.filterNodesByNameContaining("");
       expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
       node.changeFoldIfInnerNodeAndRelayout();
-      return Promise.all([graphWrapper.graph.root.updatePromise, graphWrapper.graph.updatePromise]).then(() => {
+      return graphWrapper.graph.root.doNext(() => {
         expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
       });
     });
@@ -234,7 +234,7 @@ describe("Dependencies", () => {
     const node = graphWrapper.getNode("com.tngtech.test");
     node.changeFoldIfInnerNodeAndRelayout();
 
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       graphWrapper.graph.filterNodesByNameNotContaining("subtest");
       let exp = [
         "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
@@ -244,24 +244,22 @@ describe("Dependencies", () => {
         "com.tngtech.class2->com.tngtech.main.class1(extends)",
         "com.tngtech.class2->com.tngtech.interface1(implements)"
       ];
-      return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
-        .then(() => {
-          node.changeFoldIfInnerNodeAndRelayout();
-          exp = [
-            "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
-            "com.tngtech.test.testclass1->com.tngtech.class2(several)",
-            "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
-            "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
-            "com.tngtech.class2->com.tngtech.main.class1(extends)",
-            "com.tngtech.class2->com.tngtech.interface1(implements)"
-          ];
+      expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp)
+      node.changeFoldIfInnerNodeAndRelayout();
+      exp = [
+        "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
+        "com.tngtech.test.testclass1->com.tngtech.class2(several)",
+        "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
+        "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
+        "com.tngtech.class2->com.tngtech.main.class1(extends)",
+        "com.tngtech.class2->com.tngtech.interface1(implements)"
+      ];
 
-          return graphWrapper.graph.root.updatePromise.then(() => {
-            expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-            graphWrapper.graph.filterNodesByNameContaining("");
-            return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-          });
-        });
+      return graphWrapper.graph.root.doNext(() => {
+        expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
+        graphWrapper.graph.filterNodesByNameContaining("");
+        expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+      });
     });
   });
 
@@ -271,7 +269,7 @@ describe("Dependencies", () => {
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const node = graphWrapper.getNode("com.tngtech.test");
     node.changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       let exp = [
         "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
         "com.tngtech.test->com.tngtech.class2()",
@@ -284,7 +282,7 @@ describe("Dependencies", () => {
 
       node.changeFoldIfInnerNodeAndRelayout();
 
-      return graphWrapper.graph.root.updatePromise.then(() => {
+      return graphWrapper.graph.root.doNext(() => {
         exp = [
           "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
           "com.tngtech.test.testclass1->com.tngtech.class2(several)",
@@ -296,7 +294,7 @@ describe("Dependencies", () => {
         expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
 
         graphWrapper.graph.filterNodesByNameContaining("");
-        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
+        expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
       });
     });
 
@@ -308,7 +306,7 @@ describe("Dependencies", () => {
     graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const node = graphWrapper.getNode("com.tngtech.test");
     node.changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       const exp = [
         "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
         "com.tngtech.test->com.tngtech.class2()",
@@ -323,7 +321,7 @@ describe("Dependencies", () => {
       expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithTestFolded);
 
       node.changeFoldIfInnerNodeAndRelayout();
-      return graphWrapper.graph.root.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
+      return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
     });
   });
 
@@ -339,11 +337,9 @@ describe("Dependencies", () => {
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
       "com.tngtech.class2->com.tngtech.main.class1(extends)"
     ];
-    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
-      .then(() => {
-        graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
-        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-      });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
+    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the filtering by type (hiding classes) with eliminating packages correctly " +
@@ -351,11 +347,11 @@ describe("Dependencies", () => {
     const graphWrapper = testObjects.testGraph2();
 
     graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false});
-    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies([])).then(() => {
-      graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
-      return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-    });
-  });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies([])
+    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+  })
+  ;
 
   it("does the filtering by type (only show inheritance) correctly and resets it", () => {
     const graphWrapper = testObjects.testGraph2();
@@ -376,19 +372,17 @@ describe("Dependencies", () => {
       "com.tngtech.class2->com.tngtech.interface1(implements)"
     ];
 
-    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
-      .then(() => {
-        graphWrapper.graph.filterDependenciesByType({
-          showImplementing: true,
-          showExtending: true,
-          showConstructorCall: true,
-          showMethodCall: true,
-          showFieldAccess: true,
-          showAnonymousImplementation: true,
-          showDepsBetweenChildAndParent: true
-        });
-        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-      });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
+    graphWrapper.graph.filterDependenciesByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDepsBetweenChildAndParent: true
+    });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("does the filtering by type (do not show inheritance) correcty and resets it", () => {
@@ -411,19 +405,17 @@ describe("Dependencies", () => {
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
       "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)"
     ];
-    return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
-      .then(() => {
-        graphWrapper.graph.filterDependenciesByType({
-          showImplementing: true,
-          showExtending: true,
-          showConstructorCall: true,
-          showMethodCall: true,
-          showFieldAccess: true,
-          showAnonymousImplementation: true,
-          showDependenciesBetweenClassAndItsInnerClasses: true
-        });
-        return graphWrapper.graph.updatePromise.then(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-      });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
+    graphWrapper.graph.filterDependenciesByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDependenciesBetweenClassAndItsInnerClasses: true
+    });
+    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
   });
 
   it("lists correctly the detailed dependencies of class", () => {
@@ -449,7 +441,7 @@ describe("Dependencies", () => {
     expect(act).to.containExactlyDependencies(exp);
 
     graphWrapper.getNode("com.tngtech.test.testclass1").changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.updatePromise.then(() => {
+    return graphWrapper.graph.root.doNext(() => {
       act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
         .map(d => d.description);
       exp = [

@@ -134,8 +134,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const map = new Map();
         this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
         this.getByName = name => map.get(name);
-        this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
-        this.relayout = () => this.doNext(() => this._relayout());
+        this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
+        this.doNext = fun => this._updatePromise.then(fun);
+        this.relayout = () => this.doNextAndWaitFor(() => this._relayout());
       }
     }
 
@@ -199,7 +200,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _setFolded(getFolded) {
-      this._root.doNext(() => {
+      this._root.doNextAndWaitFor(() => {
         this._folded = getFolded();
         this._updateViewOnCurrentChildrenChanged();
         this._listener.forEach(listener => listener.onFold(this));
@@ -310,7 +311,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       if (this.isRoot()) {
         promises.push(this.visualData.moveToPosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
-        promises = promises.concat(this._listener.map(listener => listener.onLayoutChanged()));
+        this._listener.forEach(listener => listener.onLayoutChanged());
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -322,7 +323,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param dy The delta in y-direction
      */
     _drag(dx, dy) {
-      this._root.doNext(() => {
+      this._root.doNextAndWaitFor(() => {
         this.visualData.jumpToPosition(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
       });
@@ -345,7 +346,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
       this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-      this._filters.apply();
+      this._root.doNextAndWaitFor(() => this._filters.apply());
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -354,7 +355,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
       this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
-      this._filters.apply();
+      this._root.doNextAndWaitFor(() => this._filters.apply());
     }
   };
 

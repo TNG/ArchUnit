@@ -26,7 +26,6 @@ const init = (View) => {
     })
   });
 
-
   const uniteDependencies = (dependencies, svgElement, callForAllViews, getDetailedDependencies) => {
     const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
     const map = new Map();
@@ -82,6 +81,7 @@ const init = (View) => {
       fun => dependencies.getVisible().forEach(d => fun(d._view)),
       (from, to) => dependencies.getDetailedDependenciesOf(from, to));
     dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
+    dependencies._visibleDependencies.forEach(d => d._isVisible = true);
     dependencies._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
   };
 
@@ -122,6 +122,8 @@ const init = (View) => {
       this._svgContainer = svgContainer;
       recreateVisibleDependencies(this);
       this._filters = newFilters(this);
+      this._updatePromise = Promise.resolve();
+      this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
 
     createListener() {
@@ -145,7 +147,7 @@ const init = (View) => {
     }
 
     moveAllToTheirPositions() {
-      return Promise.all(this.getVisible().map(d => d.moveToPosition()));
+      this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {
@@ -179,7 +181,7 @@ const init = (View) => {
       };
       this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
       this._filters.apply();
-      this._jumpAllToTheirPositions();
+      this.doNext(() => this._jumpAllToTheirPositions());
     }
 
     getVisible() {
