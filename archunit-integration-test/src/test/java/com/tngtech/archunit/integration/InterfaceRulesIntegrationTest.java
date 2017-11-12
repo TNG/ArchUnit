@@ -24,6 +24,15 @@ public class InterfaceRulesIntegrationTest extends InterfaceRules {
 
     @Test
     @Override
+    public void interfaces_should_not_have_the_word_interface_in_the_name_alternative2() {
+        expectedViolation.ofRule("no classes that are interfaces should have simple name containing 'Interface'")
+                .by(clazz(SomeBusinessInterface.class).havingNameContaining("Interface"));
+
+        super.interfaces_should_not_have_the_word_interface_in_the_name_alternative2();
+    }
+
+    @Test
+    @Override
     public void interfaces_must_not_be_placed_in_implementation_packages() {
         expectedViolation.ofRule("no classes that reside in a package '..impl..' should be interfaces")
                 .by(clazz(SomeInterfacePlacedInTheWrongPackage.class).beingAnInterface());

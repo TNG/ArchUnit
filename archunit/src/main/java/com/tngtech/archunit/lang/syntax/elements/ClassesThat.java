@@ -101,20 +101,18 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveSimpleNameNotStartingWith(String prefix);
 
     /**
-     * Matches classes with a simple class name containing the specified
-     * sequence of char values.
+     * Matches classes with a simple class name containing the specified infix string.
      *
-     * @param infix the String to search for
+     * @param infix the infix string to search for
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveSimpleNameContaining(String infix);
 
     /**
-     * Matches classes with a simple class name not containing the specified
-     * sequence of char values.
+     * Matches classes with a simple class name not containing the specified infix string.
      *
-     * @param infix the String to search for
+     * @param infix the infix string to search for
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
