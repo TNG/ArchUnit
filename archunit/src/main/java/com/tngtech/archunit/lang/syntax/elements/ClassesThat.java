@@ -83,6 +83,62 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveNameNotMatching(String regex);
 
     /**
+     * Matches classes with a simple class name starting with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should start with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameStartingWith(String prefix);
+
+    /**
+     * Matches classes with a simple class name not starting with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should not start with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameNotStartingWith(String prefix);
+
+    /**
+     * Matches classes with a simple class name containing the specified
+     * sequence of char values.
+     *
+     * @param infix the String to search for
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameContaining(String infix);
+
+    /**
+     * Matches classes with a simple class name not containing the specified
+     * sequence of char values.
+     *
+     * @param infix the String to search for
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameNotContaining(String infix);
+
+    /**
+     * Matches classes with a simple class name ending with a given suffix.
+     *
+     * @param suffix A suffix the simple class name should not end with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameEndingWith(String suffix);
+
+    /**
+     * Matches classes with a simple class name not ending with a given suffix.
+     *
+     * @param suffix A suffix the simple class name should not end with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveSimpleNameNotEndingWith(String suffix);
+
+    /**
      * Matches classes residing in a package matching the supplied package identifier.
      *
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}

@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import java.io.CharArrayReader;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -26,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.*;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -119,6 +120,36 @@ class GivenClassesThatInternal implements GivenClassesThat {
     @Override
     public GivenClassesConjunction dontImplement(DescribedPredicate<? super JavaClass> predicate) {
         return givenWith(dont(JavaClass.Predicates.implement(predicate)));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameStartingWith(String prefix) {
+        return givenWith(have(simpleNameStartingWith(prefix)));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameNotStartingWith(String prefix) {
+        return givenWith(ClassesThatPredicates.haveSimpleNameNotStartingWith(prefix));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameContaining(String infix) {
+        return givenWith(have(simpleNameContaining(infix)));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameNotContaining(String infix) {
+        return givenWith(ClassesThatPredicates.haveSimpleNameNotContaining(infix));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameEndingWith(String suffix) {
+        return givenWith(have(simpleNameEndingWith(suffix)));
+    }
+
+    @Override
+    public GivenClassesConjunction haveSimpleNameNotEndingWith(String suffix) {
+        return givenWith(ClassesThatPredicates.haveSimpleNameNotEndingWith(suffix));
     }
 
     @Override
