@@ -33,6 +33,9 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -45,13 +48,13 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     private final FinishedRule finishedRule = new FinishedRule();
 
     ClassesShouldThatInternal(ClassesShouldInternal classesShould,
-            Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
+                              Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
         this(classesShould, new PredicateAggregator<JavaClass>(), createCondition);
     }
 
     private ClassesShouldThatInternal(ClassesShouldInternal classesShould,
-            PredicateAggregator<JavaClass> predicateAggregator,
-            Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
+                                      PredicateAggregator<JavaClass> predicateAggregator,
+                                      Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition) {
         this.classesShould = classesShould;
         this.predicateAggregator = predicateAggregator;
         this.createCondition = createCondition;
@@ -145,6 +148,36 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     @Override
     public ClassesShouldConjunction haveNameNotMatching(String regex) {
         return shouldWith(ClassesThatPredicates.haveNameNotMatching(regex));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameStartingWith(String prefix) {
+        return shouldWith(have(simpleNameStartingWith(prefix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotStartingWith(prefix));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameContaining(String infix) {
+        return shouldWith(have(simpleNameContaining(infix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotContaining(infix));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
+        return shouldWith(have(simpleNameEndingWith(suffix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotEndingWith(suffix));
     }
 
     @Override

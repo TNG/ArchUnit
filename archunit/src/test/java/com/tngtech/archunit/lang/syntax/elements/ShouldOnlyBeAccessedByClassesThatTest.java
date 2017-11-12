@@ -108,6 +108,81 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
+    public void haveSimpleNameStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameStartingWith("Fo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotStartingWith("Fo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    public void haveSimpleNameContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameContaining("o"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotContaining("o"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameEndingWith("oo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotEndingWith("oo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
     public void resideInAPackage() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classes().should().onlyBeAccessed().byClassesThat().resideInAPackage("..access.."))
