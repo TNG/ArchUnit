@@ -349,8 +349,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     /**
      * Hides all nodes that don't contain the supplied filterString.
      *
-     * @param nodeNameSubstring The node's full name needs to contain this text, to pass the filter. '*' matches any number of arbitrary characters.
-     * @param exclude If true, the condition is inverted, i.e. nodes with names not containing the string will pass the filter.
+     * @param nodeNameSubstring The node's full name needs to contain this text, to pass the filter.
+     * '*' matches any number of arbitrary characters. If nodeNamesSubstring ends with a space,
+     * the node's full name has to end with nodeNamesSubstring to pass the filter.
+     * @param exclude If true, the condition is inverted,
+     * i.e. nodes with names not containing the string will pass the filter.
      */
     filterByName(nodeNameSubstring, exclude) {
       const stringContainsSubstring = predicates.stringContains(nodeNameSubstring);
