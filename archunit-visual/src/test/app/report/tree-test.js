@@ -59,7 +59,7 @@ describe('Inner node', () => {
     innerNode.foldIfInnerNode();
 
     expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(true);
+    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
   });
@@ -78,7 +78,7 @@ describe('Inner node', () => {
     innerNode._changeFoldIfInnerNodeAndRelayout();
 
     expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(true);
+    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
     return root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
@@ -101,7 +101,7 @@ describe('Inner node', () => {
     const promises = [];
     expect(innerNode.isFolded()).to.equal(false);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
-    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(false)));
+    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(false)));
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     promises.push(root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
     return Promise.all(promises);
@@ -189,7 +189,7 @@ describe('Inner node or leaf', () => {
 
     nodeToDrag._drag(-50, 50);
     return root.doNext(() => {
-      const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2)/2));
+      const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
       const expCoordinates = {x: -expD, y: expD};
 
       expect(nodeToDrag.visualData.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
@@ -266,7 +266,7 @@ describe('Node', () => {
     expect(act).to.deep.equal(exp);
   });
 
-  it("Adds CSS to make the mouse a pointer, if there are children to unfold", () => {
+  it('Adds CSS to make the mouse a pointer, if there are children to unfold', () => {
     const jsonRoot = testJson.package("com.tngtech")
       .add(testJson.clazz("Class1", "abstractclass").build())
       .build();
@@ -288,18 +288,70 @@ describe('Node', () => {
     node._changeFoldIfInnerNodeAndRelayout();
     return tree.root.doNext(() => expect(node.isCurrentlyLeaf()).to.equal(true));
   });
+
+  // ---------filter tests here ------------
+  it('can only show classes, hide packages with only interfaces and change CSS-class of classes with only inner interfaces', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('interfaces')
+        .add(testJson.clazz('SomeInterface', 'interface').build())
+        .build())
+      .add(testJson.package('classes')
+        .add(testJson.clazz('SomeClass', 'class')
+          .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const expHiddenNodesFullNames = ['com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces',
+      'com.tngtech.archunit.classes.SomeClass$SomeInnerInterface'].map(nodeFullName => root.getByName(nodeFullName));
+
+    root.filterByType(false, true);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(['com.tngtech.archunit',
+        'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass']);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodesFullNames.map(node => node._view.isVisible)).to.not.include(true);
+      expect(root.getByName('com.tngtech.archunit.classes.SomeClass')._view.cssClass).to.not.contain(' foldable');
+      expect(root.getByName('com.tngtech.archunit.classes.SomeClass')._view.cssClass).to.contain(' not-foldable');
+    });
+  });
+
+  it('can only show interfaces, hide packages with only classes and change CSS-class of interfaces with only inner classes', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('classes')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.package('interfaces')
+        .add(testJson.clazz('SomeInterface', 'interface')
+          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const expHiddenNodesFullNames = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes',
+      'com.tngtech.archunit.interfaces.SomeInterface$SomeInnerClass'].map(nodeFullName => root.getByName(nodeFullName));
+
+    root.filterByType(true, false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(['com.tngtech.archunit',
+        'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces', 'com.tngtech.archunit.interfaces.SomeInterface']);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodesFullNames.map(node => node._view.isVisible)).to.not.include(true);
+      expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.not.contain(' foldable');
+      expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.contain(' not-foldable');
+    });
+  });
 });
 
 describe("Tree", () => {
-  it("returns correct visible nodes", () => {
-    const tree = testObjects.testTree1();
-    let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.class2", "com.tngtech.class3"];
-    expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-    exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main"];
-    tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
   it("can inclusively filter classes", function () {
     const root = testObjects.testTree2().root;
     root.filterByName("main", false);

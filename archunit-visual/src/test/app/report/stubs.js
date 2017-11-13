@@ -15,18 +15,18 @@ const calculateTextWidthStub = text => text.length * 7;
 
 const NodeViewStub = class {
   constructor() {
-    this._cssClass = '';
-    this._isVisible = true;
-    this.show = () => this._isVisible = true;
-    this.hide = () => this._isVisible = false;
+    this.cssClass = '';
+    this.isVisible = true;
+    this.show = () => this.isVisible = true;
+    this.hide = () => this.isVisible = false;
     this.jumpToPosition = () => {
     };
     this.moveToPosition = () => Promise.resolve();
     this.moveToRadius = () => Promise.resolve();
-    this.updateNodeType = cssClass => this._cssClass = cssClass;
+    this.updateNodeType = cssClass => this.cssClass = cssClass;
     this.showIfVisible = node => {
       if (node.isVisible()) {
-        this._isVisible = true;
+        this.isVisible = true;
       }
     };
   }

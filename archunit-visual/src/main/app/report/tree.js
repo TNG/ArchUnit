@@ -232,6 +232,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this, ...this._getDescendants()];
     }
 
+    //FIXME: is this deprecated??
     getSelfAndPredecessors() {
       const predecessors = this._parent ? this._parent.getSelfAndPredecessors() : [];
       return [this, ...predecessors];
@@ -278,6 +279,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    //TODO: add test for this scenario: filter and unfilter --> check, if foldable is in css-class again,
+    // if all children are filtered away
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this.getClass());
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
