@@ -30,8 +30,8 @@ const init = (transitionDuration) => {
         .text(node.getName())
         .node();
 
-      this.onDrag(onDrag);
-      this.onClick(onClick);
+      this._onDrag(onDrag);
+      this._onClick(onClick);
     }
 
     updateNodeType(nodeType) {
@@ -66,12 +66,12 @@ const init = (transitionDuration) => {
       return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
     }
 
-    onClick(handler) {
+    _onClick(handler) {
       d3.select(this._svgElement).select('circle').on('click', handler);
       d3.select(this._svgElement).select('text').on('click', handler);
     }
 
-    onDrag(handler) {
+    _onDrag(handler) {
       const drag = d3.drag().on('drag', () => handler(d3.event.dx, d3.event.dy));
       d3.select(this._svgElement).call(drag);
     }

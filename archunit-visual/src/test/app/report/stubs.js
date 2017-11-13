@@ -23,10 +23,6 @@ const NodeViewStub = class {
     };
     this.moveToPosition = () => Promise.resolve();
     this.moveToRadius = () => Promise.resolve();
-    this.onClick = () => {
-    };
-    this.onDrag = () => {
-    };
     this.updateNodeType = cssClass => this._cssClass = cssClass;
     this.showIfVisible = node => {
       if (node.isVisible()) {

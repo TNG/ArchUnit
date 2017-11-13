@@ -116,7 +116,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._text = new NodeText(this);
       this._folded = false;
 
-      this._view = new View(svgContainer, this, () => this.changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
+      this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
         onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
@@ -212,7 +212,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    changeFoldIfInnerNodeAndRelayout() {
+    _changeFoldIfInnerNodeAndRelayout() {
       if (!this.isRoot() && !this._isLeaf()) {
         this._setFolded(() => !this._folded);
         this._root.relayout();
