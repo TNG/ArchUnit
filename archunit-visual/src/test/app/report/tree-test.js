@@ -1,8 +1,9 @@
 'use strict';
 
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 require('./chai/tree-chai-extensions');
 require('./chai/tree-visualizer-chai-extensions');
+require('./chai/node-chai-extensions');
 
 const testObjects = require("./test-object-creator.js");
 const testTree = testObjects.tree;
@@ -13,10 +14,9 @@ const appContext = require('./main-files').get('app-context').newInstance({
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub
 });
+const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Node = appContext.getNode();
 const testJson = require("./test-json-creator");
-
-const MAXIMUM_DELTA = 0.0001;
 
 describe('Root', () => {
   it('should have no parent', () => {
@@ -33,7 +33,7 @@ describe('Root', () => {
     expect(root.isRoot()).to.equal(true);
   });
 
-  it('does not fold or change its fold-state', () => {
+  it('should not fold or change its fold-state', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
     const root = new Node(jsonRoot);
     root.foldIfInnerNode();
@@ -134,7 +134,7 @@ describe('Inner node or leaf', () => {
 });
 
 describe('Node layout', () => {
-  it('should put every child node within its parent node', () => {
+  it('should put every child node within its parent node considering the padding', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass1', 'class').build())
       .add(testJson.clazz('SomeClass2', 'class').build())
@@ -149,16 +149,37 @@ describe('Node layout', () => {
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
-          expect(Math.sqrt(Math.pow(node.visualData.x, 2) + Math.pow(node.visualData.y, 2)) + node.visualData.r +
-            appContext.getVisualizationStyles().getCirclePadding()).to.be.at.most(node.getParent().visualData.r + MAXIMUM_DELTA);
+          expect(node).to.locatedWithinWithPadding(node.getParent(), circlePadding);
         }
       });
     });
-  })
+  });
+
+  it('should not make two siblings overlap', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class').build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .add(testJson.package('visual')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .add(testJson.clazz('SomeClass3', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.relayout();
+    return root.doNext(() => {
+      root.callOnEveryDescendantThenSelf(node => {
+        if (!node.isRoot()) {
+          node.getParent().getOriginalChildren().filter(child => child != node).forEach(sibling =>
+          expect(node).to.notOverlapWith(sibling, 2 * circlePadding));
+        }
+      });
+    });
+  });
 });
 
 describe('Node', () => {
-  it('creates a correct tree', () => {
+  it('creates the correct tree-structure', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.clazz('SomeInterface', 'interface').build())

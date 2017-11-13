@@ -1,5 +1,6 @@
 'use strict';
 
+//FIXME: create test
 const init = (visualizationStyles, calculateTextWidth) => {
 
   const computeTextShift = (radius, width) => {
