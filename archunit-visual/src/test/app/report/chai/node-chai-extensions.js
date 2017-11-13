@@ -17,3 +17,9 @@ Assertion.addMethod('notOverlapWith', function (sibling, padding) {
   const radiusSum = node.visualData.r + sibling.visualData.r;
   new Assertion(radiusSum + padding).to.be.at.most(distanceBetweenMiddlePoints + MAXIMUM_DELTA);
 });
+
+Assertion.addMethod('containExactlyNodes', function (nodes) {
+  const actFullNames = Array.from(this._obj, node => node.getFullName()).sort();
+  const expFullNames = Array.from(nodes).sort();
+  new Assertion(actFullNames).to.deep.equal(expFullNames);
+});

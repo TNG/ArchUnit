@@ -40,57 +40,6 @@ Assertion.addMethod('haveTextWithinCircle', function (textWidth, circleTextPaddi
   }
 });
 
-Assertion.addMethod('haveChildrenWithinCircle', function (circlePadding) {
-  const node = this._obj;
-
-  const childrenNotWithinNode = [];
-
-  node.getOriginalChildren().forEach(c => {
-    const nodeAbsVisualData = node.getAbsoluteCoords();
-    const cAbsVisualData = c.getAbsoluteCoords();
-    const distanceFromNodeMiddleToChildRim = distance(nodeAbsVisualData.x, nodeAbsVisualData.y, cAbsVisualData.x, cAbsVisualData.y)
-      + cAbsVisualData.r;
-    if (nodeAbsVisualData.r - distanceFromNodeMiddleToChildRim < circlePadding / 2) {
-      childrenNotWithinNode.push(c);
-    }
-  });
-
-  this.assert(
-    childrenNotWithinNode.length === 0
-      , "expected #{this} to have only children within its circle got #{act} being not within its circle"
-      , "expected #{this} to not be of type #{act}"
-      , 0
-      , childrenNotWithinNode
-  );
-});
-
-Assertion.addMethod('doNotOverlap', function (circlePadding) {
-  const nodes = this._obj;
-
-  const nodesOverlapping = new Set();
-
-  nodes.forEach(c => {
-    nodes.filter(d => d !== c).forEach(d => {
-      const cAbsVisualData = c.getAbsoluteCoords();
-      const dAbsVisualData = d.getAbsoluteCoords();
-      const diff = distance(cAbsVisualData.x, cAbsVisualData.y, dAbsVisualData.x, dAbsVisualData.y);
-      const minExpDiff = cAbsVisualData.r + dAbsVisualData.r + circlePadding;
-      if (diff + MAX_RADIUS_DIFF < minExpDiff) {
-        nodesOverlapping.add(c.getFullName(), c);
-        nodesOverlapping.add(d.getFullName(), d);
-      }
-    });
-  });
-
-  this.assert(
-    nodesOverlapping.size === 0
-      , "expected #{this} not to overlap but got #{act} that are overlapping"
-      , "expected #{this} to not be of type #{act}"
-      , 0
-      , Array.from(nodesOverlapping)
-  );
-});
-
 Assertion.addMethod('locatedWithin', function (parent) {
   const node = this._obj;
 

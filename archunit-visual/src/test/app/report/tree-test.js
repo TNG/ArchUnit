@@ -55,10 +55,13 @@ describe('Inner node', () => {
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
+
     innerNode.foldIfInnerNode();
+
     expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+    expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
+    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
   });
 
   it('can change the fold-state to folded', () => {
@@ -73,10 +76,12 @@ describe('Inner node', () => {
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
     innerNode._changeFoldIfInnerNodeAndRelayout();
+
     expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(true);
+    expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
-    root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
+    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
+    return root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
   });
 
   it('can change the fold-state to unfolded', () => {
@@ -92,9 +97,11 @@ describe('Inner node', () => {
     const innerNode = root.getByName('com.tngtech.archunit.test');
     innerNode._changeFoldIfInnerNodeAndRelayout();
     innerNode._changeFoldIfInnerNodeAndRelayout();
-    expect(innerNode.isFolded()).to.equal(false);
+
     const promises = [];
-    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node._view._isVisible)).to.not.include(false)));
+    expect(innerNode.isFolded()).to.equal(false);
+    expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
+    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node.isVisible())).to.not.include(false)));
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     promises.push(root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
     return Promise.all(promises);
@@ -280,32 +287,6 @@ describe('Node', () => {
     expect(node.isCurrentlyLeaf()).to.equal(false);
     node._changeFoldIfInnerNodeAndRelayout();
     return tree.root.doNext(() => expect(node.isCurrentlyLeaf()).to.equal(true));
-  });
-
-  it("can fold single node", () => {
-    const tree = testObjects.testTree1();
-    const node = tree.getNode('com.tngtech.main');
-    node._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => expect(node.getSelfAndDescendants()).to.containOnlyNodes(["com.tngtech.main"]));
-  });
-
-  it("can unfold single node", () => {
-    const tree = testObjects.testTree1();
-    const node = tree.getNode('com.tngtech.main');
-    const allNodes1 = ['com.tngtech.main', 'com.tngtech.main.class1'];
-    node._changeFoldIfInnerNodeAndRelayout();
-    node._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => expect(node.getSelfAndDescendants()).to.containOnlyNodes(allNodes1));
-  });
-
-  it("can be folded and unfolded without changing the fold-state of its children", () => {
-    const tree = testObjects.testTree2();
-    tree.getNode("com.tngtech.test.subtest")._changeFoldIfInnerNodeAndRelayout();
-    const toFold = tree.getNode("com.tngtech.test");
-    const exp = ["com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest"];
-    toFold._changeFoldIfInnerNodeAndRelayout();
-    toFold._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => expect(toFold.getSelfAndDescendants()).to.containOnlyNodes(exp));
   });
 });
 
@@ -543,115 +524,5 @@ describe("Layout of nodes", () => {
       node.getOriginalChildren().forEach(c => checkText(c));
     };
     return graphWrapper.graph.root.doNext(() => checkText(graphWrapper.graph.root));
-  });
-
-  it("draws children within parent", () => {
-    const graphWrapper = testObjects.testGraph2();
-    const checkLayout = node => {
-      expect(node).to.haveChildrenWithinCircle(CIRCLE_PADDING);
-      node.getOriginalChildren().forEach(c => checkLayout(c));
-    };
-    return graphWrapper.graph.root.doNext(() => checkLayout(graphWrapper.graph.root));
-  });
-
-  it("draws children without overlap", () => {
-    const graphWrapper = testObjects.testGraph2();
-    const checkLayout = node => {
-      expect(node.getOriginalChildren()).to.doNotOverlap(CIRCLE_PADDING);
-      node.getOriginalChildren().forEach(c => checkLayout(c));
-    };
-    return graphWrapper.graph.root.doNext(() => checkLayout(graphWrapper.graph.root));
-  });
-});
-
-describe("Dragging nodes", () => {
-  it("can be dragged", () => {
-    const tree = testTree('root.SomeClass1', 'root.SomeClass2');
-
-    const toDrag = tree.getByName('root.SomeClass1');
-    const dx = 1;
-    const dy = -3;
-    const expected = {x: toDrag.visualData.x + dx, y: toDrag.visualData.y + dy};
-
-    toDrag._drag(dx, dy);
-
-    return tree.doNext(() => expect({
-      x: toDrag.visualData.x,
-      y: toDrag.visualData.y
-    }).to.deep.equal(expected));
-  });
-
-  const expectedCoordsAfterDrag = (root, toDrag, dx, dy) => {
-    const result = new Map(root.getSelfAndDescendants().map(node => [node, node.getAbsoluteCoords()]));
-    toDrag.getSelfAndDescendants().forEach(node => {
-      const coords = result.get(node);
-      coords.x += dx;
-      coords.y += dy;
-    });
-    return result;
-  };
-
-  it("drags along its children, if it is dragged", () => {
-    const root = testTree(
-      'root.SomeClass',
-      'root.sub.SubClass1',
-      'root.sub.SubClass2');
-
-    const toDrag = root.getByName('root.sub');
-    const dx = -5, dy = 4;
-
-    const expectedCoordsByNode = expectedCoordsAfterDrag(root, toDrag, dx, dy);
-
-    toDrag._drag(dx, dy);
-
-    return root.doNext(() => {
-      root.getSelfAndDescendants().forEach(node => {
-        expect(node.getAbsoluteCoords()).to.deep.equal(expectedCoordsByNode.get(node))
-      });
-    });
-  });
-
-  it("can't be dragged out of its parent", () => {
-    const tree = testTree(
-      'root.other',
-      'root.parent.SomeClass1',
-      'root.parent.SomeClass2');
-
-    const toDrag = tree.getByName('root.parent.SomeClass1');
-    const parent = toDrag.getParent();
-    expect(parent).not.to.be.root();
-
-    const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
-
-    toDrag._drag(deltaOutsideOfParent, 0);
-    expect(toDrag).to.be.locatedWithin(parent);
-
-    toDrag._drag(0, deltaOutsideOfParent);
-    expect(toDrag).to.be.locatedWithin(parent);
-  });
-
-  it("can be dragged anywhere, if parent is root", () => {
-    const tree = testTree(
-      'root.SomeClass1',
-      'root.SomeClass2');
-
-    const toDrag = tree.getByName('root.SomeClass1');
-    const parent = toDrag.getParent();
-    expect(parent).to.be.root();
-
-    const oldX = toDrag.visualData.x;
-    const oldY = toDrag.visualData.y;
-    const deltaOutsideOfParent = 2 * parent.getRadius() + 1;
-
-    toDrag._drag(deltaOutsideOfParent, 0);
-
-    return tree.doNext(() => {
-      expect(toDrag.visualData.x).to.equal(oldX + deltaOutsideOfParent);
-
-      toDrag._drag(0, deltaOutsideOfParent);
-      return tree.doNext(() => {
-        expect(toDrag.visualData.y).to.equal(oldY + deltaOutsideOfParent);
-      });
-    });
   });
 });
