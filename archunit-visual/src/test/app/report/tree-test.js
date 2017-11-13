@@ -290,10 +290,15 @@ describe('Node', () => {
   });
 
   // ---------filter tests here ------------
-  it('can only show classes, hide packages with only interfaces and change CSS-class of classes with only inner interfaces', () => {
+
+  it('can hide interfaces: hides packages with only interfaces, changes CSS-class of classes with only inner ' +
+    'interfaces, does not hide interfaces with an inner class', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeInterfaceWithInnerClass', 'interface')
+        .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+        .build())
       .add(testJson.package('interfaces')
         .add(testJson.clazz('SomeInterface', 'interface').build())
         .build())
@@ -305,25 +310,32 @@ describe('Node', () => {
       .build();
     const root = new Node(jsonRoot);
 
-    const expHiddenNodesFullNames = ['com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces',
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass',
+      'com.tngtech.archunit.SomeInterfaceWithInnerClass',
+      'com.tngtech.archunit.SomeInterfaceWithInnerClass$SomeInnerClass', 'com.tngtech.archunit.classes',
+      'com.tngtech.archunit.classes.SomeClass'];
+    const expHiddenNodes = ['com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces',
       'com.tngtech.archunit.classes.SomeClass$SomeInnerInterface'].map(nodeFullName => root.getByName(nodeFullName));
 
     root.filterByType(false, true);
 
     return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(['com.tngtech.archunit',
-        'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass']);
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodesFullNames.map(node => node._view.isVisible)).to.not.include(true);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(root.getByName('com.tngtech.archunit.classes.SomeClass')._view.cssClass).to.not.contain(' foldable');
       expect(root.getByName('com.tngtech.archunit.classes.SomeClass')._view.cssClass).to.contain(' not-foldable');
     });
   });
 
-  it('can only show interfaces, hide packages with only classes and change CSS-class of interfaces with only inner classes', () => {
+  it('can hide classes: hides packages with only classes, changes CSS-class of interfaces with only inner ' +
+    'classes, does not hide classes with an inner interface', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+        .build())
       .add(testJson.package('classes')
         .add(testJson.clazz('SomeClass', 'class').build())
         .build())
@@ -335,18 +347,92 @@ describe('Node', () => {
       .build();
     const root = new Node(jsonRoot);
 
-    const expHiddenNodesFullNames = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes',
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
+      'com.tngtech.archunit.SomeClassWithInnerInterface$SomeInnerInterface', 'com.tngtech.archunit.interfaces',
+      'com.tngtech.archunit.interfaces.SomeInterface'];
+    const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes',
       'com.tngtech.archunit.interfaces.SomeInterface$SomeInnerClass'].map(nodeFullName => root.getByName(nodeFullName));
 
     root.filterByType(true, false);
 
     return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(['com.tngtech.archunit',
-        'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces', 'com.tngtech.archunit.interfaces.SomeInterface']);
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodesFullNames.map(node => node._view.isVisible)).to.not.include(true);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.not.contain(' foldable');
       expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.contain(' not-foldable');
+    });
+  });
+
+  it('can hide classes and show again: sets visibilities correctly and ' +
+    'resets the CSS-class of interfaces with only inner classes', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+        .build())
+      .add(testJson.package('classes')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.package('interfaces')
+        .add(testJson.clazz('SomeInterface', 'interface')
+          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.SomeInterface',
+      'com.tngtech.archunit.SomeClassWithInnerInterface', 'com.tngtech.archunit.classes',
+      'com.tngtech.archunit.interfaces'].map(nodeFullName => root.getByName(nodeFullName));
+
+    const visibleNodes = ['com.tngtech.archunit'];
+
+    root.filterByType(false, false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+      expect(root._view.cssClass).to.not.contain(' foldable');
+      expect(root._view.cssClass).to.contain(' not-foldable');
+    });
+  });
+
+  it('can hide classes and interfaces, so that only the root remains', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+        .build())
+      .add(testJson.package('classes')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.package('interfaces')
+        .add(testJson.clazz('SomeInterface', 'interface')
+          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass',
+      'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
+      'com.tngtech.archunit.SomeClassWithInnerInterface$SomeInnerInterface', 'com.tngtech.archunit.interfaces',
+      'com.tngtech.archunit.interfaces.SomeInterface', 'com.tngtech.archunit.interfaces.SomeInterface$SomeInnerClass'];
+
+    root.filterByType(true, false);
+    root.filterByType(true, true);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.contain(' foldable');
+      expect(root.getByName('com.tngtech.archunit.interfaces.SomeInterface')._view.cssClass).to.not.contain(' not-foldable');
     });
   });
 });
@@ -475,58 +561,6 @@ describe("Tree", () => {
           return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
         });
       });
-    });
-  });
-
-  it("can filter by type to hide interfaces", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByType(false, true);
-    const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1", "com.tngtech.class2"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can filter by type to hide classes", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByType(true, false);
-    const exp = ["com.tngtech", "com.tngtech.class3"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can filter out everything by type except the root node", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByType(false, false);
-    const exp = ["com.tngtech"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can filter by type to hide classes and eliminate packages", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByType(true, false);
-    const exp = ["com.tngtech", "com.tngtech.class3"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can filter by type to hide interfaces and eliminate packages", function () {
-    const root = testObjects.testTree3().root;
-    root.filterByType(false, true);
-    const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can reset the type-filter", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByType(false, true);
-    let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
-      "com.tngtech.class2"];
-    return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      root.filterByType(true, true);
-      exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
-        "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
-        "com.tngtech.class2", "com.tngtech.class3"];
-      return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
     });
   });
 
