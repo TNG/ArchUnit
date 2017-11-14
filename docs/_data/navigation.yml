@@ -1,5 +1,7 @@
 main:
   - title: "Getting Started"
     url: /getting-started
+  - title: "News"
+    url: /news
   - title: "Motivation"
     url: /motivation
