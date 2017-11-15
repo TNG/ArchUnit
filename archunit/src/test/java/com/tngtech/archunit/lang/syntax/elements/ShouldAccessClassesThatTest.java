@@ -89,6 +89,60 @@ public class ShouldAccessClassesThatTest {
     }
 
     @Test
+    public void haveSimpleNameStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameStartingWith("Lis"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameNotStartingWith("Lis"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameContaining("is"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameNotContaining("is"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameEndingWith("ist"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().haveSimpleNameNotEndingWith("ist"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
     public void resideInAPackage() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().resideInAPackage("..tngtech.."))

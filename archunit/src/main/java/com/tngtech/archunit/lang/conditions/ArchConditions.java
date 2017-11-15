@@ -53,6 +53,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -345,6 +346,27 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> haveSimpleNameNotStartingWith(String prefix) {
         return not(haveSimpleNameStartingWith(prefix)).as("have simple name not starting with '%s'", prefix);
     }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameContaining(final String infix) {
+        final DescribedPredicate<JavaClass> predicate = have(simpleNameContaining(infix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String dynInfix = satisfied ? "contains" : "doesn't contain";
+                String message = String.format("simple name of %s %s '%s'", item.getName(), dynInfix, infix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameNotContaining(final String infix) {
+        return not(haveSimpleNameContaining(infix)).as("have simple name not containing '%s'", infix);
+    }
+
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleNameEndingWith(final String suffix) {
