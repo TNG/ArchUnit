@@ -35,6 +35,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -380,6 +381,26 @@ public class JavaClassTest {
         assertThat(simpleNameStartingWith(input.getName().substring(0, 2)).apply(input)).isFalse();
 
         assertThat(simpleNameStartingWith("Prefix").getDescription()).isEqualTo("simple name starting with 'Prefix'");
+    }
+
+    @Test
+    public void predicate_simpleNameContaining() {
+        JavaClass input = importClassWithContext(Parent.class);
+
+        assertThat(simpleNameContaining("Parent").apply(input)).isTrue();
+        assertThat(simpleNameContaining("Par").apply(input)).isTrue();
+        assertThat(simpleNameContaining("ent").apply(input)).isTrue();
+        assertThat(simpleNameContaining("aren").apply(input)).isTrue();
+        assertThat(simpleNameContaining("").apply(input)).isTrue();
+
+        // Full match test
+        assertThat(simpleNameContaining(input.getName()).apply(input)).isFalse();
+        assertThat(simpleNameContaining(" ").apply(input)).isFalse();
+        assertThat(simpleNameContaining(".").apply(input)).isFalse();
+
+        assertThat(simpleNameContaining(".Parent").apply(input)).isFalse();
+
+        assertThat(simpleNameContaining("Infix").getDescription()).isEqualTo("simple name containing 'Infix'");
     }
 
     @Test

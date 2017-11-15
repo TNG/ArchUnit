@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.text.AttributedString;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,6 +84,54 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameStartingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameStartingWith("String"))
+                .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, StringBuilder.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotStartingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotStartingWith("String"))
+                .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AttributedString.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameContaining() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameContaining("rin"))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotContaining() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotContaining("rin"))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameEndingWith("String"))
+                .on(String.class, AttributedString.class, StringBuilder.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, AttributedString.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotEndingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotEndingWith("String"))
+                .on(String.class, AttributedString.class, StringBuilder.class);
+
+        assertThatClasses(classes).matchInAnyOrder(StringBuilder.class);
     }
 
     @Test
@@ -486,12 +535,24 @@ public class GivenClassesThatTest {
         assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
-    private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
-        return GET_NAME.is(equalTo(type.getName()));
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface SomeAnnotation {
     }
 
-    private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
-        return new Evaluator(givenClasses);
+    private static class SimpleClass {
+    }
+
+    private static class PrivateClass {
+    }
+
+    static class PackagePrivateClass {
+    }
+
+    protected static class ProtectedClass {
+    }
+
+    @SomeAnnotation
+    private static class AnnotatedClass {
     }
 
     private class Evaluator {
@@ -516,23 +577,11 @@ public class GivenClassesThatTest {
         }
     }
 
-    private static class SimpleClass {
+    private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
+        return GET_NAME.is(equalTo(type.getName()));
     }
 
-    private static class PrivateClass {
-    }
-
-    static class PackagePrivateClass {
-    }
-
-    protected static class ProtectedClass {
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    private @interface SomeAnnotation {
-    }
-
-    @SomeAnnotation
-    private static class AnnotatedClass {
+    private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
+        return new Evaluator(givenClasses);
     }
 }

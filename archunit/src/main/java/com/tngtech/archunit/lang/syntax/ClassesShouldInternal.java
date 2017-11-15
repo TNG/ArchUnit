@@ -90,6 +90,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction haveSimpleNameContaining(String infix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameContaining(infix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotContaining(infix)));
+    }
+
+    @Override
     public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameEndingWith(suffix)));
     }

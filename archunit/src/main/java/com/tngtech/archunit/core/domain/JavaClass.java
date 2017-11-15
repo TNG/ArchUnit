@@ -795,6 +795,16 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         }
 
         @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameContaining(final String infix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name containing '%s'", infix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().contains(infix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleNameEndingWith(final String suffix) {
             return new DescribedPredicate<JavaClass>(String.format("simple name ending with '%s'", suffix)) {
                 @Override
