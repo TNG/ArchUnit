@@ -753,39 +753,45 @@ describe('Node', () => {
       expect(interfaceWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
     });
   });
+
+  it('can filter by name and by type and then reset the name-filter: resets CSS-class of node with a child matching ' +
+    'the type-filter but not the name-filter', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('NameMatchingClassX', 'class').build())
+      .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
+      .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+      .add(testJson.clazz('NameMatchingInterfaceWithNotNameMatchingInnerInterfaceX', 'interface')
+        .havingInnerClass(testJson.clazz('NotNameMatchingInnerInterface', 'interface').build())
+        .build())
+      .add(testJson.package('pkgWithNoNameMatchingChild')
+        .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.NameMatchingInterfaceX',
+      'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.pkgWithNoNameMatchingChild',
+      'com.tngtech.archunit.pkgWithNoNameMatchingChild.NotNameMatchingInterface',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNotNameMatchingInnerInterfaceX',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNotNameMatchingInnerInterfaceX$NotNameMatchingInnerInterface'];
+    const expHiddenNodes = ['com.tngtech.archunit.NameMatchingClassX'].map(nodeFullName => root.getByName(nodeFullName));
+    const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithNotNameMatchingInnerInterfaceX');
+
+    root.filterByName('X ', false);
+    root.filterByType(true, false);
+    root.filterByName('', false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
+      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+    });
+  });
 });
 
 describe("Tree", () => {
-  it("can inclusively filter classes", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByName("main", false);
-    const exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can exclusively filter classes", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByName("subtest", true);
-    const exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-  });
-
-  it("can reset filter", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByName("subtest", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-
-      root.filterByName("", false);
-      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-        "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-        "com.tngtech.test.subtest.subtestclass1"];
-      return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-    });
-  });
 
   it("can filter, fold, unfold and reset filter in this order", function () {
     const tree = testObjects.testTree2();
@@ -879,35 +885,6 @@ describe("Tree", () => {
           return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
         });
       });
-    });
-  });
-
-  it("can filter by type and then filter by name", function () {
-    const root = testObjects.testTree2().root;
-
-    root.filterByType(false, true);
-    let exp = ["com.tngtech", "com.tngtech.main", "com.tngtech.main.class1", "com.tngtech.test",
-      "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1",
-      "com.tngtech.class2"];
-    return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp)
-
-      root.filterByName("test", true);
-      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
-      return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-    });
-  });
-
-  it("can filter by name and then filter by type", function () {
-    const root = testObjects.testTree2().root;
-    root.filterByName("test", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1"];
-    return root.doNext(() => {
-      expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-
-      root.filterByType(false, true);
-      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.main", "com.tngtech.main.class1"];
-      return root.doNext(() => expect(root.getSelfAndDescendants()).to.containOnlyNodes(exp));
     });
   });
 
