@@ -92,11 +92,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     apply: function () {
       root._resetFiltering();
-      const applyFilter = (node, filters) => {
-        node._setFilteredChildren(filters.reduce((childrenSoFar, filter) => childrenSoFar.filter(filter), node._filteredChildren));
-        node._filteredChildren.forEach(c => applyFilter(c, filters));
+      const applyFilter = (node, filter) => {
+        node._setFilteredChildren(node._filteredChildren.filter(filter));
+        node._filteredChildren.forEach(c => applyFilter(c, filter));
       };
-      applyFilter(root, this.values());
+      this.values().forEach(filter => applyFilter(root, filter));
     },
 
     values: function () {
