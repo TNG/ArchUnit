@@ -701,8 +701,57 @@ describe('Node', () => {
     });
   });
 
-  it('can filter by name and filter by type', () => {
+  it('can filter by name (ending with a space) and filter by type (hiding classes): hides packages (not matching) ' +
+    'without children matching both filters and does not hide not matching nodes with a matching child, and changes ' +
+    'CSS-class of a node loosing its children only because of both filters (that means every child is matching exactly ' +
+    'one filter)', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('notMatchingPkgWithoutBothMatchingChildren')
+        .add(testJson.clazz('NameMatchingClassX', 'class').build())
+        .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+        .build())
+      .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
+      .add(testJson.clazz('NameMatchingClassX', 'class').build())
+      .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+      .add(testJson.package('nameMatchingPkgX')
+        .add(testJson.clazz('NotMatchingClass', 'class')).build())
+      .add(testJson.package('notNameMatchingPkgWithMatchingChild')
+        .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
+        .add(testJson.clazz('NotMatchingClassWithMatchingInnerInterface', 'class')
+          .havingInnerClass(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
+          .build())
+        .build())
+      .add(testJson.clazz('NameMatchingInterfaceWithNoMatchingChildrenX', 'interface')
+        .havingInnerClass(testJson.clazz('NotNameMatchingInnerInterface', 'interface').build())
+        .havingInnerClass(testJson.clazz('NameMatchingInnerClassX', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
 
+    root.filterByName('X ', false);
+    root.filterByType(true, false);
+
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.NameMatchingInterfaceX',
+      'com.tngtech.archunit.notNameMatchingPkgWithMatchingChild',
+      'com.tngtech.archunit.notNameMatchingPkgWithMatchingChild.NameMatchingInterfaceX',
+      'com.tngtech.archunit.notNameMatchingPkgWithMatchingChild.NotMatchingClassWithMatchingInnerInterface',
+      'com.tngtech.archunit.notNameMatchingPkgWithMatchingChild.NotMatchingClassWithMatchingInnerInterface$NameMatchingInterfaceX',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX'];
+    const expHiddenNodes = [
+      'com.tngtech.archunit.notMatchingPkgWithoutBothMatchingChildren', 'com.tngtech.archunit.NameMatchingClassX',
+      'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.nameMatchingPkgX',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX$NotNameMatchingInnerInterface',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX$NameMatchingInnerClassX']
+      .map(nodeFullName => root.getByName(nodeFullName));
+    const interfaceWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX');
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(interfaceWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(interfaceWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
+    });
   });
 });
 
