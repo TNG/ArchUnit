@@ -741,14 +741,15 @@ describe('Node', () => {
     const expHiddenNodes = [
       'com.tngtech.archunit.pkgWithoutChildrenMatchingBothFilters', 'com.tngtech.archunit.NameMatchingClassX',
       'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.nameMatchingPkgX',
-      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX$NotNameMatchingInnerIntere',
-      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildrenX$NameMatchingInnerClX']
+      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX$NotNameMatchingInterface',
+      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX$NameMatchingClassX']
       .map(nodeFullName => root.getByName(nodeFullName));
     const interfaceWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX');
 
     return root.doNext(() => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(interfaceWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
       expect(interfaceWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
     });
@@ -813,6 +814,10 @@ describe('Node', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
+  });
+
+  it('can fold, filter and reset the filter in this order', () => {
+
   });
 });
 
