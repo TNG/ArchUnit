@@ -556,6 +556,151 @@ describe('Node', () => {
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
   });
+
+  it('can filter nodes by name and exclude the matching nodes: changes CSS-class of not matching class with ' +
+    'matching inner class (can occur in this scenario)', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('XMatchingClass', 'class').build())
+      .add(testJson.clazz('XMatchingInterface', 'interface').build())
+      .add(testJson.clazz('NotMatchingClassWithMatchingInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('XMatchingInnerClass', 'class').build())
+        .build())
+      .add(testJson.package('notMatchingPkgWithOnlyMatchingClasses')
+        .add(testJson.clazz('XMatchingClass', 'class').build())
+        .build())
+      .add(testJson.package('XMatchingPkg')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.package('pkgWithOneMatchingClass')
+        .add(testJson.clazz('XMatchingClass', 'class').build())
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerClass',
+      'com.tngtech.archunit.notMatchingPkgWithOnlyMatchingClasses', 'com.tngtech.archunit.pkgWithOneMatchingClass',
+      'com.tngtech.archunit.pkgWithOneMatchingClass.NotMatchingClass'];
+    const expHiddenNodes = ['com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.XMatchingInterface',
+      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerClass$XMatchingInnerClass',
+      'com.tngtech.archunit.XMatchingPkg', 'com.tngtech.archunit.pkgWithOneMatchingClass.XMatchingClass']
+      .map(nodeFullName => root.getByName(nodeFullName));
+    const classWithChangedCssClass =
+      root.getByName('com.tngtech.archunit.NotMatchingClassWithMatchingInnerClass');
+
+    root.filterByName('XMatching', true);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+      expect(classWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
+    });
+  });
+
+  it('can filter nodes by name using a string with a space at the end and exclude the matching nodes: does not hide ' +
+    'matching nodes with a not matching child', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('MatchingClassXX', 'class').build())
+      .add(testJson.clazz('MatchingClassWithNotMatchingInnerClassXX', 'class')
+        .havingInnerClass(testJson.clazz('NotMatchingInnerClass', 'class').build())
+        .build())
+      .add(testJson.package('MatchingPkgWithNoMatchingChildXX')
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClassXX',
+      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClassXX$NotMatchingInnerClass',
+      'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
+      'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX.NotMatchingClass'];
+    const expHiddenNodes = ['com.tngtech.archunit.MatchingClassXX'].map(nodeFullName => root.getByName(nodeFullName));
+
+    root.filterByName('XX ', true);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+    });
+  });
+
+  it('can reset the node-filter by name: the CSS-class of a node, that was matching the filter but has no child ' +
+    'matching the filter, is reset correctly', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('MatchingClassXX', 'class').build())
+      .add(testJson.clazz('MatchingInterfaceXX', 'interface').build())
+      .add(testJson.clazz('NotMatchingXXClass', 'class').build())
+      .add(testJson.package('matchingPkgWithNoMatchingClassXX')
+        .add(testJson.clazz('NotMatchingClassXx', 'class').build())
+        .build())
+      .add(testJson.package('pkgWithMatchingClass')
+        .add(testJson.clazz('MatchingClassWithNotMatchingInnerClassXX', 'class')
+          .havingInnerClass(testJson.clazz('NotMatchingInnerClass', 'class').build())
+          .build())
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.MatchingClassXX',
+      'com.tngtech.archunit.MatchingInterfaceXX', 'com.tngtech.archunit.NotMatchingXXClass',
+      'com.tngtech.archunit.matchingPkgWithNoMatchingClassXX',
+      'com.tngtech.archunit.matchingPkgWithNoMatchingClassXX.NotMatchingClassXx',
+      'com.tngtech.archunit.pkgWithMatchingClass',
+      'com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingInnerClassXX',
+      'com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingInnerClassXX$NotMatchingInnerClass',
+      'com.tngtech.archunit.pkgWithMatchingClass.NotMatchingClass'];
+    const pkgWithChangedCssClass = root.getByName('com.tngtech.archunit.matchingPkgWithNoMatchingClassXX');
+    const classWithChangedCssClass = root.getByName('com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingInnerClassXX');
+
+    root.filterByName('XX ', false);
+    root.filterByName('', false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(pkgWithChangedCssClass._view.cssClass).to.contain(' foldable');
+      expect(pkgWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+      expect(classWithChangedCssClass._view.cssClass).to.contain(' foldable');
+      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+    });
+  });
+
+  it('can change the node filter by name (without resetting it before): shows nodes matching the new filter again', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('XMatchingClass', 'class').build())
+      .add(testJson.clazz('YMatchingInterface', 'interface').build())
+      .add(testJson.clazz('NotMatchingClassWithMatchingInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('YMatchingInnerClass', 'class').build())
+        .build())
+      .add(testJson.package('pkgWithNoMatchingClasses')
+        .add(testJson.clazz('XMatchingClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+
+    const visibleNodes = ['com.tngtech.archunit',
+      'com.tngtech.archunit.YMatchingInterface',
+      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerClass',
+      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerClass$YMatchingInnerClass'];
+    const expHiddenNodes = [
+      'com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.pkgWithNoMatchingClasses']
+      .map(nodeFullName => root.getByName(nodeFullName));
+
+    root.filterByName('XMatching', false);
+    root.filterByName('YMatching', false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+    });
+  });
 });
 
 describe("Tree", () => {
