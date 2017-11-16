@@ -12,10 +12,6 @@ radiusOfLeaf(node, textwidth, circleTestPadding) / Math.sqrt(1 - textPosition * 
 
 const haveDiffBiggerThan = (value1, value2, diff) => Math.abs(value1 - value2) > diff;
 
-const distance = (x1, y1, x2, y2) => {
-  return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-};
-
 Assertion.addMethod('haveTextWithinCircle', function (textWidth, circleTextPadding, textPosition) {
   const node = this._obj;
   if (node.isCurrentlyLeaf()) {

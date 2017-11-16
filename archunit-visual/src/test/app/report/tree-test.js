@@ -6,7 +6,6 @@ require('./chai/tree-visualizer-chai-extensions');
 require('./chai/node-chai-extensions');
 
 const testObjects = require("./test-object-creator.js");
-const testTree = testObjects.tree;
 
 const stubs = require('./stubs');
 const appContext = require('./main-files').get('app-context').newInstance({
@@ -701,6 +700,10 @@ describe('Node', () => {
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
   });
+
+  it('can filter by name and filter by type', () => {
+
+  });
 });
 
 describe("Tree", () => {
@@ -865,7 +868,6 @@ describe("Tree", () => {
 
 // FIXME: Define these constants, that need to match production code, but can't be accessed from tests, in a central spot
 const CIRCLE_TEXT_PADDING = 5;
-const CIRCLE_PADDING = testObjects.visualizationStyles.getCirclePadding();
 
 // FIXME: These tests should really better communicate what they're actually testing, and what the preconditions are
 describe("Layout of nodes", () => {
