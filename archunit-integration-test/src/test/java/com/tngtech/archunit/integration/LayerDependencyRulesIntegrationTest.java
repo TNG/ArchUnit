@@ -39,13 +39,13 @@ public class LayerDependencyRulesIntegrationTest extends LayerDependencyRulesTes
                 "should access classes that reside in a package '..controller..'")
                 .by(accessFrom(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneTwoController.class, someString)
-                        .inLine(11))
+                        .inLine(13))
                 .by(callFrom(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toConstructor(UseCaseTwoController.class)
-                        .inLine(12))
+                        .inLine(14))
                 .by(callFrom(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toMethod(UseCaseTwoController.class, doSomethingTwo)
-                        .inLine(13));
+                        .inLine(15));
     }
 
     @Test

@@ -535,24 +535,12 @@ public class GivenClassesThatTest {
         assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    private @interface SomeAnnotation {
+    private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
+        return GET_NAME.is(equalTo(type.getName()));
     }
 
-    private static class SimpleClass {
-    }
-
-    private static class PrivateClass {
-    }
-
-    static class PackagePrivateClass {
-    }
-
-    protected static class ProtectedClass {
-    }
-
-    @SomeAnnotation
-    private static class AnnotatedClass {
+    private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
+        return new Evaluator(givenClasses);
     }
 
     private class Evaluator {
@@ -577,11 +565,23 @@ public class GivenClassesThatTest {
         }
     }
 
-    private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
-        return GET_NAME.is(equalTo(type.getName()));
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface SomeAnnotation {
     }
 
-    private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
-        return new Evaluator(givenClasses);
+    private static class SimpleClass {
+    }
+
+    private static class PrivateClass {
+    }
+
+    static class PackagePrivateClass {
+    }
+
+    protected static class ProtectedClass {
+    }
+
+    @SomeAnnotation
+    private static class AnnotatedClass {
     }
 }

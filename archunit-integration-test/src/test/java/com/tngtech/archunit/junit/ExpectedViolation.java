@@ -143,7 +143,7 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
             return containsLine("class %s matches '%s'", clazz.getName(), regex);
         }
 
-        public MessageAssertionChain.Link havingNameContaining(String infix) {
+        public MessageAssertionChain.Link havingSimpleNameContaining(String infix) {
             return containsLine("simple name of %s contains '%s'", clazz.getName(), infix);
         }
 

@@ -64,17 +64,17 @@ public class LayeredArchitectureIntegrationTest {
 
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toConstructor(UseCaseTwoController.class)
-                        .inLine(12)
+                        .inLine(14)
                         .asDependency())
 
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toMethod(UseCaseTwoController.class, "doSomethingTwo")
-                        .inLine(13)
+                        .inLine(15)
                         .asDependency())
 
                 .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(UseCaseOneTwoController.class, "someString")
-                        .inLine(11)
+                        .inLine(13)
                         .asDependency());
     }
 }

@@ -389,7 +389,11 @@ public class JavaClassTest {
 
         assertThat(simpleNameContaining("Parent").apply(input)).isTrue();
         assertThat(simpleNameContaining("Par").apply(input)).isTrue();
+        assertThat(simpleNameContaining("a").apply(input)).isTrue();
+        assertThat(simpleNameContaining("b").apply(input)).isFalse();
+        assertThat(simpleNameContaining("A").apply(input)).isFalse();
         assertThat(simpleNameContaining("ent").apply(input)).isTrue();
+        assertThat(simpleNameContaining("Pent").apply(input)).isFalse();
         assertThat(simpleNameContaining("aren").apply(input)).isTrue();
         assertThat(simpleNameContaining("").apply(input)).isTrue();
 

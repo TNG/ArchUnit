@@ -93,18 +93,18 @@ public interface ClassesShould {
     ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix);
 
     /**
-     * Asserts that classes' simple class names contain the specified infix string.
+     * Asserts that classes' simple class names contain the specified infix.
      *
-     * @param infix the infix string to search for
+     * @param infix An infix the simple class name should contain
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction haveSimpleNameContaining(String infix);
 
     /**
-     * Asserts that classes' simple class names do not contain the specified infix string.
+     * Asserts that classes' simple class names do not contain the specified infix.
      *
-     * @param infix the infix string to search for
+     * @param infix  An infix the simple class name should not contain
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)

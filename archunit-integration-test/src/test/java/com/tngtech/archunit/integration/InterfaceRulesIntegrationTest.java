@@ -15,20 +15,20 @@ public class InterfaceRulesIntegrationTest extends InterfaceRules {
 
     @Test
     @Override
-    public void interfaces_should_not_have_the_word_interface_in_the_name() {
+    public void interfaces_should_not_have_names_ending_with_the_word_interface() {
         expectedViolation.ofRule("no classes that are interfaces should have name matching '.*Interface'")
                 .by(clazz(SomeBusinessInterface.class).havingNameMatching(".*Interface"));
 
-        super.interfaces_should_not_have_the_word_interface_in_the_name();
+        super.interfaces_should_not_have_names_ending_with_the_word_interface();
     }
 
     @Test
     @Override
-    public void interfaces_should_not_have_the_word_interface_in_the_name_alternative2() {
+    public void interfaces_should_not_have_simple_class_names_ending_with_the_word_interface() {
         expectedViolation.ofRule("no classes that are interfaces should have simple name containing 'Interface'")
-                .by(clazz(SomeBusinessInterface.class).havingNameContaining("Interface"));
+                .by(clazz(SomeBusinessInterface.class).havingSimpleNameContaining("Interface"));
 
-        super.interfaces_should_not_have_the_word_interface_in_the_name_alternative2();
+        super.interfaces_should_not_have_simple_class_names_ending_with_the_word_interface();
     }
 
     @Test
