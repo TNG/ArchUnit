@@ -14,7 +14,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 public class InterfaceRules {
 
     @Test
-    public void interfaces_should_not_have_the_word_interface_in_the_name() {
+    public void interfaces_should_not_have_names_ending_with_the_word_interface() {
         JavaClasses classes = new ClassFileImporter().importClasses(
                 SomeBusinessInterface.class,
                 SomeDao.class
@@ -24,7 +24,7 @@ public class InterfaceRules {
     }
 
     @Test
-    public void interfaces_should_not_have_the_word_interface_in_the_name_alternative2() {
+    public void interfaces_should_not_have_simple_class_names_ending_with_the_word_interface() {
         JavaClasses classes = new ClassFileImporter().importClasses(
                 SomeBusinessInterface.class,
                 SomeDao.class

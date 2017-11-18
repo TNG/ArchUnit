@@ -48,7 +48,7 @@ class ClassesThatPredicates {
         return have(not(simpleNameContaining(infix)).as("simple name not containing '%s'", infix));
     }
 
-    public static DescribedPredicate<JavaClass> haveSimpleNameNotEndingWith(String suffix) {
+    static DescribedPredicate<JavaClass> haveSimpleNameNotEndingWith(String suffix) {
         return have(not(simpleNameEndingWith(suffix)).as("simple name not ending with '%s'", suffix));
     }
 

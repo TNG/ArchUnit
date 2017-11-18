@@ -1,12 +1,7 @@
 package com.tngtech.archunit.example.web;
 
-import com.tngtech.archunit.example.SomeControllerAnnotation;
+import com.tngtech.archunit.example.MyController;
 
-@SomeControllerAnnotation
+@MyController
 public class AnnotatedController {
-
-    public void foo() {
-        // bar
-    }
-
 }

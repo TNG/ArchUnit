@@ -355,8 +355,8 @@ public final class ArchConditions {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = predicate.apply(item);
-                String dynInfix = satisfied ? "contains" : "doesn't contain";
-                String message = String.format("simple name of %s %s '%s'", item.getName(), dynInfix, infix);
+                String messageInfix = satisfied ? "contains" : "doesn't contain";
+                String message = String.format("simple name of %s %s '%s'", item.getName(), messageInfix, infix);
                 events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };

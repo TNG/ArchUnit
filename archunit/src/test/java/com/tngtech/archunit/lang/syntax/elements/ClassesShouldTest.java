@@ -213,46 +213,46 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveSimpleNameContaining_rules() {
         String simpleName = RightNamedClass.class.getSimpleName();
-        String prefix = simpleName.substring(1, simpleName.length() - 1);
+        String infix = simpleName.substring(1, simpleName.length() - 1);
         return $$(
-                $(classes().should().haveSimpleNameContaining(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleNameContaining(prefix)), prefix)
+                $(classes().should().haveSimpleNameContaining(infix), infix),
+                $(classes().should(ArchConditions.haveSimpleNameContaining(infix)), infix)
         );
     }
 
     @Test
     @UseDataProvider("haveSimpleNameContaining_rules")
-    public void haveSimpleNameContaining(ArchRule rule, String prefix) {
+    public void haveSimpleNameContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple name containing '%s'", prefix))
+                .contains(String.format("classes should have simple name containing '%s'", infix))
                 .contains(String.format("simple name of %s doesn't contain '%s'",
-                        WrongNamedClass.class.getName(), prefix))
+                        WrongNamedClass.class.getName(), infix))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
     @DataProvider
     public static Object[][] haveSimpleNameNotContaining_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
-        String prefix = simpleName.substring(1, simpleName.length() - 1);
+        String infix = simpleName.substring(1, simpleName.length() - 1);
         return $$(
-                $(classes().should().haveSimpleNameNotContaining(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleNameNotContaining(prefix)), prefix)
+                $(classes().should().haveSimpleNameNotContaining(infix), infix),
+                $(classes().should(ArchConditions.haveSimpleNameNotContaining(infix)), infix)
         );
     }
 
     @Test
     @UseDataProvider("haveSimpleNameNotContaining_rules")
-    public void haveSimpleNameNotContaining(ArchRule rule, String prefix) {
+    public void haveSimpleNameNotContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple name not containing '%s'", prefix))
+                .contains(String.format("classes should have simple name not containing '%s'", infix))
                 .contains(String.format("simple name of %s contains '%s'",
-                        WrongNamedClass.class.getName(), prefix))
+                        WrongNamedClass.class.getName(), infix))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
