@@ -7,24 +7,24 @@ import static java.util.regex.Pattern.quote;
 public class ExpectedDependency implements ExpectedRelation {
     private final Class<?> origin;
     private final Class<?> target;
-    private String descriptionPattern;
+    private String dependencyTypePattern;
     private int lineNumber;
 
-    private ExpectedDependency(Class<?> origin, String descriptionPattern, Class<?> target) {
-        this(origin, descriptionPattern, target, 0);
+    private ExpectedDependency(Class<?> origin, String dependencyTypePattern, Class<?> target) {
+        this(origin, dependencyTypePattern, target, 0);
     }
 
-    private ExpectedDependency(Class<?> origin, String descriptionPattern, Class<?> target, int lineNumber) {
+    private ExpectedDependency(Class<?> origin, String dependencyTypePattern, Class<?> target, int lineNumber) {
         this.origin = origin;
         this.target = target;
-        this.descriptionPattern = descriptionPattern;
+        this.dependencyTypePattern = dependencyTypePattern;
         this.lineNumber = lineNumber;
     }
 
     @Override
     public String toString() {
         return String.format("Matches: %s ... %s ... %s ... .java:%d",
-                origin.getName(), descriptionPattern, target.getName(), lineNumber);
+                origin.getName(), dependencyTypePattern, target.getName(), lineNumber);
     }
 
     public static InheritanceCreator inheritanceFrom(Class<?> clazz) {
@@ -37,8 +37,12 @@ public class ExpectedDependency implements ExpectedRelation {
 
     @Override
     public void associateLines(LineAssociation association) {
-        association.associateIfPatternMatches(String.format(".*%s.*%s.*%s.*\\.java:%d.*",
-                quote(origin.getName()), descriptionPattern, quote(target.getName()), lineNumber));
+        association.associateIfPatternMatches(getCompleteDescriptionPattern());
+    }
+
+    private String getCompleteDescriptionPattern() {
+        return String.format(".*%s.*%s.*%s.*\\.java:%d.*",
+                quote(origin.getName()), dependencyTypePattern, quote(target.getName()), lineNumber);
     }
 
     @Override
@@ -50,7 +54,7 @@ public class ExpectedDependency implements ExpectedRelation {
         Dependency dependency = (Dependency) object;
         boolean originMatches = dependency.getOriginClass().isEquivalentTo(origin);
         boolean targetMatches = dependency.getTargetClass().isEquivalentTo(target);
-        boolean descriptionMatches = dependency.getDescription().contains(descriptionPattern);
+        boolean descriptionMatches = dependency.getDescription().matches(getCompleteDescriptionPattern());
         return originMatches && targetMatches && descriptionMatches;
     }
 
