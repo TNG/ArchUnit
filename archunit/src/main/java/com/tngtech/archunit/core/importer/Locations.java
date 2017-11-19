@@ -23,7 +23,6 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -118,17 +117,44 @@ public final class Locations {
     private static Collection<Location> findMissedClassesDueToLackOfPackageJarEntry(
             Set<Location> locationsSoFar, URLClassLoader loader, String resourceName) {
 
+        Set<Location> locationsToConsider = filterCandidates(loader, locationsSoFar);
         String searchedJarEntryPrefix = resourceName.endsWith("/") ? resourceName : resourceName + "/";
 
-        NonRedundantJarEntryLocations result = new NonRedundantJarEntryLocations(locationsSoFar);
-        for (Location location : jarLocationsOf(loader)) {
-            for (JarEntry entry : Collections.list(newJarFile(location).entries())) {
-                if (entry.getName().startsWith(searchedJarEntryPrefix)) {
-                    result.add(location.append(entry.getName()));
+        Set<Location> result = new HashSet<>();
+        for (Location location : locationsToConsider) {
+            if (containsEntryWithPrefix(location, searchedJarEntryPrefix)) {
+                result.add(location.append(resourceName));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * We only need to take those URLs that haven't been considered, yet. In the end, if we already have some
+     * URL jar:file:///some.jar!/foo/bar, the entry was obviously not missing from the JAR, so we don't need
+     * to consider the JAR anymore.
+     */
+    private static Set<Location> filterCandidates(URLClassLoader loader, Set<Location> locationsSoFar) {
+        Set<Location> allLocations = jarLocationsOf(loader);
+        Set<Location> locationsToConsider = new HashSet<>(allLocations);
+        for (Location location : allLocations) {
+            for (Location alreadyAdded : locationsSoFar) {
+                // location is a base URL, alreadyAdded will be a sub-URL or a base URL as well
+                if (alreadyAdded.startsWith(location)) {
+                    locationsToConsider.remove(location);
                 }
             }
         }
-        return result.asCollection();
+        return locationsToConsider;
+    }
+
+    private static boolean containsEntryWithPrefix(Location location, String searchedJarEntryPrefix) {
+        for (JarEntry entry : Collections.list(newJarFile(location).entries())) {
+            if (entry.getName().startsWith(searchedJarEntryPrefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static Set<Location> jarLocationsOf(URLClassLoader loader) {
@@ -175,41 +201,4 @@ public final class Locations {
                 .replaceAll("!/.*", "")));
     }
 
-    private static class NonRedundantJarEntryLocations {
-        private final Set<Location> locations = new HashSet<>();
-
-        NonRedundantJarEntryLocations(Set<Location> locationsSoFar) {
-            for (Location location : locationsSoFar) {
-                if (location.isJar()) {
-                    locations.add(location);
-                }
-            }
-        }
-
-        void add(Location location) {
-            checkArgument(location.isJar());
-            if (isRedundant(location)) {
-                return;
-            }
-            for (Iterator<Location> iterator = locations.iterator(); iterator.hasNext(); ) {
-                if (iterator.next().startsWith(location)) {
-                    iterator.remove();
-                }
-            }
-            locations.add(location);
-        }
-
-        private boolean isRedundant(Location location) {
-            for (Location stored : locations) {
-                if (location.startsWith(stored)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        Collection<Location> asCollection() {
-            return locations;
-        }
-    }
 }

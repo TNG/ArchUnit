@@ -1,17 +1,18 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.LocationTest.urlOfClass;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,20 +58,17 @@ public class LocationsTest {
         independentClassLoaderRule.configureContextClassLoaderAsIndependentClassLoader();
 
         Set<Location> locations = Locations.ofPackage(independentClassLoaderRule.getIndependentTopLevelPackage());
+        ClassFileSource source = getOnlyElement(locations).asClassFileSource(new ImportOptions());
 
-        Set<String> toplevelClassesWithoutPackageEntry = ImmutableSet.of(
-                "IndependentClassOne.class", "IndependentClassTwo.class");
-        Set<String> subPackageWithJarEntry = ImmutableSet.of("subpackage_with_entry");
-        Set<String> subPackageClassesWithoutPackageEntry = ImmutableSet.of(
-                "IndependentSubClassWithoutEntryOne.class", "IndependentSubClassWithoutEntryTwo.class");
+        for (ClassFileLocation classFileLocation : source) {
+            try (InputStream ignored = classFileLocation.openStream()) {
+                // we only care, that we can open the stream
+            }
+        }
 
-        Set<String> allExpectedUriParts = ImmutableSet.<String>builder()
-                .addAll(toplevelClassesWithoutPackageEntry)
-                .addAll(subPackageWithJarEntry)
-                .addAll(subPackageClassesWithoutPackageEntry)
-                .build();
-
-        assertThat(locations).extracting(lastUriPart()).containsOnlyElementsOf(allExpectedUriParts);
+        assertThat(source)
+                .as("URIs in " + independentClassLoaderRule.getIndependentTopLevelPackage())
+                .hasSize(independentClassLoaderRule.getNamesOfClasses().size());
     }
 
     @Test
