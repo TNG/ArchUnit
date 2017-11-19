@@ -171,6 +171,16 @@ public class ClassCacheTest {
         verifyNumberOfImports(2);
     }
 
+    @Test
+    public void clears_cache_by_class_on_command() {
+        cache.getClassesToAnalyzeFor(TestClass.class);
+        assertThat(cache.cachedByTest).isNotEmpty();
+        cache.clear(EquivalentTestClass.class);
+        assertThat(cache.cachedByTest).isNotEmpty();
+        cache.clear(TestClass.class);
+        assertThat(cache.cachedByTest).isEmpty();
+    }
+
     private void verifyNumberOfImports(int number) {
         verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
