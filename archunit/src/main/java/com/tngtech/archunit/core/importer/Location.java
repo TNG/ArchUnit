@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.io.IOException;
-import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -178,7 +177,8 @@ public abstract class Location {
         @Override
         ClassFileSource asClassFileSource(ImportOptions importOptions) {
             try {
-                return new ClassFileSource.FromJar((JarURLConnection) uri.toURL().openConnection(), importOptions);
+                String[] parts = uri.toString().split("!/", 2);
+                return new ClassFileSource.FromJar(new URL(parts[0] + "!/"), parts[1], importOptions);
             } catch (IOException e) {
                 throw new LocationException(e);
             }
