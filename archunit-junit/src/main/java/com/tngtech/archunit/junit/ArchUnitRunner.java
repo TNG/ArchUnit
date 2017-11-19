@@ -31,6 +31,7 @@ import org.junit.runners.ParentRunner;
 import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnored;
@@ -61,6 +62,21 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     @Internal
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
+    }
+
+    @Override
+    protected Statement classBlock(RunNotifier notifier) {
+        final Statement statement = super.classBlock(notifier);
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                try {
+                    statement.evaluate();
+                } finally {
+                    cache.clear(getTestClass().getJavaClass());
+                }
+            }
+        };
     }
 
     @Override
@@ -126,6 +142,10 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
         ClassCache get() {
             return cache;
+        }
+
+        void clear(Class<?> testClass) {
+            cache.clear(testClass);
         }
     }
 }

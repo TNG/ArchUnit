@@ -17,10 +17,15 @@ package com.tngtech.archunit.junit;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -31,8 +36,15 @@ import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 
 class ClassCache {
-    private final ConcurrentHashMap<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<LocationsKey, LazyJavaClasses> cachedByLocations = new ConcurrentHashMap<>();
+    @VisibleForTesting
+    final Map<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
+    private final LoadingCache<LocationsKey, LazyJavaClasses> cachedByLocations =
+            CacheBuilder.newBuilder().softValues().build(new CacheLoader<LocationsKey, LazyJavaClasses>() {
+                @Override
+                public LazyJavaClasses load(LocationsKey key) throws Exception {
+                    return new LazyJavaClasses(key.locations, key.importOptionTypes);
+                }
+            });
 
     private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
@@ -44,9 +56,9 @@ class ClassCache {
         }
 
         LocationsKey locations = locationsToImport(testClass);
-        cachedByLocations.putIfAbsent(locations, new LazyJavaClasses(locations));
-        cachedByTest.put(testClass, cachedByLocations.get(locations).get());
-        return cachedByLocations.get(locations).get();
+        JavaClasses classes = cachedByLocations.getUnchecked(locations).get();
+        cachedByTest.put(testClass, classes);
+        return classes;
     }
 
     private LocationsKey locationsToImport(Class<?> testClass) {
@@ -117,12 +129,18 @@ class ClassCache {
         }
     }
 
+    void clear(Class<?> testClass) {
+        cachedByTest.remove(testClass);
+    }
+
     private class LazyJavaClasses {
-        private final LocationsKey locationsKey;
+        private final Set<Location> locations;
+        private final Set<Class<? extends ImportOption>> importOptionTypes;
         private volatile JavaClasses javaClasses;
 
-        private LazyJavaClasses(LocationsKey locationsKey) {
-            this.locationsKey = locationsKey;
+        private LazyJavaClasses(Set<Location> locations, Set<Class<? extends ImportOption>> importOptionTypes) {
+            this.locations = locations;
+            this.importOptionTypes = importOptionTypes;
         }
 
         public JavaClasses get() {
@@ -135,10 +153,10 @@ class ClassCache {
         private synchronized void initialize() {
             if (javaClasses == null) {
                 ImportOptions importOptions = new ImportOptions();
-                for (Class<? extends ImportOption> optionClass : locationsKey.importOptionClasses) {
+                for (Class<? extends ImportOption> optionClass : importOptionTypes) {
                     importOptions = importOptions.with(newInstanceOf(optionClass));
                 }
-                javaClasses = cacheClassFileImporter.importClasses(importOptions, locationsKey.locations);
+                javaClasses = cacheClassFileImporter.importClasses(importOptions, locations);
             }
         }
     }
@@ -151,17 +169,17 @@ class ClassCache {
     }
 
     private static class LocationsKey {
-        private final Set<Class<? extends ImportOption>> importOptionClasses;
+        private final Set<Class<? extends ImportOption>> importOptionTypes;
         private final Set<Location> locations;
 
-        private LocationsKey(Class<? extends ImportOption>[] importOptionClasses, Set<Location> locations) {
-            this.importOptionClasses = ImmutableSet.copyOf(importOptionClasses);
+        private LocationsKey(Class<? extends ImportOption>[] importOptionTypes, Set<Location> locations) {
+            this.importOptionTypes = ImmutableSet.copyOf(importOptionTypes);
             this.locations = locations;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(importOptionClasses, locations);
+            return Objects.hash(importOptionTypes, locations);
         }
 
         @Override
@@ -173,7 +191,7 @@ class ClassCache {
                 return false;
             }
             final LocationsKey other = (LocationsKey) obj;
-            return Objects.equals(this.importOptionClasses, other.importOptionClasses)
+            return Objects.equals(this.importOptionTypes, other.importOptionTypes)
                     && Objects.equals(this.locations, other.locations);
         }
     }
