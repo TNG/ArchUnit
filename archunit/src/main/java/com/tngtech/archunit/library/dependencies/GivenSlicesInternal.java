@@ -89,7 +89,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public ArchRule notDependOnEachOther() {
+    public SliceRule notDependOnEachOther() {
         return slicesShouldNotDependOnEachOtherIn(classesTransformer);
     }
 }
