@@ -8,14 +8,19 @@ framework.
 
 === Module Overview
 
-ArchUnit consists of two production modules
+ArchUnit consists of two production modules: `archunit` and `archunit-junit`. Also relevant for end users is the `archunit-example' module.
 
 ==== Module archunit
 
-This module houses the actual ArchUnit core infrastructure, i.e. the `ClassFileImporter`,
+This module contains the actual ArchUnit core infrastructure required to write architecture tests: the `ClassFileImporter`,
 the domain objects, as well as the rule syntax infrastructure.
 
 ==== Module archunit-junit
 
-This module contains the infrastructure to use in combination with JUnit 4, in particular
+This module contains the infrastructure to integrate with JUnit 4, in particular
 the `ArchUnitRunner` to cache imported classes.
+
+==== Module archunit-example
+
+This module contains example architecture rules and sample code that violates these rules. Look here to get inspiration on how
+to set up rules for your project.
