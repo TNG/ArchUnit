@@ -1,7 +1,7 @@
 == Getting Started
 
-ArchUnit tests are written the same way as any Java Unit Test and can be written with any
-Java Unit Test framework. To really understand the ideas behind ArchUnit, one should consult
+ArchUnit tests are written the same way as any Java unit test and can be written with any
+Java unit testing framework. To really understand the ideas behind ArchUnit, one should consult
 <<Ideas and Concepts>>. The following will outline a "technical" getting started.
 
 === Importing classes
@@ -76,9 +76,9 @@ public void Services_should_only_be_accessed_by_Controllers() {
 
 === Using JUnit 4
 
-While ArchUnit can be used with any Unit Test framework, it provides extended support
-for writing tests with JUnit 4. The main advantage is an automatic caching of imported
-classes between tests (of the same classes), as well as a certain reduction of boilerplate.
+While ArchUnit can be used with any unit testing framework, it provides extended support
+for writing tests with JUnit 4. The main advantage is automatic caching of imported
+classes between tests (of the same classes), as well as reduction of boilerplate code.
 
 To use the JUnit 4 support, declare ArchUnit's `ArchUnitRunner`, declare the classes
 to import via `@AnalyzeClasses` and add the respective rules as fields:

@@ -1,9 +1,9 @@
 == Installation
 
-To use ArchUnit, it is sufficient to include the respective Jar files into the classpath.
+To use ArchUnit, it is sufficient to include the respective JAR files in the classpath.
 Most commonly, this is done by adding the dependency to your dependency management tool,
-which is illustrated for Maven and Gradle in the following section. Alternatively you
-can obtain the necessary Jar files directly from
+which is illustrated for Maven and Gradle below. Alternatively you
+can obtain the necessary JAR files directly from
 http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.tngtech.archunit%22[Maven Central].
 
 === JUnit 4
