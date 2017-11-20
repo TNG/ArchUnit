@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.dependencies.syntax;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.library.dependencies.SliceRule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -25,5 +26,5 @@ public interface SlicesShould {
     ArchRule beFreeOfCycles();
 
     @PublicAPI(usage = ACCESS)
-    ArchRule notDependOnEachOther();
+    SliceRule notDependOnEachOther();
 }
