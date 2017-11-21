@@ -28,14 +28,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ArchRule.Transformation.As;
 import com.tngtech.archunit.lang.ArchRule.Transformation.Because;
-import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.base.Guava.Iterables.filter;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -46,17 +43,19 @@ public final class SliceRule implements ArchRule {
     private final Priority priority;
     private final List<Transformation> transformations;
     private final DescribedPredicate<Dependency> ignoreDependency;
+    private final ConditionFactory conditionFactory;
 
-    SliceRule(Slices.Transformer inputTransformer, Priority priority) {
-        this(inputTransformer, priority, Collections.<Transformation>emptyList(), DescribedPredicate.<Dependency>alwaysFalse());
+    SliceRule(Slices.Transformer inputTransformer, Priority priority, ConditionFactory conditionFactory) {
+        this(inputTransformer, priority, Collections.<Transformation>emptyList(), DescribedPredicate.<Dependency>alwaysFalse(), conditionFactory);
     }
 
     private SliceRule(Slices.Transformer inputTransformer, Priority priority, List<Transformation> transformations,
-            DescribedPredicate<Dependency> ignoreDependency) {
+            DescribedPredicate<Dependency> ignoreDependency, ConditionFactory conditionFactory) {
         this.inputTransformer = inputTransformer;
         this.priority = priority;
         this.transformations = transformations;
         this.ignoreDependency = ignoreDependency;
+        this.conditionFactory = conditionFactory;
     }
 
     @Override
@@ -96,34 +95,24 @@ public final class SliceRule implements ArchRule {
 
     @PublicAPI(usage = ACCESS)
     public SliceRule ignoreDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
-        return new SliceRule(inputTransformer, priority, transformations, ignoreDependency.or(dependency(origin, target)));
+        return new SliceRule(inputTransformer, priority, transformations, ignoreDependency.or(dependency(origin, target)), conditionFactory);
     }
 
     private SliceRule copyWithTransformation(Transformation transformation) {
         List<Transformation> newTransformations =
                 ImmutableList.<Transformation>builder().addAll(transformations).add(transformation).build();
-        return new SliceRule(inputTransformer, priority, newTransformations, ignoreDependency);
-    }
-
-    private ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer) {
-        return new ArchCondition<Slice>("not depend on each other") {
-            @Override
-            public void check(Slice slice, ConditionEvents events) {
-                Iterable<Dependency> dependencies = filter(slice.getDependencies(), not(ignoreDependency));
-                Slices dependencySlices = inputTransformer.transform(dependencies);
-                for (Slice dependencySlice : dependencySlices) {
-                    SliceDependency dependency = SliceDependency.of(slice, dependencySlice);
-                    events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
-                }
-            }
-        };
+        return new SliceRule(inputTransformer, priority, newTransformations, ignoreDependency, conditionFactory);
     }
 
     private ArchRule getArchRule() {
-        ArchRule rule = priority(priority).all(inputTransformer).should(notDependOnEachOther(inputTransformer));
+        ArchRule rule = priority(priority).all(inputTransformer).should(conditionFactory.create(inputTransformer, not(ignoreDependency)));
         for (Transformation transformation : transformations) {
             rule = transformation.apply(rule);
         }
         return rule;
+    }
+
+    interface ConditionFactory {
+        ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate);
     }
 }

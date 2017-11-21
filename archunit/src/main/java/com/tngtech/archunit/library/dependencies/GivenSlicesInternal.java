@@ -17,9 +17,12 @@ package com.tngtech.archunit.library.dependencies;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.dependencies.syntax.GivenNamedSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
@@ -27,6 +30,7 @@ import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.Guava.Iterables.filter;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
@@ -83,12 +87,36 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     @Override
     @PublicAPI(usage = ACCESS)
     public ArchRule beFreeOfCycles() {
-        return should(new SliceCycleArchCondition());
+        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
+            @Override
+            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
+                return new SliceCycleArchCondition();
+            }
+        });
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public SliceRule notDependOnEachOther() {
-        return new SliceRule(classesTransformer, priority);
+        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
+            @Override
+            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
+                return notDependOnEachOther(transformer, predicate);
+            }
+        });
+    }
+
+    private ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer, final DescribedPredicate<Dependency> predicate) {
+        return new ArchCondition<Slice>("not depend on each other") {
+            @Override
+            public void check(Slice slice, ConditionEvents events) {
+                Iterable<Dependency> dependencies = filter(slice.getDependencies(), predicate);
+                Slices dependencySlices = inputTransformer.transform(dependencies);
+                for (Slice dependencySlice : dependencySlices) {
+                    SliceDependency dependency = SliceDependency.of(slice, dependencySlice);
+                    events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
+                }
+            }
+        };
     }
 }
