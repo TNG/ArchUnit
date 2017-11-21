@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.domain.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class JavaTypeTest {
