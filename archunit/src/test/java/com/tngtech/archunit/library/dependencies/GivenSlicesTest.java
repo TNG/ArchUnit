@@ -10,6 +10,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
+import com.tngtech.archunit.library.ArchitecturesTest;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
 import org.junit.Test;
 
@@ -18,6 +19,8 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GivenSlicesTest {
+    static final String TEST_CLASSES_PACKAGE = ArchitecturesTest.class.getPackage().getName() + ".testclasses";
+
     @Test
     public void chosen_slices() {
         Set<Slice> slices = getSlicesMatchedByFilter(
@@ -36,9 +39,9 @@ public class GivenSlicesTest {
                 testSlices()
                         .that(have(descriptionMatching(".*")))
                         .and(have(descriptionMatching("nothing")))
-                        .or(have(descriptionMatching(".*ir.*"))));
+                        .or(have(descriptionMatching(".*(first|some).*"))));
 
-        assertThat(slices).extracting("description").containsOnly("Slice first", "Slice third");
+        assertThat(slices).extracting("description").containsOnly("Slice first", "Slice some");
     }
 
     @Test
@@ -60,7 +63,7 @@ public class GivenSlicesTest {
     }
 
     private GivenSlices testSlices() {
-        return slices().matching(getClass().getPackage().getName() + ".testclasses.(*)..");
+        return slices().matching(TEST_CLASSES_PACKAGE + ".(*)..");
     }
 
     private DescribedPredicate<Slice> descriptionMatching(final String regex) {
@@ -79,7 +82,7 @@ public class GivenSlicesTest {
             public void check(Slice item, ConditionEvents events) {
                 matched.add(item);
             }
-        }).evaluate(new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses"));
+        }).evaluate(new ClassFileImporter().importPackages(TEST_CLASSES_PACKAGE));
         return matched;
     }
 }

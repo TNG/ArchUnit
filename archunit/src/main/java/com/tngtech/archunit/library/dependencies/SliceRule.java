@@ -15,79 +15,111 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
 
-import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ArchRule.Transformation.As;
+import com.tngtech.archunit.lang.ArchRule.Transformation.Because;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.Guava.Iterables.filter;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 
 public final class SliceRule implements ArchRule {
-    private final ArchRule delegate;
+    private final Slices.Transformer inputTransformer;
+    private final List<Transformation> transformations;
+    private final DescribedPredicate<Dependency> ignoreDependency;
 
     SliceRule(Slices.Transformer inputTransformer) {
-        delegate = all(inputTransformer).should(notDependOnEachOther(inputTransformer));
+        this(inputTransformer, Collections.<Transformation>emptyList(), DescribedPredicate.<Dependency>alwaysFalse());
+    }
+
+    private SliceRule(Slices.Transformer inputTransformer, List<Transformation> transformations, DescribedPredicate<Dependency> ignoreDependency) {
+        this.inputTransformer = inputTransformer;
+        this.transformations = transformations;
+        this.ignoreDependency = ignoreDependency;
     }
 
     @Override
     public void check(JavaClasses classes) {
-        delegate.check(classes);
+        getArchRule().check(classes);
     }
 
     @Override
-    public ArchRule because(String reason) {
-        return delegate.because(reason);
+    public SliceRule because(String reason) {
+        return copyWithTransformation(new Because(reason));
     }
 
     @Override
     public EvaluationResult evaluate(JavaClasses classes) {
-        return delegate.evaluate(classes);
+        return getArchRule().evaluate(classes);
     }
 
     @Override
     public String getDescription() {
-        return delegate.getDescription();
+        return getArchRule().getDescription();
     }
 
     @Override
-    public ArchRule as(String newDescription) {
-        return delegate.as(newDescription);
+    public SliceRule as(String newDescription) {
+        return copyWithTransformation(new As(newDescription));
     }
 
-    private static ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer) {
+    @PublicAPI(usage = ACCESS)
+    public SliceRule ignoreDependency(Class<?> origin, Class<?> target) {
+        return ignoreDependency(equivalentTo(origin), equivalentTo(target));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public SliceRule ignoreDependency(String origin, String target) {
+        return ignoreDependency(name(origin), name(target));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public SliceRule ignoreDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
+        return new SliceRule(inputTransformer, transformations, ignoreDependency.or(dependency(origin, target)));
+    }
+
+    private SliceRule copyWithTransformation(Transformation transformation) {
+        List<Transformation> newTransformations =
+                ImmutableList.<Transformation>builder().addAll(transformations).add(transformation).build();
+        return new SliceRule(inputTransformer, newTransformations, ignoreDependency);
+    }
+
+    private ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer) {
         return new ArchCondition<Slice>("not depend on each other") {
             @Override
             public void check(Slice slice, ConditionEvents events) {
-                Slices dependencySlices = inputTransformer.transform(slice.getDependencies());
+                Iterable<Dependency> dependencies = filter(slice.getDependencies(), not(ignoreDependency));
+                Slices dependencySlices = inputTransformer.transform(dependencies);
                 for (Slice dependencySlice : dependencySlices) {
-                    events.add(SimpleConditionEvent.violated(slice, describe(slice, dependencySlice)));
+                    SliceDependency dependency = SliceDependency.of(slice, dependencySlice);
+                    events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
                 }
-            }
-
-            private String describe(Slice slice, Slice dependencySlice) {
-                return String.format("%s calls %s:%n%s",
-                        slice.getDescription(),
-                        dependencySlice.getDescription(),
-                        joinDependencies(slice, dependencySlice));
-            }
-
-            private String joinDependencies(Slice from, Slice to) {
-                List<String> parts = new ArrayList<>();
-                for (Dependency dependency : new TreeSet<>(from.getDependencies())) {
-                    if (to.contains(dependency.getTargetClass())) {
-                        parts.add(dependency.getDescription());
-                    }
-                }
-                return Joiner.on(System.lineSeparator()).join(parts);
             }
         };
+    }
+
+    private ArchRule getArchRule() {
+        ArchRule rule = all(inputTransformer).should(notDependOnEachOther(inputTransformer));
+        for (Transformation transformation : transformations) {
+            rule = transformation.apply(rule);
+        }
+        return rule;
     }
 }

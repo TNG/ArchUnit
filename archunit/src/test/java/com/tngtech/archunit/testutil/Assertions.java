@@ -46,6 +46,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -125,17 +126,21 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaEnumConstantsAssertion(enumConstants);
     }
 
+    public static JavaTypeAssertion assertThat(JavaType javaType) {
+        return new JavaTypeAssertion(javaType);
+    }
+
     @SuppressWarnings("unchecked") // covariant
     public static AccessesAssertion assertThatAccesses(Collection<? extends JavaAccess<?>> accesses) {
         return new AccessesAssertion((Collection<JavaAccess<?>>) accesses);
     }
 
-    public static ExectedAccessCreation expectedAccess() {
-        return new ExectedAccessCreation();
+    public static ExpectedAccessCreation expectedAccess() {
+        return new ExpectedAccessCreation();
     }
 
-    public static class ExectedAccessCreation {
-        private ExectedAccessCreation() {
+    public static class ExpectedAccessCreation {
+        private ExpectedAccessCreation() {
         }
 
         public Step2 from(Class<?> originClass, String codeUnitName) {
@@ -667,11 +672,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             this.access = access;
         }
 
-        public SELF isFrom(Class<?> owner, String name, Class<?>... parameterTypes) {
-            assertThat(access.getOrigin().getOwner()).matches(owner);
-            return isFrom(access.getOrigin().getOwner().getCodeUnitWithParameterTypes(name, parameterTypes));
-        }
-
         public SELF isFrom(String name, Class<?>... parameterTypes) {
             return isFrom(access.getOrigin().getOwner().getCodeUnitWithParameterTypes(name, parameterTypes));
         }
@@ -710,12 +710,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return new AccessToFieldAssertion(access);
         }
 
-        public AccessToFieldAssertion isTo(Class<?> owner, String name) {
-            assertThat(access.getTarget().getOwner()).matches(owner);
-
-            return isTo(access.getTarget().getOwner().getField(name));
-        }
-
         public AccessToFieldAssertion isTo(String name) {
             return isTo(access.getTarget().getOwner().getField(name));
         }
@@ -735,15 +729,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             super(call);
         }
 
-        public MethodCallAssertion isTo(final Class<?> targetOwner, final String methodName) {
-            return isTo(new Condition<MethodCallTarget>() {
-                @Override
-                public boolean matches(MethodCallTarget target) {
-                    return target.getOwner().isEquivalentTo(targetOwner) && target.getName().equals(methodName);
-                }
-            });
-        }
-
         public MethodCallAssertion isTo(JavaMethod target) {
             return isTo(resolvedTargetFrom(target));
         }
@@ -759,15 +744,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
             super(call);
         }
 
-        public ConstructorCallAssertion isTo(final Class<?> targetOwner) {
-            return isTo(new Condition<ConstructorCallTarget>() {
-                @Override
-                public boolean matches(ConstructorCallTarget target) {
-                    return target.getOwner().isEquivalentTo(targetOwner);
-                }
-            });
-        }
-
         public ConstructorCallAssertion isTo(JavaConstructor target) {
             return isTo(targetFrom(target));
         }
@@ -775,6 +751,18 @@ public class Assertions extends org.assertj.core.api.Assertions {
         @Override
         protected ConstructorCallAssertion newAssertion(JavaConstructorCall call) {
             return new ConstructorCallAssertion(call);
+        }
+    }
+
+    public static class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, JavaType> {
+        private JavaTypeAssertion(JavaType actual) {
+            super(actual, JavaTypeAssertion.class);
+        }
+
+        public void isEquivalentTo(Class<?> clazz) {
+            assertThat(actual.getName()).as("name").isEqualTo(clazz.getName());
+            assertThat(actual.getSimpleName()).as("simple name").isEqualTo(clazz.getSimpleName());
+            assertThat(actual.getPackage()).as("package").isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
         }
     }
 }

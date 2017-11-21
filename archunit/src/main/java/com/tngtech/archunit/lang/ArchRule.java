@@ -214,4 +214,47 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             }
         }
     }
+
+    @Internal
+    interface Transformation {
+        ArchRule apply(ArchRule rule);
+
+        @Internal
+        final class As implements Transformation {
+            private final String description;
+
+            public As(String description) {
+                this.description = description;
+            }
+
+            @Override
+            public ArchRule apply(ArchRule rule) {
+                return rule.as(description);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("as '%s'", description);
+            }
+        }
+
+        @Internal
+        final class Because implements Transformation {
+            private final String reason;
+
+            public Because(String reason) {
+                this.reason = reason;
+            }
+
+            @Override
+            public ArchRule apply(ArchRule rule) {
+                return rule.because(reason);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("because '%s'", reason);
+            }
+        }
+    }
 }
