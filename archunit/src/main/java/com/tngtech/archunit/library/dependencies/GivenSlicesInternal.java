@@ -27,7 +27,6 @@ import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.library.dependencies.DependencyRules.slicesShouldNotDependOnEachOtherIn;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
@@ -84,12 +83,12 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     @Override
     @PublicAPI(usage = ACCESS)
     public ArchRule beFreeOfCycles() {
-        return should(DependencyRules.beFreeOfCycles());
+        return should(new SliceCycleArchCondition());
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public SliceRule notDependOnEachOther() {
-        return slicesShouldNotDependOnEachOtherIn(classesTransformer);
+        return new SliceRule(classesTransformer);
     }
 }
