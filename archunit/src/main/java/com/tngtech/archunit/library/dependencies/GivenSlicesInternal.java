@@ -89,6 +89,6 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     @Override
     @PublicAPI(usage = ACCESS)
     public SliceRule notDependOnEachOther() {
-        return new SliceRule(classesTransformer);
+        return new SliceRule(classesTransformer, priority);
     }
 }
