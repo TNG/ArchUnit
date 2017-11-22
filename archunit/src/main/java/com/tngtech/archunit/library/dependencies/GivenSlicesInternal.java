@@ -86,11 +86,11 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public ArchRule beFreeOfCycles() {
+    public SliceRule beFreeOfCycles() {
         return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
             @Override
             public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return new SliceCycleArchCondition();
+                return new SliceCycleArchCondition(predicate);
             }
         });
     }
@@ -110,10 +110,10 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
         return new ArchCondition<Slice>("not depend on each other") {
             @Override
             public void check(Slice slice, ConditionEvents events) {
-                Iterable<Dependency> dependencies = filter(slice.getDependencies(), predicate);
-                Slices dependencySlices = inputTransformer.transform(dependencies);
+                Iterable<Dependency> relevantDependencies = filter(slice.getDependencies(), predicate);
+                Slices dependencySlices = inputTransformer.transform(relevantDependencies);
                 for (Slice dependencySlice : dependencySlices) {
-                    SliceDependency dependency = SliceDependency.of(slice, dependencySlice);
+                    SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);
                     events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
                 }
             }

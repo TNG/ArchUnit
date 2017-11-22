@@ -18,9 +18,12 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.TreeSet;
+import java.util.SortedSet;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Ordering;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
@@ -29,15 +32,26 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class SliceDependency implements HasDescription {
     private final Slice origin;
+    private final SortedSet<Dependency> relevantDependencies;
     private final Slice target;
 
-    static SliceDependency of(Slice origin, Slice target) {
-        return new SliceDependency(origin, target);
+    static SliceDependency of(Slice origin, Iterable<Dependency> dependenciesToConsider, Slice target) {
+        return new SliceDependency(origin, dependenciesToConsider, target);
     }
 
-    private SliceDependency(Slice origin, Slice target) {
+    private SliceDependency(Slice origin, Iterable<Dependency> dependenciesToConsider, Slice target) {
         this.origin = origin;
+        this.relevantDependencies = filterTarget(dependenciesToConsider, target);
         this.target = target;
+    }
+
+    private SortedSet<Dependency> filterTarget(Iterable<Dependency> dependenciesToConsider, final Slice target) {
+        return FluentIterable.from(dependenciesToConsider).filter(new Predicate<Dependency>() {
+            @Override
+            public boolean apply(Dependency input) {
+                return target.contains(input.getTargetClass());
+            }
+        }).toSortedSet(Ordering.<Dependency>natural());
     }
 
     @PublicAPI(usage = ACCESS)
@@ -52,22 +66,16 @@ public final class SliceDependency implements HasDescription {
 
     @Override
     public String getDescription() {
-        return describe(origin, target);
-    }
-
-    private String describe(Slice slice, Slice dependencySlice) {
         return String.format("%s calls %s:%n%s",
-                slice.getDescription(),
-                dependencySlice.getDescription(),
-                joinDependencies(slice, dependencySlice));
+                origin.getDescription(),
+                target.getDescription(),
+                joinDependencies(relevantDependencies));
     }
 
-    private String joinDependencies(Slice from, Slice to) {
+    private String joinDependencies(Iterable<Dependency> dependencies) {
         List<String> parts = new ArrayList<>();
-        for (Dependency dependency : new TreeSet<>(from.getDependencies())) {
-            if (to.contains(dependency.getTargetClass())) {
-                parts.add(dependency.getDescription());
-            }
+        for (Dependency dependency : dependencies) {
+            parts.add(dependency.getDescription());
         }
         return Joiner.on(System.lineSeparator()).join(parts);
     }
