@@ -23,6 +23,10 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
+/**
+ * Default base implementation of {@link ClassesTransformer}, where only {@link #doTransform(JavaClasses)}
+ * has to be implemented, while description and filtering via {@link #that(DescribedPredicate)} are provided.
+ */
 @PublicAPI(usage = INHERITANCE)
 public abstract class AbstractClassesTransformer<T> implements ClassesTransformer<T> {
     private final String description;
@@ -39,7 +43,7 @@ public abstract class AbstractClassesTransformer<T> implements ClassesTransforme
     public abstract Iterable<T> doTransform(JavaClasses collection);
 
     @Override
-    public ClassesTransformer<T> that(final DescribedPredicate<? super T> predicate) {
+    public final ClassesTransformer<T> that(final DescribedPredicate<? super T> predicate) {
         return new AbstractClassesTransformer<T>(description + " that " + predicate.getDescription()) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {
@@ -50,12 +54,12 @@ public abstract class AbstractClassesTransformer<T> implements ClassesTransforme
     }
 
     @Override
-    public String getDescription() {
+    public final String getDescription() {
         return description;
     }
 
     @Override
-    public ClassesTransformer<T> as(String description) {
+    public final ClassesTransformer<T> as(String description) {
         return new AbstractClassesTransformer<T>(description) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {

@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -68,7 +69,7 @@ public final class EvaluationResult {
     /**
      * @see ConditionEvents#handleViolations(ViolationHandler)
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public void handleViolations(ViolationHandler<?> violationHandler) {
         events.handleViolations(violationHandler);
     }

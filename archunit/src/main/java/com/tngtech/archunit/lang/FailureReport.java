@@ -21,9 +21,12 @@ import java.util.TreeSet;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 
-public class FailureReport implements CollectsLines {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+public final class FailureReport implements CollectsLines {
     private final Set<String> failureMessages = new TreeSet<>();
     private final HasDescription rule;
     private final Priority priority;
@@ -33,10 +36,12 @@ public class FailureReport implements CollectsLines {
         this.priority = priority;
     }
 
+    @PublicAPI(usage = ACCESS)
     public boolean isEmpty() {
         return failureMessages.isEmpty();
     }
 
+    @PublicAPI(usage = ACCESS)
     public List<String> getDetails() {
         return ImmutableList.copyOf(failureMessages);
     }

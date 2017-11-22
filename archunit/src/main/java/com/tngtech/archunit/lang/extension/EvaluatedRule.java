@@ -20,6 +20,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -28,12 +29,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * see {@link EvaluationResult}.
  */
 public interface EvaluatedRule {
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ArchRule getRule();
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     JavaClasses getClasses();
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     EvaluationResult getResult();
 }
