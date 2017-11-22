@@ -23,13 +23,15 @@ import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class SlicesIsolationIntegrationTest {
     @ArchTest
-    @ExpectedViolationFrom(location = SlicesIsolationIntegrationTest.class, method = "expectAllSliceViolationsFromDependencies")
+    @ExpectedViolationFrom(location = SlicesIsolationIntegrationTest.class, method = "expectSliceViolationsFromDependencies")
     public static final ArchRule controllers_should_only_use_their_own_slice =
             SlicesIsolationTest.controllers_should_only_use_their_own_slice;
 
     @CalledByArchUnitIntegrationTestRunner
-    static void expectAllSliceViolationsFromDependencies(ExpectsViolations expectsViolations) {
-        expectsViolations.ofRule("Controllers should not depend on each other")
+    static void expectSliceViolationsFromDependencies(ExpectsViolations expectsViolations) {
+        expectSliceViolationsFromDependenciesWithIgnore(expectsViolations);
+
+        expectsViolations
                 .by(sliceDependency()
                         .described("Controller one calls Controller two")
                         .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
@@ -38,6 +40,24 @@ public class SlicesIsolationIntegrationTest {
                         .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
                                 .toMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .inLine(10)))
+                .by(sliceDependency()
+                        .described("Controller three calls Controller one")
+                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
+                                .toConstructor(UseCaseOneTwoController.class)
+                                .inLine(9))
+                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
+                                .toMethod(UseCaseOneTwoController.class, doSomethingOne)
+                                .inLine(9)));
+    }
+
+    @ArchTest
+    @ExpectedViolationFrom(location = SlicesIsolationIntegrationTest.class, method = "expectSliceViolationsFromDependenciesWithIgnore")
+    public static final ArchRule controllers_should_only_use_their_own_slice_with_custom_ignore =
+            SlicesIsolationTest.controllers_should_only_use_their_own_slice_with_custom_ignore;
+
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectSliceViolationsFromDependenciesWithIgnore(ExpectsViolations expectsViolations) {
+        expectsViolations.ofRule("Controllers should not depend on each other")
                 .by(sliceDependency()
                         .described("Controller one calls Controller three")
                         .by(accessFrom(UseCaseOneThreeController.class, doSomethingOne)
@@ -52,14 +72,6 @@ public class SlicesIsolationIntegrationTest {
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(9))
                         .by(accessFrom(UseCaseTwoController.class, doSomethingTwo)
-                                .toMethod(UseCaseOneTwoController.class, doSomethingOne)
-                                .inLine(9)))
-                .by(sliceDependency()
-                        .described("Controller three calls Controller one")
-                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
-                                .toConstructor(UseCaseOneTwoController.class)
-                                .inLine(9))
-                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .inLine(9)));
     }

@@ -187,21 +187,21 @@ public final class Architectures {
         }
 
         @PublicAPI(usage = ACCESS)
-        public LayeredArchitecture ignoreDependency(Class<?> from, Class<?> to) {
-            return ignoreDependency(equivalentTo(from), equivalentTo(to));
+        public LayeredArchitecture ignoreDependency(Class<?> origin, Class<?> target) {
+            return ignoreDependency(equivalentTo(origin), equivalentTo(target));
         }
 
         @PublicAPI(usage = ACCESS)
-        public LayeredArchitecture ignoreDependency(String from, String to) {
-            return ignoreDependency(name(from), name(to));
+        public LayeredArchitecture ignoreDependency(String origin, String target) {
+            return ignoreDependency(name(origin), name(target));
         }
 
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture ignoreDependency(
-                DescribedPredicate<? super JavaClass> from, DescribedPredicate<? super JavaClass> to) {
+                DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(from, to)), overriddenDescription);
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
         }
 
         private String[] toArray(Set<String> strings) {
