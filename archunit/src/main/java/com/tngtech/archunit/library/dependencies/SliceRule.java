@@ -112,6 +112,11 @@ public final class SliceRule implements ArchRule {
         return rule;
     }
 
+    @Override
+    public String toString() {
+        return getDescription();
+    }
+
     interface ConditionFactory {
         ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate);
     }
