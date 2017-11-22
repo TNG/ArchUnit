@@ -1,6 +1,9 @@
 package com.tngtech.archunit.exampletest.junit;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
+import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -10,6 +13,7 @@ import com.tngtech.archunit.library.dependencies.Slice;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 @Category(Example.class)
@@ -27,6 +31,13 @@ public class SlicesIsolationTest {
                     .that(containDescription("Controller one"))
                     .or(containDescription("Controller two"))
                     .as("Controllers one and two").should().notDependOnEachOther();
+
+    @ArchTest
+    public static final ArchRule controllers_should_only_use_their_own_slice_with_custom_ignore =
+            slices().matching("..controller.(*)..").namingSlices("Controller $1")
+                    .as("Controllers").should().notDependOnEachOther()
+                    .ignoreDependency(UseCaseOneTwoController.class, UseCaseTwoController.class)
+                    .ignoreDependency(nameMatching(".*controller\\.three.*"), DescribedPredicate.<JavaClass>alwaysTrue());
 
     private static DescribedPredicate<Slice> containDescription(final String descriptionPart) {
         return new DescribedPredicate<Slice>("contain description '%s'", descriptionPart) {

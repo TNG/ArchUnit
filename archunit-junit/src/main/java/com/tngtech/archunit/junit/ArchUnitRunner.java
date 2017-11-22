@@ -38,22 +38,23 @@ import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnore
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
- * <p/>
  * {@link AnalyzeClasses @AnalyzeClasses} on the annotated test class.
  * <p>
  * NOTE: The runner demands {@link AnalyzeClasses @AnalyzeClasses} to be present on the respective test class.
  * </p>
- * Example
+ * Example:
  * <pre><code>
- *    {@literal @}RunWith(ArchUnitRunner.class)
- *    {@literal @}AnalyzeClasses(packages = "com.example")
- *    public class SomeArchTest {
- *        {@literal @}ArchTest
- *        public final ArchRule&lt;JavaClass&gt; some_rule = rule(all(JavaClass.class))
- *                .should("satisfy something special")
- *                .assertedBy(mySpecificCondition);
- *    }
+ * {@literal @}RunWith(ArchUnitRunner.class)
+ * {@literal @}AnalyzeClasses(packages = "com.example")
+ * public class SomeArchTest {
+ *     {@literal @}ArchTest
+ *     public static final ArchRule some_rule = //...
+ * }
  * </code></pre>
+ * Important information about the caching behavior: The cache uses soft references, meaning that a small heap
+ * may dramatically reduce performance, if multiple classes running with {@link ArchUnitRunner} are executed.
+ * The cache will hold imported classes as long as there is sufficient memory, and reuse them, if the same
+ * locations (i.e. URLs) are imported.
  */
 @PublicAPI(usage = ACCESS)
 public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
