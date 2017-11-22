@@ -20,6 +20,7 @@ import java.util.Collection;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
@@ -60,6 +61,7 @@ public interface ConditionEvent {
      *
      * @param handler The handler to supply the data of this event to.
      */
+    @PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
     void handleWith(Handler handler);
 
     /**
@@ -75,7 +77,7 @@ public interface ConditionEvent {
          * @param correspondingObjects The objects this event describes (e.g. method calls, field accesses, ...)
          * @param message              Describes the event
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         void handle(Collection<?> correspondingObjects, String message);
     }
 }

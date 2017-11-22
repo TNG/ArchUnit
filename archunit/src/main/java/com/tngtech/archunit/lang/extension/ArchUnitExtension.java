@@ -21,6 +21,7 @@ import java.util.ServiceLoader;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
@@ -37,7 +38,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * Whenever a rule is evaluated, ArchUnit will dispatch the result to all extensions configured this way,
  * before reacting to the result (e.g. by failing the test, if violations exist).
  */
-@PublicAPI(usage = INHERITANCE)
+@PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
 public interface ArchUnitExtension {
     /**
      * An unique String, identifying this extension, so ArchUnit can associate configured properties. The

@@ -17,6 +17,8 @@ package com.tngtech.archunit;
 
 import java.lang.annotation.Inherited;
 
+import static com.tngtech.archunit.PublicAPI.State.STABLE;
+
 /**
  * Marks classes and members, that are part of ArchUnit's public API. I.e. users of ArchUnit should ONLY use
  * those classes and members.<br><br>
@@ -31,11 +33,52 @@ import java.lang.annotation.Inherited;
 @Internal
 @Inherited
 public @interface PublicAPI {
+    /**
+     * Marks how this API is supposed to be used.
+     *
+     * @see Usage
+     */
     Usage usage();
 
+    /**
+     * Marks the state of this API, i.e. the maturity. The default is {@link State#STABLE STABLE}, if not
+     * explicitly marked otherwise.
+     *
+     * @see State
+     */
+    State state() default STABLE;
+
+    /**
+     * @see #INHERITANCE
+     * @see #ACCESS
+     */
     @Internal
     enum Usage {
+        /**
+         * This API is intended to be used via inheritance, i.e. by extending/implementing this class.
+         */
         INHERITANCE,
+        /**
+         * This API is intended to be accessed, and nothing else. In particular, this API is NOT intended
+         * to be implemented/overridden in any way, but instances should always be provided by ArchUnit itself.
+         */
         ACCESS
+    }
+
+    /**
+     * @see #STABLE
+     * @see #EXPERIMENTAL
+     */
+    @Internal
+    enum State {
+        /**
+         * This API is stable for the foreseeable future and will not change in the next couple of major releases.
+         */
+        STABLE,
+        /**
+         * This API is still volatile. It might not be suitable for its intended purpose and might change in
+         * any way with the next release (even be removed completely).
+         */
+        EXPERIMENTAL
     }
 }
