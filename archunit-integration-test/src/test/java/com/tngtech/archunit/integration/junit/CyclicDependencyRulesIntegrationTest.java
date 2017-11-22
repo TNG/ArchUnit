@@ -52,33 +52,38 @@ public class CyclicDependencyRulesIntegrationTest {
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromSimpleCycle")
-    public static final ArchRule NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES =
-            CyclicDependencyRulesTest.NO_CYCLES_BY_METHOD_CALLS_BETWEEN_SLICES;
+    public static final ArchRule no_cycles_by_method_calls_between_slices =
+            CyclicDependencyRulesTest.no_cycles_by_method_calls_between_slices;
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromConstructorCycle")
-    public static final ArchRule NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES =
-            CyclicDependencyRulesTest.NO_CYCLES_BY_CONSTRUCTOR_CALLS_BETWEEN_SLICES;
+    public static final ArchRule no_cycles_by_constructor_calls_between_slices =
+            CyclicDependencyRulesTest.no_cycles_by_constructor_calls_between_slices;
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromInheritanceCycle")
-    public static final ArchRule NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES =
-            CyclicDependencyRulesTest.NO_CYCLES_BY_INHERITANCE_BETWEEN_SLICES;
+    public static final ArchRule no_cycles_by_inheritance_between_slices =
+            CyclicDependencyRulesTest.no_cycles_by_inheritance_between_slices;
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromFieldAccessCycle")
-    public static final ArchRule NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES =
-            CyclicDependencyRulesTest.NO_CYCLES_BY_FIELD_ACCESS_BETWEEN_SLICES;
+    public static final ArchRule no_cycles_by_field_access_between_slices =
+            CyclicDependencyRulesTest.no_cycles_by_field_access_between_slices;
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromSimpleCyclicScenario")
-    public static final ArchRule NO_CYCLES_IN_SIMPLE_SCENARIO =
-            CyclicDependencyRulesTest.NO_CYCLES_IN_SIMPLE_SCENARIO;
+    public static final ArchRule no_cycles_in_simple_scenario =
+            CyclicDependencyRulesTest.no_cycles_in_simple_scenario;
 
     @ArchTest
     @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromComplexCyclicScenario")
-    public static final ArchRule NO_CYCLES_IN_COMPLEX_SCENARIO =
-            CyclicDependencyRulesTest.NO_CYCLES_IN_COMPLEX_SCENARIO;
+    public static final ArchRule no_cycles_in_complex_scenario =
+            CyclicDependencyRulesTest.no_cycles_in_complex_scenario;
+
+    @ArchTest
+    @ExpectedViolationFrom(location = CyclicDependencyRulesIntegrationTest.class, method = "expectViolationFromComplexCyclicScenarioWithCustomIgnore")
+    public static final ArchRule no_cycles_in_complex_scenario_with_custom_ignore =
+            CyclicDependencyRulesTest.no_cycles_in_complex_scenario_with_custom_ignore;
 
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationFromSimpleCycle(ExpectsViolations expectsViolations) {
@@ -175,6 +180,47 @@ public class CyclicDependencyRulesIntegrationTest {
 
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationFromComplexCyclicScenario(ExpectsViolations expectsViolations) {
+        expectViolationFromComplexCyclicScenarioWithCustomIgnore(expectsViolations);
+
+        expectsViolations
+                .by(cycle().from("slice1 of complexcycles")
+                        .by(accessFrom(ClassOfMinimalCircleCallingSliceTwo.class, "callSliceTwo")
+                                .toMethod(ClassOfMinimalCircleCallingSliceOne.class, "callSliceOne")
+                                .inLine(9))
+                        .by(accessFrom(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, "callSliceTwo")
+                                .toConstructor(InstantiatedClassInSliceTwo.class)
+                                .inLine(10))
+                        .from("slice2 of complexcycles")
+                        .by(accessFrom(SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour.class, "accessSliceFour")
+                                .toConstructor(ClassWithAccessedFieldCallingMethodInSliceOne.class)
+                                .inLine(8))
+                        .by(accessFrom(SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour.class, "accessSliceFour")
+                                .setting().field(ClassWithAccessedFieldCallingMethodInSliceOne.class, "accessedField")
+                                .inLine(8))
+                        .from("slice4 of complexcycles")
+                        .by(accessFrom(ClassWithAccessedFieldCallingMethodInSliceOne.class, "callSliceOne")
+                                .toMethod(ClassBeingCalledInSliceOne.class, "doSomethingInSliceOne")
+                                .inLine(10)))
+
+                .by(cycle().from("slice1 of complexcycles")
+                        .by(accessFrom(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, "callSliceThree")
+                                .toMethod(ClassCallingConstructorInSliceFive.class, "callSliceFive")
+                                .inLine(14))
+                        .from("slice3 of complexcycles")
+                        .by(accessFrom(ClassCallingConstructorInSliceFive.class, "callSliceFive")
+                                .toConstructor(InstantiatedClassInSliceFive.class)
+                                .inLine(7))
+                        .from("slice5 of complexcycles")
+                        .by(accessFrom(InstantiatedClassInSliceFive.class, "callSliceOne")
+                                .toConstructor(ClassBeingCalledInSliceOne.class)
+                                .inLine(7))
+                        .by(accessFrom(InstantiatedClassInSliceFive.class, "callSliceOne")
+                                .toMethod(ClassBeingCalledInSliceOne.class, "doSomethingInSliceOne")
+                                .inLine(7)));
+    }
+
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectViolationFromComplexCyclicScenarioWithCustomIgnore(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("slices matching '..(complexcycles).(*)..' should be free of cycles")
                 .by(cycle()
                         .from("slice1 of complexcycles")
@@ -207,41 +253,6 @@ public class CyclicDependencyRulesIntegrationTest {
                         .by(accessFrom(SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour.class, CONSTRUCTOR_NAME)
                                 .toConstructor(InheritedClassInSliceThree.class)
                                 .inLine(6))
-                        .from("slice3 of complexcycles")
-                        .by(accessFrom(ClassCallingConstructorInSliceFive.class, "callSliceFive")
-                                .toConstructor(InstantiatedClassInSliceFive.class)
-                                .inLine(7))
-                        .from("slice5 of complexcycles")
-                        .by(accessFrom(InstantiatedClassInSliceFive.class, "callSliceOne")
-                                .toConstructor(ClassBeingCalledInSliceOne.class)
-                                .inLine(7))
-                        .by(accessFrom(InstantiatedClassInSliceFive.class, "callSliceOne")
-                                .toMethod(ClassBeingCalledInSliceOne.class, "doSomethingInSliceOne")
-                                .inLine(7)))
-
-                .by(cycle().from("slice1 of complexcycles")
-                        .by(accessFrom(ClassOfMinimalCircleCallingSliceTwo.class, "callSliceTwo")
-                                .toMethod(ClassOfMinimalCircleCallingSliceOne.class, "callSliceOne")
-                                .inLine(9))
-                        .by(accessFrom(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, "callSliceTwo")
-                                .toConstructor(InstantiatedClassInSliceTwo.class)
-                                .inLine(10))
-                        .from("slice2 of complexcycles")
-                        .by(accessFrom(SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour.class, "accessSliceFour")
-                                .toConstructor(ClassWithAccessedFieldCallingMethodInSliceOne.class)
-                                .inLine(8))
-                        .by(accessFrom(SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour.class, "accessSliceFour")
-                                .setting().field(ClassWithAccessedFieldCallingMethodInSliceOne.class, "accessedField")
-                                .inLine(8))
-                        .from("slice4 of complexcycles")
-                        .by(accessFrom(ClassWithAccessedFieldCallingMethodInSliceOne.class, "callSliceOne")
-                                .toMethod(ClassBeingCalledInSliceOne.class, "doSomethingInSliceOne")
-                                .inLine(10)))
-
-                .by(cycle().from("slice1 of complexcycles")
-                        .by(accessFrom(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, "callSliceThree")
-                                .toMethod(ClassCallingConstructorInSliceFive.class, "callSliceFive")
-                                .inLine(14))
                         .from("slice3 of complexcycles")
                         .by(accessFrom(ClassCallingConstructorInSliceFive.class, "callSliceFive")
                                 .toConstructor(InstantiatedClassInSliceFive.class)
