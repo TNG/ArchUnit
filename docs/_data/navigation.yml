@@ -3,5 +3,8 @@ main:
     url: /getting-started
   - title: "News"
     url: /news
-  - title: "Motivation"
-    url: /motivation
+  - title: "User Guide"
+    url: /userguide
+  - title: "API"
+    url: https://javadoc.io/doc/com.tngtech.archunit/archunit/0.4.0
+

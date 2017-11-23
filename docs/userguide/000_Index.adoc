@@ -1,8 +1,9 @@
 = ArchUnit User Guide
+:page-permalink: /userguide
 :description: index page of ArchUnit's documentation
 :keywords: ArchUnit, Java, architecture, test, analysis
 ifndef::env-site[:toc: left]
-:page-layout: docs
+:page-layout: splash
 :page-description: {description}
 :page-keywords: {keywords}
 :version:
@@ -14,10 +15,12 @@ ifndef::env-site[:toc: left]
 :author: Peter Gafert
 :revnumber: {version}
 
-include::001_Intro.adoc[]
+= ArchUnit User Guide
 
-include::002_Installation.adoc[]
+include::userguide/001_Intro.adoc[]
 
-include::003_Getting_Started.adoc[]
+include::userguide/002_Installation.adoc[]
 
-include::004_Ideas_and_Concepts.adoc[]
+include::userguide/003_Getting_Started.adoc[]
+
+include::userguide/004_Ideas_and_Concepts.adoc[]
