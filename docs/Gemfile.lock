@@ -8,6 +8,7 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
+    asciidoctor (1.5.6.1)
     colorator (1.1.0)
     faraday (0.13.1)
       multipart-post (>= 1.2, < 3)
@@ -29,6 +30,9 @@ GEM
       pathutil (~> 0.9)
       rouge (>= 1.7, < 3)
       safe_yaml (~> 1.0)
+    jekyll-asciidoc (2.1.0)
+      asciidoctor (>= 1.5.0)
+      jekyll (>= 2.3.0)
     jekyll-feed (0.9.2)
       jekyll (~> 3.3)
     jekyll-gist (1.4.1)
@@ -83,6 +87,7 @@ PLATFORMS
 
 DEPENDENCIES
   jekyll
+  jekyll-asciidoc
   jekyll-feed
   jekyll-gist
   jekyll-paginate
@@ -91,4 +96,3 @@ DEPENDENCIES
 
 BUNDLED WITH
    1.15.4
-
