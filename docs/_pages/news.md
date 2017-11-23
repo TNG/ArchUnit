@@ -17,7 +17,7 @@ permalink: /news
     {% endfor %}
   </ul>
 
-  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" }}">via RSS</a></p>
+  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | relative_url  }}">via RSS</a></p>
   
 </div>
 
