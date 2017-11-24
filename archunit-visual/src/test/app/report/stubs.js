@@ -17,12 +17,18 @@ const NodeViewStub = class {
   constructor() {
     this.cssClass = '';
     this.isVisible = true;
+
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
-    this.jumpToPosition = () => {
+    this.jumpToPosition = () => this.hasJumpedToPosition = true;
+    this.moveToPosition = () => {
+      this.hasMovedToPosition = true;
+      return Promise.resolve();
     };
-    this.moveToPosition = () => Promise.resolve();
-    this.moveToRadius = () => Promise.resolve();
+    this.moveToRadius = () => {
+      this.hasMovedToRadius = true;
+      return Promise.resolve();
+    };
     this.updateNodeType = cssClass => this.cssClass = cssClass;
     this.showIfVisible = node => {
       if (node.isVisible()) {

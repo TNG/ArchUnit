@@ -58,6 +58,7 @@ describe('Inner node', () => {
     innerNode.foldIfInnerNode();
 
     expect(innerNode.isFolded()).to.equal(true);
+    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
     expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
@@ -77,6 +78,7 @@ describe('Inner node', () => {
     innerNode._changeFoldIfInnerNodeAndRelayout();
 
     expect(innerNode.isFolded()).to.equal(true);
+    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
     expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
@@ -99,6 +101,7 @@ describe('Inner node', () => {
 
     const promises = [];
     expect(innerNode.isFolded()).to.equal(false);
+    expect(innerNode.isCurrentlyLeaf()).to.equal(false);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
     promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(false)));
     expect(listenerStub.foldedNode()).to.equal(innerNode);
@@ -110,14 +113,23 @@ describe('Inner node', () => {
 describe('Leaf', () => {
   it('should not fold or change its fold-state', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.clazz('Leaf', 'class').build())
       .build();
     const root = new Node(jsonRoot);
-    const leaf = root.getByName('com.tngtech.archunit.SomeClass');
+    const leaf = root.getByName('com.tngtech.archunit.Leaf');
     leaf.foldIfInnerNode();
     expect(leaf.isFolded()).to.equal(false);
     leaf._changeFoldIfInnerNodeAndRelayout();
     expect(leaf.isFolded()).to.equal(false);
+  });
+
+  it('should know that it is a leaf', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('Leaf', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    const leaf = root.getByName('com.tngtech.archunit.Leaf');
+    expect(leaf.isCurrentlyLeaf()).to.equal(true);
   });
 });
 
@@ -138,7 +150,7 @@ describe('Inner node or leaf', () => {
     expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
   });
 
-  it('can be dragged', () => {
+  it('can be dragged: changes its coordinates, updates its view and calls the listener', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.package('visual')
@@ -146,6 +158,8 @@ describe('Inner node or leaf', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
     root.relayout();
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
@@ -154,8 +168,11 @@ describe('Inner node or leaf', () => {
     const expCoordinates = {x: dx, y: dy};
 
     nodeToDrag._drag(dx, dy);
-    return root.doNext(() =>
-      expect({x: nodeToDrag.visualData.x, y: nodeToDrag.visualData.y}).to.deep.equal(expCoordinates));
+    return root.doNext(() => {
+      expect({x: nodeToDrag.visualData.x, y: nodeToDrag.visualData.y}).to.deep.equal(expCoordinates);
+      expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
+      expect(listenerStub.onDragWasCalled()).to.equal(true);
+    });
   });
 
   it('can be dragged anywhere if it is a child of the root', () => {
@@ -219,6 +236,31 @@ describe('Node layout', () => {
     });
   });
 
+  it('should update the node-views on relayouting and call the listener', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class').build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .add(testJson.package('visual')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .add(testJson.clazz('SomeClass3', 'class').build())
+        .build())
+      .build();
+    let onRadiusChangedWasCalled = false;
+    const root = new Node(jsonRoot, null, () => onRadiusChangedWasCalled = true);
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayout();
+    return root.doNext(() => {
+      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
+      expect(onRadiusChangedWasCalled).to.equal(true);
+      root.callOnEveryDescendantThenSelf(node => {
+        expect(node._view.hasMovedToPosition).to.equal(true);
+        expect(node._view.hasMovedToRadius).to.equal(true);
+      });
+    });
+  });
+
   it('should not make two siblings overlap', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass1', 'class').build())
@@ -277,18 +319,6 @@ describe('Node', () => {
     expect(root.getCurrentChildren()[0].getClass()).to.contain(' not-foldable');
     expect(root.getCurrentChildren()[0].getClass()).not.to.contain(' foldable');
   });
-
-  //----------------------------------updated until here-------------------------------------
-
-  it("knows if it is currently leaf", () => {
-    const tree = testObjects.testTree1();
-    const node = tree.getNode('com.tngtech.main');
-    expect(node.isCurrentlyLeaf()).to.equal(false);
-    node._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => expect(node.isCurrentlyLeaf()).to.equal(true));
-  });
-
-  // ---------filter tests here ------------
 
   it('can hide interfaces: hides packages with only interfaces, changes CSS-class of classes with only inner ' +
     'interfaces, does not hide interfaces with an inner class', () => {
@@ -670,7 +700,8 @@ describe('Node', () => {
     });
   });
 
-  it('can change the node filter by name (without resetting it before): shows nodes matching the new filter again', () => {
+  it('can change the node filter by name (without resetting it before): shows nodes matching the new filter but not ' +
+    'the old one again', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('XMatchingClass', 'class').build())
       .add(testJson.clazz('YMatchingInterface', 'interface').build())
@@ -791,7 +822,31 @@ describe('Node', () => {
     });
   });
 
-  it('can filter, fold and unfold a node in this order', () => {
+  it('can fold and then filter by name: the not matching folded node with matching children (but which are hidden ' +
+    'through folding) should not be hidden', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('MatchingXClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
+
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold'];
+    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.MatchingXClass'].map(nodeFullName => root.getByName(nodeFullName));
+
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+    root.filterByName('X', false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+    });
+  });
+
+  it('can filter by name, fold and unfold a node in this order: the filter should be still applied after unfolding ' +
+    '(especially on the hidden nodes)', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.package('pkgToFold')
         .add(testJson.clazz('NotMatchingClass', 'class').build())
@@ -816,109 +871,75 @@ describe('Node', () => {
     });
   });
 
-  it('can fold, filter and reset the filter in this order', () => {
+  it('can fold, filter by name and reset the filter in this order: filtering should not influence the fold-state of the ' +
+    'folded node', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFoldX')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFoldX');
 
-  });
-});
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+    root.filterByName('X', true);
+    root.filterByName('', false);
 
-describe("Tree", () => {
-
-  it("can filter, fold, unfold and reset filter in this order", function () {
-    const tree = testObjects.testTree2();
-    tree.root.filterByName("subtest", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => {
-      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-        "com.tngtech.test", "com.tngtech.test.testclass1"];
-      tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-      return tree.root.doNext(() => {
-        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-        tree.root.filterByName("", false);
-        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-          "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-          "com.tngtech.test.subtest.subtestclass1"];
-        return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-      });
+    return root.doNext(() => {
+      expect(pkgToFold.isFolded()).to.equal(true);
+      expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
+      expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
+      expect(pkgToFold.getCurrentChildren()).to.containExactlyNodes([]);
     });
   });
 
-  //FIXME: make test less ugly
-  it("can filter, fold, reset filter and unfold in this order", function () {
-    const tree = testObjects.testTree2();
-    tree.root.filterByName("subtest", true);
-    let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-      "com.tngtech.test", "com.tngtech.test.testclass1"];
-    tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => {
-      expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-      tree.root.filterByName("", false);
-      exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-        "com.tngtech.test.testclass1", "com.tngtech.test.subtest", "com.tngtech.test.subtest.subtestclass1"];
-      return tree.root.doNext(() => {
-        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-          "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-          "com.tngtech.test.subtest.subtestclass1"];
-        tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-        return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-      });
+  it('can filter by name, fold and reset the filter in this order: the fold-state should not be changed by resetting the filter', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('MatchingClassX', 'class').build())
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
+
+    root.filterByName('X', true);
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+    root.filterByName('', false);
+
+    return root.doNext(() => {
+      expect(pkgToFold.isFolded()).to.equal(true);
+      expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
+      expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
+      expect(pkgToFold.getCurrentChildren()).to.containExactlyNodes([]);
     });
   });
 
-  it("can fold, filter, unfold and reset filter in this order", function () {
-    const tree = testObjects.testTree2();
-    //FIXME: at the end filtering should consider the promise in node by itsef
-    tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-    return tree.root.doNext(() => {
-      tree.root.filterByName("subtest", true);
-      let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-        "com.tngtech.test.testclass1"];
-      return tree.root.doNext(() => {
-        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-          "com.tngtech.test", "com.tngtech.test.testclass1"];
-        tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout();
-        return tree.root.doNext(() => {
-          expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-          tree.root.filterByName("", false);
-          exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-            "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-            "com.tngtech.test.subtest.subtestclass1"];
-          return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-        });
-      });
+  it('can fold, filter by name and unfold: then the filter should be applied on the hidden children of the folded ' +
+    'node', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .add(testJson.clazz('MatchingXClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
+
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
+      'com.tngtech.archunit.pkgToFold.MatchingXClass'];
+    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
+
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+    root.filterByName('X', false);
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
   });
-
-  it("can fold, filter, reset the filter and unfold in this order", function () {
-    const tree = testObjects.testTree2();
-    tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout()
-    return tree.root.doNext(() => {
-      tree.root.filterByName("subtest", true);
-      let exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.test",
-        "com.tngtech.test.testclass1"];
-      return tree.root.doNext(() => {
-        expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-        tree.root.filterByName("", false);
-        exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main",
-          "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-          "com.tngtech.test.subtest.subtestclass1"];
-        return tree.root.doNext(() => {
-          expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp);
-          exp = ["com.tngtech", "com.tngtech.class2", "com.tngtech.class3", "com.tngtech.main", "com.tngtech.main.class1",
-            "com.tngtech.test", "com.tngtech.test.testclass1", "com.tngtech.test.subtest",
-            "com.tngtech.test.subtest.subtestclass1"];
-          tree.getNode("com.tngtech.main")._changeFoldIfInnerNodeAndRelayout()
-          return tree.root.doNext(() => expect(tree.root.getSelfAndDescendants()).to.containOnlyNodes(exp));
-        });
-      });
-    });
-  });
-
-  //FIXME: more tests, especially for different cases of node filter input
 });
 
 
@@ -926,6 +947,7 @@ describe("Tree", () => {
 const CIRCLE_TEXT_PADDING = 5;
 
 // FIXME: These tests should really better communicate what they're actually testing, and what the preconditions are
+// FIXME: test this in the test of node-text
 describe("Layout of nodes", () => {
   it("draws text within node circles", () => {
     const graphWrapper = testObjects.testGraph2();
