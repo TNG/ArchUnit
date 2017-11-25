@@ -18,7 +18,6 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,12 +57,16 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     @Override
     public void init(Iterable<Slice> allObjectsToTest) {
         this.allObjectsToTest = allObjectsToTest;
+        initGraph();
     }
 
     @Override
     public void check(Slice slice, ConditionEvents events) {
-        initGraph();
         graph.add(slice, SliceDependencies.of(slice, classesToSlicesMapping, predicate));
+    }
+
+    @Override
+    public void finish(ConditionEvents events) {
         for (Cycle<Slice, Dependency> cycle : graph.getCycles()) {
             eventRecorder.record(cycle, events);
         }
@@ -151,14 +154,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             }
         };
 
-        private final Set<Cycle<Slice, Dependency>> alreadyRecorded = new HashSet<>();
-
         void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
-            if (alreadyRecorded.contains(cycle)) {
-                return;
-            }
             events.add(newEvent(cycle));
-            alreadyRecorded.add(cycle);
         }
 
         private ConditionEvent newEvent(Cycle<Slice, Dependency> cycle) {

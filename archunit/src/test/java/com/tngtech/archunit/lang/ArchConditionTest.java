@@ -24,11 +24,21 @@ import static java.util.Collections.singleton;
 public class ArchConditionTest {
     @Test
     public void as_inits_delegate() {
-        ConditionWithInit original = someCondition("any");
+        ConditionWithInitAndFinish original = someCondition("any");
 
         original.as("changed").init(singleton("init"));
 
         assertThat(original.allObjectsToTest).containsExactly("init");
+    }
+
+    @Test
+    public void as_finishes_delegate() {
+        ConditionWithInitAndFinish original = someCondition("any");
+
+        ConditionEvents events = new ConditionEvents();
+        original.as("changed").finish(events);
+
+        assertThat(original.eventsFromFinish).isEqualTo(events);
     }
 
     @Test
@@ -137,9 +147,9 @@ public class ArchConditionTest {
 
     @Test
     @UseDataProvider("conditionCombinations")
-    public void and_inits_all_conditions(ConditionCombination combination) {
-        ConditionWithInit one = someCondition("one");
-        ConditionWithInit two = someCondition("two");
+    public void join_inits_all_conditions(ConditionCombination combination) {
+        ConditionWithInitAndFinish one = someCondition("one");
+        ConditionWithInitAndFinish two = someCondition("two");
 
         combination.combine(one, two).init(singleton("init"));
 
@@ -149,9 +159,22 @@ public class ArchConditionTest {
 
     @Test
     @UseDataProvider("conditionCombinations")
+    public void join_finishes_all_conditions(ConditionCombination combination) {
+        ConditionWithInitAndFinish one = someCondition("one");
+        ConditionWithInitAndFinish two = someCondition("two");
+
+        ConditionEvents events = new ConditionEvents();
+        combination.combine(one, two).finish(events);
+
+        assertThat(one.eventsFromFinish).isEqualTo(events);
+        assertThat(two.eventsFromFinish).isEqualTo(events);
+    }
+
+    @Test
+    @UseDataProvider("conditionCombinations")
     public void and_joins_descriptions(ConditionCombination combination) {
-        ConditionWithInit one = someCondition("one");
-        ConditionWithInit two = someCondition("two");
+        ConditionWithInitAndFinish one = someCondition("one");
+        ConditionWithInitAndFinish two = someCondition("two");
 
         ArchCondition<String> joined = combination.combine(one, two);
 
@@ -232,8 +255,8 @@ public class ArchConditionTest {
         };
     }
 
-    public static ConditionWithInit someCondition(String description) {
-        return new ConditionWithInit(description);
+    public static ConditionWithInitAndFinish someCondition(String description) {
+        return new ConditionWithInitAndFinish(description);
     }
 
     private ConditionEvent greaterThanEvent(Integer item, int number) {
@@ -242,10 +265,11 @@ public class ArchConditionTest {
                         item, item <= number ? " not" : "", number));
     }
 
-    public static class ConditionWithInit extends ArchCondition<String> {
+    public static class ConditionWithInitAndFinish extends ArchCondition<String> {
         public Iterable<String> allObjectsToTest;
+        ConditionEvents eventsFromFinish;
 
-        ConditionWithInit(String description) {
+        ConditionWithInitAndFinish(String description) {
             super(description);
         }
 
@@ -256,6 +280,11 @@ public class ArchConditionTest {
 
         @Override
         public void check(String item, ConditionEvents events) {
+        }
+
+        @Override
+        public void finish(ConditionEvents events) {
+            this.eventsFromFinish = events;
         }
     }
 
