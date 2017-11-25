@@ -203,6 +203,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 for (T object : allObjects) {
                     condition.check(object, events);
                 }
+                condition.finish(events);
                 return new EvaluationResult(this, events, priority);
             }
 

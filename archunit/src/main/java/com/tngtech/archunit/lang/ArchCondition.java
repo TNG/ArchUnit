@@ -50,6 +50,15 @@ public abstract class ArchCondition<T> {
 
     public abstract void check(T item, ConditionEvents events);
 
+    /**
+     * Can be used/overridden to finish the evaluation of this condition.<br>
+     * ArchUnit will call this method once after every single item was checked (by {@link #check(Object, ConditionEvents)}.<br>
+     * This method can be used, if violations are dependent on multiple/all {@link #check(Object, ConditionEvents)} calls,
+     * on the contrary to the default case, where each single {@link #check(Object, ConditionEvents)} stands for itself.
+     */
+    public void finish(ConditionEvents events) {
+    }
+
     public ArchCondition<T> and(ArchCondition<? super T> condition) {
         return new AndCondition<>(this, condition.<T>forSubType());
     }
@@ -72,6 +81,11 @@ public abstract class ArchCondition<T> {
             @Override
             public void check(T item, ConditionEvents events) {
                 ArchCondition.this.check(item, events);
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                ArchCondition.this.finish(events);
             }
         };
     }
@@ -106,6 +120,13 @@ public abstract class ArchCondition<T> {
         public void init(Iterable<T> allObjectsToTest) {
             for (ArchCondition<T> condition : conditions) {
                 condition.init(allObjectsToTest);
+            }
+        }
+
+        @Override
+        public void finish(ConditionEvents events) {
+            for (ArchCondition<T> condition : conditions) {
+                condition.finish(events);
             }
         }
 
