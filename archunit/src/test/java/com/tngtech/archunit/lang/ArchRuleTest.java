@@ -124,6 +124,15 @@ public class ArchRuleTest {
     }
 
     @Test
+    public void reports_number_of_violations_separately_for_only_cases() {
+        EvaluationResult result = ArchRuleDefinition.noClasses()
+                .should().accessClassesThat().haveSimpleName("String")
+                .evaluate(importClasses(ClassAccessingStringTwoTimes.class));
+
+        assertThat(result.getFailureReport().toString()).contains("(2 times)");
+    }
+
+    @Test
     public void rule_evaluation_inits_and_finishes_condition() {
         ConditionWithInitAndFinish condition = new ConditionWithInitAndFinish("irrelevant") {
             @Override
@@ -232,4 +241,11 @@ public class ArchRuleTest {
                     events.add(new SimpleConditionEvent(item, false, "I'm violated"));
                 }
             };
+
+    private static class ClassAccessingStringTwoTimes {
+        void execute() {
+            "foo".length();
+            "bar".replaceAll("a", "b");
+        }
+    }
 }
