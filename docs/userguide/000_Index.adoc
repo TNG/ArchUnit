@@ -6,7 +6,7 @@ ifndef::env-site[:toc: left]
 :page-layout: splash
 :page-description: {description}
 :page-keywords: {keywords}
-:version:
+:version: 0.5.0-SNAPSHOT
 :icons: font
 :source-highlighter: coderay
 :prewrap!:
@@ -16,10 +16,10 @@ ifndef::env-site[:toc: left]
 :revnumber: {version}
 :page-customheader: ArchUnit User Guide
 
-include::userguide/001_Intro.adoc[]
+include::001_Intro.adoc[]
 
-include::userguide/002_Installation.adoc[]
+include::002_Installation.adoc[]
 
-include::userguide/003_Getting_Started.adoc[]
+include::003_Getting_Started.adoc[]
 
-include::userguide/004_Ideas_and_Concepts.adoc[]
+include::004_Ideas_and_Concepts.adoc[]
