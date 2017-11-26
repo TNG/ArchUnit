@@ -19,7 +19,7 @@ If you want to dive right into the first ArchUnit test using JUnit, follow these
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <scope>test</scope>
 </dependency>
 ```

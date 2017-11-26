@@ -1,0 +1,8 @@
+---
+layout: splash
+title:  "Second release of ArchUnit (v0.5.0)"
+date:   2017-11-26 21:45:00
+categories: news release
+---
+
+A new release of ArchUnit (v0.5.0) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v0.5.0 "ArchUnit v0.5.0 on GitHub").
