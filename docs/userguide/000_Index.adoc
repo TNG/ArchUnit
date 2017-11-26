@@ -14,8 +14,7 @@ ifndef::env-site[:toc: left]
 :sectnums:
 :author: Peter Gafert
 :revnumber: {version}
-
-= ArchUnit User Guide
+:page-customheader: ArchUnit User Guide
 
 include::userguide/001_Intro.adoc[]
 
