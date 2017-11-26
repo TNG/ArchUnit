@@ -37,22 +37,31 @@ public class DontIncludeTestsTest {
     @DataProvider
     public static Object[][] folders() {
         return $$(
+                // Gradle
                 $(new String[]{"build", "classes", "test"}, false),
                 $(new String[]{"build", "classes", "java", "test"}, false),
                 $(new String[]{"build", "classes", "otherlang", "test"}, false),
-                $(new String[]{"target", "classes", "test"}, true),
-                $(new String[]{"target", "test-classes"}, false),
                 $(new String[]{"build", "test-classes"}, true),
                 $(new String[]{"build", "classes", "main"}, true),
                 $(new String[]{"build", "classes", "java", "main"}, true),
                 $(new String[]{"build", "classes", "java", "main", "my", "test"}, true),
-                $(new String[]{"target", "classes"}, true)
+
+                // Maven
+                $(new String[]{"target", "classes", "test"}, true),
+                $(new String[]{"target", "test-classes"}, false),
+                $(new String[]{"target", "classes"}, true),
+
+                // IntelliJ
+                $(new String[]{"out", "production", "classes"}, true),
+                $(new String[]{"out", "test", "classes"}, false),
+                $(new String[]{"out", "test", "classes", "my", "test"}, false),
+                $(new String[]{"out", "some", "classes"}, true)
         );
     }
 
     @Test
     @UseDataProvider("folders")
-    public void detects_both_Gradle_and_Maven_style(String[] folderName, boolean expectedInclude) throws IOException {
+    public void detects_all_output_folder_structures(String[] folderName, boolean expectedInclude) throws IOException {
         File folder = temporaryFolder.newFolder(folderName);
         File targetFile = new File(folder, getClass().getSimpleName() + ".class");
         Files.copy(locationOf(getClass()).asURI().toURL().openStream(), targetFile.toPath());
