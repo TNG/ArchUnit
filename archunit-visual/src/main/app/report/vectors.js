@@ -34,6 +34,7 @@ const vectors = {
 
   addVectors: (vector1, vector2) => vectors.vectorOf(vector1.x + vector2.x, vector1.y + vector2.y),
 
+  //FIXME: remove as not used
   angleToVector: vector => Math.asin((Math.sign(vector.x) || 1) * vector.y / getLength(vector)),
 };
 

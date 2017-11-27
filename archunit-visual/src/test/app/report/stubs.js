@@ -38,6 +38,17 @@ const NodeViewStub = class {
   }
 };
 
+const DependencyViewStub = class {
+  constructor() {
+    this.isVisible = true;
+
+    this.show = () => this.isVisible = true;
+    this.hide = () => this.isVisible = false;
+    this.jumpToPositionAndShowIfVisible = dependency => this.isVisible = dependency.isVisible();
+    this.moveToPositionAndShowIfVisible = dependency => this.isVisible = dependency.isVisible();
+  }
+};
+
 const createNodeListenerStub = () => {
   let _onDragWasCalled = false;
   let _foldedNode;
@@ -56,5 +67,6 @@ module.exports = {
   visualizationStylesStub: createVisualizationStylesStub,
   calculateTextWidthStub: calculateTextWidthStub,
   NodeViewStub: NodeViewStub,
+  DependencyViewStub: DependencyViewStub,
   NodeListenerStub: createNodeListenerStub
 };
