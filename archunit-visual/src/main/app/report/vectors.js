@@ -6,7 +6,6 @@ const subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x,
 
 const getLength = vector => Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 
-//FIXME: remove unnecessary functions
 const vectors = {
   distance: (vector1, vector2) => getLength(subVectors(vector1, vector2)),
 
@@ -33,9 +32,6 @@ const vectors = {
   getOrthogonalVector: vector => vectors.vectorOf(vector.y, -vector.x),
 
   addVectors: (vector1, vector2) => vectors.vectorOf(vector1.x + vector2.x, vector1.y + vector2.y),
-
-  //FIXME: remove as not used
-  angleToVector: vector => Math.asin((Math.sign(vector.x) || 1) * vector.y / getLength(vector)),
 };
 
 const Vector = class {
