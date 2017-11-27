@@ -298,7 +298,7 @@ const init = (View, nodeMap) => {
         return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription(), svgElement, callForAllViews, getDetailedDependencies);
       }
       else {
-        const description = new GroupedDependencyDescription(dependencies.length === 1);
+        const description = new GroupedDependencyDescription();
         dependencies.forEach(d => description.addDependencyDescription(d.description));
         return getOrCreateUniqueDependency(from, to, description, svgElement, callForAllViews, getDetailedDependencies);
       }

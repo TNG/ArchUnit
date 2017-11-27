@@ -1,11 +1,15 @@
 'use strict';
 
 const expect = require('chai').expect;
+//TODO: remove
 require('./chai/tree-chai-extensions');
+//TODO: remove
 require('./chai/tree-visualizer-chai-extensions');
+
 require('./chai/node-chai-extensions');
 
-const testObjects = require("./test-object-creator.js");
+//TODO: remove
+const testObjects = require('./test-object-creator.js');
 
 const stubs = require('./stubs');
 const appContext = require('./main-files').get('app-context').newInstance({
@@ -15,7 +19,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
 });
 const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Node = appContext.getNode();
-const testJson = require("./test-json-creator");
+const testJson = require('./test-json-creator');
 
 describe('Root', () => {
   it('should have no parent', () => {
