@@ -22,7 +22,7 @@ Maven Central:
 </dependency>
 ----
 
-[source,groovy,options="nowrap"]
+[source,options="nowrap"]
 .build.gradle
 ----
 dependencies {
@@ -46,7 +46,7 @@ context, include the core ArchUnit dependency from Maven Central:
 </dependency>
 ----
 
-[source,groovy,options="nowrap"]
+[source,options="nowrap"]
 .build.gradle
 ----
 dependencies {

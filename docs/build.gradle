@@ -16,7 +16,9 @@ task cleanUserGuide(type: Delete) {
 
 asciidoctor {
     backends 'html'
-    attributes 'source-highlighter': 'coderay'
+    attributes 'source-highlighter': 'highlightjs',
+            'highlightjs-theme': 'mono-blue',
+            'stylesheet': 'archunit.css'
     sourceDir file('userguide')
     outputDir file('userguide')
 }
