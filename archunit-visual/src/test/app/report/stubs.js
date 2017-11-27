@@ -44,8 +44,15 @@ const DependencyViewStub = class {
 
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
-    this.jumpToPositionAndShowIfVisible = dependency => this.isVisible = dependency.isVisible();
-    this.moveToPositionAndShowIfVisible = dependency => this.isVisible = dependency.isVisible();
+
+    this.jumpToPositionAndShowIfVisible = dependency => {
+      this.hasJumpedToPosition = true;
+      this.isVisible = dependency.isVisible();
+    };
+    this.moveToPositionAndShowIfVisible = dependency => {
+      this.hasMovedToPosition = true;
+      this.isVisible = dependency.isVisible();
+    };
   }
 };
 

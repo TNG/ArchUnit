@@ -591,6 +591,52 @@ describe('GroupedDependency', () => {
     expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
     expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
   });
+
+  it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+
+    const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
+    dependency.hide();
+    dependency.jumpToPosition();
+
+    expect(dependency._view.hasJumpedToPosition).to.equal(true);
+    expect(dependency._view.isVisible).to.equal(false);
+  });
+
+  it('updates its view after moving to its position: does not show the view if the dependency is hidden', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+
+    const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
+    dependency.hide();
+    dependency.moveToPosition();
+
+    expect(dependency._view.hasMovedToPosition).to.equal(true);
+    expect(dependency._view.isVisible).to.equal(false);
+  });
+
+  it('shows the view on jumping to position if the dependency is visible', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+
+    const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
+    dependency._isVisible = true;
+    dependency.jumpToPosition();
+
+    expect(dependency._view.isVisible).to.equal(true);
+  });
+
+  it('shows the view on moving to position if the dependency is visible', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+
+    const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
+    dependency._isVisible = true;
+    dependency.moveToPosition();
+
+    expect(dependency._view.isVisible).to.equal(true);
+  });
 });
 
 describe("Dependency", () => {
