@@ -21,6 +21,8 @@ const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Node = appContext.getNode();
 const testJson = require('./test-json-creator');
 
+const MAXIMUM_DELTA = 0.0001;
+
 describe('Root', () => {
   it('should have no parent', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
@@ -196,7 +198,6 @@ describe('Inner node or leaf', () => {
   });
 
   it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
-    const MAXIMUM_DELTA = 0.0001;
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.package('visual')
@@ -219,16 +220,17 @@ describe('Inner node or leaf', () => {
 });
 
 describe('Node layout', () => {
-  it('should put every child node within its parent node considering the padding', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
+  const jsonRoot = testJson.package('com.tngtech.archunit')
+    .add(testJson.clazz('SomeClass1', 'class').build())
+    .add(testJson.clazz('SomeClass2', 'class').build())
+    .add(testJson.package('visual')
       .add(testJson.clazz('SomeClass1', 'class').build())
       .add(testJson.clazz('SomeClass2', 'class').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
-        .add(testJson.clazz('SomeClass3', 'class').build())
-        .build())
-      .build();
+      .add(testJson.clazz('SomeClass3', 'class').build())
+      .build())
+    .build();
+
+  it('should put every child node within its parent node considering the padding', () => {
     const root = new Node(jsonRoot);
     root.relayout();
     return root.doNext(() => {
@@ -241,15 +243,6 @@ describe('Node layout', () => {
   });
 
   it('should update the node-views on relayouting and call the listener', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass1', 'class').build())
-      .add(testJson.clazz('SomeClass2', 'class').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
-        .add(testJson.clazz('SomeClass3', 'class').build())
-        .build())
-      .build();
     let onRadiusChangedWasCalled = false;
     const root = new Node(jsonRoot, null, () => onRadiusChangedWasCalled = true);
     const listenerStub = stubs.NodeListenerStub();
@@ -266,15 +259,6 @@ describe('Node layout', () => {
   });
 
   it('should not make two siblings overlap', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass1', 'class').build())
-      .add(testJson.clazz('SomeClass2', 'class').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
-        .add(testJson.clazz('SomeClass3', 'class').build())
-        .build())
-      .build();
     const root = new Node(jsonRoot);
     root.relayout();
     return root.doNext(() => {
@@ -282,6 +266,30 @@ describe('Node layout', () => {
         if (!node.isRoot()) {
           node.getParent().getOriginalChildren().filter(child => child != node).forEach(sibling =>
             expect(node).to.notOverlapWith(sibling, 2 * circlePadding));
+        }
+      });
+    });
+  });
+
+  it('should put the text at the correct position in the circle: for leaves in the middle, for the other nodes at ' +
+    'the top; furthermore the text must be within the circle (except for the root)', () => {
+    const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
+    const calculateTextWith = stubs.calculateTextWidthStub;
+    const root = new Node(jsonRoot);
+    root.relayout();
+    return root.doNext(() => {
+      root.callOnEveryDescendantThenSelf(node => {
+        if (node.isRoot()) {
+          expect(node._view.textOffset).to.closeTo(-node.getRadius() + nodeFontsize, MAXIMUM_DELTA);
+        }
+        else if (node.isCurrentlyLeaf()) {
+          expect(node._view.textOffset).to.equal(0);
+          expect(calculateTextWith(node.getName())/2).to.be.at.most(node.getRadius());
+        }
+        else {
+          const halfTextWith = calculateTextWith(node.getName())/2;
+          const offset = node._view.textOffset;
+          expect(Math.sqrt(halfTextWith*halfTextWith + offset*offset)).to.be.at.most(node.getRadius());
         }
       });
     });
