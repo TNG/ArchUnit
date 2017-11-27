@@ -586,6 +586,29 @@ describe('GroupedDependency', () => {
     expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
   });
 
+  it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency ' +
+    'and the end node is within the start node', () => {
+    const tree = createTreeWithToClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const startNode = tree.root.getByName(tree.classWithInnerClass);
+    const endNode = tree.root.getByName(tree.innerClass);
+
+    setNodeVisualDataTo(startNode, 50, 50, 40);
+    setNodeVisualDataTo(endNode, -15, -10, 15);
+
+    const dependency = dependencyCreator.getUniqueDependency(tree.classWithInnerClass, tree.innerClass).byGroupingDependencies([]);
+    dependency.visualData.mustShareNodes = true;
+    dependency.jumpToPosition();
+
+    const expStartPoint = {x: 23.093, y: 20.402};
+    const expEndPoint = {x: 29.231, y: 26.154};
+
+    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+  });
+
   it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
