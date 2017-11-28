@@ -27,8 +27,5 @@ Assertion.addMethod('haveDependencyStrings', function() {
 
   const actStrings = actDependencies.map(d => d.toString()).sort();
 
-  const sizeMatches = actStrings.length === expStrings.length;
-  const elementsMatch = !actStrings.map((v, i) => v !== expStrings[i]).includes(true);
-
   new Assertion(actStrings).to.deep.equal(expStrings);
 });

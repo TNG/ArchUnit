@@ -53,7 +53,7 @@ let movedDependencies = [];
 const saveMovedDependenciesTo = arr => movedDependencies = arr;
 
 const DependencyViewStub = class {
-  constructor(parentSvgElement, dependency) {
+  constructor() {
     this.isVisible = true;
     this.hasJumpedToPosition = false;
     this.hasMovedToPosition = false;

@@ -14,20 +14,6 @@ const depsOfTree2WithTestFolded = [
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-const depsOfTree2WithMainFolded = [
-  "com.tngtech.main->com.tngtech.interface1()",
-  "com.tngtech.test.testclass1->com.tngtech.class2(several)",
-  "com.tngtech.test.testclass1->com.tngtech.main()",
-  "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
-  "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
-  "com.tngtech.class2->com.tngtech.main()",
-  "com.tngtech.class2->com.tngtech.interface1(implements)"
-];
-
-const initDependency = require('./main-files').get('dependency').init;
-
 const stubs = require('./stubs');
 
 const testJson = require('./test-json-creator');
