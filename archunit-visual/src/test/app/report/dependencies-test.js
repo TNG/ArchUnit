@@ -127,8 +127,8 @@ describe('Dependencies', () => {
     expect(mapToMustShareNodes(dependencies.getVisible().filter(d => !filter(d)))).to.not.include(true);
   });
 
-  it('should update correctly if the parent-package of the start-node is folded: are transformed correctly, old ' +
-    'dependencies are hidden and all new ones are visible', () => {
+  it('should recreate correctly its visible dependencies after folding a package: old dependencies are hidden, all new ones are visible ' +
+    'but they are not re-instantiated', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('SomeInterface', 'interface').build())
       .add(testJson.package('startPkg')
@@ -144,7 +144,61 @@ describe('Dependencies', () => {
     const root = new Node(jsonRoot);
     const dependencies = new Dependencies(jsonRoot, root);
 
-    const hiddenDependencies = dependencies.getVisible().filter(d => d.from === 'com.tngtech.startPkg.StartClass');
+    const filterForHiddenDependencies = d => d.from === 'com.tngtech.startPkg.StartClass';
+    const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
+    const visibleDependencies = dependencies.getVisible().filter(d => !filterForHiddenDependencies(d));
+
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
+
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+  });
+
+  it('should recreate its visible dependencies correctly after folding a class with an inner class: old dependencies ' +
+    'are hidden, all new ones are visible but they are not re-instantiated', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('StartClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass', 'class')
+          .callingMethod('com.tngtech.TargetClass', 'startMethod()', 'targetMethod')
+          .build())
+        .implementing('com.tngtech.SomeInterface')
+        .callingMethod('com.tngtech.TargetClass', 'startMethod()', 'targetMethod')
+        .build())
+      .add(testJson.clazz('TargetClass', 'class')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const filterForHiddenDependencies = d => d.from === 'com.tngtech.StartClassWithInnerClass$InnerClass';
+    const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
+    const visibleDependencies = dependencies.getVisible().filter(d => !filterForHiddenDependencies(d));
+
+    dependencies.updateOnNodeFolded('com.tngtech.StartClassWithInnerClass', true);
+
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+  });
+
+  it('should update correctly if the parent-package of the start-node is folded', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('startPkg')
+        .add(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.TargetClass', 'startMethod()', 'targetMethod')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.clazz('TargetClass', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
     const exp = [
       'com.tngtech.startPkg->com.tngtech.TargetClass()',
       'com.tngtech.startPkg->com.tngtech.SomeInterface()',
@@ -154,12 +208,9 @@ describe('Dependencies', () => {
     dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
-    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
-    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
   });
 
-  it('should update correctly if the parent-package of the end-node is folded: are transformed correctly, old ' +
-    'dependencies are hidden and all new ones are visible', () => {
+  it('should update correctly if the parent-package of the end-node is folded', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('SomeInterface', 'interface')
         .callingConstructor('com.tngtech.targetPkg.TargetClass', 'startMethod()', '<init>()').build())
@@ -174,7 +225,6 @@ describe('Dependencies', () => {
     const root = new Node(jsonRoot);
     const dependencies = new Dependencies(jsonRoot, root);
 
-    const hiddenDependencies = dependencies.getVisible().filter(d => d.to === 'com.tngtech.targetPkg.TargetClass');
     const exp = [
       'com.tngtech.StartClass->com.tngtech.targetPkg()',
       'com.tngtech.SomeInterface->com.tngtech.targetPkg()',
@@ -184,12 +234,9 @@ describe('Dependencies', () => {
     dependencies.updateOnNodeFolded('com.tngtech.targetPkg', true);
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
-    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
-    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
   });
 
-  it('should update correctly if the parent-package of the end-node and the parent-package of the start-node are folded: ' +
-    'are transformed correctly, old dependencies are hidden and all new ones are visible', () => {
+  it('should update correctly if the parent-package of the end-node and the parent-package of the start-node are folded', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.package('targetPkg')
         .add(testJson.clazz('TargetClass', 'class').build())
@@ -203,7 +250,6 @@ describe('Dependencies', () => {
     const root = new Node(jsonRoot);
     const dependencies = new Dependencies(jsonRoot, root);
 
-    const hiddenDependencies = dependencies.getVisible();
     const exp = [
       'com.tngtech.startPkg->com.tngtech.targetPkg()'
     ];
@@ -212,8 +258,29 @@ describe('Dependencies', () => {
     dependencies.updateOnNodeFolded('com.tngtech.targetPkg', true);
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
-    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
-    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+  });
+
+  it('should update correctly if the parent-class of the start-node is folded', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.package('targetPkg')
+        .add(testJson.clazz('TargetClass', 'class').build())
+        .build())
+      .add(testJson.clazz('StartClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.targetPkg.TargetClass', 'startMethod()', 'targetMethod')
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = [
+      'com.tngtech.StartClassWithInnerClass->com.tngtech.targetPkg.TargetClass(childrenAccess)'
+    ];
+
+    dependencies.updateOnNodeFolded('com.tngtech.StartClassWithInnerClass', true);
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
   it("are created correctly", () => {
