@@ -20,3 +20,15 @@ Assertion.addMethod('containExactlyDependencies', function () {
       , actualStrings
   );
 });
+
+Assertion.addMethod('haveDependencyStrings', function() {
+  const actDependencies = Array.from(this._obj);
+  const expStrings = arguments[0].sort();
+
+  const actStrings = actDependencies.map(d => d.toString()).sort();
+
+  const sizeMatches = actStrings.length === expStrings.length;
+  const elementsMatch = !actStrings.map((v, i) => v !== expStrings[i]).includes(true);
+
+  new Assertion(actStrings).to.deep.equal(expStrings);
+});

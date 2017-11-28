@@ -289,7 +289,7 @@ describe('Node layout', () => {
 });
 
 describe('Node', () => {
-  it('creates the correct tree-structure', () => {
+  it('creates the correct tree-structure from json-input', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.clazz('SomeInterface', 'interface').build())

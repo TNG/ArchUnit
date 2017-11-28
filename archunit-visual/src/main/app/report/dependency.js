@@ -115,6 +115,10 @@ const init = (View, nodeMap) => {
     mergeAccessTypeWithOtherAccessType(accessTypeName) {
       return mergeTypeNames(this.typeName, accessTypeName);
     }
+
+    toString() {
+      return `${this.startCodeUnit} ${this.typeName} ${this.targetElement}`;
+    }
   };
 
   const InheritanceDescription = class extends SingleDependencyDescription {
@@ -233,6 +237,10 @@ const init = (View, nodeMap) => {
     getTypeNames() {
       return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
     }
+
+    toString() {
+      return `${this.from}->${this.to}(${this.description.toString()})`;
+    }
   };
 
   const GroupedDependency = class extends ElementaryDependency {
@@ -274,10 +282,6 @@ const init = (View, nodeMap) => {
 
     getIdentifyingString() {
       return `${this.from}-${this.to}`;
-    }
-
-    toString() {
-      return `${this.from}->${this.to}(${this.description.toString()})`;
     }
   };
 

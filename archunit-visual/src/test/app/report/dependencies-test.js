@@ -1,7 +1,7 @@
 'use strict';
 
 require('./chai/dependencies-chai-extension');
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 
 const testObjects = require("./test-object-creator.js");
 
@@ -26,7 +26,78 @@ const depsOfTree2WithMainFolded = [
   "com.tngtech.class2->com.tngtech.interface1(implements)"
 ];
 
-describe("Dependencies", () => {
+const initDependency = require('./main-files').get('dependency').init;
+
+const stubs = require('./stubs');
+
+const testJson = require('./test-json-creator');
+const appContext = require('./main-files').get('app-context').newInstance({
+  visualizationStyles: stubs.visualizationStylesStub(30),
+  calculateTextWidth: stubs.calculateTextWidthStub,
+  NodeView: stubs.NodeViewStub, //FIXME: really necessary??
+  DependencyView: stubs.DependencyViewStub
+});
+const Node = appContext.getNode();
+const Dependencies = appContext.getDependencies();
+
+/*
+ * json-root with every kind of dependency of both groups (inheritance and access),
+ * several different dependencies from one class to another one,
+ * dependencies between a class and its inner class
+ * and mutual dependencies (between separated classes and a class and its inner class)
+ */
+const jsonRoot = testJson.package('com.tngtech')
+  .add(testJson.package('pkg1')
+    .add(testJson.clazz('SomeClass1', 'class')
+      .callingMethod('com.tngtech.pkg1.SomeClass2', 'startMethod(arg1, arg2)', 'targetMethod()')
+      .accessingField('com.tngtech.pkg1.SomeClass2', 'startMethod(arg1, arg2)', 'targetField')
+      .implementing('com.tngtech.pkg2.SomeInterface1')
+      .build())
+    .add(testJson.clazz('SomeClass2', 'class')
+      .accessingField('com.tngtech.pkg1.SomeClass1', 'startMethod(arg)', 'targetField')
+      .build())
+    .build())
+  .add(testJson.package('pkg2')
+    .add(testJson.clazz('SomeInterface1', 'interface').build())
+    .add(testJson.package('subpkg1')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .extending('com.tngtech.pkg1.SomeClass1')
+        .callingConstructor('com.tngtech.pkg1.SomeClass1', '<init>()', '<init>()')
+        .build())
+      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface')
+          .callingMethod('com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface', 'startMethod(arg)', 'targetMethod(arg1, arg2)')
+          .build())
+        .implementingAnonymous('com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface')
+        .build())
+      .build())
+    .build())
+  .add(testJson.clazz('SomeClassWithInnerClass', 'class')
+    .implementingAnonymous('com.tngtech.pkg2.SomeInterface1')
+    .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
+      .accessingField('com.tngtech.SomeClassWithInnerClass', 'startMethod()', 'targetField')
+      .build())
+    .build())
+  .build();
+const root = new Node(jsonRoot);
+
+describe('Dependencies', () => {
+  it('creates correct elementary dependencies from json-input', () => {
+    const dependencies = new Dependencies(jsonRoot, root);
+    const exp = [
+      'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg1.SomeClass2(startMethod(arg1, arg2) methodCall targetMethod())',
+      'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg1.SomeClass2(startMethod(arg1, arg2) fieldAccess targetField)',
+      'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg2.SomeInterface1(implements)',
+      'com.tngtech.pkg1.SomeClass2->com.tngtech.pkg1.SomeClass1(startMethod(arg) fieldAccess targetField)',
+      'com.tngtech.pkg2.subpkg1.SomeClass1->com.tngtech.pkg1.SomeClass1(extends)',
+      'com.tngtech.pkg2.subpkg1.SomeClass1->com.tngtech.pkg1.SomeClass1(<init>() constructorCall <init>())',
+      'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface(startMethod(arg) methodCall targetMethod(arg1, arg2))',
+      'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface(implementsAnonymous)',
+      'com.tngtech.SomeClassWithInnerClass->com.tngtech.pkg2.SomeInterface1(implementsAnonymous)',
+      'com.tngtech.SomeClassWithInnerClass$SomeInnerClass->com.tngtech.SomeClassWithInnerClass(startMethod() fieldAccess targetField)'
+    ];
+    expect(dependencies._elementary).to.haveDependencyStrings(exp);
+  });
 
   it("are created correctly", () => {
     const graphWrapper = testObjects.testGraph1();
