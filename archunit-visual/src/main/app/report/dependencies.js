@@ -147,7 +147,7 @@ const init = (View) => {
     }
 
     moveAllToTheirPositions() {
-      this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
+      return this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {

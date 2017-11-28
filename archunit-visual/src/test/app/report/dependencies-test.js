@@ -127,8 +127,8 @@ describe('Dependencies', () => {
     expect(mapToMustShareNodes(dependencies.getVisible().filter(d => !filter(d)))).to.not.include(true);
   });
 
-  it('should recreate correctly its visible dependencies after folding a package: old dependencies are hidden, all new ones are visible ' +
-    'but they are not re-instantiated', () => {
+  it('should recreate correctly its visible dependencies after folding a package: old dependencies are hidden, ' +
+    'all new ones are visible but they are not re-instantiated', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('SomeInterface', 'interface').build())
       .add(testJson.package('startPkg')
@@ -283,44 +283,193 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
-  it("transform reverse on unfold of a single package", () => {
-    const graphWrapper = testObjects.testGraph2();
+  it('should recreate correctly its visible dependencies after unfolding a package: old dependencies are hidden, ' +
+    'all new ones are visible but they are not re-instantiated', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('startPkg')
+        .add(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.TargetClass', 'startMethod()', 'targetMethod')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.clazz('TargetClass', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
 
-    const node = graphWrapper.getNode("com.tngtech.main");
-    node._changeFoldIfInnerNodeAndRelayout();
-    node._changeFoldIfInnerNodeAndRelayout();
+    const visibleDependencies1 = dependencies.getVisible().filter(d => d.from === 'com.tngtech.startPkg.StartClass');
 
-    return graphWrapper.graph.root.doNext(() => {
-      expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
+
+    const filterForHiddenDependencies = d => d.from === 'com.tngtech.startPkg';
+    const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
+    const visibleDependencies2 = dependencies.getVisible().filter(d => !filterForHiddenDependencies(d));
+
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', false);
+
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies1);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies2);
+  });
+
+  it('should update correctly if a package is unfolded again', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('startPkg')
+        .add(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.TargetClass', 'startMethod()', 'targetMethod')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.clazz('TargetClass', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = [
+      'com.tngtech.startPkg.StartClass->com.tngtech.TargetClass(methodCall)',
+      'com.tngtech.startPkg.StartClass->com.tngtech.SomeInterface(implements)',
+      'com.tngtech.TargetClass->com.tngtech.SomeInterface(implements)'
+    ];
+
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', false);
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('should update correctly if two packages are unfolded again', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.package('targetPkg')
+        .add(testJson.clazz('TargetClass', 'class').build())
+        .build())
+      .add(testJson.package('startPkg')
+        .add(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.targetPkg.TargetClass', 'startMethod()', 'targetMethod')
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = ['com.tngtech.startPkg.StartClass->com.tngtech.targetPkg.TargetClass(methodCall)'];
+
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
+    dependencies.updateOnNodeFolded('com.tngtech.targetPkg', true);
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', false);
+    dependencies.updateOnNodeFolded('com.tngtech.targetPkg', false);
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('should update correctly if a package is unfolded again, when another package is folded', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.package('targetPkg')
+        .add(testJson.clazz('TargetClass', 'class').build())
+        .build())
+      .add(testJson.package('startPkg')
+        .add(testJson.clazz('StartClass', 'class')
+          .callingMethod('com.tngtech.targetPkg.TargetClass', 'startMethod()', 'targetMethod')
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = ['com.tngtech.startPkg.StartClass->com.tngtech.targetPkg()'];
+
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', true);
+    dependencies.updateOnNodeFolded('com.tngtech.targetPkg', true);
+    dependencies.updateOnNodeFolded('com.tngtech.startPkg', false);
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can jump the dependencies of a specific node to their positions', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClass1', 'class')
+        .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField')
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class')
+        .callingMethod('com.tngtech.SomeClass1', 'startMethod()', 'targetMethod()')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const draggedNode = 'com.tngtech.SomeClass1';
+    const filter = d => d.from === draggedNode || d.to === draggedNode;
+    const jumpedDependencies = dependencies.getVisible().filter(filter);
+    const notJumpedDependences = dependencies.getVisible().filter(d => !filter(d));
+
+    dependencies.jumpSpecificDependenciesToTheirPositions(root.getByName(draggedNode));
+
+    const mapDependenciesToHasJumped = dependencies => dependencies.map(d => d._view.hasJumpedToPosition);
+    expect(mapDependenciesToHasJumped(jumpedDependencies)).to.not.include(false);
+    expect(mapDependenciesToHasJumped(notJumpedDependences)).to.not.include(true);
+  });
+
+  it('can move all dependencies to their positions', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClass1', 'class')
+        .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField')
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class')
+        .callingMethod('com.tngtech.SomeClass1', 'startMethod()', 'targetMethod()')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const promise = dependencies.moveAllToTheirPositions();
+
+    const mapDependenciesToHasMoved = dependencies => dependencies.map(d => d._view.hasMovedToPosition);
+    return promise.then(() => expect(mapDependenciesToHasMoved(dependencies.getVisible())).to.not.include(false));
+  });
+
+  it('can move all dependencies to their positions twice in a row: the second move does not start before the first is ended', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClass1', 'class')
+        .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField')
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class')
+        .callingMethod('com.tngtech.SomeClass1', 'startMethod()', 'targetMethod()')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+    const exp = [
+      'com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
+      'com.tngtech.SomeClass2->com.tngtech.SomeClass1(methodCall)',
+      'com.tngtech.SomeClass2->com.tngtech.SomeInterface(implements)',
+    ];
+    const movedDependenciesFirstTime = [];
+    const movedDependenciesSecondTime = [];
+    stubs.setMovedDependencies(movedDependenciesFirstTime);
+
+    dependencies.moveAllToTheirPositions().then(() => stubs.setMovedDependencies(movedDependenciesSecondTime));
+    const promise = dependencies.moveAllToTheirPositions();
+
+    return promise.then(() => {
+      /**
+       * when the both invokes of moveAllToTheirPositions above are not executed after each other,
+       * then the dependencies are not added to the different array
+       */
+      expect(movedDependenciesFirstTime).to.haveDependencyStrings(exp);
+      expect(movedDependenciesSecondTime).to.haveDependencyStrings(exp);
     });
-  });
-
-  it("transform reverse on unfold of several packages", () => {
-    const graphWrapper = testObjects.testGraph2();
-
-    const node1 = graphWrapper.getNode("com.tngtech.test");
-    node1._changeFoldIfInnerNodeAndRelayout();
-    const node2 = graphWrapper.getNode("com.tngtech.main");
-    node2._changeFoldIfInnerNodeAndRelayout();
-    const node3 = graphWrapper.getNode("com.tngtech.test");
-    node3._changeFoldIfInnerNodeAndRelayout();
-    const node4 = graphWrapper.getNode("com.tngtech.main");
-    node4._changeFoldIfInnerNodeAndRelayout();
-
-    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-  });
-
-  it("transform reverse on unfold of a single package, when another package is folded", () => {
-    const graphWrapper = testObjects.testGraph2();
-
-    const node1 = graphWrapper.getNode("com.tngtech.test");
-    node1._changeFoldIfInnerNodeAndRelayout();
-    const node2 = graphWrapper.getNode("com.tngtech.main");
-    node2._changeFoldIfInnerNodeAndRelayout();
-    const node3 = graphWrapper.getNode("com.tngtech.test");
-    node3._changeFoldIfInnerNodeAndRelayout();
-
-    return graphWrapper.graph.root.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(depsOfTree2WithMainFolded));
   });
 
   it("are uniqued and grouped correctly with complicated dependency structure", () => {

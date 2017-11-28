@@ -17,6 +17,8 @@ const NodeViewStub = class {
   constructor() {
     this.cssClass = '';
     this.isVisible = true;
+    this.hasMovedToPosition = false;
+    this.hasMovedToRadius = false;
 
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
@@ -39,9 +41,15 @@ const NodeViewStub = class {
   }
 };
 
+//all dependencies are added to this list when they are moved to their position to be able to track the process
+let movedDependencies = [];
+const setMovedDependencies = arr => movedDependencies = arr;
+
 const DependencyViewStub = class {
-  constructor() {
+  constructor(parentSvgElement, dependency) {
     this.isVisible = true;
+    this.hasJumpedToPosition = false;
+    this.hasMovedToPosition = false;
 
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
@@ -53,6 +61,10 @@ const DependencyViewStub = class {
     this.moveToPositionAndShowIfVisible = dependency => {
       this.hasMovedToPosition = true;
       this.isVisible = dependency.isVisible();
+      return new Promise(resolve => {
+        movedDependencies.push(dependency);
+        setTimeout(resolve, 10);
+      });
     };
   }
 };
@@ -76,5 +88,6 @@ module.exports = {
   calculateTextWidthStub: calculateTextWidthStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
-  NodeListenerStub: createNodeListenerStub
+  NodeListenerStub: createNodeListenerStub,
+  setMovedDependencies: setMovedDependencies
 };

@@ -58,6 +58,9 @@ const createTreeWithToClassesAndOneInnerClass = () => {
   };
 };
 
+//FIXME: better use mock for the tree (only the getByName-Methode has to be mocked, and the nodes only need the methods
+//isPackage() and getAbsoluteCoords
+
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {
     const tree = createTreeWithToClasses();
@@ -627,10 +630,10 @@ describe('GroupedDependency', () => {
 
     const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
     dependency.hide();
-    dependency.moveToPosition();
+    const promise = dependency.moveToPosition();
 
     expect(dependency._view.hasMovedToPosition).to.equal(true);
-    expect(dependency._view.isVisible).to.equal(false);
+    return promise.then(() => expect(dependency._view.isVisible).to.equal(false));
   });
 
   it('shows the view on jumping to position if the dependency is visible', () => {
@@ -650,8 +653,8 @@ describe('GroupedDependency', () => {
 
     const dependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
     dependency._isVisible = true;
-    dependency.moveToPosition();
+    const promise = dependency.moveToPosition();
 
-    expect(dependency._view.isVisible).to.equal(true);
+    return promise.then(() => expect(dependency._view.isVisible).to.equal(true));
   });
 });
