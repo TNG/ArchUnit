@@ -13,8 +13,12 @@ const createVisualizationStylesStub = (circlePadding = 1, nodeFontSize = 10) => 
 
 const calculateTextWidthStub = text => text.length * 7;
 
+//all nodes are added to this list when they are moved to their position to be able to track the process
+let movedNodes = [];
+const saveMovedNodesTo = arr => movedNodes = arr;
+
 const NodeViewStub = class {
-  constructor() {
+  constructor(parentSvgElement, node) {
     this.cssClass = '';
     this.isVisible = true;
     this.hasMovedToPosition = false;
@@ -30,7 +34,10 @@ const NodeViewStub = class {
     this.moveToRadius = (r, textOffset) => {
       this.hasMovedToRadius = true;
       this.textOffset = textOffset;
-      return Promise.resolve();
+      return new Promise(resolve => {
+        movedNodes.push(node.getFullName());
+        setTimeout(resolve, 10);
+      });
     };
     this.updateNodeType = cssClass => this.cssClass = cssClass;
     this.showIfVisible = node => {
@@ -43,7 +50,7 @@ const NodeViewStub = class {
 
 //all dependencies are added to this list when they are moved to their position to be able to track the process
 let movedDependencies = [];
-const setMovedDependencies = arr => movedDependencies = arr;
+const saveMovedDependenciesTo = arr => movedDependencies = arr;
 
 const DependencyViewStub = class {
   constructor(parentSvgElement, dependency) {
@@ -89,5 +96,6 @@ module.exports = {
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
   NodeListenerStub: createNodeListenerStub,
-  setMovedDependencies: setMovedDependencies
+  saveMovedDependenciesTo: saveMovedDependenciesTo,
+  saveMovedNodesTo: saveMovedNodesTo
 };

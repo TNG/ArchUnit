@@ -457,9 +457,9 @@ describe('Dependencies', () => {
     ];
     const movedDependenciesFirstTime = [];
     const movedDependenciesSecondTime = [];
-    stubs.setMovedDependencies(movedDependenciesFirstTime);
+    stubs.saveMovedDependenciesTo(movedDependenciesFirstTime);
 
-    dependencies.moveAllToTheirPositions().then(() => stubs.setMovedDependencies(movedDependenciesSecondTime));
+    dependencies.moveAllToTheirPositions().then(() => stubs.saveMovedDependenciesTo(movedDependenciesSecondTime));
     const promise = dependencies.moveAllToTheirPositions();
 
     return promise.then(() => {

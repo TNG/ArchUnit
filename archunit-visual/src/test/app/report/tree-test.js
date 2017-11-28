@@ -234,6 +234,19 @@ describe('Node layout', () => {
     });
   });
 
+  it('can relayout the nodes twice in a row: the second relayout does not start before the first is ended', () => {
+    const root = new Node(jsonRoot);
+    const movedNodesFirstTime = [];
+    const movedNodesSecondTime = [];
+    stubs.saveMovedNodesTo(movedNodesFirstTime);
+    root.relayout().then(() => stubs.saveMovedNodesTo(movedNodesSecondTime));
+    const promise = root.relayout();
+    return promise.then(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesFirstTime);
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesSecondTime);
+    });
+  });
+
   it('should update the node-views on relayouting and call the listener', () => {
     let onRadiusChangedWasCalled = false;
     const root = new Node(jsonRoot, null, () => onRadiusChangedWasCalled = true);
@@ -276,12 +289,12 @@ describe('Node layout', () => {
         }
         else if (node.isCurrentlyLeaf()) {
           expect(node._view.textOffset).to.equal(0);
-          expect(calculateTextWith(node.getName())/2).to.be.at.most(node.getRadius());
+          expect(calculateTextWith(node.getName()) / 2).to.be.at.most(node.getRadius());
         }
         else {
-          const halfTextWith = calculateTextWith(node.getName())/2;
+          const halfTextWith = calculateTextWith(node.getName()) / 2;
           const offset = node._view.textOffset;
-          expect(Math.sqrt(halfTextWith*halfTextWith + offset*offset)).to.be.at.most(node.getRadius());
+          expect(Math.sqrt(halfTextWith * halfTextWith + offset * offset)).to.be.at.most(node.getRadius());
         }
       });
     });
