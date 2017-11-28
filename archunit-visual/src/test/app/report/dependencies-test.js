@@ -474,23 +474,67 @@ describe('Dependencies', () => {
     });
   });
 
-  it("does the filtering of classes (no dependencies of eliminated nodes) and resets them correctly", () => {
-    const graphWrapper = testObjects.testGraph2();
+  it('sets and applies the node filter correctly', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('MatchingClass1', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .callingConstructor('com.tngtech.MatchingClass2', 'startMethod()', '<init>()')
+        .build())
+      .add(testJson.clazz('MatchingClass2', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('SomeInterface', 'interface')
+        .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
 
-    graphWrapper.graph.filterNodesByNameNotContaining("subtest");
     const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
-      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)",
-      "com.tngtech.class2->com.tngtech.interface1(implements)"
+      'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
+      'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)'
     ];
-    return graphWrapper.graph.dependencies.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp))
-      .then(() => {
-        graphWrapper.graph.filterNodesByNameContaining("");
-        return graphWrapper.graph.dependencies.doNext(() => expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies));
-      });
+    root.filterByName('Matching', false);
+    dependencies.setNodeFilters(root.getFilters());
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('resets the node filter correctly', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('MatchingClass1', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .callingConstructor('com.tngtech.MatchingClass2', 'startMethod()', '<init>()')
+        .build())
+      .add(testJson.clazz('MatchingClass2', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('SomeInterface', 'interface')
+        .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = [
+      'com.tngtech.SomeClass1->com.tngtech.MatchingClass1(methodCall)',
+      'com.tngtech.MatchingClass1->com.tngtech.SomeInterface(implements)',
+      'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
+      'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)',
+      'com.tngtech.SomeInterface->com.tngtech.SomeClass1(fieldAccess)'
+    ];
+    root.filterByName('Matching', false);
+    dependencies.setNodeFilters(root.getFilters());
+    root.filterByName('', false);
+    dependencies.setNodeFilters(root.getFilters());
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
   it("does the following correctly (in this order): fold, filter, reset filter and unfold", () => {
