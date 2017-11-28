@@ -99,6 +99,34 @@ describe('Dependencies', () => {
     expect(dependencies._elementary).to.haveDependencyStrings(exp);
   });
 
+  it('creates correct visible dependencies from the elementary dependencies: they should be visible', () => {
+    const dependencies = new Dependencies(jsonRoot, root);
+    const exp = [
+      'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg1.SomeClass2(several)',
+      'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg2.SomeInterface1(implements)',
+      'com.tngtech.pkg1.SomeClass2->com.tngtech.pkg1.SomeClass1(fieldAccess)',
+      'com.tngtech.pkg2.subpkg1.SomeClass1->com.tngtech.pkg1.SomeClass1(extends constructorCall)',
+      'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface(methodCall)',
+      'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface(implementsAnonymous)',
+      'com.tngtech.SomeClassWithInnerClass->com.tngtech.pkg2.SomeInterface1(implementsAnonymous)',
+      'com.tngtech.SomeClassWithInnerClass$SomeInnerClass->com.tngtech.SomeClassWithInnerClass(fieldAccess)'
+    ];
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    expect(dependencies.getVisible().map(dependency => dependency.isVisible())).to.not.include(false);
+  });
+
+  it('know if they must share on of the end nodes', () => {
+    const dependencies = new Dependencies(jsonRoot, root);
+    const hasEndNodes = (node1, node2) => d => (d.from === node1 || d.to === node1) && (d.from === node2 || d.to === node2);
+    const filter = d => hasEndNodes('com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface',
+      'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface')(d)
+      || hasEndNodes('com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.SomeClass2')(d);
+    const dependenciesSharingNodes = dependencies.getVisible().filter(filter);
+    const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
+    expect(mapToMustShareNodes(dependenciesSharingNodes)).to.not.include(false);
+    expect(mapToMustShareNodes(dependencies.getVisible().filter(d => !filter(d)))).to.not.include(true);
+  });
+
   it("are created correctly", () => {
     const graphWrapper = testObjects.testGraph1();
     expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
