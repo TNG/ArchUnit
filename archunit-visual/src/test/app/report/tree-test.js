@@ -1,15 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-//TODO: remove
-require('./chai/tree-chai-extensions');
-//TODO: remove
-require('./chai/tree-visualizer-chai-extensions');
-
 require('./chai/node-chai-extensions');
-
-//TODO: remove
-const testObjects = require('./test-object-creator.js');
 
 const stubs = require('./stubs');
 const appContext = require('./main-files').get('app-context').newInstance({
@@ -271,8 +263,8 @@ describe('Node layout', () => {
     });
   });
 
-  it('should put the text at the correct position in the circle: for leaves in the middle, for the other nodes at ' +
-    'the top; furthermore the text must be within the circle (except for the root)', () => {
+  it('should put the text at the correct position in the circle: for leaves in the middle, for inner nodes at the top ' +
+    'and for the root at the very top; furthermore the text must be within the circle (except for the root)', () => {
     const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
     const calculateTextWith = stubs.calculateTextWidthStub;
     const root = new Node(jsonRoot);
@@ -951,22 +943,5 @@ describe('Node', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
-  });
-});
-
-
-// FIXME: Define these constants, that need to match production code, but can't be accessed from tests, in a central spot
-const CIRCLE_TEXT_PADDING = 5;
-
-// FIXME: These tests should really better communicate what they're actually testing, and what the preconditions are
-// FIXME: test this in the test of node-text
-describe("Layout of nodes", () => {
-  it("draws text within node circles", () => {
-    const graphWrapper = testObjects.testGraph2();
-    const checkText = node => {
-      expect(node).to.haveTextWithinCircle(stubs.calculateTextWidthStub, CIRCLE_TEXT_PADDING, 0);
-      node.getOriginalChildren().forEach(c => checkText(c));
-    };
-    return graphWrapper.graph.root.doNext(() => checkText(graphWrapper.graph.root));
   });
 });
