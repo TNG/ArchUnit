@@ -75,7 +75,8 @@ const jsonRoot = testJson.package('com.tngtech')
   .add(testJson.clazz('SomeClassWithInnerClass', 'class')
     .implementingAnonymous('com.tngtech.pkg2.SomeInterface1')
     .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
-      .accessingField('com.tngtech.SomeClassWithInnerClass', 'startMethod()', 'targetField')
+      .accessingField('com.tngtech.SomeClassWithInnerClass', 'startMethod1()', 'targetField')
+      .accessingField('com.tngtech.SomeClassWithInnerClass', 'startMethod2()', 'targetField')
       .build())
     .build())
   .build();
@@ -94,7 +95,8 @@ describe('Dependencies', () => {
       'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface(startMethod(arg) methodCall targetMethod(arg1, arg2))',
       'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface->com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface(implementsAnonymous)',
       'com.tngtech.SomeClassWithInnerClass->com.tngtech.pkg2.SomeInterface1(implementsAnonymous)',
-      'com.tngtech.SomeClassWithInnerClass$SomeInnerClass->com.tngtech.SomeClassWithInnerClass(startMethod() fieldAccess targetField)'
+      'com.tngtech.SomeClassWithInnerClass$SomeInnerClass->com.tngtech.SomeClassWithInnerClass(startMethod1() fieldAccess targetField)',
+      'com.tngtech.SomeClassWithInnerClass$SomeInnerClass->com.tngtech.SomeClassWithInnerClass(startMethod2() fieldAccess targetField)'
     ];
     expect(dependencies._elementary).to.haveDependencyStrings(exp);
   });
@@ -469,46 +471,6 @@ describe('Dependencies', () => {
        */
       expect(movedDependenciesFirstTime).to.haveDependencyStrings(exp);
       expect(movedDependenciesSecondTime).to.haveDependencyStrings(exp);
-    });
-  });
-
-  it("are uniqued and grouped correctly with complicated dependency structure", () => {
-    const graphWrapper = testObjects.testGraph3();
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
-
-    const node1 = graphWrapper.getNode("com.tngtech.test");
-    node1._changeFoldIfInnerNodeAndRelayout();
-    let exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
-      "com.tngtech.main.class3->com.tngtech.interface1(implements methodCall)",
-      "com.tngtech.test->com.tngtech.class2()",
-      "com.tngtech.test->com.tngtech.main.class1()",
-      "com.tngtech.test->com.tngtech.interface1()",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)",
-      "com.tngtech.class2->com.tngtech.interface1(implements)"
-    ];
-    return graphWrapper.graph.root.doNext(() => {
-      expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-
-      const node2 = graphWrapper.getNode("com.tngtech.test");
-      node2._changeFoldIfInnerNodeAndRelayout();
-      const node3 = graphWrapper.getNode("com.tngtech.main");
-      node3._changeFoldIfInnerNodeAndRelayout();
-
-      return graphWrapper.graph.root.doNext(() => {
-        exp = [
-          "com.tngtech.main->com.tngtech.interface1()",
-          "com.tngtech.test.testclass1->com.tngtech.class2(extends several)",
-          "com.tngtech.test.testclass1->com.tngtech.main()",
-          "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
-          "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-          "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
-          "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
-          "com.tngtech.class2->com.tngtech.main()",
-          "com.tngtech.class2->com.tngtech.interface1(implements)"
-        ];
-        expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-      });
     });
   });
 
