@@ -140,6 +140,7 @@ describe('Dependencies', () => {
 
     expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
     expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
     expect(dependencies.getVisible()).to.include.members(visibleDependencies);
   });
 
@@ -168,7 +169,49 @@ describe('Dependencies', () => {
 
     expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
     expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
     expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+  });
+
+  it('should update after folding if they must share one of the end nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('ClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass', 'class')
+          .callingConstructor('com.tngtech.SomeClass', '<init>()', '<init>()')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
+
+    const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
+    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(false);
+  });
+
+  it('should update after unfolding if they must share one of the end nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('ClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass', 'class')
+          .callingConstructor('com.tngtech.SomeClass', '<init>()', '<init>()')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
+    dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', false);
+
+    const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
+    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(true);
   });
 
   it('should update correctly if the parent-package of the start-node is folded', () => {
@@ -518,6 +561,141 @@ describe('Dependencies', () => {
     root.filterByName('Matching', false);
     dependencies.setNodeFilters(root.getFilters());
     root.filterByName('', false);
+    dependencies.setNodeFilters(root.getFilters());
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('updates on filtering whether they must share one of the end nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('ClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass', 'class')
+          .callingConstructor('com.tngtech.SomeClass', '<init>()', '<init>()')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    //fold the class with the inner class, so that the two dependencies must share their nodes
+    dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
+
+    root.filterByName('InnerClass', true);
+    dependencies.setNodeFilters(root.getFilters());
+
+    const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
+    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(true);
+  });
+
+  it('updates on filtering whether they must share one of the end nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('ClassWithInnerClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass', 'class')
+          .callingConstructor('com.tngtech.SomeClass', '<init>()', '<init>()')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    //fold the class with the inner class, so that the two dependencies must share their nodes
+    dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
+
+    root.filterByName('InnerClass', true);
+    dependencies.setNodeFilters(root.getFilters());
+    root.filterByName('', false);
+    dependencies.setNodeFilters(root.getFilters());
+
+    const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
+    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(false);
+  });
+
+  //---------------------------------------------------------------------------------
+  it('should recreate correctly its visible dependencies after setting the node filter: old dependencies are hidden, ' +
+    'all new ones are visible but they are not re-instantiated', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('MatchingClass1', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .callingConstructor('com.tngtech.MatchingClass2', 'startMethod()', '<init>()')
+        .build())
+      .add(testJson.clazz('MatchingClass2', 'class')
+        .callingMethod('com.tngtech.MatchingClass1', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('SomeInterface', 'interface')
+        .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
+    const hiddenDependencies = dependencies.getVisible().filter(d => !filterForVisibleDependencies(d));
+    const visibleDependencies = dependencies.getVisible().filter(filterForVisibleDependencies);
+
+    root.filterByName('Matching', false);
+    dependencies.setNodeFilters(root.getFilters());
+
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+  });
+
+  it('can set and apply the node filter correctly after a node was folded: dependency of the folded package is removed ' +
+    'when the original end node of the dependency (which is hidden because of folding) is hidden through the filter', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('MatchingClassX', 'class')
+          .callingMethod('com.tngtech.SomeInterface', 'startMethod()', 'targetMethod')
+          .build())
+        .add(testJson.clazz('NotMatchingClass', 'class')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .callingMethod('com.tngtech.pkgToFold.MatchingClassX', 'startMethod()', 'targetMethod()')
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
+
+    dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
+    root.filterByName('X', true);
+    dependencies.setNodeFilters(root.getFilters());
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can set and apply the node filter correctly after a node was folded: dependency of the folded class is changed ' +
+    'when the dependency of its inner class (which is hidden through the filter) was merged with its own dependency', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClassWithInnerClass', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .havingInnerClass(testJson.clazz('MatchingClassX', 'class')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
+
+    dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
+    root.filterByName('X', true);
     dependencies.setNodeFilters(root.getFilters());
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
