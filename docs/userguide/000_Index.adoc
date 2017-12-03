@@ -23,3 +23,11 @@ include::002_Installation.adoc[]
 include::003_Getting_Started.adoc[]
 
 include::004_Ideas_and_Concepts.adoc[]
+
+include::005_The_Core_API.adoc[]
+
+include::006_The_Lang_API.adoc[]
+
+include::007_The_Library_API.adoc[]
+
+include::008_JUnit_Support.adoc[]
