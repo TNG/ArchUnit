@@ -289,6 +289,9 @@ public class MyArchTestThatUsesMyRules {
 If this test is run, it will evaluate all rules (fields and methods) defined in `MyArchRules` against the imported
 classes.
 
+ArchUnit can also be used together with the JUnit 4 Categories feature to run only specific tests. Note that for the 
+example above, `MyArchRules` has to be annoted with `@Category` and not `MyArchTestThatUsesMyRules`.
+
 ## Ignoring certain violations
 
 In legacy projects where architecture tests are introduced, there might be too many violations to fix at the current
