@@ -437,19 +437,90 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_ideas_and_concepts">Ideas and Concepts</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>ArchUnit is divided into different layers, where the most important ones are the "Core" layer,
+the "Lang" layer and the "Library" layer. In short the Core layer deals with the basic
+infrastructure, i.e. how to import byte code into Java objects. The Lang layer contains the
+rule syntax to specify architecture rules in a succinct way. The Library layer contains
+more complex predefined rules, like a layered architecture with several layers. The following
+section will explain these layers in more detail.</p>
+</div>
+<div class="sect2">
+<h3 id="_core">Core</h3>
+<div class="paragraph">
 <p>Much of ArchUnit&#8217;s core API resembles the Java Reflection API. There are classes
 like <code>JavaMethod</code>, <code>JavaField</code>, and more, and the public API consists of methods like
-<code>getName()</code>, <code>getMethods()</code>, <code>getType()</code> or <code>getParameters()</code>.</p>
+<code>getName()</code>, <code>getMethods()</code>, <code>getType()</code> or <code>getParameters()</code>. Additionally ArchUnit extends
+this API for concepts needed to talk about dependencies between code, like <code>JavaMethodCall</code>,
+<code>JavaConstructorCall</code> or <code>JavaFieldAccess</code>. For example, it is possible to programmatically
+iterate over <code>javaClass.getAccessesFromSelf()</code> and react to the imported accesses between this
+Java class and other Java classes.</p>
 </div>
 <div class="paragraph">
-<p>TO BE CONTINUED&#8230;&#8203;</p>
+<p>To import compiled Java class files, ArchUnit provides the <code>ClassFileImporter</code>, which can
+for example be used to import packages from the classpath:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information refer to <a href="#The Core API">[The Core API]</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lang">Lang</h3>
+<div class="paragraph">
+<p>The Core API is quite powerful and offers a lot of information about the static structure
+of a Java program. However, tests directly using the Core API lack expressiveness,
+in particular with respect to architectural rules.</p>
+</div>
+<div class="paragraph">
+<p>For this reason ArchUnit provides the Lang API, which offers a powerful syntax to express rules
+in an abstract way. Most parts of the Lang API are composed as fluent APIs, i.e. an IDE can
+provide valuable suggestions on the possibilities the syntax offers.</p>
+</div>
+<div class="paragraph">
+<p>An example for a specified architecture rule would be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">ArchRule rule =
+    classes().that().resideInAPackage("..service..")
+        .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once a rule is composed, imported Java classes can be checked against it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+ArchRule rule = // define the rule
+rule.check(classes);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The syntax ArchUnit provides is fully extensible and can thus be adjusted to almost any
+specific need. For further information, please refer to <a href="#The Lang API">[The Lang API]</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_library">Library</h3>
+<div class="paragraph">
+<p>The Library API offers predefined complex rules for typical architectural goals. For example
+a succinct definition of a layered architecture via package definitions. Or rules to slice
+the code base in a certain way, for example in different areas of the domain, and enforce these
+slices to be acyclic or independent of each other. More detailed information is provided in
+<a href="#The Library API">[The Library API]</a>.</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-11-26 14:27:32 MEZ
+Last updated 2017-12-04 00:32:40 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/mono-blue.min.css">

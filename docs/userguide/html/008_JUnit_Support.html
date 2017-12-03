@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.5">
-<title>Introduction</title>
+<title>JUnit Support</title>
 <style>
 /* Adapted for ArchUnit */
 h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#0563a5;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
@@ -434,48 +434,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_junit_support">JUnit Support</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. That is, ArchUnit can check
-dependencies between packages and classes, layers and slices, check for cyclic dependencies and more. It does so by
-analyzing given Java bytecode, importing all classes into a Java code structure.
-ArchUnit&#8217;s main focus is to automatically test architecture and coding rules, using any plain Java unit testing
-framework.</p>
-</div>
-<div class="sect2">
-<h3 id="_module_overview">Module Overview</h3>
-<div class="paragraph">
-<p>ArchUnit consists of two production modules: <code>archunit</code> and <code>archunit-junit</code>. Also relevant for end users is the `archunit-example' module.</p>
-</div>
-<div class="sect3">
-<h4 id="_module_archunit">Module archunit</h4>
-<div class="paragraph">
-<p>This module contains the actual ArchUnit core infrastructure required to write architecture tests: the <code>ClassFileImporter</code>,
-the domain objects, as well as the rule syntax infrastructure.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_module_archunit_junit">Module archunit-junit</h4>
-<div class="paragraph">
-<p>This module contains the infrastructure to integrate with JUnit 4, in particular
-the <code>ArchUnitRunner</code> to cache imported classes.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_module_archunit_example">Module archunit-example</h4>
-<div class="paragraph">
-<p>This module contains example architecture rules and sample code that violates these rules. Look here to get inspiration on how
-to set up rules for your project.</p>
-</div>
-</div>
-</div>
+
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-11-22 23:03:08 CET
+Last updated 2017-12-04 00:32:40 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/mono-blue.min.css">

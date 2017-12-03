@@ -461,7 +461,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
 </ul>
 </li>
-<li><a href="#_ideas_and_concepts">4. Ideas and Concepts</a></li>
+<li><a href="#_ideas_and_concepts">4. Ideas and Concepts</a>
+<ul class="sectlevel2">
+<li><a href="#_core">4.1. Core</a></li>
+<li><a href="#_lang">4.2. Lang</a></li>
+<li><a href="#_library">4.3. Library</a></li>
+</ul>
+</li>
+<li><a href="#_the_core_api">5. The Core API</a>
+<ul class="sectlevel2">
+<li><a href="#_import">5.1. Import</a></li>
+</ul>
+</li>
+<li><a href="#_the_lang_api">6. The Lang API</a></li>
+<li><a href="#_the_library_api">7. The Library API</a></li>
+<li><a href="#_junit_support">8. JUnit Support</a></li>
 </ul>
 </div>
 </div>
@@ -691,20 +705,148 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 <h2 id="_ideas_and_concepts"><a class="anchor" href="#_ideas_and_concepts"></a>4. Ideas and Concepts</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>ArchUnit is divided into different layers, where the most important ones are the "Core" layer,
+the "Lang" layer and the "Library" layer. In short the Core layer deals with the basic
+infrastructure, i.e. how to import byte code into Java objects. The Lang layer contains the
+rule syntax to specify architecture rules in a succinct way. The Library layer contains
+more complex predefined rules, like a layered architecture with several layers. The following
+section will explain these layers in more detail.</p>
+</div>
+<div class="sect2">
+<h3 id="_core"><a class="anchor" href="#_core"></a>4.1. Core</h3>
+<div class="paragraph">
 <p>Much of ArchUnit&#8217;s core API resembles the Java Reflection API. There are classes
 like <code>JavaMethod</code>, <code>JavaField</code>, and more, and the public API consists of methods like
-<code>getName()</code>, <code>getMethods()</code>, <code>getType()</code> or <code>getParameters()</code>.</p>
+<code>getName()</code>, <code>getMethods()</code>, <code>getType()</code> or <code>getParameters()</code>. Additionally ArchUnit extends
+this API for concepts needed to talk about dependencies between code, like <code>JavaMethodCall</code>,
+<code>JavaConstructorCall</code> or <code>JavaFieldAccess</code>. For example, it is possible to programmatically
+iterate over <code>javaClass.getAccessesFromSelf()</code> and react to the imported accesses between this
+Java class and other Java classes.</p>
 </div>
 <div class="paragraph">
-<p>TO BE CONTINUED&#8230;&#8203;</p>
+<p>To import compiled Java class files, ArchUnit provides the <code>ClassFileImporter</code>, which can
+for example be used to import packages from the classpath:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information refer to <a href="#_the_core_api">The Core API</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lang"><a class="anchor" href="#_lang"></a>4.2. Lang</h3>
+<div class="paragraph">
+<p>The Core API is quite powerful and offers a lot of information about the static structure
+of a Java program. However, tests directly using the Core API lack expressiveness,
+in particular with respect to architectural rules.</p>
+</div>
+<div class="paragraph">
+<p>For this reason ArchUnit provides the Lang API, which offers a powerful syntax to express rules
+in an abstract way. Most parts of the Lang API are composed as fluent APIs, i.e. an IDE can
+provide valuable suggestions on the possibilities the syntax offers.</p>
+</div>
+<div class="paragraph">
+<p>An example for a specified architecture rule would be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">ArchRule rule =
+    classes().that().resideInAPackage("..service..")
+        .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once a rule is composed, imported Java classes can be checked against it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+ArchRule rule = // define the rule
+rule.check(classes);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The syntax ArchUnit provides is fully extensible and can thus be adjusted to almost any
+specific need. For further information, please refer to <a href="#_the_lang_api">The Lang API</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_library"><a class="anchor" href="#_library"></a>4.3. Library</h3>
+<div class="paragraph">
+<p>The Library API offers predefined complex rules for typical architectural goals. For example
+a succinct definition of a layered architecture via package definitions. Or rules to slice
+the code base in a certain way, for example in different areas of the domain, and enforce these
+slices to be acyclic or independent of each other. More detailed information is provided in
+<a href="#_the_library_api">The Library API</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_core_api"><a class="anchor" href="#_the_core_api"></a>5. The Core API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Core API is itself divided into the domain and the actual import.</p>
+</div>
+<div class="sect2">
+<h3 id="_import"><a class="anchor" href="#_import"></a>5.1. Import</h3>
+<div class="paragraph">
+<p>As mentioned in <a href="#_ideas_and_concepts">Ideas and Concepts</a> the backbone of the infrastructure is the <code>ClassFileImporter</code>,
+which provides various ways to import Java classes. One way is to import packages from
+the classpath, or the complete classpath via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, the import is completely independent of the classpath, so it would be well possible
+to import any path from the file system:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path/to/classes");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ClassFileImporter</code> offers several other methods to import classes, for example locations can be
+specified as URLs or as JAR files.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore single locations can be filtered out, if they are contained in the source of classes,
+but should not be imported. A typical use case would be to ignore test classes, when the classpath
+is imported.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_lang_api"><a class="anchor" href="#_the_lang_api"></a>6. The Lang API</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_library_api"><a class="anchor" href="#_the_library_api"></a>7. The Library API</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_junit_support"><a class="anchor" href="#_junit_support"></a>8. JUnit Support</h2>
+<div class="sectionbody">
+
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.5.0<br>
-Last updated 2017-11-27 16:33:36 MEZ
+Last updated 2017-12-04 00:32:40 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/mono-blue.min.css">
