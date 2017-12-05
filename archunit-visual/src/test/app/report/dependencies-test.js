@@ -1072,51 +1072,95 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
-  it("lists correctly the detailed dependencies of class", () => {
-    const graphWrapper = testObjects.testGraph2();
+  it('creates the correct detailed dependencies of a class without children to another class: all grouped elementary ' +
+    'dependencies are listed, inheritance-dependencies are ignored', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetMethod(arg)')
+        .accessingField('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetField')
+        .callingConstructor('com.tngtech.SomeClass2', '<init>()', '<init>()')
+        .extending('com.tngtech.SomeClass2')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
-      "testclass1()->field1",
-      "testclass1()->targetMethod()"
+      {
+        description: 'startMethod(arg)->targetMethod(arg)',
+        cssClass: 'dependency methodCall'
+      },
+      {
+        description: 'startMethod(arg)->targetField',
+        cssClass: 'dependency fieldAccess'
+      },
+      {
+        description: '<init>()-><init>()',
+        cssClass: 'dependency constructorCall'
+      }
     ];
-    const act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-      .map(d => d.description);
-    expect(act).to.containExactlyDependencies(exp);
+
+    const act = dependencies.getDetailedDependenciesOf('com.tngtech.SomeClass1', 'com.tngtech.SomeClass2');
+    expect(act).to.deep.equal(exp);
   });
 
-  it("lists correctly the detailed dependencies of class with inner classes depending on the fold-state of the class", () => {
-    const graphWrapper = testObjects.testGraphWithOverlappingNodesAndMutualDependencies();
-
-    let act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-      .map(d => d.description);
-    let exp = [
-      "testclass1()->field1"
-    ];
-    expect(act).to.containExactlyDependencies(exp);
-
-    graphWrapper.getNode("com.tngtech.test.testclass1")._changeFoldIfInnerNodeAndRelayout();
-    return graphWrapper.graph.root.doNext(() => {
-      act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test.testclass1", "com.tngtech.class2")
-        .map(d => d.description);
-      exp = [
-        "testclass1()->field1",
-        "InnerTestClass1.innertestclass1()->field1"
-      ];
-      expect(act).to.containExactlyDependencies(exp);
-    });
-  });
-
-  it("lists correctly the detailed dependencies of folded package", () => {
-    const graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.getNode("com.tngtech.test")._changeFoldIfInnerNodeAndRelayout();
+  it('creates the correct detailed dependencies of a class with an inner class to another class: ' +
+    'all grouped elementary dependencies are listed, but the dependencies of the inner classes are ignored', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetMethod(arg)')
+        .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
+          .callingMethod('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetMethod(arg)')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
-      "testclass1.testclass1()->field1",
-      "testclass1.testclass1()->targetMethod()",
-      "subtest.subtestclass1.startMethod1()->targetMethod()",
+      {
+        description: 'startMethod(arg)->targetMethod(arg)',
+        cssClass: 'dependency methodCall'
+      }
     ];
-    const act = graphWrapper.graph.dependencies.getDetailedDependenciesOf("com.tngtech.test", "com.tngtech.class2").map(d => d.description);
-    expect(act).to.containExactlyDependencies(exp);
+
+    const act = dependencies.getDetailedDependenciesOf('com.tngtech.SomeClass1', 'com.tngtech.SomeClass2');
+    expect(act).to.deep.equal(exp);
+  });
+
+  it('creates the correct detailed dependencies of a folded class with an inner class to another class: ' +
+    'all grouped elementary dependencies, included the ones of the inner class, are listed', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetMethod(arg)')
+        .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
+          .callingMethod('com.tngtech.SomeClass2', 'startMethod(arg)', 'targetMethod(arg)')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = [
+      {
+        description: 'startMethod(arg)->targetMethod(arg)',
+        cssClass: 'dependency methodCall'
+      },
+      {
+        description: 'SomeInnerClass.startMethod(arg)->targetMethod(arg)',
+        cssClass: 'dependency methodCall'
+      }
+    ];
+
+    root.getByName('com.tngtech.SomeClass1').foldIfInnerNode();
+    dependencies.updateOnNodeFolded('com.tngtech.SomeClass1', true);
+
+    const act = dependencies.getDetailedDependenciesOf('com.tngtech.SomeClass1', 'com.tngtech.SomeClass2');
+    expect(act).to.deep.equal(exp);
   });
 });
