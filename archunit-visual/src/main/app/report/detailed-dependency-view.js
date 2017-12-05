@@ -52,11 +52,15 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * textPadding + 10;
 
       d3.select(this._svgElement).attr('transform', () => {
+        const transform = d3.select('#translater').attr('transform');
+        const translateX = parseFloat(transform.substring(transform.indexOf('(')+1, transform.indexOf(')')).split(',')[0]);
+
         //ensure that the rect is visible on the left side
-        let x = Math.max(maxWidth / 2, coordinates[0]);
+        let x = Math.max(maxWidth / 2, translateX + coordinates[0]);
         //ensure that the rect is visible on the right side
         x = Math.min(x, d3.select('#visualization').attr('width') - maxWidth / 2);
-        return `translate(${x}, ${coordinates[1]})`;
+
+        return `translate(${x - translateX}, ${coordinates[1]})`;
       });
 
       const tspans = d3.select(this._svgElement).select('text.access')

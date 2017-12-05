@@ -47,7 +47,7 @@ const init = (DetailedView, transitionDuration) => {
 
     _createDetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
       this._detailedView = new DetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies);
-      this.onMouseOver(coords => this._detailedView.fadeIn(coords));
+      this.onMouseOver(parentSvgElement, coords => this._detailedView.fadeIn(coords));
       this.onMouseOut(() => this._detailedView.fadeOut());
     }
 
@@ -85,9 +85,9 @@ const init = (DetailedView, transitionDuration) => {
       return promise.then(() => this._showIfVisible(dependency));
     }
 
-    onMouseOver(handler) {
+    onMouseOver(parentSvgElement, handler) {
       d3.select(this._svgElement).select('line.area').on('mouseover', function () {
-        const coordinates = d3.mouse(d3.select('#visualization').node());
+        const coordinates = d3.mouse(d3.select(parentSvgElement).node());
         handler(coordinates);
       });
     }
