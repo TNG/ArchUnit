@@ -3,17 +3,6 @@
 require('./chai/dependencies-chai-extension');
 const expect = require('chai').expect;
 
-const testObjects = require("./test-object-creator.js");
-
-const depsOfTree2WithTestFolded = [
-  "com.tngtech.main.class1->com.tngtech.interface1(implements methodCall)",
-  "com.tngtech.test->com.tngtech.class2()",
-  "com.tngtech.test->com.tngtech.main.class1()",
-  "com.tngtech.test->com.tngtech.interface1()",
-  "com.tngtech.class2->com.tngtech.main.class1(extends)",
-  "com.tngtech.class2->com.tngtech.interface1(implements)"
-];
-
 const stubs = require('./stubs');
 
 const testJson = require('./test-json-creator');
