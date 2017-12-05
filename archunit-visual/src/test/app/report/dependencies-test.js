@@ -204,6 +204,7 @@ describe('Dependencies', () => {
 
     expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
     expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
     expect(dependencies.getVisible()).to.include.members(visibleDependencies1);
     expect(dependencies.getVisible()).to.include.members(visibleDependencies2);
   });
@@ -601,7 +602,7 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.include.members(visibleDependencies);
   });
 
-  it('updates on filtering whether they must share one of the end nodes', () => {
+  it('updates on node filtering whether they must share one of the end nodes', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('ClassWithInnerClass', 'class')
         .havingInnerClass(testJson.clazz('InnerClass', 'class')
@@ -625,7 +626,7 @@ describe('Dependencies', () => {
     expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(true);
   });
 
-  it('updates on resetting the filter whether they must share one of the end nodes', () => {
+  it('updates on resetting the node filter whether they must share one of the end nodes', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('ClassWithInnerClass', 'class')
         .havingInnerClass(testJson.clazz('InnerClass', 'class')
@@ -904,9 +905,6 @@ describe('Dependencies', () => {
   });
 
 
-
-
-
   it('can do this: node filter -> fold pkg -> reset node filter, so that the fold state is not changed', () => {
     const jsonRoot = testJson.package('com.tngtech')
       .add(testJson.clazz('SomeInterface', 'interface')
@@ -923,7 +921,7 @@ describe('Dependencies', () => {
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
-    'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
+      'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
     root.filterByName('X', true);
     dependencies.setNodeFilters(root.getFilters());
@@ -959,42 +957,59 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
+  const jsonRootWithAllDependencies = testJson.package('com.tngtech')
+    .add(testJson.clazz('SomeInterface', 'interface').build())
+    .add(testJson.clazz('SomeClass1', 'class')
+      .extending('com.tngtech.SomeClass2')
+      .callingConstructor('com.tngtech.SomeClass2', '<init>()', '<init>()')
+      .callingMethod('com.tngtech.SomeClass2', 'startMethod()', 'targetMethod()')
+      .build())
+    .add(testJson.clazz('SomeClass2', 'class')
+      .implementing('com.tngtech.SomeInterface')
+      .accessingField('com.tngtech.SomeInterface', 'startMethod()', 'targetField')
+      .implementingAnonymous('com.tngtech.SomeInterface')
+      .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
+        .callingMethod('com.tngtech.SomeClass2', 'startMethod()', 'targetMethod()')
+        .build())
+      .build())
+    .build();
+
+  it('should recreate correctly its visible dependencies after filtering by type (only show implementing an interface):' +
+    ' old dependencies are hidden, all new ones are visible but they are not re-instantiated', () => {
+    const root = new Node(jsonRootWithAllDependencies);
+    const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+
+    const filter = d1 => dependencies._elementary.filter(
+      d2 =>
+      d1.from === d2.from &&
+      d1.to === d2.to &&
+      d2.description.typeName === 'implements').length > 0;
+    const visibleDependencies = dependencies.getVisible().filter(filter);
+    const hiddenDependencies = dependencies.getVisible().filter(d => !filter(d));
+
+    dependencies.filterByType({
+      showImplementing: true,
+      showExtending: false,
+      showConstructorCall: false,
+      showMethodCall: false,
+      showFieldAccess: false,
+      showAnonymousImplementation: false,
+      showDepsBetweenChildAndParent: true
+    });
 
 
-
-
-  it("does the filtering by type (hiding interfaces) correctly (no dependencies of eliminated nodes) " +
-    "and resets them correctly", () => {
-    const graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.graph.filterNodesByType({showInterfaces: false, showClasses: true});
-    const exp = [
-      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)"
-    ];
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(dependencies.getVisible().map(d => d._view.isVisible)).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
   });
 
-  it("does the filtering by type (hiding classes) with eliminating packages correctly " +
-    "(no dependencies of eliminated nodes) and resets them correctly", () => {
-    const graphWrapper = testObjects.testGraph2();
+  it('updates the position of the dependencies after filtering by type', () => {
+    const root = new Node(jsonRootWithAllDependencies);
+    const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
 
-    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: false});
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies([])
-    graphWrapper.graph.filterNodesByType({showInterfaces: true, showClasses: true});
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
-  })
-  ;
-
-  it("does the filtering by type (only show inheritance) correctly and resets it", () => {
-    const graphWrapper = testObjects.testGraph2();
-
-    graphWrapper.graph.filterDependenciesByType({
+    dependencies.filterByType({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: false,
@@ -1003,48 +1018,48 @@ describe('Dependencies', () => {
       showAnonymousImplementation: false,
       showDepsBetweenChildAndParent: true
     });
-    const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(implements)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.interface1(implements)",
-      "com.tngtech.class2->com.tngtech.main.class1(extends)",
-      "com.tngtech.class2->com.tngtech.interface1(implements)"
-    ];
 
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-    graphWrapper.graph.filterDependenciesByType({
-      showImplementing: true,
-      showExtending: true,
-      showConstructorCall: true,
-      showMethodCall: true,
-      showFieldAccess: true,
-      showAnonymousImplementation: true,
-      showDepsBetweenChildAndParent: true
-    });
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+    return dependencies._updatePromise.then(() =>
+      expect(dependencies.getVisible().map(d => d._view.hasJumpedToPosition)).to.not.include(false));
   });
 
-  it("does the filtering by type (do not show inheritance) correcty and resets it", () => {
-    const graphWrapper = testObjects.testGraph3();
-    graphWrapper.graph.filterDependenciesByType({
-      showImplementing: false,
-      showExtending: false,
-      showConstructorCall: true,
-      showMethodCall: true,
-      showFieldAccess: true,
-      showAnonymousImplementation: true,
+  it('can filter by type: only show inheritance-dependencies', () => {
+    const root = new Node(jsonRootWithAllDependencies);
+    const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+
+    const exp = [
+      'com.tngtech.SomeClass1->com.tngtech.SomeClass2(extends)',
+      'com.tngtech.SomeClass2->com.tngtech.SomeInterface(implements)'
+    ];
+
+    dependencies.filterByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: false,
+      showMethodCall: false,
+      showFieldAccess: false,
+      showAnonymousImplementation: false,
+      showDepsBetweenChildAndParent: true
+    });
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can reset the filter by type: show all dependencies again', () => {
+    const root = new Node(jsonRootWithAllDependencies);
+    const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+    const exp = dependencies.getVisible().map(d => d.toString());
+
+    dependencies.filterByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: false,
+      showMethodCall: false,
+      showFieldAccess: false,
+      showAnonymousImplementation: false,
       showDependenciesBetweenClassAndItsInnerClasses: true
     });
-    const exp = [
-      "com.tngtech.main.class1->com.tngtech.interface1(methodCall)",
-      "com.tngtech.main.class3->com.tngtech.interface1(methodCall)",
-      "com.tngtech.test.testclass1->com.tngtech.class2(several)",
-      "com.tngtech.test.testclass1->com.tngtech.main.class1(fieldAccess)",
-      "com.tngtech.test.testclass1->com.tngtech.interface1(implementsAnonymous)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.class2(methodCall)",
-      "com.tngtech.test.subtest.subtestclass1->com.tngtech.test.testclass1(constructorCall)"
-    ];
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(exp);
-    graphWrapper.graph.filterDependenciesByType({
+    dependencies.filterByType({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: true,
@@ -1053,7 +1068,8 @@ describe('Dependencies', () => {
       showAnonymousImplementation: true,
       showDependenciesBetweenClassAndItsInnerClasses: true
     });
-    expect(graphWrapper.graph.dependencies.getVisible()).to.containExactlyDependencies(graphWrapper.allDependencies);
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
   it("lists correctly the detailed dependencies of class", () => {
