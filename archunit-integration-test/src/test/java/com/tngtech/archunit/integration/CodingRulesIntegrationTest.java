@@ -47,7 +47,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
                         .inLine(14))
                 .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .accessing().field(System.class, "out")
-                        .inLine(11));
+                        .inLine(13));
     }
 
     @Test

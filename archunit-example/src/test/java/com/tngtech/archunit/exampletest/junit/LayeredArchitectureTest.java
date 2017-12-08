@@ -1,5 +1,7 @@
 package com.tngtech.archunit.exampletest.junit;
 
+import com.tngtech.archunit.example.SomeMediator;
+import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -24,4 +26,17 @@ public class LayeredArchitectureTest {
             .whereLayer("Controllers").mayNotBeAccessedByAnyLayer()
             .whereLayer("Services").mayOnlyBeAccessedByLayers("Controllers")
             .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Services");
+
+    @ArchTest
+    public static final ArchRule layer_dependencies_are_respected_with_exception = layeredArchitecture()
+
+            .layer("Controllers").definedBy("com.tngtech.archunit.example.controller..")
+            .layer("Services").definedBy("com.tngtech.archunit.example.service..")
+            .layer("Persistence").definedBy("com.tngtech.archunit.example.persistence..")
+
+            .whereLayer("Controllers").mayNotBeAccessedByAnyLayer()
+            .whereLayer("Services").mayOnlyBeAccessedByLayers("Controllers")
+            .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Services")
+
+            .ignoreDependency(SomeMediator.class, ServiceViolatingLayerRules.class);
 }

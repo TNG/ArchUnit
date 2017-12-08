@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -31,7 +32,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -84,18 +84,22 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
     class FromJar implements ClassFileSource {
         private final FluentIterable<ClassFileLocation> classFileLocations;
 
-        FromJar(JarURLConnection connection, ImportOptions importOptions) {
+        FromJar(URL jarUrl, String path, ImportOptions importOptions) {
             try {
-                JarFile jarFile = connection.getJarFile();
-                String prefix = connection.getJarEntry() != null ? connection.getJarEntry().getName() : "";
-                classFileLocations = FluentIterable.from(Collections.list(jarFile.entries()))
-                        .filter(classFilesBeneath(prefix))
+                JarURLConnection connection = (JarURLConnection) jarUrl.openConnection();
+                classFileLocations = FluentIterable.from(Collections.list(connection.getJarFile().entries()))
+                        .filter(classFilesBeneath(fixRelative(path)))
                         .transform(toClassFilesInJarOf(connection))
                         .filter(by(importOptions))
                         .transform(toInputStreamSupplier());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        private String fixRelative(String path) {
+            boolean pathIsFolderNotEndingWithSlash = !path.isEmpty() && !path.endsWith("/") && !path.endsWith(".class");
+            return pathIsFolderNotEndingWithSlash ? path + "/" : path;
         }
 
         private Predicate<JarEntry> classFilesBeneath(final String prefix) {

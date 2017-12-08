@@ -68,27 +68,51 @@ public class ClassCacheConcurrencyTest {
         };
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
+    @LocationOfClass(FirstClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass1 {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.example")
+    private static class FirstClass {
+    }
+
+    @LocationOfClass(SecondClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass2 {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.integration")
+    private static class SecondClass {
+    }
+
+    @LocationOfClass(ThirdClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass3 {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.core")
+    private static class ThirdClass {
+    }
+
+    @LocationOfClass(FourthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass4 {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit")
+    private static class FourthClass {
+    }
+
+    @LocationOfClass(FifthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass5 {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech")
+    private static class FifthClass {
+    }
+
+    @LocationOfClass(SixthClass.class)
+    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass6 {
+    }
+
+    private static class SixthClass {
     }
 }

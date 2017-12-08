@@ -35,6 +35,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
@@ -360,6 +363,66 @@ public class JavaClassTest {
                 .as("simpleName(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
 
         assertThat(simpleName("Simple").getDescription()).isEqualTo("simple name 'Simple'");
+    }
+
+    @Test
+    public void predicate_simpleNameStartingWith() {
+        JavaClass input = importClassWithContext(Parent.class);
+        assertThat(simpleNameStartingWith("P").apply(input)).isTrue();
+        assertThat(simpleNameStartingWith("Pa").apply(input)).isTrue();
+        assertThat(simpleNameStartingWith("PA").apply(input)).isFalse();
+        assertThat(simpleNameStartingWith(".P").apply(input)).isFalse();
+        assertThat(simpleNameStartingWith("").apply(input)).isTrue();
+
+        assertThat(simpleNameStartingWith("wrong").apply(input)).isFalse();
+
+        // Full match test
+        assertThat(simpleNameStartingWith(input.getName()).apply(input)).isFalse();
+        assertThat(simpleNameStartingWith(input.getName().substring(0, 2)).apply(input)).isFalse();
+
+        assertThat(simpleNameStartingWith("Prefix").getDescription()).isEqualTo("simple name starting with 'Prefix'");
+    }
+
+    @Test
+    public void predicate_simpleNameContaining() {
+        JavaClass input = importClassWithContext(Parent.class);
+
+        assertThat(simpleNameContaining("Parent").apply(input)).isTrue();
+        assertThat(simpleNameContaining("Par").apply(input)).isTrue();
+        assertThat(simpleNameContaining("a").apply(input)).isTrue();
+        assertThat(simpleNameContaining("b").apply(input)).isFalse();
+        assertThat(simpleNameContaining("A").apply(input)).isFalse();
+        assertThat(simpleNameContaining("ent").apply(input)).isTrue();
+        assertThat(simpleNameContaining("Pent").apply(input)).isFalse();
+        assertThat(simpleNameContaining("aren").apply(input)).isTrue();
+        assertThat(simpleNameContaining("").apply(input)).isTrue();
+
+        // Full match test
+        assertThat(simpleNameContaining(input.getName()).apply(input)).isFalse();
+        assertThat(simpleNameContaining(" ").apply(input)).isFalse();
+        assertThat(simpleNameContaining(".").apply(input)).isFalse();
+
+        assertThat(simpleNameContaining(".Parent").apply(input)).isFalse();
+
+        assertThat(simpleNameContaining("Infix").getDescription()).isEqualTo("simple name containing 'Infix'");
+    }
+
+    @Test
+    public void predicate_simpleNameEndingWith() {
+        JavaClass input = importClassWithContext(Parent.class);
+
+        assertThat(simpleNameEndingWith("Parent").apply(input)).isTrue();
+        assertThat(simpleNameEndingWith("ent").apply(input)).isTrue();
+        assertThat(simpleNameEndingWith("").apply(input)).isTrue();
+
+        // Full match test
+        assertThat(simpleNameEndingWith(input.getName()).apply(input)).isFalse();
+        assertThat(simpleNameEndingWith(" ").apply(input)).isFalse();
+        assertThat(simpleNameEndingWith(".").apply(input)).isFalse();
+
+        assertThat(simpleNameEndingWith(".Parent").apply(input)).isFalse();
+
+        assertThat(simpleNameEndingWith("Suffix").getDescription()).isEqualTo("simple name ending with 'Suffix'");
     }
 
     @Test

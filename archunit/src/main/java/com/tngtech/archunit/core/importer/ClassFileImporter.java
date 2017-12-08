@@ -181,12 +181,11 @@ public final class ClassFileImporter {
 
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasses(Collection<Class<?>> classes) {
-        List<URL> urls = new ArrayList<>();
+        Set<Location> locations = new HashSet<>();
         for (Class<?> clazz : classes) {
-            urls.add(getClass().getResource(
-                    "/" + clazz.getName().replace(".", "/") + ".class"));
+            locations.addAll(Locations.ofClass(clazz));
         }
-        return importUrls(urls);
+        return importLocations(locations);
     }
 
     @PublicAPI(usage = ACCESS)

@@ -18,7 +18,6 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +33,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -43,23 +44,29 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
+    private final DescribedPredicate<Dependency> predicate;
     private DependencyGraph graph;
     private final EventRecorder eventRecorder = new EventRecorder();
     private Iterable<Slice> allObjectsToTest;
 
-    SliceCycleArchCondition() {
+    SliceCycleArchCondition(DescribedPredicate<Dependency> predicate) {
         super("be free of cycles");
+        this.predicate = predicate;
     }
 
     @Override
     public void init(Iterable<Slice> allObjectsToTest) {
         this.allObjectsToTest = allObjectsToTest;
+        initGraph();
     }
 
     @Override
     public void check(Slice slice, ConditionEvents events) {
-        initGraph();
-        graph.add(slice, SliceDependencies.of(slice, classesToSlicesMapping));
+        graph.add(slice, SliceDependencies.of(slice, classesToSlicesMapping, predicate));
+    }
+
+    @Override
+    public void finish(ConditionEvents events) {
         for (Cycle<Slice, Dependency> cycle : graph.getCycles()) {
             eventRecorder.record(cycle, events);
         }
@@ -108,8 +115,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static class SliceDependencies extends ForwardingSet<Edge<Slice, Dependency>> {
         private final Set<Edge<Slice, Dependency>> edges;
 
-        private SliceDependencies(Slice slice, ClassesToSlicesMapping classesToSlicesMapping) {
-            Multimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping);
+        private SliceDependencies(Slice slice, ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
+            Multimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping, predicate);
             ImmutableSet.Builder<Edge<Slice, Dependency>> edgeBuilder = ImmutableSet.builder();
             for (Map.Entry<Slice, Collection<Dependency>> entry : targetSlicesWithDependencies.asMap().entrySet()) {
                 edgeBuilder.add(new Edge<>(slice, entry.getKey(), entry.getValue()));
@@ -117,9 +124,10 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             this.edges = edgeBuilder.build();
         }
 
-        private Multimap<Slice, Dependency> targetsOf(Slice slice, ClassesToSlicesMapping classesToSlicesMapping) {
+        private Multimap<Slice, Dependency> targetsOf(Slice slice,
+                ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
             Multimap<Slice, Dependency> result = HashMultimap.create();
-            for (Dependency dependency : slice.getDependencies()) {
+            for (Dependency dependency : Guava.Iterables.filter(slice.getDependencies(), predicate)) {
                 if (classesToSlicesMapping.containsKey(dependency.getTargetClass())) {
                     result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency);
                 }
@@ -132,8 +140,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return edges;
         }
 
-        static SliceDependencies of(Slice slice, ClassesToSlicesMapping classesToSlicesMapping) {
-            return new SliceDependencies(slice, classesToSlicesMapping);
+        static SliceDependencies of(Slice slice, ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
+            return new SliceDependencies(slice, classesToSlicesMapping, predicate);
         }
     }
 
@@ -146,14 +154,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             }
         };
 
-        private final Set<Cycle<Slice, Dependency>> alreadyRecorded = new HashSet<>();
-
         void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
-            if (alreadyRecorded.contains(cycle)) {
-                return;
-            }
             events.add(newEvent(cycle));
-            alreadyRecorded.add(cycle);
         }
 
         private ConditionEvent newEvent(Cycle<Slice, Dependency> cycle) {

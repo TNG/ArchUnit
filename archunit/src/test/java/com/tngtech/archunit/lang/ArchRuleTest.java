@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClassesTest;
+import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInitAndFinish;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -20,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static com.tngtech.archunit.lang.Priority.HIGH;
@@ -118,6 +123,47 @@ public class ArchRuleTest {
         assertThat(result.getFailureReport().toString()).contains("(6 times)");
     }
 
+    @Test
+    public void reports_number_of_violations_separately_for_only_cases() {
+        EvaluationResult result = ArchRuleDefinition.noClasses()
+                .should().accessClassesThat().haveSimpleName("String")
+                .evaluate(importClasses(ClassAccessingStringTwoTimes.class));
+
+        assertThat(result.getFailureReport().toString()).contains("(2 times)");
+    }
+
+    @Test
+    public void rule_evaluation_inits_and_finishes_condition() {
+        ConditionWithInitAndFinish condition = new ConditionWithInitAndFinish("irrelevant") {
+            @Override
+            public void finish(ConditionEvents events) {
+                super.finish(events);
+                events.add(SimpleConditionEvent.violated("bummer", "bummer"));
+            }
+        };
+        assertThat(condition.allObjectsToTest).isNull();
+        assertThat(condition.eventsFromFinish).isNull();
+
+        all(strings()).should(condition).evaluate(importClasses(getClass()));
+
+        assertThat(condition.allObjectsToTest).containsOnly(getClass().getName());
+        assertThat(condition.eventsFromFinish.getAllowed()).isEmpty();
+        assertThat(condition.eventsFromFinish.getViolating()).hasSize(1);
+    }
+
+    private ClassesTransformer<String> strings() {
+        return new AbstractClassesTransformer<String>("strings") {
+            @Override
+            public Iterable<String> doTransform(JavaClasses collection) {
+                SortedSet<String> result = new TreeSet<>();
+                for (JavaClass javaClass : collection) {
+                    result.add(javaClass.getName());
+                }
+                return result;
+            }
+        };
+    }
+
     private void writeIgnoreFileWithPatterns(String... patterns) throws IOException {
         File ignoreFile = ignoreFile();
         ignoreFile.delete();
@@ -195,4 +241,11 @@ public class ArchRuleTest {
                     events.add(new SimpleConditionEvent(item, false, "I'm violated"));
                 }
             };
+
+    private static class ClassAccessingStringTwoTimes {
+        void execute() {
+            "foo".length();
+            "bar".replaceAll("a", "b");
+        }
+    }
 }

@@ -31,7 +31,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 
-public final class ArchRuleDefinition<T> {
+public final class ArchRuleDefinition {
     private ArchRuleDefinition() {
     }
 

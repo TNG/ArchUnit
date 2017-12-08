@@ -33,6 +33,9 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -148,6 +151,36 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     }
 
     @Override
+    public ClassesShouldConjunction haveSimpleNameStartingWith(String prefix) {
+        return shouldWith(have(simpleNameStartingWith(prefix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotStartingWith(prefix));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameContaining(String infix) {
+        return shouldWith(have(simpleNameContaining(infix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotContaining(infix));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
+        return shouldWith(have(simpleNameEndingWith(suffix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
+        return shouldWith(ClassesThatPredicates.haveSimpleNameNotEndingWith(suffix));
+    }
+
+    @Override
     public ClassesShouldConjunction areAssignableTo(Class<?> type) {
         return shouldWith(are(JavaClass.Predicates.assignableTo(type)));
     }
@@ -205,6 +238,16 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     @Override
     public ClassesShouldConjunction areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return shouldWith(are(not(JavaClass.Predicates.assignableFrom(predicate))));
+    }
+
+    @Override
+    public ClassesShouldConjunction areInterfaces() {
+        return shouldWith(are(JavaClass.Predicates.INTERFACES));
+    }
+
+    @Override
+    public ClassesShouldConjunction areNotInterfaces() {
+        return shouldWith(are(not(JavaClass.Predicates.INTERFACES)));
     }
 
     @Override

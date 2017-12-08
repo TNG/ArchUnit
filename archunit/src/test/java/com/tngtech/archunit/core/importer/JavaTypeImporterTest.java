@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import org.junit.Test;
 import org.objectweb.asm.Type;
 
-import static com.tngtech.archunit.core.domain.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JavaTypeImporterTest {
 

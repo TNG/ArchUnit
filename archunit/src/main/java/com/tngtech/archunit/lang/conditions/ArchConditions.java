@@ -26,6 +26,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -52,6 +53,9 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -232,15 +236,28 @@ public final class ArchConditions {
 
     /**
      * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
-     * @return A condition matching {@link JavaClass classes} depending on this class (e.g. calling methods of this class)
+     * @return A condition matching {@link JavaClass classes} that have other classes
+     * depending on them (e.g. calling methods of this class)
      * with a package matching any of the identifiers
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsInAnyPackage(String... packageIdentifiers) {
         String description = String.format("only have dependents in any package ['%s']",
                 Joiner.on("', '").join(packageIdentifiers));
-        return new AllDependenciesOnClassCondition(description,
-                dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))));
+        return onlyHaveDependentsWhere(dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))))
+                .as(description);
+    }
+
+    /**
+     * @param predicate A predicate identifying relevant dependencies on this class
+     * @return A condition matching {@link JavaClass classes} that have other classes
+     * depending on them (e.g. calling methods of this class)
+     * where the respective dependency is matched by the predicate
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyHaveDependentsWhere(DescribedPredicate<? super Dependency> predicate) {
+        String description = "only have dependents where " + predicate.getDescription();
+        return new AllDependenciesOnClassCondition(description, predicate);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -308,6 +325,67 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notHaveSimpleName(String name) {
         return not(haveSimpleName(name));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameStartingWith(final String prefix) {
+        final DescribedPredicate<JavaClass> predicate = have(simpleNameStartingWith(prefix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String infix = satisfied ? "starts with" : "doesn't start with";
+                String message = String.format("simple name of %s %s '%s'", item.getName(), infix, prefix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameNotStartingWith(String prefix) {
+        return not(haveSimpleNameStartingWith(prefix)).as("have simple name not starting with '%s'", prefix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameContaining(final String infix) {
+        final DescribedPredicate<JavaClass> predicate = have(simpleNameContaining(infix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String messageInfix = satisfied ? "contains" : "doesn't contain";
+                String message = String.format("simple name of %s %s '%s'", item.getName(), messageInfix, infix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameNotContaining(final String infix) {
+        return not(haveSimpleNameContaining(infix)).as("have simple name not containing '%s'", infix);
+    }
+
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameEndingWith(final String suffix) {
+        final DescribedPredicate<JavaClass> predicate = have(simpleNameEndingWith(suffix));
+
+        return new ArchCondition<JavaClass>(predicate.getDescription()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean satisfied = predicate.apply(item);
+                String infix = satisfied ? "ends with" : "doesn't end with";
+                String message = String.format("simple name of %s %s '%s'", item.getName(), infix, suffix);
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveSimpleNameNotEndingWith(String suffix) {
+        return not(haveSimpleNameEndingWith(suffix)).as("have simple name not ending with '%s'", suffix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -567,6 +645,23 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return not(beAssignableFrom(predicate));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beInterfaces() {
+        return new ArchCondition<JavaClass>("be interfaces") {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                boolean isInterface = item.isInterface();
+                events.add(new SimpleConditionEvent(item, isInterface,
+                        String.format("class %s is %s interface", item.getName(), isInterface ? "an" : "not an")));
+            }
+        };
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeInterfaces() {
+        return not(beInterfaces());
     }
 
     private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {

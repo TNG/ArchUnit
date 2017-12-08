@@ -76,7 +76,12 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
         @Override
         public void describeTo(CollectsLines messages) {
-            messages.add(EventsDescription.describe(violating));
+            // NOTE: Don't join the lines here, because at the moment the reported number of violations equals the number of failure messages.
+            //       Thus a joined message counts as one violation, in the "only" case, each violation stands by itself though
+            //       (as opposed to the "any" case, where only the whole set of violations in combination causes an "any" violation)
+            for (ConditionEvent event : violating) {
+                event.describeTo(messages);
+            }
         }
 
         @Override
@@ -84,6 +89,15 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
             for (ConditionEvent event : violating) {
                 event.handleWith(handler);
             }
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{" +
+                    "correspondingObjects=" + correspondingObjects +
+                    ", allowed=" + allowed +
+                    ", violating=" + violating +
+                    '}';
         }
     }
 }

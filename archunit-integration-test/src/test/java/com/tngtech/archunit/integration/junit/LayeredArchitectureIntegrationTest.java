@@ -23,12 +23,29 @@ import static java.lang.System.lineSeparator;
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class LayeredArchitectureIntegrationTest {
+
     @ArchTest
     @ExpectedViolationFrom(location = LayeredArchitectureIntegrationTest.class, method = "expectLayerViolations")
-    public static final ArchRule layer_dependencies_are_respected = LayeredArchitectureTest.layer_dependencies_are_respected;
+    public static final ArchRule layer_dependencies_are_respected =
+            LayeredArchitectureTest.layer_dependencies_are_respected;
+
+    @ArchTest
+    @ExpectedViolationFrom(location = LayeredArchitectureIntegrationTest.class, method = "expectLayerViolationsWithException")
+    public static final ArchRule layer_dependencies_are_respected_with_exception =
+            LayeredArchitectureTest.layer_dependencies_are_respected_with_exception;
 
     @CalledByArchUnitIntegrationTestRunner
     static void expectLayerViolations(ExpectsViolations expectsViolations) {
+        expectLayerViolationsWithException(expectsViolations);
+        expectsViolations
+                .by(callFrom(SomeMediator.class, "violateLayerRulesIndirectly")
+                        .toMethod(ServiceViolatingLayerRules.class, "doSomething")
+                        .inLine(15)
+                        .asDependency());
+    }
+
+    @CalledByArchUnitIntegrationTestRunner
+    static void expectLayerViolationsWithException(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("Layered architecture consisting of" + lineSeparator() +
                 "layer 'Controllers' ('com.tngtech.archunit.example.controller..')" + lineSeparator() +
                 "layer 'Services' ('com.tngtech.archunit.example.service..')" + lineSeparator() +
@@ -45,24 +62,19 @@ public class LayeredArchitectureIntegrationTest {
                         .inLine(14)
                         .asDependency())
 
-                .by(callFrom(SomeMediator.class, "violateLayerRulesIndirectly")
-                        .toMethod(ServiceViolatingLayerRules.class, "doSomething")
-                        .inLine(15)
-                        .asDependency())
-
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toConstructor(UseCaseTwoController.class)
-                        .inLine(12)
+                        .inLine(14)
                         .asDependency())
 
                 .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toMethod(UseCaseTwoController.class, "doSomethingTwo")
-                        .inLine(13)
+                        .inLine(15)
                         .asDependency())
 
                 .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(UseCaseOneTwoController.class, "someString")
-                        .inLine(11)
+                        .inLine(13)
                         .asDependency());
     }
 }

@@ -6,9 +6,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCall;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
@@ -143,12 +143,13 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
 
     private void checkDependencies(EvaluationResult result) {
         final Set<ExpectedRelation> left = new HashSet<>(expectedDependencies);
-        result.handleViolations(new ViolationHandler<JavaClass>() {
+        result.handleViolations(new ViolationHandler<Dependency>() {
             @Override
-            public void handle(Collection<JavaClass> violatingObjects, String message) {
+            public void handle(Collection<Dependency> violatingObjects, String message) {
                 removeExpectedAccesses(violatingObjects, left);
             }
         });
+        checkEmpty(left);
     }
 
     private void removeExpectedAccesses(Collection<?> violatingObjects, Set<? extends ExpectedRelation> left) {

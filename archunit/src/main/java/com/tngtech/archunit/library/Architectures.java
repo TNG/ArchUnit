@@ -27,16 +27,26 @@ import java.util.TreeSet;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.PackageMatchers;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
@@ -82,19 +92,23 @@ public final class Architectures {
     public static final class LayeredArchitecture implements ArchRule {
         private final Map<String, LayerDefinition> layerDefinitions;
         private final Set<LayerDependencySpecification> dependencySpecifications;
+        private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
 
         private LayeredArchitecture() {
             this(new LinkedHashMap<String, LayerDefinition>(),
                     new LinkedHashSet<LayerDependencySpecification>(),
+                    new PredicateAggregator<Dependency>().thatORs(),
                     Optional.<String>absent());
         }
 
         private LayeredArchitecture(Map<String, LayerDefinition> layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
+                PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
                 Optional<String> overriddenDescription) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
+            this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
         }
 
@@ -138,12 +152,21 @@ public final class Architectures {
                 packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
 
                 EvaluationResult partial = classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
-                        .should(onlyHaveDependentsInAnyPackage(toArray(packagesOfAllowedAccessors)))
+                        .should(onlyHaveDependentsWhere(originPackageMatchesIfDependencyIsRelevant(packagesOfAllowedAccessors)))
                         .evaluate(classes);
 
                 result.add(partial);
             }
             return result;
+        }
+
+        private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
+            DescribedPredicate<Dependency> originPackageMatches =
+                    dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
+
+            return irrelevantDependenciesPredicate.isPresent() ?
+                    originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
+                    originPackageMatches;
         }
 
         @Override
@@ -158,7 +181,27 @@ public final class Architectures {
 
         @Override
         public LayeredArchitecture as(String newDescription) {
-            return new LayeredArchitecture(layerDefinitions, dependencySpecifications, Optional.of(newDescription));
+            return new LayeredArchitecture(
+                    layerDefinitions, dependencySpecifications,
+                    irrelevantDependenciesPredicate, Optional.of(newDescription));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ignoreDependency(Class<?> origin, Class<?> target) {
+            return ignoreDependency(equivalentTo(origin), equivalentTo(target));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ignoreDependency(String origin, String target) {
+            return ignoreDependency(name(origin), name(target));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ignoreDependency(
+                DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
+            return new LayeredArchitecture(
+                    layerDefinitions, dependencySpecifications,
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
         }
 
         private String[] toArray(Set<String> strings) {

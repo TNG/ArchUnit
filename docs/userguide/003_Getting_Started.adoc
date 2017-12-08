@@ -1,0 +1,101 @@
+== Getting Started
+
+ArchUnit tests are written the same way as any Java unit test and can be written with any
+Java unit testing framework. To really understand the ideas behind ArchUnit, one should consult
+<<Ideas and Concepts>>. The following will outline a "technical" getting started.
+
+=== Importing classes
+
+At its core ArchUnit provides infrastructure to import Java bytecode into Java code structures.
+This can be done using the `ClassFileImporter`
+
+[source,java,options="nowrap"]
+----
+JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
+----
+
+The `ClassFileImporter` offers many ways to import classes. Some ways depend on
+the current project's classpath, like `importPackages(..)`. However there are other ways
+that do not, for example:
+
+[source,java,options="nowrap"]
+----
+JavaClasses classes = new ClassFileImporter().importPath("/some/path");
+----
+
+The returned object of type `JavaClasses` represents a collection of elements of type
+`JavaClass`, where `JavaClass` in turn represents a single imported class file. You can
+in fact access most properties of the imported class via the public API:
+
+[source,java,options="nowrap"]
+----
+JavaClass clazz = classes.get(Object.class);
+System.out.print(clazz.getSimpleName()); // returns 'Object'
+----
+
+=== Asserting (Architectural) Constraints
+
+To express architectural rules, like 'Services should only be accessed by Controllers',
+ArchUnit offers an abstract DSL-like fluent API, which can in turn be evaluated against
+imported classes. To specify a rule, use the class `ArchRuleDefinition` as entry point:
+
+[source,java,options="nowrap"]
+----
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+// ...
+
+ArchRule myRule = classes()
+    .that().resideInAPackage("..service..")
+    .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
+----
+
+The two dots represent any number of packages (compare AspectJ Pointcuts). The returned
+object of type `ArchRule` can now be evaluated against a set of imported classes:
+
+[source,java,options="nowrap"]
+----
+myRule.check(classes);
+----
+
+Thus the complete example could look like
+
+[source,java,options="nowrap"]
+----
+@Test
+public void Services_should_only_be_accessed_by_Controllers() {
+    JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
+
+    ArchRule myRule = classes()
+        .that().resideInAPackage("..service..")
+        .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
+
+    myRule.check(classes);
+}
+----
+
+=== Using JUnit 4
+
+While ArchUnit can be used with any unit testing framework, it provides extended support
+for writing tests with JUnit 4. The main advantage is automatic caching of imported
+classes between tests (of the same classes), as well as reduction of boilerplate code.
+
+To use the JUnit 4 support, declare ArchUnit's `ArchUnitRunner`, declare the classes
+to import via `@AnalyzeClasses` and add the respective rules as fields:
+
+[source,java,options="nowrap"]
+----
+@RunWith(ArchUnitRunner.class)
+@AnalyzeClasses(packages = "com.mycompany.myapp")
+public class MyArchitectureTest {
+
+    @ArchTest
+    public static final ArchRule myRule = classes()
+        .that().resideInAPackage("..service..")
+        .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
+
+}
+----
+
+The `ArchUnitRunner` will automatically import (or reuse) the specified classes and
+evaluate any rule annotated with `@ArchTest` against those classes.

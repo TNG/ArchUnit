@@ -203,6 +203,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 for (T object : allObjects) {
                     condition.check(object, events);
                 }
+                condition.finish(events);
                 return new EvaluationResult(this, events, priority);
             }
 
@@ -211,6 +212,49 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 return overriddenDescription.isPresent() ?
                         overriddenDescription.get() :
                         ConfiguredMessageFormat.get().formatRuleText(classesTransformer, condition);
+            }
+        }
+    }
+
+    @Internal
+    interface Transformation {
+        ArchRule apply(ArchRule rule);
+
+        @Internal
+        final class As implements Transformation {
+            private final String description;
+
+            public As(String description) {
+                this.description = description;
+            }
+
+            @Override
+            public ArchRule apply(ArchRule rule) {
+                return rule.as(description);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("as '%s'", description);
+            }
+        }
+
+        @Internal
+        final class Because implements Transformation {
+            private final String reason;
+
+            public Because(String reason) {
+                this.reason = reason;
+            }
+
+            @Override
+            public ArchRule apply(ArchRule rule) {
+                return rule.because(reason);
+            }
+
+            @Override
+            public String toString() {
+                return String.format("because '%s'", reason);
             }
         }
     }

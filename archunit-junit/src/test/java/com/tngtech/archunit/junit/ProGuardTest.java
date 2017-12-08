@@ -9,23 +9,31 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.SourceTest;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.isEmpty;
+import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,9 +51,12 @@ public class ProGuardTest {
      */
     @Test
     public void all_guava_targets_are_configured() throws Exception {
-        JavaClasses archunitJunitClasses = new ClassFileImporter().importUrl(rootOf(ArchTest.class));
+        URL urlOfArchUnitJUnit = rootOf(ArchUnitRunner.class);
+        URL urlOfGuava = baseJarUrlOf(ImmutableSet.class);
+        Set<Location> locations = Locations.of(ImmutableList.of(urlOfArchUnitJUnit, urlOfGuava));
+        JavaClasses archunitJunitClasses = new ClassFileImporter().importLocations(locations);
 
-        Set<String> guavaDependencies = findGuavaDependenciesIn(archunitJunitClasses);
+        Set<String> guavaDependencies = findGuavaDependencyNamesIn(archunitJunitClasses);
 
         if (PRINT_EXPECTED_RESULT) {
             System.out.println(Joiner.on(lineSeparator()).join(guavaDependencies));
@@ -56,16 +67,30 @@ public class ProGuardTest {
         assertThat(guavaDependencies).as("Guava dependencies of archunit-junit").containsOnlyElementsOf(keptTargets);
     }
 
-    private Set<String> findGuavaDependenciesIn(JavaClasses archunitJunitClasses) {
-        Set<String> guavaDependencies = new TreeSet<>();
-        for (JavaClass javaClass : archunitJunitClasses) {
+    private Set<String> findGuavaDependencyNamesIn(Iterable<JavaClass> archunitJunitClasses) {
+        Set<JavaClass> guavaDependencies = findGuavaDependenciesIn(Collections.<JavaClass>emptySet(), archunitJunitClasses);
+        Set<String> result = new TreeSet<>();
+        for (JavaClass guavaClass : guavaDependencies) {
+            result.add(guavaClass.getName().replaceAll("\\$.*", ""));
+        }
+        return result;
+    }
+
+    private Set<JavaClass> findGuavaDependenciesIn(Set<JavaClass> alreadyPresent, Iterable<JavaClass> classes) {
+        if (isEmpty(classes)) {
+            return alreadyPresent;
+        }
+
+        Set<JavaClass> guavaDependencies = new HashSet<>();
+        for (JavaClass javaClass : classes) {
             for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-                if (dependency.getTargetClass().getPackage().startsWith("com.google")) {
-                    guavaDependencies.add(dependency.getTargetClass().getName().replaceAll("\\$.*", ""));
+                JavaClass target = dependency.getTargetClass();
+                if (!alreadyPresent.contains(target) && target.getPackage().startsWith("com.google")) {
+                    guavaDependencies.add(target);
                 }
             }
         }
-        return guavaDependencies;
+        return findGuavaDependenciesIn(Sets.union(alreadyPresent, guavaDependencies), guavaDependencies);
     }
 
     private List<String> read(String fileName) throws IOException {
@@ -73,9 +98,15 @@ public class ProGuardTest {
     }
 
     private URL rootOf(Class<?> clazz) throws MalformedURLException {
-        URL url = SourceTest.urlOf(clazz);
-        String root = url.toString().replaceAll("/com/tngtech/archunit/.*", "/com/tngtech/archunit");
-        return new URL(root);
+        return newUrlWithReplace(clazz, "/com/tngtech/archunit/.*", "/com/tngtech/archunit");
+    }
+
+    private URL baseJarUrlOf(Class<?> guavaClass) throws MalformedURLException {
+        return newUrlWithReplace(guavaClass, "!/.*", "!/");
+    }
+
+    private URL newUrlWithReplace(Class<?> clazz, String regex, String replacement) throws MalformedURLException {
+        return new URL(urlOf(clazz).toString().replaceAll(regex, replacement));
     }
 
     private static class BuildStepsDir {

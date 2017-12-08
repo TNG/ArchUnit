@@ -1,10 +1,12 @@
 dependencies {
     testCompile dependency.junit
     testCompile dependency.assertj
+    testCompile dependency.mockito
     testCompile dependency.guava
     testCompile dependency.log4j_api
     testCompile dependency.log4j_core
     testCompile dependency.log4j_slf4j
+    testCompile project(path: ':archunit', configuration: 'tests')
     testCompile project(path: ':archunit-junit')
     testCompile project(path: ':archunit-example')
     testCompile project(path: ':archunit-example', configuration: 'tests')

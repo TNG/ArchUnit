@@ -32,3 +32,4 @@ install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfte
 uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
 
 addTestJarTo this
+configureSlowTestsFor this

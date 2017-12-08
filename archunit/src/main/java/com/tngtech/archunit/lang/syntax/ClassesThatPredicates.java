@@ -24,6 +24,9 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -35,6 +38,18 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 class ClassesThatPredicates {
     static DescribedPredicate<HasName> haveNameNotMatching(String regex) {
         return have(not(nameMatching(regex)).as("name not matching '%s'", regex));
+    }
+
+    static DescribedPredicate<JavaClass> haveSimpleNameNotStartingWith(String prefix) {
+        return have(not(simpleNameStartingWith(prefix)).as("simple name not starting with '%s'", prefix));
+    }
+
+    static DescribedPredicate<JavaClass> haveSimpleNameNotContaining(String infix) {
+        return have(not(simpleNameContaining(infix)).as("simple name not containing '%s'", infix));
+    }
+
+    static DescribedPredicate<JavaClass> haveSimpleNameNotEndingWith(String suffix) {
+        return have(not(simpleNameEndingWith(suffix)).as("simple name not ending with '%s'", suffix));
     }
 
     static DescribedPredicate<HasModifiers> arePublic() {

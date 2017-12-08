@@ -19,9 +19,10 @@ import java.util.Collection;
 
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
-@PublicAPI(usage = INHERITANCE)
+@PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
 public interface ViolationHandler<T> {
     void handle(Collection<T> violatingObjects, String message);
 }

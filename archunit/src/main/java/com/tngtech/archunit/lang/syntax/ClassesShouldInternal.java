@@ -80,6 +80,36 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction haveSimpleNameStartingWith(String prefix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameStartingWith(prefix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotStartingWith(prefix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameContaining(String infix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameContaining(infix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotContaining(infix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameEndingWith(suffix)));
+    }
+
+    @Override
+    public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotEndingWith(suffix)));
+    }
+
+    @Override
     public ClassesShouldConjunction haveNameMatching(String regex) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveNameMatching(regex)));
     }
@@ -382,6 +412,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed() {
         return new OnlyBeAccessedSpecificationInternal(this);
+    }
+
+    @Override
+    public ClassesShouldConjunction beInterfaces() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beInterfaces()));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeInterfaces() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeInterfaces()));
     }
 
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
