@@ -1,7 +1,7 @@
 'use strict';
 
 const visualizationStyles = require('./main-files').get('visualization-styles');
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
@@ -53,21 +53,21 @@ describe('visualization-styles', () => {
   });
 
   it('should retrieve the line style when stroke and dasharray is defined', () => {
-    const cssClass = "methodCall";
-    const title = "method call";
-    const expectedStroke = "#ff0000";
-    const expectedStrokeDasharray = "2px";
-    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, "rgb(255, 0, 0)", expectedStrokeDasharray));
+    const cssClass = 'methodCall';
+    const title = 'method call';
+    const expectedStroke = '#ff0000';
+    const expectedStrokeDasharray = '2px';
+    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, 'rgb(255, 0, 0)', expectedStrokeDasharray));
 
     expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
       title: title,
       styles: [
         {
-          name: "stroke",
+          name: 'stroke',
           value: expectedStroke
         },
         {
-          name: "stroke-dasharray",
+          name: 'stroke-dasharray',
           value: expectedStrokeDasharray
         }
       ]
@@ -75,20 +75,20 @@ describe('visualization-styles', () => {
   });
 
   it('should retrieve the line style when only stroke is defined', () => {
-    const cssClass = "methodCall";
-    const title = "method call";
-    const expectedStroke = "#ff0000";
-    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, "rgb(255, 0, 0)"));
+    const cssClass = 'methodCall';
+    const title = 'method call';
+    const expectedStroke = '#ff0000';
+    const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, 'rgb(255, 0, 0)'));
 
     expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
       title: title,
       styles: [
         {
-          name: "stroke",
+          name: 'stroke',
           value: expectedStroke
         },
         {
-          name: "stroke-dasharray",
+          name: 'stroke-dasharray',
           value: undefined
         }
       ]
@@ -96,20 +96,20 @@ describe('visualization-styles', () => {
   });
 
   it('should retrieve the line style when only stroke-dasharray is defined', () => {
-    const cssClass = "methodCall";
-    const title = "method call";
-    const expectedStrokeDasharray = "2px";
+    const cssClass = 'methodCall';
+    const title = 'method call';
+    const expectedStrokeDasharray = '2px';
     const styles = multipleStylesContaining(lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, undefined, expectedStrokeDasharray));
 
     expect(styles.getLineStyle(cssClass, title)).to.deep.equal({
       title: title,
       styles: [
         {
-          name: "stroke",
-          value: "#000000"
+          name: 'stroke',
+          value: '#000000'
         },
         {
-          name: "stroke-dasharray",
+          name: 'stroke-dasharray',
           value: expectedStrokeDasharray
         }
       ]
@@ -159,17 +159,17 @@ function toBeIgnored(suffix) {
   return {
     selectorText: `.wrong${suffix}`,
     style: new StyleStub({
-      "font-size": '8px'
+      'font-size': '8px'
     })
   };
 }
 
 function lineStyleWithStrokeAsHexAndStrokeDasharrayInPixels(cssClass, stroke, strokeDashArray) {
   return {
-    selectorText: LINE_STYLE_SELECTOR + "." + cssClass,
+    selectorText: LINE_STYLE_SELECTOR + '.' + cssClass,
     style: new StyleStub({
-      "stroke": stroke,
-      "stroke-dasharray": strokeDashArray
+      'stroke': stroke,
+      'stroke-dasharray': strokeDashArray
     })
   }
 }
@@ -179,8 +179,8 @@ function nodeTextStyleWithFontSizeInPixels(pixelSize) {
   return {
     selectorText: NODE_TEXT_STYLE_SELECTOR,
     style: new StyleStub({
-      "font-style": 'bold',
-      "font-size": `${pixelSize}px`
+      'font-style': 'bold',
+      'font-size': `${pixelSize}px`
     })
   };
 }
@@ -190,8 +190,8 @@ function circleStyleWithPaddingInPixels(pixelSize) {
   return {
     selectorText: CIRCLE_STYLE_SELECTOR,
     style: new StyleStub({
-      "margin": '99em',
-      "padding": `${pixelSize}px`
+      'margin': '99em',
+      'padding': `${pixelSize}px`
     })
   };
 }

@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 
 const visualizationFunctionsFactory = require('./main-files').get('visualization-functions');
 const visualizationFunctions = visualizationFunctionsFactory.newInstance(() => () => 1);

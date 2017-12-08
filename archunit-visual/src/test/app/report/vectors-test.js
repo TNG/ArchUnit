@@ -1,6 +1,5 @@
 'use strict';
 
-require('./chai/vectors-chai-extensions');
 const expect = require('chai').expect;
 
 const vectors = require('./main-files').get('vectors').vectors;
