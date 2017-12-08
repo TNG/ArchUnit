@@ -1,14 +1,10 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
-    }
+plugins {
+  id "org.asciidoctor.convert" version "1.5.3"
 }
 
-apply plugin: 'org.asciidoctor.convert'
+dependencies {
+    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:1.5.4.1'
+}
 
 task cleanUserGuide(type: Delete) {
     delete 'userguide/html'
@@ -21,6 +17,8 @@ asciidoctor {
             'stylesheet': 'archunit.css'
     sourceDir file('userguide')
     outputDir file('userguide')
+    requires = ['asciidoctor-diagram']
+
 }
 
 asciidoctorj {
