@@ -73,6 +73,18 @@ ext {
         }
     }
 
+    configureSlowTestsFor = { proj ->
+        proj.with {
+            test {
+                if (!project.hasProperty('allTests')) {
+                    useJUnit {
+                        excludeCategories 'com.tngtech.archunit.Slow'
+                    }
+                }
+            }
+        }
+    }
+
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
 }
 
@@ -82,7 +94,7 @@ task wrapper(type: Wrapper) {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.5.0-SNAPSHOT'
+    version = '0.6.0-SNAPSHOT'
 }
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
@@ -103,12 +115,6 @@ subprojects {
         testLogging {
             events "failed"
             exceptionFormat "full"
-        }
-
-        if (!project.hasProperty('allTests')) {
-            useJUnit {
-                excludeCategories 'com.tngtech.archunit.Slow'
-            }
         }
     }
 }

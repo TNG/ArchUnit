@@ -33,6 +33,15 @@ class NeverCondition<T> extends ArchCondition<T> {
     }
 
     @Override
+    public void finish(ConditionEvents events) {
+        ConditionEvents subEvents = new ConditionEvents();
+        condition.finish(subEvents);
+        for (ConditionEvent event : subEvents) {
+            event.addInvertedTo(events);
+        }
+    }
+
+    @Override
     public void check(T item, ConditionEvents events) {
         ConditionEvents subEvents = new ConditionEvents();
         condition.check(item, subEvents);

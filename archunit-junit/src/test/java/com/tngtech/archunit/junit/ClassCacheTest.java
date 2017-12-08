@@ -1,20 +1,31 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
@@ -23,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SuppressWarnings("unchecked")
+@RunWith(DataProviderRunner.class)
 public class ClassCacheTest {
 
     @Rule
@@ -94,6 +106,38 @@ public class ClassCacheTest {
     }
 
     @Test
+    public void get_all_classes_by_LocationProvider() {
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviders.class);
+
+        assertThatClasses(classes).contain(String.class, Rule.class, getClass());
+
+        classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class);
+
+        assertThatClasses(classes).contain(String.class);
+        assertThatClasses(classes).dontContain(getClass());
+    }
+
+    @DataProvider
+    public static Object[][] illegalLocationProviderClasses() {
+        return $$(
+                $(TestClassWithIllegalLocationProviderWithConstructorParam.class),
+                $(TestClassWithIllegalLocationProviderWithPrivateConstructor.class)
+        );
+    }
+
+    @Test
+    @UseDataProvider("illegalLocationProviderClasses")
+    public void rejects_LocationProviders_without_public_default_constructor(
+            Class<? extends LocationProvider> illegalProviderClass) {
+
+        thrown.expect(ArchTestExecutionException.class);
+        thrown.expectMessage("public default constructor");
+        thrown.expectMessage(LocationProvider.class.getSimpleName());
+
+        cache.getClassesToAnalyzeFor(illegalProviderClass);
+    }
+
+    @Test
     public void filters_urls() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
 
@@ -127,6 +171,16 @@ public class ClassCacheTest {
         verifyNumberOfImports(2);
     }
 
+    @Test
+    public void clears_cache_by_class_on_command() {
+        cache.getClassesToAnalyzeFor(TestClass.class);
+        assertThat(cache.cachedByTest).isNotEmpty();
+        cache.clear(EquivalentTestClass.class);
+        assertThat(cache.cachedByTest).isNotEmpty();
+        cache.clear(TestClass.class);
+        assertThat(cache.cachedByTest).isEmpty();
+    }
+
     private void verifyNumberOfImports(int number) {
         verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
@@ -156,6 +210,25 @@ public class ClassCacheTest {
     public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
     }
 
+    @AnalyzeClasses(
+            packagesOf = ClassCacheTest.class,
+            locations = {TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class})
+    public static class TestClassWithLocationProviders {
+    }
+
+    @LocationOfClass(String.class)
+    @AnalyzeClasses(locations = {LocationOfClass.Provider.class})
+    public static class TestClassWithLocationProviderUsingTestClass {
+    }
+
+    @AnalyzeClasses(locations = WrongLocationProviderWithConstructorParam.class)
+    public static class TestClassWithIllegalLocationProviderWithConstructorParam {
+    }
+
+    @AnalyzeClasses(locations = WrongLocationProviderWithPrivateConstructor.class)
+    public static class TestClassWithIllegalLocationProviderWithPrivateConstructor {
+    }
+
     public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
@@ -169,6 +242,41 @@ public class ClassCacheTest {
         @Override
         public boolean includes(Location location) {
             return filter.includes(location);
+        }
+    }
+
+    static class TestLocationProviderOfClass_String implements LocationProvider {
+        @Override
+        public Set<Location> get(Class<?> testClass) {
+            return Locations.ofClass(String.class);
+        }
+    }
+
+    static class TestLocationProviderOfClass_Rule implements LocationProvider {
+        @Override
+        public Set<Location> get(Class<?> testClass) {
+            return Locations.ofClass(Rule.class);
+        }
+    }
+
+    static class WrongLocationProviderWithConstructorParam implements LocationProvider {
+        @SuppressWarnings("unused")
+        public WrongLocationProviderWithConstructorParam(String illegalParameter) {
+        }
+
+        @Override
+        public Set<Location> get(Class<?> testClass) {
+            return Collections.emptySet();
+        }
+    }
+
+    static class WrongLocationProviderWithPrivateConstructor implements LocationProvider {
+        private WrongLocationProviderWithPrivateConstructor() {
+        }
+
+        @Override
+        public Set<Location> get(Class<?> testClass) {
+            return Collections.emptySet();
         }
     }
 }

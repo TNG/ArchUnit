@@ -1,0 +1,67 @@
+== Ideas and Concepts
+
+ArchUnit is divided into different layers, where the most important ones are the "Core" layer,
+the "Lang" layer and the "Library" layer. In short the Core layer deals with the basic
+infrastructure, i.e. how to import byte code into Java objects. The Lang layer contains the
+rule syntax to specify architecture rules in a succinct way. The Library layer contains
+more complex predefined rules, like a layered architecture with several layers. The following
+section will explain these layers in more detail.
+
+=== Core
+
+Much of ArchUnit's core API resembles the Java Reflection API. There are classes
+like `JavaMethod`, `JavaField`, and more, and the public API consists of methods like
+`getName()`, `getMethods()`, `getType()` or `getParameters()`. Additionally ArchUnit extends
+this API for concepts needed to talk about dependencies between code, like `JavaMethodCall`,
+`JavaConstructorCall` or `JavaFieldAccess`. For example, it is possible to programmatically
+iterate over `javaClass.getAccessesFromSelf()` and react to the imported accesses between this
+Java class and other Java classes.
+
+To import compiled Java class files, ArchUnit provides the `ClassFileImporter`, which can
+for example be used to import packages from the classpath:
+
+[source,java,options="nowrap"]
+----
+JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
+----
+
+For more information refer to <<The Core API>>.
+
+=== Lang
+
+The Core API is quite powerful and offers a lot of information about the static structure
+of a Java program. However, tests directly using the Core API lack expressiveness,
+in particular with respect to architectural rules.
+
+For this reason ArchUnit provides the Lang API, which offers a powerful syntax to express rules
+in an abstract way. Most parts of the Lang API are composed as fluent APIs, i.e. an IDE can
+provide valuable suggestions on the possibilities the syntax offers.
+
+An example for a specified architecture rule would be:
+
+[source,java,options="nowrap"]
+----
+ArchRule rule =
+    classes().that().resideInAPackage("..service..")
+        .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
+----
+
+Once a rule is composed, imported Java classes can be checked against it:
+
+[source,java,options="nowrap"]
+----
+JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+ArchRule rule = // define the rule
+rule.check(classes);
+----
+
+The syntax ArchUnit provides is fully extensible and can thus be adjusted to almost any
+specific need. For further information, please refer to <<The Lang API>>.
+
+=== Library
+
+The Library API offers predefined complex rules for typical architectural goals. For example
+a succinct definition of a layered architecture via package definitions. Or rules to slice
+the code base in a certain way, for example in different areas of the domain, and enforce these
+slices to be acyclic or independent of each other. More detailed information is provided in
+<<The Library API>>.

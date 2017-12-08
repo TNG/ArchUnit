@@ -4,10 +4,12 @@ import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import com.tngtech.archunit.example.MyService;
 import com.tngtech.archunit.example.persistence.first.dao.SomeDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.persistence.second.dao.domain.OtherPersistentObject;
 
+@MyService
 public class ServiceViolatingDaoRules {
     @EJB
     private SomeDao someDao;

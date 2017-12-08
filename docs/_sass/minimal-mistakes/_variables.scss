@@ -47,6 +47,10 @@ $type-size-8                  : 0.625em !default;  // ~10px
    Colors
    ========================================================================== */
 
+$archunit-blue-dark           : #0563a5 !default;
+$archunit-blue-medium         : #65a2d0 !default;
+$archunit-blue-light          : #a6cde9 !default;
+
 $gray                         : #7a8288 !default;
 $dark-gray                    : mix(#000, $gray, 40%) !default;
 $darker-gray                  : mix(#000, $gray, 60%) !default;
@@ -98,9 +102,9 @@ $youtube-color                : #bb0000 !default;
 $xing-color                   : #006567 !default;
 
 /* links */
-$link-color                   : $info-color !default;
-$link-color-hover             : mix(#000, $link-color, 25%) !default;
-$link-color-visited           : mix(#fff, $link-color, 25%) !default;
+$link-color                   : mix($archunit-blue-dark, $archunit-blue-medium, 50%) !default;
+$link-color-hover             : $archunit-blue-dark !default;
+$link-color-visited           : mix($archunit-blue-light, $archunit-blue-medium, 50%) !default;
 $masthead-link-color          : $primary-color !default;
 $masthead-link-color-hover    : mix(#000, $primary-color, 25%) !default;
 $navicon-link-color-hover     : mix(#fff, $primary-color, 75%) !default;

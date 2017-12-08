@@ -31,9 +31,9 @@ public class DaoRulesWithRunnerIntegrationTest {
         expectsViolations.ofRule(ONLY_DAOS_MAY_ACCESS_THE_ENTITYMANAGER_RULE_TEXT)
                 .by(accessFrom(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(EntityManager.class, "persist", Object.class)
-                        .inLine(24))
+                        .inLine(26))
                 .by(accessFrom(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(MyEntityManager.class, "persist", Object.class)
-                        .inLine(25));
+                        .inLine(27));
     }
 }

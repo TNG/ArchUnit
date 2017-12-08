@@ -1,0 +1,33 @@
+= ArchUnit User Guide
+:page-permalink: /userguide
+:description: index page of ArchUnit's documentation
+:keywords: ArchUnit, Java, architecture, test, analysis
+ifndef::env-site[:toc: left]
+:page-layout: splash
+:page-description: {description}
+:page-keywords: {keywords}
+:version: 0.5.0
+:icons: font
+:source-highlighter: coderay
+:prewrap!:
+:sectanchors:
+:sectnums:
+:author: Peter Gafert
+:revnumber: {version}
+:page-customheader: ArchUnit User Guide
+
+include::001_Intro.adoc[]
+
+include::002_Installation.adoc[]
+
+include::003_Getting_Started.adoc[]
+
+include::004_Ideas_and_Concepts.adoc[]
+
+include::005_The_Core_API.adoc[]
+
+include::006_The_Lang_API.adoc[]
+
+include::007_The_Library_API.adoc[]
+
+include::008_JUnit_Support.adoc[]

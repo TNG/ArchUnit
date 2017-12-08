@@ -785,6 +785,36 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         }
 
         @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameStartingWith(final String prefix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name starting with '%s'", prefix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().startsWith(prefix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameContaining(final String infix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name containing '%s'", infix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().contains(infix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> simpleNameEndingWith(final String suffix) {
+            return new DescribedPredicate<JavaClass>(String.format("simple name ending with '%s'", suffix)) {
+                @Override
+                public boolean apply(JavaClass input) {
+                    return input.getSimpleName().endsWith(suffix);
+                }
+            };
+        }
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
             return assignableTo(type.getName());
         }

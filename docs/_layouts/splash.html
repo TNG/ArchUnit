@@ -15,6 +15,8 @@ layout: default
     {% if page.date %}<meta itemprop="datePublished" content="{{ page.date | date: "%B %d, %Y" }}">{% endif %}
     {% if page.last_modified_at %}<meta itemprop="dateModified" content="{{ page.last_modified_at | date: "%B %d, %Y" }}">{% endif %}
 
+    {% if page.customheader %}<h1>{{ page.customheader | markdownify | strip_html | strip_newlines | escape_once }}</h1>{% endif %}
+
     <section class="page__content" itemprop="text">
       {{ content }}
     </section>

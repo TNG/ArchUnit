@@ -73,6 +73,61 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveSimpleName(String name);
 
+
+    /**
+     * Asserts that classes' simple class names start with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should start with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameStartingWith(String prefix);
+
+    /**
+     * Asserts that classes' simple class names do not start with a given prefix.
+     *
+     * @param prefix A prefix the simple class name should not start with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix);
+
+    /**
+     * Asserts that classes' simple class names contain the specified infix.
+     *
+     * @param infix An infix the simple class name should contain
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameContaining(String infix);
+
+    /**
+     * Asserts that classes' simple class names do not contain the specified infix.
+     *
+     * @param infix  An infix the simple class name should not contain
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameNotContaining(String infix);
+
+    /**
+     * Asserts that classes' simple class names end with a given suffix.
+     *
+     * @param suffix A suffix the simple class name should end with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameEndingWith(String suffix);
+
+    /**
+     * Asserts that classes' simple class names do not end with a given suffix.
+     *
+     * @param suffix A suffix the simple class name should not end with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix);
+
     /**
      * Asserts that classes have a fully qualified class name matching a given regular expression.
      *
@@ -670,4 +725,21 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
+
+
+    /**
+     * Asserts that classes are interfaces.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beInterfaces();
+
+    /**
+     * Asserts that classes are not interfaces.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeInterfaces();
 }

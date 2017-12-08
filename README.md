@@ -19,7 +19,8 @@ If you want to dive right into the first ArchUnit test using JUnit, follow these
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
+    <scope>test</scope>
 </dependency>
 ```
 2) Create a JUnit test
@@ -287,6 +288,9 @@ public class MyArchTestThatUsesMyRules {
 
 If this test is run, it will evaluate all rules (fields and methods) defined in `MyArchRules` against the imported
 classes.
+
+ArchUnit can also be used together with the JUnit 4 Categories feature to run only specific tests. Note that for the 
+example above, `MyArchRules` has to be annoted with `@Category` and not `MyArchTestThatUsesMyRules`.
 
 ## Ignoring certain violations
 

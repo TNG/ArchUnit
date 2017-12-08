@@ -12,4 +12,5 @@ group :jekyll_plugins do
   gem "jekyll-gist"
   gem "jekyll-feed"
   gem "jemoji"
+#  gem "jekyll-asciidoc" # this doesn't work yet, since it's blacklisted on Github :-( We use Gradle Asciidoctor for now...
 end

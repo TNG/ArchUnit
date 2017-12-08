@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.text.AttributedString;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,6 +84,54 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameStartingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameStartingWith("String"))
+                .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, StringBuilder.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotStartingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotStartingWith("String"))
+                .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AttributedString.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameContaining() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameContaining("rin"))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotContaining() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotContaining("rin"))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameEndingWith("String"))
+                .on(String.class, AttributedString.class, StringBuilder.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, AttributedString.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotEndingWith() throws Exception {
+        List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotEndingWith("String"))
+                .on(String.class, AttributedString.class, StringBuilder.class);
+
+        assertThatClasses(classes).matchInAnyOrder(StringBuilder.class);
     }
 
     @Test
@@ -423,6 +472,22 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areInterfaces_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areInterfaces())
+                .on(List.class, String.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Collection.class);
+    }
+
+    @Test
+    public void areNotInterfaces_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotInterfaces())
+                .on(List.class, String.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, Integer.class);
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaClass> classes = filterResultOf(
                 classes().that().haveNameMatching(".*\\..*i.*")
@@ -500,6 +565,10 @@ public class GivenClassesThatTest {
         }
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface SomeAnnotation {
+    }
+
     private static class SimpleClass {
     }
 
@@ -510,10 +579,6 @@ public class GivenClassesThatTest {
     }
 
     protected static class ProtectedClass {
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    private @interface SomeAnnotation {
     }
 
     @SomeAnnotation

@@ -13,6 +13,7 @@ import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessi
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.otheraccess.ClassAlsoAccessingOtherClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
@@ -104,6 +105,81 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
                         ClassAccessedByBaz.class, Baz.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    public void haveSimpleNameStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameStartingWith("Fo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotStartingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotStartingWith("Fo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    public void haveSimpleNameContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameContaining("o"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotContaining() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotContaining("o"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameEndingWith("oo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    public void haveSimpleNameNotEndingWith() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().haveSimpleNameNotEndingWith("oo"))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByFoo.class, Foo.class);
     }
 
     @Test
@@ -532,6 +608,24 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
+    public void areInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport (
+                classes().should().onlyBeAccessed().byClassesThat().areInterfaces())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+    }
+
+    @Test
+    public void areNotInterfaces_predicate() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areNotInterfaces())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+    }
+
+    @Test
     public void accesses_by_the_class_itself_are_ignored() {
         ClassesShouldConjunction rule = classes().should().onlyBeAccessed()
                 .byClassesThat(classWithNameOf(ClassAccessingClassAccessingItself.class));
@@ -640,6 +734,14 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     interface SomeInterface {
+    }
+
+    private static class ClassBeingAccessedByInterface {
+        static final Object SOME_CONSTANT = "Some value";
+    }
+
+    interface InterfaceAccessingAClass {
+        Object SOME_CONSTANT = ClassBeingAccessedByInterface.SOME_CONSTANT;
     }
 
     private static class ClassImplementingSomeInterface implements SomeInterface {

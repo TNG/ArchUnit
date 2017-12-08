@@ -24,6 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class ConditionEvents implements Iterable<ConditionEvent> {
@@ -77,7 +78,7 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      * @param violationHandler The violation handler that is supposed to handle all violations matching the
      *                         respective type parameter
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public void handleViolations(ViolationHandler<?> violationHandler) {
         ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
         for (final ConditionEvent event : eventsByViolation.get(Type.VIOLATION)) {
