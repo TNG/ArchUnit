@@ -1,0 +1,70 @@
+== What to Check
+
+TODO: Show some typical kinds of checks.
+
+=== Package Dependency Checks
+
+.Package Dependencies
+[plantuml, "package-deps.png"]
+----
+skinparam componentStyle uml2
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+[source] --[#green]right-->  [target]:allowed
+[source] --[#crimson]left--> [foo]
+note top on link #crimson: forbidden
+----
+
+[source,java]
+----
+// todo: show proper UnitTest here
+noClasses().that()..check()
+classes.().that()..check()
+----
+
+=== Class and Package Dependency Checks
+
+.Class and Package Dependencies
+[plantuml, "class-package-deps.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package org.foo {
+  class Foo
+  class FooBar
+}
+
+package org.aim42.bar {
+  Bar -> Foo
+  note top on link #crimson: forbidden
+
+  Bar -right-> FooBar #green
+  note left on link #green: allowed
+}
+
+----
+
+[source,java]
+----
+// todo: show proper UnitTest here
+classes().withName()....check()
+----
+
+=== Class and Package Containment Checks
+
+=== Class and Interface Naming Checks
+
+=== Annotation Checks
