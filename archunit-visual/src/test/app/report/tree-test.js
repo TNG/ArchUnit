@@ -13,6 +13,8 @@ const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Node = appContext.getNode();
 const testJson = require('./test-json-creator');
 
+const testRoot = require('./test-object-creator').tree;
+
 const MAXIMUM_DELTA = 0.0001;
 
 describe('Root', () => {
@@ -37,6 +39,16 @@ describe('Root', () => {
     expect(root.isFolded()).to.equal(false);
     root._changeFoldIfInnerNodeAndRelayout();
     expect(root.isFolded()).to.equal(false);
+  });
+
+  it('should return the correct node by name', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class').build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    expect(root.getByName('com.tngtech.archunit.SomeClass1').getFullName()).to.equal('com.tngtech.archunit.SomeClass1');
+    expect(root.getByName('com.tngtech.archunit.SomeClass2').getFullName()).to.equal('com.tngtech.archunit.SomeClass2');
   });
 });
 
@@ -601,6 +613,29 @@ describe('Node', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
+  });
+
+  it('should filter out a node not matching a part with wildcard', () => {
+    const root = testRoot(
+      'my.company.first.SomeClass',
+      'my.company.first.OtherClass',
+      'my.company.second.SomeClass',
+      'my.company.second.OtherClass');
+
+    root.filterByName('my.*.first', false);
+    return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
+      .then(() => {
+        root.filterByName('company*.Some', false);
+        return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
+          .then(() => {
+            root.filterByName('company*.Some', true);
+            return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
+              .then(() => {
+                root.filterByName('company*.Some ', false);
+                return root.doNext(() => expect(root).to.containNoClasses());
+              });
+          });
+      });
   });
 
   it('can filter nodes by name and exclude the matching nodes: changes CSS-class of not matching class with ' +

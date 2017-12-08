@@ -19,20 +19,6 @@ require('chai').use(function (chai, utils) {
     new Assertion(actualStrings).to.deep.equal(expectedStrings);
   });
 
-  Assertion.addMethod('containOnlyClasses', function () {
-    const actual = nodesFrom(this._obj).filter(node => node._isLeaf());
-    const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(actual, arguments);
-
-    new Assertion(actualStrings).to.deep.equal(expectedStrings);
-  });
-
-  Assertion.addMethod('containNoClasses', function () {
-    const actual = nodesFrom(this._obj).filter(node => node._isLeaf() && !node.isPackage());
-
-    //noinspection BadExpressionStatementJS -> Chai magic
-    new Assertion(actual).to.be.empty;
-  });
-
   Assertion.addMethod('containNodes', function () {
     const {actualStrings, expectedStrings} = convertActualAndExpectedToStrings(nodesFrom(this._obj), arguments);
 

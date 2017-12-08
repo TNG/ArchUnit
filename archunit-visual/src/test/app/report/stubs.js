@@ -76,6 +76,12 @@ const DependencyViewStub = class {
   }
 };
 
+const GraphViewStub = class {
+  constructor() {
+    this.renderWithTransition = () => {};
+  }
+};
+
 const createNodeListenerStub = () => {
   let _onDragWasCalled = false;
   let _foldedNode;
@@ -95,6 +101,7 @@ module.exports = {
   calculateTextWidthStub: calculateTextWidthStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
+  GraphViewStub: GraphViewStub,
   NodeListenerStub: createNodeListenerStub,
   saveMovedDependenciesTo: saveMovedDependenciesTo,
   saveMovedNodesTo: saveMovedNodesTo
