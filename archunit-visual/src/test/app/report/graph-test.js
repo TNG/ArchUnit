@@ -147,4 +147,38 @@ describe('Graph', () => {
 
     expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
   });
+
+  it('transforms the dependencies if a node is folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('SomeClass1', 'class')
+          .callingMethod('com.tngtech.archunit.SomeClass2', 'startMethod()', 'targetMethod()')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class')
+        .build())
+      .build();
+    const graph = new Graph(jsonRoot);
+
+    const exp = ['com.tngtech.archunit.pkgToFold->com.tngtech.archunit.SomeClass2()'];
+
+    graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
+
+    expect(graph.dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('updates the positions of the dependencies if a node is dragged', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class')
+        .callingMethod('com.tngtech.archunit.SomeClass2', 'startMethod()', 'targetMethod()')
+        .build())
+      .add(testJson.clazz('SomeClass2', 'class')
+        .build())
+      .build();
+    const graph = new Graph(jsonRoot);
+
+    graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
+
+    return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()[0]._view.hasJumpedToPosition).to.equal(true));
+  });
 });
