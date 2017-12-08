@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.5">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
 <title>Getting Started</title>
 <style>
 /* Adapted for ArchUnit */
@@ -449,7 +449,7 @@ This can be done using the <code>ClassFileImporter</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -459,7 +459,7 @@ that do not, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -469,7 +469,7 @@ in fact access most properties of the imported class via the public API:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClass clazz = classes.get(Object.class);
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClass clazz = classes.get(Object.class);
 System.out.print(clazz.getSimpleName()); // returns 'Object'</code></pre>
 </div>
 </div>
@@ -483,7 +483,7 @@ imported classes. To specify a rule, use the class <code>ArchRuleDefinition</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 // ...
 
@@ -498,7 +498,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">myRule.check(classes);</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">myRule.check(classes);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -506,7 +506,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">@Test
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
 public void Services_should_only_be_accessed_by_Controllers() {
     JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
 
@@ -532,7 +532,7 @@ to import via <code>@AnalyzeClasses</code> and add the respective rules as field
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">@RunWith(ArchUnitRunner.class)
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -554,11 +554,11 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-11-22 23:03:08 CET
+Last updated 2017-12-04 00:51:58 CET
 </div>
 </div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/mono-blue.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/mono-blue.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 </body>
 </html>

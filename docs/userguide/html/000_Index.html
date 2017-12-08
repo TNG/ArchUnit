@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.5">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
 <meta name="description" content="index page of ArchUnit's documentation">
 <meta name="keywords" content="ArchUnit, Java, architecture, test, analysis">
 <meta name="author" content="Peter Gafert">
@@ -461,21 +461,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
 </ul>
 </li>
-<li><a href="#_ideas_and_concepts">4. Ideas and Concepts</a>
+<li><a href="#_what_to_check">4. What to Check</a>
 <ul class="sectlevel2">
-<li><a href="#_core">4.1. Core</a></li>
-<li><a href="#_lang">4.2. Lang</a></li>
-<li><a href="#_library">4.3. Library</a></li>
+<li><a href="#_package_dependency_checks">4.1. Package Dependency Checks</a></li>
+<li><a href="#_class_and_package_dependency_checks">4.2. Class and Package Dependency Checks</a></li>
+<li><a href="#_class_and_package_containment_checks">4.3. Class and Package Containment Checks</a></li>
+<li><a href="#_class_and_interface_naming_checks">4.4. Class and Interface Naming Checks</a></li>
+<li><a href="#_annotation_checks">4.5. Annotation Checks</a></li>
 </ul>
 </li>
-<li><a href="#_the_core_api">5. The Core API</a>
+<li><a href="#_ideas_and_concepts">5. Ideas and Concepts</a>
 <ul class="sectlevel2">
-<li><a href="#_import">5.1. Import</a></li>
+<li><a href="#_core">5.1. Core</a></li>
+<li><a href="#_lang">5.2. Lang</a></li>
+<li><a href="#_library">5.3. Library</a></li>
 </ul>
 </li>
-<li><a href="#_the_lang_api">6. The Lang API</a></li>
-<li><a href="#_the_library_api">7. The Library API</a></li>
-<li><a href="#_junit_support">8. JUnit Support</a></li>
+<li><a href="#_the_core_api">6. The Core API</a>
+<ul class="sectlevel2">
+<li><a href="#_import">6.1. Import</a></li>
+</ul>
+</li>
+<li><a href="#_the_lang_api">7. The Lang API</a></li>
+<li><a href="#_the_library_api">8. The Library API</a></li>
+<li><a href="#_junit_support">9. JUnit Support</a></li>
 </ul>
 </div>
 </div>
@@ -538,7 +547,7 @@ Maven Central:</p>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
+<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit&lt;/artifactId&gt;
     &lt;version&gt;0.5.0&lt;/version&gt;
@@ -564,7 +573,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
+<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
     &lt;version&gt;0.5.0&lt;/version&gt;
@@ -599,7 +608,7 @@ This can be done using the <code>ClassFileImporter</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -609,7 +618,7 @@ that do not, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -619,7 +628,7 @@ in fact access most properties of the imported class via the public API:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClass clazz = classes.get(Object.class);
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClass clazz = classes.get(Object.class);
 System.out.print(clazz.getSimpleName()); // returns 'Object'</code></pre>
 </div>
 </div>
@@ -633,7 +642,7 @@ imported classes. To specify a rule, use the class <code>ArchRuleDefinition</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 // ...
 
@@ -648,7 +657,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">myRule.check(classes);</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">myRule.check(classes);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -656,7 +665,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">@Test
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
 public void Services_should_only_be_accessed_by_Controllers() {
     JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
 
@@ -682,7 +691,7 @@ to import via <code>@AnalyzeClasses</code> and add the respective rules as field
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">@RunWith(ArchUnitRunner.class)
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -702,7 +711,58 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 </div>
 </div>
 <div class="sect1">
-<h2 id="_ideas_and_concepts"><a class="anchor" href="#_ideas_and_concepts"></a>4. Ideas and Concepts</h2>
+<h2 id="_what_to_check"><a class="anchor" href="#_what_to_check"></a>4. What to Check</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TODO: Show some typical kinds of checks.</p>
+</div>
+<div class="sect2">
+<h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="package-deps.png.png" alt="Package Dependencies" width="461" height="76">
+</div>
+<div class="title">Package Dependencies</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// todo: show proper UnitTest here
+noClasses().that()..check()
+classes.().that()..check()</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_class_and_package_dependency_checks"><a class="anchor" href="#_class_and_package_dependency_checks"></a>4.2. Class and Package Dependency Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="class-package-deps.png.png" alt="Class and Package Dependencies" width="262" height="304">
+</div>
+<div class="title">Class and Package Dependencies</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// todo: show proper UnitTest here
+classes().withName()....check()</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_class_and_interface_naming_checks"><a class="anchor" href="#_class_and_interface_naming_checks"></a>4.4. Class and Interface Naming Checks</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
+
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ideas_and_concepts"><a class="anchor" href="#_ideas_and_concepts"></a>5. Ideas and Concepts</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>ArchUnit is divided into different layers, where the most important ones are the "Core" layer,
@@ -713,7 +773,7 @@ more complex predefined rules, like a layered architecture with several layers. 
 section will explain these layers in more detail.</p>
 </div>
 <div class="sect2">
-<h3 id="_core"><a class="anchor" href="#_core"></a>4.1. Core</h3>
+<h3 id="_core"><a class="anchor" href="#_core"></a>5.1. Core</h3>
 <div class="paragraph">
 <p>Much of ArchUnit&#8217;s core API resembles the Java Reflection API. There are classes
 like <code>JavaMethod</code>, <code>JavaField</code>, and more, and the public API consists of methods like
@@ -729,7 +789,7 @@ for example be used to import packages from the classpath:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -737,7 +797,7 @@ for example be used to import packages from the classpath:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_lang"><a class="anchor" href="#_lang"></a>4.2. Lang</h3>
+<h3 id="_lang"><a class="anchor" href="#_lang"></a>5.2. Lang</h3>
 <div class="paragraph">
 <p>The Core API is quite powerful and offers a lot of information about the static structure
 of a Java program. However, tests directly using the Core API lack expressiveness,
@@ -753,7 +813,7 @@ provide valuable suggestions on the possibilities the syntax offers.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">ArchRule rule =
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule =
     classes().that().resideInAPackage("..service..")
         .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");</code></pre>
 </div>
@@ -763,7 +823,7 @@ provide valuable suggestions on the possibilities the syntax offers.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
 ArchRule rule = // define the rule
 rule.check(classes);</code></pre>
 </div>
@@ -774,7 +834,7 @@ specific need. For further information, please refer to <a href="#_the_lang_api"
 </div>
 </div>
 <div class="sect2">
-<h3 id="_library"><a class="anchor" href="#_library"></a>4.3. Library</h3>
+<h3 id="_library"><a class="anchor" href="#_library"></a>5.3. Library</h3>
 <div class="paragraph">
 <p>The Library API offers predefined complex rules for typical architectural goals. For example
 a succinct definition of a layered architecture via package definitions. Or rules to slice
@@ -786,13 +846,13 @@ slices to be acyclic or independent of each other. More detailed information is 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_core_api"><a class="anchor" href="#_the_core_api"></a>5. The Core API</h2>
+<h2 id="_the_core_api"><a class="anchor" href="#_the_core_api"></a>6. The Core API</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Core API is itself divided into the domain and the actual import.</p>
 </div>
 <div class="sect2">
-<h3 id="_import"><a class="anchor" href="#_import"></a>5.1. Import</h3>
+<h3 id="_import"><a class="anchor" href="#_import"></a>6.1. Import</h3>
 <div class="paragraph">
 <p>As mentioned in <a href="#_ideas_and_concepts">Ideas and Concepts</a> the backbone of the infrastructure is the <code>ClassFileImporter</code>,
 which provides various ways to import Java classes. One way is to import packages from
@@ -800,7 +860,7 @@ the classpath, or the complete classpath via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath();</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath();</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -809,7 +869,7 @@ to import any path from the file system:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path/to/classes");</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path/to/classes");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -825,19 +885,19 @@ is imported.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_lang_api"><a class="anchor" href="#_the_lang_api"></a>6. The Lang API</h2>
+<h2 id="_the_lang_api"><a class="anchor" href="#_the_lang_api"></a>7. The Lang API</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_library_api"><a class="anchor" href="#_the_library_api"></a>7. The Library API</h2>
+<h2 id="_the_library_api"><a class="anchor" href="#_the_library_api"></a>8. The Library API</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_junit_support"><a class="anchor" href="#_junit_support"></a>8. JUnit Support</h2>
+<h2 id="_junit_support"><a class="anchor" href="#_junit_support"></a>9. JUnit Support</h2>
 <div class="sectionbody">
 
 </div>
@@ -846,11 +906,11 @@ is imported.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.5.0<br>
-Last updated 2017-12-04 00:32:40 CET
+Last updated 2017-12-08 17:10:41 CET
 </div>
 </div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/mono-blue.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/mono-blue.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 </body>
 </html>
