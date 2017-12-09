@@ -12,9 +12,14 @@ framework.
 
 ## TL;DR
 
-If you want to dive right into the first ArchUnit test using JUnit, follow these steps
+If you want to dive right into the first ArchUnit test using JUnit:
 
-1) ArchUnit can be obtained from Maven Central
+1) Get ArchUnit from Maven Central
+* with gradle:
+```
+testCompile 'com.tngtech.archunit:archunit-junit:0.5.0'
+```
+* with maven:
 ```
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
@@ -23,6 +28,7 @@ If you want to dive right into the first ArchUnit test using JUnit, follow these
     <scope>test</scope>
 </dependency>
 ```
+
 2) Create a JUnit test
 ```java
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -99,26 +105,16 @@ A simple ArchUnit test for this could look like the following:
 ```Java
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-// ...
-
-private final ClassFileImporter importer = new ClassFileImporter();
-
-private JavaClasses classes;
-
-@Before
-public void importClasses() {
-    classes = importer.importClasspath(); // imports all classes from the classpath that are not from JARs
-}
+// imports all classes from the classpath that are not from JARs
+private final JavaClasses classes = new ClassFileImporter().importClasspath();
 
 @Test
 public void one_should_not_access_two() {
     ArchRule rule = noClasses().that().resideInAPackage("..one..")
-        .should().accessClassesThat().resideInAPackage("..two.."); // The '..' represents a wildcard for any number of packages
+        .should().accessClassesThat().resideInAPackage("..two.."); // '..' represents a wildcard for any number of packages
 
     rule.check(classes);
 }
-
-// ...
 ```
 
 If this rule is violated, the test will fail with an error message like
@@ -131,6 +127,8 @@ Method <my.one.ClassInOne.illegalAccessToTwo()> calls constructor <my.two.ClassI
 Method <my.one.ClassInOne.illegalAccessToTwo()> gets field <my.two.ClassInTwo.someField> in (ClassInOne.java:10)
 ```
 
+See below and [`archunit-example`](archunit-example/README.md) for further examples.
+
 ## Writing custom rules
 
 ArchUnit comes with many predefined syntax elements like `classes().that().are...` or 
@@ -142,7 +140,7 @@ predicates and conditions to extend rules in the following way:
 ```Java
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
-// assign imported classes to a variable classes
+private final JavaClasses classes = // ... (imported classes)
 
 @Test
 public void core_classes_should_not_access_remote_endpoints() {
@@ -223,8 +221,8 @@ platform independence' was violated:
 
 The approach of the last section is inefficient, because the classes will be reimported on every run, 
 which can take considerable time. To solve this, you can use a different way to declare rules, and a custom 
-JUnit runner that will cache the imported classes by URLs. Thus when several tests, importing classes from the same
-URLs, are run, the import will only happen once.
+JUnit runner that will cache the imported classes by URLs. Thus when several tests importing classes from the same
+URLs are run, the import will only happen once.
 
 With JUnit 4, `ArchRule`s can be evaluated as fields using the `ArchUnitRunner`:
 
@@ -240,7 +238,7 @@ public class MyArchTest {
 }
 ```
 
-Additionally tests can also be specified as methods that take `JavaClasses` as input, which will result in reusing
+Tests can also be specified as methods that take `JavaClasses` as input, which will result in reusing
 the cached classes as well:
 
 ```Java
@@ -342,7 +340,7 @@ CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.cla
 String value = annotation.value();
 ```
 
-Also, most `Java...` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API,
+Also, most `Java...` objects (e.g. `JavaClass`, `JavaMethod`, `JavaField`, ...) ArchUnit offers at its core API
 are not only modelled closely to the Java Reflection API, but also provide a simple way to access the 
 respective API, if all necessary classes are on the classpath. For example
 
@@ -401,12 +399,13 @@ Besides extending the rule syntax itself, it's also possible, to extend the rule
 dynamic way. An use case could be to draw some diagrams of failed rules, or report failures to
 some custom system.
 
-ArchUnit uses the standard Java `ServiceLoader` mechanism. I.e. to register a custom extension, one has to add a
-class implementing `com.tngtech.archunit.lang.extension.ArchUnitExtension`, add a text file (in UTF-8) to the
-directory `/META-INF/services`, named 'com.tngtech.archunit.lang.extension.ArchUnitExtension' and add a line
-containing the fully qualified class name of the custom extension.
+ArchUnit uses the standard Java `ServiceLoader` mechanism: a custom extension can be registered by adding
+* a class that implements `com.tngtech.archunit.lang.extension.ArchUnitExtension`, and
+* a text file `/META-INF/services/com.tngtech.archunit.lang.extension.ArchUnitExtension`
+containing the fully qualified class name of the custom extension (in UTF-8).
 
-Extensions can be configured via `archunit.properties`, in particular, only enabled extensions will be evaluated, i.e.
+Extensions can be configured via `archunit.properties`.
+In particular, extensions will only be evaluated if enabled in the following way:
 
 ```
 # this must be set to true, or the extension will never be called
@@ -417,20 +416,20 @@ extension.my-custom-extension.enabled=true
 extension.my-custom-extension.my-prop=someValue
 ```
 
-Note that 'my-custom-extension' refers to the String returned by `extension.getUniqueIdentifier()`.
+Note that 'my-custom-extension' in this example corresponds to the value returned by `extension.getUniqueIdentifier()`.
 
 ## License
 
 ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
 
-Furthermore, ArchUnit redistributes some third party libraries to avoid classpath collisions:
+It redistributes some third party libraries:
 
-* ASM (http://asm.ow2.org)
-* Google Guava (https://github.com/google/guava)
+* ASM (http://asm.ow2.org), under BSD Licence
+* Google Guava (https://github.com/google/guava), under Apache License 2.0
 
 All licenses for ArchUnit and redistributed libraries can be found within the [licenses](licenses) folder.
 
 ## Where to look next
 
-Further examples can be found in the project `archunit-example`, including some further predefined rules
-like detecting cyclic dependencies or checking for specific field accesses or method calls.
+Further examples can be found in the project [`archunit-example`](archunit-example/README.md),
+including some further predefined rules like detecting cyclic dependencies or checking for specific field accesses or method calls.
