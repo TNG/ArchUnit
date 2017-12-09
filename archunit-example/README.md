@@ -1,19 +1,20 @@
 # ArchUnit Examples
 
-This module houses some examples to illustrate how to use ArchUnit. All example
-rules you can find within `example/test` refer to classes from `example/main`.
-These tests are all designed to fail, to demonstrate how production code could violate
-typical architectural constraints (like layer dependencies).
+This module houses some examples
+* to illustrate how to use ArchUnit, and
+* providing input for the `archunit-integration-test` at the same time.
 
-All tests are marked with `@Category(Example.class)`, to run them with the regular
-Gradle build, add the property `example`, e.g.
+The [example rules within `example/test`](src/test/java/com/tngtech/archunit/exampletest)
+are applied to classes from [`example/main`](src/main/java/com/tngtech/archunit/example/),
+which are designed to break the architectural concepts (like layer dependencies, etc.).
+This demonstrates how ArchUnit detects such violations.
 
+In order to execute those tests (marked with `@Category(Example.class)`, excluded from the regular build),
+simply add the property `example` to the Gradle build:
 ```
 ../gradlew clean build -P example
 ```
 
-Otherwise the tests can be run directly from any IDE.
+Alternatively, the tests can also be run directly from any IDE, of course.
 
-Note that the example rules within this module also serve as input to
-`archunit-integration-test`, to continuously ensure the expected behavior of the example
-rules.
+Happy exploring!
