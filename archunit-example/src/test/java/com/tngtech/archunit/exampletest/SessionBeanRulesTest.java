@@ -22,7 +22,6 @@ import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -37,12 +36,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @Category(Example.class)
 public class SessionBeanRulesTest {
-    private JavaClasses classes;
 
-    @Before
-    public void setUp() throws Exception {
-        classes = new ClassFileImporter().importPackagesOf(ClassViolatingSessionBeanRules.class);
-    }
+    private final JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassViolatingSessionBeanRules.class);
 
     @Test
     public void stateless_session_beans_should_not_have_state() {
