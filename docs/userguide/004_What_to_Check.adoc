@@ -1,11 +1,10 @@
 == What to Check
 
-TODO: Show some typical kinds of checks.
+The following section illustrates some typical checks you could do with ArchUnit.
 
 === Package Dependency Checks
 
-.Package Dependencies
-[plantuml, "package-deps.png"]
+[plantuml, "package-deps-no-access.png"]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -20,15 +19,35 @@ note top on link #crimson: forbidden
 
 [source,java]
 ----
-// todo: show proper UnitTest here
-noClasses().that()..check()
-classes.().that()..check()
+noClasses().that().resideInAPackage("..source..")
+    .should().accessClassesThat().resideInAPackage("..foo..")
 ----
 
-=== Class and Package Dependency Checks
+[plantuml, "package-deps-only-access.png"]
+----
+skinparam componentStyle uml2
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
 
-.Class and Package Dependencies
-[plantuml, "class-package-deps.png"]
+[source.one] --[#green]right-->  [source.two]:allowed
+[source.one] --[#green]--> [foo]:allowed
+[source.two] --[#crimson]down--> [foo]
+note top on link #crimson: forbidden
+[source.any] --[#crimson]down--> [foo]
+note top on link #crimson: forbidden
+----
+
+[source,java]
+----
+classes().that().resideInAPackage("..foo..")
+    .should().onlyBeAccessed().byAnyPackage("..source.one..", "..foo..")
+----
+
+=== Class Dependency Checks
+
+[plantuml, "class-naming-deps.png"]
 ----
 skinparam componentStyle uml2
 
@@ -42,29 +61,248 @@ skinparam class {
   BackgroundColor #white
 }
 
-package org.foo {
-  class Foo
-  class FooBar
-}
+class Other
+class FooBar
 
-package org.aim42.bar {
-  Bar -> Foo
-  note top on link #crimson: forbidden
+Other -> FooBar
+note top on link #crimson: forbidden
 
-  Bar -right-> FooBar #green
-  note left on link #green: allowed
-}
-
+Bar --> FooBar #green
+note left on link #green: allowed
 ----
 
 [source,java]
 ----
-// todo: show proper UnitTest here
-classes().withName()....check()
+classes().that().haveNameMatching(".*Bar")
+    .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")
 ----
 
 === Class and Package Containment Checks
 
-=== Class and Interface Naming Checks
+[plantuml, "class-package-contain.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package com.foo {
+    class FooService
+}
+
+package com.wrong {
+    class FooController
+}
+
+note "resides in wrong package" as WrongPackage #crimson
+FooController .. WrongPackage
+----
+
+[source,java]
+----
+classes().that().haveSimpleNameStartingWith("Foo")
+    .should().resideInAPackage("com.foo")
+----
+
+=== Inheritance Checks
+
+[plantuml, "inheritance-naming-check.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+class Connection <<interface>>
+class HtmlConnection <<concrete>>
+class FtpConnection <<concrete>>
+class SshThing <<concrete>>
+
+HtmlConnection --|> Connection #green
+FtpConnection --|> Connection #green
+SshThing --|> Connection #crimson
+
+note right on link #crimson: Has wrong name
+----
+
+[source,java]
+----
+classes().that().implement(Connection.class)
+    .should().haveSimpleNameEndingWith("Connection")
+----
+
+[plantuml, "inheritance-access-check.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package com.myapp.persistence {
+    class ValidPersistenceUser
+}
+
+package com.myapp.somewhereelse {
+    class IllegalPersistenceUser
+}
+
+class EntityManager
+
+ValidPersistenceUser --> EntityManager #green
+IllegalPersistenceUser --> EntityManager #crimson
+
+note right on link #crimson: Accessor resides in wrong package
+----
+
+[source,java]
+----
+classes().that().areAssignableTo(EntityManager.class)
+    .should().onlyBeAccessed().byAnyPackage("..persistence..")
+----
 
 === Annotation Checks
+
+[plantuml, "inheritance-annotation-check.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+class ValidPersistenceUser <<@Transactional>>
+class IllegalPersistenceUser <<not transactional>>
+
+class EntityManager
+
+ValidPersistenceUser --> EntityManager #green
+IllegalPersistenceUser --> EntityManager #crimson
+
+note right on link #crimson: Accessor is not annotated with @Transactional
+----
+
+[source,java]
+----
+classes().that().areAssignableTo(EntityManager.class)
+    .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)
+----
+
+=== Layer Checks
+
+[plantuml, "layer-check.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package com.myapp.controller {
+    class SomeControllerOne
+    class SomeControllerTwo
+}
+package com.myapp.service {
+    class SomeServiceOne
+    class SomeServiceTwo
+}
+package com.myapp.persistence {
+    class SomePersistenceManager
+}
+
+SomeControllerOne --> SomeServiceOne #green
+SomeServiceTwo -down-> SomePersistenceManager #green
+
+SomeControllerOne -down-> SomePersistenceManager #crimson
+note right on link #crimson: Access bypasses layers
+
+SomeServiceTwo -up--> SomeControllerTwo #crimson
+note right on link #crimson: Access goes against layers
+
+SomePersistenceManager -up--> SomeServiceOne #crimson
+note right on link #crimson: Access goes against layers
+----
+
+[source,java]
+----
+layeredArchitecture()
+    .layer("Controller").definedBy("..controller..")
+    .layer("Service").definedBy("..service..")
+    .layer("Persistence").definedBy("..persistence..")
+
+    .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
+    .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller")
+    .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service")
+----
+
+=== Cycle Checks
+
+[plantuml, "cycle-check.png"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package com.myapp.moduleone {
+    class ClassOneInModuleOne
+    class ClassTwoInModuleOne
+}
+package com.myapp.moduletwo {
+    class ClassOneInModuleTwo
+    class ClassTwoInModuleTwo
+}
+package com.myapp.modulethree {
+    class ClassOneInModuleThree
+    class ClassTwoInModuleThree
+}
+
+ClassOneInModuleOne --> ClassTwoInModuleTwo #crimson
+ClassOneInModuleTwo --> ClassOneInModuleThree #crimson
+ClassTwoInModuleThree --> ClassOneInModuleOne #crimson
+note right on link #crimson: Combination of accesses forms cycle
+----
+
+[source,java]
+----
+slices().matching("com.myapp.(*)..").should().beFreeOfCycles()
+----

@@ -464,10 +464,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_what_to_check">4. What to Check</a>
 <ul class="sectlevel2">
 <li><a href="#_package_dependency_checks">4.1. Package Dependency Checks</a></li>
-<li><a href="#_class_and_package_dependency_checks">4.2. Class and Package Dependency Checks</a></li>
+<li><a href="#_class_dependency_checks">4.2. Class Dependency Checks</a></li>
 <li><a href="#_class_and_package_containment_checks">4.3. Class and Package Containment Checks</a></li>
-<li><a href="#_class_and_interface_naming_checks">4.4. Class and Interface Naming Checks</a></li>
+<li><a href="#_inheritance_checks">4.4. Inheritance Checks</a></li>
 <li><a href="#_annotation_checks">4.5. Annotation Checks</a></li>
+<li><a href="#_layer_checks">4.6. Layer Checks</a></li>
+<li><a href="#_cycle_checks">4.7. Cycle Checks</a></li>
 </ul>
 </li>
 <li><a href="#_ideas_and_concepts">5. Ideas and Concepts</a>
@@ -714,50 +716,132 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 <h2 id="_what_to_check"><a class="anchor" href="#_what_to_check"></a>4. What to Check</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>TODO: Show some typical kinds of checks.</p>
+<p>The following section illustrates some typical checks you could do with ArchUnit.</p>
 </div>
 <div class="sect2">
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps.png.png" alt="Package Dependencies" width="461" height="76">
+<img src="package-deps-no-access.png.png" alt="package deps no access.png" width="461" height="76">
 </div>
-<div class="title">Package Dependencies</div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// todo: show proper UnitTest here
-noClasses().that()..check()
-classes.().that()..check()</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">noClasses().that().resideInAPackage("..source..")
+    .should().accessClassesThat().resideInAPackage("..foo..")</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="package-deps-only-access.png.png" alt="package deps only access.png" width="496" height="334">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().resideInAPackage("..foo..")
+    .should().onlyBeAccessed().byAnyPackage("..source.one..", "..foo..")</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_class_and_package_dependency_checks"><a class="anchor" href="#_class_and_package_dependency_checks"></a>4.2. Class and Package Dependency Checks</h3>
+<h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-deps.png.png" alt="Class and Package Dependencies" width="262" height="304">
+<img src="class-naming-deps.png.png" alt="class naming deps.png" width="334" height="214">
 </div>
-<div class="title">Class and Package Dependencies</div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// todo: show proper UnitTest here
-classes().withName()....check()</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().haveNameMatching(".*Bar")
+    .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
-
+<div class="imageblock">
+<div class="content">
+<img src="class-package-contain.png.png" alt="class package contain.png" width="348" height="203">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().haveSimpleNameStartingWith("Foo")
+    .should().resideInAPackage("com.foo")</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_class_and_interface_naming_checks"><a class="anchor" href="#_class_and_interface_naming_checks"></a>4.4. Class and Interface Naming Checks</h3>
-
+<h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="inheritance-naming-check.png.png" alt="inheritance naming check.png" width="479" height="225">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().implement(Connection.class)
+    .should().haveSimpleNameEndingWith("Connection")</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="inheritance-access-check.png.png" alt="inheritance access check.png" width="587" height="267">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().areAssignableTo(EntityManager.class)
+    .should().onlyBeAccessed().byAnyPackage("..persistence..")</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="inheritance-annotation-check.png.png" alt="inheritance annotation check.png" width="597" height="220">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().areAssignableTo(EntityManager.class)
+    .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="layer-check.png.png" alt="layer check.png" width="653" height="598">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">layeredArchitecture()
+    .layer("Controller").definedBy("..controller..")
+    .layer("Service").definedBy("..service..")
+    .layer("Persistence").definedBy("..persistence..")
 
+    .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
+    .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller")
+    .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
+<div class="imageblock">
+<div class="content">
+<img src="cycle-check.png.png" alt="cycle check.png" width="769" height="398">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">slices().matching("com.myapp.(*)..").should().beFreeOfCycles()</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
