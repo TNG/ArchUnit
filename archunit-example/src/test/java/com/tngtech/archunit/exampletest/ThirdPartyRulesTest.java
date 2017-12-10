@@ -9,7 +9,6 @@ import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.lang.ArchCondition;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -33,12 +32,7 @@ public class ThirdPartyRulesTest {
                     " and its subclasses, but instead use " +
                     ThirdPartyClassWorkaroundFactory.class.getSimpleName();
 
-    private JavaClasses classes;
-
-    @Before
-    public void setUp() throws Exception {
-        classes = new ClassFileImporter().importPackagesOf(ClassViolatingThirdPartyRules.class);
-    }
+    private final JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassViolatingThirdPartyRules.class);
 
     @Test
     public void third_party_class_should_only_be_instantiated_via_workaround() {
