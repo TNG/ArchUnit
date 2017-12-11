@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+  .links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+  }
+
+  .nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+
+</style>
+<svg width="2000" height="1000"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+  console.log('started');
+
+  var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+  var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+  const distance = 10;
+
+  var simulation = d3.forceSimulation()
+    .alphaDecay(0.0228)
+    .force("collide", d3.forceCollide().radius(d => d.r + distance))
+    .force("link", d3.forceLink()
+      .id(function (d) {
+        return d.id;
+      })
+      .distance(n => {
+        return distance;
+      }))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .stop();
+
+  let link;
+  let node;
+
+  d3.json("example.json", function (error, graph) {
+    if (error) throw error;
+
+    graph.nodes.forEach(n => n.r = 5 + 30 * Math.random());
+
+    link = svg.append("g")
+      .attr("class", "links")
+      .selectAll("line")
+      .data(graph.links)
+      .enter().append("line")
+      .attr("stroke-width", function (d) {
+        return Math.sqrt(d.value);
+      });
+
+    node = svg.append("g")
+      .attr("class", "nodes")
+      .selectAll("circle")
+      .data(graph.nodes)
+      .enter().append("circle")
+      .attr("r", n => n.r)
+      .attr("fill", function (d) {
+        return color(d.group);
+      })
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    node.append("title")
+      .text(function (d) {
+        return d.id;
+      });
+
+    simulation
+      .nodes(graph.nodes);
+    //.on("tick", ticked);
+    //.on('end', ticked);
+
+    simulation.force("link")
+      .links(graph.links);
+
+    runSimulation();
+  });
+
+  const getStartPositionOfDep = (dep, getStart, getEnd) => {
+    const radius = getStart(dep).r;
+    const directionVector = {
+      x: getEnd(dep).x - getStart(dep).x,
+      y: getEnd(dep).y - getStart(dep).y
+    };
+    const directionVectorLength = Math.sqrt(directionVector.x * directionVector.x + directionVector.y * directionVector.y);
+    const normedDirectionVector = {
+      x: radius * directionVector.x / directionVectorLength,
+      y: radius * directionVector.y / directionVectorLength
+    };
+    return {
+      x: getStart(dep).x + normedDirectionVector.x,
+      y: getStart(dep).y + normedDirectionVector.y
+    };
+  };
+
+  function runSimulation() {
+    for (var i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+      simulation.tick();
+    }
+    updateSvgElements();
+  }
+
+  function updateSvgElements() {
+    link
+      .attr("x1", function (d) {
+        const currentCoords = getStartPositionOfDep(d, d => d.source, d => d.target);
+        return currentCoords.x;
+      })
+      .attr("y1", function (d) {
+        const currentCoords = getStartPositionOfDep(d, d => d.source, d => d.target);
+        return currentCoords.y;
+      })
+      .attr("x2", function (d) {
+        const currentCoords = getStartPositionOfDep(d, d => d.target, d => d.source);
+        return currentCoords.x;
+      })
+      .attr("y2", function (d) {
+        const currentCoords = getStartPositionOfDep(d, d => d.target, d => d.source);
+        return currentCoords.y;
+      });
+
+    node
+      .attr("cx", function (d) {
+        return d.x;
+      })
+      .attr("cy", function (d) {
+        return d.y;
+      });
+  }
+
+  function dragstarted(d) {
+    d.fx = d.x;
+    d.fy = d.y;
+    runSimulation();
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+    runSimulation();
+  }
+
+  function dragended(d) {
+    d.fx = null;
+    d.fy = null;
+    for (let i = 0; i < 20; i++) runSimulation();
+  }
+
+</script>
