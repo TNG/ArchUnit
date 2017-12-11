@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
@@ -8,22 +9,32 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.ClassRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.DefaultClassRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.SourceRetentionAnnotation;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.expectInvalidSyntaxUsageForRetentionSource;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
@@ -37,6 +48,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class GivenClassesThatTest {
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void haveFullyQualifiedName() {
@@ -255,12 +268,38 @@ public class GivenClassesThatTest {
         assertThat(getOnlyElement(classes)).matches(AnnotatedClass.class);
     }
 
+    /**
+     * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
+     */
+    @Test
+    public void annotatedWith_Retention_Source_is_rejected() {
+        classes().that().areAnnotatedWith(RuntimeRetentionAnnotation.class);
+        classes().that().areAnnotatedWith(ClassRetentionAnnotation.class);
+        classes().that().areAnnotatedWith(DefaultClassRetentionAnnotation.class);
+
+        expectInvalidSyntaxUsageForRetentionSource(thrown);
+        classes().that().areAnnotatedWith(SourceRetentionAnnotation.class);
+    }
+
     @Test
     public void areNotAnnotatedWith_type() {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
         assertThat(getOnlyElement(classes)).matches(SimpleClass.class);
+    }
+
+    /**
+     * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
+     */
+    @Test
+    public void notAnnotatedWith_Retention_Source_is_rejected() {
+        classes().that().areNotAnnotatedWith(RuntimeRetentionAnnotation.class);
+        classes().that().areNotAnnotatedWith(ClassRetentionAnnotation.class);
+        classes().that().areNotAnnotatedWith(DefaultClassRetentionAnnotation.class);
+
+        expectInvalidSyntaxUsageForRetentionSource(thrown);
+        classes().that().areNotAnnotatedWith(SourceRetentionAnnotation.class);
     }
 
     @Test
@@ -304,10 +343,18 @@ public class GivenClassesThatTest {
 
         assertThat(getOnlyElement(classes)).matches(ArrayList.class);
 
-        classes = filterResultOf(classes().that().implement(AbstractList.class))
+        classes = filterResultOf(classes().that().implement(Set.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(classes).isEmpty();
+    }
+
+    @Test
+    public void implement_rejects_non_interface_types() {
+        classes().that().implement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().that().implement(AbstractList.class);
     }
 
     @Test
@@ -316,6 +363,14 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void dontImplement_rejects_non_interface_types() {
+        classes().that().dontImplement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().that().dontImplement(AbstractList.class);
     }
 
     @Test
@@ -575,9 +630,11 @@ public class GivenClassesThatTest {
     private static class PrivateClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     static class PackagePrivateClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected static class ProtectedClass {
     }
 

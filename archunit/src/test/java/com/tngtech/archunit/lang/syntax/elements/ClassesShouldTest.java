@@ -1,8 +1,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +20,11 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.ClassRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.DefaultClassRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.SourceRetentionAnnotation;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -28,16 +32,20 @@ import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importHierarchies;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.expectInvalidSyntaxUsageForRetentionSource;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.bePackagePrivate;
@@ -59,6 +67,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
     private static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @DataProvider
     public static Object[][] haveFullyQualifiedName_rules() {
@@ -554,17 +565,17 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] annotated_rules() {
         return $$(
-                $(classes().should().beAnnotatedWith(SomeAnnotation.class),
+                $(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
                         SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(SomeAnnotation.class)),
+                $(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         SomeAnnotatedClass.class, String.class),
-                $(classes().should().beAnnotatedWith(SomeAnnotation.class.getName()),
+                $(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class.getName()),
                         SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(SomeAnnotation.class.getName())),
+                $(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class.getName())),
                         SomeAnnotatedClass.class, String.class),
-                $(classes().should().beAnnotatedWith(annotation(SomeAnnotation.class)),
+                $(classes().should().beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)),
                         SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(annotation(SomeAnnotation.class))),
+                $(classes().should(ArchConditions.beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))),
                         SomeAnnotatedClass.class, String.class));
     }
 
@@ -574,26 +585,39 @@ public class ClassesShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should be annotated with @%s", SomeAnnotation.class.getSimpleName()))
+                .contains(String.format("classes should be annotated with @%s", RuntimeRetentionAnnotation.class.getSimpleName()))
                 .contains(String.format("class %s is not annotated with @%s",
-                        wrongClass.getName(), SomeAnnotation.class.getSimpleName()))
+                        wrongClass.getName(), RuntimeRetentionAnnotation.class.getSimpleName()))
                 .doesNotMatch(String.format(".*%s.*annotated.*", quote(correctClass.getName())));
+    }
+
+    /**
+     * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
+     */
+    @Test
+    public void beAnnotatedWith_Retention_Source_is_rejected() {
+        classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class);
+        classes().should().beAnnotatedWith(ClassRetentionAnnotation.class);
+        classes().should().beAnnotatedWith(DefaultClassRetentionAnnotation.class);
+
+        expectInvalidSyntaxUsageForRetentionSource(thrown);
+        classes().should().beAnnotatedWith(SourceRetentionAnnotation.class);
     }
 
     @DataProvider
     public static Object[][] notAnnotated_rules() {
         return $$(
-                $(classes().should().notBeAnnotatedWith(SomeAnnotation.class),
+                $(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
                         String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(SomeAnnotation.class)),
+                $(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeAnnotatedWith(SomeAnnotation.class.getName()),
+                $(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName()),
                         String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(SomeAnnotation.class.getName())),
+                $(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName())),
                         String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeAnnotatedWith(annotation(SomeAnnotation.class)),
+                $(classes().should().notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)),
                         String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(annotation(SomeAnnotation.class))),
+                $(classes().should(ArchConditions.notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))),
                         String.class, SomeAnnotatedClass.class));
     }
 
@@ -603,10 +627,23 @@ public class ClassesShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains("classes should not be annotated with @" + SomeAnnotation.class.getSimpleName())
+                .contains("classes should not be annotated with @" + RuntimeRetentionAnnotation.class.getSimpleName())
                 .contains(String.format("class %s is annotated with @%s",
-                        wrongClass.getName(), SomeAnnotation.class.getSimpleName()))
+                        wrongClass.getName(), RuntimeRetentionAnnotation.class.getSimpleName()))
                 .doesNotMatch(String.format(".*%s.*annotated.*", quote(correctClass.getName())));
+    }
+
+    /**
+     * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
+     */
+    @Test
+    public void notBeAnnotatedWith_Retention_Source_is_rejected() {
+        classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class);
+        classes().should().notBeAnnotatedWith(ClassRetentionAnnotation.class);
+        classes().should().notBeAnnotatedWith(DefaultClassRetentionAnnotation.class);
+
+        expectInvalidSyntaxUsageForRetentionSource(thrown);
+        classes().should().notBeAnnotatedWith(SourceRetentionAnnotation.class);
     }
 
     @DataProvider
@@ -629,11 +666,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
     }
 
+    @Test
+    public void implement_rejects_non_interface_types() {
+        classes().should().implement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().should().implement(AbstractList.class);
+    }
+
     @DataProvider
     public static List<List<?>> implement_not_satisfied_rules() {
         return ImmutableList.<List<?>>builder()
                 .addAll(implementNotSatisfiedCases(Collection.class, List.class))
-                .addAll(implementNotSatisfiedCases(AbstractList.class, ArrayList.class))
+                .addAll(implementNotSatisfiedCases(Set.class, ArrayList.class))
                 .build();
     }
 
@@ -684,6 +729,14 @@ public class ClassesShouldTest {
                 .contains(String.format("classes should not implement %s", Collection.class.getName()))
                 .contains(String.format("class %s implements %s", violated.getName(), Collection.class.getName()))
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
+    }
+
+    @Test
+    public void notImplement_rejects_non_interface_types() {
+        classes().should().notImplement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().should().notImplement(AbstractList.class);
     }
 
     @DataProvider
@@ -1272,11 +1325,7 @@ public class ClassesShouldTest {
     private static class PrivateClass {
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    private @interface SomeAnnotation {
-    }
-
-    @SomeAnnotation
+    @RuntimeRetentionAnnotation
     private static class SomeAnnotatedClass {
     }
 }

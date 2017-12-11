@@ -104,4 +104,11 @@ public class ArchUnitException extends RuntimeException {
             return new ClassResolverConfigurationException(message, cause);
         }
     }
+
+    @Internal
+    public static class InvalidSyntaxUsageException extends ArchUnitException {
+        public InvalidSyntaxUsageException(String message) {
+            super(message);
+        }
+    }
 }
