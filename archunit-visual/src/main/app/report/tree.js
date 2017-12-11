@@ -3,18 +3,20 @@
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
+const vectors = require('./vectors').vectors;
 
 // FIXME: Test missing!! (There is only one for not dragging out)
 /**
  * Takes an enclosing circle radius and an inner circle relative to the enclosing circle's center.
- * Furthermore takes a translation vector with respect to the inner circle.
- * Calculates the x- and y- coordinate for a maximal translation of the inner circle,
- * keeping the inner circle fully enclosed within the outer circle.
  *
  * @param innerCircle (tuple consisting of x, y, r, where x and y coordinate are relative to the middle point of the enclosing circle)
  */
 const translate = innerCircle => ({
   /**
+   * Furthermore takes a translation vector with respect to the inner circle.
+   * Calculates the x- and y- coordinate for a maximal translation of the inner circle,
+   * keeping the inner circle fully enclosed within the outer circle.
+   *
    * @param enclosingCircleRadius radius of the outer circle
    */
   withinEnclosingCircleOfRadius: enclosingCircleRadius => ({
@@ -34,7 +36,24 @@ const translate = innerCircle => ({
         newY: Math.trunc(innerCircle.y + scale * translationVector.y)
       };
     }
-  })
+  }),
+
+  /**
+   * Shifts the inner circle towards to the center of the parent circle (which is (0, 0)), so that the inner circle
+   * is completely within the enclosing circle
+   * @param enclosingCircleRadius radius of the outer circle
+   * @return the center coordinates of the inner circle after the shift into the enclosing circle
+   */
+  intoEnclosingCircleOfRadius: enclosingCircleRadius => {
+    return vectors.norm(innerCircle, enclosingCircleRadius - innerCircle.r);
+  }
+});
+
+const innerCircle = innerCirlce => ({
+  isOutOfParentCircleOrIsChildOfRoot: parent => {
+    const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
+    return centerDistance + innerCirlce.r > parent.getRadius() && !parent.isRoot();
+  }
 });
 
 const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
@@ -70,17 +89,27 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._listener.onMovedToPosition();
     }
 
-    jumpToPosition(dx, dy, parent) {
+    jumpToRelativePosition(dx, dy, parent) {
       let newX = this.x + dx;
       let newY = this.y + dy;
-      const centerDistance = new Vector(newX, newY).length();
-      if (centerDistance + this.r > parent.getRadius() && !parent.isRoot()) {
+      if (innerCircle({x: newX, y: newY, r: this.r}).isOutOfParentCircleOrIsChildOfRoot(parent)) {
         ({newX, newY} = translate(this)
           .withinEnclosingCircleOfRadius(parent.getRadius())
           .asFarAsPossibleInTheDirectionOf({x: dx, y: dy}));
       }
       this.x = newX;
       this.y = newY;
+
+      this._listener.onJumpedToPosition();
+    }
+
+    jumpToAbsolutePosition(x, y, parent) {
+      const circle = {x, y, r: this.r};
+      if (innerCircle(circle).isOutOfParentCircleOrIsChildOfRoot(parent)) {
+        ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius()));
+      }
+      this.x = x;
+      this.y = y;
 
       this._listener.onJumpedToPosition();
     }
@@ -328,6 +357,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return Promise.all([...childrenPromises, ...promises]);
     }
 
+    startSimulation() {
+
+    }
+
     /**
      * Shifts this node and its children.
      *
@@ -336,7 +369,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this.visualData.jumpToPosition(dx, dy, this.getParent());
+        this.visualData.jumpToRelativePosition(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
       });
     }

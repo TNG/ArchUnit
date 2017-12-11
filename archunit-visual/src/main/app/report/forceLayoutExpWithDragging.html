@@ -17,7 +17,7 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
-  console.log('started');
+  //console.log('started');
 
   var svg = d3.select("svg"),
     width = +svg.attr("width"),
@@ -34,7 +34,7 @@
       .id(function (d) {
         return d.id;
       })
-      .distance(n => {
+      .distance(() => {
         return distance;
       }))
     .force("center", d3.forceCenter(width / 2, height / 2))
@@ -44,7 +44,7 @@
   let node;
 
   d3.json("example.json", function (error, graph) {
-    if (error) throw error;
+    if (error) { throw error; }
 
     graph.nodes.forEach(n => n.r = 5 + 30 * Math.random());
 
@@ -154,7 +154,7 @@
   function dragended(d) {
     d.fx = null;
     d.fy = null;
-    for (let i = 0; i < 20; i++) runSimulation();
+    for (let i = 0; i < 20; i++) { runSimulation(); }
   }
 
 </script>

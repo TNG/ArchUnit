@@ -22,23 +22,28 @@
     height = +svg.attr("height");
 
   const rootRadius = 400;
-  const rootX = width/2;
-  const rootY = height/2;
+  const rootX = width / 2;
+  const rootY = height / 2;
+  const rootId = "Gervais";
 
-  const arrNodesOut = ["Gervais", "Tholomyes"];
+  const arrNodesOut = ["Tholomyes", "Zephine"];
 
 
-  svg.append("g")
-    .attr("class", "nodes")
-    .append("circle")
-    .attr("r", rootRadius)
-    .attr("cx", rootX)
-    .attr("cy", rootY)
-    .attr("fill", "yellow");
+  /*svg.append("g")
+   .attr("class", "nodes")
+   .append("circle")
+   .attr("r", rootRadius)
+   .attr("cx", rootX)
+   .attr("cy", rootY)
+   .attr("fill", "yellow");*/
 
   var color = d3.scaleOrdinal(d3.schemeCategory20);
 
   const distance = 10;
+
+  const count = node => {
+    return allNodes.filter(n => n === node).length;
+  };
 
   var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function (d) {
@@ -47,14 +52,29 @@
       .distance(d => {
         return d.source.r + d.target.r + distance; //
       })
-    .iterations(2))
-    //.force("charge", d3.forceManyBody().strength(-100))
-    .force("collide", d3.forceCollide().radius(d => d.r + distance).iterations(2))
+      .strength(link => {
+        const res = 1 / Math.min(count(link.source), count(link.target));
+        if ((arrNodesOut.includes(link.source) && !arrNodesOut.includes(link.target) && link.target.id !== rootId)
+          || (arrNodesOut.includes(link.target) && !arrNodesOut.includes(link.source) && link.source.id !== rootId)) {
+          return 0.1 * res;
+        }
+        return res;
+      })
+    .iterations(2));
+    //.force("charge", d3.forceManyBody().strength(-100));
+  var collSim1 = d3.forceSimulation()
+    .force("collide", d3.forceCollide().radius(d => d.r + distance).iterations(2));
+
+  var collSim2 = d3.forceSimulation()
+    .force("collide", d3.forceCollide().radius(d => d.r + distance).iterations(2));
+
+  //FIXME: instead of this centre all nodes after each tick
+ /* var toMiddle = d3.forceSimulation()
     .force("center", d3.forceCenter(width / 2, height / 2));
 
   var dragSimulation = d3.forceSimulation()
     .force("collide", d3.forceCollide().radius(d => d.r + distance)) //.iterations(10))
-    .stop();
+    .stop();*/
 
   let link;
   let node;
@@ -62,11 +82,19 @@
   let allNodes;
 
   d3.json("example.json", function (error, graph) {
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
     allNodes = graph.nodes;
 
-    graph.nodes.forEach(n => n.r = 5 + 30 * Math.random());
+    graph.nodes.forEach(n => {
+      if (n.id === rootId) {
+        n.r = rootRadius;
+      } else {
+        n.r = 5 + 30 * Math.random()
+      }
+    });
 
     link = svg.append("g")
       .attr("class", "links")
@@ -82,9 +110,25 @@
       .selectAll("circle")
       .data(graph.nodes)
       .enter().append("circle")
-      .attr("r", n => n.r)
+      .attr("r", n => {
+        if (n.id === rootId) {
+          return rootRadius;
+        } else {
+          return n.r
+        }
+      })
+      .style('stroke', function (d) {
+        if (d.id === rootId) {
+          return "black";
+        }
+      })
       .attr("fill", function (d) {
-        if (arrNodesOut.includes(d.id)) return "black";
+        if (d.id === rootId) {
+          return "none";
+        }
+        if (arrNodesOut.includes(d.id)) {
+          return "black";
+        }
         return color(d.group);
       })
       .call(d3.drag()
@@ -98,15 +142,31 @@
       });
 
     simulation
+      .alphaDecay(0.1)
       .nodes(graph.nodes)
       .on("tick", ticked);
-      //.on('end', ticked);
+    //.on('end', ticked);
 
     simulation.force("link")
       .links(graph.links);
 
-    dragSimulation.nodes(graph.nodes).alphaTarget(0.3).on('tick', ticked);
-  });
+    collSim1
+      .alphaDecay(0.1)
+      .nodes(graph.nodes.filter(n => !arrNodesOut.includes(n.id) && n.id !== rootId))
+      .on("tick", ticked);
+
+    collSim2
+      .alphaDecay(0.1)
+      .nodes(graph.nodes.filter(n => arrNodesOut.includes(n.id) || n.id === rootId))
+      .on("tick", ticked);
+
+    /*toMiddle
+      .nodes(graph.nodes.filter(n => n.id === rootId))
+      .on('tick', ticked);*/
+
+    //dragSimulation.nodes(graph.nodes).alphaTarget(0.3).on('tick', ticked);
+  })
+  ;
 
   const getStartPositionOfDep = (dep, getStart, getEnd) => {
     const radius = getStart(dep).r;
@@ -127,17 +187,24 @@
 
   function ticked() {
     //keeps all nodes within the root node
-    const length = n => Math.sqrt(n.x*n.x + n.y*n.y);
-    allNodes.filter(n => !arrNodesOut.includes(n.id)).forEach(n => {
-      const direction = {x: n.x - rootX, y: n.y - rootY};
+    const length = n => Math.sqrt(n.x * n.x + n.y * n.y);
+    allNodes.filter(n => !arrNodesOut.includes(n.id) && n.id !== rootId).forEach(n => {
+      const root = allNodes.filter(n => n.id === rootId)[0];
+      const direction = {x: n.x - root.x, y: n.y - root.y};
       const dirLength = length(direction);
 
       if (dirLength + n.r >= rootRadius) {
         const scale = rootRadius - n.r;
         const normedDirection = {x: scale * direction.x / dirLength, y: scale * direction.y / dirLength};
-        n.x = rootX + normedDirection.x;
-        n.y = rootY + normedDirection.y;
+        n.x = root.x + normedDirection.x;
+        n.y = root.y + normedDirection.y;
       }
+    });
+
+    const root = allNodes.filter(n => n.id === rootId)[0];
+    allNodes.forEach(n => {
+      n.x -= (root.x - rootX);
+      n.y -= (root.y - rootY);
     });
 
     link
@@ -169,9 +236,9 @@
 
   function dragstarted(d) {
     /*d.fx = d.x;
-    d.fy = d.y;
+     d.fy = d.y;
 
-    if (!d3.event.active) dragSimulation.alphaTarget(0.1).alpha(1).restart(); //.on('tick', ticked)*/
+     if (!d3.event.active) dragSimulation.alphaTarget(0.1).alpha(1).restart(); //.on('tick', ticked)*/
     d.fx = d.x;
     d.fy = d.y;
 
@@ -183,6 +250,8 @@
     d.fx = d3.event.x;
     d.fy = d3.event.y;
     simulation.alphaDecay(0).alpha(0.09).restart(); //alphaTarget(0.3)
+    collSim1.alphaDecay(0).alpha(0.09).restart();
+    collSim2.alphaDecay(0).alpha(0.09).restart();
     //simulation.alpha(1).restart();
 
 
@@ -191,20 +260,24 @@
 
   function dragended(d) {
     /*dragSimulation.alphaTarget(0).on('end', () => {
-      d.fx = null;
-      d.fy = null;
-    });*/
+     d.fx = null;
+     d.fy = null;
+     });*/
 
     /*simulation.stop();
-    simulation.alphaDecay(0.01)
-    simulation.alpha(0.01);
-    for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-      simulation.tick();
-    }
-    ticked();*/
+     simulation.alphaDecay(0.01)
+     simulation.alpha(0.01);
+     for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+     simulation.tick();
+     }
+     ticked();*/
 
     //dragSimulation.stop();
-    if (!d3.event.active) simulation.alphaDecay(0.01).alphaTarget(0);
+    if (!d3.event.active) {
+      simulation.alphaDecay(0.01).alphaTarget(0);
+      collSim1.alphaDecay(0.01).alphaTarget(0);
+      collSim2.alphaDecay(0.01).alphaTarget(0);
+    }
 
     d.fx = null;
     d.fy = null;
