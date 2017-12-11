@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
@@ -8,6 +9,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -29,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.expectInvalidSyntaxUsageForRetentionSource;
@@ -340,10 +343,18 @@ public class GivenClassesThatTest {
 
         assertThat(getOnlyElement(classes)).matches(ArrayList.class);
 
-        classes = filterResultOf(classes().that().implement(AbstractList.class))
+        classes = filterResultOf(classes().that().implement(Set.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(classes).isEmpty();
+    }
+
+    @Test
+    public void implement_rejects_non_interface_types() {
+        classes().that().implement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().that().implement(AbstractList.class);
     }
 
     @Test
@@ -352,6 +363,14 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void dontImplement_rejects_non_interface_types() {
+        classes().that().dontImplement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().that().dontImplement(AbstractList.class);
     }
 
     @Test
@@ -611,9 +630,11 @@ public class GivenClassesThatTest {
     private static class PrivateClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     static class PackagePrivateClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected static class ProtectedClass {
     }
 

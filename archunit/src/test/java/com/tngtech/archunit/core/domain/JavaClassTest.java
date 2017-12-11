@@ -12,7 +12,9 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.testobjects.ADependingOnB;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
@@ -24,7 +26,9 @@ import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
@@ -56,6 +60,8 @@ import static org.mockito.Mockito.when;
 
 @RunWith(DataProviderRunner.class)
 public class JavaClassTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void finds_fields_and_methods() {
@@ -510,17 +516,30 @@ public class JavaClassTest {
         assertThat(expectedMatch.apply(classWithHierarchy(ArrayList.class))).as("predicate matches").isTrue();
     }
 
+    @Test
+    public void implement_rejects_non_interface_types() {
+        implement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        implement(AbstractList.class);
+    }
+
+    public static void expectInvalidSyntaxUsageForClassInsteadOfInterface(ExpectedException thrown, Class<?> nonInterface) {
+        thrown.expect(InvalidSyntaxUsageException.class);
+        thrown.expectMessage(nonInterface.getName());
+        thrown.expectMessage("interface");
+    }
+
     @DataProvider
     public static Object[][] implement_mismatch_cases() {
         return testForEach(
-                implement(ArrayList.class),
-                implement(AbstractList.class),
-                implement(String.class),
-                implement(ArrayList.class.getName()),
-                implement(AbstractList.class.getName()),
+                implement(HasDescription.class),
+                implement(Set.class),
+                implement(HasDescription.class.getName()),
+                implement(Set.class.getName()),
                 implement(String.class.getName()),
-                implement(name(ArrayList.class.getName())),
-                implement(name(AbstractList.class.getName())),
+                implement(name(HasDescription.class.getName())),
+                implement(name(Set.class.getName())),
                 implement(name(String.class.getName())));
     }
 

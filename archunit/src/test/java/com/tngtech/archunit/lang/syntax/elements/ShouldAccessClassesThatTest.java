@@ -532,72 +532,84 @@ public class ShouldAccessClassesThatTest {
     }
 
     private static class ClassAccessingList {
-        void call(List list) {
+        @SuppressWarnings("unused")
+        void call(List<?> list) {
             list.size();
         }
     }
 
     private static class ClassAccessingArrayList {
-        void call(ArrayList list) {
+        @SuppressWarnings("unused")
+        void call(ArrayList<?> list) {
             list.size();
         }
     }
 
     private static class ClassAccessingString {
+        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
         void call() {
             "string".length();
         }
     }
 
     private static class ClassAccessingCollection {
-        void call(Collection collection) {
+        @SuppressWarnings("unused")
+        void call(Collection<?> collection) {
             collection.size();
         }
     }
 
     private static class ClassAccessingIterable {
-        void call(Iterable iterable) {
+        @SuppressWarnings("unused")
+        void call(Iterable<?> iterable) {
             iterable.iterator();
         }
     }
 
     private static class ClassAccessingConstructor {
+        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
         void call(Constructor<?> constructor) {
             constructor.getModifiers();
         }
     }
 
     private static class ClassAccessingSimpleClass {
+        @SuppressWarnings("unused")
         void call() {
             new SimpleClass();
         }
     }
 
     private static class ClassAccessingPrivateClass {
+        @SuppressWarnings("unused")
         void call() {
             new PrivateClass();
         }
     }
 
     private static class ClassAccessingPackagePrivateClass {
+        @SuppressWarnings("unused")
         void call() {
             new PackagePrivateClass();
         }
     }
 
     private static class ClassAccessingProtectedClass {
+        @SuppressWarnings("unused")
         void call() {
             new ProtectedClass();
         }
     }
 
     private static class ClassAccessingPublicClass {
+        @SuppressWarnings("unused")
         void call() {
             new PublicClass();
         }
     }
 
     private static class ClassAccessingAnnotatedClass {
+        @SuppressWarnings("unused")
         void call() {
             new AnnotatedClass();
         }
@@ -612,9 +624,11 @@ public class ShouldAccessClassesThatTest {
     static class PackagePrivateClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected static class ProtectedClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PublicClass {
     }
 

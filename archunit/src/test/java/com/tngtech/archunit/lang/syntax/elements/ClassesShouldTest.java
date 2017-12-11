@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
@@ -664,11 +666,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
     }
 
+    @Test
+    public void implement_rejects_non_interface_types() {
+        classes().should().implement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().should().implement(AbstractList.class);
+    }
+
     @DataProvider
     public static List<List<?>> implement_not_satisfied_rules() {
         return ImmutableList.<List<?>>builder()
                 .addAll(implementNotSatisfiedCases(Collection.class, List.class))
-                .addAll(implementNotSatisfiedCases(AbstractList.class, ArrayList.class))
+                .addAll(implementNotSatisfiedCases(Set.class, ArrayList.class))
                 .build();
     }
 
@@ -719,6 +729,14 @@ public class ClassesShouldTest {
                 .contains(String.format("classes should not implement %s", Collection.class.getName()))
                 .contains(String.format("class %s implements %s", violated.getName(), Collection.class.getName()))
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
+    }
+
+    @Test
+    public void notImplement_rejects_non_interface_types() {
+        classes().should().notImplement(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
+        classes().should().notImplement(AbstractList.class);
     }
 
     @DataProvider

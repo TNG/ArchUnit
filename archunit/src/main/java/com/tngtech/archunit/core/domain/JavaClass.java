@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
@@ -856,6 +857,10 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> implement(final Class<?> type) {
+            if (!type.isInterface()) {
+                throw new InvalidSyntaxUsageException(String.format(
+                        "implement(type) can only ever be true, if type is an interface, but type %s is not", type.getName()));
+            }
             return implement(type.getName());
         }
 
