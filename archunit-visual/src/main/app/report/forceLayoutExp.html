@@ -21,21 +21,35 @@
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
+  const rootRadius = 400;
+  const rootX = width/2;
+  const rootY = height/2;
+
+  const arrNodesOut = ["Gervais", "Tholomyes"];
+
+
+  svg.append("g")
+    .attr("class", "nodes")
+    .append("circle")
+    .attr("r", rootRadius)
+    .attr("cx", rootX)
+    .attr("cy", rootY)
+    .attr("fill", "yellow");
+
   var color = d3.scaleOrdinal(d3.schemeCategory20);
 
   const distance = 10;
 
   var simulation = d3.forceSimulation()
-    //.alphaDecay(0.0228)
-    .force("collide", d3.forceCollide().radius(d => d.r + distance).strength(0.7)) //.iterations(10))
     .force("link", d3.forceLink().id(function (d) {
       return d.id;
     })
       .distance(d => {
-        return distance; //d.source.r + d.target.r +
+        return d.source.r + d.target.r + distance; //
       })
-    )//.iterations(10))
+    .iterations(2))
     //.force("charge", d3.forceManyBody().strength(-100))
+    .force("collide", d3.forceCollide().radius(d => d.r + distance).iterations(2))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
   var dragSimulation = d3.forceSimulation()
@@ -45,8 +59,12 @@
   let link;
   let node;
 
+  let allNodes;
+
   d3.json("example.json", function (error, graph) {
     if (error) throw error;
+
+    allNodes = graph.nodes;
 
     graph.nodes.forEach(n => n.r = 5 + 30 * Math.random());
 
@@ -66,6 +84,7 @@
       .enter().append("circle")
       .attr("r", n => n.r)
       .attr("fill", function (d) {
+        if (arrNodesOut.includes(d.id)) return "black";
         return color(d.group);
       })
       .call(d3.drag()
@@ -107,6 +126,20 @@
   };
 
   function ticked() {
+    //keeps all nodes within the root node
+    const length = n => Math.sqrt(n.x*n.x + n.y*n.y);
+    allNodes.filter(n => !arrNodesOut.includes(n.id)).forEach(n => {
+      const direction = {x: n.x - rootX, y: n.y - rootY};
+      const dirLength = length(direction);
+
+      if (dirLength + n.r >= rootRadius) {
+        const scale = rootRadius - n.r;
+        const normedDirection = {x: scale * direction.x / dirLength, y: scale * direction.y / dirLength};
+        n.x = rootX + normedDirection.x;
+        n.y = rootY + normedDirection.y;
+      }
+    });
+
     link
       .attr("x1", function (d) {
         const currentCoords = getStartPositionOfDep(d, d => d.source, d => d.target);
@@ -149,7 +182,7 @@
   function dragged(d) {
     d.fx = d3.event.x;
     d.fy = d3.event.y;
-    simulation.alphaDecay(0.002).alpha(0.01).restart(); //alphaTarget(0.3)
+    simulation.alphaDecay(0).alpha(0.09).restart(); //alphaTarget(0.3)
     //simulation.alpha(1).restart();
 
 
