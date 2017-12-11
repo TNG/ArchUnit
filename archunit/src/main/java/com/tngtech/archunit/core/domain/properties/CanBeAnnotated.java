@@ -16,9 +16,12 @@
 package com.tngtech.archunit.core.domain.properties;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -42,7 +45,23 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
+            checkAnnotationHasReasonableRetention(annotationType);
+
             return annotatedWith(annotationType.getName());
+        }
+
+        private static void checkAnnotationHasReasonableRetention(Class<? extends Annotation> annotationType) {
+            if (isRetentionSource(annotationType)) {
+                throw new InvalidSyntaxUsageException(String.format(
+                        "Annotation type %s has @%s(%s), thus the information is gone after compile. "
+                                + "So checking this with ArchUnit is useless.",
+                        annotationType.getName(), Retention.class.getSimpleName(), RetentionPolicy.SOURCE));
+            }
+        }
+
+        private static boolean isRetentionSource(Class<? extends Annotation> annotationType) {
+            return annotationType.getAnnotation(Retention.class) != null
+                    && (annotationType.getAnnotation(Retention.class).value() == RetentionPolicy.SOURCE);
         }
 
         @PublicAPI(usage = ACCESS)
