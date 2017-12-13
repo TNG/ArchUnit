@@ -437,7 +437,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_the_core_api">The Core API</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Core API is itself divided into the domain and the actual import.</p>
+<p>The Core API is itself divided into the domain objects and the actual import.</p>
 </div>
 <div class="sect2">
 <h3 id="_import">Import</h3>
@@ -452,7 +452,7 @@ the classpath, or the complete classpath via</p>
 </div>
 </div>
 <div class="paragraph">
-<p>However, the import is completely independent of the classpath, so it would be well possible
+<p>However, the import process is completely independent of the classpath, so it would be well possible
 to import any path from the file system:</p>
 </div>
 <div class="listingblock">
@@ -465,9 +465,200 @@ to import any path from the file system:</p>
 specified as URLs or as JAR files.</p>
 </div>
 <div class="paragraph">
-<p>Furthermore single locations can be filtered out, if they are contained in the source of classes,
+<p>Furthermore specific locations can be filtered out, if they are contained in the source of classes,
 but should not be imported. A typical use case would be to ignore test classes, when the classpath
-is imported.</p>
+is imported. This can be achieved by specifying <code>ImportOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ImportOption ignoreTests = new ImportOption() {
+    @Override
+    public boolean includes(Location location) {
+        return !location.contains("/test/"); // ignore any URI to sources, that contains '/test/'
+    }
+};
+
+JavaClasses classes = new ClassFileImporter().withImportOption(ignoreTests).importClasspath();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <code>Location</code> is principally an URI, i.e. ArchUnit considers sources as File or JAR URIs</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code><a href="file:///home/dev/my/project/target/classes/some/Thing.class" class="bare">file:///home/dev/my/project/target/classes/some/Thing.class</a></code></p>
+</li>
+<li>
+<p><code>jar:file:///home/dev/.m2/repository/some/things.jar!/some/Thing.class</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For the two common cases to skip importing JAR files and to skip importing test files
+(for typical setups, like a Maven or Gradle build),
+there already exist predefined <code>ImportOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">new ClassFileImporter()
+    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_JARS)
+    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_TESTS)
+    .importClasspath();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_domain">Domain</h3>
+<div class="paragraph">
+<p>The domain objects represent Java code, thus the naming should be pretty straight forward. Most
+commonly, the <code>ClassFileImporter</code> imports instances of type <code>JavaClass</code>. A rough overview looks
+like this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="domain-overview.png" alt="domain overview" width="985" height="442">
+</div>
+</div>
+<div class="paragraph">
+<p>Most objects resemble the Java Reflection API, including inheritance relations. Thus a <code>JavaClass</code>
+has <code>JavaMembers</code>, which can in turn be either <code>JavaField</code>, <code>JavaMethod</code>,
+<code>JavaConstructor</code> (or <code>JavaStaticInitializer</code>). While not present within the reflection API,
+it makes sense to introduce an expression for anything that can access other code, which ArchUnit
+calls 'code unit', and is in fact either a method, a constructor (including the class initializer)
+or a static initializer of a class (e.g. a <code>static { &#8230;&#8203; }</code> block, a static field assignment,
+etc.).</p>
+</div>
+<div class="paragraph">
+<p>Furthermore one of the most interesting features of ArchUnit, that exceeds the Java Reflection API,
+is the concept of accesses to another class. On the lowest level accesses can only take place
+from a code unit (as mentioned, any block of executable code) to either a field (<code>JavaFieldAccess</code>),
+a method (<code>JavaMethodCall</code>) or constructor (<code>JavaConstructorCall</code>).</p>
+</div>
+<div class="paragraph">
+<p>ArchUnit imports the whole graph of classes and their relationship to each other. While checking
+the accesses <strong>from</strong> a class is pretty isolated (the bytecode offers all this information),
+checking accesses <strong>to</strong> a class requires the whole graph to be built first. To distinguish which
+sort of access is referred to, methods will always clearly state <strong>fromSelf</strong> and <strong>toSelf</strong>.
+For example, every <code>JavaField</code> allows to call <code>JavaField#getAccessesToSelf()</code>, to retrieve all
+code units within the graph, that access this specific field. The resolution process through
+inheritance is not completely straight forward. Consider for example</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="resolution-example.png" alt="resolution example" width="377" height="188">
+</div>
+</div>
+<div class="paragraph">
+<p>The bytecode will record a field access from <code>ClassAccessing.accessField()</code> to
+<code>ClassBeingAccessed.accessedField</code>. However, there is no such field, since the field is
+actually declared in the superclass. This is the reason, that a <code>JavaFieldAccess</code>
+has no <code>JavaField</code> as its target, but a <code>FieldAccessTarget</code>. In other words, ArchUnit models
+the situation, as it is found within the bytecode, and an access target is not an actual
+member within another class. If a member is queried for <code>accessesToSelf()</code> though, ArchUnit
+will resolve the necessary targets and determine, which member is represented by which target.
+The situation looks roughly like</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="resolution-overview.png" alt="resolution overview" width="544" height="317">
+</div>
+</div>
+<div class="paragraph">
+<p>Two things might seem strange at the first look.</p>
+</div>
+<div class="paragraph">
+<p>First, why can a target resolve to zero matching members? The reason is, that the set of classes
+that was imported does not need to have all classes involved within this resolution process.
+Consider the above example, if <code>SuperClassBeingAccessed</code> would not be imported, ArchUnit would
+have no way of knowing, where the actual targeted field resides. Thus in this case the
+resolution would return zero elements.</p>
+</div>
+<div class="paragraph">
+<p>Second, why can there be more than one resolved methods for method calls?
+The reason for this is, that a call target might indeed match several methods in those
+cases, for example:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="diamond-example.png" alt="diamond example" width="513" height="223">
+</div>
+</div>
+<div class="paragraph">
+<p>While this situation will always be resolved in a specified way for a real program,
+ArchUnit can not do the same. Instead, the resolution will report all candidates that match a
+specific access target, so in the above example, the call target <code>C.targetMethod()</code> would in fact
+resolve to two <code>JavaMethods</code>, namely <code>A.targetMethod()</code> and <code>B.targetMethod()</code>. Likewise a check
+of either <code>A.targetMethod.getCallsToSelf()</code> or <code>B.targetMethod.getCallsToSelf()</code> would return
+the same call from <code>D.callTargetMethod()</code> to <code>C.targetMethod()</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_domain_objects_reflection_and_the_classpath">Domain Objects, Reflection and the Classpath</h4>
+<div class="paragraph">
+<p>ArchUnit tries to offer a lot of information from the bytecode, for example a <code>JavaClass</code>
+provides details like if it is an Enum or an Interface, modifiers like <code>public</code> or <code>abstract</code>,
+but also the source, where this class was imported from (namely the URI mentioned in the first
+section). However, if information if missing, and the classpath is correct, ArchUnit offers
+some convenience to rely on the reflection API for extended details. For this reason, most
+<code>Java*</code>-Objects offer a method <code>reflect()</code>, which will in fact try to resolve the respective
+object from the Reflection API. For example</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath(new ImportOptions());
+
+// ArchUnit's java.lang.String
+JavaClass javaClass = classes.get(String.class);
+// Reflection API's java.lang.String
+Class&lt;?&gt; stringClass = javaClass.reflect();
+
+// ArchUnit's public int java.lang.String.length()
+JavaMethod javaMethod = javaClass.getMethod("length");
+// Reflection API's public int java.lang.String.length()
+Method lengthMethod = javaMethod.reflect();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, this will throw an <code>Exception</code>, if the respective classes are missing on the classpath
+(e.g. because they were just imported from some file path).</p>
+</div>
+<div class="paragraph">
+<p>This restriction also applies to handling Annotations in a more convenient way.
+Consider some Annotation</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@interface CustomAnnotation {
+    String value();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to access this annotation, without this annotation on the classpath you must rely on</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
+// result is untyped, since it might not be on the classpath (e.g. enums)
+Object value = annotation.get("value");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So there is neither type safety nor automatic refactoring support. If this annotation is on the classpath, however,
+this can be written way more naturally:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.class);
+String value = annotation.value();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ArchUnit&#8217;s own rule APIs (compare <a href="#The Lang API">[The Lang API]</a>) never rely on the
+classpath though. Thus the evaluation of default rules and syntax combinations, described in the
+next section, does not depend on whether the classes were imported from the classpath or
+some JAR / folder.</p>
+</div>
 </div>
 </div>
 </div>
@@ -475,7 +666,7 @@ is imported.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-12-08 17:10:41 CET
+Last updated 2017-12-13 01:24:48 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/mono-blue.min.css">
