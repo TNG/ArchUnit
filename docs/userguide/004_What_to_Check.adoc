@@ -4,7 +4,7 @@ The following section illustrates some typical checks you could do with ArchUnit
 
 === Package Dependency Checks
 
-[plantuml, "package-deps-no-access.png"]
+[plantuml, "package-deps-no-access"]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -23,7 +23,7 @@ noClasses().that().resideInAPackage("..source..")
     .should().accessClassesThat().resideInAPackage("..foo..")
 ----
 
-[plantuml, "package-deps-only-access.png"]
+[plantuml, "package-deps-only-access"]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -47,7 +47,7 @@ classes().that().resideInAPackage("..foo..")
 
 === Class Dependency Checks
 
-[plantuml, "class-naming-deps.png"]
+[plantuml, "class-naming-deps"]
 ----
 skinparam componentStyle uml2
 
@@ -79,7 +79,7 @@ classes().that().haveNameMatching(".*Bar")
 
 === Class and Package Containment Checks
 
-[plantuml, "class-package-contain.png"]
+[plantuml, "class-package-contain"]
 ----
 skinparam componentStyle uml2
 
@@ -113,7 +113,7 @@ classes().that().haveSimpleNameStartingWith("Foo")
 
 === Inheritance Checks
 
-[plantuml, "inheritance-naming-check.png"]
+[plantuml, "inheritance-naming-check"]
 ----
 skinparam componentStyle uml2
 
@@ -145,7 +145,7 @@ classes().that().implement(Connection.class)
     .should().haveSimpleNameEndingWith("Connection")
 ----
 
-[plantuml, "inheritance-access-check.png"]
+[plantuml, "inheritance-access-check"]
 ----
 skinparam componentStyle uml2
 
@@ -183,7 +183,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Annotation Checks
 
-[plantuml, "inheritance-annotation-check.png"]
+[plantuml, "inheritance-annotation-check"]
 ----
 skinparam componentStyle uml2
 
@@ -216,7 +216,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Layer Checks
 
-[plantuml, "layer-check.png"]
+[plantuml, "layer-check"]
 ----
 skinparam componentStyle uml2
 
@@ -269,7 +269,7 @@ layeredArchitecture()
 
 === Cycle Checks
 
-[plantuml, "cycle-check.png"]
+[plantuml, "cycle-check"]
 ----
 skinparam componentStyle uml2
 
