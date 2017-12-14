@@ -235,48 +235,24 @@
   }
 
   function dragstarted(d) {
-    /*d.fx = d.x;
-     d.fy = d.y;
-
-     if (!d3.event.active) dragSimulation.alphaTarget(0.1).alpha(1).restart(); //.on('tick', ticked)*/
     d.fx = d.x;
     d.fy = d.y;
-
-    //dragSimulation.restart();
-
   }
 
   function dragged(d) {
     d.fx = d3.event.x;
     d.fy = d3.event.y;
-    simulation.alphaDecay(0).alpha(0.09).restart(); //alphaTarget(0.3)
+
+    simulation.alphaDecay(0).alpha(0.09).restart();
     collSim1.alphaDecay(0).alpha(0.09).restart();
     collSim2.alphaDecay(0).alpha(0.09).restart();
-    //simulation.alpha(1).restart();
-
-
-    //if (!d3.event.active) dragSimulation.alpha(1).restart();
   }
 
   function dragended(d) {
-    /*dragSimulation.alphaTarget(0).on('end', () => {
-     d.fx = null;
-     d.fy = null;
-     });*/
-
-    /*simulation.stop();
-     simulation.alphaDecay(0.01)
-     simulation.alpha(0.01);
-     for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-     simulation.tick();
-     }
-     ticked();*/
-
-    //dragSimulation.stop();
     if (!d3.event.active) {
-      simulation.alphaDecay(0.01).alphaTarget(0);
-      collSim1.alphaDecay(0.01).alphaTarget(0);
-      collSim2.alphaDecay(0.01).alphaTarget(0);
+      simulation.alphaDecay(0.1).alphaTarget(0);
+      collSim1.alphaDecay(0.1).alphaTarget(0);
+      collSim2.alphaDecay(0.1).alphaTarget(0);
     }
 
     d.fx = null;
