@@ -31,7 +31,7 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
           .id(n => n.fullName)
           .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
           .strength(link => 1 / Math.min(countLinksOfNode(allLinks, link.source), countLinksOfNode(allLinks, link.target)))
-          .iterations(2))
+          .iterations(3))
         .stop();
 
       //TODO: maybe use forceManyBody to prevent "loose" nodes
@@ -52,46 +52,39 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
         allNodes.forEach(node => node.originalNode.updateAbsoluteNode());
       };
 
+      const updateOnEnd = () => {
+
+      };
+
       simulation.nodes(allNodes).on('tick', ticked);
       simulation.force('link').links(allLinks);
 
       const allCollisionSimulations = this.root.getSelfAndDescendants().filter(node => !node.isCurrentlyLeaf()).map(node => {
         const collisionSimulation = d3.forceSimulation()
           .alphaDecay(0.05)
-          .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2))
+          .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(3))
           .stop();
         collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode())).on('tick', ticked);
         return collisionSimulation;
       });
 
 
+      /**
+       * running the simulations synchronized is better than asynchron (using promises):
+       * it is faster and achieves better results (as one would assume)
+       */
       for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
         simulation.tick();
+        //TODO: check whether the condition for the collision-simulations is fullfilled
         allCollisionSimulations.forEach(s => s.tick());
         ticked();
       }
 
-      /*const simulationRunner = new Promise((resolve, reject) => {
-       for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-       simulation.tick();
-       }
-       console.log('fertisch');
-       resolve();
-       });*/
-
-      /*const collisionRunner = Promise.all(allCollisionSimulations.map(sim => new Promise(() => {
-       if (sim) {
-       for (let i = 0, n = Math.ceil(Math.log(sim.alphaMin()) / Math.log(1 - sim.alphaDecay())); i < n; ++i) {
-       sim.tick();
-       }
-       }
-       console.log('fertisch');
-       })));*/
-
-      /* simulationRunner.then(() => {
-       ticked();
-       console.log('update');
-       });*/
+      //run the remaining simulations of collision
+      for (let i = 0, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); i < n; ++i) {
+        allCollisionSimulations.forEach(s => s.tick());
+        ticked();
+      }
     }
 
     foldAllNodes() {
