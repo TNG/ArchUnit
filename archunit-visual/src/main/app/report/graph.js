@@ -29,10 +29,13 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
         .alphaDecay(0.05)
         .force('link', d3.forceLink()
           .id(n => n.fullName)
-          .distance(d => d.source.r + d.target.r + 2*visualizationStyles.getCirclePadding())
+          .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
           .strength(link => 1 / Math.min(countLinksOfNode(allLinks, link.source), countLinksOfNode(allLinks, link.target)))
-          .iterations(2));
-        //.force("charge", d3.forceManyBody().strength(-100));
+          .iterations(2))
+        .stop();
+
+      //TODO: maybe use forceManyBody to prevent "loose" nodes
+      //.force("charge", d3.forceManyBody().strength(-100));
 
       const ticked = () => {
         const root = allNodes[0];
@@ -52,16 +55,43 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       simulation.nodes(allNodes).on('tick', ticked);
       simulation.force('link').links(allLinks);
 
-      const allCollisionSimulations = [];
-      this.root.getSelfAndDescendants().forEach(node => {
-        if (!node.isCurrentlyLeaf()) {
-          const collisionSimulation = d3.forceSimulation()
-            .alphaDecay(0.05)
-            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2));
-          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode())).on('tick', ticked);
-          allCollisionSimulations.push(collisionSimulation);
-        }
+      const allCollisionSimulations = this.root.getSelfAndDescendants().filter(node => !node.isCurrentlyLeaf()).map(node => {
+        const collisionSimulation = d3.forceSimulation()
+          .alphaDecay(0.05)
+          .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2))
+          .stop();
+        collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode())).on('tick', ticked);
+        return collisionSimulation;
       });
+
+
+      for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+        simulation.tick();
+        allCollisionSimulations.forEach(s => s.tick());
+        ticked();
+      }
+
+      /*const simulationRunner = new Promise((resolve, reject) => {
+       for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+       simulation.tick();
+       }
+       console.log('fertisch');
+       resolve();
+       });*/
+
+      /*const collisionRunner = Promise.all(allCollisionSimulations.map(sim => new Promise(() => {
+       if (sim) {
+       for (let i = 0, n = Math.ceil(Math.log(sim.alphaMin()) / Math.log(1 - sim.alphaDecay())); i < n; ++i) {
+       sim.tick();
+       }
+       }
+       console.log('fertisch');
+       })));*/
+
+      /* simulationRunner.then(() => {
+       ticked();
+       console.log('update');
+       });*/
     }
 
     foldAllNodes() {
@@ -123,7 +153,7 @@ module.exports.create = () => {
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
       //graph.foldAllNodes();
 
-      graph.startSimulation();
+      d3.timeout(() => graph.startSimulation());
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {
