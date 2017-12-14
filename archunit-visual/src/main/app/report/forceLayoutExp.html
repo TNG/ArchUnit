@@ -42,10 +42,11 @@
   const distance = 10;
 
   const count = node => {
-    return allNodes.filter(n => n === node).length;
+    return allLinks.filter(n => n.source === node || n.target === node).length;
   };
 
   var simulation = d3.forceSimulation()
+    .alphaDecay(0.1)
     .force("link", d3.forceLink().id(function (d) {
       return d.id;
     })
@@ -54,10 +55,11 @@
       })
       .strength(link => {
         const res = 1 / Math.min(count(link.source), count(link.target));
-        if ((arrNodesOut.includes(link.source) && !arrNodesOut.includes(link.target) && link.target.id !== rootId)
+        //wsl überflüssig
+        /*if ((arrNodesOut.includes(link.source) && !arrNodesOut.includes(link.target) && link.target.id !== rootId)
           || (arrNodesOut.includes(link.target) && !arrNodesOut.includes(link.source) && link.source.id !== rootId)) {
           return 0.1 * res;
-        }
+        }*/
         return res;
       })
     .iterations(2));
@@ -80,6 +82,7 @@
   let node;
 
   let allNodes;
+  let allLinks;
 
   d3.json("example.json", function (error, graph) {
     if (error) {
@@ -87,6 +90,7 @@
     }
 
     allNodes = graph.nodes;
+    allLinks = graph.links;
 
     graph.nodes.forEach(n => {
       if (n.id === rootId) {
@@ -142,7 +146,6 @@
       });
 
     simulation
-      .alphaDecay(0.1)
       .nodes(graph.nodes)
       .on("tick", ticked);
     //.on('end', ticked);
@@ -255,6 +258,8 @@
       collSim2.alphaDecay(0.1).alphaTarget(0);
     }
 
+    //Strategie gut: Position der verschobenen Node festhalten, beim Abklingen freigeben: dann wird Node prinzipiell
+    //da gelassen wo sie hingezogen wurde aber ein wenig "korrigiert" am Ende
     d.fx = null;
     d.fy = null;
 

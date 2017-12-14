@@ -264,11 +264,11 @@ const init = (View, nodeMap) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
+      this.visualData.jumpToPosition(this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.getStartNode().getAbsoluteCoords(), this.getEndNode().getAbsoluteCoords());
+      return this.visualData.moveToPosition(this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
     }
 
     hide() {
@@ -282,6 +282,13 @@ const init = (View, nodeMap) => {
 
     getIdentifyingString() {
       return `${this.from}-${this.to}`;
+    }
+
+    getSimpleDependency() {
+      return {
+        source: this.from,
+        target: this.to
+      }
     }
   };
 

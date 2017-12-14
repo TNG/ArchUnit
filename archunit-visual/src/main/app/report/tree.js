@@ -72,6 +72,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const VisualData = class {
     constructor(listener, x = 0, y = 0, r = 0) {
+      /**
+       * the x- and y-coordinate is always relative to the parent of the node
+       * (with the middle point of the parent node as origin)
+       * @type {number}
+       */
       this.x = x;
       this.y = y;
       this.r = r;
@@ -89,7 +94,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._listener.onMovedToPosition();
     }
 
-    jumpToRelativePosition(dx, dy, parent) {
+    jumpToRelativeDisplacement(dx, dy, parent) {
       let newX = this.x + dx;
       let newY = this.y + dy;
       if (innerCircle({x: newX, y: newY, r: this.r}).isOutOfParentCircleOrIsChildOfRoot(parent)) {
@@ -104,8 +109,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     jumpToAbsolutePosition(x, y, parent) {
+      if (parent) {
+        x -= parent.getAbsoluteNode().x;
+        y -= parent.getAbsoluteNode().y;
+      }
+
       const circle = {x, y, r: this.r};
-      if (innerCircle(circle).isOutOfParentCircleOrIsChildOfRoot(parent)) {
+      if (parent && innerCircle(circle).isOutOfParentCircleOrIsChildOfRoot(parent)) {
         ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius()));
       }
       this.x = x;
@@ -168,6 +178,34 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.doNext = fun => this._updatePromise.then(fun);
         this.relayout = () => this.doNextAndWaitFor(() => this._relayout());
       }
+
+      this._createAbsoluteNode();
+    }
+
+    updateAndGetAbsoluteNodes() {
+      this.getSelfAndDescendants().map(node => node.updateAbsoluteNode());
+      return this.getSelfAndDescendants().map(node => node.getAbsoluteNode());
+    }
+
+    _createAbsoluteNode() {
+      this._absoluteNode = {
+        fullName: this.getFullName(),
+        r: 0,
+        x: 0,
+        y: 0,
+        originalNode: this
+      }
+    }
+
+    updateAbsoluteNode() {
+      const absoluteVisualData = this.getAbsoluteVisualData();
+      this._absoluteNode.r = this.getRadius();
+      this._absoluteNode.x = absoluteVisualData.x;
+      this._absoluteNode.y = absoluteVisualData.y;
+    }
+
+    getAbsoluteNode() {
+      return this._absoluteNode;
     }
 
     addListener(listener) {
@@ -299,7 +337,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     /**
      * Coordinates ({x, y}) with respect to the root node.
      */
-    getAbsoluteCoords() {
+    getAbsoluteVisualData() {
       const selfAndPredecessors = this.getSelfAndPredecessors();
       return {
         r: this.visualData.r,
@@ -357,10 +395,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return Promise.all([...childrenPromises, ...promises]);
     }
 
-    startSimulation() {
-
-    }
-
     /**
      * Shifts this node and its children.
      *
@@ -369,7 +403,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this.visualData.jumpToRelativePosition(dx, dy, this.getParent());
+        this.visualData.jumpToRelativeDisplacement(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
       });
     }

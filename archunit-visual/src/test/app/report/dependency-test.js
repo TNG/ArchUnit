@@ -59,7 +59,7 @@ const createTreeWithToClassesAndOneInnerClass = () => {
 };
 
 //FIXME: better use mock for the tree (only the getByName-Methode has to be mocked, and the nodes only need the methods
-//isPackage() and getAbsoluteCoords
+//isPackage() and getAbsoluteVisualData
 
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {

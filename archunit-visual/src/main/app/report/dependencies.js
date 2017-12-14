@@ -126,6 +126,10 @@ const init = (View) => {
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
 
+    getSimpleDependencies() {
+      return this.getVisible().map(dependency => dependency.getSimpleDependency());
+    }
+
     createListener() {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),

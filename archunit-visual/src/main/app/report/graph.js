@@ -1,6 +1,11 @@
 'use strict';
 
-const init = (Node, Dependencies, View) => {
+const d3 = require('d3');
+
+const init = (Node, Dependencies, View, visualizationStyles) => {
+
+  const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
+
   const Graph = class {
     constructor(jsonRoot, svg) {
       this._view = new View(svg);
@@ -8,6 +13,55 @@ const init = (Node, Dependencies, View) => {
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.relayout();
+      this.startSimulation = () => this.root.doNext(() => this._startSimulation());
+    }
+
+    _startSimulation() {
+      //TODO: do not recreate forceSimulation all time, but always recreate allNodes and allLinks (as they might change)
+
+      const allNodes = this.root.updateAndGetAbsoluteNodes();
+
+      //FIXME: also clone one link for all parent-nodes of the linked node
+      //FIXME: if a node has only one child, drag it in the middle
+      const allLinks = this.dependencies.getSimpleDependencies();
+
+      const simulation = d3.forceSimulation()
+        .alphaDecay(0.05)
+        .force('link', d3.forceLink()
+          .id(n => n.fullName)
+          .distance(d => d.source.r + d.target.r + 2*visualizationStyles.getCirclePadding())
+          .strength(link => 1 / Math.min(countLinksOfNode(allLinks, link.source), countLinksOfNode(allLinks, link.target)))
+          .iterations(2));
+        //.force("charge", d3.forceManyBody().strength(-100));
+
+      const ticked = () => {
+        const root = allNodes[0];
+        //move all nodes, so that they are in the middle (defined by the radius of the root)
+        allNodes.forEach(node => {
+          node.x -= (root.x - root.r);
+          node.y -= (root.y - root.r);
+        });
+
+        //update nodes and deps and re-update allNodes and allLinks
+        allNodes.forEach(node => node.originalNode.visualData.jumpToAbsolutePosition(node.x, node.y, node.originalNode.getParent()));
+        this.dependencies._jumpAllToTheirPositions();
+
+        allNodes.forEach(node => node.originalNode.updateAbsoluteNode());
+      };
+
+      simulation.nodes(allNodes).on('tick', ticked);
+      simulation.force('link').links(allLinks);
+
+      const allCollisionSimulations = [];
+      this.root.getSelfAndDescendants().forEach(node => {
+        if (!node.isCurrentlyLeaf()) {
+          const collisionSimulation = d3.forceSimulation()
+            .alphaDecay(0.05)
+            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2));
+          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode())).on('tick', ticked);
+          allCollisionSimulations.push(collisionSimulation);
+        }
+      });
     }
 
     foldAllNodes() {
@@ -59,15 +113,17 @@ module.exports.create = () => {
         return reject(error);
       }
 
-      const visualizationStyles = require('./visualization-styles').fromEmbeddedStyleSheet();
       const appContext = require('./app-context').newInstance();
+      const visualizationStyles = appContext.getVisualizationStyles();
       const Node = appContext.getNode(); // FIXME: Correct dependency tree
       const Dependencies = appContext.getDependencies(); // FIXME: Correct dependency tree
       const graphView = appContext.getGraphView();
 
-      const Graph = init(Node, Dependencies, graphView).Graph;
+      const Graph = init(Node, Dependencies, graphView, visualizationStyles).Graph;
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
-      graph.foldAllNodes();
+      //graph.foldAllNodes();
+
+      graph.startSimulation();
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {
