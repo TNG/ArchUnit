@@ -1,1 +1,331 @@
 == The Lang API
+
+=== Composing Rules
+
+<<The Core API>> is pretty powerful with regard to all the details from the bytecode
+that it provides to tests. However, tests written this way lack conciseness and fail to convey the
+architectural concept that they should assert. Consider:
+
+[source,java,options="nowrap"]
+----
+Set<JavaClass> services = new HashSet<>();
+for (JavaClass clazz : classes) {
+    // choose those classes with FQN with infix '.service.'
+    if (clazz.getName().contains(".service.")) {
+        services.add(clazz);
+    }
+}
+
+for (JavaClass service : services) {
+    for (JavaAccess<?> access : service.getAccessesFromSelf()) {
+        String targetName = access.getTargetOwner().getName();
+
+        // fail if the target FQN has the infix ".controller."
+        if (targetName.contains(".controller.")) {
+            String message = String.format(
+                    "Service %s accesses Controller %s in line %d",
+                    service.getName(), targetName, access.getLineNumber());
+            Assert.fail(message);
+        }
+    }
+}
+----
+
+What we want to express, is the rule _"no classes that reside in a package 'service' should
+access classes that reside in a package 'controller'"_. Nevertheless, it's hard to read through
+that code and distill that information. And the same process has to be done every time, someone
+needs to understand the semantics of this rule.
+
+To solve this shortcoming, ArchUnit offers a high level API to express architectural concepts
+in a concise way. In fact, we can write code, that is almost equivalent to the prose rule text
+mentioned before:
+
+[source,java,options="nowrap"]
+----
+ArchRule rule = ArchRuleDefinition.noClasses()
+    .that().resideInAPackage("..service..")
+    .should().accessClassesThat().resideInAPackage("..controller..");
+
+rule.check(classes);
+----
+
+The only difference to colloquial language, are the ".." in the package notation,
+which refers to any number of packages. Thus "..service.." just expresses
+"any package that contains some sub-package 'service'", e.g. `com.myapp.service.any`.
+If this test fails, it will report an `AssertionError` with the following message:
+
+[source,bash]
+----
+java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
+Rule 'no classes that reside in a package '..service..'
+should access classes that reside in a package '..controller..'' was violated (1 times):
+Method <some.pkg.service.SomeService.callController()>
+calls method <some.pkg.controller.SomeController.execute()>
+in (SomeService.java:14)
+----
+
+So as a benefit, the assertion error contains the full rule text out of the box and reports
+all violations including the exact class and line number. The rule API also allows to combine
+predicates and conditions:
+
+[source,java,options="nowrap"]
+----
+noClasses()
+    .that().resideInAPackage("..service..")
+    .or().resideInAPackage("..persistence..")
+    .should().accessClassesThat().resideInAPackage("..controller..")
+    .orShould().accessClassesThat().resideInAPackage("..ui..")
+
+rule.check(classes);
+----
+
+=== Creating Custom Rules
+
+In fact, most architectural rules take the form
+
+[source]
+----
+classes that ${PREDICATE} should ${CONDITION}
+----
+
+In other words, we always want to limit imported classes to a relevant subset, and then
+evaluate some condition to see that all those classes satisfy it.
+ArchUnit's API allows you, to do just that, by exposing the concepts of `DescribedPredicate`
+and `ArchCondition`. So the rule above, is just an application of this generic API:
+
+[source,java,options="nowrap"]
+----
+DescribedPredicate<JavaClass> resideInAPackageService = // define the predicate
+ArchCondition<JavaClass> accessClassesThatResideInAPackageController = // define the condition
+
+noClasses().that(resideInAPackageService)
+    .should(accessClassesThatResideInAPackageController);
+----
+
+Thus, if the predefined API does not allow to express some concept, it is possible to extend
+it in any custom way, for example:
+
+[source,java,options="nowrap"]
+----
+DescribedPredicate<JavaClass> haveAFieldAnnotatedWithPayload =
+    new DescribedPredicate<JavaClass>("have a field annotated with @Payload"){
+        @Override
+        public boolean apply(JavaClass input) {
+            boolean someFieldAnnotatedWithPayload = // iterate fields and check for @Payload
+            return someFieldAnnotatedWithPayload;
+        }
+    };
+
+ArchCondition<JavaClass> onlyBeAccessedBySecuredMethods =
+    new ArchCondition<JavaClass>("only be accessed by @Secured methods") {
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            for (JavaMethodCall call : item.getMethodCallsToSelf()) {
+                if (!call.getOrigin().isAnnotatedWith(Secured.class)) {
+                    String message = String.format(
+                        "Method %s is not @Secured", call.getOrigin().getFullName());
+                    events.add(SimpleConditionEvent.violated(call, message));
+                }
+            }
+        }
+    };
+
+classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods);
+----
+
+If the rule fails, the error message will be built from the supplied descriptions. In the
+example above, it would be
+
+[source]
+----
+classes that have a field annotated with @Payload should only be accessed by @Secured methods
+----
+
+=== Predefined Predicates and Conditions
+
+Often custom predicates and conditions like in the last section can be composed from
+predefined elements. ArchUnit's basic convention for predicates is, that they are defined
+in an inner class `Predicates` within the type they target. For example, one can find the
+predicate to check for the simple name of a `JavaClass` as
+
+[source,java,options="nowrap"]
+----
+JavaClass.Predicates.simpleName(String)
+----
+
+Predicates can be joined using the methods `predicate.or(other)` and `predicate.and(other)`.
+So for example a predicate testing for a class with simple name "Foo" that is serializable
+could be created the following way:
+
+[source,java,options="nowrap"]
+----
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+
+DescribedPredicate<JavaClass> serializableNamedFoo =
+    simpleName("Foo").and(assignableTo(Serializable.class));
+----
+
+Note that for some properties, there exist interfaces with predicates defined for them.
+For example the property to have a name is represented by the interface `HasName`, consequently
+the predicate to check the name of a `JavaClass`, is the same as the predicate to check the name
+of a `JavaMethod` and resides within
+
+[source,java,options="nowrap"]
+----
+HasName.Predicates.name(String)
+----
+
+This can at times lead to problems with the type system, if predicates are supposed to be joined.
+Since the `or(..)` method accepts a type of `DescribedPredicate<? super T>`,
+where `T` is the type of the first predicate. For example:
+
+[source,java,options="nowrap"]
+----
+// Does not compile, because type(..) targets a subtype of HasName
+HasName.Predicates.name("").and(JavaClass.Predicates.type(Serializable.class))
+
+// Does compile, because name(..) targets a supertype of JavaClass
+JavaClass.Predicates.type(Serializable.class).and(HasName.Predicates.name(""))
+
+// Does compile, because the compiler now sees name(..) as a predicate for JavaClass
+DescribedPredicate<JavaClass> name = HasName.Predicates.name("").forSubType();
+name.and(JavaClass.Predicates.type(Serializable.class));
+----
+
+This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java
+type system, that cannot be circumvented in a satisfying way.
+
+Just like predicates, there exist predefined conditions, that can be combined in a similar
+way. Since `ArchCondition` is a less generic concept, all predefined conditions can be found
+within `ArchConditions`:
+
+[source,java,options="nowrap"]
+----
+ArchCondition<JavaClass> callEquals =
+    ArchConditions.callMethod(Object.class, "equals", Object.class);
+ArchCondition<JavaClass> callHashCode =
+    ArchConditions.callMethod(Object.class, "hashCode");
+
+ArchCondition<JavaClass> callEqualsOrHashCode = callEquals.or(callHashCode);
+----
+
+=== Rules with Custom Concepts
+
+Earlier we stated, that most architectural rules take the form
+
+[source]
+----
+classes that ${PREDICATE} should ${CONDITION}
+----
+
+However, we do not always talk about classes, if we express architectural concepts. We might
+have custom language, we might talk about modules, about slices, or on the other hand more
+detailed about fields, methods or constructors. A generic API will never be able to support
+every imaginable concept out of the box. Thus ArchUnit's rule API has at its foundation
+a more generic API, that controls the types of objects that our concept targets.
+
+[plantuml, "import-vs-lang"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+JavaClasses -right->[transform] CustomObjects
+CustomObjects -right->[passed to] "ArchRule
+<i>composed of DescribedPredicate<CustomObject></i>
+<i>and ArchCondition<CustomObject></i>"
+----
+
+To achieve this, any rule definition is based on a `ClassesTransformer` that defines, how
+`JavaClasses` are to be transformed to the desired rule input. In many cases, like the ones
+mentioned in the sections above, this is the identity transformation, passing classes on to the rule
+as they are. However, one can supply any custom transformation to express a rule about a
+different type of input object. For example:
+
+[source,java,options="nowrap"]
+----
+ClassesTransformer<JavaField> fields = new AbstractClassesTransformer<JavaField>("fields") {
+    @Override
+    public Iterable<JavaField> doTransform(JavaClasses classes) {
+        Set<JavaField> result = new HashSet<>();
+        for (JavaClass javaClass : classes) {
+            result.addAll(javaClass.getFields());
+        }
+        return result;
+    }
+};
+
+all(fields).that(have(modifier(PUBLIC))).should(...)
+----
+
+Of course these transformers can represent any custom concept desired:
+
+[source,java,options="nowrap"]
+----
+// how we map classes to business modules
+ClassesTransformer<BusinessModule> businessModules = ...
+
+// filter business module dealing with orders
+DescribedPredicate<BusinessModule> dealWithOrders = ...
+
+// check that the actual business module is independent of payment
+ArchCondition<BusinessModule> beIndependentOfPayment = ...
+
+all(businessModules).that(dealWithOrders).should(beIndependentOfPayment);
+----
+
+=== Controlling the Rule Text
+
+If the rule is straight forward, the rule text that is created automatically should be
+sufficient in many cases. However, for rules that are not common knowledge, it is good practice
+to document the reason for this rule. This can be done the following way:
+
+[source,java,options="nowrap"]
+----
+classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+    .because("@Secured methods will be intercepted, checking for increased priviledges " +
+        "and obfuscating sensitive auditing information");
+----
+
+Nevertheless sometimes the generated rule text might not convey the real intention
+concisely enough (e.g. if multiple predicates or conditions are joined). In those cases
+it is possible, to completely override the rule text:
+
+[source,java,options="nowrap"]
+----
+classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+    .as("Payload may only be accessed in a secure way");
+----
+
+=== Ignoring Violations
+
+In legacy projects there might be too many violations to fix at once. Nevertheless, that code
+should be covered completely by architecture tests, to ensure that no further violations will
+be added to the existing code. One approach to ignore existing violations is
+to tailor the `that(..)` clause of the rules in question, to ignore certain violations.
+A more generic approach is, to ignore violations based on simple regex matches.
+For this one can put a file named `archunit_ignore_patterns.txt` in the root of the classpath.
+Every line will be interpreted as a regular expression and checked against reported violations.
+Violations with a message matching the pattern will be ignored. If no violations are left,
+the check will pass.
+
+For example, suppose the class `some.pkg.LegacyService` violates a lot of different rules.
+It is possible to add
+
+[source,bash]
+.archunit_ignore_patterns.txt
+----
+.*some\.pkg\.LegacyService.*
+----
+
+All violations mentioning `some.pkg.LegacyService` will consequently be ignored, and rules that
+are only violated by such violations will report success instead of failure.
