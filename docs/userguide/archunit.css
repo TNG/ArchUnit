@@ -417,3 +417,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .print-only{display:block!important}
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
+
+/* Some custom overrides to force some styles*/
+h2 {
+    margin-top: 1.5em !important;
+    margin-bottom: 0.75em !important;
+}
+h3 {
+    margin-top: 1.3em !important;
+    margin-bottom: 0.65em !important;
+}
+h4 {
+    margin-top: 1.2em !important;
+    margin-bottom: 0.55em !important;
+}
