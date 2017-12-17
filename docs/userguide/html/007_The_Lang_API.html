@@ -436,13 +436,357 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_the_lang_api">The Lang API</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_composing_rules">Composing Rules</h3>
+<div class="paragraph">
+<p><a href="#The Core API">[The Core API]</a> is pretty powerful with regard to all the details from the bytecode
+that it provides to tests. However, tests written this way lack conciseness and fail to convey the
+architectural concept that they should assert. Consider:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">Set&lt;JavaClass&gt; services = new HashSet&lt;&gt;();
+for (JavaClass clazz : classes) {
+    // choose those classes with FQN with infix '.service.'
+    if (clazz.getName().contains(".service.")) {
+        services.add(clazz);
+    }
+}
 
+for (JavaClass service : services) {
+    for (JavaAccess&lt;?&gt; access : service.getAccessesFromSelf()) {
+        String targetName = access.getTargetOwner().getName();
+
+        // fail if the target FQN has the infix ".controller."
+        if (targetName.contains(".controller.")) {
+            String message = String.format(
+                    "Service %s accesses Controller %s in line %d",
+                    service.getName(), targetName, access.getLineNumber());
+            Assert.fail(message);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What we want to express, is the rule <em>"no classes that reside in a package 'service' should
+access classes that reside in a package 'controller'"</em>. Nevertheless, it&#8217;s hard to read through
+that code and distill that information. And the same process has to be done every time, someone
+needs to understand the semantics of this rule.</p>
+</div>
+<div class="paragraph">
+<p>To solve this shortcoming, ArchUnit offers a high level API to express architectural concepts
+in a concise way. In fact, we can write code, that is almost equivalent to the prose rule text
+mentioned before:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = ArchRuleDefinition.noClasses()
+    .that().resideInAPackage("..service..")
+    .should().accessClassesThat().resideInAPackage("..controller..");
+
+rule.check(classes);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The only difference to colloquial language, are the ".." in the package notation,
+which refers to any number of packages. Thus "..service.." just expresses
+"any package that contains some sub-package 'service'", e.g. <code>com.myapp.service.any</code>.
+If this test fails, it will report an <code>AssertionError</code> with the following message:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
+Rule 'no classes that reside in a package '..service..'
+should access classes that reside in a package '..controller..'' was violated (1 times):
+Method &lt;some.pkg.service.SomeService.callController()&gt;
+calls method &lt;some.pkg.controller.SomeController.execute()&gt;
+in (SomeService.java:14)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So as a benefit, the assertion error contains the full rule text out of the box and reports
+all violations including the exact class and line number. The rule API also allows to combine
+predicates and conditions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">noClasses()
+    .that().resideInAPackage("..service..")
+    .or().resideInAPackage("..persistence..")
+    .should().accessClassesThat().resideInAPackage("..controller..")
+    .orShould().accessClassesThat().resideInAPackage("..ui..")
+
+rule.check(classes);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_custom_rules">Creating Custom Rules</h3>
+<div class="paragraph">
+<p>In fact, most architectural rules take the form</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>classes that ${PREDICATE} should ${CONDITION}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In other words, we always want to limit imported classes to a relevant subset, and then
+evaluate some condition to see that all those classes satisfy it.
+ArchUnit&#8217;s API allows you, to do just that, by exposing the concepts of <code>DescribedPredicate</code>
+and <code>ArchCondition</code>. So the rule above, is just an application of this generic API:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">DescribedPredicate&lt;JavaClass&gt; resideInAPackageService = // define the predicate
+ArchCondition&lt;JavaClass&gt; accessClassesThatResideInAPackageController = // define the condition
+
+noClasses().that(resideInAPackageService)
+    .should(accessClassesThatResideInAPackageController);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Thus, if the predefined API does not allow to express some concept, it is possible to extend
+it in any custom way, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">DescribedPredicate&lt;JavaClass&gt; haveAFieldAnnotatedWithPayload =
+    new DescribedPredicate&lt;JavaClass&gt;("have a field annotated with @Payload"){
+        @Override
+        public boolean apply(JavaClass input) {
+            boolean someFieldAnnotatedWithPayload = // iterate fields and check for @Payload
+            return someFieldAnnotatedWithPayload;
+        }
+    };
+
+ArchCondition&lt;JavaClass&gt; onlyBeAccessedBySecuredMethods =
+    new ArchCondition&lt;JavaClass&gt;("only be accessed by @Secured methods") {
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            for (JavaMethodCall call : item.getMethodCallsToSelf()) {
+                if (!call.getOrigin().isAnnotatedWith(Secured.class)) {
+                    String message = String.format(
+                        "Method %s is not @Secured", call.getOrigin().getFullName());
+                    events.add(SimpleConditionEvent.violated(call, message));
+                }
+            }
+        }
+    };
+
+classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the rule fails, the error message will be built from the supplied descriptions. In the
+example above, it would be</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>classes that have a field annotated with @Payload should only be accessed by @Secured methods</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_predefined_predicates_and_conditions">Predefined Predicates and Conditions</h3>
+<div class="paragraph">
+<p>Often custom predicates and conditions like in the last section can be composed from
+predefined elements. ArchUnit&#8217;s basic convention for predicates is, that they are defined
+in an inner class <code>Predicates</code> within the type they target. For example, one can find the
+predicate to check for the simple name of a <code>JavaClass</code> as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClass.Predicates.simpleName(String)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Predicates can be joined using the methods <code>predicate.or(other)</code> and <code>predicate.and(other)</code>.
+So for example a predicate testing for a class with simple name "Foo" that is serializable
+could be created the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+
+DescribedPredicate&lt;JavaClass&gt; serializableNamedFoo =
+    simpleName("Foo").and(assignableTo(Serializable.class));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that for some properties, there exist interfaces with predicates defined for them.
+For example the property to have a name is represented by the interface <code>HasName</code>, consequently
+the predicate to check the name of a <code>JavaClass</code>, is the same as the predicate to check the name
+of a <code>JavaMethod</code> and resides within</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">HasName.Predicates.name(String)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can at times lead to problems with the type system, if predicates are supposed to be joined.
+Since the <code>or(..)</code> method accepts a type of <code>DescribedPredicate&lt;? super T&gt;</code>,
+where <code>T</code> is the type of the first predicate. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// Does not compile, because type(..) targets a subtype of HasName
+HasName.Predicates.name("").and(JavaClass.Predicates.type(Serializable.class))
+
+// Does compile, because name(..) targets a supertype of JavaClass
+JavaClass.Predicates.type(Serializable.class).and(HasName.Predicates.name(""))
+
+// Does compile, because the compiler now sees name(..) as a predicate for JavaClass
+DescribedPredicate&lt;JavaClass&gt; name = HasName.Predicates.name("").forSubType();
+name.and(JavaClass.Predicates.type(Serializable.class));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java
+type system, that cannot be circumvented in a satisfying way.</p>
+</div>
+<div class="paragraph">
+<p>Just like predicates, there exist predefined conditions, that can be combined in a similar
+way. Since <code>ArchCondition</code> is a less generic concept, all predefined conditions can be found
+within <code>ArchConditions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchCondition&lt;JavaClass&gt; callEquals =
+    ArchConditions.callMethod(Object.class, "equals", Object.class);
+ArchCondition&lt;JavaClass&gt; callHashCode =
+    ArchConditions.callMethod(Object.class, "hashCode");
+
+ArchCondition&lt;JavaClass&gt; callEqualsOrHashCode = callEquals.or(callHashCode);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rules_with_custom_concepts">Rules with Custom Concepts</h3>
+<div class="paragraph">
+<p>Earlier we stated, that most architectural rules take the form</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>classes that ${PREDICATE} should ${CONDITION}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, we do not always talk about classes, if we express architectural concepts. We might
+have custom language, we might talk about modules, about slices, or on the other hand more
+detailed about fields, methods or constructors. A generic API will never be able to support
+every imaginable concept out of the box. Thus ArchUnit&#8217;s rule API has at its foundation
+a more generic API, that controls the types of objects that our concept targets.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="import-vs-lang.png" alt="import vs lang" width="723" height="80">
+</div>
+</div>
+<div class="paragraph">
+<p>To achieve this, any rule definition is based on a <code>ClassesTransformer</code> that defines, how
+<code>JavaClasses</code> are to be transformed to the desired rule input. In many cases, like the ones
+mentioned in the sections above, this is the identity transformation, passing classes on to the rule
+as they are. However, one can supply any custom transformation to express a rule about a
+different type of input object. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ClassesTransformer&lt;JavaField&gt; fields = new AbstractClassesTransformer&lt;JavaField&gt;("fields") {
+    @Override
+    public Iterable&lt;JavaField&gt; doTransform(JavaClasses classes) {
+        Set&lt;JavaField&gt; result = new HashSet&lt;&gt;();
+        for (JavaClass javaClass : classes) {
+            result.addAll(javaClass.getFields());
+        }
+        return result;
+    }
+};
+
+all(fields).that(have(modifier(PUBLIC))).should(...)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Of course these transformers can represent any custom concept desired:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// how we map classes to business modules
+ClassesTransformer&lt;BusinessModule&gt; businessModules = ...
+
+// filter business module dealing with orders
+DescribedPredicate&lt;BusinessModule&gt; dealWithOrders = ...
+
+// check that the actual business module is independent of payment
+ArchCondition&lt;BusinessModule&gt; beIndependentOfPayment = ...
+
+all(businessModules).that(dealWithOrders).should(beIndependentOfPayment);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_controlling_the_rule_text">Controlling the Rule Text</h3>
+<div class="paragraph">
+<p>If the rule is straight forward, the rule text that is created automatically should be
+sufficient in many cases. However, for rules that are not common knowledge, it is good practice
+to document the reason for this rule. This can be done the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+    .because("@Secured methods will be intercepted, checking for increased priviledges " +
+        "and obfuscating sensitive auditing information");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nevertheless sometimes the generated rule text might not convey the real intention
+concisely enough (e.g. if multiple predicates or conditions are joined). In those cases
+it is possible, to completely override the rule text:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+    .as("Payload may only be accessed in a secure way");</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignoring_violations">Ignoring Violations</h3>
+<div class="paragraph">
+<p>In legacy projects there might be too many violations to fix at once. Nevertheless, that code
+should be covered completely by architecture tests, to ensure that no further violations will
+be added to the existing code. One approach to ignore existing violations is
+to tailor the <code>that(..)</code> clause of the rules in question, to ignore certain violations.
+A more generic approach is, to ignore violations based on simple regex matches.
+For this one can put a file named <code>archunit_ignore_patterns.txt</code> in the root of the classpath.
+Every line will be interpreted as a regular expression and checked against reported violations.
+Violations with a message matching the pattern will be ignored. If no violations are left,
+the check will pass.</p>
+</div>
+<div class="paragraph">
+<p>For example, suppose the class <code>some.pkg.LegacyService</code> violates a lot of different rules.
+It is possible to add</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit_ignore_patterns.txt</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">.*some\.pkg\.LegacyService.*</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All violations mentioning <code>some.pkg.LegacyService</code> will consequently be ignored, and rules that
+are only violated by such violations will report success instead of failure.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-12-08 17:10:41 CET
+Last updated 2017-12-17 17:46:47 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/mono-blue.min.css">
