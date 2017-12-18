@@ -114,7 +114,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._listener.onMovedToPosition();
     }
 
-    jumpToAbsolutePosition(x, y, parent) {
+    setAbsoluteIntermediatePosition(x, y, parent) {
       if (parent) {
         x -= parent.getAbsoluteNode().x;
         y -= parent.getAbsoluteNode().y;
@@ -126,8 +126,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
       this.tmpX = x;
       this.tmpY = y;
-
-      //this._listener.onJumpedToPosition();
     }
   };
 
@@ -184,30 +182,26 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.doNext = fun => this._updatePromise.then(fun);
         this.relayout = () => this.doNextAndWaitFor(() => this._relayout());
       }
-
-      this._createAbsoluteNode();
-    }
-
-    updateAndGetAbsoluteNodes() {
-      this.getSelfAndDescendants().map(node => node.updateAbsoluteNode());
-      return this.getSelfAndDescendants().map(node => node.getAbsoluteNode());
     }
 
     _createAbsoluteNode() {
+      const absoluteVisualData = this.getAbsoluteVisualData();
       this._absoluteNode = {
         fullName: this.getFullName(),
-        r: 0,
-        x: 0,
-        y: 0,
+        r: this.getRadius(),
+        x: absoluteVisualData.x,
+        y: absoluteVisualData.y,
         originalNode: this
       }
     }
 
+    createAbsoluteNodes() {
+      this.getSelfAndDescendants().map(node => node._createAbsoluteNode());
+      return this.getSelfAndDescendants().map(node => node.getAbsoluteNode());
+    }
+
     updateAbsoluteNode() {
-      let absoluteVisualData = this.getAbsoluteTmpVisualData();
-      if (!absoluteVisualData.x) {
-        absoluteVisualData = this.getAbsoluteVisualData();
-      }
+      const absoluteVisualData = this.getAbsoluteIntermediateVisualData();
       this._absoluteNode.r = this.getRadius();
       this._absoluteNode.x = absoluteVisualData.x;
       this._absoluteNode.y = absoluteVisualData.y;
@@ -355,7 +349,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    getAbsoluteTmpVisualData() {
+    getAbsoluteIntermediateVisualData() {
       const selfAndPredecessors = this.getSelfAndPredecessors();
       return {
         r: this.visualData.r,

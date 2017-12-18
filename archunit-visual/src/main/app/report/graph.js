@@ -19,7 +19,7 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
     _startSimulation() {
       //TODO: do not recreate forceSimulation all time, but always recreate allNodes and allLinks (as they might change)
 
-      const allNodes = this.root.updateAndGetAbsoluteNodes();
+      const allNodes = this.root.createAbsoluteNodes();
 
       //FIXME: also clone one link for all parent-nodes of the linked node
       //FIXME: if a node has only one child, drag it in the middle
@@ -37,25 +37,11 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       //TODO: maybe use forceManyBody to prevent "loose" nodes
       //.force("charge", d3.forceManyBody().strength(-100));
 
-      const ticked = (rootWasChanged) => {
+      const ticked = () => {
         const root = allNodes[0];
-        //move all nodes, so that they are in the middle (defined by the radius of the root)
-        /*if (rootWasChanged) {
-          allNodes.forEach(node => {
-            node.x -= (root.x - root.r);
-            node.y -= (root.y - root.r);
-          });
-        }
-        else {
-          allNodes.slice(1).forEach(node => {
-            node.x -= (root.x - root.r);
-            node.y -= (root.y - root.r);
-          });
-        }*/
 
-        //update nodes and deps and re-update allNodes and allLinks
-        allNodes.forEach(node => node.originalNode.visualData.jumpToAbsolutePosition(node.x, node.y, node.originalNode.getParent()));
-
+        //update nodes and deps and re-update allNodes
+        allNodes.forEach(node => node.originalNode.visualData.setAbsoluteIntermediatePosition(node.x, node.y, node.originalNode.getParent()));
         allNodes.forEach(node => node.originalNode.updateAbsoluteNode());
       };
 
@@ -85,15 +71,15 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
        */
       for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
         simulation.tick();
-        //TODO: check whether the condition for the collision-simulations is fullfilled
+        //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
         allCollisionSimulations.forEach(s => s.tick());
-        ticked(true);
+        ticked();
       }
 
       //run the remaining simulations of collision
       for (let i = 0, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); i < n; ++i) {
         allCollisionSimulations.forEach(s => s.tick());
-        ticked(false);
+        ticked();
       }
 
       updateOnEnd();
