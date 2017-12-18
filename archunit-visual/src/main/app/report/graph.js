@@ -37,23 +37,33 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       //TODO: maybe use forceManyBody to prevent "loose" nodes
       //.force("charge", d3.forceManyBody().strength(-100));
 
-      const ticked = () => {
+      const ticked = (rootWasChanged) => {
         const root = allNodes[0];
         //move all nodes, so that they are in the middle (defined by the radius of the root)
-        allNodes.forEach(node => {
-          node.x -= (root.x - root.r);
-          node.y -= (root.y - root.r);
-        });
+        /*if (rootWasChanged) {
+          allNodes.forEach(node => {
+            node.x -= (root.x - root.r);
+            node.y -= (root.y - root.r);
+          });
+        }
+        else {
+          allNodes.slice(1).forEach(node => {
+            node.x -= (root.x - root.r);
+            node.y -= (root.y - root.r);
+          });
+        }*/
 
         //update nodes and deps and re-update allNodes and allLinks
         allNodes.forEach(node => node.originalNode.visualData.jumpToAbsolutePosition(node.x, node.y, node.originalNode.getParent()));
-        this.dependencies._jumpAllToTheirPositions();
 
         allNodes.forEach(node => node.originalNode.updateAbsoluteNode());
       };
 
       const updateOnEnd = () => {
-
+        this.root.visualData.tmpX = this.root.getRadius();
+        this.root.visualData.tmpY = this.root.getRadius();
+        allNodes.forEach(node => node.originalNode.visualData.moveToTmpPosition());
+        this.dependencies.moveAllToTheirPositions();
       };
 
       simulation.nodes(allNodes).on('tick', ticked);
@@ -77,14 +87,16 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
         simulation.tick();
         //TODO: check whether the condition for the collision-simulations is fullfilled
         allCollisionSimulations.forEach(s => s.tick());
-        ticked();
+        ticked(true);
       }
 
       //run the remaining simulations of collision
       for (let i = 0, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); i < n; ++i) {
         allCollisionSimulations.forEach(s => s.tick());
-        ticked();
+        ticked(false);
       }
+
+      updateOnEnd();
     }
 
     foldAllNodes() {

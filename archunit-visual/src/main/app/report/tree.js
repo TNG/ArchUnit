@@ -108,6 +108,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener.onJumpedToPosition();
     }
 
+    moveToTmpPosition() {
+      this.x = this.tmpX;
+      this.y = this.tmpY;
+      return this._listener.onMovedToPosition();
+    }
+
     jumpToAbsolutePosition(x, y, parent) {
       if (parent) {
         x -= parent.getAbsoluteNode().x;
@@ -118,10 +124,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (parent && innerCircle(circle).isOutOfParentCircleOrIsChildOfRoot(parent)) {
         ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius()));
       }
-      this.x = x;
-      this.y = y;
+      this.tmpX = x;
+      this.tmpY = y;
 
-      this._listener.onJumpedToPosition();
+      //this._listener.onJumpedToPosition();
     }
   };
 
@@ -198,7 +204,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     updateAbsoluteNode() {
-      const absoluteVisualData = this.getAbsoluteVisualData();
+      let absoluteVisualData = this.getAbsoluteTmpVisualData();
+      if (!absoluteVisualData.x) {
+        absoluteVisualData = this.getAbsoluteVisualData();
+      }
       this._absoluteNode.r = this.getRadius();
       this._absoluteNode.x = absoluteVisualData.x;
       this._absoluteNode.y = absoluteVisualData.y;
@@ -343,6 +352,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         r: this.visualData.r,
         x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.x, 0),
         y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.y, 0),
+      }
+    }
+
+    getAbsoluteTmpVisualData() {
+      const selfAndPredecessors = this.getSelfAndPredecessors();
+      return {
+        r: this.visualData.r,
+        x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.tmpX, 0),
+        y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.tmpY, 0),
       }
     }
 
