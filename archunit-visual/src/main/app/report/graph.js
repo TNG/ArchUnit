@@ -19,75 +19,108 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
     _startSimulation() {
       //TODO: do not recreate forceSimulation all time, but always recreate allNodes and allLinks (as they might change)
 
-      const allNodes = this.root.createAbsoluteNodes();
-
+      this.root.createAbsoluteNodes();
       //FIXME: if a node has only one child, drag it in the middle
       const allLinks = this.dependencies.getSimpleDependencies();
+      //allLinks.forEach(link => console.log(link.source + "->" + link.target));
 
-      allLinks.forEach(link => console.log(link.source + "->" + link.target));
+      const allNodesSoFar = new Map();
+      let currentNodes = new Map();
+      currentNodes.set(this.root.getFullName(), this.root);
 
-      const simulation = d3.forceSimulation()
-        .alphaDecay(0.007) //.alphaDecay(0.05)
-        .force('link', d3.forceLink()
-          .id(n => n.fullName)
-          .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
-          //TODO: maybe make the force of parent nodes weaker
-          .strength(link => 1 / Math.min(countLinksOfNode(allLinks, link.source), countLinksOfNode(allLinks, link.target)))
-          .iterations(2))
-        .stop();
+      while (currentNodes.size > 0) {
 
-      //TODO: maybe use forceManyBody to prevent "loose" nodes --> no, does not seem to have an affect
-      //.force("charge", d3.forceManyBody().strength(-100));
+        console.log('new round');
 
-      const ticked = () => {
-        //update nodes and deps and re-update allNodes
-        allNodes.forEach(node => node.originalNode.visualData.setAbsoluteIntermediatePosition(node.x, node.y, node.originalNode.getParent()));
-        allNodes.forEach(node => node.originalNode.updateAbsoluteNode());
-      };
+        const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
+        const newNodes = new Map();
+        newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
+        newNodesArray.forEach(node => allNodesSoFar.set(node.getFullName(), node));
+        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allNodesSoFar.has(link.source) && allNodesSoFar.has(link.target)));
+
+        if (newNodes.size === 0) {
+          break;
+        }
+
+        const simulation = d3.forceSimulation()
+          .alphaDecay(0.06) //.alphaDecay(0.05)
+          .force('link', d3.forceLink()
+            .id(n => n.fullName)
+            .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
+            .strength(link => 1 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
+            .iterations(1))
+          .stop();
+
+        const ticked = () => {
+          //update nodes and deps and re-update allNodes
+          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
+          Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
+        };
+
+        const updateOnEnd = () => {
+          //move root to the middle (the root should not be moved by the forceLayout;
+          // anyway, this is just to be sure the node is really in the middle)
+          this.root.visualData.x = this.root.getRadius();
+          this.root.visualData.y = this.root.getRadius();
+
+          Array.from(newNodes.values()).forEach(node => {
+            node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
+            node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
+          });
+        };
+
+        simulation.nodes(Array.from(allNodesSoFar.values()).map(node => node.getAbsoluteNode()));
+        simulation.force('link').links(currentLinks);
+
+        const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
+          const collisionSimulation = d3.forceSimulation()
+            .alphaDecay(0.03)
+            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(1));
+          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode()))
+            .stop();
+          return collisionSimulation;
+        });
+
+
+        /**
+         * running the simulations synchronized is better than asynchron (using promises):
+         * it is faster and achieves better results (as one would assume)
+         */
+        let k;
+        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+          simulation.tick();
+          //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
+          allCollisionSimulations.forEach(s => s.tick());
+          ticked();
+          k = i;
+        }
+        //run the remaining simulations of collision
+        for (let j = k, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < n; ++j) {
+          allCollisionSimulations.forEach(s => s.tick());
+          ticked();
+        }
+
+        updateOnEnd();
+
+        currentNodes = newNodes;
+      }
 
       const updateOnEnd = () => {
         //move root to the middle (the root should not be moved by the forceLayout;
         // anyway, this is just to be sure the node is really in the middle)
         this.root.visualData.x = this.root.getRadius();
         this.root.visualData.y = this.root.getRadius();
-        allNodes.forEach(node => node.originalNode.visualData.moveToIntermediatePosition());
+
+        //move only children to middle of parent
+        Array.from(allNodesSoFar.values()).forEach(node => {
+          if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
+            node.visualData.x = 0;
+            node.visualData.y = 0;
+          }
+          node.visualData.moveToIntermediatePosition();
+        });
         this.dependencies.moveAllToTheirPositions();
       };
-
-      simulation.nodes(allNodes).on('tick', ticked);
-      simulation.force('link').links(allLinks);
-
-      const allCollisionSimulations = this.root.getSelfAndDescendants().filter(node => !node.isCurrentlyLeaf()).map(node => {
-        const collisionSimulation = d3.forceSimulation()
-          .alphaDecay(0.005) //.alphaDecay(0.05)
-          .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2))
-          .stop();
-        collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode())).on('tick', ticked);
-        return collisionSimulation;
-      });
-
-
-      /**
-       * running the simulations synchronized is better than asynchron (using promises):
-       * it is faster and achieves better results (as one would assume)
-       */
-      let k;
-      for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-        simulation.tick();
-        //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
-
-        allCollisionSimulations.forEach(s => s.tick());
-        ticked();
-        k= i;
-      }
-
-      //run the remaining simulations of collision --> no, they are run again!!
-      for (let j = k, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < n; ++j) {
-        allCollisionSimulations.forEach(s => s.tick());
-        console.log('sheesh');
-        ticked();
-      }
-
       updateOnEnd();
     }
 

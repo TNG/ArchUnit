@@ -198,7 +198,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     createAbsoluteNodes() {
-      this.getSelfAndDescendants().map(node => node._createAbsoluteNode());
+      this.getSelfAndDescendants().forEach(node => node._createAbsoluteNode());
       return this.getSelfAndDescendants().map(node => node.getAbsoluteNode());
     }
 

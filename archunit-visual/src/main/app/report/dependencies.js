@@ -160,7 +160,6 @@ const init = (View) => {
         return [...sourceLinks, ...targetLinks];
       });
 
-      //FIXME: distinct!
       const res = [].concat.apply([], transformedSimpleDependenciesGroups);
       const set = new Set();
       const finalRes = [];
