@@ -53,6 +53,10 @@ const innerCircle = innerCirlce => ({
   isOutOfParentCircleOrIsChildOfRoot: parent => {
     const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
     return centerDistance + innerCirlce.r > parent.getRadius() && !parent.isRoot();
+  },
+  isOutOfParentCircle: parent => {
+    const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
+    return centerDistance + innerCirlce.r > parent.getRadius();
   }
 });
 
@@ -108,9 +112,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener.onJumpedToPosition();
     }
 
-    moveToTmpPosition() {
-      this.x = this.tmpX;
-      this.y = this.tmpY;
+    moveToIntermediatePosition() {
       return this._listener.onMovedToPosition();
     }
 
@@ -121,11 +123,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
 
       const circle = {x, y, r: this.r};
-      if (parent && innerCircle(circle).isOutOfParentCircleOrIsChildOfRoot(parent)) {
+      if (parent && innerCircle(circle).isOutOfParentCircle(parent)) {
         ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius()));
       }
-      this.tmpX = x;
-      this.tmpY = y;
+      this.x = x;
+      this.y = y;
     }
   };
 
@@ -185,14 +187,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _createAbsoluteNode() {
-      const absoluteVisualData = this.getAbsoluteVisualData();
       this._absoluteNode = {
         fullName: this.getFullName(),
-        r: this.getRadius(),
-        x: absoluteVisualData.x,
-        y: absoluteVisualData.y,
+        r: 0,
+        x: 0,
+        y: 0,
         originalNode: this
-      }
+      };
+      this.updateAbsoluteNode();
     }
 
     createAbsoluteNodes() {
@@ -201,7 +203,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     updateAbsoluteNode() {
-      const absoluteVisualData = this.getAbsoluteIntermediateVisualData();
+      const absoluteVisualData = this.getAbsoluteVisualData();
       this._absoluteNode.r = this.getRadius();
       this._absoluteNode.x = absoluteVisualData.x;
       this._absoluteNode.y = absoluteVisualData.y;
@@ -346,15 +348,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         r: this.visualData.r,
         x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.x, 0),
         y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.y, 0),
-      }
-    }
-
-    getAbsoluteIntermediateVisualData() {
-      const selfAndPredecessors = this.getSelfAndPredecessors();
-      return {
-        r: this.visualData.r,
-        x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.tmpX, 0),
-        y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.tmpY, 0),
       }
     }
 
