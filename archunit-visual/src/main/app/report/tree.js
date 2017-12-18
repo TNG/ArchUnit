@@ -247,6 +247,24 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._parent;
     }
 
+    //TODO: maybe end-recursive??
+    getSelfOrFirstPredecessorMatching(filter) {
+      if (filter(this)) {
+        return this;
+      }
+      if (this.isRoot)
+      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(filter) : null;
+    }
+
+    //TODO: maybe end-recursive??
+    getSelfAndPredecessorsUntilExclusively(predecessor) {
+      if (predecessor === this) {
+        return [];
+      }
+      const predecessors = this._parent ? this._parent.getSelfAndPredecessorsUntilExclusively(predecessor) : [];
+      return [this, ...predecessors];
+    }
+
     //FIXME: remove this method, as the original children do not to be accessed from outside
     getOriginalChildren() {
       return this._originalChildren;

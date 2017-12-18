@@ -127,7 +127,50 @@ const init = (View) => {
     }
 
     getSimpleDependencies() {
-      return this.getVisible().map(dependency => dependency.getSimpleDependency());
+      const simpleDependencies = this.getVisible().map(dependency => dependency.getSimpleDependency());
+
+      const nodeIsPredecessorOfOther = (node, other) => {
+        const separator = /[\\.\\$]/;
+        return other.startsWith(node) && separator.test(other.substring(node.length, node.length + 1));
+      };
+
+      const transformedSimpleDependenciesGroups = simpleDependencies.map(dep => {
+        //FIXME: change this:
+        if (nodeIsPredecessorOfOther(dep.source, dep.target) || nodeIsPredecessorOfOther(dep.target, dep.source)) {
+          return [dep];
+        }
+        const sourceNode = nodes.getByName(dep.source);
+        const targetNode = nodes.getByName(dep.target);
+        const commonParent = sourceNode.getSelfOrFirstPredecessorMatching(node => nodeIsPredecessorOfOther(node.getFullName(), dep.target));
+
+        if (dep.source === 'com.tngtech.archunit.visual.VisualizationContextTest') {
+          console.log(commonParent.getFullName());
+        }
+
+        const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(commonParent);
+        const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(commonParent);
+        const sourceLinks = sourcePredecessors.map(pred => ({
+          source: pred.getFullName(),
+          target: targetPredecessors[0].getFullName()
+        }));
+        const targetLinks = targetPredecessors.slice(1).map(pred => ({
+          source: sourcePredecessors[0].getFullName(),
+          target: pred.getFullName()
+        }));
+        return [...sourceLinks, ...targetLinks];
+      });
+
+      //FIXME: distinct!
+      const res = [].concat.apply([], transformedSimpleDependenciesGroups);
+      const set = new Set();
+      const finalRes = [];
+      res.forEach(dep => {
+        if (!set.has(dep.source + '->' + dep.target)) {
+          finalRes.push(dep);
+          set.add(dep.source + '->' + dep.target);
+        }
+      });
+      return finalRes.filter(dep => dep.source !== dep.target);
     }
 
     createListener() {
