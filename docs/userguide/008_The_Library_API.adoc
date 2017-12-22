@@ -1,1 +1,52 @@
 == The Library API
+
+The Library API offers a growing collection of predefined rules, that offer a more concise API
+for more complex but common patterns, like a layered architecture or checks for cycles between
+slices (compare <<What to Check>>).
+
+=== Architectures
+
+The entrance point for checks of common architectural styles is
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.library.Architectures
+----
+
+At the moment this only provides a convenient check for a layered architecture (compare
+<<What to Check>>), but in the future it might be extended for styles like a hexagonal
+architecture, pipes and filters, separation of business logic and technical infrastructure, ...
+
+=== Slices
+
+Currently there are two "slice" rules offered by the Library API. These are basically rules
+that slice the code by packages, and contain assertions on those slices. The entrance point is
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.library.dependencies.SlicesRuleDefinition
+----
+
+The API is based on the idea to sort classes into slices according to one or several package
+infixes, and then write assertions against those slices. At the moment this is for example:
+
+[source,java,options="nowrap"]
+----
+// sort classes by the first package after 'myapp'
+// then check those slices for cyclic dependencies
+SlicesRuleDefinition.slices().matching("..myapp.(*)..").should().beFreeOfCycles()
+
+// sort classes by packages between 'myapp' and 'service'
+// then check those slices for not having any dependencies on each other
+SlicesRuleDefinition.slices().matching("..myapp.(**).service..").should().notDependOnEachOther()
+----
+
+=== General Coding Rules
+
+The Library API also offers a small set of coding rules that might be useful in various projects.
+Those can be found within
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.library.GeneralCodingRules
+----

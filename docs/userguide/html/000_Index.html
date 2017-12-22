@@ -508,7 +508,13 @@ h4 {
 <li><a href="#_ignoring_violations">7.6. Ignoring Violations</a></li>
 </ul>
 </li>
-<li><a href="#_the_library_api">8. The Library API</a></li>
+<li><a href="#_the_library_api">8. The Library API</a>
+<ul class="sectlevel2">
+<li><a href="#_architectures">8.1. Architectures</a></li>
+<li><a href="#_slices">8.2. Slices</a></li>
+<li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
+</ul>
+</li>
 <li><a href="#_junit_support">9. JUnit Support</a></li>
 </ul>
 </div>
@@ -1535,7 +1541,66 @@ are only violated by such violations will report success instead of failure.</p>
 <div class="sect1">
 <h2 id="_the_library_api"><a class="anchor" href="#_the_library_api"></a>8. The Library API</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The Library API offers a growing collection of predefined rules, that offer a more concise API
+for more complex but common patterns, like a layered architecture or checks for cycles between
+slices (compare <a href="#_what_to_check">What to Check</a>).</p>
+</div>
+<div class="sect2">
+<h3 id="_architectures"><a class="anchor" href="#_architectures"></a>8.1. Architectures</h3>
+<div class="paragraph">
+<p>The entrance point for checks of common architectural styles is</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.Architectures</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At the moment this only provides a convenient check for a layered architecture (compare
+<a href="#_what_to_check">What to Check</a>), but in the future it might be extended for styles like a hexagonal
+architecture, pipes and filters, separation of business logic and technical infrastructure, &#8230;&#8203;</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_slices"><a class="anchor" href="#_slices"></a>8.2. Slices</h3>
+<div class="paragraph">
+<p>Currently there are two "slice" rules offered by the Library API. These are basically rules
+that slice the code by packages, and contain assertions on those slices. The entrance point is</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.dependencies.SlicesRuleDefinition</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The API is based on the idea to sort classes into slices according to one or several package
+infixes, and then write assertions against those slices. At the moment this is for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// sort classes by the first package after 'myapp'
+// then check those slices for cyclic dependencies
+SlicesRuleDefinition.slices().matching("..myapp.(*)..").should().beFreeOfCycles()
 
+// sort classes by packages between 'myapp' and 'service'
+// then check those slices for not having any dependencies on each other
+SlicesRuleDefinition.slices().matching("..myapp.(**).service..").should().notDependOnEachOther()</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_general_coding_rules"><a class="anchor" href="#_general_coding_rules"></a>8.3. General Coding Rules</h3>
+<div class="paragraph">
+<p>The Library API also offers a small set of coding rules that might be useful in various projects.
+Those can be found within</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.GeneralCodingRules</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
