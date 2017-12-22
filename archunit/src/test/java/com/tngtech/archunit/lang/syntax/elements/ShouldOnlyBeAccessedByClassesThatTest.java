@@ -13,7 +13,6 @@ import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessi
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.otheraccess.ClassAlsoAccessingOtherClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
@@ -609,7 +608,7 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
 
     @Test
     public void areInterfaces_predicate() {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport (
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classes().should().onlyBeAccessed().byClassesThat().areInterfaces())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
 
