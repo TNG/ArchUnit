@@ -1,12 +1,22 @@
 ---
+title: Unit test your Java architecture
 layout: splash
 permalink: /
+header:
+  overlay_color: "#0563a5"
+  overlay_filter: rgba(5, 99, 165, 0.9)
+  overlay_image: /assets/archunit-splash.svg
+  cta_label: "Start Now"
+  cta_url: "/getting-started"
+excerpt: "Start enforcing your architecture within 30 minutes using the test setup you already have."
 ---
 
-![ArchUnit](assets/ArchUnit-Logo.png)
-
-ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. That is, ArchUnit can check dependencies between packages and classes, layers and slices, check for cyclic dependencies and more. It does so by analyzing given Java bytecode, importing all classes into a Java code structure.
-ArchUnit's main focus is to automatically test architecture and coding rules, using any plain Java unit testing framework.
+ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. 
+That is, ArchUnit can check dependencies between packages and classes, layers and slices, 
+check for cyclic dependencies and more. It does so by analyzing given Java bytecode, 
+importing all classes into a Java code structure.
+ArchUnit's main focus is to automatically test architecture and coding rules, using any plain 
+Java unit test framework.
 
 ### News
 
