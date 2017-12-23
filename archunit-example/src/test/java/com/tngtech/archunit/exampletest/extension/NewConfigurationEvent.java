@@ -1,32 +1,25 @@
 package com.tngtech.archunit.exampletest.extension;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-import com.google.common.collect.ImmutableMap;
-
-import static com.google.common.base.Preconditions.checkArgument;
-
 public class NewConfigurationEvent {
-    private final ImmutableMap<String, String> properties;
+    private final Map<String, String> properties;
 
     NewConfigurationEvent(Properties properties) {
         this.properties = copy(properties);
     }
 
-    private ImmutableMap<String, String> copy(Properties props) {
-        ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
+    private Map<String, String> copy(Properties props) {
+        Map<String, String> result = new HashMap<>();
         for (Map.Entry<Object, Object> entry : props.entrySet()) {
             checkArgument(entry.getKey() instanceof String, "Found non String key in properties");
             checkArgument(entry.getValue() instanceof String, "Found non String value in properties");
             result.put((String) entry.getKey(), (String) entry.getValue());
         }
-        return result.build();
-    }
-
-    public ImmutableMap<String, String> getProperties() {
-        return properties;
+        return result;
     }
 
     @Override
@@ -51,5 +44,11 @@ public class NewConfigurationEvent {
         return "NewConfigurationEvent{" +
                 "props=" + properties +
                 '}';
+    }
+
+    private static void checkArgument(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
     }
 }

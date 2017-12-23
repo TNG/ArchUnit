@@ -1,14 +1,13 @@
 package com.tngtech.archunit.exampletest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Local;
 import javax.ejb.Stateless;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -102,11 +101,16 @@ public class SessionBeanRulesTest {
                 }
 
                 private String joinNamesOf(Set<JavaClass> implementations) {
-                    List<String> simpleNames = new ArrayList<>();
-                    for (JavaClass impl : implementations) {
-                        simpleNames.add(impl.getSimpleName());
+                    if (implementations.isEmpty()) {
+                        return "";
                     }
-                    return Joiner.on(", ").join(simpleNames);
+
+                    Deque<JavaClass> toJoin = new LinkedList<>(implementations);
+                    StringBuilder sb = new StringBuilder(toJoin.pollFirst().getSimpleName());
+                    for (JavaClass javaClass : toJoin) {
+                        sb.append(", ").append(javaClass.getSimpleName());
+                    }
+                    return sb.toString();
                 }
             };
 }
