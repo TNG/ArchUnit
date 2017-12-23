@@ -1,0 +1,69 @@
+import groovy.io.FileType
+
+import java.util.regex.Pattern
+
+final String archunitExamplesGitRepo = 'https://github.com/TNG/ArchUnit-Examples.git'
+final File examplesDir = new File(project.buildDir, 'example-update')
+
+task checkoutArchUnitExample {
+    doLast {
+        examplesDir.deleteDir()
+        ['sh', '-c', "cd ${examplesDir.parentFile.absolutePath} && git clone ${archunitExamplesGitRepo} ${examplesDir.name}"].execute().waitFor()
+    }
+}
+
+task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
+    doLast {
+        def targetSource = new File(examplesDir, 'src')
+        targetSource.deleteDir()
+        copy {
+            from new File(project(':archunit-example').projectDir, 'src')
+            into targetSource
+        }
+    }
+}
+
+task copyArchUnitExampleDocs(dependsOn: checkoutArchUnitExample) {
+    doLast {
+        def targetSource = new File(examplesDir, 'docs')
+        targetSource.deleteDir()
+        copy {
+            from new File(rootDir, 'docs')
+            into targetSource
+        }
+    }
+}
+
+task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
+    doLast {
+        new File(examplesDir, 'src/test/java/com/tngtech/archunit/exampletest/Example.java').delete()
+
+        def removeLines = { File file, List<String> linesToRemove ->
+            def regex = "(${linesToRemove.collect { Pattern.quote(it) }.join('|')})\n"
+            file.text = file.text.replaceAll(regex, '')
+        }
+
+        new File(examplesDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
+            removeLines(file, [
+                    '@Category(Example.class)',
+                    'import org.junit.experimental.categories.Category;',
+                    'import com.tngtech.archunit.exampletest.Example;'
+            ])
+        }
+    }
+}
+
+task updateArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
+    doLast {
+        def buildFile = new File(examplesDir, 'build.gradle')
+        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit-junit:)[\d.]*/, "\$1${version}")
+    }
+}
+
+task updateArchUnitExample(dependsOn: [
+        checkoutArchUnitExample,
+        updateArchUnitExampleVersion,
+        copyArchUnitExampleSrc,
+        copyArchUnitExampleDocs,
+        removeArchUnitExampleCategory
+]) {}
