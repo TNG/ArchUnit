@@ -50,3 +50,6 @@ Those can be found within
 ----
 com.tngtech.archunit.library.GeneralCodingRules
 ----
+
+These for example contain rules not to use `java.util.logging`, not to write to `System.out`
+(but use logging instead) or not to throw generic exceptions.

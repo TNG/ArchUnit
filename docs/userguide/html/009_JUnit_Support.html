@@ -449,13 +449,201 @@ h4 {
 <div class="sect1">
 <h2 id="_junit_support">JUnit Support</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>At the moment ArchUnit offers extended support for writing tests with JUnit 4. This mainly tackles
+the problem of caching classes between test runs and to remove some boilerplate.</p>
+</div>
+<div class="paragraph">
+<p>Consider a straight forward approach to write tests:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
+public void rule1() {
+    JavaClasses classes = new ClassFileImporter().importClasspath();
 
+    ArchRule rule = classes()...
+
+    rule.check(classes);
+}
+
+@Test
+public void rule2() {
+    JavaClasses classes = new ClassFileImporter().importClasspath();
+
+    ArchRule rule = classes()...
+
+    rule.check(classes);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For bigger projects, this will have a significant performance impact, since the import can take
+a noticeable amount of time. Also rules will always be checked against the imported classes, thus
+the explicit call of <code>check(classes)</code> is bloat and error prone (i.e. it can be forgotten).</p>
+</div>
+<div class="sect2">
+<h3 id="_junit_4_support">JUnit 4 Support</h3>
+<div class="sect3">
+<h4 id="_writing_tests">Writing tests</h4>
+<div class="paragraph">
+<p>To address this with JUnit 4, ArchUnit offers a specific <code>Runner</code> to take care of these aspects.
+It can be used the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
+@AnalyzeClasses(packages = "com.myapp")
+public class ArchitectureTest {
+
+    // ArchRules can just be declared as static fields and will be evaluated
+    @ArchTest
+    public static final ArchRule rule1 = classes().should()...
+
+    @ArchTest
+    public static final ArchRule rule2 = classes().should()...
+
+    @ArchTest
+    public static void rule3(JavaClasses classes) {
+        // The runner also understands static methods with a single JavaClasses argument
+        // reusing the cached classes
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>JavaClass</code> cache will work in two ways. On the one hand it will cache the classes by test,
+so they can be reused be several rules declared within the same class. On the other hand, it
+will cache the classes by location, so a second test, that wants to import classes from the same
+URLs will reuse the classes previously imported as well. Note that this second caching uses
+soft references, so the classes will be dropped from memory, if the heap runs low.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_controlling_the_import">Controlling the Import</h4>
+<div class="paragraph">
+<p>Which classes will be imported can be controlled in a declarative way through <code>@AnalyzeClasses</code>.
+If no packages or locations are provided, the whole classpath will be imported.
+You can specify packages to import as strings:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subone"})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To better support refactorings, packages can also be declared relative to classes, i.e. the
+packages these classes reside in will be imported:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packagesOf = {SubOneConfiguration.class, SubTwoConfiguration.class})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a third option, locations can be specified freely by implementing a <code>LocationProvider</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class MyLocationProvider implements LocationProvider {
+    @Override
+    public Set&lt;Location&gt; get(Class&lt;?&gt; testClass) {
+        // Determine Locations (= URLs) to import
+        // Can also consider the actual test class, e.g. to read some custom annotation
+    }
+}
+
+@AnalyzeClasses(locations = MyLocationProvider.class)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Furthermore to choose specific classes beneath those locations, <code>ImportOptions</code> can be
+specified (compare <a href="#The Core API">[The Core API]</a>). For example, to import the classpath, but only consider
+production code, and only consider code that is directly supplied and does not come from JARs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(importOptions = {DontIncludeTests.class, DontIncludeJars.class})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As explained in <a href="#The Core API">[The Core API]</a>, you can write your own custom implementation of <code>ImportOption</code>
+and then supply the type to <code>@AnalyzeClasses</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ignoring_tests">Ignoring Tests</h4>
+<div class="paragraph">
+<p>The runner will ignore tests annotated with <code>@ArchIgnore</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
+@AnalyzeClasses(packages = "com.myapp")
+public class ArchitectureTest {
+
+    // will run
+    @ArchTest
+    public static final ArchRule rule1 = classes().should()...
+
+    // won't run
+    @ArchIgnore
+    @ArchTest
+    public static final ArchRule rule2 = classes().should()...
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_grouping_rules">Grouping Rules</h4>
+<div class="paragraph">
+<p>Often a project might end up with different categories of rules, for example "service rules"
+and "persistence rules". It is possible to write one class for each set of rules, and then
+refer to those sets from another test:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class ServiceRules {
+    @ArchTest
+    public static final ArchRule ruleOne = ...
+
+    // further rules
+}
+
+public class PersistenceRules {
+    @ArchTest
+    public static final ArchRule ruleOne = ...
+
+    // further rules
+}
+
+@RunWith(ArchUnitRunner.class)
+@AnalyzeClasses
+public class ArchitectureTest {
+
+    @ArchTest
+    public static final ArchRules serviceRules = ArchRules.in(ServiceRules.class);
+
+    @ArchTest
+    public static final ArchRules persistenceRules = ArchRules.in(PersistenceRules.class);
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The runner will evaluate all rules within <code>ServiceRules</code> and <code>PersistenceRules</code> against
+the classes declared in <code>ArchitectureTest</code>. This also allows an easy reuse of a rule library
+in different projects or modules.</p>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-12-08 17:10:41 CET
+Last updated 2017-12-23 15:36:29 CET
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/mono-blue.min.css">
