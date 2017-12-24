@@ -16,7 +16,8 @@ using any plain Java unit test framework.
 That is, ArchUnit can check dependencies between packages and classes, layers and slices, 
 check for cyclic dependencies and more. It does so by analyzing given Java bytecode, 
 importing all classes into a Java code structure. You can find examples for the current release at 
-[ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples).
+[ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples) and the sources on
+[GitHub](https://github.com/TNG/ArchUnit).
 
 ### News
 
