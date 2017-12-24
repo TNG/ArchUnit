@@ -99,3 +99,5 @@ public class MyArchitectureTest {
 
 The `ArchUnitRunner` will automatically import (or reuse) the specified classes and
 evaluate any rule annotated with `@ArchTest` against those classes.
+
+For further information on how to use the JUnit 4 support refer to <<JUnit Support>>.
