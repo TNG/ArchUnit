@@ -57,6 +57,27 @@ new ClassFileImporter()
     .importClasspath();
 ----
 
+==== Dealing with Missing Classes
+
+While importing the requested classes (e.g. `target/classes` or `target/test-classes`)
+it can happen, that a class within the scope of the import has a reference to a class outside of the
+scope of the import. This will naturally happen, if the classes of the JDK are not imported,
+since then for example any dependency on `Object.class` will be unresolved within the import.
+
+At this point ArchUnit needs to decide how to treat these classes that are missing from the
+import. By default, ArchUnit creates a stub, i.e. a `JavaClass` that has all the known
+information, like the fully qualified name or the method called. However, this stub might
+naturally lack some information, like superclasses, annotations or other details that cannot
+be determined without importing the bytecode of this class.
+
+Obviously in some cases this might not be the desired behavior, since for example rules that target
+superclasses or annotations might not behave as expected, if the information is missing from
+the import. Thus how the importer behaves when classes are missing can be freely configured,
+for example by telling ArchUnit to try to resolve those missing dependencies from the classpath
+and do a full import with the complete type hierarchy. To find out, how to configure this behavior,
+refer to <<Configuring the Resolution Behavior>>.
+
+
 === Domain
 
 The domain objects represent Java code, thus the naming should be pretty straight forward. Most

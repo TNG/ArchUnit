@@ -15,7 +15,7 @@ com.tngtech.archunit.library.Architectures
 
 At the moment this only provides a convenient check for a layered architecture (compare
 <<What to Check>>), but in the future it might be extended for styles like a hexagonal
-architecture, pipes and filters, separation of business logic and technical infrastructure, ...
+architecture, pipes and filters, separation of business logic and technical infrastructure, etc.
 
 === Slices
 
