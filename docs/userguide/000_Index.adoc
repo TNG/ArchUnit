@@ -2,6 +2,7 @@
 :page-permalink: /userguide
 :description: index page of ArchUnit's documentation
 :keywords: ArchUnit, Java, architecture, test, analysis
+:nofooter:
 ifndef::env-site[:toc: left]
 :page-layout: splash
 :page-description: {description}
@@ -12,8 +13,6 @@ ifndef::env-site[:toc: left]
 :prewrap!:
 :sectanchors:
 :sectnums:
-:author: Peter Gafert
-:revnumber: {version}
 :page-customheader: ArchUnit User Guide
 
 include::001_Intro.adoc[]
