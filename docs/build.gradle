@@ -16,6 +16,9 @@ asciidoctor {
             'highlightjs-theme': 'mono-blue',
             'stylesheet': 'archunit.css'
     sourceDir file('userguide')
+    sources {
+        include '000_Index.adoc'
+    }
     outputDir file('userguide')
     requires = ['asciidoctor-diagram']
 

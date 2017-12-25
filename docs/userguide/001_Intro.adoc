@@ -1,18 +1,22 @@
 == Introduction
 
-ArchUnit is a free, simple and extensible library for checking the architecture of your Java code. That is, ArchUnit can check
-dependencies between packages and classes, layers and slices, check for cyclic dependencies and more. It does so by
-analyzing given Java bytecode, importing all classes into a Java code structure.
-ArchUnit's main focus is to automatically test architecture and coding rules, using any plain Java unit testing
-framework.
+http://archunit.org[ArchUnit] is a free, simple and extensible library for checking the
+architecture of your Java code.
+That is, ArchUnit can check dependencies between packages and classes, layers and slices,
+check for cyclic dependencies and more. It does so by analyzing given Java bytecode,
+importing all classes into a Java code structure.
+ArchUnit's main focus is to automatically test architecture and coding rules,
+using any plain Java unit testing framework.
 
 === Module Overview
 
-ArchUnit consists of two production modules: `archunit` and `archunit-junit`. Also relevant for end users is the `archunit-example' module.
+ArchUnit consists of two production modules: `archunit` and `archunit-junit`.
+Also relevant for end users is the `archunit-example` module.
 
 ==== Module archunit
 
-This module contains the actual ArchUnit core infrastructure required to write architecture tests: the `ClassFileImporter`,
+This module contains the actual ArchUnit core infrastructure required to write architecture
+tests: The `ClassFileImporter`,
 the domain objects, as well as the rule syntax infrastructure.
 
 ==== Module archunit-junit
@@ -22,5 +26,6 @@ the `ArchUnitRunner` to cache imported classes.
 
 ==== Module archunit-example
 
-This module contains example architecture rules and sample code that violates these rules. Look here to get inspiration on how
-to set up rules for your project.
+This module contains example architecture rules and sample code that violates these rules.
+Look here to get inspiration on how to set up rules for your project, or at
+https://github.com/TNG/ArchUnit-Examples[ArchUnit-Examples] for the last released version.
