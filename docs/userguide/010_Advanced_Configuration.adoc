@@ -1,0 +1,78 @@
+== Advanced Configuration
+
+Some behavior of ArchUnit can be centrally configured by adding a file `archunit.properties`
+to the root of the classpath (e.g. under `src/test/resources`). This section will outline
+those configuration options.
+
+=== Configuring the Resolution Behavior
+
+As mentioned in <<Dealing with Missing Classes>>, it might be necessary to configure a different
+behavior, when referenced classes are missing from the import. One way that can be chosen out of
+the box is to resolve those classes from the classpath:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+resolveMissingDependenciesFromClassPath=true
+----
+
+If this resolves too many classes from the classpath (which can have a performance impact),
+it is possible, to configure only specific packages to be resolved from the classpath:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
+classResolver.args=some.pkg.one,some.pkg.two
+----
+
+This configuration would only resolve the packages `some.pkg.one` and `some.pkg.two` from the
+classpath, and stub all other missing classes.
+
+The last example also demonstrates, how the behavior can be customized freely, for example
+if classes are imported from a different source and are not on the classpath:
+
+First Supply a custom implementation of
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.core.importer.resolvers.ClassResolver
+----
+
+Then configure it
+
+[source,options="nowrap"]
+.archunit.properties
+----
+classResolver=some.pkg.MyCustomClassResolver
+----
+
+If the resolver needs some further arguments, create a public constructor with one `List<String>`
+argument, and supply the concrete arguments as
+
+[source,options="nowrap"]
+.archunit.properties
+----
+classResolver.args=myArgOne,myArgTwo
+----
+
+For further details, compare the sources of `SelectedClassResolverFromClasspath`.
+
+=== MD5 Sums of Classes
+
+Sometimes it can be valuable to record the MD5 sums of classes being imported, to track
+unexpected behavior. Since this has a performance impact, it is disabled by default,
+but it can be activated the following way:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+enableMd5InClassSources=true
+----
+
+If this feature is enabled, the MD5 sum can be queried as
+
+[source,java,options="nowrap"]
+----
+javaClass.getSource().get().getMd5sum()
+----

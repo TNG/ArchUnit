@@ -32,3 +32,5 @@ include::007_The_Lang_API.adoc[]
 include::008_The_Library_API.adoc[]
 
 include::009_JUnit_Support.adoc[]
+
+include::010_Advanced_Configuration.adoc[]

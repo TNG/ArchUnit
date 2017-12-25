@@ -30,7 +30,7 @@ dependencies {
 }
 ----
 
-=== Other test frameworks
+=== Other Test Frameworks
 
 ArchUnit works with any test framework that executes Java code. To use ArchUnit in such a
 context, include the core ArchUnit dependency from Maven Central:

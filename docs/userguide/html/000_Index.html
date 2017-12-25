@@ -459,12 +459,12 @@ h4 {
 <li><a href="#_installation">2. Installation</a>
 <ul class="sectlevel2">
 <li><a href="#_junit_4">2.1. JUnit 4</a></li>
-<li><a href="#_other_test_frameworks">2.2. Other test frameworks</a></li>
+<li><a href="#_other_test_frameworks">2.2. Other Test Frameworks</a></li>
 </ul>
 </li>
 <li><a href="#_getting_started">3. Getting Started</a>
 <ul class="sectlevel2">
-<li><a href="#_importing_classes">3.1. Importing classes</a></li>
+<li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
 <li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
 </ul>
@@ -513,6 +513,12 @@ h4 {
 <li><a href="#_junit_support">9. JUnit Support</a>
 <ul class="sectlevel2">
 <li><a href="#_junit_4_support">9.1. JUnit 4 Support</a></li>
+</ul>
+</li>
+<li><a href="#_advanced_configuration">10. Advanced Configuration</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_the_resolution_behavior">10.1. Configuring the Resolution Behavior</a></li>
+<li><a href="#_md5_sums_of_classes">10.2. MD5 Sums of Classes</a></li>
 </ul>
 </li>
 </ul>
@@ -600,7 +606,7 @@ Maven Central:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_other_test_frameworks"><a class="anchor" href="#_other_test_frameworks"></a>2.2. Other test frameworks</h3>
+<h3 id="_other_test_frameworks"><a class="anchor" href="#_other_test_frameworks"></a>2.2. Other Test Frameworks</h3>
 <div class="paragraph">
 <p>ArchUnit works with any test framework that executes Java code. To use ArchUnit in such a
 context, include the core ArchUnit dependency from Maven Central:</p>
@@ -636,7 +642,7 @@ Java unit testing framework. To really understand the ideas behind ArchUnit, one
 <a href="#_ideas_and_concepts">Ideas and Concepts</a>. The following will outline a "technical" getting started.</p>
 </div>
 <div class="sect2">
-<h3 id="_importing_classes"><a class="anchor" href="#_importing_classes"></a>3.1. Importing classes</h3>
+<h3 id="_importing_classes"><a class="anchor" href="#_importing_classes"></a>3.1. Importing Classes</h3>
 <div class="paragraph">
 <p>At its core ArchUnit provides infrastructure to import Java bytecode into Java code structures.
 This can be done using the <code>ClassFileImporter</code></p>
@@ -1037,6 +1043,30 @@ there already exist predefined <code>ImportOptions</code>:</p>
     .withImportOption(ImportOption.Predefined.DONT_INCLUDE_JARS)
     .withImportOption(ImportOption.Predefined.DONT_INCLUDE_TESTS)
     .importClasspath();</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dealing_with_missing_classes"><a class="anchor" href="#_dealing_with_missing_classes"></a>6.1.1. Dealing with Missing Classes</h4>
+<div class="paragraph">
+<p>While importing the requested classes (e.g. <code>target/classes</code> or <code>target/test-classes</code>)
+it can happen, that a class within the scope of the import has a reference to a class outside of the
+scope of the import. This will naturally happen, if the classes of the JDK are not imported,
+since then for example any dependency on <code>Object.class</code> will be unresolved within the import.</p>
+</div>
+<div class="paragraph">
+<p>At this point ArchUnit needs to decide how to treat these classes that are missing from the
+import. By default, ArchUnit creates a stub, i.e. a <code>JavaClass</code> that has all the known
+information, like the fully qualified name or the method called. However, this stub might
+naturally lack some information, like superclasses, annotations or other details that cannot
+be determined without importing the bytecode of this class.</p>
+</div>
+<div class="paragraph">
+<p>Obviously in some cases this might not be the desired behavior, since for example rules that target
+superclasses or annotations might not behave as expected, if the information is missing from
+the import. Thus how the importer behaves when classes are missing can be freely configured,
+for example by telling ArchUnit to try to resolve those missing dependencies from the classpath
+and do a full import with the complete type hierarchy. To find out, how to configure this behavior,
+refer to <a href="#_configuring_the_resolution_behavior">Configuring the Resolution Behavior</a>.</p>
 </div>
 </div>
 </div>
@@ -1566,7 +1596,7 @@ slices (compare <a href="#_what_to_check">What to Check</a>).</p>
 <div class="paragraph">
 <p>At the moment this only provides a convenient check for a layered architecture (compare
 <a href="#_what_to_check">What to Check</a>), but in the future it might be extended for styles like a hexagonal
-architecture, pipes and filters, separation of business logic and technical infrastructure, &#8230;&#8203;</p>
+architecture, pipes and filters, separation of business logic and technical infrastructure, etc.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1807,6 +1837,101 @@ public class ArchitectureTest {
 <p>The runner will evaluate all rules within <code>ServiceRules</code> and <code>PersistenceRules</code> against
 the classes declared in <code>ArchitectureTest</code>. This also allows an easy reuse of a rule library
 in different projects or modules.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_advanced_configuration"><a class="anchor" href="#_advanced_configuration"></a>10. Advanced Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some behavior of ArchUnit can be centrally configured by adding a file <code>archunit.properties</code>
+to the root of the classpath (e.g. under <code>src/test/resources</code>). This section will outline
+those configuration options.</p>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_resolution_behavior"><a class="anchor" href="#_configuring_the_resolution_behavior"></a>10.1. Configuring the Resolution Behavior</h3>
+<div class="paragraph">
+<p>As mentioned in <a href="#_dealing_with_missing_classes">Dealing with Missing Classes</a>, it might be necessary to configure a different
+behavior, when referenced classes are missing from the import. One way that can be chosen out of
+the box is to resolve those classes from the classpath:</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>resolveMissingDependenciesFromClassPath=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If this resolves too many classes from the classpath (which can have a performance impact),
+it is possible, to configure only specific packages to be resolved from the classpath:</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
+classResolver.args=some.pkg.one,some.pkg.two</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This configuration would only resolve the packages <code>some.pkg.one</code> and <code>some.pkg.two</code> from the
+classpath, and stub all other missing classes.</p>
+</div>
+<div class="paragraph">
+<p>The last example also demonstrates, how the behavior can be customized freely, for example
+if classes are imported from a different source and are not on the classpath:</p>
+</div>
+<div class="paragraph">
+<p>First Supply a custom implementation of</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.core.importer.resolvers.ClassResolver</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then configure it</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>classResolver=some.pkg.MyCustomClassResolver</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the resolver needs some further arguments, create a public constructor with one <code>List&lt;String&gt;</code>
+argument, and supply the concrete arguments as</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>classResolver.args=myArgOne,myArgTwo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For further details, compare the sources of <code>SelectedClassResolverFromClasspath</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_md5_sums_of_classes"><a class="anchor" href="#_md5_sums_of_classes"></a>10.2. MD5 Sums of Classes</h3>
+<div class="paragraph">
+<p>Sometimes it can be valuable to record the MD5 sums of classes being imported, to track
+unexpected behavior. Since this has a performance impact, it is disabled by default,
+but it can be activated the following way:</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>enableMd5InClassSources=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If this feature is enabled, the MD5 sum can be queried as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">javaClass.getSource().get().getMd5sum()</code></pre>
 </div>
 </div>
 </div>

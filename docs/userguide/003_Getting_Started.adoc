@@ -4,7 +4,7 @@ ArchUnit tests are written the same way as any Java unit test and can be written
 Java unit testing framework. To really understand the ideas behind ArchUnit, one should consult
 <<Ideas and Concepts>>. The following will outline a "technical" getting started.
 
-=== Importing classes
+=== Importing Classes
 
 At its core ArchUnit provides infrastructure to import Java bytecode into Java code structures.
 This can be done using the `ClassFileImporter`
