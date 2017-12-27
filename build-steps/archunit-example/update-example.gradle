@@ -1,5 +1,6 @@
 import groovy.io.FileType
 
+import java.nio.file.Files
 import java.util.regex.Pattern
 
 final String archunitExamplesGitRepo = 'https://github.com/TNG/ArchUnit-Examples.git'
@@ -26,11 +27,14 @@ task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
 task copyArchUnitExampleDocs(dependsOn: checkoutArchUnitExample) {
     doLast {
         def targetSource = new File(examplesDir, 'docs')
+        def cName = new File(targetSource, 'CNAME').toPath()
+        def tempCName = Files.copy(cName, new File(File.createTempDir(), 'CNAME').toPath())
         targetSource.deleteDir()
         copy {
             from new File(rootDir, 'docs')
             into targetSource
         }
+        Files.copy(tempCName, cName)
     }
 }
 
