@@ -1,21 +1,19 @@
 import groovy.io.FileType
 
-import java.nio.file.Files
 import java.util.regex.Pattern
 
 final String archunitExamplesGitRepo = 'https://github.com/TNG/ArchUnit-Examples.git'
-final File examplesDir = new File(project.buildDir, 'example-update')
+final File checkoutDir = new File(project.buildDir, 'example-update')
 
 task checkoutArchUnitExample {
     doLast {
-        examplesDir.deleteDir()
-        ['sh', '-c', "cd ${examplesDir.parentFile.absolutePath} && git clone ${archunitExamplesGitRepo} ${examplesDir.name}"].execute().waitFor()
+        gitCheckOut(archunitExamplesGitRepo, checkoutDir)
     }
 }
 
 task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
     doLast {
-        def targetSource = new File(examplesDir, 'src')
+        def targetSource = new File(checkoutDir, 'src')
         targetSource.deleteDir()
         copy {
             from new File(project(':archunit-example').projectDir, 'src')
@@ -24,30 +22,16 @@ task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
     }
 }
 
-task copyArchUnitExampleDocs(dependsOn: checkoutArchUnitExample) {
-    doLast {
-        def targetSource = new File(examplesDir, 'docs')
-        def cName = new File(targetSource, 'CNAME').toPath()
-        def tempCName = Files.copy(cName, new File(File.createTempDir(), 'CNAME').toPath())
-        targetSource.deleteDir()
-        copy {
-            from new File(rootDir, 'docs')
-            into targetSource
-        }
-        Files.copy(tempCName, cName)
-    }
-}
-
 task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
     doLast {
-        new File(examplesDir, 'src/test/java/com/tngtech/archunit/exampletest/Example.java').delete()
+        new File(checkoutDir, 'src/test/java/com/tngtech/archunit/exampletest/Example.java').delete()
 
         def removeLines = { File file, List<String> linesToRemove ->
             def regex = "(${linesToRemove.collect { Pattern.quote(it) }.join('|')})\n"
             file.text = file.text.replaceAll(regex, '')
         }
 
-        new File(examplesDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
+        new File(checkoutDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
             removeLines(file, [
                     '@Category(Example.class)',
                     'import org.junit.experimental.categories.Category;',
@@ -59,7 +43,7 @@ task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
 
 task updateArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
     doLast {
-        def buildFile = new File(examplesDir, 'build.gradle')
+        def buildFile = new File(checkoutDir, 'build.gradle')
         buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit-junit:)[\d.]*/, "\$1${version}")
     }
 }
@@ -68,6 +52,7 @@ task updateArchUnitExample(dependsOn: [
         checkoutArchUnitExample,
         updateArchUnitExampleVersion,
         copyArchUnitExampleSrc,
-        copyArchUnitExampleDocs,
-        removeArchUnitExampleCategory
-]) {}
+        removeArchUnitExampleCategory]) {
+
+    ext.checkoutDir = checkoutDir
+}

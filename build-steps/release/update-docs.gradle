@@ -1,0 +1,28 @@
+import java.nio.file.Files
+
+final String archunitGitRepo = 'https://github.com/TNG/ArchUnit.git'
+final File checkoutDir = new File(project.buildDir, 'docs-update')
+
+task checkoutArchUnitDocs {
+    doLast {
+        gitCheckOut(archunitGitRepo, checkoutDir, 'gh-pages')
+    }
+}
+
+task copyArchUnitDocs(dependsOn: checkoutArchUnitDocs) {
+    doLast {
+        def cName = new File(checkoutDir, 'CNAME').toPath()
+        def tempCName = Files.copy(cName, new File(File.createTempDir(), 'CNAME').toPath())
+        def noGitFile = { !it.startsWith('.git') }
+        checkoutDir.eachFileMatch(noGitFile) { it.directory ? it.deleteDir() : it.delete() }
+        copy {
+            from new File(rootDir, 'docs')
+            into checkoutDir
+        }
+        Files.copy(tempCName, cName)
+    }
+}
+
+task updateArchUnitDocs(dependsOn: [checkoutArchUnitDocs, copyArchUnitDocs]) {
+    ext.checkoutDir = checkoutDir
+}
