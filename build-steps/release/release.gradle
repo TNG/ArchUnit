@@ -1,0 +1,19 @@
+ext.gitCheckOut = { String url, File targetDir, String branch = null ->
+    def branchSuffix = branch ? " --branch ${branch}" : ''
+    targetDir.deleteDir()
+    targetDir.mkdirs()
+    ['sh', '-c', "git clone ${url}${branchSuffix} ${targetDir.absolutePath}"].execute().waitFor()
+}
+
+File scriptRoot = currentScriptRootOf this
+def relativePath = { new File(scriptRoot, it) }
+apply from: relativePath('update-docs.gradle')
+apply from: relativePath('update-examples.gradle')
+
+task releaseArchUnit(dependsOn: [updateArchUnitDocs, updateArchUnitExample]) {
+    doLast {
+        println """Check the following updated Git repos and push, if everything seems okay:
+    - ${updateArchUnitDocs.checkoutDir.absolutePath}
+    - ${updateArchUnitExample.checkoutDir.absolutePath}"""
+    }
+}
