@@ -13,6 +13,9 @@ repository               : "codecholeric/archunit"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 words_per_minute         : 200
 
+twitter:
+  username               : archtests
+
 
 # Site Author
 author:
