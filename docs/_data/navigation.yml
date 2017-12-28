@@ -9,4 +9,6 @@ main:
     url: /userguide/html/000_Index.html
   - title: "API"
     url: https://javadoc.io/doc/com.tngtech.archunit/archunit/0.5.0
+  - title: "About"
+    url: /about
 
