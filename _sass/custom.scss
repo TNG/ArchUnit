@@ -1,0 +1,15 @@
+/* Measured minimum size to show 'fork me on GitHub' without intersection, open for improvements ;-) */
+@media only screen and (max-width: 1478px) {
+  .only-on-fullhd {
+    display: none;
+  }
+}
+
+.supporter-in-footer {
+  padding-left: 2px;
+  vertical-align: text-bottom;
+}
+
+.supporter-in-footer img {
+  height: 1em;
+}

@@ -1,0 +1,767 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   contentScriptType="application/ecmascript"
+   contentStyleType="text/css"
+   height="502"
+   preserveAspectRatio="none"
+   version="1.1"
+   viewBox="0 0 1550 502"
+   width="1550"
+   zoomAndPan="magnify"
+   id="svg6705"
+   sodipodi:docname="archunit-splash-plain.svg"
+   inkscape:version="0.92.1 r15371">
+  <metadata
+     id="metadata6709">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1863"
+     inkscape:window-height="1056"
+     id="namedview6707"
+     showgrid="false"
+     inkscape:zoom="0.8676576"
+     inkscape:cx="667.25079"
+     inkscape:cy="379.88266"
+     inkscape:window-x="57"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6705" />
+  <defs
+     id="defs6518">
+    <filter
+       height="3"
+       id="f11g2nanp4lxzw"
+       width="3"
+       x="-1"
+       y="-1">
+      <feGaussianBlur
+         result="blurOut"
+         stdDeviation="2.0"
+         id="feGaussianBlur6509" />
+      <feColorMatrix
+         in="blurOut"
+         result="blurOut2"
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"
+         id="feColorMatrix6511" />
+      <feOffset
+         dx="4.0"
+         dy="4.0"
+         in="blurOut2"
+         result="blurOut3"
+         id="feOffset6513" />
+      <feBlend
+         in="SourceGraphic"
+         in2="blurOut3"
+         mode="normal"
+         id="feBlend6515" />
+    </filter>
+    <filter
+       height="3"
+       id="f11g2nanp4lxzw-1"
+       width="3"
+       x="-1"
+       y="-1">
+      <feGaussianBlur
+         result="blurOut"
+         stdDeviation="2.0"
+         id="feGaussianBlur6509-0" />
+      <feColorMatrix
+         in="blurOut"
+         result="blurOut2"
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"
+         id="feColorMatrix6511-4" />
+      <feOffset
+         dx="4.0"
+         dy="4.0"
+         in="blurOut2"
+         result="blurOut3"
+         id="feOffset6513-2" />
+      <feBlend
+         in="SourceGraphic"
+         in2="blurOut3"
+         mode="normal"
+         id="feBlend6515-7" />
+    </filter>
+    <clipPath
+       id="clipPath5807-4-4">
+      <path
+         id="path7951"
+         fill-opacity=".98598"
+         fill="#a6e9b9"
+         d="m141.19 173.65a3.0037 3.0037 0 0 1 1.5566 -2.6321 3.0037 3.0037 0 0 1 3.0565 0.0961l-1.6094 2.5361z" />
+    </clipPath>
+    <clipPath
+       id="clipPath5618-7-9-2">
+      <path
+         id="path7954"
+         fill="none"
+         d="m88.682 67.225a3.05 3.05 0 0 1 1.6064 -2.6867 3.05 3.05 0 0 1 3.127 0.14337l-1.6834 2.5434z" />
+    </clipPath>
+  </defs>
+  <polygon
+     id="polygon6544"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2;filter:url(#f11g2nanp4lxzw)"
+     points="338,227 22,227 22,24 122,24 129,46.2969 338,46.2969 "
+     transform="translate(45,125.50394)" />
+  <line
+     id="line6546"
+     y2="171.80084"
+     y1="171.80084"
+     x2="174"
+     x1="67"
+     style="stroke:#f2f2f2;stroke-width:2" />
+  <text
+     style="font-weight:bold;font-size:14px;font-family:sans-serif;fill:#ffffff"
+     id="text6548"
+     y="38.995098"
+     x="26"
+     textLength="94"
+     lengthAdjust="spacingAndGlyphs"
+     font-weight="bold"
+     font-size="14"
+     transform="translate(252)">Persistence</text>
+  <g
+     id="g7380"
+     transform="translate(-11.876905,115.23125)">
+    <polygon
+       transform="translate(466.37028,-170.5742)"
+       points="982,267 989,289.2969 1026,289.2969 1026,364 904,364 904,267 "
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2;filter:url(#f11g2nanp4lxzw)"
+       id="polygon6538" />
+    <line
+       style="stroke:#f2f2f2;stroke-width:2"
+       x1="1370.3702"
+       x2="1455.3702"
+       y1="118.7227"
+       y2="118.7227"
+       id="line6540" />
+    <text
+       transform="translate(466.37028,-170.5742)"
+       font-size="14"
+       font-weight="bold"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="72"
+       x="908"
+       y="281.99509"
+       id="text6542"
+       style="font-weight:bold;font-size:14px;font-family:sans-serif;fill:#ffffff">Frontend</text>
+    <rect
+       height="46.296902"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+       width="90"
+       x="1386.3702"
+       y="131.4258"
+       id="rect6620" />
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="1456.3702"
+       y="136.4258"
+       id="rect6622" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="1454.3702"
+       y="138.4258"
+       id="rect6624" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="1454.3702"
+       y="142.4258"
+       id="rect6626" />
+    <text
+       transform="translate(466.37028,-170.5742)"
+       font-size="14"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="50"
+       x="935"
+       y="334.99509"
+       id="text6628"
+       style="font-size:14px;font-family:sans-serif;fill:#ffffff">merger</text>
+  </g>
+  <rect
+     id="rect6630"
+     y="288.87402"
+     x="81.055115"
+     width="123"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+     height="46.296902" />
+  <g
+     id="g7355"
+     transform="translate(-209.85236,123.87402)">
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="393.5"
+       y="170"
+       id="rect6632" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="391.5"
+       y="172"
+       id="rect6634" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="391.5"
+       y="176"
+       id="rect6636" />
+  </g>
+  <rect
+     id="rect6640"
+     y="288.87402"
+     x="239.05511"
+     width="125"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+     height="46.296902" />
+  <rect
+     id="rect6642"
+     y="293.87402"
+     x="344.05511"
+     width="15"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="10" />
+  <rect
+     id="rect6644"
+     y="295.87402"
+     x="342.05511"
+     width="4"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="2" />
+  <rect
+     id="rect6646"
+     y="299.87402"
+     x="342.05511"
+     width="4"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="2" />
+  <text
+     style="font-size:14px;font-family:sans-serif;fill:#ffffff"
+     id="text6648"
+     y="197.9951"
+     x="211.5"
+     textLength="85"
+     lengthAdjust="spacingAndGlyphs"
+     font-size="14"
+     transform="translate(42.555118,123.87402)">DAO Facade</text>
+  <rect
+     id="rect6650"
+     y="188.00803"
+     x="217.59912"
+     width="147"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+     height="46.296902" />
+  <rect
+     id="rect6652"
+     y="193.00803"
+     x="344.59912"
+     width="15"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="10" />
+  <rect
+     id="rect6654"
+     y="195.00803"
+     x="342.59912"
+     width="4"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="2" />
+  <rect
+     id="rect6656"
+     y="199.00803"
+     x="342.59912"
+     width="4"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+     height="2" />
+  <text
+     style="font-size:14px;font-family:sans-serif;fill:#ffffff"
+     id="text6658"
+     y="91.995102"
+     x="189.5"
+     textLength="107"
+     lengthAdjust="spacingAndGlyphs"
+     font-size="14"
+     transform="translate(43.099118,129.00802)">Converted DAO</text>
+  <circle
+     r="8"
+     id="ellipse6660"
+     style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2;filter:url(#f11g2nanp4lxzw)"
+     cy="269.1973"
+     cx="1024.1007" />
+  <g
+     id="g7421"
+     transform="translate(-21.560471,-116.40536)">
+    <polygon
+       transform="translate(252)"
+       points="405,259 412,281.2969 680,281.2969 680,490 361,490 361,259 "
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2;filter:url(#f11g2nanp4lxzw)"
+       id="polygon6520" />
+    <line
+       style="stroke:#f2f2f2;stroke-width:2"
+       x1="613"
+       x2="664"
+       y1="281.29691"
+       y2="281.29691"
+       id="line6522" />
+    <text
+       transform="translate(252)"
+       font-size="14"
+       font-weight="bold"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="38"
+       x="365"
+       y="273.99509"
+       id="text6524"
+       style="font-weight:bold;font-size:14px;font-family:sans-serif;fill:#ffffff">Core</text>
+    <rect
+       height="46.296902"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+       width="103"
+       x="785.5"
+       y="302"
+       id="rect6550" />
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="868.5"
+       y="307"
+       id="rect6552" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="866.5"
+       y="309"
+       id="rect6554" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="866.5"
+       y="313"
+       id="rect6556" />
+    <text
+       transform="translate(252)"
+       font-size="14"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="63"
+       x="548.5"
+       y="334.99509"
+       id="text6558"
+       style="font-size:14px;font-family:sans-serif;fill:#ffffff">core-one</text>
+    <rect
+       height="46.296902"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+       width="101"
+       x="714.5"
+       y="420"
+       id="rect6560" />
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="795.5"
+       y="425"
+       id="rect6562" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="793.5"
+       y="427"
+       id="rect6564" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="793.5"
+       y="431"
+       id="rect6566" />
+    <text
+       transform="translate(252)"
+       font-size="14"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="61"
+       x="477.5"
+       y="452.99509"
+       id="text6568"
+       style="font-size:14px;font-family:sans-serif;fill:#ffffff">core-two</text>
+    <rect
+       height="46.296902"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+       width="113"
+       x="637.5"
+       y="302"
+       id="rect6570" />
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="730.5"
+       y="307"
+       id="rect6572" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="728.5"
+       y="309"
+       id="rect6574" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="728.5"
+       y="313"
+       id="rect6576" />
+    <text
+       transform="translate(252)"
+       font-size="14"
+       lengthAdjust="spacingAndGlyphs"
+       textLength="73"
+       x="400.5"
+       y="334.99509"
+       id="text6578"
+       style="font-size:14px;font-family:sans-serif;fill:#ffffff">core-three</text>
+    <path
+       d="m 823.288,348.092 c -11.911,19.189 -29.188,47.024 -41.84,67.4084"
+       id="core-one-core-two"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="translate(252)"
+       points="534.8057,414.4529 529.2977,415.7422 528.0084,410.2342 526.661,419.9905 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6669" />
+    <path
+       d="m 707.522,348.092 c 11.745,19.189 28.782,47.024 41.258,67.4084"
+       id="core-three-core-two"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="translate(252)"
+       points="498.2419,410.2261 496.9186,415.726 491.4187,414.4028 499.529,419.9905 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6672" />
+  </g>
+  <g
+     transform="translate(-209.35098,1.0127032)"
+     id="g7532">
+    <polygon
+       transform="matrix(1,0,0,0.89892281,252,29.241323)"
+       points="1163,289.2969 1220,289.2969 1220,482 1050,482 1050,267 1156,267 "
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2.10944796;filter:url(#f11g2nanp4lxzw)"
+       id="polygon6526" />
+    <line
+       style="stroke:#f2f2f2;stroke-width:2"
+       x1="1302"
+       x2="1415"
+       y1="289.29691"
+       y2="289.29691"
+       id="line6528" />
+  </g>
+  <g
+     transform="translate(-209.35098,1.0127032)"
+     id="g7522">
+    <rect
+       height="46.296902"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+       width="84"
+       x="1331"
+       y="302"
+       id="rect6580" />
+    <rect
+       height="10"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="15"
+       x="1395"
+       y="307"
+       id="rect6582" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="1393"
+       y="309"
+       id="rect6584" />
+    <rect
+       height="2"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+       width="4"
+       x="1393"
+       y="313"
+       id="rect6586" />
+  </g>
+  <g
+     id="g7454"
+     transform="translate(-210.64757,-19.588742)">
+    <g
+       id="g7528">
+      <rect
+         id="rect6590"
+         y="420"
+         x="1318.5"
+         width="137"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+         height="46.296902" />
+      <rect
+         id="rect6592"
+         y="425"
+         x="1435.5"
+         width="15"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="10" />
+      <rect
+         id="rect6594"
+         y="427"
+         x="1433.5"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+      <rect
+         id="rect6596"
+         y="431"
+         x="1433.5"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+    </g>
+  </g>
+  <g
+     id="g7606"
+     transform="translate(-210.91269,1.1525284)">
+    <path
+       d="m 1376.9489,347.93717 c 1.5625,12.96875 3.8398,31.73241 5.5122,45.59277"
+       id="one-ui-one-controller"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="translate(250.7211,-21.49666)"
+       points="1131.74,415.0266 1127.289,411.5355 1132.34,419.9905 1135.2312,410.5756 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6676" />
+  </g>
+  <g
+     id="g7516"
+     transform="translate(-6.9151703,24.203096)">
+    <polygon
+       transform="matrix(1,0,0,0.8455626,389.15088,-96.328509)"
+       points="880,364 712,364 712,130 820,130 827,152.2969 880,152.2969 "
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2.17498922;filter:url(#f11g2nanp4lxzw)"
+       id="polygon6532" />
+    <line
+       style="stroke:#f2f2f2;stroke-width:2"
+       x1="1101.1509"
+       x2="1216.1509"
+       y1="32.448055"
+       y2="32.448055"
+       id="line6534" />
+    <g
+       transform="translate(1.2224409,-0.81496063)"
+       id="g7442">
+      <rect
+         id="rect6600"
+         y="48.594631"
+         x="1157.1509"
+         width="82"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+         height="46.296902" />
+      <rect
+         id="rect6602"
+         y="53.594631"
+         x="1219.1509"
+         width="15"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="10" />
+      <rect
+         id="rect6604"
+         y="55.594631"
+         x="1217.1509"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+      <rect
+         id="rect6606"
+         y="59.594631"
+         x="1217.1509"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+    </g>
+    <g
+       transform="translate(0,-41.491022)"
+       id="g7448">
+      <rect
+         id="rect6610"
+         y="185.59464"
+         x="1117.6509"
+         width="135"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5;filter:url(#f11g2nanp4lxzw)"
+         height="46.296902" />
+      <rect
+         id="rect6612"
+         y="190.59464"
+         x="1232.6509"
+         width="15"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="10" />
+      <rect
+         id="rect6614"
+         y="192.59464"
+         x="1230.6509"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+      <rect
+         id="rect6616"
+         y="196.59464"
+         x="1230.6509"
+         width="4"
+         style="fill:#ffffff;stroke:#f2f2f2;stroke-width:1.5"
+         height="2" />
+    </g>
+    <path
+       d="m 1193.4973,94.614556 c -0.874,12.129854 -2.2499,31.199564 -3.1908,44.257124"
+       id="two-ui-two-controller"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="rotate(-0.1754416,-50548.141,-127696.42)"
+       points="798.15,301.674 802.993,293.0982 798.6286,296.697 795.0298,292.3325 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6682" />
+  </g>
+  <g
+     id="g7565"
+     transform="rotate(45,1247.4563,328.97399)">
+    <path
+       d="m 1048,348.092 c 0,23.914 0,61.255 0,80.8694"
+       id="two-controller-connector"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="translate(252)"
+       points="792,424.9975 796,433.9975 800,424.9975 796,428.9975 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6685" />
+  </g>
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:1"
+     id="one-ui-merger"
+     d="m 1211.3891,324.97015 c 49.3088,-5.5949 98.641,-11.19242 147.9726,-16.78993" />
+  <polygon
+     id="polygon6688"
+     style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+     points="1069.98,321 1073.98,325 1069.98,329 1078.98,325 "
+     transform="rotate(165,1142.6865,334.0302)" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:1"
+     id="two-ui-merger"
+     d="m 1239.8067,98.735417 c 13.9719,11.345363 29.4677,24.381963 43.135,36.941983 26.6835,24.52365 55.4706,54.4701 75.5517,75.97966" />
+  <polygon
+     id="polygon6691"
+     style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+     points="843.6382,214.1354 849.2379,213.3332 839.637,211.137 844.4404,219.7351 "
+     transform="translate(396.16845,-115.39999)" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:1"
+     id="Legacy DAO-DAO Facade"
+     d="m 204.35412,311.87402 c 9.808,0 19.615,0 29.423,0" />
+  <polygon
+     id="polygon6694"
+     style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+     points="191.351,188 187.351,192 196.351,188 187.351,184 "
+     transform="translate(42.555118,123.87402)" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:1"
+     id="Converted DAO-DAO Facade"
+     d="m 293.43212,234.06402 c 1.692,15.994 3.99,37.722 5.794,54.786" />
+  <polygon
+     id="polygon6697"
+     style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+     points="256.1453,160.0037 251.747,156.4464 256.671,164.976 259.7027,155.6054 "
+     transform="translate(42.555118,123.87402)" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:1"
+     id="DAO Facade-pAdapter"
+     d="m 364.75067,311.49706 c 28.287,0 76.178,0 99.353,0" />
+  <polygon
+     id="polygon6700"
+     style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+     points="259,315.72 263,306.72 259,310.72 255,306.72 "
+     transform="rotate(-90,361.94036,208.55669)"
+     inkscape:transform-center-x="-32.567129"
+     inkscape:transform-center-y="-3.2598425" />
+  <g
+     id="g7462">
+    <circle
+       cx="477.17914"
+       cy="311.14566"
+       style="fill:#ffffff;stroke:#f2f2f2;stroke-width:2;filter:url(#f11g2nanp4lxzw)"
+       id="ellipse6664"
+       r="8" />
+    <path
+       d="m 486.08594,311.39383 c 29.64057,0 79.82322,0 104.10718,0"
+       id="DAO Facade-pAdapter-9"
+       style="fill:none;stroke:#d3d3d3;stroke-width:0.99999994"
+       inkscape:connector-curvature="0" />
+  </g>
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#d3d3d3;stroke-width:0.99999994"
+     id="DAO Facade-pAdapter-9-3"
+     d="m 1015.1829,269.48803 c -29.64059,0 -79.82324,0 -104.1072,0" />
+  <g
+     id="g7565-9"
+     transform="rotate(135,1071.887,351.98869)">
+    <path
+       d="m 1048,348.092 c 0,23.914 0,61.255 0,80.8694"
+       id="two-controller-connector-2"
+       style="fill:none;stroke:#d3d3d3;stroke-width:1"
+       inkscape:connector-curvature="0" />
+    <polygon
+       transform="translate(252)"
+       points="792,424.9975 796,433.9975 800,424.9975 796,428.9975 "
+       style="fill:#d3d3d3;stroke:#d3d3d3;stroke-width:1"
+       id="polygon6685-7" />
+  </g>
+</svg>

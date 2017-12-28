@@ -1,0 +1,33 @@
+plugins {
+  id "org.asciidoctor.convert" version "1.5.3"
+}
+
+dependencies {
+    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:1.5.4.1'
+}
+
+task cleanUserGuide(type: Delete) {
+    delete 'userguide/html'
+}
+
+asciidoctor {
+    backends 'html'
+    attributes 'source-highlighter': 'highlightjs',
+            'highlightjs-theme': 'mono-blue',
+            'stylesheet': 'archunit.css'
+    sourceDir file('userguide')
+    sources {
+        include '000_Index.adoc'
+    }
+    outputDir file('userguide')
+    requires = ['asciidoctor-diagram']
+
+}
+
+asciidoctorj {
+    version = '1.5.5'
+}
+
+asciidoctor.dependsOn cleanUserGuide
+
+defaultTasks 'asciidoctor'

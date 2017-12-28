@@ -1,0 +1,114 @@
+minimal_mistakes_skin    : "default" # "air", "contrast", "dark", "dirt", "mint", "sunrise"
+
+
+# Site Settings
+locale                   : "en"
+title                    : "ArchUnit"
+title_separator          : "-"
+name                     : "Peter Gafert"
+description              : "A Java architecture test library, to specify and assert architecture rules in plain Java"
+url                      : "https://www.archunit.org"
+baseurl                  : "/"
+repository               : "codecholeric/archunit"
+teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
+words_per_minute         : 200
+
+twitter:
+  username               : archtests
+
+
+# Site Author
+author:
+  name             : "Peter Gafert"
+  avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
+  bio              : "I'm a Senior Consultant at TNG Technology Consulting GmbH and everyday software architecture enthusiast striving for a clear, common understanding of architecture in agile environments. Besides my daily project work, I develop the open source library ArchUnit to support everyday architecture maintenance and consistency."
+  location         : "Munich"
+  email            : "peter.gafert@tngtech.com"
+  github           : "codecholeric"
+  twitter          : "codecholeric"
+
+
+# Reading Files
+include:
+  - .htaccess
+  - _pages
+exclude:
+  - vendor
+  - assets/js/plugins
+  - assets/js/_main.js
+  - assets/js/vendor
+  - config
+  - Gemfile
+  - LICENSE
+  - package.json
+  - Rakefile
+  - README
+keep_files:
+  - .git
+encoding: "utf-8"
+markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+
+
+# Conversion
+markdown: kramdown
+highlighter: rouge
+lsi: false
+excerpt_separator: "\n\n"
+incremental: false
+
+
+# Markdown Processing
+kramdown:
+  input: GFM
+  hard_wrap: false
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  smart_quotes: lsquo,rsquo,ldquo,rdquo
+  enable_coderay: false
+
+
+# Sass/SCSS
+sass:
+  sass_dir: _sass
+  style: compressed # http://sass-lang.com/documentation/file.SASS_REFERENCE.html#output_style
+
+# Plugins (previously gems:)
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-gist
+  - jekyll-feed
+  - jemoji
+
+# mimic GitHub Pages with --safe
+whitelist:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-gist
+  - jekyll-feed
+  - jemoji
+
+
+# HTML Compression
+# - http://jch.penibelst.de/
+compress_html:
+  clippings: all
+  ignore:
+    envs: development
+
+
+# Defaults
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: # true
+      share: true
+      related: true
