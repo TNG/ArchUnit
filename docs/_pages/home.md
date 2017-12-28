@@ -23,6 +23,6 @@ importing all classes into a Java code structure. You can find examples for the 
 
 {% for i in (0..2) %}
 {% assign post = site.posts[i] %}
-<span class="post-date">{{ post.date | date: "%b %-d, %Y" }}</span> – <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+<span class="post-date">{{ post.date | date: "%b %-d, %Y" }}</span> – <a class="post-link" href="{{ post.url }}">{{ post.title }}</a>
 {% endfor %}
 
