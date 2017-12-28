@@ -30,4 +30,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({TYPE, FIELD, METHOD})
 @Retention(RUNTIME)
 public @interface ArchIgnore {
+    /** documents why the test is ignored */
+    String reason() default "";
 }
