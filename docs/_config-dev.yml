@@ -8,7 +8,7 @@ title_separator          : "-"
 name                     : "TNG Technology Consulting GmbH"
 description              : "A Java architecture test library, to specify and assert architecture rules in plain Java"
 url                      : "http://localhost"
-baseurl                  : "/"
+baseurl                  : ""
 repository               : "codecholeric/archunit"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 words_per_minute         : 200
