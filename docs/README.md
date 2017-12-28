@@ -10,7 +10,7 @@ Install [Docker](https://docs.docker.com/engine/installation/) and [Docker Compo
 then execute
 
 ```
-docker-compose pull; docker-compose up
+docker-compose up
 ```
 The site will be served on [localhost:4000](http://localhost:4000)
 
