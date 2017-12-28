@@ -55,4 +55,5 @@ Informationsmaterialien wird hiermit ausdrücklich widersprochen. Die Betreiber 
 sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, 
 etwa durch Spam-Mails, vor.
 
-Quelle: Disclaimer von eRecht24, dem Portal zum Internetrecht von Rechtsanwalt Sören Siebert.
+Quelle: [Disclaimer](http://www.e-recht24.de/muster-disclaimer.htm) von eRecht24, 
+dem Portal zum Internetrecht von Rechtsanwalt Sören Siebert.
