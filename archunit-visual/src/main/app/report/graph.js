@@ -77,8 +77,8 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
 
         const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
           const collisionSimulation = d3.forceSimulation()
-            .alphaDecay(0.03)
-            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(1));
+            .alphaDecay(0.02)
+            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2));
           collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode()))
             .stop();
           return collisionSimulation;
