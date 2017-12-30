@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core.importer;
+package com.tngtech.archunit.core;
 
 import org.junit.Rule;
 import org.junit.Test;
