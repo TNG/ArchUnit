@@ -23,9 +23,11 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.ArchUnitException.UnsupportedUriSchemeException;
@@ -40,8 +42,14 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * or similar.
  */
 public abstract class Location {
-    private static final String FILE_SCHEME = "file";
-    private static final String JAR_SCHEME = "jar";
+    private static final InitialConfiguration<Set<Factory>> factories = new InitialConfiguration<>();
+
+    static {
+        factories.set(ImmutableSet.of(
+                new JarFileLocationFactory(),
+                new FilePathLocationFactory()
+        ));
+    }
 
     final URI uri;
 
@@ -75,9 +83,7 @@ public abstract class Location {
     }
 
     @PublicAPI(usage = ACCESS)
-    public boolean isJar() {
-        return JAR_SCHEME.equals(uri.getScheme());
-    }
+    public abstract boolean isJar();
 
     // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
     Location append(String relativeURI) {
@@ -129,19 +135,18 @@ public abstract class Location {
 
     @PublicAPI(usage = ACCESS)
     public static Location of(URI uri) {
-        uri = ensureJarProtocol(uri);
-        if (FILE_SCHEME.equals(uri.getScheme())) {
-            return new FilePathLocation(uri);
-        }
-        if (JAR_SCHEME.equals(uri.getScheme())) {
-            return new JarFileLocation(uri);
+        uri = JarFileLocation.ensureJarProtocol(uri);
+        for (Factory factory : factories.get()) {
+            if (factory.supports(uri.getScheme())) {
+                return factory.create(uri);
+            }
         }
         throw new UnsupportedUriSchemeException(uri);
     }
 
     @PublicAPI(usage = ACCESS)
     public static Location of(JarFile jar) {
-        return new JarFileLocation(newJarUri(newFileUri(jar.getName())));
+        return new JarFileLocation(jar);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -157,22 +162,54 @@ public abstract class Location {
         }
     }
 
-    private static URI ensureJarProtocol(URI uri) {
-        return !JAR_SCHEME.equals(uri.getScheme()) && uri.getPath().endsWith(".jar") ? newJarUri(uri) : uri;
+    interface Factory {
+        boolean supports(String scheme);
+
+        Location create(URI uri);
     }
 
-    private static URI newFileUri(String fileName) {
-        return new File(fileName).toURI();
+    static class JarFileLocationFactory implements Factory {
+        @Override
+        public boolean supports(String scheme) {
+            return JarFileLocation.SCHEME.equals(scheme);
+        }
+
+        @Override
+        public Location create(URI uri) {
+            return new JarFileLocation(uri);
+        }
     }
 
-    private static URI newJarUri(URI uri) {
-        return URI.create(String.format("%s:%s!/", JAR_SCHEME, uri));
+    static class FilePathLocationFactory implements Factory {
+        @Override
+        public boolean supports(String scheme) {
+            return FilePathLocation.SCHEME.equals(scheme);
+        }
+
+        @Override
+        public Location create(URI uri) {
+            return new FilePathLocation(uri);
+        }
     }
 
     private static class JarFileLocation extends Location {
+        private static final String SCHEME = "jar";
+
         JarFileLocation(URI uri) {
             super(uri);
-            checkScheme(JAR_SCHEME, uri);
+            checkScheme(SCHEME, uri);
+        }
+
+        JarFileLocation(JarFile jar) {
+            this(newJarUri(FilePathLocation.newFileUri(jar.getName())));
+        }
+
+        static URI ensureJarProtocol(URI uri) {
+            return !SCHEME.equals(uri.getScheme()) && uri.getPath().endsWith(".jar") ? newJarUri(uri) : uri;
+        }
+
+        private static URI newJarUri(URI uri) {
+            return URI.create(String.format("%s:%s!/", SCHEME, uri));
         }
 
         @Override
@@ -184,17 +221,33 @@ public abstract class Location {
                 throw new LocationException(e);
             }
         }
+
+        @Override
+        public boolean isJar() {
+            return true;
+        }
     }
 
     private static class FilePathLocation extends Location {
+        private static final String SCHEME = "file";
+
         FilePathLocation(URI uri) {
             super(uri);
-            checkScheme(FILE_SCHEME, uri);
+            checkScheme(SCHEME, uri);
+        }
+
+        static URI newFileUri(String fileName) {
+            return new File(fileName).toURI();
         }
 
         @Override
         ClassFileSource asClassFileSource(ImportOptions importOptions) {
             return new ClassFileSource.FromFilePath(Paths.get(uri), importOptions);
+        }
+
+        @Override
+        public boolean isJar() {
+            return false;
         }
     }
 }
