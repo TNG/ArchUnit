@@ -16,13 +16,8 @@
 package com.tngtech.archunit.core.importer;
 
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 
 interface UrlSource extends Iterable<URL> {
@@ -35,35 +30,6 @@ interface UrlSource extends Iterable<URL> {
                     return iterable.iterator();
                 }
             };
-        }
-    }
-
-    @Internal
-    class Factory {
-        static UrlSource classpath() {
-            ImmutableSet.Builder<URL> result = ImmutableSet.builder();
-            for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
-                result.addAll(ImmutableList.copyOf(loader.getURLs()));
-            }
-            return UrlSource.From.iterable(result.build());
-        }
-
-        private static Set<URLClassLoader> findAllUrlClassLoadersInContext() {
-            return ImmutableSet.<URLClassLoader>builder()
-                    .addAll(findUrlClassLoadersInHierarchy(Thread.currentThread().getContextClassLoader()))
-                    .addAll(findUrlClassLoadersInHierarchy(UrlSource.class.getClassLoader()))
-                    .build();
-        }
-
-        private static Set<URLClassLoader> findUrlClassLoadersInHierarchy(ClassLoader loader) {
-            Set<URLClassLoader> result = new HashSet<>();
-            while (loader != null) {
-                if (loader instanceof URLClassLoader) {
-                    result.add((URLClassLoader) loader);
-                }
-                loader = loader.getParent();
-            }
-            return result;
         }
     }
 }

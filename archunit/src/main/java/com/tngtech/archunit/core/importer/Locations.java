@@ -37,6 +37,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.list;
 
 public final class Locations {
+    private static final InitialConfiguration<LocationResolver> locationResolver = new InitialConfiguration<>();
+
+    static {
+        locationResolver.set(new LocationResolver.Legacy());
+    }
+
     private Locations() {
     }
 
@@ -72,7 +78,7 @@ public final class Locations {
     @PublicAPI(usage = ACCESS)
     public static Set<Location> inClassPath() {
         ImmutableSet.Builder<Location> result = ImmutableSet.builder();
-        for (URL url : UrlSource.Factory.classpath()) {
+        for (URL url : locationResolver.get().resolveClassPath()) {
             result.add(Location.of(url));
         }
         return result.build();
@@ -83,7 +89,7 @@ public final class Locations {
     }
 
     private static Set<Location> getLocationsOf(String resourceName) {
-        UrlSource classpath = UrlSource.Factory.classpath();
+        UrlSource classpath = locationResolver.get().resolveClassPath();
         return ImmutableSet.copyOf(getResourceLocations(Locations.class.getClassLoader(), resourceName, classpath));
     }
 
