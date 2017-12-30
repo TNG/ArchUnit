@@ -1,16 +1,6 @@
-import proguard.gradle.ProGuardTask
-
-import java.nio.file.Files
-
-import static java.nio.charset.StandardCharsets.UTF_8
-
 buildscript {
     repositories {
         mavenCentral()
-    }
-
-    dependencies {
-        classpath 'net.sf.proguard:proguard-gradle:5.3.3'
     }
 }
 
@@ -37,70 +27,22 @@ subprojects {
     }
 }
 
-ext.shadowConfig = { classifierName ->
-    return {
-        classifier = classifierName
+productionProjects*.with {
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    shadowJar {
+        classifier = ''
 
         exclude 'org/apache/**'
         exclude 'Log4j*'
         exclude 'META-INF/**'
+        exclude 'module-info.class'
 
         relocate 'org.objectweb.asm', asmRelocationPackage
         relocate 'com.google', guavaRelocationPackage
     }
-}
+    jar.enabled = false
 
-def configureShadow = {
-    shadowJar shadowConfig('shadow')
-}
-
-def scriptRoot = currentScriptRootOf this
-def configureProGuard = {
-    configurations {
-        proguard
-    }
-
-    dependencies {
-        proguard 'com.google.code.findbugs:jsr305:3.0.1'
-    }
-
-    task shrinkDependencies(type: ProGuardTask, dependsOn: shadowJar) {
-        ext.archivePath = postfixedJar(jar.archivePath, 'proguard')
-
-        injars shadowJar.archivePath
-        outjars archivePath
-
-        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
-        libraryjars configurations.compile
-        libraryjars configurations.proguard
-
-        dontoptimize
-        dontobfuscate
-        dontwarn '**.com.google.j2objc.annotations.**'
-        dontwarn 'org.codehaus.**'
-        dontwarn 'org.slf4j.impl.**'
-
-        keep "class !${guavaRelocationPackage}.** {*;}"
-
-        new File(scriptRoot, 'proguard-keepclassmembers.txt').eachLine(UTF_8.name()) {
-            keepclassmembers "class ${thirdPartyRelocationPackage}.**${it}** {*;}"
-        }
-    }
-    assemble.dependsOn(shrinkDependencies)
-
-    task finishArchive(dependsOn: shrinkDependencies) {
-        doLast {
-            jar.archivePath.delete()
-            Files.copy(shrinkDependencies.archivePath.toPath(), jar.archivePath.toPath())
-        }
-        mustRunAfter jar
-    }
+    task finishArchive(dependsOn: shadowJar) {}
     build.dependsOn(finishArchive)
-}
-
-productionProjects*.with {
-    apply plugin: 'com.github.johnrengelman.shadow'
-
-    delegate.with configureShadow
-    delegate.with configureProGuard
 }
