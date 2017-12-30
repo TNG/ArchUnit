@@ -31,13 +31,21 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @MayResolveTypesViaReflection(reason = "We depend on the classpath, if we proxy an annotation type")
 class AnnotationProxy {
+    private static final InitialConfiguration<Function<Object, String>> valueFormatter = new InitialConfiguration<>();
+
+    static {
+        valueFormatter.set(new LegacyValueFormatter());
+    }
+
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation toProxy) {
         checkArgument(annotationType.getName().equals(toProxy.getType().getName()),
                 "Requested annotation type %s is incompatible with %s of type %s",
@@ -259,6 +267,21 @@ class AnnotationProxy {
         }
     }
 
+    private static class LegacyValueFormatter implements Function<Object, String> {
+        @Override
+        public String apply(Object input) {
+            if (!input.getClass().isArray()) {
+                return "" + input;
+            }
+
+            List<String> elemToString = new ArrayList<>();
+            for (int i = 0; i < Array.getLength(input); i++) {
+                elemToString.add("" + apply(Array.get(input, i)));
+            }
+            return "[" + Joiner.on(", ").join(elemToString) + "]";
+        }
+    }
+
     private static class ToStringHandler implements SpecificHandler {
         private final Class<?> annotationType;
         private final JavaAnnotation toProxy;
@@ -279,7 +302,7 @@ class AnnotationProxy {
             Set<String> properties = new HashSet<>();
             for (Map.Entry<String, Object> entry : toProxy.getProperties().entrySet()) {
                 Class<?> returnType = getDeclaredMethod(entry.getKey()).getReturnType();
-                String value = format(conversions.convertIfNecessary(entry.getValue(), returnType));
+                String value = valueFormatter.get().apply(conversions.convertIfNecessary(entry.getValue(), returnType));
                 properties.add(entry.getKey() + "=" + value);
             }
             return Joiner.on(", ").join(properties);
@@ -291,18 +314,6 @@ class AnnotationProxy {
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
-        }
-
-        private String format(Object input) {
-            if (!input.getClass().isArray()) {
-                return "" + input;
-            }
-
-            List<String> elemToString = new ArrayList<>();
-            for (int i = 0; i < Array.getLength(input); i++) {
-                elemToString.add("" + format(Array.get(input, i)));
-            }
-            return "[" + Joiner.on(", ").join(elemToString) + "]";
         }
     }
 

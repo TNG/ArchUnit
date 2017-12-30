@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.core.importer;
+package com.tngtech.archunit.core;
+
+import com.tngtech.archunit.Internal;
 
 import static com.google.common.base.Preconditions.checkState;
 
-class InitialConfiguration<T> {
+@Internal
+public class InitialConfiguration<T> {
     private T value;
 
-    synchronized void set(T object) {
+    public synchronized void set(T object) {
         checkState(this.value == null, String.format(
                 "Configuration may only be set once - current: %s / new: %s", this.value, object));
 
         this.value = object;
     }
 
-    synchronized T get() {
+    public synchronized T get() {
         checkState(value != null, "No value was ever set");
 
         return value;
