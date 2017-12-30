@@ -16,9 +16,10 @@ dependencies {
     }
 }
 
+ext.repackagesAsm = true // Will cause the ASM License to be packaged -> license.gradle
 shadowJar {
     dependencies {
-        exclude(dependency(project.dependency.slf4j))
+        exclude(dependency(dependency.slf4j))
     }
 }
 

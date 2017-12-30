@@ -84,10 +84,6 @@ task updateLicenses {
     }
 }
 
-project(':archunit') {
-    ext.repackagesAsm = true
-}
-
 productionProjects*.with {
     def installer = install.repositories.mavenInstaller
     def deployer = uploadArchives.repositories.mavenDeployer
@@ -112,15 +108,6 @@ productionProjects*.with {
         }
     }
 
-    if (repackagesAsm) {
-        shadowJar {
-            from(rootProject.file(asmLicenseFile)) {
-                into "/${asmRelocationPackage.replace('.', '/')}"
-            }
-        }
-        shadowJar.mustRunAfter updateLicenses
-    }
-
     task addLicenseHeader {
         doLast {
             def headerText = fillTemplateFile('archunit.header.template')
@@ -133,4 +120,15 @@ productionProjects*.with {
         }
     }
     compileJava.dependsOn addLicenseHeader
+
+    afterEvaluate {
+        if (repackagesAsm) {
+            shadowJar {
+                from(rootProject.file(asmLicenseFile)) {
+                    into "/${asmRelocationPackage.replace('.', '/')}"
+                }
+            }
+            shadowJar.mustRunAfter updateLicenses
+        }
+    }
 }
