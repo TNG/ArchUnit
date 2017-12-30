@@ -143,9 +143,9 @@ const init = (View) => {
         const targetNode = nodes.getByName(dep.target);
         const commonParent = sourceNode.getSelfOrFirstPredecessorMatching(node => nodeIsPredecessorOfOther(node.getFullName(), dep.target));
 
-        if (dep.source === 'com.tngtech.archunit.visual.VisualizationContextTest') {
+        /*if (dep.source === 'com.tngtech.archunit.visual.VisualizationContextTest') {
           console.log(commonParent.getFullName());
-        }
+        }*/
 
         const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(commonParent);
         const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(commonParent);

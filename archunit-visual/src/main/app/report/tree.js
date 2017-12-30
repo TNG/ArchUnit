@@ -306,6 +306,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (!this.isRoot() && !this._isLeaf()) {
         this._setFolded(() => !this._folded);
         this._root.relayout();
+        this.callbackOnFold();
       }
     }
 

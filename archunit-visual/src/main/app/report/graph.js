@@ -14,6 +14,7 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       this.root.addListener(this.dependencies.createListener());
       this.root.relayout();
       this.startSimulation = () => this.root.doNext(() => this._startSimulation());
+      this.root._callOnSelfThenEveryDescendant(node => node.callbackOnFold = () => this.startSimulation());
     }
 
     _startSimulation() {
@@ -30,12 +31,14 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
 
       while (currentNodes.size > 0) {
 
-        console.log('new round');
+        //console.log('new round');
 
         const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
         const newNodes = new Map();
+        //add to newNodes and allNodesSoFar
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
         newNodesArray.forEach(node => allNodesSoFar.set(node.getFullName(), node));
+        //take only links having at least one new end node and having both end nodes in allNodesSoFar
         const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allNodesSoFar.has(link.source) && allNodesSoFar.has(link.target)));
 
         if (newNodes.size === 0) {
@@ -47,8 +50,8 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
           .force('link', d3.forceLink()
             .id(n => n.fullName)
             .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
-            .strength(link => 1 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
-            .iterations(1))
+            .strength(link => 6 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
+            .iterations(2))
           .stop();
 
         const ticked = () => {
@@ -181,7 +184,7 @@ module.exports.create = () => {
 
       const Graph = init(Node, Dependencies, graphView, visualizationStyles).Graph;
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
-      //graph.foldAllNodes();
+      graph.foldAllNodes();
 
       d3.timeout(() => graph.startSimulation());
 
