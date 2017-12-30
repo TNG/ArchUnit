@@ -135,7 +135,7 @@ const init = (View) => {
       };
 
       const transformedSimpleDependenciesGroups = simpleDependencies.map(dep => {
-        //FIXME: change this:
+        //FIXME: mybe remove this this:
         if (nodeIsPredecessorOfOther(dep.source, dep.target) || nodeIsPredecessorOfOther(dep.target, dep.source)) {
           return [dep];
         }

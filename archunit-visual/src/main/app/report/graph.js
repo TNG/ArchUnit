@@ -50,7 +50,7 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
           .force('link', d3.forceLink()
             .id(n => n.fullName)
             .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
-            .strength(link => 6 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
+            .strength(link => 3 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
             .iterations(2))
           .stop();
 

@@ -44,8 +44,8 @@ const translate = innerCircle => ({
    * @param enclosingCircleRadius radius of the outer circle
    * @return the center coordinates of the inner circle after the shift into the enclosing circle
    */
-  intoEnclosingCircleOfRadius: enclosingCircleRadius => {
-    return vectors.norm(innerCircle, enclosingCircleRadius - innerCircle.r);
+  intoEnclosingCircleOfRadius: (enclosingCircleRadius, circlePadding) => {
+    return vectors.norm(innerCircle, enclosingCircleRadius - innerCircle.r - circlePadding);
   }
 });
 
@@ -54,9 +54,9 @@ const innerCircle = innerCirlce => ({
     const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
     return centerDistance + innerCirlce.r > parent.getRadius() && !parent.isRoot();
   },
-  isOutOfParentCircle: parent => {
+  isOutOfParentCircle: (parent, circlePadding) => {
     const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
-    return centerDistance + innerCirlce.r > parent.getRadius();
+    return centerDistance + innerCirlce.r + circlePadding > parent.getRadius();
   }
 });
 
@@ -123,8 +123,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
 
       const circle = {x, y, r: this.r};
-      if (parent && innerCircle(circle).isOutOfParentCircle(parent)) {
-        ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius()));
+      if (parent && innerCircle(circle).isOutOfParentCircle(parent, visualizationStyles.getCirclePadding())) {
+        ({x, y} = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius(), visualizationStyles.getCirclePadding()));
       }
       this.x = x;
       this.y = y;
