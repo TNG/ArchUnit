@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,7 @@ class AnnotationProxy {
     private static final InitialConfiguration<Function<Object, String>> valueFormatter = new InitialConfiguration<>();
 
     static {
-        valueFormatter.set(new LegacyValueFormatter());
+        DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationValueFormatter(valueFormatter);
     }
 
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation toProxy) {
@@ -264,21 +263,6 @@ class AnnotationProxy {
         @Override
         public Object handle(Object proxy, Method method, Object[] args) {
             return System.identityHashCode(proxy);
-        }
-    }
-
-    private static class LegacyValueFormatter implements Function<Object, String> {
-        @Override
-        public String apply(Object input) {
-            if (!input.getClass().isArray()) {
-                return "" + input;
-            }
-
-            List<String> elemToString = new ArrayList<>();
-            for (int i = 0; i < Array.getLength(input); i++) {
-                elemToString.add("" + apply(Array.get(input, i)));
-            }
-            return "[" + Joiner.on(", ").join(elemToString) + "]";
         }
     }
 
