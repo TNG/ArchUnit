@@ -11,7 +11,7 @@ import org.junit.experimental.categories.Category;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @Category(Example.class)
-public class InterfaceRules {
+public class InterfaceRulesTest {
 
     @Test
     public void interfaces_should_not_have_names_ending_with_the_word_interface() {
