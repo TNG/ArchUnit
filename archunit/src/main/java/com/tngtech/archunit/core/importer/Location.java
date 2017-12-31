@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.ArchUnitException.UnsupportedUriSchemeException;
@@ -46,10 +45,7 @@ public abstract class Location {
     private static final InitialConfiguration<Set<Factory>> factories = new InitialConfiguration<>();
 
     static {
-        factories.set(ImmutableSet.of(
-                new JarFileLocationFactory(),
-                new FilePathLocationFactory()
-        ));
+        ImportPlugin.Loader.loadForCurrentPlatform().plugInLocationFactories(factories);
     }
 
     final URI uri;

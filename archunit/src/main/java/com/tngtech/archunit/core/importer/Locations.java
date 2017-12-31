@@ -41,7 +41,7 @@ public final class Locations {
     private static final InitialConfiguration<LocationResolver> locationResolver = new InitialConfiguration<>();
 
     static {
-        locationResolver.set(new LocationResolver.Legacy());
+        ImportPlugin.Loader.loadForCurrentPlatform().plugInLocationResolver(locationResolver);
     }
 
     private Locations() {
