@@ -17,11 +17,10 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.Set;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.InitialConfiguration;
+import com.tngtech.archunit.core.PluginLoader;
 
 interface ImportPlugin {
     void plugInLocationFactories(InitialConfiguration<Set<Location.Factory>> factories);
@@ -30,15 +29,12 @@ interface ImportPlugin {
 
     @Internal
     class Loader {
-        private static final Supplier<ImportPlugin> forCurrentPlatform = Suppliers.memoize(new Supplier<ImportPlugin>() {
-            @Override
-            public ImportPlugin get() {
-                return new LegacyImportPlugin();
-            }
-        });
+        private static final PluginLoader<ImportPlugin> pluginLoader = PluginLoader
+                .forType(ImportPlugin.class)
+                .fallback(new LegacyImportPlugin());
 
         static ImportPlugin loadForCurrentPlatform() {
-            return forCurrentPlatform.get();
+            return pluginLoader.load();
         }
 
         private static class LegacyImportPlugin implements ImportPlugin {
