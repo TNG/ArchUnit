@@ -283,13 +283,6 @@ const init = (View, nodeMap) => {
     getIdentifyingString() {
       return `${this.from}-${this.to}`;
     }
-
-    getSimpleDependency() {
-      return {
-        source: this.from,
-        target: this.to
-      }
-    }
   };
 
   const containsPackage = (from, to) => {

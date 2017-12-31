@@ -4,8 +4,6 @@ const d3 = require('d3');
 
 const init = (Node, Dependencies, View, visualizationStyles) => {
 
-  const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
-
   const Graph = class {
     constructor(jsonRoot, svg) {
       this._view = new View(svg);
@@ -21,32 +19,30 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       //TODO: do not recreate forceSimulation all time, but always recreate allNodes and allLinks (as they might change)
 
       this.root.createAbsoluteNodes();
-      //FIXME: if a node has only one child, drag it in the middle
       const allLinks = this.dependencies.getSimpleDependencies();
-      //allLinks.forEach(link => console.log(link.source + "->" + link.target));
 
-      const allNodesSoFar = new Map();
+      const allLayoutedNodesSoFar = new Map();
       let currentNodes = new Map();
       currentNodes.set(this.root.getFullName(), this.root);
 
       while (currentNodes.size > 0) {
 
-        //console.log('new round');
-
         const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
         const newNodes = new Map();
-        //add to newNodes and allNodesSoFar
+        //add to newNodes and allLayoutedNodesSoFar
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
-        newNodesArray.forEach(node => allNodesSoFar.set(node.getFullName(), node));
-        //take only links having at least one new end node and having both end nodes in allNodesSoFar
-        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allNodesSoFar.has(link.source) && allNodesSoFar.has(link.target)));
+        newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
+        //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
+        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
 
         if (newNodes.size === 0) {
           break;
         }
 
+        const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
+
         const simulation = d3.forceSimulation()
-          .alphaDecay(0.06) //.alphaDecay(0.05)
+          .alphaDecay(0.06)
           .force('link', d3.forceLink()
             .id(n => n.fullName)
             .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
@@ -55,24 +51,17 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
           .stop();
 
         const ticked = () => {
-          //update nodes and deps and re-update allNodes
+          //update nodes and re-update allNodes
           Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
           Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
         };
 
-        const updateOnEnd = () => {
-          //move root to the middle (the root should not be moved by the forceLayout;
-          // anyway, this is just to be sure the node is really in the middle)
-          this.root.visualData.x = this.root.getRadius();
-          this.root.visualData.y = this.root.getRadius();
+        const updateOnEnd = () => Array.from(newNodes.values()).forEach(node => {
+          node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
+          node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
+        });
 
-          Array.from(newNodes.values()).forEach(node => {
-            node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
-            node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
-          });
-        };
-
-        simulation.nodes(Array.from(allNodesSoFar.values()).map(node => node.getAbsoluteNode()));
+        simulation.nodes(Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode()));
         simulation.force('link').links(currentLinks);
 
         const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
@@ -108,23 +97,15 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
         currentNodes = newNodes;
       }
 
-      const updateOnEnd = () => {
-        //move root to the middle (the root should not be moved by the forceLayout;
-        // anyway, this is just to be sure the node is really in the middle)
-        this.root.visualData.x = this.root.getRadius();
-        this.root.visualData.y = this.root.getRadius();
-
-        //move only children to middle of parent
-        Array.from(allNodesSoFar.values()).forEach(node => {
-          if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
-            node.visualData.x = 0;
-            node.visualData.y = 0;
-          }
-          node.visualData.moveToIntermediatePosition();
-        });
-        this.dependencies.moveAllToTheirPositions();
-      };
-      updateOnEnd();
+      //move only children to middle of parent
+      Array.from(allLayoutedNodesSoFar.values()).forEach(node => {
+        if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
+          node.visualData.x = 0;
+          node.visualData.y = 0;
+        }
+        node.visualData.moveToIntermediatePosition();
+      });
+      this.dependencies.moveAllToTheirPositions();
     }
 
     foldAllNodes() {

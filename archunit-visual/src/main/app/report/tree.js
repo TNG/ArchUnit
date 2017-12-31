@@ -247,16 +247,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._parent;
     }
 
-    //TODO: maybe end-recursive??
-    getSelfOrFirstPredecessorMatching(filter) {
-      if (filter(this)) {
+    getSelfOrFirstPredecessorMatching(matchingFunction) {
+      if (matchingFunction(this)) {
         return this;
       }
       if (this.isRoot)
-      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(filter) : null;
+      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
     }
 
-    //TODO: maybe end-recursive??
+    isPredecessorOf(nodeFullName) {
+      const separator = /[\\.\\$]/;
+      return nodeFullName.startsWith(this.getFullName())
+        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1));
+    }
+
     getSelfAndPredecessorsUntilExclusively(predecessor) {
       if (predecessor === this) {
         return [];
@@ -265,7 +269,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this, ...predecessors];
     }
 
-    //FIXME: remove this method, as the original children do not to be accessed from outside
     getOriginalChildren() {
       return this._originalChildren;
     }
