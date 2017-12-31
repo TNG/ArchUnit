@@ -1,3 +1,5 @@
+ext.moduleName = 'com.tngtech.archunit'
+
 dependencies {
     compile dependency.asm
     compile dependency.guava

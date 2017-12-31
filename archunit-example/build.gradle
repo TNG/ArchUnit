@@ -1,3 +1,5 @@
+ext.moduleName = 'com.tngtech.archunit.example'
+
 dependencies {
     // NOTE: The pure javaee-api dependencies are crippled,
     //       so to run any test we need to choose a full implementation provider
