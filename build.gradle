@@ -112,6 +112,8 @@ subprojects {
     }
 
     test {
+        maxHeapSize = "2G"
+
         testLogging {
             events "failed"
             exceptionFormat "full"
