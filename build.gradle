@@ -94,7 +94,7 @@ task wrapper(type: Wrapper) {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.6.0-SNAPSHOT'
+    version = '0.6.0-java9-SNAPSHOT'
 }
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
