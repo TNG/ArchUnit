@@ -73,12 +73,16 @@ public class ArchUnitRunnerRunsMethodsTest {
 
     @Test
     public void fails_methods_with_no_parameters() throws InitializationError {
-        runAndAssertWrongParametersForChild(noParams, new ArchUnitRunner(ArchTestWithIllegalTestMethods.class));
+        runAndAssertWrongParametersForChild(noParams, newRunner(ArchTestWithIllegalTestMethods.class));
+    }
+
+    private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) throws InitializationError {
+        return newRunnerFor(testClass, cache);
     }
 
     @Test
     public void fails_methods_with_too_many_parameters() throws InitializationError {
-        runAndAssertWrongParametersForChild(tooManyParams, new ArchUnitRunner(ArchTestWithIllegalTestMethods.class));
+        runAndAssertWrongParametersForChild(tooManyParams, newRunner(ArchTestWithIllegalTestMethods.class));
     }
 
     private void runAndAssertWrongParametersForChild(String name, ArchUnitRunner runner) {

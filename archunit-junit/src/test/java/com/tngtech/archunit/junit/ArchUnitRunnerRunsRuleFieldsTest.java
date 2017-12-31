@@ -28,6 +28,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongA
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTestWrongModifier.WRONG_MODIFIER_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,7 +98,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
     @Test
     public void should_fail_on_wrong_field_visibility() throws InitializationError {
-        ArchUnitRunner runner = new ArchUnitRunner(WrongArchTestWrongModifier.class);
+        ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongModifier.class, cache);
 
         thrown.expectMessage("With @" + ArchTest.class.getSimpleName() +
                 " annotated members must be public and static");
@@ -107,7 +108,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
     @Test
     public void should_fail_on_wrong_field_type() throws InitializationError {
-        ArchUnitRunner runner = new ArchUnitRunner(WrongArchTestWrongFieldType.class);
+        ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongFieldType.class, cache);
 
         thrown.expectMessage("Rule field " +
                 WrongArchTestWrongFieldType.class.getSimpleName() + "." + NO_RULE_AT_ALL_FIELD_NAME +
@@ -140,7 +141,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
     @Test
     public void should_skip_ignored_test() throws InitializationError {
-        ArchUnitRunner runner = new ArchUnitRunner(IgnoredArchTest.class);
+        ArchUnitRunner runner = newRunnerFor(IgnoredArchTest.class, cache);
 
         runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_ONE_IN_IGNORED_TEST, runner), runNotifier);
         runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_TWO_IN_IGNORED_TEST, runner), runNotifier);

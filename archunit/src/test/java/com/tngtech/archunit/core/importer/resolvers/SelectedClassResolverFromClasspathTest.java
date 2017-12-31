@@ -9,22 +9,19 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImport
 import com.tngtech.archunit.core.importer.resolvers.testclasses.firstdependency.FirstDependency;
 import com.tngtech.archunit.core.importer.resolvers.testclasses.seconddependency.sub.SecondDependency;
 import com.tngtech.archunit.core.importer.resolvers.testclasses.thirddependency.ThirdDependency;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 public class SelectedClassResolverFromClasspathTest {
     @Rule
@@ -32,11 +29,6 @@ public class SelectedClassResolverFromClasspathTest {
 
     @Mock
     private ClassUriImporter classUriImporter;
-
-    @Before
-    public void setUp() {
-        when(classUriImporter.tryImport(any(URI.class))).thenReturn(Optional.<JavaClass>absent());
-    }
 
     @Test
     public void resolves_exactly_the_classes_beneath_the_given_packages_from_the_classpath() {
@@ -55,7 +47,7 @@ public class SelectedClassResolverFromClasspathTest {
     private void simulatePossibleUriImportOf(Class<?>... classes) {
         for (Class<?> clazz : classes) {
             JavaClass classToReturn = importClassWithContext(clazz);
-            when(classUriImporter.tryImport(uriFor(clazz))).thenReturn(Optional.of(classToReturn));
+            doReturn(Optional.of(classToReturn)).when(classUriImporter).tryImport(uriFor(clazz));
         }
     }
 
@@ -68,15 +60,10 @@ public class SelectedClassResolverFromClasspathTest {
     }
 
     private URI uriFor(final Class<?> clazz) {
-        return argThat(new TypeSafeMatcher<URI>() {
+        return argThat(new ArgumentMatcher<URI>() {
             @Override
-            protected boolean matchesSafely(URI item) {
-                return item.toString().contains(clazz.getSimpleName());
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("URI for " + clazz.getSimpleName());
+            public boolean matches(URI argument) {
+                return argument.toString().contains(clazz.getSimpleName());
             }
         });
     }
