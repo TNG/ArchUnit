@@ -1,13 +1,13 @@
 import java.nio.file.Files
 
 def repositoryUrls = [
-        tng: [
+        tng     : [
                 snapshots: 'https://nexus.int.tngtech.com/content/repositories/snapshots',
-                releases: 'https://nexus.int.tngtech.com/content/repositories/releases'
+                releases : 'https://nexus.int.tngtech.com/content/repositories/releases'
         ],
         sonatype: [
                 snapshots: 'https://oss.sonatype.org/content/repositories/snapshots',
-                releases: 'https://oss.sonatype.org/content/repositories/releases'
+                releases : 'https://oss.sonatype.org/content/repositories/releases'
         ]
 ]
 def createRepositoriesTag = { repoUrls ->
@@ -33,6 +33,8 @@ def getRepoUrls = {
     repoUrls
 }
 
+def mavenSrc = new File(rootProject.file('archunit-maven-test'), 'src')
+def verificationTestPath = new File(rootProject.file('archunit-maven-test'), 'verification/TestResultTest.java')
 task prepareMavenTest {
     doLast {
         def pom = rootProject.file('archunit-maven-test/pom.xml')
@@ -47,13 +49,28 @@ task prepareMavenTest {
         pom.text = pom.text.
                 replace('#{archunit.version}', "${version}").
                 replace('#{repositories}', repositories)
+
+        copy {
+            from new File(project(':archunit-example').projectDir, 'src')
+            into mavenSrc
+        }
+        copy {
+            from verificationTestPath
+            into new File(mavenSrc, 'test/java')
+        }
     }
 }
 
-task executeMavenTest(type: Exec) {
+task executeRules(type: Exec, dependsOn: prepareMavenTest) {
     workingDir "$rootProject.projectDir/archunit-maven-test"
 
-    commandLine 'mvn', 'clean', 'test'
+    commandLine 'mvn', 'clean', 'test', '-P', 'execute-rules'
+}
+
+task verifyRules(type: Exec, dependsOn: executeRules) {
+    workingDir "$rootProject.projectDir/archunit-maven-test"
+
+    commandLine 'mvn', 'surefire:test', '-P', 'verify-rules'
 }
 
 task cleanUpMavenTest {
@@ -63,16 +80,17 @@ task cleanUpMavenTest {
         pom.delete()
         Files.copy(pomBak.toPath(), pom.toPath())
         pomBak.delete()
+        mavenSrc.deleteDir()
     }
 }
 
-cleanUpMavenTest.mustRunAfter executeMavenTest
-executeMavenTest.finalizedBy cleanUpMavenTest
-cleanUpMavenTest.mustRunAfter prepareMavenTest
-executeMavenTest.mustRunAfter prepareMavenTest
-task runMavenTest(dependsOn: [prepareMavenTest, executeMavenTest, cleanUpMavenTest])
+// Run cleanUp even if task fails
+verifyRules.finalizedBy cleanUpMavenTest
+executeRules.finalizedBy cleanUpMavenTest
+
+task runMavenTest(dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
 productionProjects.with {
-    executeMavenTest.mustRunAfter install
-    executeMavenTest.mustRunAfter uploadArchives
+    executeRules.mustRunAfter install
+    executeRules.mustRunAfter uploadArchives
 }
