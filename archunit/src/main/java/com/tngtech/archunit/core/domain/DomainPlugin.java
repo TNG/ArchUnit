@@ -20,26 +20,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
+import com.tngtech.archunit.core.PluginLoader;
 
 interface DomainPlugin {
     void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter);
 
     @Internal
     class Loader {
-        private static final Supplier<DomainPlugin> forCurrentPlatform = Suppliers.memoize(new Supplier<DomainPlugin>() {
-            @Override
-            public DomainPlugin get() {
-                return new LegacyDomainPlugin();
-            }
-        });
+        private static final PluginLoader<DomainPlugin> pluginLoader = PluginLoader
+                .forType(DomainPlugin.class)
+                .fallback(new LegacyDomainPlugin());
 
         static DomainPlugin loadForCurrentPlatform() {
-            return forCurrentPlatform.get();
+            return pluginLoader.load();
         }
 
         private static class LegacyDomainPlugin implements DomainPlugin {
