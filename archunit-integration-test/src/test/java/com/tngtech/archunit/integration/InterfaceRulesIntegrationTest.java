@@ -2,14 +2,14 @@ package com.tngtech.archunit.integration;
 
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
-import com.tngtech.archunit.exampletest.InterfaceRules;
+import com.tngtech.archunit.exampletest.InterfaceRulesTest;
 import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static com.tngtech.archunit.junit.ExpectedViolation.clazz;
 
-public class InterfaceRulesIntegrationTest extends InterfaceRules {
+public class InterfaceRulesIntegrationTest extends InterfaceRulesTest {
     @Rule
     public final ExpectedViolation expectedViolation = ExpectedViolation.none();
 
