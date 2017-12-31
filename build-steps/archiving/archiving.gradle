@@ -7,22 +7,25 @@ buildscript {
 subprojects {
     ext.repackagesAsm = false
 
-    tasks.withType(Jar) {
-        manifest {
-            attributes(
-                    'Built-By': "Gradle ${gradle.gradleVersion}",
-                    'Built-Date': new Date().format('yyyy-MM-dd'),
-                    'Specification-Title': createModuleDescription(app.name, project),
-                    'Specification-Version': version,
-                    'Specification-Vendor': company.name,
-                    'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
-                    'Implementation-Version': version,
-                    'Implementation-Vendor': company.name,
-                    'Issue-Tracker': app.urls.issues,
-                    'Documentation-URL': app.urls.doc,
-                    'Copyright': "${year} ${company.name}",
-                    'License': app.license.name
-            )
+    afterEvaluate {
+        tasks.withType(Jar) {
+            manifest {
+                attributes(
+                        'Built-By': "Gradle ${gradle.gradleVersion}",
+                        'Built-Date': new Date().format('yyyy-MM-dd'),
+                        'Specification-Title': createModuleDescription(app.name, project),
+                        'Specification-Version': version,
+                        'Specification-Vendor': company.name,
+                        'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
+                        'Implementation-Version': version,
+                        'Implementation-Vendor': company.name,
+                        'Issue-Tracker': app.urls.issues,
+                        'Documentation-URL': app.urls.doc,
+                        'Copyright': "${year} ${company.name}",
+                        'License': app.license.name,
+                        'Automatic-Module-Name': moduleName
+                )
+            }
         }
     }
 }

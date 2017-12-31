@@ -1,3 +1,5 @@
+ext.moduleName = 'com.tngtech.archunit.integrationtest'
+
 dependencies {
     testCompile dependency.junit
     testCompile dependency.assertj
