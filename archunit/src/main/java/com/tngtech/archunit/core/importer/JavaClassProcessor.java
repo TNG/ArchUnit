@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 TNG Technology Consulting GmbH
+ * Copyright 2018 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -592,7 +592,7 @@ class JavaClassProcessor extends ClassVisitor {
                 return Optional.of(toArray(componentType.get(), buildValues(importedClasses)));
             }
 
-            @SuppressWarnings("unchecked") // NOTE: We assume the component type matches the list
+            @SuppressWarnings({"unchecked", "rawtypes"}) // NOTE: We assume the component type matches the list
             private Object toArray(Class<?> componentType, List<Object> values) {
                 if (componentType == boolean.class) {
                     return Booleans.toArray((Collection) values);
