@@ -27,7 +27,10 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 
 public interface CanBeAnnotated {
     @PublicAPI(usage = ACCESS)
@@ -66,22 +69,27 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final String annotationTypeName) {
-            return new DescribedPredicate<CanBeAnnotated>("annotated with @" + ensureSimpleName(annotationTypeName)) {
-                @Override
-                public boolean apply(CanBeAnnotated input) {
-                    return input.isAnnotatedWith(annotationTypeName);
-                }
-            };
+            DescribedPredicate<HasType> typeNameMatches = GET_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
+            return annotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
-            return new DescribedPredicate<CanBeAnnotated>("annotated with " + predicate.getDescription()) {
-                @Override
-                public boolean apply(CanBeAnnotated input) {
-                    return input.isAnnotatedWith(predicate);
-                }
-            };
+            return new AnnotatedPredicate(predicate);
+        }
+
+        private static class AnnotatedPredicate extends DescribedPredicate<CanBeAnnotated> {
+            private final DescribedPredicate<? super JavaAnnotation> predicate;
+
+            AnnotatedPredicate(DescribedPredicate<? super JavaAnnotation> predicate) {
+                super("annotated with " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(CanBeAnnotated input) {
+                return input.isAnnotatedWith(predicate);
+            }
         }
     }
 

@@ -148,12 +148,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> originOwnerEqualsTargetOwner() {
-            return new DescribedPredicate<JavaAccess<?>>("origin owner equals target owner") {
-                @Override
-                public boolean apply(JavaAccess<?> input) {
-                    return input.getOriginOwner().equals(input.getTargetOwner());
-                }
-            };
+            return new OriginOwnerEqualsTargetOwnerPredicate();
         }
 
         @PublicAPI(usage = ACCESS)
@@ -163,12 +158,32 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
-            return new DescribedPredicate<JavaAccess<?>>("target " + predicate.getDescription()) {
-                @Override
-                public boolean apply(JavaAccess<?> input) {
-                    return predicate.apply(input.getTarget());
-                }
-            };
+            return new TargetPredicate(predicate);
+        }
+
+        private static class OriginOwnerEqualsTargetOwnerPredicate extends DescribedPredicate<JavaAccess<?>> {
+            OriginOwnerEqualsTargetOwnerPredicate() {
+                super("origin owner equals target owner");
+            }
+
+            @Override
+            public boolean apply(JavaAccess<?> input) {
+                return input.getOriginOwner().equals(input.getTargetOwner());
+            }
+        }
+
+        private static class TargetPredicate extends DescribedPredicate<JavaAccess<?>> {
+            private final DescribedPredicate<? super AccessTarget> predicate;
+
+            TargetPredicate(DescribedPredicate<? super AccessTarget> predicate) {
+                super("target " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaAccess<?> input) {
+                return predicate.apply(input.getTarget());
+            }
         }
     }
 
