@@ -99,6 +99,12 @@ allprojects {
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
 
+task clean {
+    doLast {
+        project.buildDir.deleteDir()
+    }
+}
+
 subprojects {
     apply plugin: 'java'
 
