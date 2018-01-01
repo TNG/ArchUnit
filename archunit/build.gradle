@@ -36,3 +36,25 @@ uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenci
 
 addTestJarTo this
 configureSlowTestsFor this
+
+sourceSets {
+    jdk9main {
+        java {
+            srcDirs = ['src/jdk9main/java']
+        }
+        compileClasspath = compileClasspath + sourceSets.main.compileClasspath
+    }
+}
+
+dependencies {
+    jdk9mainCompile sourceSets.main.output
+}
+
+compileJdk9mainJava.with {
+    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = JavaVersion.VERSION_1_9
+
+    destinationDir = compileJava.destinationDir
+}
+
+[jar, test]*.dependsOn compileJdk9mainJava

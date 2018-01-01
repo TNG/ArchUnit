@@ -110,9 +110,13 @@ productionProjects*.with {
 
     task addLicenseHeader {
         doLast {
+            def javaFiles = sourceSets.asMap.containsKey('jdk9main') ?
+                    [sourceSets.main.allJava.asList(), sourceSets.jdk9main.allJava.asList()].flatten() :
+                    sourceSets.main.allJava
+
             def headerText = fillTemplateFile('archunit.header.template')
 
-            sourceSets.main.allJava.each { sourceFile ->
+            javaFiles.each { sourceFile ->
                 if (!sourceFile.text.startsWith(headerText)) {
                     sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
                 }
