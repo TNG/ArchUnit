@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.core.importer;
 
-import com.tngtech.archunit.Internal;
+import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkState;
+import com.tngtech.archunit.core.InitialConfiguration;
 
-@Internal
-public class InitialConfiguration<T> {
-    private T value;
-
-    public synchronized void set(T object) {
-        checkState(this.value == null, String.format(
-                "Configuration may only be set once - current: %s / new: %s", this.value, object));
-
-        this.value = object;
+public class ModuleImportPlugin implements ImportPlugin {
+    @Override
+    public void plugInLocationFactories(InitialConfiguration<Set<Location.Factory>> factories) {
+        // FIXME: Implement Java 9 LocationFactories
     }
 
-    public synchronized T get() {
-        checkState(value != null, "No value was ever set");
-
-        return value;
+    @Override
+    public void plugInLocationResolver(InitialConfiguration<LocationResolver> locationResolver) {
+        // FIXME: Implement Java 9 LocationResolver
     }
 }
