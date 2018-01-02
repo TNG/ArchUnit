@@ -155,13 +155,13 @@ public final class ClassFileImporter {
     }
 
     /**
-     * Imports classes from the whole classpath without JARs.
+     * Imports classes from the whole classpath without archives (JARs or JRTs).
      *
      * @return Imported classes
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
-        return importClasspath(new ImportOptions().with(ImportOption.Predefined.DONT_INCLUDE_JARS));
+        return importClasspath(new ImportOptions().with(ImportOption.Predefined.DONT_INCLUDE_ARCHIVES));
     }
 
     @PublicAPI(usage = ACCESS)
