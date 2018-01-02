@@ -15,15 +15,12 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
+
+import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_9;
 
 interface DomainPlugin {
     void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter);
@@ -32,6 +29,7 @@ interface DomainPlugin {
     class Loader {
         private static final PluginLoader<DomainPlugin> pluginLoader = PluginLoader
                 .forType(DomainPlugin.class)
+                .ifVersionGreaterOrEqualTo(JAVA_9).load("com.tngtech.archunit.core.domain.Java9DomainPlugin")
                 .fallback(new LegacyDomainPlugin());
 
         static DomainPlugin loadForCurrentPlatform() {
@@ -41,22 +39,10 @@ interface DomainPlugin {
         private static class LegacyDomainPlugin implements DomainPlugin {
             @Override
             public void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter) {
-                valueFormatter.set(new LegacyValueFormatter());
-            }
-        }
-
-        private static class LegacyValueFormatter implements Function<Object, String> {
-            @Override
-            public String apply(Object input) {
-                if (!input.getClass().isArray()) {
-                    return "" + input;
-                }
-
-                List<String> elemToString = new ArrayList<>();
-                for (int i = 0; i < Array.getLength(input); i++) {
-                    elemToString.add("" + apply(Array.get(input, i)));
-                }
-                return "[" + Joiner.on(", ").join(elemToString) + "]";
+                valueFormatter.set(AnnotationValueFormatter.configure()
+                        .formattingArraysWithSquareBrackets()
+                        .formattingTypesToString()
+                        .build());
             }
         }
     }

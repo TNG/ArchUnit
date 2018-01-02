@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-public class ModuleLocationFactory implements Location.Factory {
+class ModuleLocationFactory implements Location.Factory {
     @Override
     public boolean supports(String scheme) {
         return ModuleLocation.SCHEME.equals(scheme);

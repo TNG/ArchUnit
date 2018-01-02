@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.core.importer;
+package com.tngtech.archunit.core.domain;
 
-import java.util.Set;
-
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
@@ -27,18 +25,13 @@ import com.tngtech.archunit.core.PluginLoader;
  */
 @SuppressWarnings("unused")
 @Internal
-public class ModuleImportPlugin implements ImportPlugin {
+public class Java9DomainPlugin implements DomainPlugin {
     @Override
-    public void plugInLocationFactories(InitialConfiguration<Set<Location.Factory>> factories) {
-        factories.set(ImmutableSet.of(
-                new Location.JarFileLocationFactory(),
-                new Location.FilePathLocationFactory(),
-                new ModuleLocationFactory()
-        ));
-    }
-
-    @Override
-    public void plugInLocationResolver(InitialConfiguration<LocationResolver> locationResolver) {
-        locationResolver.set(new ModuleLocationResolver());
+    public void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter) {
+        valueFormatter.set(AnnotationValueFormatter.configure()
+                .formattingArraysWithCurlyBrackets()
+                .formattingTypesAsClassNames()
+                .quotingStrings()
+                .build());
     }
 }
