@@ -23,8 +23,7 @@ import java.net.URL;
 import static com.google.common.collect.Iterables.concat;
 import static java.util.stream.Collectors.toList;
 
-public class ModuleLocationResolver implements LocationResolver {
-
+class ModuleLocationResolver implements LocationResolver {
     @Override
     public UrlSource resolveClassPath() {
         Iterable<URL> classpath = UrlSource.From.classPathSystemProperty();
