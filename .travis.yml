@@ -4,6 +4,6 @@ script:
   - ./gradlew --no-daemon -PallTests -PscanBuild clean build install runMavenTest
 
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 
 sudo: required
