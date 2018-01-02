@@ -93,7 +93,9 @@ public final class Locations {
     private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {
         try {
             Set<Location> result = newHashSet(Locations.of(list(loader.getResources(resourceName.toString()))));
-            result.addAll(findMissedClassesDueToLackOfPackageEntry(result, classpath, resourceName));
+            if (result.isEmpty()) {
+                return findMissedClassesDueToLackOfPackageEntry(classpath, resourceName);
+            }
             return result;
         } catch (IOException e) {
             throw new LocationException(e);
@@ -112,36 +114,14 @@ public final class Locations {
      * {@link ClassLoader#getResources(String)}, would not import <code>java.io.File</code>.
      */
     private static Collection<Location> findMissedClassesDueToLackOfPackageEntry(
-            Set<Location> locationsSoFar, Iterable<URL> classpath, NormalizedResourceName resourceName) {
-
-        Set<Location> locationsToConsider = filterCandidates(locationsSoFar, classpath);
-
+            Iterable<URL> classpath, NormalizedResourceName resourceName) {
         Set<Location> result = new HashSet<>();
-        for (Location location : locationsToConsider) {
+        for (Location location : archiveLocationsOf(classpath)) {
             if (containsEntryWithPrefix(location, resourceName)) {
                 result.add(location.append(resourceName.toString()));
             }
         }
         return result;
-    }
-
-    /**
-     * We only need to take those URLs that haven't been considered, yet. In the end, if we already have some
-     * URL jar:file:///some.jar!/foo/bar, the entry was obviously not missing from the JAR, so we don't need
-     * to consider the JAR anymore.
-     */
-    private static Set<Location> filterCandidates(Set<Location> locationsSoFar, Iterable<URL> allUrls) {
-        Set<Location> allLocations = archiveLocationsOf(allUrls);
-        Set<Location> locationsToConsider = new HashSet<>(allLocations);
-        for (Location location : allLocations) {
-            for (Location alreadyAdded : locationsSoFar) {
-                // location is a base URL, alreadyAdded will be a sub-URL or a base URL as well
-                if (alreadyAdded.startsWith(location)) {
-                    locationsToConsider.remove(location);
-                }
-            }
-        }
-        return locationsToConsider;
     }
 
     private static boolean containsEntryWithPrefix(Location location, NormalizedResourceName searchedJarEntryPrefix) {
