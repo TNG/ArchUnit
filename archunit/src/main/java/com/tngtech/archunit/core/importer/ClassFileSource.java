@@ -85,10 +85,14 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         private final FluentIterable<ClassFileLocation> classFileLocations;
 
         FromJar(URL jarUrl, String path, ImportOptions importOptions) {
+            this(jarUrl, NormalizedResourceName.from(path), importOptions);
+        }
+
+        FromJar(URL jarUrl, NormalizedResourceName path, ImportOptions importOptions) {
             try {
                 JarURLConnection connection = (JarURLConnection) jarUrl.openConnection();
                 classFileLocations = FluentIterable.from(Collections.list(connection.getJarFile().entries()))
-                        .filter(classFilesBeneath(fixRelative(path)))
+                        .filter(classFilesBeneath(path))
                         .transform(toClassFilesInJarOf(connection))
                         .filter(by(importOptions))
                         .transform(toInputStreamSupplier());
@@ -97,16 +101,11 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
             }
         }
 
-        private String fixRelative(String path) {
-            boolean pathIsFolderNotEndingWithSlash = !path.isEmpty() && !path.endsWith("/") && !path.endsWith(".class");
-            return pathIsFolderNotEndingWithSlash ? path + "/" : path;
-        }
-
-        private Predicate<JarEntry> classFilesBeneath(final String prefix) {
+        private Predicate<JarEntry> classFilesBeneath(final NormalizedResourceName prefix) {
             return new Predicate<JarEntry>() {
                 @Override
                 public boolean apply(JarEntry input) {
-                    return input.getName().startsWith(prefix)
+                    return input.getName().startsWith(prefix.toEntryName())
                             && input.getName().endsWith(".class");
                 }
             };

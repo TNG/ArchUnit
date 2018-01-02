@@ -214,7 +214,7 @@ public class ClassFileImporterTest {
     @Rule
     public final LogTestRule logTest = new LogTestRule();
     @Rule
-    public final IndependentClassLoaderRule independentClassLoaderRule = new IndependentClassLoaderRule();
+    public final IndependentClasspathRule independentClasspathRule = new IndependentClasspathRule();
 
     @After
     public void tearDown() {
@@ -285,6 +285,20 @@ public class ClassFileImporterTest {
                 ClassWithNestedClass.NestedClass.class,
                 ClassWithNestedClass.StaticNestedClass.class,
                 Class.forName(ClassWithNestedClass.class.getName() + "$PrivateNestedClass"));
+    }
+
+    @Test
+    public void imports_jdk_classes() {
+        JavaClasses classes = new ClassFileImporter().importClasses(File.class);
+
+        assertThatClasses(classes).matchExactly(File.class);
+    }
+
+    @Test
+    public void imports_jdk_packages() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(File.class);
+
+        assertThatClasses(classes).contain(File.class);
     }
 
     @Test
@@ -1708,23 +1722,23 @@ public class ClassFileImporterTest {
      */
     @Test
     public void imports_packages_even_if_jar_entry_for_package_is_missing() throws Exception {
-        String packageToImport = independentClassLoaderRule.getIndependentTopLevelPackage();
+        String packageToImport = independentClasspathRule.getIndependentTopLevelPackage();
 
         ClassFileImporter classFileImporter = new ClassFileImporter();
         JavaClasses classes = classFileImporter.importPackages(packageToImport);
         assertThat(classes).extracting("name")
-                .doesNotContain(independentClassLoaderRule.getNameOfSomeContainedClass());
+                .doesNotContain(independentClasspathRule.getNameOfSomeContainedClass());
 
-        independentClassLoaderRule.configureContextClassLoaderAsIndependentClassLoader();
+        independentClasspathRule.configureClasspath();
 
-        classes = classFileImporter.importUrl(independentClassLoaderRule.getUrlOfIndependentClassLoader());
+        classes = classFileImporter.importUrl(independentClasspathRule.getOnlyUrl());
         assertThat(classes).extracting("name")
-                .containsAll(independentClassLoaderRule.getNamesOfClasses());
+                .containsAll(independentClasspathRule.getNamesOfClasses());
         assertThat(classes).extracting("package")
-                .containsAll(independentClassLoaderRule.getPackagesOfClasses());
+                .containsAll(independentClasspathRule.getPackagesOfClasses());
 
         classes = classFileImporter.importPackages(packageToImport);
-        assertThat(classes).extracting("name").contains(independentClassLoaderRule.getNameOfSomeContainedClass());
+        assertThat(classes).extracting("name").contains(independentClasspathRule.getNameOfSomeContainedClass());
     }
 
     @Test

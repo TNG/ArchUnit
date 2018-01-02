@@ -103,7 +103,7 @@ class JavaClassProcessor extends ClassVisitor {
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
-        LOG.debug("Found superclass {} on class '{}'", superClassName, name);
+        LOG.debug("Found superclass {} on class '{}'", superClassName.orNull(), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
                 .withSource(createSource(sourceURI))
@@ -284,7 +284,7 @@ class JavaClassProcessor extends ClassVisitor {
         // NOTE: ASM doesn't reliably visit this method, so if this method is skipped, line number 0 is recorded
         @Override
         public void visitLineNumber(int line, Label start) {
-            LOG.debug("Examining line number {}", line);
+            LOG.trace("Examining line number {}", line);
             actualLineNumber = line;
             accessHandler.setLineNumber(actualLineNumber);
         }

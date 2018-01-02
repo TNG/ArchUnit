@@ -15,15 +15,11 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -32,7 +28,6 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.core.InitialConfiguration;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.list;
@@ -91,13 +86,14 @@ public final class Locations {
 
     private static Set<Location> getLocationsOf(String resourceName) {
         UrlSource classpath = locationResolver.get().resolveClassPath();
-        return ImmutableSet.copyOf(getResourceLocations(Locations.class.getClassLoader(), resourceName, classpath));
+        NormalizedResourceName normalizedResourceName = NormalizedResourceName.from(resourceName);
+        return ImmutableSet.copyOf(getResourceLocations(Locations.class.getClassLoader(), normalizedResourceName, classpath));
     }
 
-    private static Collection<Location> getResourceLocations(ClassLoader loader, String resourceName, Iterable<URL> classpath) {
+    private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {
         try {
-            Set<Location> result = newHashSet(Locations.of(list(loader.getResources(resourceName))));
-            result.addAll(findMissedClassesDueToLackOfPackageJarEntry(result, classpath, resourceName));
+            Set<Location> result = newHashSet(Locations.of(list(loader.getResources(resourceName.toString()))));
+            result.addAll(findMissedClassesDueToLackOfPackageEntry(result, classpath, resourceName));
             return result;
         } catch (IOException e) {
             throw new LocationException(e);
@@ -105,26 +101,25 @@ public final class Locations {
     }
 
     /**
-     * Unfortunately the behavior with JAR files is not completely consistent. Originally,
+     * Unfortunately the behavior with archives is not completely consistent. Originally,
      * {@link Locations#ofPackage(String)} simply asked all {@link java.net.URLClassLoader}s, for
      * {@link ClassLoader#getResources(String)} of the respective resource name.
      * E.g.
      * <pre><code>importPackage("org.junit") -> getResources("/org/junit")</code></pre>
-     * However, this only works, if all respective JARs contain an entry for the folder, which is not always the
+     * However, this only works, if all respective archives contain an entry for the folder, which is not always the
      * case. Consider the standard JRE "rt.jar", which does not contain an entry "/java/io", but nonetheless
      * entries like "/java/io/File.class". Thus an import of "java.io", relying on
      * {@link ClassLoader#getResources(String)}, would not import <code>java.io.File</code>.
      */
-    private static Collection<Location> findMissedClassesDueToLackOfPackageJarEntry(
-            Set<Location> locationsSoFar, Iterable<URL> classpath, String resourceName) {
+    private static Collection<Location> findMissedClassesDueToLackOfPackageEntry(
+            Set<Location> locationsSoFar, Iterable<URL> classpath, NormalizedResourceName resourceName) {
 
         Set<Location> locationsToConsider = filterCandidates(locationsSoFar, classpath);
-        String searchedJarEntryPrefix = resourceName.endsWith("/") ? resourceName : resourceName + "/";
 
         Set<Location> result = new HashSet<>();
         for (Location location : locationsToConsider) {
-            if (containsEntryWithPrefix(location, searchedJarEntryPrefix)) {
-                result.add(location.append(resourceName));
+            if (containsEntryWithPrefix(location, resourceName)) {
+                result.add(location.append(resourceName.toString()));
             }
         }
         return result;
@@ -136,7 +131,7 @@ public final class Locations {
      * to consider the JAR anymore.
      */
     private static Set<Location> filterCandidates(Set<Location> locationsSoFar, Iterable<URL> allUrls) {
-        Set<Location> allLocations = jarLocationsOf(allUrls);
+        Set<Location> allLocations = archiveLocationsOf(allUrls);
         Set<Location> locationsToConsider = new HashSet<>(allLocations);
         for (Location location : allLocations) {
             for (Location alreadyAdded : locationsSoFar) {
@@ -149,39 +144,23 @@ public final class Locations {
         return locationsToConsider;
     }
 
-    private static boolean containsEntryWithPrefix(Location location, String searchedJarEntryPrefix) {
-        for (JarEntry entry : list(newJarFile(location).entries())) {
-            if (entry.getName().startsWith(searchedJarEntryPrefix)) {
+    private static boolean containsEntryWithPrefix(Location location, NormalizedResourceName searchedJarEntryPrefix) {
+        for (NormalizedResourceName name : location.iterateEntries()) {
+            if (name.startsWith(searchedJarEntryPrefix)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static Set<Location> jarLocationsOf(Iterable<URL> urls) {
+    private static Set<Location> archiveLocationsOf(Iterable<URL> urls) {
         return FluentIterable.from(Locations.of(urls))
                 .filter(new Predicate<Location>() {
                     @Override
                     public boolean apply(Location input) {
-                        return input.isJar();
+                        return input.isArchive();
                     }
                 }).toSet();
-    }
-
-    private static JarFile newJarFile(Location location) {
-        try {
-            return new JarFile(getFileOfJarLocation(location));
-        } catch (IOException e) {
-            throw new LocationException(e);
-        }
-    }
-
-    private static File getFileOfJarLocation(Location location) {
-        checkArgument(location.isJar());
-
-        return new File(URI.create(location.asURI().toString()
-                .replaceAll("^jar:", "")
-                .replaceAll("!/.*", "")));
     }
 
 }
