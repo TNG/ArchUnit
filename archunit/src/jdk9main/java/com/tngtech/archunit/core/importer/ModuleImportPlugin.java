@@ -17,16 +17,26 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.InitialConfiguration;
+import com.tngtech.archunit.core.PluginLoader;
 
+/**
+ * Resolved via {@link PluginLoader}
+ */
+@SuppressWarnings("unused")
 public class ModuleImportPlugin implements ImportPlugin {
     @Override
     public void plugInLocationFactories(InitialConfiguration<Set<Location.Factory>> factories) {
-        // FIXME: Implement Java 9 LocationFactories
+        factories.set(ImmutableSet.of(
+                new Location.JarFileLocationFactory(),
+                new Location.FilePathLocationFactory(),
+                new ModuleLocationFactory()
+        ));
     }
 
     @Override
     public void plugInLocationResolver(InitialConfiguration<LocationResolver> locationResolver) {
-        // FIXME: Implement Java 9 LocationResolver
+        locationResolver.set(new ModuleLocationResolver());
     }
 }

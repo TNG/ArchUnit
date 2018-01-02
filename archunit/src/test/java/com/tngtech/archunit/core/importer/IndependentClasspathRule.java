@@ -1,25 +1,36 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
-class IndependentClassLoaderRule extends ExternalResource {
+class IndependentClasspathRule extends ExternalResource {
     private Setup setup;
     private ClassLoader storedContextClassLoader;
+    private final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
 
-    void configureContextClassLoaderAsIndependentClassLoader() {
+    @Override
+    protected void before() throws Throwable {
+        systemPropertiesRule.before();
+    }
+
+    void configureClasspath() {
         storedContextClassLoader = Thread.currentThread().getContextClassLoader();
         setup = Setup.create();
         Thread.currentThread().setContextClassLoader(setup.classLoader);
+        String pathEntry = new File(URI.create(getOnlyUrl().getFile().replaceAll("!/.*", ""))).getAbsolutePath();
+        System.setProperty("java.class.path", pathEntry);
     }
 
     @Override
@@ -29,6 +40,7 @@ class IndependentClassLoaderRule extends ExternalResource {
         }
         storedContextClassLoader = null;
         setup = null;
+        systemPropertiesRule.after();
     }
 
     String getNameOfSomeContainedClass() {
@@ -39,7 +51,7 @@ class IndependentClassLoaderRule extends ExternalResource {
         return Setup.PACKAGE_OF_INDEPENDENT_CLASS_IN_JAR;
     }
 
-    URL getUrlOfIndependentClassLoader() {
+    URL getOnlyUrl() {
         return getOnlyElement(ImmutableSet.copyOf(setup.classLoader.getURLs()));
     }
 
@@ -83,7 +95,7 @@ class IndependentClassLoaderRule extends ExternalResource {
         }
 
         private static Setup tryCreate() throws MalformedURLException, ClassNotFoundException {
-            URL resource = Setup.class.getResource("testexamples/independenent-test-example.jar");
+            URL resource = Setup.class.getResource("testexamples/independent-test-example.jar");
             URL url = Location.of(resource).asURI().toURL();
             URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
             verifySetupAsExpected(classLoader, resource);

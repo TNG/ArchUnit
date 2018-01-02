@@ -7,22 +7,35 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.InitialConfigurationTest;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.primitives.Bytes.asList;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -36,7 +49,7 @@ public class LocationTest {
 
     @Test
     public void jar_resources_are_detected_as_JARs() {
-        JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(getClass())).create();
+        JarFile jarFile = new TestJarFile().withEntry(classFileResource(getClass())).create();
 
         Location location = Location.of(jarFile);
 
@@ -44,11 +57,136 @@ public class LocationTest {
     }
 
     @Test
+    public void iterate_entries_of_whole_jar() throws Exception {
+        Set<NormalizedResourceName> entries = ImmutableSet.of(
+                classFileEntry(getClass()),
+                classFileEntry(ArchConfiguration.class),
+                packageEntry(DescribedPredicate.class),
+                classFileEntry(DescribedPredicate.class)
+        );
+        JarFile jarFile = jarFileContaining(entries);
+
+        Location location = Location.of(jarFile);
+
+        assertThat(location.iterateEntries())
+                .as("entries of JAR")
+                .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
+    }
+
+    @Test
+    public void iterate_entries_of_package_of_jar_url() throws Exception {
+        Set<NormalizedResourceName> entries = ImmutableSet.of(
+                classFileEntry(getClass()),
+                classFileEntry(ArchConfiguration.class),
+                packageEntry(DescribedPredicate.class),
+                classFileEntry(DescribedPredicate.class)
+        );
+        JarFile jarFile = jarFileContaining(entries);
+
+        Location location = Location.of(jarUriOfEntry(jarFile, packageEntry(ArchConfiguration.class)));
+
+        assertThat(location.iterateEntries())
+                .as("entries of JAR")
+                .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
+
+        location = Location.of(jarUriOfEntry(jarFile, packageEntry(getClass())));
+
+        assertThat(location.iterateEntries())
+                .as("entries of JAR")
+                .containsOnly(classFileEntry(getClass()));
+
+        location = Location.of(jarUriOfEntry(jarFile, classFileResource(getClass())));
+
+        assertThat(location.iterateEntries())
+                .as("entries of JAR")
+                .containsOnly(classFileEntry(getClass()));
+    }
+
+    @Test
+    public void iterate_entries_of_non_existing_jar_url() throws Exception {
+        File nonExistingJar = new File(createNonExistingFolder(), "not-there.jar");
+
+        Location location = Location.of(URI.create("jar:file:" + nonExistingJar.getAbsolutePath() + "!/"));
+
+        assertThat(location.iterateEntries())
+                .as("entries of JAR")
+                .isEmpty();
+    }
+
+    @Test
+    public void iterate_entries_of_file_url() throws Exception {
+        Location location = Location.of(getClass().getResource(packageResource(getClass())));
+
+        assertThat(location.iterateEntries())
+                .as("entries of DIR")
+                .contains(sameLevel(getClass()))
+                .contains(oneLevelBelow(ClassResolverFactoryTest.class));
+
+        assertThat(transform(location.iterateEntries(), toStringFunction()))
+                .as("entries of DIR")
+                .doNotHave(elementWithSubstring(InitialConfigurationTest.class.getSimpleName()));
+    }
+
+    @Test
+    public void iterate_entries_of_non_existing_file_url() throws Exception {
+        Location location = Location.of(URI.create("file:" + createNonExistingFolder().getAbsolutePath()));
+
+        assertThat(location.iterateEntries())
+                .as("entries of DIR")
+                .isEmpty();
+    }
+
+    private File createNonExistingFolder() {
+        File nonExistingFile = new File("/not/there");
+        checkState(!nonExistingFile.exists(), "File should not exist");
+        return nonExistingFile;
+    }
+
+    private JarFile jarFileContaining(Set<NormalizedResourceName> entries) {
+        TestJarFile result = new TestJarFile();
+        for (NormalizedResourceName entry : entries) {
+            result.withEntry(entry.toString());
+        }
+        return result.create();
+    }
+
+    private NormalizedResourceName sameLevel(Class<?> clazz) {
+        return NormalizedResourceName.from(clazz.getSimpleName() + ".class");
+    }
+
+    private NormalizedResourceName oneLevelBelow(Class<ClassResolverFactoryTest> clazz) throws URISyntaxException {
+        Path absolutePath = absolutePathOf(clazz);
+        Path parentFolder = absolutePath.resolve("../..").normalize();
+        return NormalizedResourceName.from(parentFolder.relativize(absolutePath).toString());
+    }
+
+    private Condition<Object> elementWithSubstring(final String substring) {
+        return new Condition<Object>(String.format("element with substring '%s'", substring)) {
+            @Override
+            public boolean matches(Object value) {
+                return value instanceof String && ((String) value).contains(substring);
+            }
+        };
+    }
+
+    private Path absolutePathOf(Class<?> clazz) throws URISyntaxException {
+        return new File(urlOfClass(clazz).toURI()).getAbsoluteFile().toPath();
+    }
+
+    private URI jarUriOfEntry(JarFile jarFile, String entry) {
+        return jarUriOfEntry(jarFile, NormalizedResourceName.from(entry));
+    }
+
+    private URI jarUriOfEntry(JarFile jarFile, NormalizedResourceName entry) {
+        return URI.create("jar:" + new File(jarFile.getName()).toURI().toString() + "!/" + entry);
+    }
+
+    @Test
     public void equals_and_hashcode() {
-        JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(getClass())).create();
+        JarFile jarFile = new TestJarFile().withEntry(classFileResource(getClass())).create();
         Location location = Location.of(jarFile);
         Location equal = Location.of(jarFile);
-        Location different = Location.of(new TestJarFile().withEntry(fullClassFileName(getClass())).create());
+        Location different = Location.of(new TestJarFile().withEntry(classFileResource(getClass())).create());
 
         assertThat(location).isEqualTo(location);
         assertThat(location).isEqualTo(equal);
@@ -59,7 +197,7 @@ public class LocationTest {
 
     @DataProvider
     public static Object[][] file_locations_pointing_to_jar() throws MalformedURLException {
-        JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(LocationTest.class)).create();
+        JarFile jarFile = new TestJarFile().withEntry(classFileResource(LocationTest.class)).create();
         return $$(
                 $(Location.of(new File(jarFile.getName()).toURI().toURL())),
                 $(Location.of(new File(jarFile.getName()).toURI())));
@@ -70,7 +208,7 @@ public class LocationTest {
     public void JAR_protocol_is_added_to_file_urls_that_point_to_JARs(Location location) throws MalformedURLException {
         assertThat(location.uri.toString()).startsWith("jar:");
         assertThat(location.uri.toString()).endsWith("!/");
-        assertThat(location.uri.toURL().getProtocol()).isEqualTo("jar");
+        assertThat(location.uri.toURI().toURL().getProtocol()).isEqualTo("jar");
     }
 
     @Test
@@ -92,8 +230,8 @@ public class LocationTest {
     @SuppressWarnings("unchecked")
     public void JAR_location_as_ClassFileSource() throws IOException {
         JarFile jar = new TestJarFile()
-                .withEntry(fullClassFileName(getClass()))
-                .withEntry(fullClassFileName(Location.class))
+                .withEntry(classFileResource(getClass()))
+                .withEntry(classFileResource(Location.class))
                 .create();
         ClassFileSource source = Location.of(new File(jar.getName()).toURI()).asClassFileSource(new ImportOptions());
 
@@ -183,14 +321,26 @@ public class LocationTest {
     }
 
     static URL urlOfClass(Class<?> clazz) {
-        return clazz.getResource(fullClassFileName(clazz));
+        return clazz.getResource(classFileResource(clazz));
     }
 
     private static InputStream streamOfClass(Class<?> clazz) {
-        return clazz.getResourceAsStream(fullClassFileName(clazz));
+        return clazz.getResourceAsStream(classFileResource(clazz));
     }
 
-    private static String fullClassFileName(Class<?> clazz) {
+    private static NormalizedResourceName classFileEntry(Class<?> clazz) {
+        return NormalizedResourceName.from(classFileResource(clazz));
+    }
+
+    private static String classFileResource(Class<?> clazz) {
         return String.format("/%s.class", clazz.getName().replace('.', '/'));
+    }
+
+    private NormalizedResourceName packageEntry(Class<?> clazz) {
+        return NormalizedResourceName.from(clazz.getPackage().getName().replace('.', '/'));
+    }
+
+    private String packageResource(Class<?> clazz) {
+        return "/" + packageEntry(clazz);
     }
 }

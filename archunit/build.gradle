@@ -1,3 +1,5 @@
+apply plugin: 'idea'
+
 ext.moduleName = 'com.tngtech.archunit'
 
 dependencies {
@@ -37,17 +39,29 @@ uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenci
 addTestJarTo this
 configureSlowTestsFor this
 
+def jdk9MainDirs = ['src/jdk9main/java']
+def jdk9TestDirs = ['src/jdk9test/java']
 sourceSets {
     jdk9main {
         java {
-            srcDirs = ['src/jdk9main/java']
+            srcDirs = jdk9MainDirs
         }
         compileClasspath = compileClasspath + sourceSets.main.compileClasspath
+    }
+    jdk9test {
+        java {
+            srcDirs = jdk9TestDirs
+        }
+        compileClasspath = compileClasspath + sourceSets.test.compileClasspath
     }
 }
 
 dependencies {
     jdk9mainCompile sourceSets.main.output
+    jdk9testCompile sourceSets.test.output
+    jdk9testCompile sourceSets.jdk9main.output
+
+    runtime sourceSets.jdk9main.output
 }
 
 compileJdk9mainJava.with {
@@ -57,4 +71,22 @@ compileJdk9mainJava.with {
     destinationDir = compileJava.destinationDir
 }
 
+compileJdk9testJava.with {
+    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = JavaVersion.VERSION_1_9
+}
+
+task jdk9Test(type: Test) {
+    testClassesDirs = sourceSets.jdk9test.output.classesDirs
+    classpath = sourceSets.jdk9test.runtimeClasspath
+}
+
 [jar, test]*.dependsOn compileJdk9mainJava
+
+idea {
+    module {
+        sourceDirs += jdk9MainDirs.collect { file(it) }
+        sourceDirs -= jdk9TestDirs.collect { file(it) }
+        testSourceDirs += jdk9TestDirs.collect { file(it) }
+    }
+}

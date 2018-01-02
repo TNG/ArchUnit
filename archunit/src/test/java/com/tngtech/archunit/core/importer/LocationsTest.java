@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -18,14 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LocationsTest {
     @Rule
-    public final IndependentClassLoaderRule independentClassLoaderRule = new IndependentClassLoaderRule();
+    public final IndependentClasspathRule independentClasspathRule = new IndependentClasspathRule();
 
     @Test
     public void locations_of_URLs() throws Exception {
         Collection<Location> locations = Locations.of(ImmutableList.of(
                 urlOfClass(getClass()), urlOfClass(Locations.class)));
 
-        assertThat(locations).extracting("uri").containsOnly(
+        assertThat(urisOf(locations)).containsOnly(
                 urlOfClass(getClass()).toURI(), urlOfClass(Locations.class).toURI()
         );
     }
@@ -34,7 +35,7 @@ public class LocationsTest {
     public void locations_of_packages_within_file_URIs() throws Exception {
         Set<Location> locations = Locations.ofPackage("com.tngtech.archunit.core.importer");
 
-        assertThat(locations).extracting("uri").contains(
+        assertThat(urisOf(locations)).contains(
                 uriOfFolderOf(getClass()),
                 uriOfFolderOf(Locations.class)
         );
@@ -44,7 +45,7 @@ public class LocationsTest {
     public void locations_of_packages_within_JAR_URIs() throws Exception {
         Set<Location> locations = Locations.ofPackage("org.junit");
 
-        assertThat(locations).extracting("uri").contains(
+        assertThat(urisOf(locations)).contains(
                 uriOfFolderOf(Test.class)
         );
     }
@@ -55,9 +56,9 @@ public class LocationsTest {
      */
     @Test
     public void locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder() throws Exception {
-        independentClassLoaderRule.configureContextClassLoaderAsIndependentClassLoader();
+        independentClasspathRule.configureClasspath();
 
-        Set<Location> locations = Locations.ofPackage(independentClassLoaderRule.getIndependentTopLevelPackage());
+        Set<Location> locations = Locations.ofPackage(independentClasspathRule.getIndependentTopLevelPackage());
         ClassFileSource source = getOnlyElement(locations).asClassFileSource(new ImportOptions());
 
         for (ClassFileLocation classFileLocation : source) {
@@ -67,53 +68,61 @@ public class LocationsTest {
         }
 
         assertThat(source)
-                .as("URIs in " + independentClassLoaderRule.getIndependentTopLevelPackage())
-                .hasSize(independentClassLoaderRule.getNamesOfClasses().size());
+                .as("URIs in " + independentClasspathRule.getIndependentTopLevelPackage())
+                .hasSize(independentClasspathRule.getNamesOfClasses().size());
     }
 
     @Test
     public void locations_of_packages_from_mixed_URIs() throws Exception {
         Set<Location> locations = Locations.ofPackage("com.tngtech");
 
-        assertThat(locations).extracting("uri").contains(
-                getClass().getResource("/com/tngtech").toURI(),
+        assertThat(urisOf(locations)).contains(
+                resolvedUri(getClass(), "/com/tngtech"),
                 resolvedUri(DataProvider.class, "/com/tngtech")
         );
     }
 
     @Test
     public void locations_of_class_from_file_URI() throws Exception {
-        assertThat(Locations.ofClass(getClass())).extracting("uri").containsExactly(
+        assertThat(urisOf(Locations.ofClass(getClass()))).containsExactly(
                 urlOfClass(getClass()).toURI()
         );
     }
 
     @Test
     public void locations_of_class_from_JAR_URI() throws Exception {
-        assertThat(Locations.ofClass(Test.class)).extracting("uri").containsExactly(
+        assertThat(urisOf(Locations.ofClass(Test.class))).containsExactly(
                 urlOfClass(Test.class).toURI()
         );
     }
 
     @Test
     public void locations_in_classpath() throws Exception {
-        assertThat(Locations.inClassPath()).extracting("uri").contains(
+        assertThat(urisOf(Locations.inClassPath())).contains(
                 getClass().getResource("/").toURI(),
                 resolvedUri(DataProvider.class, "/"),
                 resolvedUri(Test.class, "/")
         );
     }
 
+    private Iterable<URI> urisOf(Collection<Location> locations) {
+        Set<URI> result = new HashSet<>();
+        for (Location location : locations) {
+            result.add(location.asURI());
+        }
+        return result;
+    }
+
     private URI resolvedUri(Class<?> base, String part) throws Exception {
         String urlAsString = urlOfClass(base).toExternalForm();
         String baseResourcePart = '/' + base.getName().replace('.', '/');
         String resolved = urlAsString.substring(0, urlAsString.lastIndexOf(baseResourcePart)) + part;
-        return new URL(resolved).toURI();
+        return NormalizedUri.from(resolved).toURI();
     }
 
     private URI uriOfFolderOf(Class<?> clazz) throws Exception {
         String urlAsString = urlOfClass(clazz).toExternalForm();
-        return new URL(urlAsString.substring(0, urlAsString.lastIndexOf("/"))).toURI();
+        return new URL(urlAsString.substring(0, urlAsString.lastIndexOf("/")) + "/").toURI();
     }
 
     private static Extractor<Location, String> lastUriPart() {

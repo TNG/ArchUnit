@@ -22,6 +22,8 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
+import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_9;
+
 interface ImportPlugin {
     void plugInLocationFactories(InitialConfiguration<Set<Location.Factory>> factories);
 
@@ -31,6 +33,7 @@ interface ImportPlugin {
     class Loader {
         private static final PluginLoader<ImportPlugin> pluginLoader = PluginLoader
                 .forType(ImportPlugin.class)
+                .ifVersionGreaterOrEqualTo(JAVA_9).load("com.tngtech.archunit.core.importer.ModuleImportPlugin")
                 .fallback(new LegacyImportPlugin());
 
         static ImportPlugin loadForCurrentPlatform() {
