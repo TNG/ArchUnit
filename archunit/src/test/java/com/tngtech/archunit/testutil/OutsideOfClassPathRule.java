@@ -18,8 +18,10 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
+
 public class OutsideOfClassPathRule extends ExternalResource {
-    private final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
     private Path backup;
     private Path originFolder;
     private Predicate<String> fileNamePredicate = Predicates.alwaysTrue();
