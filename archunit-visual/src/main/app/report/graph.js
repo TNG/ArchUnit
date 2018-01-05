@@ -10,102 +10,10 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       this.root = new Node(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
+      this.root.getLinks = () => this.dependencies.getAllLinks();
       this.root.relayout();
-      this.startSimulation = () => this.root.doNext(() => this._startSimulation());
-      this.root._callOnSelfThenEveryDescendant(node => node.callbackOnFold = () => this.startSimulation());
-    }
-
-    _startSimulation() {
-      //TODO: do not recreate forceSimulation all time, but always recreate allNodes and allLinks (as they might change)
-
-      this.root.createAbsoluteNodes();
-      const allLinks = this.dependencies.getSimpleDependencies();
-
-      const allLayoutedNodesSoFar = new Map();
-      let currentNodes = new Map();
-      currentNodes.set(this.root.getFullName(), this.root);
-
-      while (currentNodes.size > 0) {
-
-        const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
-        const newNodes = new Map();
-        //add to newNodes and allLayoutedNodesSoFar
-        newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
-        newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
-        //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
-        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-
-        if (newNodes.size === 0) {
-          break;
-        }
-
-        const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
-
-        const simulation = d3.forceSimulation()
-          .alphaDecay(0.06)
-          .force('link', d3.forceLink()
-            .id(n => n.fullName)
-            .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
-            .strength(link => 3 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
-            .iterations(2))
-          .stop();
-
-        const ticked = () => {
-          //update nodes and re-update allNodes
-          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
-          Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
-        };
-
-        const updateOnEnd = () => Array.from(newNodes.values()).forEach(node => {
-          node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
-          node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
-        });
-
-        simulation.nodes(Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode()));
-        simulation.force('link').links(currentLinks);
-
-        const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
-          const collisionSimulation = d3.forceSimulation()
-            .alphaDecay(0.02)
-            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2));
-          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode()))
-            .stop();
-          return collisionSimulation;
-        });
-
-
-        /**
-         * running the simulations synchronized is better than asynchron (using promises):
-         * it is faster and achieves better results (as one would assume)
-         */
-        let k;
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-          simulation.tick();
-          //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
-          allCollisionSimulations.forEach(s => s.tick());
-          ticked();
-          k = i;
-        }
-        //run the remaining simulations of collision
-        for (let j = k, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < n; ++j) {
-          allCollisionSimulations.forEach(s => s.tick());
-          ticked();
-        }
-
-        updateOnEnd();
-
-        currentNodes = newNodes;
-      }
-
-      //move only children to middle of parent
-      Array.from(allLayoutedNodesSoFar.values()).forEach(node => {
-        if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
-          node.visualData.x = 0;
-          node.visualData.y = 0;
-        }
-        node.visualData.moveToIntermediatePosition();
-      });
-      this.dependencies.moveAllToTheirPositions();
+      //this.startSimulation = () => this.root.doNext(() => this._startSimulation());
+      //this.root._callOnSelfThenEveryDescendant(node => node.callbackOnFold = () => this.startSimulation());
     }
 
     foldAllNodes() {
@@ -167,7 +75,7 @@ module.exports.create = () => {
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
       graph.foldAllNodes();
 
-      d3.timeout(() => graph.startSimulation());
+      //d3.timeout(() => graph.startSimulation());
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {

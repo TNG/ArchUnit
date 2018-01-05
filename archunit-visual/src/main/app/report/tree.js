@@ -4,6 +4,8 @@ const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
+//FIXME: move to visualization.functions
+const d3 = require('d3');
 
 // FIXME: Test missing!! (There is only one for not dragging out)
 /**
@@ -309,7 +311,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (!this.isRoot() && !this._isLeaf()) {
         this._setFolded(() => !this._folded);
         this._root.relayout();
-        this.callbackOnFold();
       }
     }
 
@@ -390,12 +391,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._isVisible;
     }
 
+    _relayout() {
+      const promise = this._initialLayout();
+      return promise.then(() => this._forceLayout());
+    }
+
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node.
      */
-    _relayout() {
-      const childrenPromises = this.getCurrentChildren().map(d => d._relayout());
+    _initialLayout() {
+      const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
 
       let promises = [];
       if (this.isCurrentlyLeaf()) {
@@ -420,6 +426,103 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._listener.forEach(listener => listener.onLayoutChanged());
       }
       return Promise.all([...childrenPromises, ...promises]);
+    }
+
+    /**
+     * We go top bottom through the tree, always applying a force-layout to all nodes so far (that means to all nodes
+     * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
+     * influence the other nodes)
+     */
+    _forceLayout() {
+      this.createAbsoluteNodes();
+      const allLinks = this.getLinks();
+
+      const allLayoutedNodesSoFar = new Map();
+      let currentNodes = new Map();
+      currentNodes.set(this.getFullName(), this);
+
+      while (currentNodes.size > 0) {
+
+        const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
+        const newNodes = new Map();
+        //add to newNodes and allLayoutedNodesSoFar
+        newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
+        newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
+        //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
+        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
+
+        if (newNodes.size === 0) {
+          break;
+        }
+
+        const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
+
+        const simulation = d3.forceSimulation()
+          .alphaDecay(0.06)
+          .force('link', d3.forceLink()
+            .id(n => n.fullName)
+            .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
+            .strength(link => 3 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
+            .iterations(2))
+          .stop();
+
+        const ticked = () => {
+          //update nodes and re-update allNodes
+          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
+          Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
+        };
+
+        const updateOnEnd = () => Array.from(newNodes.values()).forEach(node => {
+          node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
+          node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
+        });
+
+        simulation.nodes(Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode()));
+        simulation.force('link').links(currentLinks);
+
+        const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
+          const collisionSimulation = d3.forceSimulation()
+            .alphaDecay(0.02)
+            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(2));
+          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode()))
+            .stop();
+          return collisionSimulation;
+        });
+
+
+        /**
+         * running the simulations synchronized is better than asynchron (using promises):
+         * it is faster and achieves better results (as one would assume)
+         */
+        let k;
+        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+          simulation.tick();
+          //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
+          allCollisionSimulations.forEach(s => s.tick());
+          ticked();
+          k = i;
+        }
+        //run the remaining simulations of collision
+        for (let j = k, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < n; ++j) {
+          allCollisionSimulations.forEach(s => s.tick());
+          ticked();
+        }
+
+        updateOnEnd();
+
+        currentNodes = newNodes;
+      }
+
+      //move only children to middle of parent
+      Array.from(allLayoutedNodesSoFar.values()).forEach(node => {
+        if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
+          node.visualData.x = 0;
+          node.visualData.y = 0;
+        }
+        node.visualData.moveToIntermediatePosition();
+      });
+
+      this._listener.forEach(listener => listener.onLayoutChanged());
     }
 
     /**

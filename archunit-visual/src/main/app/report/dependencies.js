@@ -126,7 +126,7 @@ const init = (View) => {
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
 
-    getSimpleDependencies() {
+    getAllLinks() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
       const simpleDependencies = this.getVisible().map(dependency => createSimpleDependency(dependency.from, dependency.to));
 
