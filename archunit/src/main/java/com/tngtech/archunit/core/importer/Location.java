@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -161,7 +162,7 @@ public abstract class Location {
     }
 
     private static URI newFileUri(String fileName) {
-        return URI.create(String.format("%s:%s", FILE_SCHEME, fileName));
+        return new File(fileName).toURI();
     }
 
     private static URI newJarUri(URI uri) {

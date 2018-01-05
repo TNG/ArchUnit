@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -27,14 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(DataProviderRunner.class)
 public class LocationTest {
     @Test
-    public void file_resources_are_not_detected_as_JARs() throws Exception {
+    public void file_resources_are_not_detected_as_JARs() {
         Location location = Location.of(urlOfOwnClass());
 
         assertThat(location.isJar()).as("Location is a JAR").isFalse();
     }
 
     @Test
-    public void jar_resources_are_detected_as_JARs() throws Exception {
+    public void jar_resources_are_detected_as_JARs() {
         JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(getClass())).create();
 
         Location location = Location.of(jarFile);
@@ -60,8 +61,8 @@ public class LocationTest {
     public static Object[][] file_locations_pointing_to_jar() throws MalformedURLException {
         JarFile jarFile = new TestJarFile().withEntry(fullClassFileName(LocationTest.class)).create();
         return $$(
-                $(Location.of(new URL("file://" + jarFile.getName()))),
-                $(Location.of(URI.create("file://" + jarFile.getName()))));
+                $(Location.of(new File(jarFile.getName()).toURI().toURL())),
+                $(Location.of(new File(jarFile.getName()).toURI())));
     }
 
     @Test
@@ -94,7 +95,7 @@ public class LocationTest {
                 .withEntry(fullClassFileName(getClass()))
                 .withEntry(fullClassFileName(Location.class))
                 .create();
-        ClassFileSource source = Location.of(new URL("file://" + jar.getName())).asClassFileSource(new ImportOptions());
+        ClassFileSource source = Location.of(new File(jar.getName()).toURI()).asClassFileSource(new ImportOptions());
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (ClassFileLocation location : source) {
@@ -150,8 +151,16 @@ public class LocationTest {
     @DataProvider
     public static Object[][] base_locations() {
         return $$(
-                $(Location.of(URI.create("file:///some/path"))),
-                $(Location.of(URI.create("file:///some/path/"))));
+                $(Location.of(withoutTrailingSlash(Paths.get("/some/path").toUri()))),
+                $(Location.of(withTrailingSlash(Paths.get("/some/path/").toUri()))));
+    }
+
+    private static URI withoutTrailingSlash(URI uri) {
+        return URI.create(uri.toString().replaceAll("/*$", ""));
+    }
+
+    private static URI withTrailingSlash(URI uri) {
+        return URI.create(uri.toString().replaceAll("/*$", "/"));
     }
 
     @Test
