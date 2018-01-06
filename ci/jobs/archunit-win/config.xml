@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+    <actions/>
+    <description></description>
+    <keepDependencies>false</keepDependencies>
+    <properties/>
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+            <hudson.plugins.git.UserRemoteConfig>
+                <url>https://github.com/TNG/ArchUnit.git</url>
+            </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+            <hudson.plugins.git.BranchSpec>
+                <name>*/master</name>
+            </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions/>
+    </scm>
+    <assignedNode>win</assignedNode>
+    <canRoam>false</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers>
+        <hudson.triggers.SCMTrigger>
+            <spec>H/5 * * * *</spec>
+            <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+    </triggers>
+    <concurrentBuild>false</concurrentBuild>
+    <builders>
+        <hudson.plugins.gradle.Gradle plugin="gradle@1.28">
+            <switches></switches>
+            <tasks>--no-daemon -PallTests -PignoreTestFailures clean build</tasks>
+            <rootBuildScriptDir></rootBuildScriptDir>
+            <buildFile></buildFile>
+            <gradleName>(Default)</gradleName>
+            <useWrapper>true</useWrapper>
+            <makeExecutable>false</makeExecutable>
+            <useWorkspaceAsHome>false</useWorkspaceAsHome>
+            <wrapperLocation></wrapperLocation>
+            <passAllAsSystemProperties>false</passAllAsSystemProperties>
+            <projectProperties></projectProperties>
+            <passAllAsProjectProperties>false</passAllAsProjectProperties>
+        </hudson.plugins.gradle.Gradle>
+    </builders>
+    <publishers>
+        <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.23">
+            <testResults>**/test/**/*.xml</testResults>
+            <keepLongStdio>false</keepLongStdio>
+            <healthScaleFactor>1.0</healthScaleFactor>
+            <allowEmptyResults>false</allowEmptyResults>
+        </hudson.tasks.junit.JUnitResultArchiver>
+        <hudson.tasks.Mailer plugin="mailer@1.20">
+            <recipients>peter.gafert+archunit-win@tngtech.com</recipients>
+            <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+            <sendToIndividuals>false</sendToIndividuals>
+        </hudson.tasks.Mailer>
+    </publishers>
+    <buildWrappers>
+        <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.34">
+            <deleteDirs>false</deleteDirs>
+            <cleanupParameter></cleanupParameter>
+            <externalDelete></externalDelete>
+        </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    </buildWrappers>
+</project>
