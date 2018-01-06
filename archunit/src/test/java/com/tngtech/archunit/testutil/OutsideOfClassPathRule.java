@@ -18,6 +18,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 
 public class OutsideOfClassPathRule extends ExternalResource {
@@ -76,7 +77,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
             if (predicate.apply(file.getName())) {
                 Files.move(file.toPath(), targetDir.resolve(file.getName()));
             } else {
-                file.delete();
+                checkState(file.delete());
             }
         }
     }
