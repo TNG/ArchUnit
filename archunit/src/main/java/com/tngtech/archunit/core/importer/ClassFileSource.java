@@ -20,11 +20,9 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
@@ -42,7 +40,6 @@ import com.tngtech.archunit.Internal;
 interface ClassFileSource extends Iterable<ClassFileLocation> {
     @Internal
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
-        private static final PathMatcher classMatcher = FileSystems.getDefault().getPathMatcher("glob:**/*.class");
         private final Set<ClassFileLocation> classFileLocations = new HashSet<>();
         private final ImportOptions importOptions;
 
@@ -64,7 +61,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (classMatcher.matches(file) && importOptions.include(Location.of(file))) {
+            if (FileToImport.isRelevant(file.getFileName().toString()) && importOptions.include(Location.of(file))) {
                 classFileLocations.add(new InputStreamSupplierClassFileLocation(file.toUri(), newInputStreamSupplierFor(file)));
             }
             return super.visitFile(file, attrs);
@@ -106,7 +103,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
                 @Override
                 public boolean apply(JarEntry input) {
                     return input.getName().startsWith(prefix.toEntryName())
-                            && input.getName().endsWith(".class");
+                            && FileToImport.isRelevant(input.getName());
                 }
             };
         }
@@ -196,6 +193,11 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         public URI getUri() {
             return uri;
         }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{uri=" + uri + '}';
+        }
     }
 
     @Internal
@@ -210,5 +212,12 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
 
         abstract InputStream getInputStream() throws IOException;
+    }
+
+    @Internal
+    class FileToImport {
+        static boolean isRelevant(String simpleFileName) {
+            return simpleFileName.endsWith(".class") && !simpleFileName.equals("module-info.class");
+        }
     }
 }

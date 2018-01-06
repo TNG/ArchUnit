@@ -16,12 +16,14 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileSourceTest {
+    static final String MODULE_INFO_FILE_NAME = "module-info.class";
 
     @Rule
     public final TemporaryFolder tempDir = new TemporaryFolder();
@@ -79,6 +81,44 @@ public class ClassFileSourceTest {
         ClassFileSource source = Location.of(dir.toPath()).asClassFileSource(importOptions);
 
         assertSourceMatches(source, expectedIncluded);
+    }
+
+    @Test
+    public void filters_out_module_infos_in_Jar_location() throws IOException {
+        String onlyExpectedEntry = "pkg/Some.class";
+        JarFile jarFile = new TestJarFile()
+                .withEntry(onlyExpectedEntry)
+                .withEntry(MODULE_INFO_FILE_NAME)
+                .create();
+
+        ClassFileSource source = Location.of(jarFile).asClassFileSource(new ImportOptions());
+
+        assertThat(getOnlyElement(source).getUri().toString()).contains(onlyExpectedEntry);
+    }
+
+    @Test
+    public void filters_out_module_infos_in_file_location() throws IOException {
+        File dir = tempDir.newFolder();
+        createDummyModuleInfoIn(dir);
+        File classFile = createDummyclassFileIn(dir);
+
+        ClassFileSource source = Location.of(dir.toPath()).asClassFileSource(new ImportOptions());
+
+        assertThat(getOnlyElement(source).getUri().toString()).contains(classFile.getName());
+    }
+
+    private void createDummyModuleInfoIn(File folder) throws IOException {
+        createDummyFile(folder, MODULE_INFO_FILE_NAME);
+    }
+
+    private File createDummyclassFileIn(File folder) throws IOException {
+        return createDummyFile(folder, "Some.class");
+    }
+
+    private File createDummyFile(File folder, String name) throws IOException {
+        File file = new File(folder, name);
+        checkState(file.createNewFile());
+        return file;
     }
 
     private void assertSourceMatches(ClassFileSource source, Set<String> expectedIncluded) {

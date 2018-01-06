@@ -137,7 +137,7 @@ class ModuleLocationFactory implements Location.Factory {
         private Set<String> loadEntries(ModuleReference moduleReference, NormalizedResourceName resourceName) {
             return doWithModuleReader(moduleReference, moduleReader -> moduleReader.list()
                     .filter(resourceName::isStartOf)
-                    .filter(entry -> entry.endsWith(".class"))
+                    .filter(FileToImport::isRelevant)
                     .map(entry -> "/" + entry)
                     .collect(toSet()));
         }
@@ -175,6 +175,11 @@ class ModuleLocationFactory implements Location.Factory {
 
         boolean isIncludedBy(ImportOptions importOptions) {
             return importOptions.include(location);
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{uri=" + getUri() + '}';
         }
     }
 
