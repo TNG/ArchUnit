@@ -15,6 +15,8 @@ import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphTest {
+    private static final Random random = new Random();
+
     @Test
     public void graph_without_cycles() {
         Graph<String, String> graph = new Graph<>();
@@ -130,6 +132,6 @@ public class GraphTest {
     }
 
     static String randomNode() {
-        return "" + System.nanoTime();
+        return "" + random.nextLong() + System.nanoTime();
     }
 }
