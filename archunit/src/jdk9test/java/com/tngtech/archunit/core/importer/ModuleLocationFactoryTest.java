@@ -2,14 +2,19 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.lang.module.ModuleFinder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
+import static com.tngtech.archunit.core.importer.ClassFileSourceTest.MODULE_INFO_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModuleLocationFactoryTest {
@@ -45,6 +50,21 @@ public class ModuleLocationFactoryTest {
         assertThat(urisToImport)
                 .contains(uriOf(FileReader.class))
                 .doesNotContain(uriOf(File.class));
+    }
+
+    @Test
+    @SuppressWarnings("ConstantConditions")
+    public void filters_out_module_infos() throws IOException {
+        URI jrtUri = ModuleFinder.ofSystem().find("java.base").get().location().get();
+
+        ClassFileSource source = Location.of(jrtUri).asClassFileSource(new ImportOptions());
+
+        Stream<String> allUris = StreamSupport.stream(source.spliterator(), false)
+                .map(ClassFileLocation::getUri)
+                .map(URI::toString);
+        assertThat(allUris.anyMatch(uri -> uri.contains(MODULE_INFO_FILE_NAME)))
+                .as("any URI contains " + MODULE_INFO_FILE_NAME)
+                .isFalse();
     }
 
     private URI createModuleUriContaining(Class<?> clazz) throws URISyntaxException {
