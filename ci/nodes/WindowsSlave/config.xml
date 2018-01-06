@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<slave>
+    <name>WindowsSlave</name>
+    <description></description>
+    <remoteFS>c:\jenkins</remoteFS>
+    <numExecutors>1</numExecutors>
+    <mode>NORMAL</mode>
+    <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+    <launcher class="hudson.slaves.JNLPLauncher">
+        <workDirSettings>
+            <disabled>false</disabled>
+            <internalDir>remoting</internalDir>
+            <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+        </workDirSettings>
+    </launcher>
+    <label>win</label>
+    <nodeProperties>
+        <hudson.slaves.EnvironmentVariablesNodeProperty>
+            <envVars serialization="custom">
+                <unserializable-parents/>
+                <tree-map>
+                    <default>
+                        <comparator class="hudson.util.CaseInsensitiveComparator"/>
+                    </default>
+                    <int>2</int>
+                    <string>JAVA_HOME</string>
+                    <string>c:\jenkins\jdk</string>
+                    <string>JAVA_TOOL_OPTIONS</string>
+                    <string>-Dfile.encoding=UTF8</string>
+                </tree-map>
+            </envVars>
+        </hudson.slaves.EnvironmentVariablesNodeProperty>
+        <hudson.tools.ToolLocationNodeProperty>
+            <locations>
+                <hudson.tools.ToolLocationNodeProperty_-ToolLocation>
+                    <type>hudson.plugins.git.GitTool$DescriptorImpl</type>
+                    <name>Default</name>
+                    <home>c:\jenkins\Git\bin\git.exe</home>
+                </hudson.tools.ToolLocationNodeProperty_-ToolLocation>
+            </locations>
+        </hudson.tools.ToolLocationNodeProperty>
+    </nodeProperties>
+</slave>
