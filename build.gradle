@@ -124,6 +124,8 @@ subprojects {
             events "failed"
             exceptionFormat "full"
         }
+
+        ignoreFailures = project.hasProperty('ignoreTestFailures')
     }
 }
 
