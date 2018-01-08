@@ -8,8 +8,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1762,9 +1764,9 @@ public class ClassFileImporterTest {
     }
 
     static JarFile jarFileOf(Class<?> clazzInJar) throws IOException {
-        String fileName = urlOf(clazzInJar).getFile();
-        checkArgument(fileName.contains(".jar!/"), "Class %s is not contained in a JAR", clazzInJar.getName());
-        return new JarFile(fileName.replaceAll(".*:", "").replaceAll("!/.*", ""));
+        URLConnection connection = urlOf(clazzInJar).openConnection();
+        checkArgument(connection instanceof JarURLConnection, "Class %s is not contained in a JAR", clazzInJar.getName());
+        return ((JarURLConnection) connection).getJarFile();
     }
 
     private ImportOption importOnly(final Class<?>... classes) {
