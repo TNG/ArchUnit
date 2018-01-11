@@ -201,7 +201,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    _createAbsoluteNode() {
+    createAbsoluteNode() {
       this._absoluteNode = {
         fullName: this.getFullName(),
         r: 0,
@@ -214,10 +214,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._absoluteNode.fx = this._absoluteNode.x;
         this._absoluteNode.fy = this._absoluteNode.y;
       }
-    }
-
-    createAbsoluteNodes() {
-      this.getSelfAndDescendants().forEach(node => node._createAbsoluteNode());
     }
 
     updateAbsoluteNode() {
@@ -450,17 +446,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * influence the other nodes)
      */
     _forceLayout() {
-      this.createAbsoluteNodes();
       const allLinks = this.getLinks();
 
       const allLayoutedNodesSoFar = new Map();
       let currentNodes = new Map();
       currentNodes.set(this.getFullName(), this);
 
+      this.createAbsoluteNode();
+
       while (currentNodes.size > 0) {
 
         const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
         const newNodes = new Map();
+
+        newNodesArray.forEach(node => node.createAbsoluteNode());
         //add to newNodes and allLayoutedNodesSoFar
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
         newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
@@ -485,6 +484,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const ticked = () => {
           //update nodes and re-update allNodes
           Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
+          //TODO: do the following already in setAbsoluteIntermediatePosition for better performance
           Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
         };
 
@@ -531,10 +531,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       //move only children to middle of parent
       Array.from(allLayoutedNodesSoFar.values()).forEach(node => {
-        if (node.getParent() && node.getParent().getCurrentChildren().length === 1) {
-          node.visualData.x = 0;
-          node.visualData.y = 0;
-        }
         //TODO: maybe instead of the d3-transitions: update the position of the nodes every x iterations
         //--> use the calculation time for the transition
         node.visualData.moveToIntermediatePosition();
