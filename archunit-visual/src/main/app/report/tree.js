@@ -87,6 +87,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.y = y;
       this.r = r;
       this._listener = listener;
+
+      this.promise = Promise.resolve();
     }
 
     moveToRadius(r) {
@@ -100,6 +102,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     moveToIntermediateRadius() {
       return this._listener.onMovedToRadius();
+    }
+
+    keepMovingToIntermediatePositon() {
+      this.promise = this.promise.then(() => this.moveToIntermediatePosition());
     }
 
     moveToPosition(position) {
@@ -124,6 +130,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     moveToIntermediatePosition() {
       return this._listener.onMovedToPosition();
+    }
+
+    jumpToIntermediatePosition() {
+      this._listener.onJumpedToPosition();
     }
 
     setRelativeIntermediatePosition(x, y) {
@@ -264,7 +274,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         return this;
       }
       if (this.isRoot)
-      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
+        return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
     }
 
     isPredecessorOf(nodeFullName) {
@@ -371,7 +381,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this.visualData.r;
     }
 
-    // FIXME AU-24: I think this name got broken during rebase, coords don't have 'r' -> find better name
     /**
      * Coordinates ({x, y}) with respect to the root node.
      */
@@ -420,6 +429,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
         onlyChild.visualData.setRelativeIntermediatePosition(0, 0);
+        onlyChild.visualData.keepMovingToIntermediatePositon();
         promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
@@ -428,12 +438,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         childCircles.forEach(c => c.nodeVisualData.setRelativeIntermediatePosition(c.x, c.y));
+        childCircles.forEach(c => c.nodeVisualData.keepMovingToIntermediatePositon());
+
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         promises.push(this.visualData.moveToRadius(r));
       }
 
       if (this.isRoot()) {
         this.visualData.setRelativeIntermediatePosition(this.getRadius(), this.getRadius()); // Shift root to the middle
+        this.visualData.keepMovingToIntermediatePositon();
+
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -486,6 +500,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const updateOnEnd = () => Array.from(newNodes.values()).forEach(node => {
           node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
           node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
+          //node.visualData.moveToIntermediatePosition();
+          //node.visualData.jumpToIntermediatePosition();
+          node.visualData.keepMovingToIntermediatePositon();
+          node._view.showIfVisible(node);
         });
 
         simulation.nodes(Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode()));
@@ -500,25 +518,43 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           return collisionSimulation;
         });
 
+        const timer = d3.interval(() =>
+          Array.from(newNodes.values()).forEach(node => node.visualData.keepMovingToIntermediatePositon()), 100);
 
         /**
          * running the simulations synchronized is better than asynchron (using promises):
          * it is faster and achieves better results (as one would assume)
          */
         let k;
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+        const n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
+        for (let i = 0; i < n; ++i) {
           simulation.tick();
           //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
           allCollisionSimulations.forEach(s => s.tick());
           ticked();
           k = i;
+
+          //FIXME: by this, dragging is only after few seconds possible (as this transitions are executed after each other)
+         /* if (i % 50 === 0) {
+            Array.from(newNodes.values()).forEach(node => {
+              node.visualData.keepMovingToIntermediatePositon();
+            });
+          }*/
         }
         //run the remaining simulations of collision
-        for (let j = k, n = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < n; ++j) {
+        const m = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay()));
+        for (let j = k; j < m; ++j) {
           allCollisionSimulations.forEach(s => s.tick());
           ticked();
+
+          /*if (j % 50 === 0) {
+            Array.from(newNodes.values()).forEach(node => {
+              node.visualData.keepMovingToIntermediatePositon();
+            });
+          }*/
         }
 
+        timer.stop();
         updateOnEnd();
 
         currentNodes = newNodes;
@@ -528,7 +564,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       Array.from(allLayoutedNodesSoFar.values()).forEach(node => {
         //TODO: maybe instead of the d3-transitions: update the position of the nodes every x iterations
         //--> use the calculation time for the transition
-        node.visualData.moveToIntermediatePosition();
+        //node.visualData.moveToIntermediatePosition();
+        /* new Promise(resolve => {
+         node.visualData.jumpToIntermediatePosition();
+         node._view.show();
+         resolve();
+         });*/
       });
       this.visualData.moveToIntermediatePosition();
 
