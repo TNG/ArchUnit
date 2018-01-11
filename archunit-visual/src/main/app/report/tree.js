@@ -131,7 +131,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.y = y;
     }
 
-    setAbsoluteIntermediatePosition(x, y, parent) {
+    setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(absoluteNode, parent) {
+      let x = absoluteNode.x;
+      let y = absoluteNode.y;
       if (parent) {
         x -= parent.getAbsoluteNode().x;
         y -= parent.getAbsoluteNode().y;
@@ -143,6 +145,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
       this.x = x;
       this.y = y;
+
+      absoluteNode.x = parent.getAbsoluteNode().x + this.x;
+      absoluteNode.y = parent.getAbsoluteNode().y + this.y;
     }
   };
 
@@ -202,25 +207,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     createAbsoluteNode() {
+      const absoluteVisualData = this.getAbsoluteVisualData();
       this._absoluteNode = {
         fullName: this.getFullName(),
-        r: 0,
-        x: 0,
-        y: 0,
+        r: this.getRadius(),
+        x: absoluteVisualData.x,
+        y: absoluteVisualData.y,
         originalNode: this
       };
-      this.updateAbsoluteNode();
       if (this.getParent() && this.getParent().getCurrentChildren().length === 1) {
         this._absoluteNode.fx = this._absoluteNode.x;
         this._absoluteNode.fy = this._absoluteNode.y;
       }
-    }
-
-    updateAbsoluteNode() {
-      const absoluteVisualData = this.getAbsoluteVisualData();
-      this._absoluteNode.r = this.getRadius();
-      this._absoluteNode.x = absoluteVisualData.x;
-      this._absoluteNode.y = absoluteVisualData.y;
     }
 
     getAbsoluteNode() {
@@ -481,12 +479,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
             .iterations(2))
           .stop();
 
-        const ticked = () => {
-          //update nodes and re-update allNodes
-          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePosition(node.getAbsoluteNode().x, node.getAbsoluteNode().y, node.getParent()));
-          //TODO: do the following already in setAbsoluteIntermediatePosition for better performance
-          Array.from(newNodes.values()).forEach(node => node.updateAbsoluteNode());
-        };
+        //update nodes and re-update allNodes
+        const ticked = () =>
+          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(node.getAbsoluteNode(), node.getParent()));
 
         const updateOnEnd = () => Array.from(newNodes.values()).forEach(node => {
           node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
