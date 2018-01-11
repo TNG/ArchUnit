@@ -94,6 +94,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._listener.onMovedToRadius();
     }
 
+    setIntermediateRadius(r) {
+      this.r = r;
+    }
+
+    moveToIntermediateRadius() {
+      return this._listener.onMovedToRadius();
+    }
+
     moveToPosition(position) {
       this.x = position.x;
       this.y = position.y;
@@ -116,6 +124,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     moveToIntermediatePosition() {
       return this._listener.onMovedToPosition();
+    }
+
+    setRelativeIntermediatePosition(x, y) {
+      this.x = x;
+      this.y = y;
     }
 
     setAbsoluteIntermediatePosition(x, y, parent) {
@@ -197,11 +210,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         originalNode: this
       };
       this.updateAbsoluteNode();
+      if (this.getParent() && this.getParent().getCurrentChildren().length === 1) {
+        this._absoluteNode.fx = this._absoluteNode.x;
+        this._absoluteNode.fy = this._absoluteNode.y;
+      }
     }
 
     createAbsoluteNodes() {
       this.getSelfAndDescendants().forEach(node => node._createAbsoluteNode());
-      return this.getSelfAndDescendants().map(node => node.getAbsoluteNode());
     }
 
     updateAbsoluteNode() {
@@ -392,8 +408,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _relayout() {
-      const promise = this._initialLayout();
-      return promise.then(() => this._forceLayout());
+      const promiseInitialLayout = this._initialLayout();
+      const promiseForceLayout = this._forceLayout();
+      return Promise.all([promiseInitialLayout, promiseForceLayout]);
     }
 
     /**
@@ -408,7 +425,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.moveToPosition({x: 0, y: 0}));
+        onlyChild.visualData.setRelativeIntermediatePosition(0, 0);
         promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
@@ -416,14 +433,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           nodeVisualData: c.visualData
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        promises = childCircles.map(c => c.nodeVisualData.moveToPosition(c));
+        childCircles.forEach(c => c.nodeVisualData.setRelativeIntermediatePosition(c.x, c.y));
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         promises.push(this.visualData.moveToRadius(r));
       }
 
       if (this.isRoot()) {
-        promises.push(this.visualData.moveToPosition({x: this.getRadius(), y: this.getRadius()})); // Shift root to the middle
-        this._listener.forEach(listener => listener.onLayoutChanged());
+        this.visualData.setRelativeIntermediatePosition(this.getRadius(), this.getRadius()); // Shift root to the middle
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -519,10 +535,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           node.visualData.x = 0;
           node.visualData.y = 0;
         }
+        //TODO: maybe instead of the d3-transitions: update the position of the nodes every x iterations
+        //--> use the calculation time for the transition
         node.visualData.moveToIntermediatePosition();
       });
+      this.visualData.moveToIntermediatePosition();
 
       this._listener.forEach(listener => listener.onLayoutChanged());
+
+      //FIXME: return promise waiting for moving to position
+      return Promise.resolve();
     }
 
     /**
