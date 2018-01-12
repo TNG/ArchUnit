@@ -82,6 +82,7 @@ describe('Inner node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
@@ -103,6 +104,7 @@ describe('Inner node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
@@ -168,9 +170,10 @@ describe('Inner node or leaf', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
-    root.relayout();
+    root.relayoutCompletely();
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
     const dx = -5;
@@ -190,7 +193,8 @@ describe('Inner node or leaf', () => {
       .add(testJson.clazz('SomeClass', 'class').build())
       .build();
     const root = new Node(jsonRoot);
-    root.relayout();
+    root.getLinks = () => [];
+    root.relayoutCompletely();
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass');
     const dx = -100;
@@ -209,7 +213,8 @@ describe('Inner node or leaf', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
-    root.relayout();
+    root.getLinks = () => [];
+    root.relayoutCompletely();
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
 
     nodeToDrag._drag(-50, 50);
@@ -236,7 +241,8 @@ describe('Node layout', () => {
 
   it('should put every child node within its parent node considering the padding', () => {
     const root = new Node(jsonRoot);
-    root.relayout();
+    root.getLinks = () => [];
+    root.relayoutCompletely();
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
@@ -248,11 +254,12 @@ describe('Node layout', () => {
 
   it('can relayout the nodes twice in a row: the second relayout does not start before the first is ended', () => {
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const movedNodesFirstTime = [];
     const movedNodesSecondTime = [];
     stubs.saveMovedNodesTo(movedNodesFirstTime);
-    root.relayout().then(() => stubs.saveMovedNodesTo(movedNodesSecondTime));
-    const promise = root.relayout();
+    root.relayoutCompletely().then(() => stubs.saveMovedNodesTo(movedNodesSecondTime));
+    const promise = root.relayoutCompletely();
     return promise.then(() => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesFirstTime);
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesSecondTime);
@@ -262,9 +269,10 @@ describe('Node layout', () => {
   it('should update the node-views on relayouting and call the listener', () => {
     let onRadiusChangedWasCalled = false;
     const root = new Node(jsonRoot, null, () => onRadiusChangedWasCalled = true);
+    root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
-    root.relayout();
+    root.relayoutCompletely();
     return root.doNext(() => {
       expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
       expect(onRadiusChangedWasCalled).to.equal(true);
@@ -277,7 +285,8 @@ describe('Node layout', () => {
 
   it('should not make two siblings overlap', () => {
     const root = new Node(jsonRoot);
-    root.relayout();
+    root.getLinks = () => [];
+    root.relayoutCompletely();
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
@@ -293,7 +302,8 @@ describe('Node layout', () => {
     const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
     const calculateTextWith = stubs.calculateTextWidthStub;
     const root = new Node(jsonRoot);
-    root.relayout();
+    root.getLinks = () => [];
+    root.relayoutCompletely();
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         if (node.isRoot()) {
@@ -882,6 +892,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold'];
@@ -906,6 +917,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
@@ -931,6 +943,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFoldX');
 
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
@@ -953,6 +966,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
     root.filterByName('X', true);
@@ -976,6 +990,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Node(jsonRoot);
+    root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',

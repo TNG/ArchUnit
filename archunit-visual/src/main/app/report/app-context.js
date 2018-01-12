@@ -28,7 +28,7 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
   }
 };
 
-const TRANSITION_DURATION = 300;
+const TRANSITION_DURATION = 1000;
 
 module.exports.newInstance = overrides => {
   overrides = overrides || {};

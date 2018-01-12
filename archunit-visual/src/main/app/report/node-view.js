@@ -7,6 +7,9 @@ const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
     new Promise(resolve => transitionRunner(transition).on('end', resolve));
 
+  const createPromiseOnEndAndInterruptOfTransition = (transition, transitionRunner) =>
+    new Promise(resolve => transitionRunner(transition).on('interrupt', resolve).on('end', resolve));
+
   const View = class {
     constructor(parentSvgElement, node, onClick, onDrag) {
       this._svgElement = d3.select(parentSvgElement)
@@ -61,6 +64,10 @@ const init = (transitionDuration) => {
       const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', r));
       const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
       return Promise.all([radiusPromise, textPromise]);
+    }
+
+    startMoveToPosition(nodeVisualData) {
+      return createPromiseOnEndAndInterruptOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
     }
 
     moveToPosition(nodeVisualData) {

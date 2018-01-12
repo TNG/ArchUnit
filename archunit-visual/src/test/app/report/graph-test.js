@@ -155,8 +155,7 @@ describe('Graph', () => {
           .callingMethod('com.tngtech.archunit.SomeClass2', 'startMethod()', 'targetMethod()')
           .build())
         .build())
-      .add(testJson.clazz('SomeClass2', 'class')
-        .build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
     const graph = new Graph(jsonRoot);
 
@@ -165,6 +164,8 @@ describe('Graph', () => {
     graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
 
     expect(graph.dependencies.getVisible()).to.haveDependencyStrings(exp);
+
+    return graph.root._updatePromise;
   });
 
   it('updates the positions of the dependencies if a node is dragged', () => {
@@ -172,13 +173,11 @@ describe('Graph', () => {
       .add(testJson.clazz('SomeClass1', 'class')
         .callingMethod('com.tngtech.archunit.SomeClass2', 'startMethod()', 'targetMethod()')
         .build())
-      .add(testJson.clazz('SomeClass2', 'class')
-        .build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
     const graph = new Graph(jsonRoot);
 
     graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
-
     return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()[0]._view.hasJumpedToPosition).to.equal(true));
   });
 });

@@ -2,7 +2,7 @@
 
 const d3 = require('d3');
 
-const init = (Node, Dependencies, View, visualizationStyles) => {
+const init = (Node, Dependencies, View) => {
 
   const Graph = class {
     constructor(jsonRoot, svg) {
@@ -11,32 +11,37 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
-      this.root.relayout();
+      this.root.relayoutCompletely();
+
+     /* d3.select(this.root.getCurrentChildren()[1]._view._svgElement).select('circle').transition().duration(4000).attr('r', 10);
+      setTimeout(() => {
+        d3.select(this.root.getCurrentChildren()[1]._view._svgElement).select('circle').transition().duration(2000).attr('r', 5);
+      }, 3000);*/
       //this.startSimulation = () => this.root.doNext(() => this._startSimulation());
       //this.root._callOnSelfThenEveryDescendant(node => node.callbackOnFold = () => this.startSimulation());
     }
 
     foldAllNodes() {
       this.root.callOnEveryDescendantThenSelf(node => node.foldIfInnerNode());
-      this.root.relayout();
+      this.root.relayoutCompletely();
     }
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false);
       this.dependencies.setNodeFilters(this.root.getFilters());
-      this.root.relayout();
+      this.root.relayoutCompletely();
     }
 
     filterNodesByNameNotContaining(filterString) {
       this.root.filterByName(filterString, true);
       this.dependencies.setNodeFilters(this.root.getFilters());
-      this.root.relayout();
+      this.root.relayoutCompletely();
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
       this.dependencies.setNodeFilters(this.root.getFilters());
-      this.root.relayout();
+      this.root.relayoutCompletely();
     }
 
     filterDependenciesByType(typeFilterConfig) {
@@ -44,7 +49,7 @@ const init = (Node, Dependencies, View, visualizationStyles) => {
     }
 
     refresh() {
-      this.root.relayout();
+      this.root.relayoutCompletely();
     }
   };
 
@@ -74,8 +79,6 @@ module.exports.create = () => {
       const Graph = init(Node, Dependencies, graphView, visualizationStyles).Graph;
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
       graph.foldAllNodes();
-
-      //d3.timeout(() => graph.startSimulation());
 
       //FIXME AU-24: Move this into graph
       graph.attachToMenu = menu => {
