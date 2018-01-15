@@ -197,7 +197,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.getByName = name => map.get(name);
         this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
         this.doNext = fun => this._updatePromise.then(fun);
-        this.relayoutCompletely = () => this.doNextAndWaitFor(() => this._relayoutCompletely());
+        this._mustRelayout = false;
+        this.relayoutCompletely = () => {
+          this._mustRelayout = true;
+          this.doNextAndWaitFor(() => {
+            if (this._mustRelayout) {
+              this._mustRelayout = false;
+              return this._relayoutCompletely();
+            }
+            else {
+              return Promise.resolve();
+            }
+          });
+        }
       }
     }
 
