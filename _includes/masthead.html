@@ -13,7 +13,14 @@
             {% else %}
               {% assign domain = site.url | append: site.baseurl %}
             {% endif %}
-            <li class="masthead__menu-item"><a href="{{ domain }}{{ link.url }}">{{ link.title }}</a></li>
+
+            {% if link.url == page.url %}
+              {% assign cssClass = 'masthead__menu-item active_tab' %}
+            {% else %}
+              {% assign cssClass = 'masthead__menu-item' %}
+            {% endif %}
+
+            <li class="{{ cssClass }}"><a href="{{ domain }}{{ link.url }}">{{ link.title }}</a></li>
           {% endfor %}
         </ul>
         <button><div class="navicon"></div></button>
