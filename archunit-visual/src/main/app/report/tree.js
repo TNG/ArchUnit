@@ -416,35 +416,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
-     * circle around those for the current node.
+     * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
+     * for the radius-calculation)
      */
-    _initialLayoutOld() {
-      const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
-
-      let promises = [];
-      if (this.isCurrentlyLeaf()) {
-        promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
-      } else if (this.getCurrentChildren().length === 1) {
-        const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.setRelativeIntermediatePosition(0, 0));
-        promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
-      } else {
-        const childCircles = this.getCurrentChildren().map(c => ({
-          r: c.visualData.r,
-          nodeVisualData: c.visualData
-        }));
-        const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        promises = promises.concat(childCircles.map(c => c.nodeVisualData.setRelativeIntermediatePosition(c.x, c.y)));
-        const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.visualData.moveToRadius(r));
-      }
-
-      if (this.isRoot()) {
-        promises.push(this.visualData.setRelativeIntermediatePosition(this.getRadius(), this.getRadius())); // Shift root to the middle
-      }
-      return Promise.all([...childrenPromises, ...promises]);
-    }
-
     _initialLayout() {
       const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
 
@@ -456,23 +430,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         promises.push(onlyChild.visualData.setRelativeIntermediatePosition(0, 0));
         promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
-        //const childCircles = this.getCurrentChildren().map(c => c.visualData);
-        /*const simulation = d3.forceSimulation(childCircles)
-          .velocityDecay(0.2)
-          //.alphaDecay(0.1)
-          .force('x', d3.forceX().strength(0.02))
-          .force('y', d3.forceY().strength(0.02))
-          .force('collide', d3.forceCollide().radius(node => node.r + visualizationStyles.getCirclePadding()).iterations(2))
-          .stop();
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-          simulation.tick();
-        }*/
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r
         }));
-        //const circle = d3.packEnclose(childCircles);
         const circle = visualizationFunctions.packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-        promises = promises.concat(this.getCurrentChildren().map(c => c.visualData.setRelativeIntermediatePosition(c.visualData.x, c.visualData.y)));
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         promises.push(this.visualData.moveToRadius(r));
       }
@@ -566,22 +527,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-       /* let k;
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-          simulation.tick();
-          //TODO: check whether the condition for the collision-simulations is fullfilled (just to be sure)
-          allCollisionSimulations.forEach(s => s.tick());
-          ticked();
-          updateViewsIfNecessary();
-          k = i;
-        }
-        //run the remaining simulations of collision
-        for (let j = k, m = Math.ceil(Math.log(allCollisionSimulations[0].alphaMin()) / Math.log(1 - allCollisionSimulations[0].alphaDecay())); j < m; ++j) {
-          allCollisionSimulations.forEach(s => s.tick());
-          ticked();
-          updateViewsIfNecessary();
-        }*/
-
         Array.from(newNodes.values()).forEach(node => {
           node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
           node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
@@ -590,8 +535,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
         currentNodes = newNodes;
       }
-
-      promises.push(this.visualData.moveToIntermediatePosition());
 
       this._listener.forEach(listener => promises.push(listener.onLayoutChanged()));
 
