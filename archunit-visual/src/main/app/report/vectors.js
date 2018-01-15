@@ -23,7 +23,7 @@ const vectors = {
   getDefaultIfNull: vector => getLength(vector) === 0 ? vectors.vectorOf(defaultCoordinate, defaultCoordinate) : vector,
 
   norm: (vector, scale) => {
-    const length = getLength(vector);
+    const length = getLength(vector) || 1;
     return vectors.vectorOf(scale * vector.x / length, scale * vector.y / length);
   },
 
