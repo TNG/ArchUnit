@@ -3,6 +3,11 @@ layout: splash
 permalink: /imprint
 ---
 
+The following text has to be included in sites provided from Germany by German citicens, 
+due to our sometimes strange, inconsistent and user-unfriendly data privacy laws.
+
+### Imprint
+
 Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV bzw. Angaben gemäß § 5 TMG:
 
 Peter Gafert<br>
