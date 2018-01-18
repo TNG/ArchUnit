@@ -4,8 +4,6 @@ const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
-//FIXME: move to visualization.functions
-const d3 = require('d3');
 
 // FIXME: Test missing!! (There is only one for not dragging out)
 /**
@@ -66,6 +64,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
+  const createForceLinkSimulation = visualizationFunctions.createForceLinkSimulation;
+  const createForceCollideSimulation = visualizationFunctions.createForceCollideSimulation;
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   const NodeDescription = class {
@@ -197,12 +197,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.getByName = name => map.get(name);
         this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
         this.doNext = fun => this._updatePromise.then(fun);
-        this._mustRelayout = false;
+        let mustRelayout = false;
         this.relayoutCompletely = () => {
-          this._mustRelayout = true;
+          mustRelayout = true;
           this.doNextAndWaitFor(() => {
-            if (this._mustRelayout) {
-              this._mustRelayout = false;
+            if (mustRelayout) {
+              mustRelayout = false;
               return this._relayoutCompletely();
             }
             else {
@@ -223,7 +223,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         originalNode: this,
         isNotFixed: () => this._absoluteNode.fx === undefined
       };
-      if (this.getParent() && this.getParent().getCurrentChildren().length === 1) {
+      if (this.isRoot() || this.getParent() && this.getParent().getCurrentChildren().length === 1) {
         this._absoluteNode.fx = this._absoluteNode.x;
         this._absoluteNode.fy = this._absoluteNode.y;
       }
@@ -466,49 +466,33 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const newNodes = new Map();
 
         newNodesArray.forEach(node => node.createAbsoluteNode());
-        //add to newNodes and allLayoutedNodesSoFar
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
         newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
         //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
-        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target)) && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
+        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
+        && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
 
         if (newNodes.size === 0) {
           break;
         }
 
-        const countLinksOfNode = (allLinks, node) => allLinks.filter(d => d.source === node || d.target === node).length;
+        const padding = visualizationStyles.getCirclePadding();
 
-        const simulation = d3.forceSimulation()
-          .alphaDecay(0.06)
-          .force('link', d3.forceLink()
-            .id(n => n.fullName)
-            .distance(d => d.source.r + d.target.r + 2 * visualizationStyles.getCirclePadding())
-            .strength(link => 3 / Math.min(countLinksOfNode(currentLinks, link.source), countLinksOfNode(currentLinks, link.target)))
-            .iterations(2))
-          .stop();
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode());
+        const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
-        //update nodes and re-update allNodes
+        const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
+        const allCollisionSimulations = currentInnerNodes.map(node =>
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.getAbsoluteNode())));
+
         const ticked = () =>
-          Array.from(newNodes.values()).forEach(node => node.visualData.setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(node.getAbsoluteNode(), node.getParent()));
-
-        simulation.nodes(Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode()));
-        simulation.force('link').links(currentLinks);
-
-        const allCollisionSimulations = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf()).map(node => {
-          const collisionSimulation = d3.forceSimulation()
-            .alphaDecay(0.02)
-            //more iterations promise a better result (that means a higher probability that no nodes are overlapping)
-            .force('collide', d3.forceCollide().radius(n => n.r + visualizationStyles.getCirclePadding()).iterations(3));
-          collisionSimulation.nodes(node.getCurrentChildren().map(n => n.getAbsoluteNode()))
-            .stop();
-          return collisionSimulation;
-        });
+          newNodesArray.forEach(node => node.visualData.setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(node.getAbsoluteNode(), node.getParent()));
 
         const updateInterval = 50;
         let timeOfLastUpdate = new Date().getTime();
         const updateViewsIfNecessary = () => {
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(Array.from(newNodes.values()).filter(node => node.getAbsoluteNode().isNotFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.filter(node => node.getAbsoluteNode().isNotFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -527,7 +511,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-        Array.from(newNodes.values()).forEach(node => {
+        newNodesArray.forEach(node => {
           if (node.getAbsoluteNode().isNotFixed()) {
             promises.push(node.visualData.moveToIntermediatePosition());
           }

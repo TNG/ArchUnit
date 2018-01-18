@@ -20,6 +20,29 @@ module.exports.newInstance = calculateTextWidth => {
     return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
+  const createForceLinkSimulation = (padding, nodes, links) => {
+    const countLinksOfNode = node => links.filter(d => d.source === node || d.target === node).length;
+
+    const simulation = d3.forceSimulation(nodes)
+      .alphaDecay(0.06)
+      .force('link', d3.forceLink()
+        .id(n => n.fullName)
+        .distance(d => d.source.r + d.target.r + 2 * padding)
+        .strength(link => 3 / Math.min(countLinksOfNode(link.source), countLinksOfNode(link.target)))
+        .iterations(2))
+      .stop();
+    simulation.force('link').links(links);
+    return simulation;
+  };
+
+  const createForceCollideSimulation = (padding, nodes) => {
+    return d3.forceSimulation(nodes)
+      .alphaDecay(0.02)
+      //more iterations promise a better result (that means a higher probability that no nodes are overlapping)
+      .force('collide', d3.forceCollide().radius(n => n.r + padding).iterations(3))
+      .stop();
+  };
+
   return {
     calculateTextWidth,
 
@@ -33,6 +56,10 @@ module.exports.newInstance = calculateTextWidth => {
      */
     packCirclesAndReturnEnclosingCircle,
 
-    calculateDefaultRadius
+    calculateDefaultRadius,
+
+    createForceLinkSimulation,
+
+    createForceCollideSimulation
   };
 };
