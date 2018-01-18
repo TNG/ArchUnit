@@ -252,17 +252,16 @@ describe('Node layout', () => {
     });
   });
 
-  it('can relayout the nodes twice in a row: the second relayout does not start before the first is ended', () => {
+  it('does the relayout only once, when it is called several times after each other', () => {
     const root = new Node(jsonRoot);
     root.getLinks = () => [];
-    const movedNodesFirstTime = [];
-    const movedNodesSecondTime = [];
-    stubs.saveMovedNodesTo(movedNodesFirstTime);
-    root.relayoutCompletely().then(() => stubs.saveMovedNodesTo(movedNodesSecondTime));
-    const promise = root.relayoutCompletely();
-    return promise.then(() => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesFirstTime);
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodesSecondTime);
+    const movedNodes = [];
+    stubs.saveMovedNodesTo(movedNodes);
+    root.relayoutCompletely();
+    root.relayoutCompletely();
+    root.relayoutCompletely();
+    return root._updatePromise.then(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodes);
     });
   });
 

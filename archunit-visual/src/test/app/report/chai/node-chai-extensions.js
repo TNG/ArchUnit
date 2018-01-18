@@ -25,7 +25,8 @@ Assertion.addMethod('notOverlapWith', function (sibling, padding) {
   const node = this._obj;
   const distanceBetweenMiddlePoints = Vector.between(node.visualData, sibling.visualData).length();
   const radiusSum = node.visualData.r + sibling.visualData.r;
-  new Assertion(radiusSum + padding).to.be.at.most(distanceBetweenMiddlePoints + MAXIMUM_DELTA);
+  //here is added 1, because the collide-force-layout does not guarantee that the circle do not overlap
+  new Assertion(radiusSum + padding).to.be.at.most(distanceBetweenMiddlePoints + 1);
 });
 
 Assertion.addMethod('containExactlyNodes', function (nodes) {

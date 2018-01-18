@@ -116,10 +116,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._listener.onStartedMoveToIntermediatePosition();
     }
 
-    setRelativeIntermediatePosition(x, y) {
+    setRelativePosition(x, y) {
       this.x = x;
       this.y = y;
-      return this.startMoveToIntermediatePosition();
+      return this.moveToIntermediatePosition();
     }
 
     setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(absoluteNode, parent) {
@@ -220,7 +220,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         r: this.getRadius(),
         x: absoluteVisualData.x,
         y: absoluteVisualData.y,
-        originalNode: this
+        originalNode: this,
+        isNotFixed: () => this._absoluteNode.fx === undefined
       };
       if (this.getParent() && this.getParent().getCurrentChildren().length === 1) {
         this._absoluteNode.fx = this._absoluteNode.x;
@@ -345,7 +346,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this, ...this._getDescendants()];
     }
 
-    //FIXME: is this deprecated??
     getSelfAndPredecessors() {
       const predecessors = this._parent ? this._parent.getSelfAndPredecessors() : [];
       return [this, ...predecessors];
@@ -422,24 +422,24 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _initialLayout() {
       const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
 
-      let promises = [];
+      const promises = [];
       if (this.isCurrentlyLeaf()) {
         promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.setRelativeIntermediatePosition(0, 0));
+        promises.push(onlyChild.visualData.setRelativePosition(0, 0));
         promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r
         }));
-        const circle = visualizationFunctions.packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
+        const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         promises.push(this.visualData.moveToRadius(r));
       }
 
       if (this.isRoot()) {
-        promises.push(this.visualData.setRelativeIntermediatePosition(this.getRadius(), this.getRadius())); // Shift root to the middle
+        promises.push(this.visualData.setRelativePosition(this.getRadius(), this.getRadius())); // Shift root to the middle
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -508,7 +508,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         let timeOfLastUpdate = new Date().getTime();
         const updateViewsIfNecessary = () => {
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(Array.from(newNodes.values()).map(node => node.visualData.startMoveToIntermediatePosition()));
+            promises = promises.concat(Array.from(newNodes.values()).filter(node => node.getAbsoluteNode().isNotFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -528,9 +528,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
         Array.from(newNodes.values()).forEach(node => {
+          if (node.getAbsoluteNode().isNotFixed()) {
+            promises.push(node.visualData.moveToIntermediatePosition());
+          }
           node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
           node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
-          promises.push(node.visualData.moveToIntermediatePosition());
         });
 
         currentNodes = newNodes;

@@ -83,7 +83,6 @@ module.exports.create = () => {
               visualizationStyles.setNodeFontSize(circleFontSize);
               visualizationStyles.setCirclePadding(circlePadding);
               graph.refresh();
-              //graph.root.doNext(() => graph.root._relayoutCompletely());
             })
           .onNodeTypeFilterChanged(
             filter => {
