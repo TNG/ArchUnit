@@ -56,8 +56,8 @@ const init = (transitionDuration) => {
       }
     }
 
-    jumpToPosition(nodeCoords) {
-      d3.select(this._svgElement).attr('transform', `translate(${nodeCoords.x}, ${nodeCoords.y})`);
+    jumpToPosition(position) {
+      d3.select(this._svgElement).attr('transform', `translate(${position.x}, ${position.y})`);
     }
 
     moveToRadius(r, textOffset) {
@@ -66,12 +66,12 @@ const init = (transitionDuration) => {
       return Promise.all([radiusPromise, textPromise]);
     }
 
-    startMoveToPosition(nodeVisualData) {
-      return createPromiseOnEndAndInterruptOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
+    startMoveToPosition(position) {
+      return createPromiseOnEndAndInterruptOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }
 
-    moveToPosition(nodeVisualData) {
-      return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${nodeVisualData.x}, ${nodeVisualData.y})`));
+    moveToPosition(position) {
+      return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }
 
     _onClick(handler) {

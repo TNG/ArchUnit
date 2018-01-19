@@ -47,6 +47,20 @@ const Vector = class {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 
+  add(vector) {
+    this.x += vector.x;
+    this.y += vector.y;
+  }
+
+  sub(vector) {
+    this.x -= vector.x;
+    this.y -= vector.y;
+  }
+
+  static from(vector) {
+    return new Vector(vector.x, vector.y);
+  }
+
   static between(originPoint, targetPoint) {
     return new Vector(targetPoint.x - originPoint.x, targetPoint.y - originPoint.y);
   }

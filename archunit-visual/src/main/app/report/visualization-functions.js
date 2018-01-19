@@ -26,7 +26,7 @@ module.exports.newInstance = calculateTextWidth => {
     const simulation = d3.forceSimulation(nodes)
       .alphaDecay(0.06)
       .force('link', d3.forceLink()
-        .id(n => n.fullName)
+        .id(n => n.getFullName())
         .distance(d => d.source.r + d.target.r + 2 * padding)
         .strength(link => 3 / Math.min(countLinksOfNode(link.source), countLinksOfNode(link.target)))
         .iterations(2))

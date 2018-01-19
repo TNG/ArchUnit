@@ -32,8 +32,8 @@ const translate = innerCircle => ({
       const c4 = -(innerCircle.x * translationVector.x + innerCircle.y * translationVector.y);
       const scale = (c4 + Math.sqrt(c3 + c2 * c1)) / c1;
       return {
-        newX: Math.trunc(innerCircle.x + scale * translationVector.x),
-        newY: Math.trunc(innerCircle.y + scale * translationVector.y)
+        x: Math.trunc(innerCircle.x + scale * translationVector.x),
+        y: Math.trunc(innerCircle.y + scale * translationVector.y)
       };
     }
   }),
@@ -76,39 +76,121 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
+  const withRadius = (position, r) => {
+    position.r = r;
+    return position;
+  };
+
+  const Position = class extends Vector {
+    constructor(x, y) {
+      super(x, y);
+    }
+
+    setPosition(position) {
+      this.x = position.x;
+      this.y = position.y;
+    }
+  };
+
+  const AbsolutePosition = class extends Position {
+    constructor(x, y, r) {
+      super(x, y);
+      this.r = r;
+      this._isFixed = false;
+    }
+
+    isFixed() {
+      return this._isFixed;
+    }
+
+    getRelativePosition(parent) {
+      let relativePosition = Vector.from(this);
+      if (parent) {
+        relativePosition.sub(parent.visualData.absolutePosition);
+      }
+      return relativePosition;
+    }
+
+    update(relativePosition, parent) {
+      this.setPosition(relativePosition);
+      if (parent) {
+        this.add(parent.visualData.absolutePosition);
+      }
+      this._updateFixPosition();
+    }
+
+    _updateFixPosition() {
+      if (this._isFixed) {
+        this.fx = this.x;
+        this.fy = this.y;
+      }
+    }
+
+    fix() {
+      this._isFixed = true;
+      this._updateFixPosition();
+    }
+
+    unfix() {
+      this._isFixed = false;
+      this.fx = undefined;
+      this.fy = undefined;
+    }
+  };
+
   const VisualData = class {
-    constructor(listener, x = 0, y = 0, r = 0) {
+    constructor(node, listener, x = 0, y = 0, r = 0) {
+      //FIXME: do not save node, but parent-visual-data (quasi parallele Baumstruktur)
+      this.node = node;
       /**
        * the x- and y-coordinate is always relative to the parent of the node
        * (with the middle point of the parent node as origin)
        * @type {number}
        */
-      this.x = x;
-      this.y = y;
+      this.relativePosition = new Position(x, y);
+      this.absolutePosition = new AbsolutePosition(x, y, r);
       this.r = r;
       this._listener = listener;
     }
 
+    getAbsoluteVisualData() {
+      this.absolutePosition.getFullName = () => this.node.getFullName();
+      return this.absolutePosition;
+    }
+
     moveToRadius(r) {
       this.r = r;
+      this.absolutePosition.r = r;
       return this._listener.onMovedToRadius();
     }
 
     jumpToRelativeDisplacement(dx, dy, parent) {
-      let newX = this.x + dx;
-      let newY = this.y + dy;
-      if (innerCircle({x: newX, y: newY, r: this.r}).isOutOfParentCircleOrIsChildOfRoot(parent)) {
-        ({newX, newY} = translate(this)
+      const directionVector = vectors.vectorOf(dx, dy);
+      let newRelativePosition = vectors.addVectors(this.relativePosition, directionVector);
+      if (innerCircle(withRadius(newRelativePosition, this.r)).isOutOfParentCircleOrIsChildOfRoot(parent)) {
+        newRelativePosition = translate(withRadius(this.relativePosition, this.r))
           .withinEnclosingCircleOfRadius(parent.getRadius())
-          .asFarAsPossibleInTheDirectionOf({x: dx, y: dy}));
+          .asFarAsPossibleInTheDirectionOf(directionVector);
       }
-      this.x = newX;
-      this.y = newY;
-
+      this.relativePosition.setPosition(newRelativePosition);
+      this.updateAbsolutePositionAndDescendants();
       this._listener.onJumpedToPosition();
     }
 
+    updateAbsolutePositionAndDescendants() {
+      this.absolutePosition.update(this.relativePosition, this.node.getParent());
+      this.node.getCurrentChildren().forEach(child => child.visualData.updateAbsolutePositionAndDescendants());
+    }
+
+    updateAbsolutePositionAndChildren() {
+      const update = nodeVisualData => nodeVisualData.absolutePosition.update(nodeVisualData.relativePosition, nodeVisualData.node.getParent());
+      update(this);
+      this.node.getCurrentChildren().forEach(child => update(child.visualData));
+    }
+
     moveToIntermediatePosition() {
+      this.updateAbsolutePositionAndDescendants();
+      this.absolutePosition.fix();
       return this._listener.onMovedToIntermediatePosition();
     }
 
@@ -117,31 +199,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     setRelativePosition(x, y) {
-      this.x = x;
-      this.y = y;
+      this.relativePosition.setPosition({x, y});
       return this.moveToIntermediatePosition();
     }
 
-    setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(absoluteNode, parent) {
-      let x = absoluteNode.x;
-      let y = absoluteNode.y;
-      if (parent) {
-        x -= parent.getAbsoluteNode().x;
-        y -= parent.getAbsoluteNode().y;
+    takeAbsolutePosition() {
+      let newRelativePosition = this.absolutePosition.getRelativePosition(this.node.getParent());
+      const circle = withRadius(newRelativePosition, this.r);
+      if (this.node.getParent() && innerCircle(circle).isOutOfParentCircle(this.node.getParent(), visualizationStyles.getCirclePadding())) {
+        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(this.node.getParent().getRadius(), visualizationStyles.getCirclePadding());
       }
-
-      const circle = {x, y, r: this.r};
-      if (parent && innerCircle(circle).isOutOfParentCircle(parent, visualizationStyles.getCirclePadding())) {
-        ({
-          x,
-          y
-        } = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius(), visualizationStyles.getCirclePadding()));
-      }
-      this.x = x;
-      this.y = y;
-
-      absoluteNode.x = parent.getAbsoluteNode().x + this.x;
-      absoluteNode.y = parent.getAbsoluteNode().y + this.y;
+      this.relativePosition.setPosition(newRelativePosition);
+      this.absolutePosition.update(this.relativePosition, this.node.getParent());
     }
   };
 
@@ -176,11 +245,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._folded = false;
 
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
-      this.visualData = new VisualData({
-        onJumpedToPosition: () => this._view.jumpToPosition(this.visualData),
+      this.visualData = new VisualData(this,
+        {
+        onJumpedToPosition: () => this._view.jumpToPosition(this.visualData.relativePosition),
         onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
-        onMovedToIntermediatePosition: () => this._view.moveToPosition(this.visualData).then(() => this._view.showIfVisible(this)),
-        onStartedMoveToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData)
+        onMovedToIntermediatePosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
+        onStartedMoveToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
       });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root));
@@ -211,26 +281,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           });
         }
       }
-    }
-
-    createAbsoluteNode() {
-      const absoluteVisualData = this.getAbsoluteVisualData();
-      this._absoluteNode = {
-        fullName: this.getFullName(),
-        r: this.getRadius(),
-        x: absoluteVisualData.x,
-        y: absoluteVisualData.y,
-        originalNode: this,
-        isNotFixed: () => this._absoluteNode.fx === undefined
-      };
-      if (this.isRoot() || this.getParent() && this.getParent().getCurrentChildren().length === 1) {
-        this._absoluteNode.fx = this._absoluteNode.x;
-        this._absoluteNode.fy = this._absoluteNode.y;
-      }
-    }
-
-    getAbsoluteNode() {
-      return this._absoluteNode;
     }
 
     addListener(listener) {
@@ -409,6 +459,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _relayoutCompletely() {
+      this._callOnSelfThenEveryDescendant(node => node.visualData.absolutePosition.unfix());
       const promiseInitialLayout = this._initialLayout();
       const promiseForceLayout = this._forceLayout();
       return Promise.all([promiseInitialLayout, promiseForceLayout]);
@@ -456,8 +507,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       let currentNodes = new Map();
       currentNodes.set(this.getFullName(), this);
 
-      this.createAbsoluteNode();
-
       let promises = [];
 
       while (currentNodes.size > 0) {
@@ -465,7 +514,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
         const newNodes = new Map();
 
-        newNodesArray.forEach(node => node.createAbsoluteNode());
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
         newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
         //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
@@ -477,22 +525,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         }
 
         const padding = visualizationStyles.getCirclePadding();
-
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.getAbsoluteNode());
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.visualData.getAbsoluteVisualData());
         const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
         const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
         const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.getAbsoluteNode())));
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.visualData.getAbsoluteVisualData())));
 
-        const ticked = () =>
-          newNodesArray.forEach(node => node.visualData.setAbsoluteIntermediatePositionAndUpdateAbsoluteNode(node.getAbsoluteNode(), node.getParent()));
+        const ticked = () => newNodesArray.forEach(node => node.visualData.takeAbsolutePosition());
 
-        const updateInterval = 50;
+        const updateInterval = 100;
         let timeOfLastUpdate = new Date().getTime();
         const updateViewsIfNecessary = () => {
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.filter(node => node.getAbsoluteNode().isNotFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.filter(node => !node.visualData.absolutePosition.isFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -511,13 +557,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-        newNodesArray.forEach(node => {
-          if (node.getAbsoluteNode().isNotFixed()) {
-            promises.push(node.visualData.moveToIntermediatePosition());
-          }
-          node.getAbsoluteNode().fx = node.getAbsoluteNode().x;
-          node.getAbsoluteNode().fy = node.getAbsoluteNode().y;
-        });
+        //FIXME: absolutePos der children updaten
+
+        newNodesArray.filter(node => !node.visualData.absolutePosition.isFixed()).forEach(node =>
+          promises.push(node.visualData.moveToIntermediatePosition()));
 
         currentNodes = newNodes;
       }
