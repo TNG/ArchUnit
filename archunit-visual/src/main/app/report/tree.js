@@ -81,18 +81,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     return position;
   };
 
-  const Position = class extends Vector {
-    constructor(x, y) {
-      super(x, y);
-    }
+  const getAbsolutePositionOfNodeOrZero = node => node ? node.visualData.absolutePosition : Vector.zeroVector();
 
-    setPosition(position) {
-      this.x = position.x;
-      this.y = position.y;
-    }
-  };
-
-  const AbsolutePosition = class extends Position {
+  const AbsolutePosition = class extends Vector {
     constructor(x, y, r) {
       super(x, y);
       this.r = r;
@@ -104,18 +95,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     getRelativePosition(parent) {
-      let relativePosition = Vector.from(this);
-      if (parent) {
-        relativePosition.sub(parent.visualData.absolutePosition);
-      }
-      return relativePosition;
+      return Vector.from(this).sub(getAbsolutePositionOfNodeOrZero(parent));
     }
 
     update(relativePosition, parent) {
-      this.setPosition(relativePosition);
-      if (parent) {
-        this.add(parent.visualData.absolutePosition);
-      }
+      this.changeTo(relativePosition).add(getAbsolutePositionOfNodeOrZero(parent));
       this._updateFixPosition();
     }
 
@@ -140,22 +124,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const VisualData = class {
     constructor(node, listener, x = 0, y = 0, r = 0) {
-      //FIXME: do not save node, but parent-visual-data (quasi parallele Baumstruktur)
       this.node = node;
       /**
        * the x- and y-coordinate is always relative to the parent of the node
        * (with the middle point of the parent node as origin)
        * @type {number}
        */
-      this.relativePosition = new Position(x, y);
+      this.relativePosition = new Vector(x, y);
       this.absolutePosition = new AbsolutePosition(x, y, r);
       this.r = r;
       this._listener = listener;
-    }
-
-    getAbsoluteVisualData() {
-      this.absolutePosition.getFullName = () => this.node.getFullName();
-      return this.absolutePosition;
     }
 
     moveToRadius(r) {
@@ -172,45 +150,47 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           .withinEnclosingCircleOfRadius(parent.getRadius())
           .asFarAsPossibleInTheDirectionOf(directionVector);
       }
-      this.relativePosition.setPosition(newRelativePosition);
+      this.relativePosition.changeTo(newRelativePosition);
       this.updateAbsolutePositionAndDescendants();
       this._listener.onJumpedToPosition();
     }
 
-    updateAbsolutePositionAndDescendants() {
+    _updateAbsolutePosition() {
       this.absolutePosition.update(this.relativePosition, this.node.getParent());
+    }
+
+    updateAbsolutePositionAndDescendants() {
+      this._updateAbsolutePosition();
       this.node.getCurrentChildren().forEach(child => child.visualData.updateAbsolutePositionAndDescendants());
     }
 
     updateAbsolutePositionAndChildren() {
-      const update = nodeVisualData => nodeVisualData.absolutePosition.update(nodeVisualData.relativePosition, nodeVisualData.node.getParent());
-      update(this);
-      this.node.getCurrentChildren().forEach(child => update(child.visualData));
-    }
-
-    moveToIntermediatePosition() {
-      this.updateAbsolutePositionAndDescendants();
-      this.absolutePosition.fix();
-      return this._listener.onMovedToIntermediatePosition();
+      this._updateAbsolutePosition();
+      this.node.getCurrentChildren().forEach(child => child.visualData._updateAbsolutePosition());
     }
 
     startMoveToIntermediatePosition() {
-      return this._listener.onStartedMoveToIntermediatePosition();
+      return this._listener.onMovedToIntermediatePosition();
     }
 
-    setRelativePosition(x, y) {
-      this.relativePosition.setPosition({x, y});
-      return this.moveToIntermediatePosition();
+    completeMoveToIntermediatePosition() {
+      this.absolutePosition.fix();
+      return this._listener.onMovedToPosition();
     }
 
-    takeAbsolutePosition() {
-      let newRelativePosition = this.absolutePosition.getRelativePosition(this.node.getParent());
+    moveToPosition(x, y) {
+      this.relativePosition.changeTo({x, y});
+      return this.completeMoveToIntermediatePosition();
+    }
+
+    takeAbsolutePosition(parent) {
+      let newRelativePosition = this.absolutePosition.getRelativePosition(parent);
       const circle = withRadius(newRelativePosition, this.r);
-      if (this.node.getParent() && innerCircle(circle).isOutOfParentCircle(this.node.getParent(), visualizationStyles.getCirclePadding())) {
-        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(this.node.getParent().getRadius(), visualizationStyles.getCirclePadding());
+      if (parent && innerCircle(circle).isOutOfParentCircle(parent, visualizationStyles.getCirclePadding())) {
+        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius(), visualizationStyles.getCirclePadding());
       }
-      this.relativePosition.setPosition(newRelativePosition);
-      this.absolutePosition.update(this.relativePosition, this.node.getParent());
+      this.relativePosition.changeTo(newRelativePosition);
+      this.absolutePosition.update(this.relativePosition, parent);
     }
   };
 
@@ -249,8 +229,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         {
         onJumpedToPosition: () => this._view.jumpToPosition(this.visualData.relativePosition),
         onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
-        onMovedToIntermediatePosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
-        onStartedMoveToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
+        onMovedToPosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
+        onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
       });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root));
@@ -429,17 +409,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this.visualData.r;
     }
 
-    /**
-     * Coordinates ({x, y}) with respect to the root node.
-     */
-    getAbsoluteVisualData() {
-      const selfAndPredecessors = this.getSelfAndPredecessors();
-      return {
-        r: this.visualData.r,
-        x: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.x, 0),
-        y: selfAndPredecessors.reduce((sum, predecessor) => sum + predecessor.visualData.y, 0),
-      }
-    }
 
     //TODO: add test for this scenario: filter and unfilter --> check, if foldable is in css-class again,
     // if all children are filtered away
@@ -478,7 +447,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.visualData.setRelativePosition(0, 0));
+        promises.push(onlyChild.visualData.moveToPosition(0, 0));
         promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
@@ -490,7 +459,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
 
       if (this.isRoot()) {
-        promises.push(this.visualData.setRelativePosition(this.getRadius(), this.getRadius())); // Shift root to the middle
+        promises.push(this.visualData.moveToPosition(this.getRadius(), this.getRadius())); // Shift root to the middle
+        this.visualData.updateAbsolutePositionAndChildren();
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -524,15 +494,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           break;
         }
 
+        const getAbsolutePositionWithNodeId = node => {
+          node.visualData.absolutePosition.id = node.getFullName();
+          return node.visualData.absolutePosition;
+        };
+
         const padding = visualizationStyles.getCirclePadding();
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.visualData.getAbsoluteVisualData());
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => getAbsolutePositionWithNodeId(node));
         const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
         const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
         const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.visualData.getAbsoluteVisualData())));
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => getAbsolutePositionWithNodeId(n))));
 
-        const ticked = () => newNodesArray.forEach(node => node.visualData.takeAbsolutePosition());
+        const ticked = () => newNodesArray.forEach(node => node.visualData.takeAbsolutePosition(node.getParent()));
 
         const updateInterval = 100;
         let timeOfLastUpdate = new Date().getTime();
@@ -557,10 +532,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-        //FIXME: absolutePos der children updaten
-
+        newNodesArray.forEach(node => node.visualData.updateAbsolutePositionAndChildren());
         newNodesArray.filter(node => !node.visualData.absolutePosition.isFixed()).forEach(node =>
-          promises.push(node.visualData.moveToIntermediatePosition()));
+          promises.push(node.visualData.completeMoveToIntermediatePosition()));
 
         currentNodes = newNodes;
       }

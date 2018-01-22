@@ -329,9 +329,12 @@ describe('GroupedDependency', () => {
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {
-    node.visualData.x = x;
-    node.visualData.y = y;
+    node.visualData.relativePosition.x = x;
+    node.visualData.absolutePosition.x = node.getParent() ? node.getParent().visualData.absolutePosition.x + x : x;
+    node.visualData.relativePosition.y = y;
+    node.visualData.absolutePosition.y = node.getParent() ? node.getParent().visualData.absolutePosition.y + y : y;
     node.visualData.r = r;
+    node.visualData.absolutePosition.r = r;
   };
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {
@@ -530,8 +533,8 @@ describe('GroupedDependency', () => {
     const startNode = tree.root.getByName(tree.innerClass);
     const endNode = tree.root.getByName(tree.classWithInnerClass);
 
-    setNodeVisualDataTo(startNode, -15, -10, 15);
     setNodeVisualDataTo(endNode, 50, 50, 40);
+    setNodeVisualDataTo(startNode, -15, -10, 15);
 
     const dependency = dependencyCreator.getUniqueDependency(tree.innerClass, tree.classWithInnerClass).byGroupingDependencies([]);
     dependency.jumpToPosition();

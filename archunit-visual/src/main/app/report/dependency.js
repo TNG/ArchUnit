@@ -264,12 +264,10 @@ const init = (View, nodeMap) => {
     }
 
     jumpToPosition() {
-      //this.visualData.jumpToPosition(this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
       this.visualData.jumpToPosition(this.getStartNode().visualData.absolutePosition, this.getEndNode().visualData.absolutePosition);
     }
 
     moveToPosition() {
-      //return this.visualData.moveToPosition(this.getStartNode().getAbsoluteVisualData(), this.getEndNode().getAbsoluteVisualData());
       return this.visualData.moveToPosition(this.getStartNode().visualData.absolutePosition, this.getEndNode().visualData.absolutePosition);
     }
 

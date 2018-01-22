@@ -182,7 +182,7 @@ describe('Inner node or leaf', () => {
 
     nodeToDrag._drag(dx, dy);
     return root.doNext(() => {
-      expect({x: nodeToDrag.visualData.x, y: nodeToDrag.visualData.y}).to.deep.equal(expCoordinates);
+      expect({x: nodeToDrag.visualData.relativePosition.x, y: nodeToDrag.visualData.relativePosition.y}).to.deep.equal(expCoordinates);
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
     });
@@ -202,7 +202,7 @@ describe('Inner node or leaf', () => {
     const expCoordinates = {x: dx, y: dy};
     nodeToDrag._drag(dx, dy);
     return root.doNext(() =>
-      expect({x: nodeToDrag.visualData.x, y: nodeToDrag.visualData.y}).to.deep.equal(expCoordinates));
+      expect({x: nodeToDrag.visualData.relativePosition.x, y: nodeToDrag.visualData.relativePosition.y}).to.deep.equal(expCoordinates));
   });
 
   it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
@@ -222,8 +222,8 @@ describe('Inner node or leaf', () => {
       const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
       const expCoordinates = {x: -expD, y: expD};
 
-      expect(nodeToDrag.visualData.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
-      expect(nodeToDrag.visualData.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
+      expect(nodeToDrag.visualData.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
+      expect(nodeToDrag.visualData.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
     });
   });
 });
