@@ -17,6 +17,9 @@ const testRoot = require('./test-object-creator').tree;
 
 const MAXIMUM_DELTA = 0.0001;
 
+const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((acc, p) =>
+  ({x: acc.x + p.visualData.relativePosition.x, y: acc.y + p.visualData.relativePosition.y}), {x: 0, y: 0});
+
 describe('Root', () => {
   it('should have no parent', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
@@ -162,7 +165,8 @@ describe('Inner node or leaf', () => {
     expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
   });
 
-  it('can be dragged: changes its coordinates, updates its view and calls the listener', () => {
+  it('can be dragged: changes its relative and absolute coordinates and the ones of its descendants,' +
+    ' updates its view and calls the listener', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .add(testJson.package('visual')
@@ -182,7 +186,15 @@ describe('Inner node or leaf', () => {
 
     nodeToDrag._drag(dx, dy);
     return root.doNext(() => {
-      expect({x: nodeToDrag.visualData.relativePosition.x, y: nodeToDrag.visualData.relativePosition.y}).to.deep.equal(expCoordinates);
+      expect({
+        x: nodeToDrag.visualData.relativePosition.x,
+        y: nodeToDrag.visualData.relativePosition.y
+      }).to.deep.equal(expCoordinates);
+      nodeToDrag.getSelfAndDescendants().forEach(node =>
+        expect({
+          x: node.visualData.absolutePosition.x,
+          y: node.visualData.absolutePosition.y
+        }).to.deep.equal(getAbsolutePositionOfNode(node)));
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
     });
@@ -202,7 +214,10 @@ describe('Inner node or leaf', () => {
     const expCoordinates = {x: dx, y: dy};
     nodeToDrag._drag(dx, dy);
     return root.doNext(() =>
-      expect({x: nodeToDrag.visualData.relativePosition.x, y: nodeToDrag.visualData.relativePosition.y}).to.deep.equal(expCoordinates));
+      expect({
+        x: nodeToDrag.visualData.relativePosition.x,
+        y: nodeToDrag.visualData.relativePosition.y
+      }).to.deep.equal(expCoordinates));
   });
 
   it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
@@ -238,6 +253,32 @@ describe('Node layout', () => {
       .add(testJson.clazz('SomeClass3', 'class').build())
       .build())
     .build();
+
+  it("should set a node's absolute position correctly", () => {
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    root.relayoutCompletely();
+    return root.doNext(() => {
+      root.callOnEveryDescendantThenSelf(node => {
+        const absolutePosition = getAbsolutePositionOfNode(node);
+        expect(node.visualData.absolutePosition.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
+        expect(node.visualData.absolutePosition.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
+      });
+    });
+  });
+
+  it('should make all nodes fixed after having done the layout', () => {
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    root.relayoutCompletely();
+    return root.doNext(() => {
+      root.callOnEveryDescendantThenSelf(node => {
+        expect(node.visualData.absolutePosition.fx).to.not.be.undefined;
+        expect(node.visualData.absolutePosition.fy).to.not.be.undefined;
+        expect(node.visualData.absolutePosition.isFixed()).to.be.true;
+      });
+    });
+  });
 
   it('should put every child node within its parent node considering the padding', () => {
     const root = new Node(jsonRoot);
