@@ -151,7 +151,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           .asFarAsPossibleInTheDirectionOf(directionVector);
       }
       this.relativePosition.changeTo(newRelativePosition);
-      this.updateAbsolutePositionAndDescendants();
+      this._updateAbsolutePositionAndDescendants();
       this._listener.onJumpedToPosition();
     }
 
@@ -159,12 +159,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.absolutePosition.update(this.relativePosition, this.node.getParent());
     }
 
-    updateAbsolutePositionAndDescendants() {
+    _updateAbsolutePositionAndDescendants() {
       this._updateAbsolutePosition();
-      this.node.getCurrentChildren().forEach(child => child.visualData.updateAbsolutePositionAndDescendants());
+      this.node.getCurrentChildren().forEach(child => child.visualData._updateAbsolutePositionAndDescendants());
     }
 
-    updateAbsolutePositionAndChildren() {
+    _updateAbsolutePositionAndChildren() {
       this._updateAbsolutePosition();
       this.node.getCurrentChildren().forEach(child => child.visualData._updateAbsolutePosition());
     }
@@ -174,8 +174,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     completeMoveToIntermediatePosition() {
-      this.absolutePosition.fix();
-      return this._listener.onMovedToPosition();
+      this._updateAbsolutePositionAndChildren();
+      if (!this.absolutePosition.isFixed()) {
+        this.absolutePosition.fix();
+        return this._listener.onMovedToPosition();
+      }
+      return Promise.resolve();
     }
 
     moveToPosition(x, y) {
@@ -227,11 +231,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
       this.visualData = new VisualData(this,
         {
-        onJumpedToPosition: () => this._view.jumpToPosition(this.visualData.relativePosition),
-        onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
-        onMovedToPosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
-        onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
-      });
+          onJumpedToPosition: () => this._view.jumpToPosition(this.visualData.relativePosition),
+          onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
+          onMovedToPosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
+        });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root));
       this._originalChildren.forEach(c => c._parent = this);
@@ -460,7 +464,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       if (this.isRoot()) {
         promises.push(this.visualData.moveToPosition(this.getRadius(), this.getRadius())); // Shift root to the middle
-        this.visualData.updateAbsolutePositionAndChildren();
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -532,10 +535,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-        newNodesArray.forEach(node => node.visualData.updateAbsolutePositionAndChildren());
-        newNodesArray.filter(node => !node.visualData.absolutePosition.isFixed()).forEach(node =>
-          promises.push(node.visualData.completeMoveToIntermediatePosition()));
-
+        newNodesArray.forEach(node => node.visualData.completeMoveToIntermediatePosition());
         currentNodes = newNodes;
       }
 
