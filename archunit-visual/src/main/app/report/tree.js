@@ -170,7 +170,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     startMoveToIntermediatePosition() {
-      return this._listener.onMovedToIntermediatePosition();
+      if (!this.absolutePosition.isFixed()) {
+        return this._listener.onMovedToIntermediatePosition();
+      }
+      return Promise.resolve();
     }
 
     completeMoveToIntermediatePosition() {
@@ -510,13 +513,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const allCollisionSimulations = currentInnerNodes.map(node =>
           createForceCollideSimulation(padding, node.getCurrentChildren().map(n => getAbsolutePositionWithNodeId(n))));
 
-        const ticked = () => newNodesArray.forEach(node => node.visualData.takeAbsolutePosition(node.getParent()));
-
-        const updateInterval = 100;
         let timeOfLastUpdate = new Date().getTime();
-        const updateViewsIfNecessary = () => {
+
+        const onTick = () => {
+          newNodesArray.forEach(node => node.visualData.takeAbsolutePosition(node.getParent()));
+          const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.filter(node => !node.visualData.absolutePosition.isFixed()).map(node => node.visualData.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.map(node => node.visualData.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -525,8 +528,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           let i = iterationStart;
           for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
             simulations.forEach(s => s.tick());
-            ticked();
-            updateViewsIfNecessary();
+            onTick();
           }
           return i;
         };
