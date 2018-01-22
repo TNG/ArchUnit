@@ -49,7 +49,6 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).style('visibility', 'inherit');
     }
 
-    //FIXME: test this: unfold (so that a node would be shown) -> filter (so that node should be hidden) -> node should be hidden and not shown!!
     showIfVisible(node) {
       if (node.isVisible()) {
         this.show();

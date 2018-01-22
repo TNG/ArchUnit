@@ -1047,4 +1047,31 @@ describe('Node', () => {
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
     });
   });
+
+  it('can unfold and filter by name: then the node, which would have been shown by unfolding but does not pass ' +
+    'the filter, is hidden', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToFold')
+        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .add(testJson.clazz('MatchingXClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+
+    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
+      'com.tngtech.archunit.pkgToFold.MatchingXClass'];
+    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
+
+    pkgToFold._changeFoldIfInnerNodeAndRelayout();
+    root.filterByName('X', false);
+
+    return root.doNext(() => {
+      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
+      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
+      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
+    });
+  });
 });

@@ -5,7 +5,6 @@ const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
 
-// FIXME: Test missing!! (There is only one for not dragging out)
 /**
  * Takes an enclosing circle radius and an inner circle relative to the enclosing circle's center.
  *
@@ -219,7 +218,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   });
 
-  //FIXME: maybe set svgContainer already in initNodeView, because Node does not need to know the svg-container?
   const Node = class {
     constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null) {
       this._root = root;

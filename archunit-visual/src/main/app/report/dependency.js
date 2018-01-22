@@ -7,7 +7,6 @@ const vectors = require('./vectors.js').vectors;
 const init = (View, nodeMap) => {
 
   const nodes = nodeMap;
-  //FIXME: maybe store in dependencies instead of here??
   const allDependencies = new Map();
 
   const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
