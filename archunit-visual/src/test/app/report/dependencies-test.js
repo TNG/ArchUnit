@@ -1152,4 +1152,71 @@ describe('Dependencies', () => {
     const act = dependencies.getDetailedDependenciesOf('com.tngtech.SomeClass1', 'com.tngtech.SomeClass2');
     expect(act).to.deep.equal(exp);
   });
+
+  it('create correct links, which are used for the layout of the nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testJson.package('pkg1')
+        .add(testJson.package('subpkg')
+          .add(testJson.clazz('SomeClass', 'class')
+            .callingMethod('com.tngtech.pkg2.subpkg.SomeClass', 'startMethod()', 'targetMethod')
+            .build())
+          .build())
+        .build())
+      .add(testJson.package('pkg2')
+        .add(testJson.package('subpkg')
+          .add(testJson.clazz('SomeClass', 'class')
+            .callingMethod('com.tngtech.SomeClass', 'startMethod', 'targetMethod()')
+            .havingInnerClass(testJson.clazz('SomeInnerClass', 'class')
+              .callingMethod('com.tngtech.pkg2.subpkg.SomeClass', 'startMethod()', 'targetMethod()')
+              .build())
+            .build())
+          .build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = [
+      {
+        'source': 'com.tngtech.pkg1',
+        'target': 'com.tngtech.pkg2'
+      },
+      {
+        'source': 'com.tngtech.pkg1.subpkg',
+        'target': 'com.tngtech.pkg2'
+      },
+      {
+        'source': 'com.tngtech.pkg1.subpkg.SomeClass',
+        'target': 'com.tngtech.pkg2'
+      },
+      {
+        'source': 'com.tngtech.pkg1',
+        'target': 'com.tngtech.pkg2.subpkg'
+      },
+      {
+        'source': 'com.tngtech.pkg1',
+        'target': 'com.tngtech.pkg2.subpkg.SomeClass'
+      },
+      {
+        'source': 'com.tngtech.pkg2',
+        'target': 'com.tngtech.SomeClass'
+      },
+      {
+        'source': 'com.tngtech.pkg2.subpkg',
+        'target': 'com.tngtech.SomeClass'
+      },
+      {
+        'source': 'com.tngtech.pkg2.subpkg.SomeClass',
+        'target': 'com.tngtech.SomeClass'
+      },
+      {
+        'source': 'com.tngtech.pkg2.subpkg.SomeClass$SomeInnerClass',
+        'target': 'com.tngtech.pkg2.subpkg.SomeClass',
+      }
+    ];
+    const act = dependencies.getAllLinks();
+
+    expect(act).to.deep.equal(exp);
+  });
 });

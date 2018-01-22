@@ -308,14 +308,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       if (matchingFunction(this)) {
         return this;
       }
-      if (this.isRoot) {
-        return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
-      }
+      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
     }
 
     isPredecessorOf(nodeFullName) {
       const separator = /[\\.\\$]/;
-      return nodeFullName.startsWith(this.getFullName())
+      return this.isRoot() || nodeFullName.startsWith(this.getFullName())
         && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1));
     }
 
@@ -324,7 +322,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         return [];
       }
       const predecessors = this._parent ? this._parent.getSelfAndPredecessorsUntilExclusively(predecessor) : [];
-      return [this, ...predecessors];
+      return [...predecessors, this];
     }
 
     getOriginalChildren() {
@@ -495,7 +493,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
         const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
         && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-
+        
         if (newNodes.size === 0) {
           break;
         }
