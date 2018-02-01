@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 TNG Technology Consulting GmbH
+ * Copyright 2018 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Set;
+
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.base.Optional;
-
-import java.util.Set;
 
 abstract class JsonElement {
     static final String DEFAULT_ROOT = "default";

@@ -68,14 +68,16 @@ ext {
             project(':archunit-junit5-api'),
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
-            project(':archunit-junit5')]
+            project(':archunit-junit5'),
+            project(':archunit-visual')]
     releaseProjects = [
             project(':archunit'),
             project(':archunit-junit4'),
             project(':archunit-junit5-api'),
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
-            project(':archunit-junit5')]
+            project(':archunit-junit5'),
+            project(':archunit-visual')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     addTestJarTo = { proj ->
@@ -153,53 +155,6 @@ subprojects {
 
         ignoreFailures = project.hasProperty('ignoreTestFailures')
     }
-}
-
-// FIXME: Move to archiving.gradle
-def productionProjectNames = ['archunit', 'archunit-junit', 'archunit-visual']
-ext.productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
-def productionDownStreamProjects = [project(':archunit-junit'), project(':archunit-visual')]
-productionDownStreamProjects*.with {
-    shrinkDependencies {
-        // NOTE: proguard will warn a lot about library classes depending on program classes due to the double
-        //       repackaged third party libs. We filter those duplicated classes in the next step.
-        dontwarn
-        dontnote
-    }
-
-    shadowJar {
-        dependencies {
-            exclude(project(':archunit'))
-            exclude(dependency(dependency.slf4j))
-            exclude(dependency(dependency.junit))
-            exclude(dependency(dependency.hamcrest)) // Shadow doesn't respect transitive excludes :-(
-        }
-    }
-
-    task removeDuplicateThirdParty(type: Jar, dependsOn: [shrinkDependencies, project(':archunit').shrinkDependencies]) {
-        doFirst {
-            List repackagedFilesInArchUnit = zipTree(project(':archunit').shrinkDependencies.archivePath).filter {
-                it.absolutePath.contains('com/tngtech/archunit/thirdparty')
-            }.collect {
-                it.absolutePath.replaceAll('.*com/tngtech/archunit/thirdparty', '**')
-            }
-
-            exclude repackagedFilesInArchUnit
-        }
-
-        File tempPath = tempJar(jar.archivePath)
-
-        from zipTree(shrinkDependencies.archivePath)
-        archiveName tempPath.name
-
-        doLast {
-            assert shrinkDependencies.archivePath.delete()
-            assert tempPath.renameTo(shrinkDependencies.archivePath)
-        }
-
-        finalizedBy finishArchive
-    }
-    assemble.dependsOn removeDuplicateThirdParty
 }
 
 apply from: 'build-steps/build-steps.gradle'
