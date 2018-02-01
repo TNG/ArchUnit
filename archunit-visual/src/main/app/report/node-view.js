@@ -59,7 +59,7 @@ const init = (transitionDuration) => {
       d3.select(this._svgElement).attr('transform', `translate(${position.x}, ${position.y})`);
     }
 
-    moveToRadius(r, textOffset) {
+    changeRadius(r, textOffset) {
       const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', r));
       const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
       return Promise.all([radiusPromise, textPromise]);

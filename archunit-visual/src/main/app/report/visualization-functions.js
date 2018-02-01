@@ -21,25 +21,33 @@ module.exports.newInstance = calculateTextWidth => {
   };
 
   const createForceLinkSimulation = (padding, nodes, links) => {
-    const countLinksOfNode = node => links.filter(d => d.source === node || d.target === node).length;
-
-    const simulation = d3.forceSimulation(nodes)
-      .alphaDecay(0.06)
-      .force('link', d3.forceLink()
+    return createSimulation(0.06, nodes, {
+      name: 'link',
+      forceFunction: d3.forceLink(links)
         .id(n => n.id)
         .distance(d => d.source.r + d.target.r + 2 * padding)
-        .strength(link => 3 / Math.min(countLinksOfNode(link.source), countLinksOfNode(link.target)))
-        .iterations(2))
-      .stop();
-    simulation.force('link').links(links);
-    return simulation;
+        .strength(() => 3) // Magic number, we don't know exactly how the scale affects the layout ('strength' of attraction)
+        .iterations(2)
+    });
   };
 
   const createForceCollideSimulation = (padding, nodes) => {
+    return createSimulation(0.02, nodes, {
+      name: 'collide',
+      forceFunction: d3.forceCollide().radius(n => n.r + padding).iterations(3)
+    });
+  };
+
+  /**
+   *
+   * @param alphaDecay controls the granularity of the simulation and hence quality vs performance: higher alphaDecay <=> higher performance
+   * @param nodes the nodes to apply the simulation to
+   * @param forceSetup object containing force name and function, e.g. {name: 'collide', forceFunction: () => ...}
+   */
+  const createSimulation = (alphaDecay, nodes, forceSetup) => {
     return d3.forceSimulation(nodes)
-      .alphaDecay(0.02)
-      //more iterations promise a better result (that means a higher probability that no nodes are overlapping)
-      .force('collide', d3.forceCollide().radius(n => n.r + padding).iterations(3))
+      .alphaDecay(alphaDecay)
+      .force(forceSetup.name, forceSetup.forceFunction)
       .stop();
   };
 

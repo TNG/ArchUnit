@@ -34,7 +34,7 @@ const NodeViewStub = class {
     this.startMoveToPosition = () => {
       return Promise.resolve();
     };
-    this.moveToRadius = (r, textOffset) => {
+    this.changeRadius = (r, textOffset) => {
       this.hasMovedToRadius = true;
       this.textOffset = textOffset;
       return new Promise(resolve => {

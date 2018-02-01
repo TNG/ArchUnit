@@ -41,6 +41,7 @@ const translate = innerCircle => ({
    * Shifts the inner circle towards to the center of the parent circle (which is (0, 0)), so that the inner circle
    * is completely within the enclosing circle
    * @param enclosingCircleRadius radius of the outer circle
+   * @param circlePadding minimum distance from inner nodes to containing nodes borders
    * @return the center coordinates of the inner circle after the shift into the enclosing circle
    */
   intoEnclosingCircleOfRadius: (enclosingCircleRadius, circlePadding) => {
@@ -135,10 +136,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener = listener;
     }
 
-    moveToRadius(r) {
+    changeRadius(r) {
       this.r = r;
       this.absolutePosition.r = r;
-      return this._listener.onMovedToRadius();
+      return this._listener.onRadiusChanged();
     }
 
     jumpToRelativeDisplacement(dx, dy, parent) {
@@ -233,7 +234,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.visualData = new VisualData(this,
         {
           onJumpedToPosition: () => this._view.jumpToPosition(this.visualData.relativePosition),
-          onMovedToRadius: () => Promise.all([this._view.moveToRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
+          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.visualData.r, this._text.getY()), onRadiusChanged(this.getRadius())]),
           onMovedToPosition: () => this._view.moveToPosition(this.visualData.relativePosition).then(() => this._view.showIfVisible(this)),
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.visualData.relativePosition)
         });
@@ -412,9 +413,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this.visualData.r;
     }
 
-
-    //TODO: add test for this scenario: filter and unfilter --> check, if foldable is in css-class again,
-    // if all children are filtered away
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this.getClass());
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
@@ -447,18 +445,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       const promises = [];
       if (this.isCurrentlyLeaf()) {
-        promises.push(this.visualData.moveToRadius(calculateDefaultRadius(this)));
+        promises.push(this.visualData.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
         promises.push(onlyChild.visualData.moveToPosition(0, 0));
-        promises.push(this.visualData.moveToRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
+        promises.push(this.visualData.changeRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.visualData.moveToRadius(r));
+        promises.push(this.visualData.changeRadius(r));
       }
 
       if (this.isRoot()) {
@@ -490,8 +488,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
         //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
         const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
-        && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-        
+          && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
+
         if (newNodes.size === 0) {
           break;
         }
