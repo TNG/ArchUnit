@@ -1184,31 +1184,23 @@ describe('Dependencies', () => {
       },
       {
         'source': 'com.tngtech.pkg1.subpkg',
-        'target': 'com.tngtech.pkg2'
-      },
-      {
-        'source': 'com.tngtech.pkg1.subpkg.SomeClass',
-        'target': 'com.tngtech.pkg2'
-      },
-      {
-        'source': 'com.tngtech.pkg1',
         'target': 'com.tngtech.pkg2.subpkg'
       },
       {
-        'source': 'com.tngtech.pkg1',
+        'source': 'com.tngtech.pkg1.subpkg.SomeClass',
         'target': 'com.tngtech.pkg2.subpkg.SomeClass'
       },
       {
-        'source': 'com.tngtech.pkg2',
-        'target': 'com.tngtech.SomeClass'
+        'source': 'com.tngtech.SomeClass',
+        'target': 'com.tngtech.pkg2'
       },
       {
-        'source': 'com.tngtech.pkg2.subpkg',
-        'target': 'com.tngtech.SomeClass'
+        'source': 'com.tngtech.SomeClass',
+        'target': 'com.tngtech.pkg2.subpkg'
       },
       {
-        'source': 'com.tngtech.pkg2.subpkg.SomeClass',
-        'target': 'com.tngtech.SomeClass'
+        'source': 'com.tngtech.SomeClass',
+        'target': 'com.tngtech.pkg2.subpkg.SomeClass'
       },
       {
         'source': 'com.tngtech.pkg2.subpkg.SomeClass$SomeInnerClass',

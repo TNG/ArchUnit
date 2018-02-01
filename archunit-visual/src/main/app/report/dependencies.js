@@ -137,12 +137,17 @@ const init = (View) => {
           return [dep];
         }
 
-        const commonPredecessor = sourceNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(dep.target));
-        const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(commonPredecessor);
-        const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(commonPredecessor);
-        const sourceLinks = sourcePredecessors.map(pred => createSimpleDependency(pred.getFullName(), targetPredecessors[0].getFullName()));
-        const targetLinks = targetPredecessors.slice(1).map(pred => createSimpleDependency(sourcePredecessors[0].getFullName(), pred.getFullName()));
-        return [...sourceLinks, ...targetLinks];
+        const firstCommonPredecessor = sourceNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(dep.target));
+        const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
+        const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
+
+        const predecessorsTupleOrderByLengthAscending = [sourcePredecessors, targetPredecessors].sort((a, b) => a.length - b.length);
+        const shortPredecessors = predecessorsTupleOrderByLengthAscending[0];
+        const longPredecessors = predecessorsTupleOrderByLengthAscending[1];
+        const peerLinks = shortPredecessors.map((node, i) => createSimpleDependency(node.getFullName(), longPredecessors[i].getFullName()));
+        const lastNodeFullName = shortPredecessors[shortPredecessors.length - 1].getFullName();
+        const remainingLinks = longPredecessors.slice(shortPredecessors.length).map(node => createSimpleDependency(lastNodeFullName, node.getFullName()));
+        return [...peerLinks, ...remainingLinks];
       });
 
       const transferredSimpleDependencies = [].concat.apply([], groupedTransferredSimpleDependencies);
