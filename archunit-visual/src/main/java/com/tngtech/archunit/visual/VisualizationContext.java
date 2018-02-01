@@ -18,11 +18,15 @@ package com.tngtech.archunit.visual;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
-abstract class VisualizationContext {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
+public abstract class VisualizationContext {
     private VisualizationContext() {
     }
 
@@ -46,14 +50,16 @@ abstract class VisualizationContext {
         return result.build();
     }
 
-    static VisualizationContext includeOnly(String rootPackage, String... furtherRootPackages) {
+    @PublicAPI(usage = ACCESS)
+    public static VisualizationContext includeOnly(String rootPackage, String... furtherRootPackages) {
         return new Restricted(ImmutableSet.<String>builder()
                 .add(rootPackage)
                 .add(furtherRootPackages)
                 .build());
     }
 
-    static VisualizationContext everything() {
+    @PublicAPI(usage = ACCESS)
+    public static VisualizationContext everything() {
         return new Everything();
     }
 
