@@ -64,13 +64,13 @@ task prepareMavenTest {
 task executeRules(type: Exec, dependsOn: prepareMavenTest) {
     workingDir "$rootProject.projectDir/archunit-maven-test"
 
-    commandLine 'mvn', 'clean', 'test', '-P', 'execute-rules'
+    commandLine './mvnw', 'clean', 'test', '-P', 'execute-rules'
 }
 
 task verifyRules(type: Exec, dependsOn: executeRules) {
     workingDir "$rootProject.projectDir/archunit-maven-test"
 
-    commandLine 'mvn', 'surefire:test', '-P', 'verify-rules'
+    commandLine './mvnw', 'surefire:test', '-P', 'verify-rules'
 }
 
 task cleanUpMavenTest {
