@@ -32,10 +32,10 @@ const init = (transitionDuration) => {
     }
 
     renderSize(rootRadius) {
-      d3.select(this._svg).attr('width', Math.max(parseInt(2 * rootRadius + 4),
-        d3.select('#container').node().getBoundingClientRect().width));
-      d3.select(this._svg).attr('height', Math.max(parseInt(2 * rootRadius + 4),
-        d3.select('#container').node().getBoundingClientRect().height));
+      const windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+      d3.select(this._svg).attr('width', Math.max(parseInt(2 * rootRadius + 4), windowWidth));
+      d3.select(this._svg).attr('height', Math.max(parseInt(2 * rootRadius + 4), windowHeight));
     }
 
     renderPosition(selection, rootRadius) {
