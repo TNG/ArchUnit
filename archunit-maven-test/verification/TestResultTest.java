@@ -166,6 +166,7 @@ public class TestResultTest {
 
                 failedArchitectureTests.addAll(getFailedTests(document.find("testcase")));
             }
+            markProcessed(testReports);
         }
 
         Set<SingleTest> getFailedTests(Match testCaseTags) {
@@ -196,6 +197,14 @@ public class TestResultTest {
 
         void assertMatchWith(GivenTestClasses givenTestClasses) {
             assertThat(failedArchitectureTests).isEqualTo(givenTestClasses.tests);
+        }
+
+        void markProcessed(List<File> testReports) {
+            for (File report : testReports) {
+                if (!report.renameTo(new File(report.getParentFile(), report.getName() + ".processed"))) {
+                    throw new IllegalStateException("Couldn't mark " + report.getAbsolutePath() + " as processed");
+                }
+            }
         }
 
         @Override
