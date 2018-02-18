@@ -33,64 +33,123 @@ def getRepoUrls = {
     repoUrls
 }
 
-def mavenSrc = new File(rootProject.file('archunit-maven-test'), 'src')
-def verificationTestPath = new File(rootProject.file('archunit-maven-test'), 'verification/TestResultTest.java')
-task prepareMavenTest {
+File mavenTestRootDir = rootProject.file('archunit-maven-test')
+File mavenSrc = new File(mavenTestRootDir, 'src')
+File mavenTarget = new File(mavenTestRootDir, 'target')
+File mavenPomTemplate = new File(mavenTestRootDir, 'pom.xml.template')
+File mavenPom = new File(mavenTestRootDir, 'pom.xml')
+File verificationTestPath = new File(mavenTestRootDir, 'verification/TestResultTest.java')
+File verificationResultOriginPath = new File(mavenTestRootDir, 'target/surefire-reports')
+File verificationResultArchivePath = new File(mavenTestRootDir, 'verification-results')
+
+task initializeMavenTest {
     doLast {
-        def pom = rootProject.file('archunit-maven-test/pom.xml')
-        def pomBak = rootProject.file('archunit-maven-test/pom.xml.bak')
-        pomBak.delete()
-        Files.copy(pom.toPath(), pomBak.toPath())
-
-        def repositories = project.hasProperty('mavenRepos') ?
-                createRepositoriesTag(getRepoUrls(project.getProperty('mavenRepos'))) :
-                ''
-
-        pom.text = pom.text.
-                replace('#{archunit.version}', "${version}").
-                replace('#{repositories}', repositories)
-
-        copy {
-            from new File(project(':archunit-example').projectDir, 'src')
-            into mavenSrc
-        }
-        copy {
-            from verificationTestPath
-            into new File(mavenSrc, 'test/java')
+        verificationResultArchivePath.with {
+            deleteDir()
+            assert mkdir(): "Couldn't create directory ${delegate}"
         }
     }
 }
 
-task executeRules(type: Exec, dependsOn: prepareMavenTest) {
-    workingDir "$rootProject.projectDir/archunit-maven-test"
+def addMavenTest = { config ->
+    String prepareMavenTest = "prepareMavenTest${config.suffix}"
+    String executeRules = "executeRules${config.suffix}"
+    String verifyRules = "verifyRules${config.suffix}"
+    String cleanUpMavenTest = "cleanUpMavenTest${config.suffix}"
+    String runMavenTest = "runMavenTest${config.suffix}"
 
-    commandLine './mvnw', 'clean', 'test', '-P', 'execute-rules'
-}
+    return {
+        tasks.create(name: prepareMavenTest, dependsOn: initializeMavenTest) {
+            doLast {
+                mavenPom.delete()
+                Files.copy(mavenPomTemplate.toPath(), mavenPom.toPath())
 
-task verifyRules(type: Exec, dependsOn: executeRules) {
-    workingDir "$rootProject.projectDir/archunit-maven-test"
+                def repositories = project.hasProperty('mavenRepos') ?
+                        createRepositoriesTag(getRepoUrls(project.getProperty('mavenRepos'))) :
+                        ''
 
-    commandLine './mvnw', 'surefire:test', '-P', 'verify-rules'
-}
+                mavenPom.text = mavenPom.text
+                                        .replace('#{archunit.version}', "${version}")
+                                        .replace('#{repositories}', repositories)
+                                        .replace('#{javaVersion}', config.javaVersion)
+                                        .replace('#{extraCompilerArgs}', config.extraCompilerArgs ?: '')
 
-task cleanUpMavenTest {
-    doLast {
-        def pom = rootProject.file('archunit-maven-test/pom.xml')
-        def pomBak = rootProject.file('archunit-maven-test/pom.xml.bak')
-        pom.delete()
-        Files.copy(pomBak.toPath(), pom.toPath())
-        pomBak.delete()
-        mavenSrc.deleteDir()
+                copy {
+                    from new File(project(':archunit-example').projectDir, 'src')
+                    into mavenSrc
+                }
+                copy {
+                    from verificationTestPath
+                    into new File(mavenSrc, 'test/java')
+                }
+            }
+        }
+
+        def mavenExec = { closure ->
+            return {
+                workingDir mavenTestRootDir
+
+                if (config.jdkPath) {
+                    environment JAVA_HOME: config.jdkPath
+                }
+
+                delegate.with(closure)
+            }
+        }
+
+        tasks.create(name: executeRules, type: Exec, dependsOn: prepareMavenTest).configure mavenExec {
+            commandLine './mvnw', 'clean', 'test', '-P', 'execute-rules'
+        }
+
+        tasks.create(name: verifyRules, type: Exec, dependsOn: executeRules).configure mavenExec {
+            commandLine './mvnw', 'surefire:test', '-P', 'verify-rules'
+        }
+
+        tasks.create(name: cleanUpMavenTest) {
+            doFirst {
+                copy {
+                    from verificationResultOriginPath
+                    include '**/*.xml'
+                    into new File(verificationResultArchivePath, "${config.suffix}")
+                }
+            }
+            doLast {
+                mavenPom.delete()
+                mavenSrc.deleteDir()
+                mavenTarget.deleteDir()
+            }
+        }
+
+        Task executeRulesTask = tasks[executeRules]
+        // Run cleanUp even if task fails
+        tasks[verifyRules].finalizedBy tasks[cleanUpMavenTest]
+        executeRulesTask.finalizedBy tasks[cleanUpMavenTest]
+
+        tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
+
+        productionProjects.with {
+            executeRulesTask.mustRunAfter install
+            executeRulesTask.mustRunAfter uploadArchives
+        }
     }
 }
 
-// Run cleanUp even if task fails
-verifyRules.finalizedBy cleanUpMavenTest
-executeRules.finalizedBy cleanUpMavenTest
+def javaConfigs = [
+        [suffix: "java7", javaVersion: "1.7", jdkProp: "java7Home"],
+        [suffix: "java8", javaVersion: "1.8", jdkProp: "java8Home"],
+        [suffix: "java9", javaVersion: "9", jdkProp: "java9Home", extraCompilerArgs:
+                """<compilerArgs>
+                            <arg>--add-modules</arg>
+                            <arg>java.xml.ws.annotation</arg>
+                        </compilerArgs>"""]
+]
 
-task runMavenTest(dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
+javaConfigs = javaConfigs.findAll { project.hasProperty(it.jdkProp) }
+                         .collect { config -> config + [jdkPath: project[config.jdkProp]] }
 
-productionProjects.with {
-    executeRules.mustRunAfter install
-    executeRules.mustRunAfter uploadArchives
+javaConfigs = javaConfigs ?: [[suffix: 'java7', javaVersion: '1.7']]
+javaConfigs.each { config ->
+    project.with(addMavenTest(config))
 }
+task runMavenTest
+tasks.findAll { it.name ==~ /^runMavenTest.+/ }.each { runMavenTest.dependsOn it }

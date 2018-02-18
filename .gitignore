@@ -11,3 +11,4 @@ _site
 .sass-cache
 .jekyll-metadata
 .asciidoctor
+verification-results
