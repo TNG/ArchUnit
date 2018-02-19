@@ -165,7 +165,7 @@ public abstract class Location {
         return FilePathLocation.from(path.toUri());
     }
 
-    private static URI toURI(URL url) {
+    static URI toURI(URL url) {
         try {
             return url.toURI();
         } catch (URISyntaxException e) {

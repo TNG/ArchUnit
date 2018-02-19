@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toList;
 class ModuleLocationResolver implements LocationResolver {
     @Override
     public UrlSource resolveClassPath() {
-        Iterable<URL> classpath = UrlSource.From.classPathSystemProperty();
+        Iterable<URL> classpath = UrlSource.From.classPathSystemProperties();
         Iterable<URL> modulepath = ModuleFinder.ofSystem().findAll().stream()
                 .flatMap(moduleReference -> moduleReference.location().stream())
                 .map(this::toUrl)

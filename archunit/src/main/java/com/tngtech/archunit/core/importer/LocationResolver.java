@@ -35,6 +35,7 @@ interface LocationResolver {
             for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
                 result.addAll(ImmutableList.copyOf(loader.getURLs()));
             }
+            result.addAll(UrlSource.From.classPathSystemProperties());
             return UrlSource.From.iterable(result.build());
         }
 
