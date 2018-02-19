@@ -17,38 +17,68 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.base.Function;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.tngtech.archunit.core.importer.Location.toURI;
 
 interface UrlSource extends Iterable<URL> {
     @Internal
     class From {
         private static final Logger LOG = LoggerFactory.getLogger(From.class);
 
-        static UrlSource iterable(final Iterable<URL> iterable) {
+        private static final String CLASS_PATH_PROPERTY_NAME = "java.class.path";
+        private static final String BOOT_CLASS_PATH_PROPERTY_NAME = "sun.boot.class.path";
+
+        static UrlSource iterable(Iterable<URL> urls) {
+            final Iterable<URL> uniqueUrls = unique(urls);
             return new UrlSource() {
                 @Override
                 public Iterator<URL> iterator() {
-                    return iterable.iterator();
+                    return uniqueUrls.iterator();
+                }
+
+                @Override
+                public String toString() {
+                    return String.valueOf(uniqueUrls);
                 }
             };
         }
 
-        static UrlSource classPathSystemProperty() {
-            String classPathProperty = System.getProperty("java.class.path");
+        private static Iterable<URL> unique(Iterable<URL> urls) {
+            Set<URI> unique = FluentIterable.from(urls).transform(URL_TO_URI).toSet();
+            return FluentIterable.from(unique).transform(URI_TO_URL);
+        }
+
+        static UrlSource classPathSystemProperties() {
+            return iterable(ImmutableList.<URL>builder()
+                    .addAll(findUrlsForClassPathProperty(BOOT_CLASS_PATH_PROPERTY_NAME))
+                    .addAll(findUrlsForClassPathProperty(CLASS_PATH_PROPERTY_NAME))
+                    .build());
+        }
+
+        private static List<URL> findUrlsForClassPathProperty(String propertyName) {
+            String classPathProperty = System.getProperty(propertyName, "");
             List<URL> urls = new ArrayList<>();
-            for (String path : classPathProperty.split(File.pathSeparator)) {
+            for (String path : Splitter.on(File.pathSeparator).omitEmptyStrings().split(classPathProperty)) {
                 urls.addAll(parseClassPathEntry(path).asSet());
             }
-            LOG.debug("Found URLs on classpath: {}", urls);
-            return iterable(urls);
+            LOG.debug("Found URLs on {}: {}", propertyName, urls);
+            return urls;
         }
 
         private static Optional<URL> parseClassPathEntry(String path) {
@@ -72,5 +102,23 @@ interface UrlSource extends Iterable<URL> {
                 return Optional.absent();
             }
         }
+
+        private static final Function<URL, URI> URL_TO_URI = new Function<URL, URI>() {
+            @Override
+            public URI apply(URL input) {
+                return toURI(input);
+            }
+        };
+
+        private static final Function<URI, URL> URI_TO_URL = new Function<URI, URL>() {
+            @Override
+            public URL apply(URI input) {
+                try {
+                    return input.toURL();
+                } catch (MalformedURLException e) {
+                    throw new LocationException(e);
+                }
+            }
+        };
     }
 }
