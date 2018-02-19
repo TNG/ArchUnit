@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -1771,6 +1772,15 @@ public class ClassFileImporterTest {
         assertThatClasses(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).matchExactly(getClass());
         assertThatClasses(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
         assertThatClasses(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
+    }
+
+    @Test
+    public void is_resilient_against_broken_ClassFileSources() throws MalformedURLException {
+        JavaClasses classes = new ClassFileImporter().importUrl(new File("/broken.class").toURI().toURL());
+        assertThat(classes).isEmpty();
+
+        classes = new ClassFileImporter().importUrl(new File("/broken.jar").toURI().toURL());
+        assertThat(classes).isEmpty();
     }
 
     private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
