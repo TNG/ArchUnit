@@ -122,6 +122,13 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String formatLocation(JavaClass clazz, int lineNumber) {
-        return String.format(LOCATION_TEMPLATE, clazz.getSimpleName(), lineNumber);
+        return String.format(LOCATION_TEMPLATE, getLocationClass(clazz).getSimpleName(), lineNumber);
+    }
+
+    private static JavaClass getLocationClass(JavaClass location) {
+        while (location.getEnclosingClass().isPresent()) {
+            location = location.getEnclosingClass().get();
+        }
+        return location;
     }
 }

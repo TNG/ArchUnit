@@ -118,16 +118,8 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @Internal
     public String getDescriptionWithTemplate(String template) {
         String description = String.format(template, getOwner().getFullName(), getTarget().getFullName());
-        String location = formatLocation(getLocationClass(), getLineNumber());
+        String location = formatLocation(getOriginOwner(), getLineNumber());
         return String.format("%s in %s", description, location);
-    }
-
-    private JavaClass getLocationClass() {
-        JavaClass location = getOriginOwner();
-        while (location.getEnclosingClass().isPresent()) {
-            location = location.getEnclosingClass().get();
-        }
-        return location;
     }
 
     protected abstract String descriptionTemplate();

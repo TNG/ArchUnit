@@ -14,7 +14,8 @@ public class ExpectedLocation {
 
         public ExpectedMessage notResidingIn(String packageIdentifier) {
             String expectedMessage = String.format(
-                    "Class %s doesn't reside in a package '%s'", clazz.getName(), packageIdentifier);
+                    "Class %s doesn't reside in a package '%s' in (%s.java:0)",
+                    clazz.getName(), packageIdentifier, clazz.getSimpleName());
             return new ExpectedMessage(expectedMessage);
         }
     }
