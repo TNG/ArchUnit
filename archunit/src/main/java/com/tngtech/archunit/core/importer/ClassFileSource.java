@@ -61,10 +61,17 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (FileToImport.isRelevant(file.getFileName().toString()) && importOptions.include(Location.of(file))) {
+            if (shouldBeConsidered(file)) {
                 classFileLocations.add(new InputStreamSupplierClassFileLocation(file.toUri(), newInputStreamSupplierFor(file)));
             }
-            return super.visitFile(file, attrs);
+            return FileVisitResult.CONTINUE;
+        }
+
+        private boolean shouldBeConsidered(Path file) {
+            Path fileName = file.getFileName();
+            return fileName != null
+                    && FileToImport.isRelevant(fileName.toString())
+                    && importOptions.include(Location.of(file));
         }
 
         private Supplier<InputStream> newInputStreamSupplierFor(final Path file) {
