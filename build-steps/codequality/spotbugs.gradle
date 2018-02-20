@@ -1,14 +1,14 @@
 def scriptRoot = currentScriptRootOf this
 
 productionProjects*.with {
-    apply plugin: 'findbugs'
+    apply plugin: 'com.github.spotbugs'
 
-    findbugs {
+    spotbugs {
         sourceSets = [sourceSets.main]
-        excludeFilter = new File(scriptRoot, 'findbugs-excludes.xml')
+        excludeFilter = new File(scriptRoot, 'spotbugs-excludes.xml')
     }
 
-    tasks.withType(FindBugs) {
+    spotbugsMain {
         reports {
             xml.enabled false
             html.enabled true

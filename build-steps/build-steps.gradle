@@ -1,7 +1,7 @@
 def utilsPath = { "build-steps/${it}" }
 
 apply from: utilsPath('archiving/archiving.gradle')
-apply from: utilsPath('codequality/findbugs.gradle')
+apply from: utilsPath('codequality/spotbugs.gradle')
 apply from: utilsPath('publish/publish.gradle')
 apply from: utilsPath('license/license.gradle')
 apply from: utilsPath('maven-integration-test/maven-integration-test.gradle')
