@@ -18,9 +18,24 @@ public class SecurityIntegrationTest extends SecurityTest {
     @Test
     @Override
     public void only_security_infrastructure_should_use_java_security() {
-        expectedViolation.ofRule("classes that reside in a package 'java.security..' "
+        expectViolationFromWrongSecurityCheck("classes that reside in a package 'java.security..' "
                 + "should only be accessed by any package ['..example.security..', 'java.security..'], "
-                + "because we want to have one isolated cross-cutting concern 'security'")
+                + "because we want to have one isolated cross-cutting concern 'security'");
+
+        super.only_security_infrastructure_should_use_java_security();
+    }
+
+    @Test
+    @Override
+    public void only_security_infrastructure_should_use_java_security_on_whole_classpath() {
+        expectViolationFromWrongSecurityCheck("classes that reside in a package 'java.security.cert..' "
+                + "should only be accessed by any package ['..example.security..', 'java..', '..sun..', 'javax..']");
+
+        super.only_security_infrastructure_should_use_java_security_on_whole_classpath();
+    }
+
+    private void expectViolationFromWrongSecurityCheck(String ruleText) {
+        expectedViolation.ofRule(ruleText)
 
                 .by(callFrom(WrongSecurityCheck.class, "doCustomNonsense")
                         .toMethod(CertificateFactory.class, "getInstance", String.class)
@@ -28,7 +43,5 @@ public class SecurityIntegrationTest extends SecurityTest {
                 .by(callFrom(WrongSecurityCheck.class, "doCustomNonsense")
                         .toMethod(CertificateFactory.class, "generateCertificate", InputStream.class)
                         .inLine(19));
-
-        super.only_security_infrastructure_should_use_java_security();
     }
 }
