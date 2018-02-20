@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.regex.Pattern.quote;
@@ -45,9 +46,9 @@ public class ClassesShouldConjunctionTest {
                         "classes should have fully qualified name '%s' or should have fully qualified name '%s'",
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                String.format("class %s doesn't have fully qualified name '%s' and class %s doesn't have fully qualified name '%s'",
-                        Wrong.class.getName(), RightOne.class.getName(),
-                        Wrong.class.getName(), RightTwo.class.getName()));
+                String.format("%s and %s",
+                        doesntHaveFqnMessage(Wrong.class, RightOne.class),
+                        doesntHaveFqnMessage(Wrong.class, RightTwo.class)));
     }
 
     @DataProvider
@@ -100,14 +101,19 @@ public class ClassesShouldConjunctionTest {
                         "classes should have fully qualified name '%s' and should have fully qualified name '%s'",
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                String.format("class %s doesn't have fully qualified name '%s'",
-                        RightTwo.class.getName(), RightOne.class.getName()),
-                String.format("class %s doesn't have fully qualified name '%s'",
-                        RightOne.class.getName(), RightTwo.class.getName()),
-                String.format("class %s doesn't have fully qualified name '%s'",
-                        Wrong.class.getName(), RightOne.class.getName()),
-                String.format("class %s doesn't have fully qualified name '%s'",
-                        Wrong.class.getName(), RightTwo.class.getName()));
+                doesntHaveFqnMessage(RightTwo.class, RightOne.class),
+                doesntHaveFqnMessage(RightOne.class, RightTwo.class),
+                doesntHaveFqnMessage(Wrong.class, RightOne.class),
+                doesntHaveFqnMessage(Wrong.class, RightTwo.class));
+    }
+
+    private String doesntHaveFqnMessage(Class<?> clazz, Class<?> expectedFqn) {
+        return String.format("class %s doesn't have fully qualified name '%s' in (%s.java:0)",
+                clazz.getName(), expectedFqn.getName(), locationOf(clazz).getSimpleName());
+    }
+
+    private Class<?> locationOf(Class<?> clazz) {
+        return clazz.getEnclosingClass() != null ? clazz.getEnclosingClass() : clazz;
     }
 
     @DataProvider
@@ -137,8 +143,8 @@ public class ClassesShouldConjunctionTest {
     }
 
     private String classHasFullNameRegex(Class<?> clazz) {
-        return String.format("class %s has fully qualified name '%s'",
-                quote(clazz.getName()), quote(clazz.getName()));
+        return String.format("class %s has fully qualified name '%s' in %s",
+                quote(clazz.getName()), quote(clazz.getName()), locationPattern(locationOf(clazz)));
     }
 
     private String otherWrongCallsWrongRegex() {

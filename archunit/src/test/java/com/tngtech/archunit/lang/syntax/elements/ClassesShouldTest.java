@@ -29,6 +29,8 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.RightNamedClass;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.WrongNamedClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -82,14 +84,15 @@ public class ClassesShouldTest {
     @Test
     @UseDataProvider("haveFullyQualifiedName_rules")
     public void haveFullyQualifiedName(ArchRule rule) {
-        EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+        EvaluationResult result = rule.evaluate(importClasses(RightNamedClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have fully qualified name '%s'", RightNamedClass.class.getName()))
-                .contains(String.format("class %s doesn't have fully qualified name '%s'",
-                        WrongNamedClass.class.getName(), RightNamedClass.class.getName()))
-                .doesNotMatch(String.format("%s .*name", RightNamedClass.class.getName()));
+                .containsPattern(String.format("class %s doesn't have fully qualified name '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(RightNamedClass.class.getName()),
+                        locationPattern(WrongNamedClass.class)))
+                .doesNotMatch(String.format(".*%s .*name.*", quote(RightNamedClass.class.getName())));
     }
 
     @DataProvider
@@ -128,8 +131,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name '%s'", RightNamedClass.class.getSimpleName()))
-                .contains(String.format("class %s doesn't have simple name '%s'",
-                        WrongNamedClass.class.getName(), RightNamedClass.class.getSimpleName()))
+                .containsPattern(String.format("class %s doesn't have simple name '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(RightNamedClass.class.getSimpleName()),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotMatch(String.format(".*class %s .*simple name.*", RightNamedClass.class.getSimpleName()));
     }
 
@@ -149,8 +154,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not have simple name '%s'", WrongNamedClass.class.getSimpleName()))
-                .contains(String.format("%s has simple name '%s'",
-                        WrongNamedClass.class.getName(), WrongNamedClass.class.getSimpleName()))
+                .containsPattern(String.format("%s has simple name '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(WrongNamedClass.class.getSimpleName()),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotMatch(String.format(".*class %s .*simple name.*", RightNamedClass.class.getSimpleName()));
     }
 
@@ -171,8 +178,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name matching '%s'", regex))
-                .contains(String.format("%s doesn't match '%s'",
-                        WrongNamedClass.class.getName(), regex))
+                .containsPattern(String.format("%s doesn't match '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(regex),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(String.format("%s", RightNamedClass.class.getSimpleName()));
     }
 
@@ -193,8 +202,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name not matching '%s'", regex))
-                .contains(String.format("%s matches '%s'",
-                        WrongNamedClass.class.getName(), regex))
+                .containsPattern(String.format("%s matches '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(regex),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(String.format("%s", RightNamedClass.class.getSimpleName()));
     }
 
@@ -216,8 +227,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name starting with '%s'", prefix))
-                .contains(String.format("simple name of %s doesn't start with '%s'",
-                        WrongNamedClass.class.getName(), prefix))
+                .containsPattern(String.format("simple name of %s doesn't start with '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(prefix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -239,8 +252,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name containing '%s'", infix))
-                .contains(String.format("simple name of %s doesn't contain '%s'",
-                        WrongNamedClass.class.getName(), infix))
+                .containsPattern(String.format("simple name of %s doesn't contain '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(infix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -262,8 +277,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not containing '%s'", infix))
-                .contains(String.format("simple name of %s contains '%s'",
-                        WrongNamedClass.class.getName(), infix))
+                .containsPattern(String.format("simple name of %s contains '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(infix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -285,8 +302,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not starting with '%s'", prefix))
-                .contains(String.format("simple name of %s starts with '%s'",
-                        WrongNamedClass.class.getName(), prefix))
+                .containsPattern(String.format("simple name of %s starts with '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(prefix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -308,8 +327,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name ending with '%s'", suffix))
-                .contains(String.format("simple name of %s doesn't end with '%s'",
-                        WrongNamedClass.class.getName(), suffix))
+                .containsPattern(String.format("simple name of %s doesn't end with '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(suffix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -331,8 +352,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not ending with '%s'", suffix))
-                .contains(String.format("simple name of %s ends with '%s'",
-                        WrongNamedClass.class.getName(), suffix))
+                .containsPattern(String.format("simple name of %s ends with '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(suffix),
+                        locationPattern(WrongNamedClass.class)))
                 .doesNotContain(RightNamedClass.class.getName());
     }
 
@@ -358,8 +381,8 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should reside in a package '%s'", packageIdentifier))
-                .contains(doesntResideInAPackageMessageFor(ArchConfiguration.class, packageIdentifier))
-                .contains(doesntResideInAPackageMessageFor(GivenObjects.class, packageIdentifier))
+                .containsPattern(doesntResideInAPackagePatternFor(ArchConfiguration.class, packageIdentifier))
+                .containsPattern(doesntResideInAPackagePatternFor(GivenObjects.class, packageIdentifier))
                 .doesNotContain(String.format("%s", ArchRule.class.getSimpleName()))
                 .doesNotContain(String.format("%s", ArchCondition.class.getSimpleName()));
     }
@@ -389,7 +412,7 @@ public class ClassesShouldTest {
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should reside in any package ['%s']",
                         Joiner.on("', '").join(packageIdentifiers)))
-                .contains(doesntResideInAnyPackageMessageFor(GivenObjects.class, packageIdentifiers))
+                .containsPattern(doesntResideInAnyPackagePatternFor(GivenObjects.class, packageIdentifiers))
                 .doesNotContain(String.format("%s", ArchRule.class.getSimpleName()))
                 .doesNotContain(String.format("%s", ArchConfiguration.class.getSimpleName()));
     }
@@ -416,8 +439,8 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should reside outside of package '%s'", packageIdentifier))
-                .contains(doesntResideOutsideOfPackageMessageFor(ArchRule.class, packageIdentifier))
-                .contains(doesntResideOutsideOfPackageMessageFor(ArchCondition.class, packageIdentifier))
+                .containsPattern(doesntResideOutsideOfPackagePatternFor(ArchRule.class, packageIdentifier))
+                .containsPattern(doesntResideOutsideOfPackagePatternFor(ArchCondition.class, packageIdentifier))
                 .doesNotContain(String.format("%s", ArchConfiguration.class.getSimpleName()))
                 .doesNotContain(String.format("%s", GivenObjects.class.getSimpleName()));
     }
@@ -447,8 +470,8 @@ public class ClassesShouldTest {
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should reside outside of packages ['%s']",
                         Joiner.on("', '").join(packageIdentifiers)))
-                .contains(doesntResideOutsideOfPackagesMessageFor(ArchRule.class, packageIdentifiers))
-                .contains(doesntResideOutsideOfPackagesMessageFor(ArchCondition.class, packageIdentifiers))
+                .containsPattern(doesntResideOutsideOfPackagesPatternFor(ArchRule.class, packageIdentifiers))
+                .containsPattern(doesntResideOutsideOfPackagesPatternFor(ArchCondition.class, packageIdentifiers))
                 .doesNotContain(String.format("%s", GivenObjects.class.getSimpleName()));
     }
 
@@ -558,7 +581,8 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should %shave modifier %s", havePrefix, modifier.name()))
-                .containsPattern(String.format("class %s .* modifier %s", quote(violated.getName()), modifier))
+                .containsPattern(String.format("class %s .* modifier %s in %s",
+                        quote(violated.getName()), modifier, locationPattern(getClass()))) // -> location == enclosingClass()
                 .doesNotMatch(String.format(".*class %s .* modifier %s.*", quote(satisfied.getName()), modifier));
     }
 
@@ -586,8 +610,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should be annotated with @%s", RuntimeRetentionAnnotation.class.getSimpleName()))
-                .contains(String.format("class %s is not annotated with @%s",
-                        wrongClass.getName(), RuntimeRetentionAnnotation.class.getSimpleName()))
+                .containsPattern(String.format("class %s is not annotated with @%s in %s",
+                        quote(wrongClass.getName()),
+                        RuntimeRetentionAnnotation.class.getSimpleName(),
+                        locationPattern(String.class)))
                 .doesNotMatch(String.format(".*%s.*annotated.*", quote(correctClass.getName())));
     }
 
@@ -628,8 +654,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should not be annotated with @" + RuntimeRetentionAnnotation.class.getSimpleName())
-                .contains(String.format("class %s is annotated with @%s",
-                        wrongClass.getName(), RuntimeRetentionAnnotation.class.getSimpleName()))
+                .containsPattern(String.format("class %s is annotated with @%s in %s",
+                        quote(wrongClass.getName()),
+                        RuntimeRetentionAnnotation.class.getSimpleName(),
+                        locationPattern(getClass())))
                 .doesNotMatch(String.format(".*%s.*annotated.*", quote(correctClass.getName())));
     }
 
@@ -705,7 +733,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should implement %s", classToCheckAgainst.getName()))
-                .contains(String.format("class %s doesn't implement %s", violating.getName(), classToCheckAgainst.getName()));
+                .containsPattern(String.format("class %s doesn't implement %s in %s",
+                        quote(violating.getName()),
+                        quote(classToCheckAgainst.getName()),
+                        locationPattern(violating)));
     }
 
     @DataProvider
@@ -727,7 +758,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not implement %s", Collection.class.getName()))
-                .contains(String.format("class %s implements %s", violated.getName(), Collection.class.getName()))
+                .containsPattern(String.format("class %s implements %s in %s",
+                        quote(violated.getName()),
+                        quote(Collection.class.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* implement.*", quote(satisfied.getName())));
     }
 
@@ -758,7 +792,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should be assignable to %s", Collection.class.getName()))
-                .contains(String.format("class %s is not assignable to %s", violated.getName(), Collection.class.getName()))
+                .containsPattern(String.format("class %s is not assignable to %s in %s",
+                        quote(violated.getName()),
+                        quote(Collection.class.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* assignable.*", quote(satisfied.getName())));
     }
 
@@ -781,7 +818,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not be assignable to %s", Collection.class.getName()))
-                .contains(String.format("class %s is assignable to %s", violated.getName(), Collection.class.getName()))
+                .containsPattern(String.format("class %s is assignable to %s in %s",
+                        quote(violated.getName()),
+                        quote(Collection.class.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* assignable.*", quote(satisfied.getName())));
     }
 
@@ -804,7 +844,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should be assignable from %s", List.class.getName()))
-                .contains(String.format("class %s is not assignable from %s", violated.getName(), List.class.getName()))
+                .containsPattern(String.format("class %s is not assignable from %s in %s",
+                        quote(violated.getName()),
+                        quote(List.class.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* assignable.*", quote(satisfied.getName())));
     }
 
@@ -827,7 +870,10 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not be assignable from %s", List.class.getName()))
-                .contains(String.format("class %s is assignable from %s", violated.getName(), List.class.getName()))
+                .containsPattern(String.format("class %s is assignable from %s in %s",
+                        quote(violated.getName()),
+                        quote(List.class.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* assignable.*", quote(satisfied.getName())));
     }
 
@@ -1077,7 +1123,9 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be interfaces")
-                .contains(String.format("class %s is not an interface", violated.getName()))
+                .containsPattern(String.format("class %s is not an interface in %s",
+                        quote(violated.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
     }
 
@@ -1095,8 +1143,14 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should not be interfaces")
-                .contains(String.format("class %s is an interface", violated.getName()))
+                .containsPattern(String.format("class %s is an interface in %s",
+                        quote(violated.getName()),
+                        locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
+    }
+
+    static String locationPattern(Class<?> clazz) {
+        return String.format("\\(%s.java:0\\)", quote(clazz.getSimpleName()));
     }
 
     private String singleLineFailureReportOf(EvaluationResult result) {
@@ -1116,24 +1170,24 @@ public class ClassesShouldTest {
         return String.format(".*%s.*", fullString.substring(1, fullString.length() - 1));
     }
 
-    private String doesntResideInAPackageMessageFor(Class<?> clazz, String packageIdentifier) {
-        return String.format("%s doesn't reside in a package '%s'",
-                clazz.getName(), packageIdentifier);
+    private String doesntResideInAPackagePatternFor(Class<?> clazz, String packageIdentifier) {
+        return String.format("%s doesn't reside in a package '%s' in %s",
+                quote(clazz.getName()), quote(packageIdentifier), locationPattern(clazz));
     }
 
-    private String doesntResideOutsideOfPackageMessageFor(Class<?> clazz, String packageIdentifier) {
-        return String.format("%s doesn't reside outside of package '%s'",
-                clazz.getName(), packageIdentifier);
+    private String doesntResideOutsideOfPackagePatternFor(Class<?> clazz, String packageIdentifier) {
+        return String.format("%s doesn't reside outside of package '%s' in %s",
+                quote(clazz.getName()), quote(packageIdentifier), locationPattern(clazz));
     }
 
-    private String doesntResideInAnyPackageMessageFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("%s doesn't reside in any package ['%s']",
-                clazz.getName(), Joiner.on("', '").join(packageIdentifiers));
+    private String doesntResideInAnyPackagePatternFor(Class<?> clazz, String[] packageIdentifiers) {
+        return String.format("%s doesn't reside in any package \\['%s'\\] in %s",
+                quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
     }
 
-    private String doesntResideOutsideOfPackagesMessageFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("%s doesn't reside outside of packages ['%s']",
-                clazz.getName(), Joiner.on("', '").join(packageIdentifiers));
+    private String doesntResideOutsideOfPackagesPatternFor(Class<?> clazz, String[] packageIdentifiers) {
+        return String.format("%s doesn't reside outside of packages \\['%s'\\] in %s",
+                quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
     }
 
     private static DescribedPredicate<JavaCall<?>> callTargetIs(Class<?> type) {
@@ -1211,12 +1265,6 @@ public class ClassesShouldTest {
         String target = String.format("[^%s]*%s\\.%s",
                 FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), memberName);
         return Pattern.compile(String.format(".*%s (field|method|constructor) %s.*", originAccesses, target));
-    }
-
-    private static class RightNamedClass {
-    }
-
-    private static class WrongNamedClass {
     }
 
     private static class ClassWithField {

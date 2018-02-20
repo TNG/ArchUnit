@@ -25,7 +25,8 @@ public class ExpectedNaming {
         }
 
         private ExpectedMessage expectedSimpleName(String suffix) {
-            return new ExpectedMessage(String.format("simple name of %s %s", clazz.getName(), suffix));
+            return new ExpectedMessage(String.format("simple name of %s %s in (%s.java:0)",
+                    clazz.getName(), suffix, clazz.getSimpleName()));
         }
     }
 }

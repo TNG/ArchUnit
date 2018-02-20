@@ -123,7 +123,8 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return containsLine("Class %s doesn't reside in a package '%s'", clazz.getName(), packageIdentifier);
+            return containsLine("Class %s doesn't reside in a package '%s' in (%s.java:0)",
+                    clazz.getName(), packageIdentifier, clazz.getSimpleName());
         }
     }
 
@@ -140,15 +141,17 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
         }
 
         public MessageAssertionChain.Link havingNameMatching(String regex) {
-            return containsLine("class %s matches '%s'", clazz.getName(), regex);
+            return containsLine("class %s matches '%s' in (%s.java:0)",
+                    clazz.getName(), regex, clazz.getSimpleName());
         }
 
         public MessageAssertionChain.Link havingSimpleNameContaining(String infix) {
-            return containsLine("simple name of %s contains '%s'", clazz.getName(), infix);
+            return containsLine("simple name of %s contains '%s' in (%s.java:0)",
+                    clazz.getName(), infix, clazz.getSimpleName());
         }
 
         public MessageAssertionChain.Link beingAnInterface() {
-            return containsLine("class %s is an interface", clazz.getName());
+            return containsLine("class %s is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
         }
     }
 
