@@ -120,16 +120,14 @@ def addMavenTest = { config ->
             }
         }
 
-        Task executeRulesTask = tasks[executeRules]
         // Run cleanUp even if task fails
-        tasks[verifyRules].finalizedBy tasks[cleanUpMavenTest]
-        executeRulesTask.finalizedBy tasks[cleanUpMavenTest]
+        [tasks[prepareMavenTest], tasks[verifyRules], tasks[executeRules]]*.finalizedBy tasks[cleanUpMavenTest]
 
         tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
+        def executeRulesTask = tasks[executeRules]
         productionProjects.with {
-            executeRulesTask.mustRunAfter install
-            executeRulesTask.mustRunAfter uploadArchives
+            [install, uploadArchives].each { executeRulesTask.mustRunAfter it }
         }
     }
 }
@@ -151,5 +149,15 @@ javaConfigs = javaConfigs ?: [[suffix: 'java7', javaVersion: '1.7']]
 javaConfigs.each { config ->
     project.with(addMavenTest(config))
 }
+
+Task findTask(String name) {
+    tasks[name]
+}
+
+def suffixes = javaConfigs*.suffix.sort()
+[suffixes, suffixes.tail()].transpose().each { twoConsecutiveSuffixes ->
+    tasks["prepareMavenTest${twoConsecutiveSuffixes[1]}"].mustRunAfter(tasks["cleanUpMavenTest${twoConsecutiveSuffixes[0]}"])
+}
+
 task runMavenTest
 tasks.findAll { it.name ==~ /^runMavenTest.+/ }.each { runMavenTest.dependsOn it }
