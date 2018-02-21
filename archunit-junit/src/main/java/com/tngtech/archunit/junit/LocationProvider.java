@@ -23,8 +23,8 @@ import com.tngtech.archunit.core.importer.Location;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
- * Allows to provide a custom implementation that supplies {@link Location Locations}
- * to be imported by the {@link ArchUnitRunner}.
+ * Allows to provide a custom implementation, that supplies {@link Location Locations}
+ * to be imported by the JUnit test infrastructure.
  * <p>
  * The implementation must offer a public default (i.e. no arg) constructor.
  * </p>

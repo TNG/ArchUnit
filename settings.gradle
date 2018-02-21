@@ -1,1 +1,4 @@
-include 'archunit', 'archunit-example', 'archunit-integration-test', 'archunit-junit'
+include 'archunit', 'archunit-example', 'archunit-integration-test', 'archunit-junit', 'archunit-junit4', 'archunit-junit5'
+
+project(':archunit-junit4').projectDir = file('archunit-junit/junit4')
+project(':archunit-junit5').projectDir = file('archunit-junit/junit5')

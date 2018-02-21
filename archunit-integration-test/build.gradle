@@ -9,7 +9,7 @@ dependencies {
     testCompile dependency.log4j_core
     testCompile dependency.log4j_slf4j
     testCompile project(path: ':archunit', configuration: 'tests')
-    testCompile project(path: ':archunit-junit')
+    testCompile project(path: ':archunit-junit4')
     testCompile project(path: ':archunit-example')
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }

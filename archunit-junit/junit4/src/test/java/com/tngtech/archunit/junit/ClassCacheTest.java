@@ -244,7 +244,7 @@ public class ClassCacheTest {
     public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
-            return location.contains("junit") && location.contains(".jar");
+            return location.contains("/org/junit") && location.isJar();
         }
     }
 

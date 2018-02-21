@@ -5,7 +5,6 @@ plugins {
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
-def productionProjectNames = ['archunit', 'archunit-junit']
 
 ext {
     year = "${Calendar.getInstance().get(Calendar.YEAR)}"
@@ -54,7 +53,15 @@ ext {
 
     tempJar = { File jarFile -> postfixedJar(jarFile, 'tmp') }
 
-    productionProjects = subprojects.findAll { productionProjectNames.contains(it.name) }
+    productionProjects = [
+            project(':archunit'),
+            project(':archunit-junit'),
+            project(':archunit-junit4'),
+            project(':archunit-junit5')]
+    releaseProjects = [
+            project(':archunit'),
+            project(':archunit-junit4'),
+            project(':archunit-junit5')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     addTestJarTo = { proj ->
