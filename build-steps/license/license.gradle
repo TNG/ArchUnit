@@ -86,7 +86,7 @@ task updateLicenses {
     }
 }
 
-productionProjects*.with {
+releaseProjects*.with {
     def installer = install.repositories.mavenInstaller
     def deployer = uploadArchives.repositories.mavenDeployer
 

@@ -126,7 +126,7 @@ def addMavenTest = { config ->
         tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
         def executeRulesTask = tasks[executeRules]
-        productionProjects.with {
+        releaseProjects.with {
             [install, uploadArchives].each { executeRulesTask.mustRunAfter it }
         }
     }

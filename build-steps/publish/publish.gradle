@@ -1,4 +1,4 @@
-productionProjects*.with {
+releaseProjects*.with {
     apply plugin: 'maven'
     apply plugin: 'signing'
 

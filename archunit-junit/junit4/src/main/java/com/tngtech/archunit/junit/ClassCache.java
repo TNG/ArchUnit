@@ -140,8 +140,8 @@ class ClassCache {
 
     private static <T> T newInstanceOf(Class<T> type) {
         try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return type.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
             throw new ReflectionException(e);
         }
     }

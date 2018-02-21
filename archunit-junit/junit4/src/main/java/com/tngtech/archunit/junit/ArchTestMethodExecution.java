@@ -48,7 +48,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
                     ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName()));
         }
 
-        new FrameworkMethod(testMethod).invokeExplosively(testClass.newInstance(), classes);
+        new FrameworkMethod(testMethod).invokeExplosively(testClass.getDeclaredConstructor().newInstance(), classes);
     }
 
     @Override

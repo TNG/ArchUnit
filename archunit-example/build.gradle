@@ -7,7 +7,7 @@ dependencies {
     compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
 
     testCompile project(path: ':archunit')
-    testCompile project(path: ':archunit-junit')
+    testCompile project(path: ':archunit-junit4')
 }
 
 addTestJarTo this
