@@ -63,14 +63,14 @@ public class ClassCacheConcurrencyTest {
             @Override
             public void run() {
                 for (int j = 0; j < times; j++) {
-                    cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()));
+                    cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),
+                            new TestAnalysisRequest().withLocationProviders(LocationOfClass.Provider.class));
                 }
             }
         };
     }
 
     @LocationOfClass(FirstClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass1 {
     }
 
@@ -78,7 +78,6 @@ public class ClassCacheConcurrencyTest {
     }
 
     @LocationOfClass(SecondClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass2 {
     }
 
@@ -86,7 +85,6 @@ public class ClassCacheConcurrencyTest {
     }
 
     @LocationOfClass(ThirdClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass3 {
     }
 
@@ -94,7 +92,6 @@ public class ClassCacheConcurrencyTest {
     }
 
     @LocationOfClass(FourthClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass4 {
     }
 
@@ -102,7 +99,6 @@ public class ClassCacheConcurrencyTest {
     }
 
     @LocationOfClass(FifthClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass5 {
     }
 
@@ -110,7 +106,6 @@ public class ClassCacheConcurrencyTest {
     }
 
     @LocationOfClass(SixthClass.class)
-    @AnalyzeClasses(locations = LocationOfClass.Provider.class)
     public static class TestClass6 {
     }
 

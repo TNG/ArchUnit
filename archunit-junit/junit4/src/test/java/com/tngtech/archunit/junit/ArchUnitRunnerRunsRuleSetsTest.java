@@ -72,9 +72,10 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
 
     @Before
+    @SuppressWarnings("unchecked")
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
-        when(classCache.getClassesToAnalyzeFor(any(Class.class))).thenReturn(cachedClasses);
+        when(classCache.getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class))).thenReturn(cachedClasses);
     }
 
     @Test

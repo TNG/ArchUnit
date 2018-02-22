@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 
 import static com.google.common.collect.Collections2.filter;
 
@@ -69,6 +70,14 @@ class ReflectionUtils {
             collector.collectFrom(t);
         }
         return collector.collected;
+    }
+
+    static <T> T newInstanceOf(Class<T> type) {
+        try {
+            return type.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new ReflectionException(e);
+        }
     }
 
     private abstract static class Collector<T> {

@@ -29,7 +29,7 @@ import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnored;
+import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 
@@ -57,21 +57,21 @@ public final class ArchRules {
         return new ArchRules(definitionLocation);
     }
 
-    Set<ArchTestExecution> asTestExecutions(boolean forceIgnore) {
-        ImmutableSet.Builder<ArchTestExecution> result = ImmutableSet.builder();
+    Set<ArchRuleDeclaration> asDeclarations(Class<?> testClass, boolean forceIgnore) {
+        ImmutableSet.Builder<ArchRuleDeclaration> result = ImmutableSet.builder();
         for (Field field : fields) {
-            result.addAll(archRuleExecutionsOf(field, forceIgnore));
+            result.addAll(archRuleDeclarationsFrom(testClass, field, forceIgnore));
         }
         for (Method method : methods) {
-            result.add(new ArchTestMethodExecution(method.getDeclaringClass(), method, forceIgnore));
+            result.add(ArchRuleDeclaration.from(testClass, method, forceIgnore));
         }
         return result.build();
     }
 
-    private Set<ArchTestExecution> archRuleExecutionsOf(Field field, boolean forceIgnore) {
+    private Set<ArchRuleDeclaration> archRuleDeclarationsFrom(Class<?> testClass, Field field, boolean forceIgnore) {
         return ArchRules.class.isAssignableFrom(field.getType()) ?
-                getArchRulesIn(field).asTestExecutions(forceIgnore || elementShouldBeIgnored(field)) :
-                Collections.<ArchTestExecution>singleton(new ArchRuleExecution(field.getDeclaringClass(), field, forceIgnore));
+                getArchRulesIn(field).asDeclarations(testClass, forceIgnore || elementShouldBeIgnored(field)) :
+                Collections.singleton(ArchRuleDeclaration.from(testClass, field, forceIgnore));
     }
 
     private ArchRules getArchRulesIn(Field field) {

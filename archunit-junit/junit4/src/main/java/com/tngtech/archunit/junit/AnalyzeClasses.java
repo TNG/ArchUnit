@@ -18,6 +18,7 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOption.DontIncludeJars;
@@ -71,7 +72,8 @@ public @interface AnalyzeClasses {
     Class<? extends ImportOption>[] importOptions() default {};
 
     /**
-     * Controls when the {@link ArchUnitRunner} clears the {@link ClassCache}.
+     * Controls, if the {@link ClassCache} should cache {@link JavaClasses} by location,
+     * to be reused between several test classes, or just within the same class.
      *
      * @return The {@link CacheMode} to use for this test class.
      */

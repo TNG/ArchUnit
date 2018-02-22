@@ -18,6 +18,7 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static java.lang.annotation.ElementType.FIELD;
@@ -25,9 +26,25 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks a field of type {@link ArchRule} to be evaluated by the {@link ArchUnitRunner}.
+ * Marks ArchUnit tests to be executed by the test infrastructure. These tests can have the following form:
+ * <ul>
+ *     <li>
+ *         A static field of type {@link ArchRule} -&gt; this rule will automatically be checked against the imported classes
+ *     </li>
+ *     <li>
+ *         A static method with one parameter {@link JavaClasses} -&gt; this method will be called with the imported classes
+ *     </li>
+ * </ul>
+ * <br>Example:
+ * <pre><code>
+ *{@literal @}ArchTest
+ * public static final ArchRule someRule = classes()... ;
  *
- * @see ArchUnitRunner
+ *{@literal @}ArchTest
+ * public static void someMethod(JavaClasses classes) {
+ *     // do something with classes
+ * }
+ * </code></pre>
  */
 @Target({FIELD, METHOD})
 @Retention(RUNTIME)
