@@ -16,3 +16,5 @@ dependencies {
     }
     testCompile project(path: ':archunit', configuration: 'tests')
 }
+
+addTestJarTo this

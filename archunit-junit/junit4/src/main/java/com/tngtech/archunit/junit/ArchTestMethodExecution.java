@@ -23,11 +23,13 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 
+import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
+
 class ArchTestMethodExecution extends ArchTestExecution {
     private final Method testMethod;
 
-    ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean forceIgnore) {
-        super(testClass, testMethod, forceIgnore);
+    ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean ignore) {
+        super(testClass, ignore);
         this.testMethod = validatePublicStatic(testMethod);
     }
 
@@ -48,7 +50,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
                     ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName()));
         }
 
-        new FrameworkMethod(testMethod).invokeExplosively(testClass.getDeclaredConstructor().newInstance(), classes);
+        new FrameworkMethod(testMethod).invokeExplosively(newInstanceOf(testClass), classes);
     }
 
     @Override

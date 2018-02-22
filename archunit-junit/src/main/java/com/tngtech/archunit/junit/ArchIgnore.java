@@ -24,12 +24,14 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Equivalent to {@link org.junit.Ignore}, but can be applied to fields to mark rules annotated with @{@link ArchTest}
- * to be ignored by the {@link ArchUnitRunner}.
+ * Marks rules (annotated with @{@link ArchTest} to be ignored by the test support.
+ * I.e. rules marked this way will be skipped during evaluation.
  */
 @Target({TYPE, FIELD, METHOD})
 @Retention(RUNTIME)
 public @interface ArchIgnore {
-    /** documents why the test is ignored */
+    /**
+     * @return why the test is ignored
+     */
     String reason() default "";
 }

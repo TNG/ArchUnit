@@ -15,15 +15,19 @@
  */
 package com.tngtech.archunit.junit;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
@@ -33,8 +37,9 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnored;
+import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -61,6 +66,15 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     @Internal
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
+        checkAnnotation(testClass);
+    }
+
+    private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
+        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
+        checkArgument(analyzeClasses != null,
+                "Class %s must be annotated with @%s",
+                testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
+        return analyzeClasses;
     }
 
     @Override
@@ -95,11 +109,19 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
+        boolean ignore = elementShouldBeIgnored(ruleField.getField());
         if (ruleField.getType() == ArchRules.class) {
-            boolean ignore = elementShouldBeIgnored(ruleField.getField());
-            return getArchRules(ruleField).asTestExecutions(ignore);
+            return asTestExecutions(getArchRules(ruleField), ignore);
         }
-        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), false));
+        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
+    }
+
+    private Set<ArchTestExecution> asTestExecutions(ArchRules archRules, boolean forceIgnore) {
+        ExecutionTransformer executionTransformer = new ExecutionTransformer();
+        for (ArchRuleDeclaration declaration : archRules.asDeclarations(getTestClass().getJavaClass(), forceIgnore)) {
+            declaration.handleWith(executionTransformer);
+        }
+        return executionTransformer.getExecutions();
     }
 
     private ArchRules getArchRules(FrameworkField ruleField) {
@@ -114,7 +136,8 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     private Collection<ArchTestExecution> findArchRuleMethods() {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
-            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), false));
+            boolean ignore = elementShouldBeIgnored(testMethod.getMethod());
+            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
         }
         return result;
     }
@@ -130,7 +153,8 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
             notifier.fireTestIgnored(describeChild(child));
         } else {
             notifier.fireTestStarted(describeChild(child));
-            JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
+            Class<?> testClass = getTestClass().getJavaClass();
+            JavaClasses classes = cache.get().getClassesToAnalyzeFor(testClass, new JUnit4ClassAnalysisRequest(testClass));
             child.evaluateOn(classes).notify(notifier);
             notifier.fireTestFinished(describeChild(child));
         }
@@ -145,6 +169,57 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
         void clear(Class<?> testClass) {
             cache.clear(testClass);
+        }
+    }
+
+    private class ExecutionTransformer implements ArchRuleDeclaration.Handler {
+        private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
+
+        @Override
+        public void handleFieldDeclaration(Field field, boolean ignore) {
+            executions.add(new ArchRuleExecution(getTestClass().getJavaClass(), field, ignore));
+        }
+
+        @Override
+        public void handleMethodDeclaration(Method method, boolean ignore) {
+            executions.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), method, ignore));
+        }
+
+        Set<ArchTestExecution> getExecutions() {
+            return executions.build();
+        }
+    }
+
+    private static class JUnit4ClassAnalysisRequest implements ClassAnalysisRequest {
+        private final AnalyzeClasses analyzeClasses;
+
+        JUnit4ClassAnalysisRequest(Class<?> testClass) {
+            analyzeClasses = checkAnnotation(testClass);
+        }
+
+        @Override
+        public String[] getPackages() {
+            return analyzeClasses.packages();
+        }
+
+        @Override
+        public Class<?>[] getPackageRoots() {
+            return analyzeClasses.packagesOf();
+        }
+
+        @Override
+        public Class<? extends LocationProvider>[] getLocationProviders() {
+            return analyzeClasses.locations();
+        }
+
+        @Override
+        public Class<? extends ImportOption>[] getImportOptions() {
+            return analyzeClasses.importOptions();
+        }
+
+        @Override
+        public CacheMode getCacheMode() {
+            return analyzeClasses.cacheMode();
         }
     }
 }

@@ -17,6 +17,7 @@ dependencies {
         exclude module: 'guava'
     }
     testCompile project(path: ':archunit', configuration: 'tests')
+    testCompile project(path: ':archunit-junit', configuration: 'tests')
 }
 
 configureSlowTestsFor this

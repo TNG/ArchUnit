@@ -30,8 +30,8 @@ class ArchRuleExecution extends ArchTestExecution {
     @VisibleForTesting
     final ArchRule rule;
 
-    ArchRuleExecution(Class<?> testClass, Field ruleField, boolean forceIgnore) {
-        super(testClass, ruleField, forceIgnore);
+    ArchRuleExecution(Class<?> testClass, Field ruleField, boolean ignore) {
+        super(testClass, ignore);
 
         validatePublicStatic(ruleField);
         checkArgument(ArchRule.class.isAssignableFrom(ruleField.getType()),

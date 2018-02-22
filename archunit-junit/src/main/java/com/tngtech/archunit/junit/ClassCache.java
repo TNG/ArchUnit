@@ -27,7 +27,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -35,7 +34,9 @@ import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.junit.CacheMode.FOREVER;
+import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
 
 /**
  * The {@link ClassCache} takes care of caching {@link JavaClasses} between test runs. On the one hand,
@@ -64,93 +65,22 @@ class ClassCache {
 
     private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
-    JavaClasses getClassesToAnalyzeFor(Class<?> testClass) {
-        checkArgument(testClass);
+    JavaClasses getClassesToAnalyzeFor(Class<?> testClass, ClassAnalysisRequest classAnalysisRequest) {
+        checkNotNull(testClass);
+        checkNotNull(classAnalysisRequest);
 
         if (cachedByTest.containsKey(testClass)) {
             return cachedByTest.get(testClass);
         }
 
-        LocationsKey locations = locationsToImport(testClass);
+        LocationsKey locations = locationsToImport(testClass, classAnalysisRequest);
 
-        JavaClasses classes = getCacheMode(testClass) == FOREVER
+        JavaClasses classes = classAnalysisRequest.getCacheMode() == FOREVER
                 ? cachedByLocations.getUnchecked(locations).get()
                 : new LazyJavaClasses(locations.locations, locations.importOptionTypes).get();
 
         cachedByTest.put(testClass, classes);
         return classes;
-    }
-
-    private CacheMode getCacheMode(Class<?> testClass) {
-        return testClass.getAnnotation(AnalyzeClasses.class).cacheMode();
-    }
-
-    private LocationsKey locationsToImport(Class<?> testClass) {
-        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        Set<Location> declaredLocations = ImmutableSet.<Location>builder()
-                .addAll(getLocationsOfPackages(analyzeClasses))
-                .addAll(getLocationsOfProviders(testClass, analyzeClasses))
-                .build();
-        Set<Location> locations = declaredLocations.isEmpty() ? Locations.inClassPath() : declaredLocations;
-        return new LocationsKey(analyzeClasses.importOptions(), locations);
-    }
-
-    private Set<Location> getLocationsOfPackages(AnalyzeClasses analyzeClasses) {
-        Set<String> packages = ImmutableSet.<String>builder()
-                .add(analyzeClasses.packages())
-                .addAll(toPackageStrings(analyzeClasses.packagesOf()))
-                .build();
-        return locationsOf(packages);
-    }
-
-    private Set<Location> getLocationsOfProviders(Class<?> testClass, AnalyzeClasses analyzeClasses) {
-        Set<Location> result = new HashSet<>();
-        for (Class<? extends LocationProvider> providerClass : analyzeClasses.locations()) {
-            result.addAll(tryCreate(providerClass).get(testClass));
-        }
-        return result;
-    }
-
-    private LocationProvider tryCreate(Class<? extends LocationProvider> providerClass) {
-        try {
-            return newInstanceOf(providerClass);
-        } catch (RuntimeException e) {
-            String message = String.format(
-                    "Failed to create %s. It must be accessible and provide a public default constructor",
-                    LocationProvider.class.getSimpleName());
-            throw new ArchTestExecutionException(message, e);
-        }
-    }
-
-    private Set<String> toPackageStrings(Class<?>[] classes) {
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (Class<?> clazz : classes) {
-            result.add(clazz.getPackage().getName());
-        }
-        return result.build();
-    }
-
-    private Set<Location> locationsOf(Set<String> packages) {
-        Set<Location> result = new HashSet<>();
-        for (String pkg : packages) {
-            result.addAll(Locations.ofPackage(pkg));
-        }
-        return result;
-    }
-
-    private static <T> T newInstanceOf(Class<T> type) {
-        try {
-            return type.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new ReflectionException(e);
-        }
-    }
-
-    private void checkArgument(Class<?> testClass) {
-        if (testClass.getAnnotation(AnalyzeClasses.class) == null) {
-            throw new IllegalArgumentException(String.format("Class %s must be annotated with @%s",
-                    testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName()));
-        }
     }
 
     void clear(Class<?> testClass) {
