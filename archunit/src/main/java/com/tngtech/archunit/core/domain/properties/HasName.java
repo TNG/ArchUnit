@@ -41,23 +41,41 @@ public interface HasName {
          */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasName> nameMatching(final String regex) {
-            final Pattern pattern = Pattern.compile(regex);
-            return new DescribedPredicate<HasName>(String.format("name matching '%s'", regex)) {
-                @Override
-                public boolean apply(HasName input) {
-                    return pattern.matcher(input.getName()).matches();
-                }
-            };
+            return new NameMatchingPredicate(regex);
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasName> name(final String name) {
-            return new DescribedPredicate<HasName>(String.format("name '%s'", name)) {
-                @Override
-                public boolean apply(HasName input) {
-                    return input.getName().equals(name);
-                }
-            };
+            return new NameEqualsPredicate(name);
+        }
+
+        private static class NameMatchingPredicate extends DescribedPredicate<HasName> {
+            private final Pattern pattern;
+
+            NameMatchingPredicate(String regex) {
+                super(String.format("name matching '%s'", regex));
+                this.pattern = Pattern.compile(regex);
+                ;
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return pattern.matcher(input.getName()).matches();
+            }
+        }
+
+        private static class NameEqualsPredicate extends DescribedPredicate<HasName> {
+            private final String name;
+
+            NameEqualsPredicate(String name) {
+                super(String.format("name '%s'", name));
+                this.name = name;
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return input.getName().equals(name);
+            }
         }
     }
 

@@ -21,6 +21,13 @@ class TestJarFile {
         return this;
     }
 
+    TestJarFile withEntries(Iterable<String> entries) {
+        for (String entry : entries) {
+            withEntry(entry);
+        }
+        return this;
+    }
+
     JarFile create() {
         File folder = TestUtils.newTemporaryFolder();
         File file = new File(folder, "test.jar");

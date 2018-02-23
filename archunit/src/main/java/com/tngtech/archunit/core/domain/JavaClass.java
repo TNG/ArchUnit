@@ -787,32 +787,17 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleNameStartingWith(final String prefix) {
-            return new DescribedPredicate<JavaClass>(String.format("simple name starting with '%s'", prefix)) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.getSimpleName().startsWith(prefix);
-                }
-            };
+            return new SimpleNameStartingWithPredicate(prefix);
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleNameContaining(final String infix) {
-            return new DescribedPredicate<JavaClass>(String.format("simple name containing '%s'", infix)) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.getSimpleName().contains(infix);
-                }
-            };
+            return new SimpleNameContainingPredicate(infix);
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> simpleNameEndingWith(final String suffix) {
-            return new DescribedPredicate<JavaClass>(String.format("simple name ending with '%s'", suffix)) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.getSimpleName().endsWith(suffix);
-                }
-            };
+            return new SimpleNameEndingWithPredicate(suffix);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -837,22 +822,12 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final DescribedPredicate<? super JavaClass> predicate) {
-            return new DescribedPredicate<JavaClass>("assignable to " + predicate.getDescription()) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.isAssignableTo(predicate);
-                }
-            };
+            return new AssignableToPredicate(predicate);
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final DescribedPredicate<? super JavaClass> predicate) {
-            return new DescribedPredicate<JavaClass>("assignable from " + predicate.getDescription()) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.isAssignableFrom(predicate);
-                }
-            };
+            return new AssignableFromPredicate(predicate);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -906,17 +881,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             for (String identifier : packageIdentifiers) {
                 packageMatchers.add(PackageMatcher.of(identifier));
             }
-            return new DescribedPredicate<JavaClass>(description) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    for (PackageMatcher matcher : packageMatchers) {
-                        if (matcher.matches(input.getPackage())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            };
+            return new PackageMatchesPredicate(packageMatchers, description);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -936,12 +901,110 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
          */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> equivalentTo(final Class<?> clazz) {
-            return new DescribedPredicate<JavaClass>("equivalent to %s", clazz.getName()) {
-                @Override
-                public boolean apply(JavaClass input) {
-                    return input.isEquivalentTo(clazz);
+            return new EquivalentToPredicate(clazz);
+        }
+
+        private static class SimpleNameStartingWithPredicate extends DescribedPredicate<JavaClass> {
+            private final String prefix;
+
+            SimpleNameStartingWithPredicate(String prefix) {
+                super(String.format("simple name starting with '%s'", prefix));
+                this.prefix = prefix;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.getSimpleName().startsWith(prefix);
+            }
+        }
+
+        private static class SimpleNameContainingPredicate extends DescribedPredicate<JavaClass> {
+            private final String infix;
+
+            SimpleNameContainingPredicate(String infix) {
+                super(String.format("simple name containing '%s'", infix));
+                this.infix = infix;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.getSimpleName().contains(infix);
+            }
+        }
+
+        private static class SimpleNameEndingWithPredicate extends DescribedPredicate<JavaClass> {
+            private final String suffix;
+
+            SimpleNameEndingWithPredicate(String suffix) {
+                super(String.format("simple name ending with '%s'", suffix));
+                this.suffix = suffix;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.getSimpleName().endsWith(suffix);
+            }
+        }
+
+        private static class AssignableToPredicate extends DescribedPredicate<JavaClass> {
+            private final DescribedPredicate<? super JavaClass> predicate;
+
+            AssignableToPredicate(DescribedPredicate<? super JavaClass> predicate) {
+                super("assignable to " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableTo(predicate);
+            }
+        }
+
+        private static class AssignableFromPredicate extends DescribedPredicate<JavaClass> {
+            private final DescribedPredicate<? super JavaClass> predicate;
+
+            AssignableFromPredicate(DescribedPredicate<? super JavaClass> predicate) {
+                super("assignable from " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAssignableFrom(predicate);
+            }
+        }
+
+        private static class PackageMatchesPredicate extends DescribedPredicate<JavaClass> {
+            private final Set<PackageMatcher> packageMatchers;
+
+            PackageMatchesPredicate(Set<PackageMatcher> packageMatchers, String description) {
+                super(description);
+                this.packageMatchers = packageMatchers;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                for (PackageMatcher matcher : packageMatchers) {
+                    if (matcher.matches(input.getPackage())) {
+                        return true;
+                    }
                 }
-            };
+                return false;
+            }
+        }
+
+        private static class EquivalentToPredicate extends DescribedPredicate<JavaClass> {
+            private final Class<?> clazz;
+
+            EquivalentToPredicate(Class<?> clazz) {
+                super("equivalent to %s", clazz.getName());
+                this.clazz = clazz;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isEquivalentTo(clazz);
+            }
         }
     }
 

@@ -35,12 +35,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM6;
 
 class ClassFileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
 
-    static final int ASM_API_VERSION = ASM5;
+    static final int ASM_API_VERSION = ASM6;
 
     private final ClassResolver.Factory classResolverFactory = new ClassResolver.Factory();
 

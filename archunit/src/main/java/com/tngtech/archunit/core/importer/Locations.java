@@ -15,43 +15,44 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
+import com.tngtech.archunit.core.InitialConfiguration;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.list;
 
 public final class Locations {
+    private static final InitialConfiguration<LocationResolver> locationResolver = new InitialConfiguration<>();
+
+    static {
+        ImportPlugin.Loader.loadForCurrentPlatform().plugInLocationResolver(locationResolver);
+    }
+
     private Locations() {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static Set<Location> of(Collection<URL> urls) {
-        Set<Location> result = new HashSet<>();
+    public static Set<Location> of(Iterable<URL> urls) {
+        ImmutableSet.Builder<Location> result = ImmutableSet.builder();
         for (URL url : urls) {
             result.add(Location.of(url));
         }
-        return result;
+        return result.build();
     }
 
     /**
-     * All locations in the classpath that match the supplied package.<br>
-     * NOTE: Only works, if the used ClassLoader extends {@link URLClassLoader} (which is true for normal settings)
+     * All locations in the classpath that match the supplied package.
      *
      * @param pkg the package to look for within the classpath
      * @return Locations of all paths that match the supplied package
@@ -72,13 +73,11 @@ public final class Locations {
 
     @PublicAPI(usage = ACCESS)
     public static Set<Location> inClassPath() {
-        Set<Location> result = new HashSet<>();
-        for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
-            for (URL url : loader.getURLs()) {
-                result.add(Location.of(url));
-            }
+        ImmutableSet.Builder<Location> result = ImmutableSet.builder();
+        for (URL url : locationResolver.get().resolveClassPath()) {
+            result.add(Location.of(url));
         }
-        return result;
+        return result.build();
     }
 
     private static String asResourceName(String qualifiedName) {
@@ -86,17 +85,17 @@ public final class Locations {
     }
 
     private static Set<Location> getLocationsOf(String resourceName) {
-        ImmutableSet.Builder<Location> result = ImmutableSet.builder();
-        for (URLClassLoader loader : findAllUrlClassLoadersInContext()) {
-            result.addAll(getResourceLocations(loader, resourceName));
-        }
-        return result.build();
+        UrlSource classpath = locationResolver.get().resolveClassPath();
+        NormalizedResourceName normalizedResourceName = NormalizedResourceName.from(resourceName);
+        return ImmutableSet.copyOf(getResourceLocations(Locations.class.getClassLoader(), normalizedResourceName, classpath));
     }
 
-    private static Collection<Location> getResourceLocations(URLClassLoader loader, String resourceName) {
+    private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {
         try {
-            Set<Location> result = Locations.of(Collections.list(loader.getResources(resourceName)));
-            result.addAll(findMissedClassesDueToLackOfPackageJarEntry(result, loader, resourceName));
+            Set<Location> result = newHashSet(Locations.of(list(loader.getResources(resourceName.toString()))));
+            if (result.isEmpty()) {
+                return findMissedClassesDueToLackOfPackageEntry(classpath, resourceName);
+            }
             return result;
         } catch (IOException e) {
             throw new LocationException(e);
@@ -104,101 +103,44 @@ public final class Locations {
     }
 
     /**
-     * Unfortunately the behavior with JAR files is not completely consistent. Originally,
+     * Unfortunately the behavior with archives is not completely consistent. Originally,
      * {@link Locations#ofPackage(String)} simply asked all {@link java.net.URLClassLoader}s, for
      * {@link ClassLoader#getResources(String)} of the respective resource name.
      * E.g.
      * <pre><code>importPackage("org.junit") -> getResources("/org/junit")</code></pre>
-     * However, this only works, if all respective JARs contain an entry for the folder, which is not always the
+     * However, this only works, if all respective archives contain an entry for the folder, which is not always the
      * case. Consider the standard JRE "rt.jar", which does not contain an entry "/java/io", but nonetheless
      * entries like "/java/io/File.class". Thus an import of "java.io", relying on
      * {@link ClassLoader#getResources(String)}, would not import <code>java.io.File</code>.
      */
-    private static Collection<Location> findMissedClassesDueToLackOfPackageJarEntry(
-            Set<Location> locationsSoFar, URLClassLoader loader, String resourceName) {
-
-        Set<Location> locationsToConsider = filterCandidates(loader, locationsSoFar);
-        String searchedJarEntryPrefix = resourceName.endsWith("/") ? resourceName : resourceName + "/";
-
+    private static Collection<Location> findMissedClassesDueToLackOfPackageEntry(
+            Iterable<URL> classpath, NormalizedResourceName resourceName) {
         Set<Location> result = new HashSet<>();
-        for (Location location : locationsToConsider) {
-            if (containsEntryWithPrefix(location, searchedJarEntryPrefix)) {
-                result.add(location.append(resourceName));
+        for (Location location : archiveLocationsOf(classpath)) {
+            if (containsEntryWithPrefix(location, resourceName)) {
+                result.add(location.append(resourceName.toString()));
             }
         }
         return result;
     }
 
-    /**
-     * We only need to take those URLs that haven't been considered, yet. In the end, if we already have some
-     * URL jar:file:///some.jar!/foo/bar, the entry was obviously not missing from the JAR, so we don't need
-     * to consider the JAR anymore.
-     */
-    private static Set<Location> filterCandidates(URLClassLoader loader, Set<Location> locationsSoFar) {
-        Set<Location> allLocations = jarLocationsOf(loader);
-        Set<Location> locationsToConsider = new HashSet<>(allLocations);
-        for (Location location : allLocations) {
-            for (Location alreadyAdded : locationsSoFar) {
-                // location is a base URL, alreadyAdded will be a sub-URL or a base URL as well
-                if (alreadyAdded.startsWith(location)) {
-                    locationsToConsider.remove(location);
-                }
-            }
-        }
-        return locationsToConsider;
-    }
-
-    private static boolean containsEntryWithPrefix(Location location, String searchedJarEntryPrefix) {
-        for (JarEntry entry : Collections.list(newJarFile(location).entries())) {
-            if (entry.getName().startsWith(searchedJarEntryPrefix)) {
+    private static boolean containsEntryWithPrefix(Location location, NormalizedResourceName searchedJarEntryPrefix) {
+        for (NormalizedResourceName name : location.iterateEntries()) {
+            if (name.startsWith(searchedJarEntryPrefix)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static Set<Location> jarLocationsOf(URLClassLoader loader) {
-        return FluentIterable.from(Locations.of(ImmutableSet.copyOf(loader.getURLs())))
+    private static Set<Location> archiveLocationsOf(Iterable<URL> urls) {
+        return FluentIterable.from(Locations.of(urls))
                 .filter(new Predicate<Location>() {
                     @Override
                     public boolean apply(Location input) {
-                        return input.isJar();
+                        return input.isArchive();
                     }
                 }).toSet();
-    }
-
-    private static Set<URLClassLoader> findAllUrlClassLoadersInContext() {
-        return ImmutableSet.<URLClassLoader>builder()
-                .addAll(findUrlClassLoadersInHierarchy(Thread.currentThread().getContextClassLoader()))
-                .addAll(findUrlClassLoadersInHierarchy(Locations.class.getClassLoader()))
-                .build();
-    }
-
-    private static Set<URLClassLoader> findUrlClassLoadersInHierarchy(ClassLoader loader) {
-        Set<URLClassLoader> result = new HashSet<>();
-        while (loader != null) {
-            if (loader instanceof URLClassLoader) {
-                result.add((URLClassLoader) loader);
-            }
-            loader = loader.getParent();
-        }
-        return result;
-    }
-
-    private static JarFile newJarFile(Location location) {
-        try {
-            return new JarFile(getFileOfJarLocation(location));
-        } catch (IOException e) {
-            throw new LocationException(e);
-        }
-    }
-
-    private static File getFileOfJarLocation(Location location) {
-        checkArgument(location.isJar());
-
-        return new File(URI.create(location.asURI().toString()
-                .replaceAll("^jar:", "")
-                .replaceAll("!/.*", "")));
     }
 
 }

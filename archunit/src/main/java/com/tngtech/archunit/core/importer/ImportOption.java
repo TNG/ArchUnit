@@ -57,6 +57,17 @@ public interface ImportOption {
             public boolean includes(Location location) {
                 return dontIncludeJars.includes(location);
             }
+        },
+        /**
+         * Since Java 9 there are JARs and JRTs, this will exclude both
+         */
+        DONT_INCLUDE_ARCHIVES {
+            private final DontIncludeArchives dontIncludeArchives = new DontIncludeArchives();
+
+            @Override
+            public boolean includes(Location location) {
+                return dontIncludeArchives.includes(location);
+            }
         }
     }
 
@@ -88,6 +99,13 @@ public interface ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isJar();
+        }
+    }
+
+    final class DontIncludeArchives implements ImportOption {
+        @Override
+        public boolean includes(Location location) {
+            return !location.isArchive();
         }
     }
 }

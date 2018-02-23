@@ -54,12 +54,21 @@ public interface HasParameterTypes {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasParameterTypes> parameterTypes(final DescribedPredicate<JavaClassList> predicate) {
-            return new DescribedPredicate<HasParameterTypes>("parameter types " + predicate.getDescription()) {
-                @Override
-                public boolean apply(HasParameterTypes input) {
-                    return predicate.apply(input.getParameters());
-                }
-            };
+            return new ParameterTypesPredicate(predicate);
+        }
+
+        private static class ParameterTypesPredicate extends DescribedPredicate<HasParameterTypes> {
+            private final DescribedPredicate<JavaClassList> predicate;
+
+            ParameterTypesPredicate(DescribedPredicate<JavaClassList> predicate) {
+                super("parameter types " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(HasParameterTypes input) {
+                return predicate.apply(input.getParameters());
+            }
         }
     }
 }

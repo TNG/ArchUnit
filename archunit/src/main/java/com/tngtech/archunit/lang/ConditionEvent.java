@@ -34,7 +34,7 @@ public interface ConditionEvent {
     /**
      * Adds the 'opposite' of the event. <br>
      * E.g. <i>The event is a violation, if some conditions A and B are both true?</i>
-     * <br> -> <i>The 'inverted' event is a violation if either A or B (or both) are not true</i><br>
+     * <br> {@literal ->} <i>The 'inverted' event is a violation if either A or B (or both) are not true</i><br>
      * In the most simple case, this is just an equivalent event evaluating {@link #isViolation()}
      * inverted.
      *

@@ -167,7 +167,7 @@ public interface ClassResolver {
             return new ClassResolverProvider(instantiationException(defaultConstructor, args)) {
                 @Override
                 ClassResolver tryGet() throws Exception {
-                    return (ClassResolver) resolverClass.newInstance();
+                    return (ClassResolver) resolverClass.getConstructor().newInstance();
                 }
             };
         }

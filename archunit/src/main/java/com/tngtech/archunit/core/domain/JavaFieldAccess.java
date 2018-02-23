@@ -114,22 +114,40 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
-            return new DescribedPredicate<JavaFieldAccess>("access type " + accessType) {
-                @Override
-                public boolean apply(JavaFieldAccess input) {
-                    return accessType == input.getAccessType();
-                }
-            };
+            return new AccessTypePredicate(accessType);
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
-            return new DescribedPredicate<JavaFieldAccess>("target " + predicate.getDescription()) {
-                @Override
-                public boolean apply(JavaFieldAccess input) {
-                    return predicate.apply(input.getTarget());
-                }
-            };
+            return new TargetPredicate(predicate);
+        }
+
+        private static class AccessTypePredicate extends DescribedPredicate<JavaFieldAccess> {
+            private final AccessType accessType;
+
+            AccessTypePredicate(AccessType accessType) {
+                super("access type " + accessType);
+                this.accessType = accessType;
+            }
+
+            @Override
+            public boolean apply(JavaFieldAccess input) {
+                return accessType == input.getAccessType();
+            }
+        }
+
+        private static class TargetPredicate extends DescribedPredicate<JavaFieldAccess> {
+            private final DescribedPredicate<? super FieldAccessTarget> predicate;
+
+            TargetPredicate(DescribedPredicate<? super FieldAccessTarget> predicate) {
+                super("target " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaFieldAccess input) {
+                return predicate.apply(input.getTarget());
+            }
         }
     }
 }

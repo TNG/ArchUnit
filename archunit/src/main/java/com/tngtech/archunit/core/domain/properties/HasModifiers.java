@@ -34,12 +34,21 @@ public interface HasModifiers {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasModifiers> modifier(final JavaModifier modifier) {
-            return new DescribedPredicate<HasModifiers>("modifier " + modifier) {
-                @Override
-                public boolean apply(HasModifiers input) {
-                    return input.getModifiers().contains(modifier);
-                }
-            };
+            return new ModifierPredicate(modifier);
+        }
+
+        private static class ModifierPredicate extends DescribedPredicate<HasModifiers> {
+            private final JavaModifier modifier;
+
+            ModifierPredicate(JavaModifier modifier) {
+                super("modifier " + modifier);
+                this.modifier = modifier;
+            }
+
+            @Override
+            public boolean apply(HasModifiers input) {
+                return input.getModifiers().contains(modifier);
+            }
         }
     }
 }
