@@ -33,12 +33,21 @@ public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaAccess<
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaCall<?>> target(final DescribedPredicate<? super CodeUnitCallTarget> predicate) {
-            return new DescribedPredicate<JavaCall<?>>("target " + predicate.getDescription()) {
-                @Override
-                public boolean apply(JavaCall<?> input) {
-                    return predicate.apply(input.getTarget());
-                }
-            };
+            return new TargetPredicate(predicate);
+        }
+
+        private static class TargetPredicate extends DescribedPredicate<JavaCall<?>> {
+            private final DescribedPredicate<? super CodeUnitCallTarget> predicate;
+
+            TargetPredicate(DescribedPredicate<? super CodeUnitCallTarget> predicate) {
+                super("target " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaCall<?> input) {
+                return predicate.apply(input.getTarget());
+            }
         }
     }
 }

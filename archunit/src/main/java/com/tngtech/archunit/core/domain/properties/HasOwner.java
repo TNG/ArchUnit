@@ -36,12 +36,21 @@ public interface HasOwner<T> {
 
             @PublicAPI(usage = ACCESS)
             public static <T> DescribedPredicate<HasOwner<T>> owner(final DescribedPredicate<? super T> predicate) {
-                return new DescribedPredicate<HasOwner<T>>("owner " + predicate.getDescription()) {
-                    @Override
-                    public boolean apply(HasOwner<T> input) {
-                        return predicate.apply(input.getOwner());
-                    }
-                };
+                return new OwnerPredicate<>(predicate);
+            }
+        }
+
+        private static class OwnerPredicate<T> extends DescribedPredicate<HasOwner<T>> {
+            private final DescribedPredicate<? super T> predicate;
+
+            OwnerPredicate(DescribedPredicate<? super T> predicate) {
+                super("owner " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(HasOwner<T> input) {
+                return predicate.apply(input.getOwner());
             }
         }
     }

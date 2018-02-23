@@ -143,12 +143,8 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> callMethodWhere(final DescribedPredicate<? super JavaMethodCall> predicate) {
-        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>("") {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return input instanceof JavaMethodCall && predicate.apply((JavaMethodCall) input);
-            }
-        }).as("call method where " + predicate.getDescription());
+        return new ClassCallsCodeUnitCondition(new CallMethodPredicate(predicate))
+                .as("call method where " + predicate.getDescription());
     }
 
     @PublicAPI(usage = ACCESS)
@@ -171,12 +167,8 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> callConstructorWhere(final DescribedPredicate<? super JavaConstructorCall> predicate) {
-        return new ClassCallsCodeUnitCondition(new DescribedPredicate<JavaCall<?>>("") {
-            @Override
-            public boolean apply(JavaCall<?> input) {
-                return input instanceof JavaConstructorCall && predicate.apply((JavaConstructorCall) input);
-            }
-        }).as("call constructor where " + predicate.getDescription());
+        return new ClassCallsCodeUnitCondition(new CallConstructorPredicate(predicate))
+                .as("call constructor where " + predicate.getDescription());
     }
 
     @PublicAPI(usage = ACCESS)
@@ -674,5 +666,33 @@ public final class ArchConditions {
                 events.add(new SimpleConditionEvent(item, satisfied, message));
             }
         };
+    }
+
+    private static class CallMethodPredicate extends DescribedPredicate<JavaCall<?>> {
+        private final DescribedPredicate<? super JavaMethodCall> predicate;
+
+        CallMethodPredicate(DescribedPredicate<? super JavaMethodCall> predicate) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean apply(JavaCall<?> input) {
+            return input instanceof JavaMethodCall && predicate.apply((JavaMethodCall) input);
+        }
+    }
+
+    private static class CallConstructorPredicate extends DescribedPredicate<JavaCall<?>> {
+        private final DescribedPredicate<? super JavaConstructorCall> predicate;
+
+        CallConstructorPredicate(DescribedPredicate<? super JavaConstructorCall> predicate) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean apply(JavaCall<?> input) {
+            return input instanceof JavaConstructorCall && predicate.apply((JavaConstructorCall) input);
+        }
     }
 }

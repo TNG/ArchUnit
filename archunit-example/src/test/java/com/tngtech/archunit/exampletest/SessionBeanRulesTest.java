@@ -4,7 +4,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.Local;
 import javax.ejb.Stateless;
 
@@ -59,7 +58,7 @@ public class SessionBeanRulesTest {
             not(originOwnerEqualsTargetOwner()).or(originNeitherConstructorNorPostConstruct());
 
     private static DescribedPredicate<JavaAccess<?>> originNeitherConstructorNorPostConstruct() {
-        return Get.origin().is(not(constructor()).and(not(annotatedWith(PostConstruct.class))));
+        return Get.origin().is(not(constructor()).and(not(annotatedWith("javax.annotation.PostConstruct"))));
     }
 
     private static final DescribedPredicate<JavaClass> HAVE_LOCAL_BEAN_SUBCLASS =

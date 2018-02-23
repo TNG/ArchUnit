@@ -42,40 +42,19 @@ public abstract class DescribedPredicate<T> {
     }
 
     public DescribedPredicate<T> as(String description, Object... params) {
-        return new DescribedPredicate<T>(description, params) {
-            @Override
-            public boolean apply(T input) {
-                return DescribedPredicate.this.apply(input);
-            }
-        };
+        return new AsPredicate<>(this, description, params);
     }
 
     public DescribedPredicate<T> and(final DescribedPredicate<? super T> other) {
-        return new DescribedPredicate<T>(description + " and " + other.getDescription()) {
-            @Override
-            public boolean apply(T input) {
-                return DescribedPredicate.this.apply(input) && other.apply(input);
-            }
-        };
+        return new AndPredicate<>(this, other);
     }
 
     public DescribedPredicate<T> or(final DescribedPredicate<? super T> other) {
-        return new DescribedPredicate<T>(description + " or " + other.getDescription()) {
-            @Override
-            public boolean apply(T input) {
-                return DescribedPredicate.this.apply(input) || other.apply(input);
-            }
-        };
+        return new OrPredicate<>(this, other);
     }
 
     public <F> DescribedPredicate<F> onResultOf(final Function<? super F, ? extends T> function) {
-        checkNotNull(function);
-        return new DescribedPredicate<F>(description) {
-            @Override
-            public boolean apply(F input) {
-                return DescribedPredicate.this.apply(function.apply(input));
-            }
-        };
+        return new OnResultOfPredicate<>(this, function);
     }
 
     /**
@@ -116,13 +95,7 @@ public abstract class DescribedPredicate<T> {
     };
 
     public static <T> DescribedPredicate<T> equalTo(final T object) {
-        checkNotNull(object);
-        return new DescribedPredicate<T>("equal to '%s'", object) {
-            @Override
-            public boolean apply(T input) {
-                return object.equals(input);
-            }
-        };
+        return new EqualToPredicate<>(object);
     }
 
     public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<T> predicate) {
@@ -134,12 +107,96 @@ public abstract class DescribedPredicate<T> {
     }
 
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<T> predicate) {
-        checkNotNull(predicate);
-        return new DescribedPredicate<T>("not " + predicate.getDescription()) {
-            @Override
-            public boolean apply(T input) {
-                return !predicate.apply(input);
-            }
-        };
+        return new NotPredicate<>(predicate);
+    }
+
+    private static class AsPredicate<T> extends DescribedPredicate<T> {
+        private final DescribedPredicate<T> current;
+
+        AsPredicate(DescribedPredicate<T> current, String description, Object... params) {
+            super(description, params);
+            this.current = current;
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return current.apply(input);
+        }
+    }
+
+    private static class AndPredicate<T> extends DescribedPredicate<T> {
+        private final DescribedPredicate<T> current;
+        private final DescribedPredicate<? super T> other;
+
+        AndPredicate(DescribedPredicate<T> current, DescribedPredicate<? super T> other) {
+            super(current.getDescription() + " and " + other.getDescription());
+            this.current = checkNotNull(current);
+            this.other = checkNotNull(other);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return current.apply(input) && other.apply(input);
+        }
+    }
+
+    private static class OrPredicate<T> extends DescribedPredicate<T> {
+        private final DescribedPredicate<T> current;
+        private final DescribedPredicate<? super T> other;
+
+        OrPredicate(DescribedPredicate<T> current, DescribedPredicate<? super T> other) {
+            super(current.getDescription() + " or " + other.getDescription());
+            this.current = checkNotNull(current);
+            this.other = checkNotNull(other);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return current.apply(input) || other.apply(input);
+        }
+    }
+
+    private static class OnResultOfPredicate<F, T> extends DescribedPredicate<F> {
+        private final DescribedPredicate<T> current;
+        private final Function<? super F, ? extends T> function;
+
+        OnResultOfPredicate(DescribedPredicate<T> current, Function<? super F, ? extends T> function) {
+            super(current.getDescription());
+            this.current = checkNotNull(current);
+            this.function = checkNotNull(function);
+        }
+
+        @Override
+        public boolean apply(F input) {
+            return current.apply(function.apply(input));
+        }
+    }
+
+    private static class NotPredicate<T> extends DescribedPredicate<T> {
+        private final DescribedPredicate<T> predicate;
+
+        NotPredicate(DescribedPredicate<T> predicate) {
+            super("not " + predicate.getDescription());
+            this.predicate = checkNotNull(predicate);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return !predicate.apply(input);
+        }
+    }
+
+    private static class EqualToPredicate<T> extends DescribedPredicate<T> {
+        private final T object;
+
+        EqualToPredicate(T object) {
+            super("equal to '%s'", object);
+            this.object = checkNotNull(object);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return object.equals(input);
+        }
     }
 }

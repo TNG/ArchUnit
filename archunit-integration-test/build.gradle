@@ -1,3 +1,5 @@
+ext.moduleName = 'com.tngtech.archunit.integrationtest'
+
 dependencies {
     testCompile dependency.junit
     testCompile dependency.assertj
@@ -11,5 +13,3 @@ dependencies {
     testCompile project(path: ':archunit-example')
     testCompile project(path: ':archunit-example', configuration: 'tests')
 }
-
-[project(':archunit'), project(':archunit-junit')].each { test.dependsOn(it.finishArchive) }

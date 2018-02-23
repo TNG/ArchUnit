@@ -1,106 +1,51 @@
-import proguard.gradle.ProGuardTask
-
-import java.nio.file.Files
-
-import static java.nio.charset.StandardCharsets.UTF_8
-
 buildscript {
     repositories {
         mavenCentral()
-    }
-
-    dependencies {
-        classpath 'net.sf.proguard:proguard-gradle:5.3.3'
     }
 }
 
 subprojects {
     ext.repackagesAsm = false
 
-    tasks.withType(Jar) {
-        manifest {
-            attributes(
-                    'Built-By': "Gradle ${gradle.gradleVersion}",
-                    'Built-Date': new Date().format('yyyy-MM-dd'),
-                    'Specification-Title': createModuleDescription(app.name, project),
-                    'Specification-Version': version,
-                    'Specification-Vendor': company.name,
-                    'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
-                    'Implementation-Version': version,
-                    'Implementation-Vendor': company.name,
-                    'Issue-Tracker': app.urls.issues,
-                    'Documentation-URL': app.urls.doc,
-                    'Copyright': "${year} ${company.name}",
-                    'License': app.license.name
-            )
+    afterEvaluate {
+        tasks.withType(Jar) {
+            manifest {
+                attributes(
+                        'Built-By': "Gradle ${gradle.gradleVersion}",
+                        'Built-Date': new Date().format('yyyy-MM-dd'),
+                        'Specification-Title': createModuleDescription(app.name, project),
+                        'Specification-Version': version,
+                        'Specification-Vendor': company.name,
+                        'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
+                        'Implementation-Version': version,
+                        'Implementation-Vendor': company.name,
+                        'Issue-Tracker': app.urls.issues,
+                        'Documentation-URL': app.urls.doc,
+                        'Copyright': "${year} ${company.name}",
+                        'License': app.license.name,
+                        'Automatic-Module-Name': moduleName
+                )
+            }
         }
     }
-}
-
-ext.shadowConfig = { classifierName ->
-    return {
-        classifier = classifierName
-
-        exclude 'org/apache/**'
-        exclude 'Log4j*'
-        exclude 'META-INF/**'
-
-        relocate 'org.objectweb.asm', asmRelocationPackage
-        relocate 'com.google', guavaRelocationPackage
-    }
-}
-
-def configureShadow = {
-    shadowJar shadowConfig('shadow')
-}
-
-def scriptRoot = currentScriptRootOf this
-def configureProGuard = {
-    configurations {
-        proguard
-    }
-
-    dependencies {
-        proguard 'com.google.code.findbugs:jsr305:3.0.1'
-    }
-
-    task shrinkDependencies(type: ProGuardTask, dependsOn: shadowJar) {
-        ext.archivePath = postfixedJar(jar.archivePath, 'proguard')
-
-        injars shadowJar.archivePath
-        outjars archivePath
-
-        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
-        libraryjars configurations.compile
-        libraryjars configurations.proguard
-
-        dontoptimize
-        dontobfuscate
-        dontwarn '**.com.google.j2objc.annotations.**'
-        dontwarn 'org.codehaus.**'
-        dontwarn 'org.slf4j.impl.**'
-
-        keep "class !${guavaRelocationPackage}.** {*;}"
-
-        new File(scriptRoot, 'proguard-keepclassmembers.txt').eachLine(UTF_8.name()) {
-            keepclassmembers "class ${thirdPartyRelocationPackage}.**${it}** {*;}"
-        }
-    }
-    assemble.dependsOn(shrinkDependencies)
-
-    task finishArchive(dependsOn: shrinkDependencies) {
-        doLast {
-            jar.archivePath.delete()
-            Files.copy(shrinkDependencies.archivePath.toPath(), jar.archivePath.toPath())
-        }
-        mustRunAfter jar
-    }
-    build.dependsOn(finishArchive)
 }
 
 productionProjects*.with {
     apply plugin: 'com.github.johnrengelman.shadow'
 
-    delegate.with configureShadow
-    delegate.with configureProGuard
+    shadowJar {
+        classifier = ''
+
+        exclude 'org/apache/**'
+        exclude 'Log4j*'
+        exclude 'META-INF/**'
+        exclude 'module-info.class'
+
+        relocate 'org.objectweb.asm', asmRelocationPackage
+        relocate 'com.google', guavaRelocationPackage
+    }
+    jar.enabled = false
+
+    task finishArchive(dependsOn: shadowJar) {}
+    build.dependsOn(finishArchive)
 }

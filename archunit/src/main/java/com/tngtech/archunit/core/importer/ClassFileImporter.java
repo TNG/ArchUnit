@@ -33,6 +33,8 @@ import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -45,6 +47,8 @@ import static java.util.Collections.singletonList;
  * {@link ImportOptions}.
  */
 public final class ClassFileImporter {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassFileImporter.class);
+
     private final ImportOptions importOptions;
 
     @PublicAPI(usage = ACCESS)
@@ -155,13 +159,13 @@ public final class ClassFileImporter {
     }
 
     /**
-     * Imports classes from the whole classpath without JARs.
+     * Imports classes from the whole classpath without archives (JARs or JRTs).
      *
      * @return Imported classes
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
-        return importClasspath(new ImportOptions().with(ImportOption.Predefined.DONT_INCLUDE_JARS));
+        return importClasspath(new ImportOptions().with(ImportOption.Predefined.DONT_INCLUDE_ARCHIVES));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -202,9 +206,18 @@ public final class ClassFileImporter {
     public JavaClasses importLocations(Collection<Location> locations) {
         List<ClassFileSource> sources = new ArrayList<>();
         for (Location location : locations) {
-            sources.add(location.asClassFileSource(importOptions));
+            tryAdd(sources, location);
         }
         return new ClassFileProcessor().process(unify(sources));
+    }
+
+    private void tryAdd(List<ClassFileSource> sources, Location location) {
+        try {
+            sources.add(location.asClassFileSource(importOptions));
+        } catch (Exception e) {
+            LOG.warn(String.format("Couldn't derive %s from %s",
+                    ClassFileSource.class.getSimpleName(), location), e);
+        }
     }
 
     private ClassFileSource unify(final List<ClassFileSource> sources) {

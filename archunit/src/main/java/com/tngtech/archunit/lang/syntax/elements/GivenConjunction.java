@@ -39,13 +39,13 @@ public interface GivenConjunction<OBJECTS> {
      * all(objects()).that(predicateA).or(predicateB).and(predicateC)...
      * </code></pre>
      * <p>
-     * will filter on predicate (predicateA || predicateB) && predicateC, and
+     * will filter on predicate <code>(predicateA || predicateB) {@literal &&} predicateC</code>, and
      * <br><br>
      * <pre><code>
      * all(objects()).that(predicateA).and(predicateB).or(predicateC)...
      * </code></pre>
      * <p>
-     * will filter on predicate (predicateA && predicateB) || predicateC. If you need more control over the
+     * will filter on predicate <code>(predicateA {@literal &&} predicateB) || predicateC</code>. If you need more control over the
      * precedence, how predicates are joined, you have to join these predicates separately, i.e.
      * <br><br>
      * <pre><code>
