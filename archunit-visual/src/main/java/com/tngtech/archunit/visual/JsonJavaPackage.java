@@ -21,7 +21,7 @@ import java.util.Set;
 import com.google.gson.annotations.Expose;
 
 class JsonJavaPackage extends JsonElement {
-    private static final String PACKAGE_SEPARATOR = ".";
+    static final String PACKAGE_SEPARATOR = ".";
     private static final String TYPE = "package";
 
     private boolean isDefault;
@@ -89,6 +89,9 @@ class JsonJavaPackage extends JsonElement {
 
     @Override
     void insert(JsonJavaElement element) {
+        if (element.fullName.endsWith("package-info")) {
+            System.out.println(element.fullName);
+        }
         if (fullName.equals(element.getPath())) {
             classes.add(element);
             children.add(element);
@@ -102,9 +105,23 @@ class JsonJavaPackage extends JsonElement {
             if (jsonJavaElement.fullName.startsWith(child.fullName)
                     && jsonJavaElement.fullName.substring(child.fullName.length()).matches("(\\.|\\$).*")) {
                 child.insert(jsonJavaElement);
-                break;
+                return;
             }
         }
+
+        /* create dummy-enclosing-class, if no parent-class is present
+         * (this can occur when a dependency to a class exists, but no dependency to its enclosing class
+         **/
+
+        JsonJavaElement enclosingClass = JsonJavaClass.createEnclosingClassOf(jsonJavaElement, fullName);
+        classes.add(enclosingClass);
+        children.add(enclosingClass);
+
+
+        //FIXME: bessere Lösung wäre, wenn möglich die enclosing class aus der JavaClass zu laden, oder, falls das
+        //nicht geht (vermutlich weil die innere Klasse static ist), einfach EnlcosingClass$InnerClass als Name zu verwenden
+        //(man weiß ja theoretisch nicht, dass die enclosing class wirklich eine Klasse und nicht ein Interface ist)
+        //
     }
 
     void normalize() {

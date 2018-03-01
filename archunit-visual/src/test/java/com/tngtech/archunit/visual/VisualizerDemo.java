@@ -20,6 +20,7 @@ public class VisualizerDemo {
 
         new Visualizer().visualize(classes, evaluationResult,
                 new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"),
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
+                //VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
+                VisualizationContext.everything());
     }
 }

@@ -40,4 +40,13 @@ class JsonAccess {
         this.targetCodeElement = javaCall.getTarget().getName() + "(" +
                 Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }
+
+    private static class C1 {
+        private static class C2 {
+            private static class C3 {
+                private class C4 {
+                }
+            }
+        }
+    }
 }
