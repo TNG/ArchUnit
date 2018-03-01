@@ -118,12 +118,6 @@ const init = (View) => {
       this._transformers = new Map();
       this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
 
-      this._elementary.forEach(dep => {
-        if (nodes.getByName(dep.from) === undefined || nodes.getByName(dep.to) === undefined) {
-          console.log(dep.from + '-->' + dep.to);
-        }
-      });
-
       this._filtered = this._elementary;
       this._svgContainer = svgContainer;
       recreateVisibleDependencies(this);
