@@ -1,0 +1,20 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "name": "tngtech",
+          "fullName": "com.tngtech",
+          "type": "package"
+        }
+      ],
+      "name": "com",
+      "fullName": "com",
+      "type": "package"
+    }
+  ],
+  "name": "default",
+  "fullName": "default",
+  "type": "package"
+}
