@@ -32,15 +32,15 @@ abstract class JsonJavaElement extends JsonElement {
     @Expose
     private Set<String> anonymousImplementation = new HashSet<>();
     @Expose
-    private Set<JsonJavaElement> children = new HashSet<>();
+    protected Set<JsonJavaElement> children = new HashSet<>();
 
     JsonJavaElement(String name, String fullName, String type) {
         super(name, fullName, type);
     }
 
     @Override
-    void insert(JsonJavaElement jsonJavaElement) {
-        this.children.add(jsonJavaElement);
+    void addClass(JsonJavaElement jsonJavaElement) {
+        children.add(jsonJavaElement);
     }
 
     @Override

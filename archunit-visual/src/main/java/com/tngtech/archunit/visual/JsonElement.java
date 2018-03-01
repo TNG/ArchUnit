@@ -54,5 +54,29 @@ abstract class JsonElement {
         return Optional.absent();
     }
 
-    abstract void insert(JsonJavaElement jsonJavaElement);
+    abstract void addClass(JsonJavaElement element);
+
+    void insert(JsonJavaElement element) {
+        if (fullName.equals(element.getPath())) {
+            addClass(element);
+        } else {
+            insertToChild(element);
+        }
+    }
+
+    private void insertToChild(JsonJavaElement jsonJavaElement) {
+        for (JsonElement child : getChildren()) {
+            if (jsonJavaElement.fullName.startsWith(child.fullName)
+                    && jsonJavaElement.fullName.substring(child.fullName.length()).matches("(\\.|\\$).*")) {
+                child.insert(jsonJavaElement);
+                return;
+            }
+        }
+
+        /* create dummy-enclosing-class, if no parent-class is present
+         * (this can occur when a dependency to a class exists, but no dependency to its enclosing class)
+         **/
+        JsonJavaElement enclosingClass = JsonJavaClass.createEnclosingClassOf(jsonJavaElement, fullName);
+        addClass(enclosingClass);
+    }
 }

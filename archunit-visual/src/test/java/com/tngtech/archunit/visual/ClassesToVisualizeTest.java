@@ -1,8 +1,7 @@
 package com.tngtech.archunit.visual;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -17,6 +16,8 @@ import com.tngtech.archunit.visual.testclasses.ThirdClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SecondSubPkgClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.ThirdSubPkgClass;
+import com.tngtech.archunit.visual.testdependencies.TestDependencyClass;
+import com.tngtech.archunit.visual.testdependencies.TestDependencyClassWithInnerClass;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ClassesToVisualizeTest {
     private static final Class<?> SUB_PKG_CLASS_DEPENDENCY = File.class;
     private static final Set<Class<?>> EXTRA_DEPENDENCIES_OF_TEST_CLASSES = ImmutableSet.of(
-            Object.class, String.class, SUB_PKG_CLASS_DEPENDENCY);
+            Object.class, String.class, SUB_PKG_CLASS_DEPENDENCY, TestDependencyClass.class,
+            TestDependencyClassWithInnerClass.TestDependencyInnerClass.class);
 
     @Test
     public void contain_non_filtered_classes() {
@@ -41,21 +43,19 @@ public class ClassesToVisualizeTest {
     }
 
     @Test
-    public void contain_non_inner_classes() {
+    public void contain_classes_in_order_of_inner_class_depth() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
         ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
+        SortedMap<Integer, ImmutableSet<JavaClass>> sortedMap = getClassesSortedByDepth(classes);
 
-        assertThat(classesToVisualize.getClasses()).containsOnlyElementsOf(nonInnerClassesIn(classes));
-    }
-
-    @Test
-    public void contain_inner_classes() {
-        JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
-
-        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
-
-        assertThat(classesToVisualize.getInnerClasses()).containsOnlyElementsOf(innerClassesIn(classes));
+        Iterator<JavaClass> iterator = classesToVisualize.getClasses().iterator();
+        JavaClass currentJavaClass = iterator.next();
+        while (iterator.hasNext()) {
+            JavaClass nextJavaClass = iterator.next();
+            assertThat(getDepthOfClass(currentJavaClass, sortedMap)).isLessThanOrEqualTo(getDepthOfClass(nextJavaClass, sortedMap));
+            currentJavaClass = nextJavaClass;
+        }
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ClassesToVisualizeTest {
 
         ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
 
-        assertThat(namesOf(classesToVisualize.getDependencies()))
+        assertThat(namesOf(classesToVisualize.getDependenciesClasses()))
                 .containsOnlyElementsOf(namesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
     }
 
@@ -100,17 +100,28 @@ public class ClassesToVisualizeTest {
         return result;
     }
 
-    private Set<JavaClass> nonInnerClassesIn(JavaClasses classes) {
-        return ImmutableSet.of(
-                classes.get(SomeClass.class), classes.get(OtherClass.class), classes.get(ThirdClass.class),
-                classes.get(SubPkgClass.class), classes.get(SecondSubPkgClass.class), classes.get(ThirdSubPkgClass.class),
-                classes.get(SomeInterface.class)
-        );
+    private int getDepthOfClass(JavaClass javaClass, SortedMap<Integer, ImmutableSet<JavaClass>> classesSortedByDepth) {
+        int i = 0;
+        for (ImmutableSet<JavaClass> set : classesSortedByDepth.values()) {
+            if (set.contains(javaClass)) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
     }
 
-    private Set<JavaClass> innerClassesIn(JavaClasses classes) {
-        return ImmutableSet.of(
+    private SortedMap<Integer, ImmutableSet<JavaClass>> getClassesSortedByDepth(JavaClasses classes){
+        SortedMap<Integer, ImmutableSet<JavaClass>> map = new TreeMap<>();
+        map.put(0, ImmutableSet.of(
+                classes.get(SomeClass.class), classes.get(OtherClass.class), classes.get(ThirdClass.class),
+                classes.get(SubPkgClass.class), classes.get(SecondSubPkgClass.class), classes.get(ThirdSubPkgClass.class),
+                classes.get(SomeInterface.class)));
+        map.put(1, ImmutableSet.of(
                 classes.get(SomeClass.InnerClass.class), classes.get(SubPkgClass.InnerSubPkgClass.class),
-                classes.get(SomeInterface.InnerInterface.class));
+                classes.get(SomeInterface.InnerInterface.class), classes.get(ThirdSubPkgClass.InnerClass1.class)));
+        map.put(2, ImmutableSet.of(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class)));
+        map.put(3, ImmutableSet.of(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.InnerClass3.class)));
+        return map;
     }
 }

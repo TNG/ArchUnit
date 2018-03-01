@@ -16,7 +16,6 @@
 package com.tngtech.archunit.visual;
 
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,9 +30,6 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 
 class JsonExporter {
-    private com.tngtech.archunit.core.domain.JavaInnerClassTest.JavaInnerClassTestInnerClass x = new com.tngtech.archunit.core.domain.JavaInnerClassTest.JavaInnerClassTestInnerClass();
-    int y = x.num;
-
     private static final Gson GSON = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
@@ -51,29 +47,17 @@ class JsonExporter {
         return root;
     }
 
-    HashMap<String, JavaClass> allClasses = new HashMap<>();
     private void insertVisualizedClassesToRoot(ClassesToVisualize classesToVisualize, VisualizationContext context, JsonJavaPackage root) {
-        for (JavaClass depClass : classesToVisualize.getAll()) {
-            allClasses.put(depClass.getName(), depClass);
-        }
-
         insertClassesToRoot(classesToVisualize.getClasses(), context, root);
-        insertInnerClassesToRoot(classesToVisualize.getInnerClasses(), context, root);
         insertDependenciesToRoot(classesToVisualize.getDependenciesClasses(), root);
-        insertDependenciesToRoot(classesToVisualize.getDependenciesInnerClasses(), root);
     }
 
     private void insertClassesToRoot(Iterable<JavaClass> classes, VisualizationContext context, JsonJavaPackage root) {
         for (JavaClass c : classes) {
-            root.insert(parseJavaElement(c, context));
-        }
-    }
-
-    private void insertInnerClassesToRoot(Iterable<JavaClass> innerClasses, VisualizationContext context, JsonJavaPackage root) {
-        for (JavaClass c : innerClasses) {
             if (c.isAnonymous()) {
                 addDependenciesOfAnonymousInnerClassToParent(context, root, c);
-            } else {
+            }
+            else {
                 root.insert(parseJavaElement(c, context));
             }
         }
@@ -134,8 +118,6 @@ class JsonExporter {
     private void parseImplementationToJavaElement(JavaClass c, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass javaClass : c.getInterfaces()) {
             if (context.isElementIncluded(javaClass)) {
-                if (!allClasses.containsKey(javaClass.getName())) {
-                }
                 res.addInterface(javaClass.getName());
             }
         }
@@ -144,8 +126,6 @@ class JsonExporter {
     private void parseAnonymousImplementationToJavaElement(JavaClass clazz, VisualizationContext context, JsonJavaElement res) {
         for (JavaClass anInterface : clazz.getInterfaces()) {
             if (context.isElementIncluded(anInterface)) {
-                if (!allClasses.containsKey(anInterface.getName())) {
-                }
                 res.addAnonymousImplementation(anInterface.getName());
             }
         }
@@ -153,18 +133,12 @@ class JsonExporter {
 
     private void parseAccessesToJavaElement(JavaClass javaClass, VisualizationContext context, JsonJavaElement jsonJavaElement) {
         for (JavaFieldAccess javaFieldAccess : filterRelevantAccesses(context, javaClass.getFieldAccessesFromSelf(), jsonJavaElement)) {
-            if (!allClasses.containsKey(javaFieldAccess.getTargetOwner().getName())) {
-            }
             jsonJavaElement.addFieldAccess(new JsonAccess(javaFieldAccess));
         }
         for (JavaMethodCall javaMethodCall : filterRelevantAccesses(context, javaClass.getMethodCallsFromSelf(), jsonJavaElement)) {
-            if (!allClasses.containsKey(javaMethodCall.getTargetOwner().getName())) {
-            }
             jsonJavaElement.addMethodCall(new JsonAccess(javaMethodCall));
         }
         for (JavaConstructorCall javaConstructorCall : filterRelevantAccesses(context, javaClass.getConstructorCallsFromSelf(), jsonJavaElement)) {
-            if (!allClasses.containsKey(javaConstructorCall.getTargetOwner().getName())) {
-            }
             jsonJavaElement.addConstructorCall(new JsonAccess(javaConstructorCall));
         }
     }
