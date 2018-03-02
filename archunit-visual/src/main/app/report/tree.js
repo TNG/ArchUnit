@@ -64,6 +64,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
+  const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctions.calculateDefaultRadiusForNodeWithOneChild;
   const createForceLinkSimulation = visualizationFunctions.createForceLinkSimulation;
   const createForceCollideSimulation = visualizationFunctions.createForceCollideSimulation;
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
@@ -449,7 +450,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
         promises.push(onlyChild.visualData.moveToPosition(0, 0));
-        promises.push(this.visualData.changeRadius(Math.max(calculateDefaultRadius(this), 2 * onlyChild.getRadius())));
+        promises.push(this.visualData.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+          onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
           r: c.visualData.r

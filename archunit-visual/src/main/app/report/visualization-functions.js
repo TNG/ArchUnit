@@ -20,6 +20,13 @@ module.exports.newInstance = calculateTextWidth => {
     return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
+  const calculateDefaultRadiusForNodeWithOneChild = (node, childRadius, nodeFontSize) => {
+    const halfTextWidth = calculateTextWidth(node.getName()) / 2 + CIRCLE_TEXT_PADDING;
+    childRadius = childRadius + nodeFontSize;
+    const radius = Math.sqrt(halfTextWidth * halfTextWidth + childRadius * childRadius);
+    return Math.max(radius, MIN_NODE_RADIUS);
+  };
+
   const createForceLinkSimulation = (padding, nodes, links) => {
     return createSimulation(0.06, nodes, {
       name: 'link',
@@ -65,6 +72,8 @@ module.exports.newInstance = calculateTextWidth => {
     packCirclesAndReturnEnclosingCircle,
 
     calculateDefaultRadius,
+
+    calculateDefaultRadiusForNodeWithOneChild,
 
     createForceLinkSimulation,
 
