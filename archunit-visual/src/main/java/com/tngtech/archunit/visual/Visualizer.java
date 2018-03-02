@@ -31,6 +31,7 @@ import java.util.jar.JarEntry;
 
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
@@ -46,27 +47,42 @@ public final class Visualizer {
     private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
 
-    // FIXME: Ugly, we don't want to create an empty EvaluationResult
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
-    public void visualize(JavaClasses classes, final File targetDir) {
-        visualize(classes, new EvaluationResult(classes().should().bePublic(), Priority.MEDIUM), targetDir, VisualizationContext.everything());
+    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
+        exportJson(classes, targetDir, context);
+        copyFiles(targetDir);
     }
 
-    // FIXME: We want to visualize just classes without an EvaluationResult as well
+    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
+    public void visualize(JavaClasses classes, final File targetDir) {
+        visualize(classes, targetDir, VisualizationContext.everything());
+    }
+
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
     public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
+        exportJson(classes, targetDir, context);
+        exportViolations(targetDir, evaluationResult);
+        copyFiles(targetDir);
+    }
+
+    private void exportJson(JavaClasses classes, final File targetDir, VisualizationContext context) {
         checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create " + targetDir.getAbsolutePath());
         try (FileWriter classesWriter = new FileWriter(new File(targetDir, JSON_FILE_NAME))) {
             new JsonExporter().export(classes, classesWriter, context);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void exportViolations(final File targetDir, EvaluationResult evaluationResult) {
         try (FileWriter violationsWriter = new FileWriter(new File(targetDir, VIOLATIONS_FILE_NAME))) {
             new JsonViolationExporter().export(evaluationResult, violationsWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private void copyFiles(final File targetDir) {
         URL url = getClass().getResource(DIR);
         try {
             createCopyFor(url).copyTo(targetDir);

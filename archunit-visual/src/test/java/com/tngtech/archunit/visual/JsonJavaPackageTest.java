@@ -20,7 +20,7 @@ public class JsonJavaPackageTest {
     private static final JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeClass.class);
 
     @Test
-    public void testInsertPackage() throws Exception {
+    public void testInsertPackage() {
         JsonJavaPackage rootPackage = new JsonJavaPackage("com", "com");
         rootPackage.insertPackage("com.tngtech");
         File expectedJson = JsonTestUtils.getJsonFile("/testinsertpackage1.json");
@@ -36,7 +36,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testInsertPackageToDefaultRoot() throws Exception {
+    public void testInsertPackageToDefaultRoot() {
         JsonJavaPackage rootPackage = JsonJavaPackage.createPackageStructure(Collections.<String>emptySet());
         rootPackage.insertPackage("com.tngtech");
         File expectedJson = JsonTestUtils.getJsonFile("/testinsertpackageToDefaultRoot.json");
@@ -46,7 +46,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testInsert() throws Exception {
+    public void testInsert() {
         JsonJavaPackage rootPackage = new JsonJavaPackage("com", "com");
         rootPackage.insertPackage(SubPkgClass.class.getPackage().getName());
         rootPackage.insert(new JsonJavaClass(classes.get(SomeClass.class), false));
@@ -59,7 +59,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testNormalizeDefaultRootPackage() throws Exception {
+    public void testNormalizeDefaultRootPackage() {
         JsonJavaPackage pkg = JsonJavaPackage.createPackageStructure(new HashSet<String>(Arrays.asList("com")));
         pkg.normalize();
 
@@ -70,7 +70,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testNormalize() throws Exception {
+    public void testNormalize() {
         JsonJavaPackage pkg = new JsonJavaPackage("com", "com");
         List<String> packageParts = Splitter.on(".").splitToList(classes.get(SomeClass.class).getPackage());
         for (int i = 1; i < packageParts.size(); i++) {
@@ -88,7 +88,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void getChild_returns_self_or_child_by_full_name() throws Exception {
+    public void getChild_returns_self_or_child_by_full_name() {
         JsonJavaPackage javaPackage = new JsonJavaPackage("com", "com");
         JavaClass someClass = classes.get(SomeClass.class);
         String aPackage = someClass.getPackage();
@@ -104,7 +104,7 @@ public class JsonJavaPackageTest {
     }
 
     @Test
-    public void testCreatePackageStructure() throws Exception {
+    public void testCreatePackageStructure() {
         Set<String> pkgs = new HashSet<>(Arrays.asList("com.tngtech.pkg1", "com.tngtech.pkg1.subpkg1",
                 "com.tngtech.pkg2", "java.lang"));
         JsonJavaPackage act = JsonJavaPackage.createPackageStructure(pkgs);
@@ -112,9 +112,5 @@ public class JsonJavaPackageTest {
         assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(act)))
                 .as("created package structure")
                 .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
-    }
-
-    private boolean hasNameAndFullName(JsonJavaPackage pkg, String name, String fullName) {
-        return pkg.name.equals(name) && pkg.fullName.equals(fullName);
     }
 }
