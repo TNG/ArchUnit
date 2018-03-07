@@ -43,6 +43,10 @@ const Vector = class {
     this.y = y;
   }
 
+  isWithin(vector, radius) {
+    return Vector.between(this, vector).length() <= radius;
+  }
+
   length() {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }

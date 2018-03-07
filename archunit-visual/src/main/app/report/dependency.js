@@ -3,6 +3,8 @@
 const dependencyTypes = require('./dependency-types.json');
 
 const vectors = require('./vectors.js').vectors;
+const Vector = require('./vectors.js').Vector;
+const OVERLAP_DELTA = 0.1;
 
 const init = (View, nodeMap) => {
 
@@ -61,8 +63,8 @@ const init = (View, nodeMap) => {
       startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);
       endDirectionVector = vectors.norm(endDirectionVector, absVisualEndNode.r);
 
-      this.startPoint = vectors.vectorOf(absVisualStartNode.x + startDirectionVector.x, absVisualStartNode.y + startDirectionVector.y);
-      this.endPoint = vectors.vectorOf(absVisualEndNode.x + endDirectionVector.x, absVisualEndNode.y + endDirectionVector.y);
+      this.startPoint = new Vector(absVisualStartNode.x + startDirectionVector.x, absVisualStartNode.y + startDirectionVector.y);
+      this.endPoint = new Vector(absVisualEndNode.x + endDirectionVector.x, absVisualEndNode.y + endDirectionVector.y);
     }
   };
 
@@ -275,12 +277,34 @@ const init = (View, nodeMap) => {
       this._view.hide();
     }
 
+    _show() {
+      this._isVisible = true;
+      this._view._showIfVisible(this);
+    }
+
     isVisible() {
       return this._isVisible;
     }
 
     getIdentifyingString() {
       return `${this.from}-${this.to}`;
+    }
+
+    hideOnStartOverlapping(nodePosition) {
+      this._hideOnOverlapping(this.visualData.startPoint, nodePosition);
+    }
+
+    hideOnTargetOverlapping(nodePosition) {
+      this._hideOnOverlapping(this.visualData.endPoint, nodePosition);
+    }
+
+    _hideOnOverlapping(point, nodePosition) {
+      if (point.isWithin(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
+        this.hide();
+      }
+      else {
+        this._show();
+      }
     }
   };
 

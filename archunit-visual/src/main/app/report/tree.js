@@ -5,7 +5,7 @@ const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
 
-let number = 0;
+let layer = 0;
 
 //FIXME: shorten this file; maybe outsource the translate-function to visualization-functions
 //and VisualData to own file (and rename the class to make its function more understandable)
@@ -227,7 +227,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const Node = class {
     constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null) {
-      this.number = number++;
+      this.layer = layer++;
       this._root = root;
       if (!root) {
         this._root = this;
@@ -386,6 +386,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     getSelfAndDescendants() {
       return [this, ...this._getDescendants()];
+    }
+
+    _getDescendantsExceptNodeAndItsDescendants(node) {
+      const filteredChildren = this.getCurrentChildren().filter(child => child !== node);
+      const result = filteredChildren.map(child => child._getDescendantsExceptNodeAndItsDescendants(node));
+      return [].concat.apply([], [filteredChildren, ...result]);
     }
 
     getSelfAndPredecessors() {
@@ -559,7 +565,39 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._root.doNextAndWaitFor(() => {
         this.visualData.jumpToRelativeDisplacement(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
+
+        const siblingsAndDescendantClasses = this.getParent()._getDescendantsExceptNodeAndItsDescendants(this)
+          .filter(node => node._description.type !== nodeTypes.package);
+        this._checkOverlappingWithNodes(siblingsAndDescendantClasses);
       });
+    }
+
+    //TODO: add listener onOverlap(node1, node2), wo dann in Klasse Dependencies die Deps gehidet werden, die von
+    //der Überlappung betroffen sind und der niedrigeren Node angehören
+    //TODO: test dafür
+    _checkOverlappingWithNodes(nodes) {
+      let mustCheckChildren = true;
+      if (this._description.type !== nodeTypes.package) {
+        mustCheckChildren = nodes.reduce((acc, node) => acc || this._checkOverlappingWithSingleNode(node), false);
+      }
+      if (mustCheckChildren) {
+        this.getCurrentChildren().forEach(child => child._checkOverlappingWithNodes(nodes));
+      }
+    }
+
+    _checkOverlappingWithSingleNode(node) {
+      const middlePointDistance = vectors.distance(this.visualData.absolutePosition, node.visualData.absolutePosition);
+      const areOverlapping = middlePointDistance < this.getRadius() + node.getRadius();
+
+      const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
+      if (areOverlapping) {
+        this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
+          sortedNodes.second.visualData.absolutePosition));
+      }
+      else {
+        //this._listener.forEach(listener => listener.onNodesNotOverlapping(sortedNodes.first.getFullName()));
+      }
+      return areOverlapping;
     }
 
     _resetFiltering() {

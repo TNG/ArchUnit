@@ -161,8 +161,19 @@ const init = (View) => {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
-        onLayoutChanged: () => this.moveAllToTheirPositions()
+        onLayoutChanged: () => this.moveAllToTheirPositions(),
+        onNodesOverlapping: (nodeFullName, nodePosition) => this._hideDependenciesOnNodesOverlapping(nodeFullName, nodePosition),
+        onNodesNotOverlapping: nodeFullName => this._showDependenciesOnNodesNotOverlapping(nodeFullName)
       }
+    }
+
+    _hideDependenciesOnNodesOverlapping(nodeFullName, nodePosition) {
+      this.getVisible().filter(d => d.from === nodeFullName).forEach(dependency => dependency.hideOnStartOverlapping(nodePosition));
+      this.getVisible().filter(d => d.to === nodeFullName).forEach(dependency => dependency.hideOnTargetOverlapping(nodePosition));
+    }
+
+    _showDependenciesOnNodesNotOverlapping(nodeFullName) {
+      this.getVisible().filter(d => d.from === nodeFullName || d.to === nodeFullName).forEach(dependency => dependency._show());
     }
 
     _updateViewsOnVisibleDependenciesChanged(dependenciesBefore) {
