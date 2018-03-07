@@ -163,17 +163,18 @@ const init = (View) => {
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (nodeFullName, nodePosition) => this._hideDependenciesOnNodesOverlapping(nodeFullName, nodePosition),
-        onNodesNotOverlapping: nodeFullName => this._showDependenciesOnNodesNotOverlapping(nodeFullName)
+        resetNodesOverlapping: () => this._resetVisibility(),
+        finishOnNodesOverlapping: () => this.getVisible().forEach(d => d._view._showIfVisible(d))
       }
+    }
+
+    _resetVisibility() {
+      this.getVisible().forEach(dependency => dependency._isVisible = true);
     }
 
     _hideDependenciesOnNodesOverlapping(nodeFullName, nodePosition) {
       this.getVisible().filter(d => d.from === nodeFullName).forEach(dependency => dependency.hideOnStartOverlapping(nodePosition));
       this.getVisible().filter(d => d.to === nodeFullName).forEach(dependency => dependency.hideOnTargetOverlapping(nodePosition));
-    }
-
-    _showDependenciesOnNodesNotOverlapping(nodeFullName) {
-      this.getVisible().filter(d => d.from === nodeFullName || d.to === nodeFullName).forEach(dependency => dependency._show());
     }
 
     _updateViewsOnVisibleDependenciesChanged(dependenciesBefore) {

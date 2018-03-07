@@ -320,8 +320,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     isPredecessorOf(nodeFullName) {
       const separator = /[\\.\\$]/;
-      return this.isRoot() || nodeFullName.startsWith(this.getFullName())
-        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1));
+      return this.isRoot() || (nodeFullName.startsWith(this.getFullName())
+        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
     }
 
     getSelfAndPredecessorsUntilExclusively(predecessor) {
@@ -566,9 +566,23 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.visualData.jumpToRelativeDisplacement(dx, dy, this.getParent());
         this._listener.forEach(listener => listener.onDrag(this));
 
-        const siblingsAndDescendantClasses = this.getParent()._getDescendantsExceptNodeAndItsDescendants(this)
-          .filter(node => node._description.type !== nodeTypes.package);
-        this._checkOverlappingWithNodes(siblingsAndDescendantClasses);
+        const nodesWithPotentialDependencies = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
+
+        /*nodesWithPotentialDependencies.forEach((node, i) => {
+          if (node.getFullName().endsWith('JsonJavaClass')) {
+            console.log('JsonJavaClass: ' + i);
+          }
+          if (node.getFullName().endsWith('JsonTestUtils')) {
+            console.log('JsonTestUtils: ' + i);
+          }
+          if (node.getFullName().endsWith('JsonJavaElement')) {
+            console.log('JsonJavaElement: ' + i);
+          }
+        });*/
+
+        this._listener.forEach(listener => listener.resetNodesOverlapping());
+        nodesWithPotentialDependencies.reduce((acc, node) => node._checkOverlappingWithNodes(acc), nodesWithPotentialDependencies);
+        this._listener.forEach(listener => listener.finishOnNodesOverlapping());
       });
     }
 
@@ -576,26 +590,42 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     //der Überlappung betroffen sind und der niedrigeren Node angehören
     //TODO: test dafür
     _checkOverlappingWithNodes(nodes) {
-      let mustCheckChildren = true;
-      if (this._description.type !== nodeTypes.package) {
-        mustCheckChildren = nodes.reduce((acc, node) => acc || this._checkOverlappingWithSingleNode(node), false);
-      }
+      const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName()))); //!node.getFullName().startsWith(this.getFullName()))
+
+      const mustCheckChildren = nodesWithoutOwnDescendants.map(node => this._checkOverlappingWithSingleNode(node)).some(bol => bol);
       if (mustCheckChildren) {
-        this.getCurrentChildren().forEach(child => child._checkOverlappingWithNodes(nodes));
+        return nodes.filter(node => node !== this);
+        //return nodes;
       }
+      else {
+        return nodesWithoutOwnDescendants.filter(node => node !== this);
+      }
+      //return nodes.filter(node => node !== this);
+      //return nodes;
     }
 
     _checkOverlappingWithSingleNode(node) {
+      //console.log(this.getFullName() + "---" + node.getFullName());
+
       const middlePointDistance = vectors.distance(this.visualData.absolutePosition, node.visualData.absolutePosition);
-      const areOverlapping = middlePointDistance < this.getRadius() + node.getRadius();
+      const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
 
       const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
-      if (areOverlapping) {
+
+
+      /*if (this.getFullName().endsWith('JsonTestUtils') && node.getFullName().endsWith('JsonJavaElement') ||
+        this.getFullName().endsWith('JsonJavaElement') && node.getFullName().endsWith('JsonTestUtils')) {
+        console.log('A    JsonTestUtils<----->JsonJavaElement');
+      }*/
+
+      if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
+        /*if (this.getFullName().endsWith('JsonTestUtils') && node.getFullName().endsWith('JsonJavaElement') ||
+          this.getFullName().endsWith('JsonJavaElement') && node.getFullName().endsWith('JsonTestUtils')) {
+          console.log('B    JsonTestUtils<----->JsonJavaElement');
+        }*/
+
         this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
           sortedNodes.second.visualData.absolutePosition));
-      }
-      else {
-        //this._listener.forEach(listener => listener.onNodesNotOverlapping(sortedNodes.first.getFullName()));
       }
       return areOverlapping;
     }

@@ -277,11 +277,6 @@ const init = (View, nodeMap) => {
       this._view.hide();
     }
 
-    _show() {
-      this._isVisible = true;
-      this._view._showIfVisible(this);
-    }
-
     isVisible() {
       return this._isVisible;
     }
@@ -301,9 +296,6 @@ const init = (View, nodeMap) => {
     _hideOnOverlapping(point, nodePosition) {
       if (point.isWithin(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
         this.hide();
-      }
-      else {
-        this._show();
       }
     }
   };
