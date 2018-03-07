@@ -3,7 +3,6 @@
 const d3 = require('d3');
 
 const init = (transitionDuration) => {
-
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
     new Promise(resolve => transitionRunner(transition).on('end', resolve));
 
@@ -15,7 +14,7 @@ const init = (transitionDuration) => {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
         .data([node])
-        .attr('id', node.getFullName())
+        .attr('id', node.getFullName().replace(/\\$/g, '.-'))
         .node();
 
       this._circle = d3.select(this._svgElement)

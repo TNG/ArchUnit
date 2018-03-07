@@ -5,6 +5,11 @@ const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
 
+let number = 0;
+
+//FIXME: shorten this file; maybe outsource the translate-function to visualization-functions
+//and VisualData to own file (and rename the class to make its function more understandable)
+
 /**
  * Takes an enclosing circle radius and an inner circle relative to the enclosing circle's center.
  *
@@ -222,6 +227,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const Node = class {
     constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null) {
+      this.number = number++;
       this._root = root;
       if (!root) {
         this._root = this;
@@ -247,6 +253,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._filters = newFilters(this);
       this._listener = [];
 
+      //FIXME: shorten/outsource this
       if (!root) {
         this._updatePromise = Promise.resolve();
         const map = new Map();
