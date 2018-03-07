@@ -567,63 +567,30 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._listener.forEach(listener => listener.onDrag(this));
 
         const nodesWithPotentialDependencies = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
-
-        /*nodesWithPotentialDependencies.forEach((node, i) => {
-          if (node.getFullName().endsWith('JsonJavaClass')) {
-            console.log('JsonJavaClass: ' + i);
-          }
-          if (node.getFullName().endsWith('JsonTestUtils')) {
-            console.log('JsonTestUtils: ' + i);
-          }
-          if (node.getFullName().endsWith('JsonJavaElement')) {
-            console.log('JsonJavaElement: ' + i);
-          }
-        });*/
-
         this._listener.forEach(listener => listener.resetNodesOverlapping());
         nodesWithPotentialDependencies.reduce((acc, node) => node._checkOverlappingWithNodes(acc), nodesWithPotentialDependencies);
         this._listener.forEach(listener => listener.finishOnNodesOverlapping());
       });
     }
 
-    //TODO: add listener onOverlap(node1, node2), wo dann in Klasse Dependencies die Deps gehidet werden, die von
-    //der Überlappung betroffen sind und der niedrigeren Node angehören
-    //TODO: test dafür
+    //TODO: test this
     _checkOverlappingWithNodes(nodes) {
       const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName()))); //!node.getFullName().startsWith(this.getFullName()))
 
       const mustCheckChildren = nodesWithoutOwnDescendants.map(node => this._checkOverlappingWithSingleNode(node)).some(bol => bol);
       if (mustCheckChildren) {
         return nodes.filter(node => node !== this);
-        //return nodes;
       }
       else {
         return nodesWithoutOwnDescendants.filter(node => node !== this);
       }
-      //return nodes.filter(node => node !== this);
-      //return nodes;
     }
 
     _checkOverlappingWithSingleNode(node) {
-      //console.log(this.getFullName() + "---" + node.getFullName());
-
       const middlePointDistance = vectors.distance(this.visualData.absolutePosition, node.visualData.absolutePosition);
       const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
-
       const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
-
-
-      /*if (this.getFullName().endsWith('JsonTestUtils') && node.getFullName().endsWith('JsonJavaElement') ||
-        this.getFullName().endsWith('JsonJavaElement') && node.getFullName().endsWith('JsonTestUtils')) {
-        console.log('A    JsonTestUtils<----->JsonJavaElement');
-      }*/
-
       if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
-        /*if (this.getFullName().endsWith('JsonTestUtils') && node.getFullName().endsWith('JsonJavaElement') ||
-          this.getFullName().endsWith('JsonJavaElement') && node.getFullName().endsWith('JsonTestUtils')) {
-          console.log('B    JsonTestUtils<----->JsonJavaElement');
-        }*/
-
         this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
           sortedNodes.second.visualData.absolutePosition));
       }
