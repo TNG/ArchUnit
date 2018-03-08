@@ -59,9 +59,9 @@ const innerCircle = innerCirlce => ({
     const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
     return centerDistance + innerCirlce.r > parent.getRadius() && !parent.isRoot();
   },
-  isOutOfParentCircle: (parent, circlePadding) => {
+  isOutOfParentCircle: (parentCircle, circlePadding) => {
     const centerDistance = new Vector(innerCirlce.x, innerCirlce.y).length();
-    return centerDistance + innerCirlce.r + circlePadding > parent.getRadius();
+    return centerDistance + innerCirlce.r + circlePadding > parentCircle.r;
   }
 });
 
@@ -100,12 +100,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._isFixed;
     }
 
-    getRelativePosition(parent) {
-      return Vector.from(this).sub(getAbsolutePositionOfNodeOrZero(parent));
+    getPositionRelativeTo(parentCircle) {
+      return Vector.from(this).sub(parentCircle); //getAbsolutePositionOfNodeOrZero(parentCircle)
     }
 
-    update(relativePosition, parent) {
-      this.changeTo(relativePosition).add(getAbsolutePositionOfNodeOrZero(parent));
+    update(relativePosition, parentCircle) {
+      this.changeTo(relativePosition).add(parentCircle); //getAbsolutePositionOfNodeOrZero(parentCircle)
       this._updateFixPosition();
     }
 
@@ -162,7 +162,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _updateAbsolutePosition() {
-      this.absolutePosition.update(this.relativePosition, this.node.getParent());
+      this.absolutePosition.update(this.relativePosition, this.node.getParentCircle());
     }
 
     _updateAbsolutePositionAndDescendants() {
@@ -196,14 +196,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this.completeMoveToIntermediatePosition();
     }
 
-    takeAbsolutePosition(parent) {
-      let newRelativePosition = this.absolutePosition.getRelativePosition(parent);
+    takeAbsolutePosition(parentCircle) {
+      let newRelativePosition = this.absolutePosition.getPositionRelativeTo(parentCircle);
       const circle = withRadius(newRelativePosition, this.r);
-      if (parent && innerCircle(circle).isOutOfParentCircle(parent, visualizationStyles.getCirclePadding())) {
-        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(parent.getRadius(), visualizationStyles.getCirclePadding());
+      if (parentCircle && innerCircle(circle).isOutOfParentCircle(parentCircle, visualizationStyles.getCirclePadding())) {
+        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(parentCircle.r, visualizationStyles.getCirclePadding());
       }
       this.relativePosition.changeTo(newRelativePosition);
-      this.absolutePosition.update(this.relativePosition, parent);
+      this.absolutePosition.update(this.relativePosition, parentCircle);
     }
   };
 
@@ -309,6 +309,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     getParent() {
       return this._parent;
+    }
+
+    getParentCircle() {
+      return !this.isRoot() ? this.getParent().visualData.absolutePosition : undefined;
     }
 
     getSelfOrFirstPredecessorMatching(matchingFunction) {
@@ -525,7 +529,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.visualData.takeAbsolutePosition(node.getParent()));
+          newNodesArray.forEach(node => node.visualData.takeAbsolutePosition(node.getParentCircle()));
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
             promises = promises.concat(newNodesArray.map(node => node.visualData.startMoveToIntermediatePosition()));

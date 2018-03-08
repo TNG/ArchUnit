@@ -54,7 +54,7 @@ const Vector = class {
     return this;
   }
 
-  add(vector) {
+  add(vector = zeroVector) {
     this.x += vector.x;
     this.y += vector.y;
     return this;
@@ -71,7 +71,7 @@ const Vector = class {
     return this.scale(scale/length);
   }
 
-  sub(vector) {
+  sub(vector = zeroVector) {
     this.x -= vector.x;
     this.y -= vector.y;
     return this;
@@ -91,6 +91,7 @@ const Vector = class {
 };
 
 const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
+const zeroVector = new Vector(0, 0);
 
 module.exports.Vector = Vector;
 module.exports.vectors = vectors;
