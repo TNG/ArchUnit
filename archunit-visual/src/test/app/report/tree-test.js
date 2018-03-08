@@ -19,7 +19,7 @@ const testRoot = require('./test-object-creator').tree;
 const MAXIMUM_DELTA = 0.0001;
 
 const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((acc, p) =>
-  ({x: acc.x + p.visualData.relativePosition.x, y: acc.y + p.visualData.relativePosition.y}), {x: 0, y: 0});
+  ({x: acc.x + p.circleData.relativePosition.x, y: acc.y + p.circleData.relativePosition.y}), {x: 0, y: 0});
 
 describe('Root', () => {
   it('should have no parent', () => {
@@ -188,13 +188,13 @@ describe('Inner node or leaf', () => {
     nodeToDrag._drag(dx, dy);
     return root.doNext(() => {
       expect({
-        x: nodeToDrag.visualData.relativePosition.x,
-        y: nodeToDrag.visualData.relativePosition.y
+        x: nodeToDrag.circleData.relativePosition.x,
+        y: nodeToDrag.circleData.relativePosition.y
       }).to.deep.equal(expCoordinates);
       nodeToDrag.getSelfAndDescendants().forEach(node =>
         expect({
-          x: node.visualData.absoluteCircle.x,
-          y: node.visualData.absoluteCircle.y
+          x: node.circleData.absoluteCircle.x,
+          y: node.circleData.absoluteCircle.y
         }).to.deep.equal(getAbsolutePositionOfNode(node)));
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
@@ -216,8 +216,8 @@ describe('Inner node or leaf', () => {
     nodeToDrag._drag(dx, dy);
     return root.doNext(() =>
       expect({
-        x: nodeToDrag.visualData.relativePosition.x,
-        y: nodeToDrag.visualData.relativePosition.y
+        x: nodeToDrag.circleData.relativePosition.x,
+        y: nodeToDrag.circleData.relativePosition.y
       }).to.deep.equal(expCoordinates));
   });
 
@@ -238,8 +238,8 @@ describe('Inner node or leaf', () => {
       const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
       const expCoordinates = {x: -expD, y: expD};
 
-      expect(nodeToDrag.visualData.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
-      expect(nodeToDrag.visualData.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
+      expect(nodeToDrag.circleData.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
+      expect(nodeToDrag.circleData.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
     });
   });
 
@@ -261,7 +261,7 @@ describe('Inner node or leaf', () => {
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -269,7 +269,7 @@ describe('Inner node or leaf', () => {
       return root.doNext(() => {
         const exp = [{
           overlappedNode: 'com.tngtech.archunit.pkgToBeOverlapped',
-          position: nodeToDrag.visualData.absoluteCircle
+          position: nodeToDrag.circleData.absoluteCircle
         }];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
       });
@@ -293,7 +293,7 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
       dragVector.norm(3 * circlePadding);
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -322,7 +322,7 @@ describe('Inner node or leaf', () => {
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -350,14 +350,14 @@ describe('Inner node or leaf', () => {
     const node3 = root.getByName('com.tngtech.archunit.SomeClass3');
 
     return root.doNext(() => {
-      const vectorToNode3 = Vector.between(node2.visualData.relativePosition, node3.visualData.relativePosition);
+      const vectorToNode3 = Vector.between(node2.circleData.relativePosition, node3.circleData.relativePosition);
       vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
       node2._drag(vectorToNode3.x, vectorToNode3.y);
 
       return root.doNext(() => {
-        const vectorToNode2 = Vector.between(node1.visualData.relativePosition, node2.visualData.relativePosition);
+        const vectorToNode2 = Vector.between(node1.circleData.relativePosition, node2.circleData.relativePosition);
         vectorToNode2.norm(vectorToNode2.length() - node2.getRadius());
-        const vectorToNode3 = Vector.between(node1.visualData.relativePosition, node3.visualData.relativePosition);
+        const vectorToNode3 = Vector.between(node1.circleData.relativePosition, node3.circleData.relativePosition);
         vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
         const dragVector = vectorToNode2.scale(0.5).add(vectorToNode3.scale(0.5));
 
@@ -367,19 +367,19 @@ describe('Inner node or leaf', () => {
           const exp = [
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.visualData.absoluteCircle
+              position: node3.circleData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node2.visualData.absoluteCircle
+              position: node2.circleData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node3.visualData.absoluteCircle
+              position: node3.circleData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.visualData.absoluteCircle
+              position: node3.circleData.absoluteCircle
             }
           ];
           expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -406,7 +406,7 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.ClassToBeOverlapped');
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToOverlap.visualData.absoluteCircle, nodeToBeOverlapped.visualData.absoluteCircle);
+      const dragVector = Vector.between(nodeToOverlap.circleData.absoluteCircle, nodeToBeOverlapped.circleData.absoluteCircle);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -415,7 +415,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.ClassToBeOverlapped',
-            position: nodeToOverlap.visualData.absoluteCircle
+            position: nodeToOverlap.circleData.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -440,7 +440,7 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.SomeClass$InnerClass1');
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -449,7 +449,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.SomeClass$InnerClass1',
-            position: nodeToDrag.visualData.absoluteCircle
+            position: nodeToDrag.circleData.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -476,8 +476,8 @@ describe('Node layout', () => {
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.visualData.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
-        expect(node.visualData.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
+        expect(node.circleData.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
+        expect(node.circleData.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
       });
     });
   });
@@ -488,9 +488,9 @@ describe('Node layout', () => {
     root.relayoutCompletely();
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
-        expect(node.visualData.absoluteCircle.fx).to.not.be.undefined;
-        expect(node.visualData.absoluteCircle.fy).to.not.be.undefined;
-        expect(node.visualData.absoluteCircle.isFixed()).to.be.true;
+        expect(node.circleData.absoluteCircle.fx).to.not.be.undefined;
+        expect(node.circleData.absoluteCircle.fy).to.not.be.undefined;
+        expect(node.circleData.absoluteCircle.isFixed()).to.be.true;
       });
     });
   });

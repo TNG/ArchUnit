@@ -329,11 +329,11 @@ describe('GroupedDependency', () => {
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {
-    node.visualData.relativePosition.x = x;
-    node.visualData.absoluteCircle.x = node.getParent() ? node.getParent().visualData.absoluteCircle.x + x : x;
-    node.visualData.relativePosition.y = y;
-    node.visualData.absoluteCircle.y = node.getParent() ? node.getParent().visualData.absoluteCircle.y + y : y;
-    node.visualData.absoluteCircle.r = r;
+    node.circleData.relativePosition.x = x;
+    node.circleData.absoluteCircle.x = node.getParent() ? node.getParent().circleData.absoluteCircle.x + x : x;
+    node.circleData.relativePosition.y = y;
+    node.circleData.absoluteCircle.y = node.getParent() ? node.getParent().circleData.absoluteCircle.y + y : y;
+    node.circleData.absoluteCircle.r = r;
   };
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {
