@@ -574,10 +574,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _checkOverlappingWithNodes(nodes) {
-      const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName()))); //!node.getFullName().startsWith(this.getFullName()))
+      const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName())));
 
-      const mustCheckChildren = nodesWithoutOwnDescendants.map(node => this._checkOverlappingWithSingleNode(node)).some(bol => bol);
-      if (mustCheckChildren) {
+      const isOverlappingWithAnyNode = nodesWithoutOwnDescendants.map(node => this._checkOverlappingWithSingleNode(node)).some(bol => bol);
+      if (this._description.type !== nodeTypes.package || isOverlappingWithAnyNode) {
         return nodes.filter(node => node !== this);
       }
       else {

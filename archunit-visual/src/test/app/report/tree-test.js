@@ -422,6 +422,40 @@ describe('Inner node or leaf', () => {
       });
     });
   });
+
+  it('notifies its listeners, if an inner class is dragged and overlapping a sibling', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass', 'class')
+        .havingInnerClass(testJson.clazz('InnerClass1', 'class').build())
+        .havingInnerClass(testJson.clazz('InnerClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass$InnerClass2');
+    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.SomeClass$InnerClass1');
+
+    return root.doNext(() => {
+      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
+
+      nodeToDrag._drag(dragVector.x, dragVector.y);
+
+      return root.doNext(() => {
+        const exp = [
+          {
+            overlappedNode: 'com.tngtech.archunit.SomeClass$InnerClass1',
+            position: nodeToDrag.visualData.absolutePosition
+          }
+        ];
+        expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
+      });
+    });
+  });
 });
 
 describe('Node layout', () => {
