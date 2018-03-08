@@ -36,35 +36,30 @@ const init = (View, nodeMap) => {
 
     recalc(absVisualStartNode, absVisualEndNode) {
       const lineDiff = 20;
-      const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode),
-        nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
+      const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);
+      const nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
 
-      const direction = new Vector(absVisualEndNode.x - absVisualStartNode.x,
-        absVisualEndNode.y - absVisualStartNode.y);
+      const direction = Vector.between(absVisualStartNode, absVisualEndNode);
 
-      let startDirectionVector = Vector.from(direction);
-      if (oneIsInOther && absVisualStartNode === nodes[0]) {
-        startDirectionVector = vectors.getRevertedVector(startDirectionVector);
-      }
-      startDirectionVector = startDirectionVector.getDefaultIfNull();
-      let endDirectionVector = oneIsInOther ? Vector.from(startDirectionVector) : vectors.getRevertedVector(startDirectionVector);
+      const startDirectionVector = Vector.from(direction);
+      startDirectionVector.revertIf(oneIsInOther && absVisualStartNode === nodes[0]);
+      startDirectionVector.makeDefaultIfNull();
+      const endDirectionVector = Vector.from(startDirectionVector).revertIf(!oneIsInOther);
 
       if (this.mustShareNodes) {
-        let orthogonalVector = vectors.getOrthogonalVector(startDirectionVector).norm(lineDiff / 2);
-        if (oneIsInOther && absVisualStartNode === nodes[1]) {
-          orthogonalVector = vectors.getRevertedVector(orthogonalVector);
-        }
+        const orthogonalVector = vectors.getOrthogonalVector(startDirectionVector).norm(lineDiff / 2);
+        orthogonalVector.revertIf(oneIsInOther && absVisualStartNode === nodes[1]);
         startDirectionVector.norm(absVisualStartNode.r);
         endDirectionVector.norm(absVisualEndNode.r);
         startDirectionVector.add(orthogonalVector);
         endDirectionVector.add(orthogonalVector);
       }
 
-      startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);
-      endDirectionVector = vectors.norm(endDirectionVector, absVisualEndNode.r);
+      startDirectionVector.norm(absVisualStartNode.r);
+      endDirectionVector.norm(absVisualEndNode.r);
 
-      this.startPoint = new Vector(absVisualStartNode.x + startDirectionVector.x, absVisualStartNode.y + startDirectionVector.y);
-      this.endPoint = new Vector(absVisualEndNode.x + endDirectionVector.x, absVisualEndNode.y + endDirectionVector.y);
+      this.startPoint = vectors.add(absVisualStartNode, startDirectionVector);
+      this.endPoint = vectors.add(absVisualEndNode, endDirectionVector);
     }
   };
 
@@ -294,7 +289,7 @@ const init = (View, nodeMap) => {
     }
 
     _hideOnOverlapping(point, nodePosition) {
-      if (point.isWithin(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
+      if (point.isWithinCircle(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
         this.hide();
       }
     }

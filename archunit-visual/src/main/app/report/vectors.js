@@ -7,15 +7,13 @@ const vectors = {
 
   norm: (vector, scale) => Vector.from(vector).norm(scale),
 
-  getRevertedVector: vector => new Vector(-vector.x, -vector.y),
+  getRevertedVector: vector => Vector.from(vector).revert(),
 
   getOrthogonalVector: vector => new Vector(vector.y, -vector.x),
 
   add: (vector1, vector2) => Vector.from(vector1).add(vector2)
 };
 
-//FIXME: the methods as add etc. are ugly, as they change the vector itself and return itself
-//--> returning itself makes the vector seem to immutable, but it isn't
 const Vector = class {
   constructor(x, y) {
     if (isNaN(x) || isNaN(y)) {
@@ -25,7 +23,17 @@ const Vector = class {
     this.y = y;
   }
 
-  isWithin(vector, radius) {
+  revert() {
+    this.x = -this.x;
+    this.y = -this.y;
+    return this;
+  }
+
+  revertIf(condition) {
+    return condition ? this.revert() : this;
+  }
+
+  isWithinCircle(vector, radius) {
     return Vector.between(this, vector).length() <= radius;
   }
 
@@ -33,14 +41,16 @@ const Vector = class {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 
-  getDefaultIfNull() {
-    return this.length() === 0 ? new Vector(defaultCoordinate, defaultCoordinate) : this;
+  makeDefaultIfNull() {
+    if (this.length() === 0) {
+      return this.changeTo(defaultVector);
+    }
+    return this;
   }
 
   changeTo(vector) {
     this.x = vector.x;
     this.y = vector.y;
-    //FIXME: return really necessary??
     return this;
   }
 
@@ -79,6 +89,8 @@ const Vector = class {
     return new Vector(0, 0);
   }
 };
+
+const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
 
 module.exports.Vector = Vector;
 module.exports.vectors = vectors;
