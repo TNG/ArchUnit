@@ -17,14 +17,14 @@ const convertActualAndExpectedToStrings = (actual, args) => {
 
 Assertion.addMethod('locatedWithinWithPadding', function (parent, padding) {
   const node = this._obj;
-  const distanceToNodeRim = new Vector(node.visualData.relativePosition.x, node.visualData.relativePosition.y).length() + node.visualData.r;
+  const distanceToNodeRim = new Vector(node.visualData.relativePosition.x, node.visualData.relativePosition.y).length() + node.visualData.getRadius();
   new Assertion(distanceToNodeRim + padding).to.be.at.most(parent.getRadius() + MAXIMUM_DELTA);
 });
 
 Assertion.addMethod('notOverlapWith', function (sibling, padding) {
   const node = this._obj;
   const distanceBetweenMiddlePoints = Vector.between(node.visualData.relativePosition, sibling.visualData.relativePosition).length();
-  const radiusSum = node.visualData.r + sibling.visualData.r;
+  const radiusSum = node.visualData.getRadius() + sibling.visualData.getRadius();
   //here is added 1, because the collide-force-layout does not guarantee that the circle do not overlap
   new Assertion(radiusSum + padding).to.be.at.most(distanceBetweenMiddlePoints + 1);
 });

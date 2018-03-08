@@ -260,11 +260,11 @@ const init = (View, nodeMap) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.getStartNode().visualData.absolutePosition, this.getEndNode().visualData.absolutePosition);
+      this.visualData.jumpToPosition(this.getStartNode().visualData.absoluteCircle, this.getEndNode().visualData.absoluteCircle);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.getStartNode().visualData.absolutePosition, this.getEndNode().visualData.absolutePosition);
+      return this.visualData.moveToPosition(this.getStartNode().visualData.absoluteCircle, this.getEndNode().visualData.absoluteCircle);
     }
 
     hide() {

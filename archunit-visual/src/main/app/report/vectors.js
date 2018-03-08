@@ -90,8 +90,20 @@ const Vector = class {
   }
 };
 
+const Circle = class extends Vector {
+  constructor(x, y, r) {
+    super(x, y);
+    this.r = r;
+  }
+
+  static from(vector, r) {
+    return new Circle(vector.x, vector.y, r);
+  }
+};
+
 const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
 const zeroVector = new Vector(0, 0);
 
 module.exports.Vector = Vector;
+module.exports.Circle = Circle;
 module.exports.vectors = vectors;

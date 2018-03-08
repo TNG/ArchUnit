@@ -193,8 +193,8 @@ describe('Inner node or leaf', () => {
       }).to.deep.equal(expCoordinates);
       nodeToDrag.getSelfAndDescendants().forEach(node =>
         expect({
-          x: node.visualData.absolutePosition.x,
-          y: node.visualData.absolutePosition.y
+          x: node.visualData.absoluteCircle.x,
+          y: node.visualData.absoluteCircle.y
         }).to.deep.equal(getAbsolutePositionOfNode(node)));
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
@@ -269,7 +269,7 @@ describe('Inner node or leaf', () => {
       return root.doNext(() => {
         const exp = [{
           overlappedNode: 'com.tngtech.archunit.pkgToBeOverlapped',
-          position: nodeToDrag.visualData.absolutePosition
+          position: nodeToDrag.visualData.absoluteCircle
         }];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
       });
@@ -367,19 +367,19 @@ describe('Inner node or leaf', () => {
           const exp = [
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.visualData.absolutePosition
+              position: node3.visualData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node2.visualData.absolutePosition
+              position: node2.visualData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node3.visualData.absolutePosition
+              position: node3.visualData.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.visualData.absolutePosition
+              position: node3.visualData.absoluteCircle
             }
           ];
           expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -406,7 +406,7 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.ClassToBeOverlapped');
 
     return root.doNext(() => {
-      const dragVector = Vector.between(nodeToOverlap.visualData.absolutePosition, nodeToBeOverlapped.visualData.absolutePosition);
+      const dragVector = Vector.between(nodeToOverlap.visualData.absoluteCircle, nodeToBeOverlapped.visualData.absoluteCircle);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -415,7 +415,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.ClassToBeOverlapped',
-            position: nodeToOverlap.visualData.absolutePosition
+            position: nodeToOverlap.visualData.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -449,7 +449,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.SomeClass$InnerClass1',
-            position: nodeToDrag.visualData.absolutePosition
+            position: nodeToDrag.visualData.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -476,8 +476,8 @@ describe('Node layout', () => {
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.visualData.absolutePosition.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
-        expect(node.visualData.absolutePosition.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
+        expect(node.visualData.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
+        expect(node.visualData.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
       });
     });
   });
@@ -488,9 +488,9 @@ describe('Node layout', () => {
     root.relayoutCompletely();
     return root.doNext(() => {
       root.callOnEveryDescendantThenSelf(node => {
-        expect(node.visualData.absolutePosition.fx).to.not.be.undefined;
-        expect(node.visualData.absolutePosition.fy).to.not.be.undefined;
-        expect(node.visualData.absolutePosition.isFixed()).to.be.true;
+        expect(node.visualData.absoluteCircle.fx).to.not.be.undefined;
+        expect(node.visualData.absoluteCircle.fy).to.not.be.undefined;
+        expect(node.visualData.absoluteCircle.isFixed()).to.be.true;
       });
     });
   });

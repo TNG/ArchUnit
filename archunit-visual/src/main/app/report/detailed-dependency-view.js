@@ -7,7 +7,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
     constructor(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
-      this._isFixed = false;
+      this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
@@ -90,7 +90,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _fix() {
-      if (!this._isFixed) {
+      if (!this._fixed) {
         const fontSize = visualizationStyles.getDependencyTitleFontSize();
         const dx = d3.select(this._svgElement).select('.hoverArea').attr('width') / 2 - fontSize / 2;
         d3.select(this._svgElement).append('text')
@@ -99,25 +99,25 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
           .attr('dx', dx)
           .attr('dy', fontSize)
           .on('click', () => this._unfix());
-        this._isFixed = true;
+        this._fixed = true;
       }
     }
 
     _unfix() {
-      this._isFixed = false;
+      this._fixed = false;
       this._hideIfNotFixed();
       d3.select(this._svgElement).select('text.closeButton').remove();
     }
 
     _hideIfNotFixed() {
-      if (!this._isFixed) {
+      if (!this._fixed) {
         d3.select(this._svgElement).style('visibility', 'hidden');
         d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'none');
       }
     }
 
     fadeIn(coordinates) {
-      if (!this._isFixed) {
+      if (!this._fixed) {
         this._shouldBeHidden = false;
         setTimeout(() => {
           if (!this._shouldBeHidden) {
