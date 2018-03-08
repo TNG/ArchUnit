@@ -89,13 +89,24 @@ const createNodeListenerStub = () => {
   let _onDragWasCalled = false;
   let _foldedNode;
   let _onLayoutChangedWasCalled = false;
+
+  let overlappedNodesAndPosition = [];
+
   return {
     onDrag: () => _onDragWasCalled = true,
     onFold: node => _foldedNode = node,
     onLayoutChanged: () => _onLayoutChangedWasCalled = true,
+
     onDragWasCalled: () => _onDragWasCalled,
     foldedNode: () => _foldedNode,
-    onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled
+    onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled,
+
+    onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) =>
+      overlappedNodesAndPosition.push({overlappedNode: fullNameOfOverlappedNode, position: positionOfOverlappingNode}),
+    resetNodesOverlapping: () => {},
+    finishOnNodesOverlapping: () => {},
+
+    overlappedNodesAndPosition: () => overlappedNodesAndPosition,
   }
 };
 

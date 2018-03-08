@@ -34,6 +34,8 @@ const vectors = {
   addVectors: (vector1, vector2) => vectors.vectorOf(vector1.x + vector2.x, vector1.y + vector2.y),
 };
 
+//FIXME: the methods as add etc. are ugly, as they change the vector itself and return itself
+//--> returning itself makes the vector seem to immutable, but it isn't
 const Vector = class {
   constructor(x, y) {
     if (isNaN(x) || isNaN(y)) {
@@ -54,6 +56,7 @@ const Vector = class {
   changeTo(vector) {
     this.x = vector.x;
     this.y = vector.y;
+    //FIXME: return really necessary??
     return this;
   }
 
@@ -61,6 +64,17 @@ const Vector = class {
     this.x += vector.x;
     this.y += vector.y;
     return this;
+  }
+
+  scale(factor) {
+    this.x *= factor;
+    this.y *= factor;
+    return this;
+  }
+
+  norm(scale) {
+    const length = this.length();
+    return this.scale(scale/length);
   }
 
   sub(vector) {

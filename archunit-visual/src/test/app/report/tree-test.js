@@ -2,6 +2,7 @@
 
 const expect = require('chai').expect;
 require('./chai/node-chai-extensions');
+const Vector = require('./main-files').get('vectors').Vector;
 
 const stubs = require('./stubs');
 const appContext = require('./main-files').get('app-context').newInstance({
@@ -239,6 +240,186 @@ describe('Inner node or leaf', () => {
 
       expect(nodeToDrag.visualData.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
       expect(nodeToDrag.visualData.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
+    });
+  });
+
+  it('notifies its listeners, if it is dragged so that nodes (class and folded package) are overlapping', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToBeOverlapped')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.clazz('ClassToDrag', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
+    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
+    nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
+
+    return root.doNext(() => {
+      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
+
+      nodeToDrag._drag(dragVector.x, dragVector.y);
+
+      return root.doNext(() => {
+        const exp = [{
+          overlappedNode: 'com.tngtech.archunit.pkgToBeOverlapped',
+          position: nodeToDrag.visualData.absolutePosition
+        }];
+        expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
+      });
+    });
+  });
+
+  it('does not notify its listeners, if it is dragged so that a class and an unfolded package are overlapping', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkgToBeOverlapped')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .add(testJson.clazz('ClassToDrag', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
+    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
+
+    return root.doNext(() => {
+      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      dragVector.norm(3 * circlePadding);
+
+      nodeToDrag._drag(dragVector.x, dragVector.y);
+
+      return root.doNext(() => {
+        expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
+      });
+    });
+  });
+
+  it('does not notify its listeners, if it is dragged so that a class and a folded package are overlapping and the package is in front of the class', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('ClassToDrag', 'class').build())
+      .add(testJson.package('pkgToBeOverlapped')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
+    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
+    nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
+
+    return root.doNext(() => {
+      const dragVector = Vector.between(nodeToDrag.visualData.relativePosition, nodeToBeOverlapped.visualData.relativePosition);
+      dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
+
+      nodeToDrag._drag(dragVector.x, dragVector.y);
+
+      return root.doNext(() => {
+        expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
+      });
+    });
+  });
+
+  it('notifies its listeners, if it is dragged so that three nodes are mutually overlapping', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('SomeClass1', 'class').build())
+      .add(testJson.clazz('SomeClass2', 'class').build())
+      .add(testJson.clazz('SomeClass3', 'class').build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const node1 = root.getByName('com.tngtech.archunit.SomeClass1');
+    const node2 = root.getByName('com.tngtech.archunit.SomeClass2');
+    const node3 = root.getByName('com.tngtech.archunit.SomeClass3');
+
+    return root.doNext(() => {
+      const vectorToNode3 = Vector.between(node2.visualData.relativePosition, node3.visualData.relativePosition);
+      vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
+      node2._drag(vectorToNode3.x, vectorToNode3.y);
+
+      return root.doNext(() => {
+        const vectorToNode2 = Vector.between(node1.visualData.relativePosition, node2.visualData.relativePosition);
+        vectorToNode2.norm(vectorToNode2.length() - node2.getRadius());
+        const vectorToNode3 = Vector.between(node1.visualData.relativePosition, node3.visualData.relativePosition);
+        vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
+        const dragVector = vectorToNode2.scale(0.5).add(vectorToNode3.scale(0.5));
+
+        node1._drag(dragVector.x, dragVector.y);
+
+        return root.doNext(() => {
+          const exp = [
+            {
+              overlappedNode: 'com.tngtech.archunit.SomeClass2',
+              position: node3.visualData.absolutePosition
+            },
+            {
+              overlappedNode: 'com.tngtech.archunit.SomeClass1',
+              position: node2.visualData.absolutePosition
+            },
+            {
+              overlappedNode: 'com.tngtech.archunit.SomeClass1',
+              position: node3.visualData.absolutePosition
+            },
+            {
+              overlappedNode: 'com.tngtech.archunit.SomeClass2',
+              position: node3.visualData.absolutePosition
+            }
+          ];
+          expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
+        });
+      });
+    });
+  });
+
+  it('notifies its listeners, if it is dragged so that a child node of the dragged node is overlapping another node', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('ClassToBeOverlapped', 'class').build())
+      .add(testJson.package('pkgToDrag')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .build();
+    const root = new Node(jsonRoot);
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.pkgToDrag');
+    const nodeToOverlap = root.getByName('com.tngtech.archunit.pkgToDrag.SomeClass');
+    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.ClassToBeOverlapped');
+
+    return root.doNext(() => {
+      const dragVector = Vector.between(nodeToOverlap.visualData.absolutePosition, nodeToBeOverlapped.visualData.absolutePosition);
+      dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
+
+      nodeToDrag._drag(dragVector.x, dragVector.y);
+
+      return root.doNext(() => {
+        const exp = [
+          {
+            overlappedNode: 'com.tngtech.archunit.ClassToBeOverlapped',
+            position: nodeToOverlap.visualData.absolutePosition
+          }
+        ];
+        expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
+      });
     });
   });
 });

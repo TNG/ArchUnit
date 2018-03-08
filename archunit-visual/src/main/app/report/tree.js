@@ -573,7 +573,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       });
     }
 
-    //TODO: test this
     _checkOverlappingWithNodes(nodes) {
       const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName()))); //!node.getFullName().startsWith(this.getFullName()))
 
