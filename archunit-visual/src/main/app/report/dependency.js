@@ -39,25 +39,25 @@ const init = (View, nodeMap) => {
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode),
         nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
 
-      const direction = vectors.vectorOf(absVisualEndNode.x - absVisualStartNode.x,
+      const direction = new Vector(absVisualEndNode.x - absVisualStartNode.x,
         absVisualEndNode.y - absVisualStartNode.y);
 
-      let startDirectionVector = vectors.cloneVector(direction);
+      let startDirectionVector = Vector.from(direction);
       if (oneIsInOther && absVisualStartNode === nodes[0]) {
         startDirectionVector = vectors.getRevertedVector(startDirectionVector);
       }
-      startDirectionVector = vectors.getDefaultIfNull(startDirectionVector);
-      let endDirectionVector = oneIsInOther ? vectors.cloneVector(startDirectionVector) : vectors.getRevertedVector(startDirectionVector);
+      startDirectionVector = startDirectionVector.getDefaultIfNull();
+      let endDirectionVector = oneIsInOther ? Vector.from(startDirectionVector) : vectors.getRevertedVector(startDirectionVector);
 
       if (this.mustShareNodes) {
-        let orthogonalVector = vectors.norm(vectors.getOrthogonalVector(startDirectionVector), lineDiff / 2);
+        let orthogonalVector = vectors.getOrthogonalVector(startDirectionVector).norm(lineDiff / 2);
         if (oneIsInOther && absVisualStartNode === nodes[1]) {
           orthogonalVector = vectors.getRevertedVector(orthogonalVector);
         }
-        startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);
-        endDirectionVector = vectors.norm(endDirectionVector, absVisualEndNode.r);
-        startDirectionVector = vectors.addVectors(startDirectionVector, orthogonalVector);
-        endDirectionVector = vectors.addVectors(endDirectionVector, orthogonalVector);
+        startDirectionVector.norm(absVisualStartNode.r);
+        endDirectionVector.norm(absVisualEndNode.r);
+        startDirectionVector.add(orthogonalVector);
+        endDirectionVector.add(orthogonalVector);
       }
 
       startDirectionVector = vectors.norm(startDirectionVector, absVisualStartNode.r);

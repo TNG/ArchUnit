@@ -149,8 +149,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     jumpToRelativeDisplacement(dx, dy, parent) {
-      const directionVector = vectors.vectorOf(dx, dy);
-      let newRelativePosition = vectors.addVectors(this.relativePosition, directionVector);
+      const directionVector = new Vector(dx, dy);
+      let newRelativePosition = vectors.add(this.relativePosition, directionVector);
       if (innerCircle(withRadius(newRelativePosition, this.r)).isOutOfParentCircleOrIsChildOfRoot(parent)) {
         newRelativePosition = translate(withRadius(this.relativePosition, this.r))
           .withinEnclosingCircleOfRadius(parent.getRadius())

@@ -2,36 +2,16 @@
 
 const defaultCoordinate = Math.sqrt(2) / 2;
 
-const subVectors = (vector1, vector2) => vectors.vectorOf(vector1.x - vector2.x, vector1.y - vector2.y);
-
-const getLength = vector => Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-
 const vectors = {
-  distance: (vector1, vector2) => getLength(subVectors(vector1, vector2)),
+  distance: (vector1, vector2) => Vector.between(vector1, vector2).length(),
 
-  vectorOf: (x, y) => {
-    return {x, y}
-  },
+  norm: (vector, scale) => Vector.from(vector).norm(scale),
 
-  cloneVector: vector => {
-    return {
-      x: vector.x,
-      y: vector.y
-    }
-  },
+  getRevertedVector: vector => new Vector(-vector.x, -vector.y),
 
-  getDefaultIfNull: vector => getLength(vector) === 0 ? vectors.vectorOf(defaultCoordinate, defaultCoordinate) : vector,
+  getOrthogonalVector: vector => new Vector(vector.y, -vector.x),
 
-  norm: (vector, scale) => {
-    const length = getLength(vector) || 1;
-    return vectors.vectorOf(scale * vector.x / length, scale * vector.y / length);
-  },
-
-  getRevertedVector: vector => vectors.vectorOf(-vector.x, -vector.y),
-
-  getOrthogonalVector: vector => vectors.vectorOf(vector.y, -vector.x),
-
-  addVectors: (vector1, vector2) => vectors.vectorOf(vector1.x + vector2.x, vector1.y + vector2.y),
+  add: (vector1, vector2) => Vector.from(vector1).add(vector2)
 };
 
 //FIXME: the methods as add etc. are ugly, as they change the vector itself and return itself
@@ -51,6 +31,10 @@ const Vector = class {
 
   length() {
     return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  getDefaultIfNull() {
+    return this.length() === 0 ? new Vector(defaultCoordinate, defaultCoordinate) : this;
   }
 
   changeTo(vector) {
@@ -73,7 +57,7 @@ const Vector = class {
   }
 
   norm(scale) {
-    const length = this.length();
+    const length = this.length() || 1;
     return this.scale(scale/length);
   }
 
