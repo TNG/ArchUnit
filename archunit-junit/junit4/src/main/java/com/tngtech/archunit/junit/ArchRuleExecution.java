@@ -24,6 +24,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 
 class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
@@ -39,16 +40,7 @@ class ArchRuleExecution extends ArchTestExecution {
                 testClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
 
         this.ruleField = validatePublicStatic(ruleField);
-        rule = getArchRule(testClass, ruleField);
-    }
-
-    private ArchRule getArchRule(Class<?> testClass, Field ruleField) {
-        try {
-            return (ArchRule) ruleField.get(testClass);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(String.format(
-                    "Cannot access field %s.%s", testClass.getName(), ruleField.getName()), e);
-        }
+        rule = getValue(ruleField, null);
     }
 
     @Override

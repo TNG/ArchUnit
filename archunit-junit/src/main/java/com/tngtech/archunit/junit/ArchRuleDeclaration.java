@@ -18,11 +18,11 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
 
     abstract void handleWith(Handler handler);
 
-    static ArchRuleDeclaration from(Class<?> testClass, Method method, boolean forceIgnore) {
+    static ArchRuleDeclaration<Method> from(Class<?> testClass, Method method, boolean forceIgnore) {
         return new AsMethod(testClass, method, forceIgnore);
     }
 
-    static ArchRuleDeclaration from(Class<?> testClass, Field field, boolean forceIgnore) {
+    static ArchRuleDeclaration<Field> from(Class<?> testClass, Field field, boolean forceIgnore) {
         return new AsField(testClass, field, forceIgnore);
     }
 

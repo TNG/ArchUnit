@@ -19,6 +19,7 @@ import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 
 public class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
@@ -30,7 +31,11 @@ public class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExe
 
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
-        return new ArchUnitEngineDescriptor(uniqueId);
+        ArchUnitEngineDescriptor result = new ArchUnitEngineDescriptor(uniqueId);
+        discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
+                .map(selector -> new ArchUnitTestDescriptor(uniqueId, selector.getJavaClass()))
+                .forEach(result::addChild);
+        return result;
     }
 
     @Override
