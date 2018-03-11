@@ -1,7 +1,7 @@
 ext.moduleName = 'com.tngtech.archunit.integrationtest'
 
 dependencies {
-    testCompile dependency.junit
+    testCompile dependency.junit4
     testCompile dependency.assertj
     testCompile dependency.mockito
     testCompile dependency.guava
