@@ -10,7 +10,7 @@ dependencies {
     testCompile dependency.log4j_api
     testCompile dependency.log4j_core
     testCompile dependency.log4j_slf4j
-    testCompile dependency.junit
+    testCompile dependency.junit4
     testCompile dependency.junit_dataprovider
     testCompile dependency.mockito
     testCompile dependency.assertj
