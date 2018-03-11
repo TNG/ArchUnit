@@ -40,6 +40,8 @@ import org.junit.runners.model.Statement;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
+import static com.tngtech.archunit.junit.ArchTestExecution.validatePublicStatic;
+import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -111,26 +113,22 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
         boolean ignore = elementShouldBeIgnored(ruleField.getField());
         if (ruleField.getType() == ArchRules.class) {
-            return asTestExecutions(getArchRules(ruleField), ignore);
+            return asTestExecutions(getArchRules(ruleField.getField()), ignore);
         }
         return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
     }
 
     private Set<ArchTestExecution> asTestExecutions(ArchRules archRules, boolean forceIgnore) {
         ExecutionTransformer executionTransformer = new ExecutionTransformer();
-        for (ArchRuleDeclaration declaration : archRules.asDeclarations(getTestClass().getJavaClass(), forceIgnore)) {
+        for (ArchRuleDeclaration<?> declaration : archRules.asDeclarations(getTestClass().getJavaClass(), forceIgnore)) {
             declaration.handleWith(executionTransformer);
         }
         return executionTransformer.getExecutions();
     }
 
-    private ArchRules getArchRules(FrameworkField ruleField) {
-        ArchTestExecution.validatePublicStatic(ruleField.getField());
-        try {
-            return (ArchRules) ruleField.get(null);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    private ArchRules getArchRules(Field field) {
+        validatePublicStatic(field);
+        return getValue(field, null);
     }
 
     private Collection<ArchTestExecution> findArchRuleMethods() {

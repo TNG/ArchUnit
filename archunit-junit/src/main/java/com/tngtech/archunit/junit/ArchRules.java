@@ -15,8 +15,6 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -25,31 +23,25 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.junit.ReflectionUtils.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
+import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
+import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 
 public final class ArchRules {
+    private final Class<?> definitionLocation;
     private final Collection<Field> fields;
     private final Collection<Method> methods;
 
     @SuppressWarnings("unchecked")
     private ArchRules(Class<?> definitionLocation) {
+        this.definitionLocation = definitionLocation;
         fields = getAllFields(definitionLocation, withAnnotation(ArchTest.class));
         methods = getAllMethods(definitionLocation, withAnnotation(ArchTest.class));
-    }
-
-    private static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
-        return new Predicate<AnnotatedElement>() {
-            @Override
-            public boolean apply(AnnotatedElement input) {
-                return input.getAnnotation(annotationType) != null;
-            }
-        };
     }
 
     @PublicAPI(usage = ACCESS)
@@ -57,8 +49,12 @@ public final class ArchRules {
         return new ArchRules(definitionLocation);
     }
 
-    Set<ArchRuleDeclaration> asDeclarations(Class<?> testClass, boolean forceIgnore) {
-        ImmutableSet.Builder<ArchRuleDeclaration> result = ImmutableSet.builder();
+    Class<?> getDefinitionLocation() {
+        return definitionLocation;
+    }
+
+    Set<ArchRuleDeclaration<?>> asDeclarations(Class<?> testClass, boolean forceIgnore) {
+        ImmutableSet.Builder<ArchRuleDeclaration<?>> result = ImmutableSet.builder();
         for (Field field : fields) {
             result.addAll(archRuleDeclarationsFrom(testClass, field, forceIgnore));
         }
@@ -68,19 +64,16 @@ public final class ArchRules {
         return result.build();
     }
 
-    private Set<ArchRuleDeclaration> archRuleDeclarationsFrom(Class<?> testClass, Field field, boolean forceIgnore) {
+    private Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(Class<?> testClass, Field field, boolean forceIgnore) {
         return ArchRules.class.isAssignableFrom(field.getType()) ?
                 getArchRulesIn(field).asDeclarations(testClass, forceIgnore || elementShouldBeIgnored(field)) :
-                Collections.singleton(ArchRuleDeclaration.from(testClass, field, forceIgnore));
+                Collections.<ArchRuleDeclaration<?>>singleton(ArchRuleDeclaration.from(testClass, field, forceIgnore));
     }
 
     private ArchRules getArchRulesIn(Field field) {
-        try {
-            ArchRules value = (ArchRules) field.get(null);
-            return checkNotNull(value, "Field %s.%s is not initialized",
-                    field.getDeclaringClass().getName(), field.getName());
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        ArchRules value = getValue(field, null);
+        return checkNotNull(value, "Field %s.%s is not initialized",
+                field.getDeclaringClass().getName(), field.getName());
     }
+
 }
