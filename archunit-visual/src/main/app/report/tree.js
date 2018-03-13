@@ -380,16 +380,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
         const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
         const newNodes = new Map();
-
         newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
+        if (newNodes.size === 0) {
+          break;
+        }
+
         newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
         //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
         const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
           && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-
-        if (newNodes.size === 0) {
-          break;
-        }
 
         const padding = visualizationStyles.getCirclePadding();
         const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.nodeCircle.absoluteCircle);
