@@ -30,13 +30,15 @@ class JsonAccess {
 
     JsonAccess(JavaAccess<?> access) {
         this.target = access.getTargetOwner().getName();
-        this.startCodeUnit = access.getOrigin().getName();
+        this.startCodeUnit = access.getOrigin().getName() + "(" +
+                Formatters.formatMethodParameterTypeNames(access.getOrigin().getParameters().getNames()) + ")";
         this.targetCodeElement = access.getTarget().getName();
     }
 
     JsonAccess(JavaCall<?> javaCall) {
         this.target = javaCall.getTargetOwner().getName();
-        this.startCodeUnit = javaCall.getOrigin().getName();
+        this.startCodeUnit = javaCall.getOrigin().getName() + "(" +
+                Formatters.formatMethodParameterTypeNames(javaCall.getOrigin().getParameters().getNames()) + ")";
         this.targetCodeElement = javaCall.getTarget().getName() + "(" +
                 Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
     }

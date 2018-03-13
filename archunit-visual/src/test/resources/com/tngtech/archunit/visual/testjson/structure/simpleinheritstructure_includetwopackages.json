@@ -62,7 +62,7 @@
                   "methodCalls": [
                     {
                       "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                      "startCodeUnit": "sayHello",
+                      "startCodeUnit": "sayHello(int)",
                       "targetCodeElement": "sayHello(int)"
                     }
                   ],
@@ -78,24 +78,24 @@
               "methodCalls": [
                 {
                   "target": "java.io.PrintStream",
-                  "startCodeUnit": "sayHello",
+                  "startCodeUnit": "sayHello(int)",
                   "targetCodeElement": "println(java.lang.String)"
                 },
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                  "startCodeUnit": "sayHello",
+                  "startCodeUnit": "sayHello(int)",
                   "targetCodeElement": "sayHello(int)"
                 },
                 {
                   "target": "java.io.PrintStream",
-                  "startCodeUnit": "sayHi",
+                  "startCodeUnit": "sayHi()",
                   "targetCodeElement": "println(java.lang.String)"
                 }
               ],
               "constructorCalls": [
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                  "startCodeUnit": "sayHello",
+                  "startCodeUnit": "sayHello(int)",
                   "targetCodeElement": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)"
                 }
               ],
@@ -112,24 +112,24 @@
               "methodCalls": [
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                  "startCodeUnit": "sayHelloAndBye",
+                  "startCodeUnit": "sayHelloAndBye()",
                   "targetCodeElement": "sayHello(int)"
                 },
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                  "startCodeUnit": "sayHelloAndBye",
+                  "startCodeUnit": "sayHelloAndBye()",
                   "targetCodeElement": "sayHi()"
                 },
                 {
                   "target": "java.io.PrintStream",
-                  "startCodeUnit": "sayHelloAndBye",
+                  "startCodeUnit": "sayHelloAndBye()",
                   "targetCodeElement": "println(java.lang.String)"
                 }
               ],
               "constructorCalls": [
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                  "startCodeUnit": "sayHelloAndBye",
+                  "startCodeUnit": "sayHelloAndBye()",
                   "targetCodeElement": "<init>(java.lang.String)"
                 }
               ],
@@ -146,14 +146,14 @@
               "methodCalls": [
                 {
                   "target": "java.io.PrintStream",
-                  "startCodeUnit": "sayHelloAndBye",
+                  "startCodeUnit": "sayHelloAndBye()",
                   "targetCodeElement": "println(java.lang.String)"
                 }
               ],
               "constructorCalls": [
                 {
                   "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-                  "startCodeUnit": "<init>",
+                  "startCodeUnit": "<init>(java.lang.String)",
                   "targetCodeElement": "<init>(java.lang.String)"
                 }
               ],
