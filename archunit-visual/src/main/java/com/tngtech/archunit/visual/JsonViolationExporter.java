@@ -19,7 +19,6 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.domain.JavaCall;
@@ -33,36 +32,37 @@ class JsonViolationExporter {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    void export(EvaluationResult result, Writer writer) {
-        final List<JsonViolation> violations = Lists.newArrayList();
-        extractFieldAccesses(result, violations);
-        extractJavaCalls(result, violations);
-        writeToWriter(violations, writer);
+    //FIXME: maybe extract rule from result??
+    void export(String rule, EvaluationResult result, Writer writer) {
+        final JsonEvaluationResult evaluationResult = new JsonEvaluationResult(rule);
+        extractFieldAccesses(result, evaluationResult);
+        extractJavaCalls(result, evaluationResult);
+        writeToWriter(evaluationResult, writer);
     }
 
-    private void extractJavaCalls(EvaluationResult result, final List<JsonViolation> violations) {
+    private void extractJavaCalls(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
         result.handleViolations(new ViolationHandler<JavaCall<?>>() {
             @Override
             public void handle(Collection<JavaCall<?>> violatingObjects, String message) {
                 for (JavaCall<?> violatingObject : violatingObjects) {
-                    violations.add(JsonViolation.from(violatingObject));
+                    evaluationResult.addViolation(JsonViolation.from(violatingObject));
                 }
             }
         });
     }
 
-    private void extractFieldAccesses(EvaluationResult result, final List<JsonViolation> violations) {
+    private void extractFieldAccesses(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
         result.handleViolations(new ViolationHandler<JavaFieldAccess>() {
             @Override
             public void handle(Collection<JavaFieldAccess> violatingObjects, String message) {
                 for (JavaFieldAccess violatingObject : violatingObjects) {
-                    violations.add(JsonViolation.from(violatingObject));
+                    evaluationResult.addViolation(JsonViolation.from(violatingObject));
                 }
             }
         });
     }
 
-    private void writeToWriter(List<JsonViolation> violations, Writer writer) {
-        gson.toJson(violations, writer);
+    private void writeToWriter(final JsonEvaluationResult evaluationResult, Writer writer) {
+        gson.toJson(evaluationResult, writer);
     }
 }

@@ -47,6 +47,8 @@ public final class Visualizer {
     private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
 
+    //TODO: method for only exporting violations
+
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
     public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
         exportJson(classes, targetDir, context);
@@ -59,9 +61,9 @@ public final class Visualizer {
     }
 
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
-    public void visualize(JavaClasses classes, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
+    public void visualize(JavaClasses classes, String rule, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         exportJson(classes, targetDir, context);
-        exportViolations(targetDir, evaluationResult);
+        exportViolations(targetDir, rule, evaluationResult);
         copyFiles(targetDir);
     }
 
@@ -74,9 +76,9 @@ public final class Visualizer {
         }
     }
 
-    private void exportViolations(final File targetDir, EvaluationResult evaluationResult) {
+    private void exportViolations(final File targetDir, String rule, EvaluationResult evaluationResult) {
         try (FileWriter violationsWriter = new FileWriter(new File(targetDir, VIOLATIONS_FILE_NAME))) {
-            new JsonViolationExporter().export(evaluationResult, violationsWriter);
+            new JsonViolationExporter().export(rule, evaluationResult, violationsWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

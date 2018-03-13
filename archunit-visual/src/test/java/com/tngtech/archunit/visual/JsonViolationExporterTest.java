@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
@@ -22,11 +23,11 @@ public class JsonViolationExporterTest {
     @Test
     public void testExportProducesCorrectOutput() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
-        EvaluationResult result = ArchRuleDefinition.noClasses()
-                .should().accessClassesThat().areAssignableTo(Target.class)
-                .evaluate(classes);
+        ArchRule rule = ArchRuleDefinition.noClasses()
+                .should().accessClassesThat().areAssignableTo(Target.class);
+        EvaluationResult result = rule.evaluate(classes);
 
-        exporter.export(result, writer);
+        exporter.export(rule.getDescription(), result, writer);
 
         String expectedJson = jsonFromFile("access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
