@@ -96,6 +96,10 @@ const Circle = class extends Vector {
     this.r = r;
   }
 
+  containsRelativeCircle(relativeCircle, padding = 0) {
+    return relativeCircle.length() + relativeCircle.r + padding <= this.r;
+  }
+
   static from(vector, r) {
     return new Circle(vector.x, vector.y, r);
   }
