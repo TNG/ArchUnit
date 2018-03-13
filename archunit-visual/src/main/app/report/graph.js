@@ -1,11 +1,11 @@
 'use strict';
 
-const init = (Node, Dependencies, View) => {
+const init = (Root, Dependencies, View) => {
 
   const Graph = class {
     constructor(jsonRoot, svg) {
       this._view = new View(svg);
-      this.root = new Node(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
+      this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
@@ -63,11 +63,11 @@ module.exports.create = () => {
 
       const appContext = require('./app-context').newInstance();
       const visualizationStyles = appContext.getVisualizationStyles();
-      const Node = appContext.getNode(); // FIXME: Correct dependency tree
+      const Root = appContext.getRoot(); // FIXME: Correct dependency tree
       const Dependencies = appContext.getDependencies(); // FIXME: Correct dependency tree
       const graphView = appContext.getGraphView();
 
-      const Graph = init(Node, Dependencies, graphView, visualizationStyles).Graph;
+      const Graph = init(Root, Dependencies, graphView, visualizationStyles).Graph;
       const graph = new Graph(jsonroot, d3.select('#visualization').node());
       graph.foldAllNodes();
 

@@ -11,7 +11,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
   NodeView: stubs.NodeViewStub
 });
 const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
-const Node = appContext.getNode();
+const Root = appContext.getRoot();
 const testJson = require('./test-json-creator');
 
 const testRoot = require('./test-object-creator').tree;
@@ -24,7 +24,7 @@ const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((
 describe('Root', () => {
   it('should have no parent', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getParent()).to.equal(undefined);
   });
 
@@ -32,13 +32,13 @@ describe('Root', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.isRoot()).to.equal(true);
   });
 
   it('should not fold or change its fold-state', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.foldIfInnerNode();
     expect(root.isFolded()).to.equal(false);
     root._changeFoldIfInnerNodeAndRelayout();
@@ -50,7 +50,7 @@ describe('Root', () => {
       .add(testJson.clazz('SomeClass1', 'class').build())
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass1').getFullName()).to.equal('com.tngtech.archunit.SomeClass1');
     expect(root.getByName('com.tngtech.archunit.SomeClass2').getFullName()).to.equal('com.tngtech.archunit.SomeClass2');
   });
@@ -64,7 +64,7 @@ describe('Inner node', () => {
         .add(testJson.clazz('SomeClass2', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
@@ -85,7 +85,7 @@ describe('Inner node', () => {
         .add(testJson.clazz('SomeClass2', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -107,7 +107,7 @@ describe('Inner node', () => {
         .add(testJson.clazz('SomeClass2', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -131,7 +131,7 @@ describe('Leaf', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('Leaf', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const leaf = root.getByName('com.tngtech.archunit.Leaf');
     leaf.foldIfInnerNode();
     expect(leaf.isFolded()).to.equal(false);
@@ -143,7 +143,7 @@ describe('Leaf', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('Leaf', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const leaf = root.getByName('com.tngtech.archunit.Leaf');
     expect(leaf.isCurrentlyLeaf()).to.equal(true);
   });
@@ -154,7 +154,7 @@ describe('Inner node or leaf', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass').getParent()).to.equal(root);
   });
 
@@ -162,7 +162,7 @@ describe('Inner node or leaf', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
   });
 
@@ -174,7 +174,7 @@ describe('Inner node or leaf', () => {
         .add(testJson.clazz('SomeClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -205,7 +205,7 @@ describe('Inner node or leaf', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('SomeClass', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
 
@@ -228,7 +228,7 @@ describe('Inner node or leaf', () => {
         .add(testJson.clazz('SomeClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
@@ -250,7 +250,7 @@ describe('Inner node or leaf', () => {
         .build())
       .add(testJson.clazz('ClassToDrag', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -283,7 +283,7 @@ describe('Inner node or leaf', () => {
         .build())
       .add(testJson.clazz('ClassToDrag', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -311,7 +311,7 @@ describe('Inner node or leaf', () => {
         .add(testJson.clazz('SomeClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -339,7 +339,7 @@ describe('Inner node or leaf', () => {
       .add(testJson.clazz('SomeClass2', 'class').build())
       .add(testJson.clazz('SomeClass3', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -395,7 +395,7 @@ describe('Inner node or leaf', () => {
         .add(testJson.clazz('SomeClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -430,7 +430,7 @@ describe('Inner node or leaf', () => {
         .havingInnerClass(testJson.clazz('InnerClass2', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -470,7 +470,7 @@ describe('Node layout', () => {
     .build();
 
   it("should set a node's absolute position correctly", () => {
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return root.doNext(() => {
@@ -483,7 +483,7 @@ describe('Node layout', () => {
   });
 
   it('should make all nodes fixed after having done the layout', () => {
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return root.doNext(() => {
@@ -496,7 +496,7 @@ describe('Node layout', () => {
   });
 
   it('should put every child node within its parent node considering the padding', () => {
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return root.doNext(() => {
@@ -509,7 +509,7 @@ describe('Node layout', () => {
   });
 
   it('does the relayout only once, when it is called several times after each other', () => {
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const movedNodes = [];
     stubs.saveMovedNodesTo(movedNodes);
@@ -523,7 +523,7 @@ describe('Node layout', () => {
 
   it('should update the node-views on relayouting and call the listener', () => {
     let onRadiusChangedWasCalled = false;
-    const root = new Node(jsonRoot, null, () => onRadiusChangedWasCalled = true);
+    const root = new Root(jsonRoot, null, () => onRadiusChangedWasCalled = true);
     root.getLinks = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
@@ -539,7 +539,7 @@ describe('Node layout', () => {
   });
 
   it('should not make two siblings overlap', () => {
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return root.doNext(() => {
@@ -556,7 +556,7 @@ describe('Node layout', () => {
     'and for the root at the very top; furthermore the text must be within the circle (except for the root)', () => {
     const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
     const calculateTextWith = stubs.calculateTextWidthStub;
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return root.doNext(() => {
@@ -592,7 +592,7 @@ describe('Node', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const exp = ['com.tngtech.archunit(package)', 'com.tngtech.archunit.SomeClass(class)',
       'com.tngtech.archunit.SomeInterface(interface)', 'com.tngtech.archunit.visual(package)',
       'com.tngtech.archunit.visual.SomeClass(class)', 'com.tngtech.archunit.test(package)',
@@ -606,7 +606,7 @@ describe('Node', () => {
       .add(testJson.clazz("Class1", "abstractclass").build())
       .build();
 
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     expect(root.getClass()).to.contain(' foldable');
     expect(root.getClass()).not.to.contain(' not-foldable');
@@ -631,7 +631,7 @@ describe('Node', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass',
       'com.tngtech.archunit.SomeInterfaceWithInnerClass',
@@ -669,7 +669,7 @@ describe('Node', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
@@ -706,7 +706,7 @@ describe('Node', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.SomeInterface',
       'com.tngtech.archunit.SomeClassWithInnerInterface', 'com.tngtech.archunit.classes',
@@ -742,7 +742,7 @@ describe('Node', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass',
@@ -782,7 +782,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.XMatchingInterface',
@@ -818,7 +818,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.MatchingClassXX',
       'com.tngtech.archunit.MatchingInterfaceXX', 'com.tngtech.archunit.matchingPkgWithNoMatchingClassXX',
@@ -861,7 +861,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass2', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.XMatchingClassY', 'com.tngtech.archunit.XNotMatchingClassWithMatchingChild',
@@ -922,7 +922,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.NotMatchingClassWithMatchingChild',
@@ -957,7 +957,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX',
@@ -991,7 +991,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.MatchingClassXX',
       'com.tngtech.archunit.MatchingInterfaceXX', 'com.tngtech.archunit.NotMatchingXXClass',
@@ -1029,7 +1029,7 @@ describe('Node', () => {
         .add(testJson.clazz('XMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.YMatchingInterface',
@@ -1074,7 +1074,7 @@ describe('Node', () => {
         .havingInnerClass(testJson.clazz('NameMatchingClassX', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     root.filterByName('X ', false);
     root.filterByType(true, false);
@@ -1116,7 +1116,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.NameMatchingInterfaceX',
       'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.pkgWithNoNameMatchingChild',
@@ -1146,7 +1146,7 @@ describe('Node', () => {
         .add(testJson.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
@@ -1171,7 +1171,7 @@ describe('Node', () => {
         .add(testJson.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
@@ -1197,7 +1197,7 @@ describe('Node', () => {
         .add(testJson.clazz('SomeClass1', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFoldX');
 
@@ -1220,7 +1220,7 @@ describe('Node', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
@@ -1244,7 +1244,7 @@ describe('Node', () => {
         .add(testJson.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
@@ -1271,7 +1271,7 @@ describe('Node', () => {
         .add(testJson.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
     pkgToFold._changeFoldIfInnerNodeAndRelayout();

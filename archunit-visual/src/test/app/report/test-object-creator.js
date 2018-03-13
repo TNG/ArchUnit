@@ -9,7 +9,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
   DependencyView: stubs.DependencyViewStub
 });
 
-const Node = appContext.getNode();
+const Root = appContext.getRoot();
 
 const createMapFromSplitClassName = fullNameParts => {
   if (fullNameParts.length === 0) {
@@ -96,5 +96,5 @@ const classNamesToJson = (classNames) => {
 };
 
 module.exports.tree = (...classNames) => {
-  return new Node(classNamesToJson(classNames));
+  return new Root(classNamesToJson(classNames));
 };

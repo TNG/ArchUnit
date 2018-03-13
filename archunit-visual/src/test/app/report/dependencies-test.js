@@ -12,7 +12,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
   NodeView: stubs.NodeViewStub, //FIXME: really necessary??
   DependencyView: stubs.DependencyViewStub
 });
-const Node = appContext.getNode();
+const Root = appContext.getRoot();
 const Dependencies = appContext.getDependencies();
 
 /*
@@ -55,7 +55,7 @@ const jsonRoot = testJson.package('com.tngtech')
       .build())
     .build())
   .build();
-const root = new Node(jsonRoot);
+const root = new Root(jsonRoot, null, () => Promise.resolve());
 
 describe('Dependencies', () => {
   it('creates correct elementary dependencies from json-input', () => {
@@ -118,7 +118,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.startPkg.StartClass';
@@ -149,7 +149,7 @@ describe('Dependencies', () => {
       .add(testJson.clazz('TargetClass', 'class')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.StartClassWithInnerClass$InnerClass';
@@ -178,7 +178,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const visibleDependencies1 = dependencies.getVisible().filter(d => d.from === 'com.tngtech.startPkg.StartClass');
@@ -209,7 +209,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
@@ -229,7 +229,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
@@ -252,7 +252,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -278,7 +278,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -303,7 +303,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -327,7 +327,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -352,7 +352,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -378,7 +378,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.startPkg.StartClass->com.tngtech.targetPkg.TargetClass(methodCall)'];
@@ -402,7 +402,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.startPkg.StartClass->com.tngtech.targetPkg()'];
@@ -425,7 +425,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const draggedNode = 'com.tngtech.SomeClass1';
@@ -451,7 +451,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const promise = dependencies.moveAllToTheirPositions();
@@ -471,7 +471,7 @@ describe('Dependencies', () => {
         .implementing('com.tngtech.SomeInterface')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
@@ -511,7 +511,7 @@ describe('Dependencies', () => {
         .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -540,7 +540,7 @@ describe('Dependencies', () => {
         .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -575,7 +575,7 @@ describe('Dependencies', () => {
         .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
@@ -602,7 +602,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
@@ -626,7 +626,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.ClassWithInnerClass', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
@@ -657,7 +657,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.pkgToFold.MatchingClassX', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
@@ -680,7 +680,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
@@ -709,7 +709,7 @@ describe('Dependencies', () => {
         .callingMethod('com.tngtech.pkgToFold.MatchingClassX', 'startMethod()', 'targetMethod()')
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()',
@@ -735,7 +735,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
@@ -760,7 +760,7 @@ describe('Dependencies', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
@@ -784,7 +784,7 @@ describe('Dependencies', () => {
         .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
@@ -809,7 +809,7 @@ describe('Dependencies', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()'];
@@ -832,7 +832,7 @@ describe('Dependencies', () => {
         .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
@@ -856,7 +856,7 @@ describe('Dependencies', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
@@ -880,7 +880,7 @@ describe('Dependencies', () => {
         .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
@@ -906,7 +906,7 @@ describe('Dependencies', () => {
         .add(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
@@ -932,7 +932,7 @@ describe('Dependencies', () => {
         .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
@@ -965,7 +965,7 @@ describe('Dependencies', () => {
 
   it('should recreate correctly its visible dependencies after filtering by type (only show implementing an interface):' +
     ' old dependencies are hidden, all new ones are visible but they are not re-instantiated', () => {
-    const root = new Node(jsonRootWithAllDependencies);
+    const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
 
     const filter = d1 => dependencies._elementary.filter(
@@ -995,7 +995,7 @@ describe('Dependencies', () => {
   });
 
   it('updates the position of the dependencies after filtering by type', () => {
-    const root = new Node(jsonRootWithAllDependencies);
+    const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
 
     dependencies.filterByType({
@@ -1013,7 +1013,7 @@ describe('Dependencies', () => {
   });
 
   it('can filter by type: only show inheritance-dependencies', () => {
-    const root = new Node(jsonRootWithAllDependencies);
+    const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
 
     const exp = [
@@ -1035,7 +1035,7 @@ describe('Dependencies', () => {
   });
 
   it('can reset the filter by type: show all dependencies again', () => {
-    const root = new Node(jsonRootWithAllDependencies);
+    const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
     const exp = dependencies.getVisible().map(d => d.toString());
 
@@ -1074,7 +1074,7 @@ describe('Dependencies', () => {
         .build())
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -1107,7 +1107,7 @@ describe('Dependencies', () => {
         .build())
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -1132,7 +1132,7 @@ describe('Dependencies', () => {
         .build())
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -1174,7 +1174,7 @@ describe('Dependencies', () => {
           .build())
         .build())
       .build();
-    const root = new Node(jsonRoot);
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [

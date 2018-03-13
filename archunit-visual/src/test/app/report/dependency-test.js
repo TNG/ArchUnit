@@ -12,7 +12,7 @@ const appContext = require('./main-files').get('app-context').newInstance({
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub
 });
-const Node = appContext.getNode();
+const Root = appContext.getRoot();
 const testJson = require('./test-json-creator');
 
 const createTreeWithToClasses = () => {
@@ -21,7 +21,7 @@ const createTreeWithToClasses = () => {
     .add(testJson.clazz('SomeClass2', 'class').build())
     .build();
   return {
-    root: new Node(jsonRoot),
+    root: new Root(jsonRoot, null, () => Promise.resolve()),
     node1: 'com.tngtech.archunit.SomeClass1',
     node2: 'com.tngtech.archunit.SomeClass2'
   };
@@ -37,7 +37,7 @@ const createTreeWithToClassesInDifferentPackages = () => {
       .build())
     .build();
   return {
-    root: new Node(jsonRoot),
+    root: new Root(jsonRoot, null, () => Promise.resolve()),
     class1: 'com.tngtech.archunit.pkg1.SomeClass1',
     class2: 'com.tngtech.archunit.pkg2.SomeClass2'
   };
@@ -51,7 +51,7 @@ const createTreeWithToClassesAndOneInnerClass = () => {
       .build())
     .build();
   return {
-    root: new Node(jsonRoot),
+    root: new Root(jsonRoot, null, () => Promise.resolve()),
     class1: 'com.tngtech.archunit.SomeClass1',
     classWithInnerClass: 'com.tngtech.archunit.SomeClass2',
     innerClass: 'com.tngtech.archunit.SomeClass2$SomeInnerClass'

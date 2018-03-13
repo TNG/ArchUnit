@@ -239,58 +239,14 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   });
 
   const Node = class {
-    constructor(jsonNode, svgContainer, onRadiusChanged = () => Promise.resolve(), root = null, parent = undefined) {
+    constructor(jsonNode, svgContainer) {
       this.layer = layer++;
-      this._root = root;
-      this._parent = parent;
-      if (!root) {
-        this._root = this;
-        this._isVisible = true;
-      }
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
-
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
-      this.circleData = new CircleData(this,
-        {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.circleData.relativePosition),
-          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.circleData.getRadius(), this._text.getY()), onRadiusChanged(this.getRadius())]),
-          onMovedToPosition: () => this._view.moveToPosition(this.circleData.relativePosition).then(() => this._view.showIfVisible(this)),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.circleData.relativePosition)
-        },
-        //FIXME: make this less ugly
-        this._parent ? this._parent.circleData.absoluteCircle : new ZeroCircle());
-
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new Node(jsonChild, this._view._svgElement, () => Promise.resolve(), this._root, this));
-      //this._originalChildren.forEach(c => c._parent = this);
-
-      this._setFilteredChildren(this._originalChildren);
       this._filters = newFilters(this);
       this._listener = [];
-
-      //FIXME: shorten/outsource this
-      if (!root) {
-        this._updatePromise = Promise.resolve();
-        const map = new Map();
-        this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
-        this.getByName = name => map.get(name);
-        this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
-        this.doNext = fun => this._updatePromise.then(fun);
-        let mustRelayout = false;
-        this.relayoutCompletely = () => {
-          mustRelayout = true;
-          this.doNextAndWaitFor(() => {
-            if (mustRelayout) {
-              mustRelayout = false;
-              return this._relayoutCompletely();
-            }
-            else {
-              return Promise.resolve();
-            }
-          });
-        }
-      }
     }
 
     addListener(listener) {
@@ -331,37 +287,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return !this.isRoot() ? this.getParent().circleData.absoluteCircle : new ZeroCircle();
     }
 
-    getSelfOrFirstPredecessorMatching(matchingFunction) {
-      if (matchingFunction(this)) {
-        return this;
-      }
-      return this._parent ? this._parent.getSelfOrFirstPredecessorMatching(matchingFunction) : null;
-    }
-
-    isPredecessorOf(nodeFullName) {
-      const separator = /[\\.\\$]/;
-      return this.isRoot() || (nodeFullName.startsWith(this.getFullName())
-        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
-    }
-
-    getSelfAndPredecessorsUntilExclusively(predecessor) {
-      if (predecessor === this) {
-        return [];
-      }
-      const predecessors = this._parent ? this._parent.getSelfAndPredecessorsUntilExclusively(predecessor) : [];
-      return [...predecessors, this];
-    }
-
     getOriginalChildren() {
       return this._originalChildren;
     }
 
     getCurrentChildren() {
       return this._folded ? [] : this._filteredChildren;
-    }
-
-    isRoot() {
-      return this._root === this;
     }
 
     _isLeaf() {
@@ -382,18 +313,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener.forEach(listener => listener.onFold(this));
     }
 
-    foldIfInnerNode() {
-      if (!this.isRoot() && !this._isLeaf()) {
-        this._setFolded(() => true);
-      }
-    }
-
-    _changeFoldIfInnerNodeAndRelayout() {
-      if (!this.isRoot() && !this._isLeaf()) {
-        this._setFolded(() => !this._folded);
-        this._root.relayoutCompletely();
-      }
-    }
 
     getFilters() {
       return this._filters;
@@ -412,11 +331,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const filteredChildren = this.getCurrentChildren().filter(child => child !== node);
       const result = filteredChildren.map(child => child._getDescendantsExceptNodeAndItsDescendants(node));
       return [].concat.apply([], [filteredChildren, ...result]);
-    }
-
-    getSelfAndPredecessors() {
-      const predecessors = this._parent ? this._parent.getSelfAndPredecessors() : [];
-      return [this, ...predecessors];
     }
 
     _getDescendants() {
@@ -462,13 +376,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._isVisible;
     }
 
-    _relayoutCompletely() {
-      this._callOnSelfThenEveryDescendant(node => node.circleData.absoluteCircle.unfix());
-      const promiseInitialLayout = this._initialLayout();
-      const promiseForceLayout = this._forceLayout();
-      return Promise.all([promiseInitialLayout, promiseForceLayout]);
-    }
-
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
@@ -493,86 +400,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const r = Math.max(circle.r, calculateDefaultRadius(this));
         promises.push(this.circleData.changeRadius(r));
       }
-
-      if (this.isRoot()) {
-        promises.push(this.circleData.moveToPosition(this.getRadius(), this.getRadius())); // Shift root to the middle
-      }
       return Promise.all([...childrenPromises, ...promises]);
-    }
-
-    /**
-     * We go top bottom through the tree, always applying a force-layout to all nodes so far (that means to all nodes
-     * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
-     * influence the other nodes)
-     */
-    _forceLayout() {
-      const allLinks = this.getLinks();
-
-      const allLayoutedNodesSoFar = new Map();
-      let currentNodes = new Map();
-      currentNodes.set(this.getFullName(), this);
-
-      let promises = [];
-
-      while (currentNodes.size > 0) {
-
-        const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
-        const newNodes = new Map();
-
-        newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
-        newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
-        //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
-        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
-          && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-
-        if (newNodes.size === 0) {
-          break;
-        }
-
-        const getAbsolutePositionWithNodeId = node => {
-          node.circleData.absoluteCircle.id = node.getFullName();
-          return node.circleData.absoluteCircle;
-        };
-
-        const padding = visualizationStyles.getCirclePadding();
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => getAbsolutePositionWithNodeId(node));
-        const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
-
-        const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
-        const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => getAbsolutePositionWithNodeId(n))));
-
-        let timeOfLastUpdate = new Date().getTime();
-
-        const onTick = () => {
-          newNodesArray.forEach(node => node.circleData.takeAbsolutePosition());
-          const updateInterval = 100;
-          if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.map(node => node.circleData.startMoveToIntermediatePosition()));
-            timeOfLastUpdate = new Date().getTime();
-          }
-        };
-
-        const runSimulations = (simulations, mainSimulation, iterationStart) => {
-          let i = iterationStart;
-          for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
-            simulations.forEach(s => s.tick());
-            onTick();
-          }
-          return i;
-        };
-
-        const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0);
-        //run the remaining simulations of collision
-        runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
-
-        newNodesArray.forEach(node => node.circleData.completeMoveToIntermediatePosition());
-        currentNodes = newNodes;
-      }
-
-      this._listener.forEach(listener => promises.push(listener.onLayoutChanged()));
-
-      return Promise.all(promises);
     }
 
     /**
@@ -649,11 +477,232 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  return Node;
+  const Root = class extends Node {
+    constructor(jsonNode, svgContainer, onRadiusChanged) {
+      super(jsonNode, svgContainer);
+      this._root = this; //FIXME: necessary??
+      this.circleData = new CircleData(this,
+        {
+          onJumpedToPosition: () => this._view.jumpToPosition(this.circleData.relativePosition),
+          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.circleData.getRadius(), this._text.getY()), onRadiusChanged(this.getRadius())]),
+          onMovedToPosition: () => this._view.moveToPosition(this.circleData.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.circleData.relativePosition)
+        },
+        //FIXME:
+        new ZeroCircle());
+
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
+      this._setFilteredChildren(this._originalChildren);
+
+      this._updatePromise = Promise.resolve();
+      const map = new Map();
+      this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
+      this.getByName = name => map.get(name);
+      this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
+      this.doNext = fun => this._updatePromise.then(fun);
+      let mustRelayout = false;
+      this.relayoutCompletely = () => {
+        mustRelayout = true;
+        this.doNextAndWaitFor(() => {
+          if (mustRelayout) {
+            mustRelayout = false;
+            return this._relayoutCompletely();
+          }
+          else {
+            return Promise.resolve();
+          }
+        });
+      }
+    }
+
+    getSelfOrFirstPredecessorMatching(matchingFunction) {
+      if (matchingFunction(this)) {
+        return this;
+      }
+      return null;
+    }
+
+    isPredecessorOf() {
+      return true;
+    }
+
+    getSelfAndPredecessorsUntilExclusively(predecessor) {
+      if (predecessor === this) {
+        return [];
+      }
+      return [this];
+    }
+
+    //FIXME: is this method needed??
+    isRoot() {
+      return true;
+    }
+
+    foldIfInnerNode() {
+    }
+
+    _changeFoldIfInnerNodeAndRelayout() {
+    }
+
+    getSelfAndPredecessors() {
+      return [this];
+    }
+
+    _relayoutCompletely() {
+      this._callOnSelfThenEveryDescendant(node => node.circleData.absoluteCircle.unfix());
+      const promiseInitialLayout = this._initialLayout();
+      const promiseForceLayout = this._forceLayout();
+      return Promise.all([promiseInitialLayout, promiseForceLayout]);
+    }
+
+    _initialLayout() {
+      const layoutPromise = super._initialLayout();
+      const promise = this.circleData.moveToPosition(this.getRadius(), this.getRadius()); // Shift root to the middle
+      return Promise.all([layoutPromise, promise]);
+    }
+
+    /**
+     * We go top bottom through the tree, always applying a force-layout to all nodes so far (that means to all nodes
+     * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
+     * influence the other nodes)
+     */
+    _forceLayout() {
+      const allLinks = this.getLinks();
+
+      const allLayoutedNodesSoFar = new Map();
+      let currentNodes = new Map();
+      currentNodes.set(this.getFullName(), this);
+
+      let promises = [];
+
+      while (currentNodes.size > 0) {
+
+        const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
+        const newNodes = new Map();
+
+        newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
+        newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
+        //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
+        const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
+          && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
+
+        if (newNodes.size === 0) {
+          break;
+        }
+
+        const getAbsolutePositionWithNodeId = node => {
+          node.circleData.absoluteCircle.id = node.getFullName();
+          return node.circleData.absoluteCircle;
+        };
+
+        const padding = visualizationStyles.getCirclePadding();
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => getAbsolutePositionWithNodeId(node));
+        const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
+
+        const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
+        const allCollisionSimulations = currentInnerNodes.map(node =>
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => getAbsolutePositionWithNodeId(n))));
+
+        let timeOfLastUpdate = new Date().getTime();
+
+        const onTick = () => {
+          newNodesArray.forEach(node => node.circleData.takeAbsolutePosition());
+          const updateInterval = 100;
+          if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
+            promises = promises.concat(newNodesArray.map(node => node.circleData.startMoveToIntermediatePosition()));
+            timeOfLastUpdate = new Date().getTime();
+          }
+        };
+
+        const runSimulations = (simulations, mainSimulation, iterationStart) => {
+          let i = iterationStart;
+          for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
+            simulations.forEach(s => s.tick());
+            onTick();
+          }
+          return i;
+        };
+
+        const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0);
+        //run the remaining simulations of collision
+        runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
+
+        newNodesArray.forEach(node => node.circleData.completeMoveToIntermediatePosition());
+        currentNodes = newNodes;
+      }
+
+      this._listener.forEach(listener => promises.push(listener.onLayoutChanged()));
+
+      return Promise.all(promises);
+    }
+  };
+
+  const InnerNode = class extends Node {
+    constructor(jsonNode, svgContainer, root, parent) {
+      super(jsonNode, svgContainer);
+      this._root = root;
+      this._parent = parent;
+      this.circleData = new CircleData(this,
+        {
+          onJumpedToPosition: () => this._view.jumpToPosition(this.circleData.relativePosition),
+          onRadiusChanged: () => this._view.changeRadius(this.circleData.getRadius(), this._text.getY()),
+          onMovedToPosition: () => this._view.moveToPosition(this.circleData.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.circleData.relativePosition)
+        },
+        this._parent.circleData.absoluteCircle);
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this._root, this));
+      this._setFilteredChildren(this._originalChildren);
+    }
+
+    getSelfOrFirstPredecessorMatching(matchingFunction) {
+      if (matchingFunction(this)) {
+        return this;
+      }
+      return this._parent.getSelfOrFirstPredecessorMatching(matchingFunction);
+    }
+
+    isPredecessorOf(nodeFullName) {
+      const separator = /[\\.\\$]/;
+      return (nodeFullName.startsWith(this.getFullName())
+        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
+    }
+
+    getSelfAndPredecessorsUntilExclusively(predecessor) {
+      if (predecessor === this) {
+        return [];
+      }
+      const predecessors = this._parent.getSelfAndPredecessorsUntilExclusively(predecessor);
+      return [...predecessors, this];
+    }
+
+    isRoot() {
+      return false;
+    }
+
+    foldIfInnerNode() {
+      if (!this._isLeaf()) {
+        this._setFolded(() => true);
+      }
+    }
+
+    _changeFoldIfInnerNodeAndRelayout() {
+      if (!this._isLeaf()) {
+        this._setFolded(() => !this._folded);
+        this._root.relayoutCompletely();
+      }
+    }
+
+    getSelfAndPredecessors() {
+      const predecessors = this._parent.getSelfAndPredecessors();
+      return [this, ...predecessors];
+    }
+  };
+
+  return Root;
 };
 
 module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return {
-    Node: init(View, NodeText, visualizationFunctions, visualizationStyles)
+    Root: init(View, NodeText, visualizationFunctions, visualizationStyles)
   };
 };
