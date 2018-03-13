@@ -58,6 +58,24 @@ module.exports.newInstance = calculateTextWidth => {
       .stop();
   };
 
+  /**
+   * runs the given simulations, of which mainSimulation is the simulation defining how many steps of the simulations
+   * are executed
+   * @param simulations list with all simulations
+   * @param mainSimulation simulation defining how many steps of the simulations are executed; mainSimulation has
+   * to be in simulations
+   * @param iterationStart number that defines at which number the simulations are started
+   * @param onTick function that is invoked at every tick
+   */
+  const runSimulations = (simulations, mainSimulation, iterationStart, onTick) => {
+    let i = iterationStart;
+    for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
+      simulations.forEach(s => s.tick());
+      onTick();
+    }
+    return i;
+  };
+
   return {
     calculateTextWidth,
 
@@ -77,6 +95,8 @@ module.exports.newInstance = calculateTextWidth => {
 
     createForceLinkSimulation,
 
-    createForceCollideSimulation
+    createForceCollideSimulation,
+
+    runSimulations
   };
 };

@@ -41,7 +41,7 @@ describe('vectors', () => {
   });
 });
 
-describe('vector', () => {
+describe('Vector', () => {
   it('calculates the correct length', () => {
     const vector = new Vector(3, 4);
     expect(vector.length()).to.equal(5);

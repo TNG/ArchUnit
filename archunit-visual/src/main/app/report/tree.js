@@ -3,13 +3,11 @@
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
 const Vector = require('./vectors').Vector;
-const Circle = require('./vectors').Circle;
 const vectors = require('./vectors').vectors;
+const ZeroCircle = require('./circles').ZeroCircle;
+const NodeCircle = require('./circles').NodeCircle;
 
 let layer = 0;
-
-//FIXME: shorten this file; maybe outsource the translate-function to visualization-functions
-//and VisualData to own file (and rename the class to make its function more understandable)
 
 const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
@@ -18,6 +16,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctions.calculateDefaultRadiusForNodeWithOneChild;
   const createForceLinkSimulation = visualizationFunctions.createForceLinkSimulation;
   const createForceCollideSimulation = visualizationFunctions.createForceCollideSimulation;
+  const runSimulations = visualizationFunctions.runSimulations;
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   const NodeDescription = class {
@@ -25,130 +24,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.name = name;
       this.fullName = fullName;
       this.type = type;
-    }
-  };
-
-  const AbsoluteCircle = class extends Circle {
-    constructor(x, y, r) {
-      super(x, y, r);
-      this._fixed = false;
-    }
-
-    isFixed() {
-      return this._fixed;
-    }
-
-    getPositionRelativeTo(parentPosition) {
-      return Vector.from(this).sub(parentPosition);
-    }
-
-    update(relativePosition, parentPosition) {
-      this.changeTo(relativePosition).add(parentPosition);
-      this._updateFixPosition();
-    }
-
-    fix() {
-      this._fixed = true;
-      this._updateFixPosition();
-    }
-
-    unfix() {
-      this._fixed = false;
-      this.fx = undefined;
-      this.fy = undefined;
-    }
-
-    _updateFixPosition() {
-      if (this._fixed) {
-        this.fx = this.x;
-        this.fy = this.y;
-      }
-    }
-  };
-
-  const ZeroCircle = class extends AbsoluteCircle {
-    constructor() {
-      super(0, 0, 0);
-    }
-
-    containsRelativeCircle() {
-      return true;
-    }
-  };
-
-  const NodeCircle = class {
-    constructor(node, listener, absoluteReferenceCircle, x = 0, y = 0, r = 0) {
-      this._node = node;
-      this.relativePosition = new Vector(x, y);
-      this.absoluteCircle = new AbsoluteCircle(x, y, r);
-      this.absoluteReferenceCircle = absoluteReferenceCircle;
-      this._listener = listener;
-    }
-
-    getRadius() {
-      return this.absoluteCircle.r;
-    }
-
-    changeRadius(r) {
-      this.absoluteCircle.r = r;
-      return this._listener.onRadiusChanged();
-    }
-
-    jumpToRelativeDisplacement(dx, dy) {
-      const directionVector = new Vector(dx, dy);
-      let newRelativeCircle = Circle.from(vectors.add(this.relativePosition, directionVector), this.getRadius());
-      if (!this._node.getParent().isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle)) {
-        newRelativeCircle = Circle.from(this.relativePosition, this.getRadius())
-          .translateWithinEnclosingCircleAsFarAsPossibleInTheDirection(this.absoluteReferenceCircle.r, directionVector);
-      }
-      this.relativePosition.changeTo(newRelativeCircle);
-      this._updateAbsolutePositionAndDescendants();
-      this._listener.onJumpedToPosition();
-    }
-
-    _updateAbsolutePosition() {
-      this.absoluteCircle.update(this.relativePosition, this.absoluteReferenceCircle);
-    }
-
-    _updateAbsolutePositionAndDescendants() {
-      this._updateAbsolutePosition();
-      this._node.getCurrentChildren().forEach(child => child.nodeCircle._updateAbsolutePositionAndDescendants());
-    }
-
-    _updateAbsolutePositionAndChildren() {
-      this._updateAbsolutePosition();
-      this._node.getCurrentChildren().forEach(child => child.nodeCircle._updateAbsolutePosition());
-    }
-
-    startMoveToIntermediatePosition() {
-      if (!this.absoluteCircle.isFixed()) {
-        return this._listener.onMovedToIntermediatePosition();
-      }
-      return Promise.resolve();
-    }
-
-    completeMoveToIntermediatePosition() {
-      this._updateAbsolutePositionAndChildren();
-      if (!this.absoluteCircle.isFixed()) {
-        this.absoluteCircle.fix();
-        return this._listener.onMovedToPosition();
-      }
-      return Promise.resolve();
-    }
-
-    moveToPosition(x, y) {
-      this.relativePosition.changeTo(new Vector(x, y));
-      return this.completeMoveToIntermediatePosition();
-    }
-
-    takeAbsolutePosition() {
-      const newRelativePosition = this.absoluteCircle.getPositionRelativeTo(this.absoluteReferenceCircle);
-      const newRelativeCircle = Circle.from(newRelativePosition, this.getRadius());
-      if (!this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle, visualizationStyles.getCirclePadding())) {
-        newRelativeCircle.translateIntoEnclosingCircleOfRadius(this.absoluteReferenceCircle.r, visualizationStyles.getCirclePadding());
-      }
-      this.relativePosition.changeTo(newRelativeCircle);
-      this.absoluteCircle.update(this.relativePosition, this.absoluteReferenceCircle);
     }
   };
 
@@ -417,7 +292,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           onMovedToPosition: () => this._view.moveToPosition(this.nodeCircle.relativePosition).then(() => this._view.showIfVisible(this)),
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeCircle.relativePosition)
         },
-        new ZeroCircle());
+        new ZeroCircle(this.getFullName()));
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
       this._setFilteredChildren(this._originalChildren);
@@ -516,23 +391,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           break;
         }
 
-        const getAbsolutePositionWithNodeId = node => {
-          node.nodeCircle.absoluteCircle.id = node.getFullName();
-          return node.nodeCircle.absoluteCircle;
-        };
-
         const padding = visualizationStyles.getCirclePadding();
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => getAbsolutePositionWithNodeId(node));
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.nodeCircle.absoluteCircle);
         const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
         const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
         const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => getAbsolutePositionWithNodeId(n))));
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.nodeCircle.absoluteCircle)));
 
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition());
+          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition(visualizationStyles.getCirclePadding()));
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
             promises = promises.concat(newNodesArray.map(node => node.nodeCircle.startMoveToIntermediatePosition()));
@@ -540,25 +410,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           }
         };
 
-        const runSimulations = (simulations, mainSimulation, iterationStart) => {
-          let i = iterationStart;
-          for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
-            simulations.forEach(s => s.tick());
-            onTick();
-          }
-          return i;
-        };
-
-        const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0);
+        const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0, onTick);
         //run the remaining simulations of collision
-        runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
+        runSimulations(allCollisionSimulations, allCollisionSimulations[0], k, onTick);
 
         newNodesArray.forEach(node => node.nodeCircle.completeMoveToIntermediatePosition());
         currentNodes = newNodes;
       }
 
       this._listener.forEach(listener => promises.push(listener.onLayoutChanged()));
-
       return Promise.all(promises);
     }
   };
