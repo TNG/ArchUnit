@@ -11,50 +11,6 @@ let layer = 0;
 //FIXME: shorten this file; maybe outsource the translate-function to visualization-functions
 //and VisualData to own file (and rename the class to make its function more understandable)
 
-/**
- * Takes an enclosing circle radius and an inner circle relative to the enclosing circle's center.
- *
- * @param innerCircle (tuple consisting of x, y, r, where x and y coordinate are relative to the middle point of the enclosing circle)
- */
-const translate = innerCircle => ({
-  /**
-   * Furthermore takes a translation vector with respect to the inner circle.
-   * Calculates the x- and y- coordinate for a maximal translation of the inner circle,
-   * keeping the inner circle fully enclosed within the outer circle.
-   *
-   * @param enclosingCircleRadius radius of the outer circle
-   */
-  withinEnclosingCircleOfRadius: enclosingCircleRadius => ({
-    /**
-     * @param translationVector translation vector to be applied to an inner circle
-     * @return the center coordinates of the inner circle after translation, with respect to the enclosing circle's center.
-     * Keeps the inner circle enclosed within the outer circle.
-     */
-    asFarAsPossibleInTheDirectionOf: translationVector => {
-      const c1 = translationVector.x * translationVector.x + translationVector.y * translationVector.y;
-      const c2 = Math.pow(enclosingCircleRadius - innerCircle.r, 2);
-      const c3 = -Math.pow(innerCircle.y * translationVector.x - innerCircle.x * translationVector.y, 2);
-      const c4 = -(innerCircle.x * translationVector.x + innerCircle.y * translationVector.y);
-      const scale = (c4 + Math.sqrt(c3 + c2 * c1)) / c1;
-      return {
-        x: Math.trunc(innerCircle.x + scale * translationVector.x),
-        y: Math.trunc(innerCircle.y + scale * translationVector.y)
-      };
-    }
-  }),
-
-  /**
-   * Shifts the inner circle towards to the center of the parent circle (which is (0, 0)), so that the inner circle
-   * is completely within the enclosing circle
-   * @param enclosingCircleRadius radius of the outer circle
-   * @param circlePadding minimum distance from inner nodes to containing nodes borders
-   * @return the center coordinates of the inner circle after the shift into the enclosing circle
-   */
-  intoEnclosingCircleOfRadius: (enclosingCircleRadius, circlePadding) => {
-    return vectors.norm(innerCircle, enclosingCircleRadius - innerCircle.r - circlePadding);
-  }
-});
-
 const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
@@ -140,13 +96,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     jumpToRelativeDisplacement(dx, dy) {
       const directionVector = new Vector(dx, dy);
-      let newRelativePosition = vectors.add(this.relativePosition, directionVector);
-      if (!this._node.getParent().isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(Circle.from(newRelativePosition, this.getRadius()))) {
-        newRelativePosition = translate(Circle.from(this.relativePosition, this.getRadius()))
-          .withinEnclosingCircleOfRadius(this.absoluteReferenceCircle.r)
-          .asFarAsPossibleInTheDirectionOf(directionVector);
+      let newRelativeCircle = Circle.from(vectors.add(this.relativePosition, directionVector), this.getRadius());
+      if (!this._node.getParent().isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle)) {
+        newRelativeCircle = Circle.from(this.relativePosition, this.getRadius())
+          .translateWithinEnclosingCircleAsFarAsPossibleInTheDirection(this.absoluteReferenceCircle.r, directionVector);
       }
-      this.relativePosition.changeTo(newRelativePosition);
+      this.relativePosition.changeTo(newRelativeCircle);
       this._updateAbsolutePositionAndDescendants();
       this._listener.onJumpedToPosition();
     }
@@ -187,12 +142,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     takeAbsolutePosition() {
-      let newRelativePosition = this.absoluteCircle.getPositionRelativeTo(this.absoluteReferenceCircle);
-      const circle = Circle.from(newRelativePosition, this.getRadius());
-      if (!this.absoluteReferenceCircle.containsRelativeCircle(circle, visualizationStyles.getCirclePadding())) {
-        newRelativePosition = translate(circle).intoEnclosingCircleOfRadius(this.absoluteReferenceCircle.r, visualizationStyles.getCirclePadding());
+      const newRelativePosition = this.absoluteCircle.getPositionRelativeTo(this.absoluteReferenceCircle);
+      const newRelativeCircle = Circle.from(newRelativePosition, this.getRadius());
+      if (!this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle, visualizationStyles.getCirclePadding())) {
+        newRelativeCircle.translateIntoEnclosingCircleOfRadius(this.absoluteReferenceCircle.r, visualizationStyles.getCirclePadding());
       }
-      this.relativePosition.changeTo(newRelativePosition);
+      this.relativePosition.changeTo(newRelativeCircle);
       this.absoluteCircle.update(this.relativePosition, this.absoluteReferenceCircle);
     }
   };
