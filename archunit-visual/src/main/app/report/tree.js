@@ -73,14 +73,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   };
 
   const AbsoluteCircle = class extends Circle {
-    constructor(x, y, r, isRootCircle) {
+    constructor(x, y, r) {
       super(x, y, r);
       this._fixed = false;
-      this._isRootCircle = isRootCircle;
-    }
-
-    containsRelativeCircleOrIsRootCircle(relativeCircle, padding = 0) {
-      return this._isRootCircle || super.containsRelativeCircle(relativeCircle, padding);
     }
 
     isFixed() {
@@ -113,10 +108,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this.fy = this.y;
       }
     }
-
-    isZeroCircle() {
-      return false;
-    }
   };
 
   const ZeroCircle = class extends AbsoluteCircle {
@@ -127,27 +118,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     containsRelativeCircle() {
       return true;
     }
-
-    containsRelativeCircleOrIsRootCircle() {
-      return true;
-    }
-
-    isZeroCircle() {
-      return true;
-    }
   };
 
-  const CircleData = class {
+  const NodeCircle = class {
     constructor(node, listener, absoluteReferenceCircle, x = 0, y = 0, r = 0) {
-      //FIXME: remove node from here!!
-      this.node = node;
-      /**
-       * the x- and y-coordinate is always relative to the parent of the node
-       * (with the middle point of the parent node as origin)
-       * @type {number}
-       */
+      this._node = node;
       this.relativePosition = new Vector(x, y);
-      this.absoluteCircle = new AbsoluteCircle(x, y, r, absoluteReferenceCircle.isZeroCircle());
+      this.absoluteCircle = new AbsoluteCircle(x, y, r);
       this.absoluteReferenceCircle = absoluteReferenceCircle;
       this._listener = listener;
     }
@@ -164,7 +141,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     jumpToRelativeDisplacement(dx, dy) {
       const directionVector = new Vector(dx, dy);
       let newRelativePosition = vectors.add(this.relativePosition, directionVector);
-      if (!this.absoluteReferenceCircle.containsRelativeCircleOrIsRootCircle(Circle.from(newRelativePosition, this.getRadius()))) {
+      if (!this._node.getParent().isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(Circle.from(newRelativePosition, this.getRadius()))) {
         newRelativePosition = translate(Circle.from(this.relativePosition, this.getRadius()))
           .withinEnclosingCircleOfRadius(this.absoluteReferenceCircle.r)
           .asFarAsPossibleInTheDirectionOf(directionVector);
@@ -180,12 +157,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _updateAbsolutePositionAndDescendants() {
       this._updateAbsolutePosition();
-      this.node.getCurrentChildren().forEach(child => child.circleData._updateAbsolutePositionAndDescendants());
+      this._node.getCurrentChildren().forEach(child => child.nodeCircle._updateAbsolutePositionAndDescendants());
     }
 
     _updateAbsolutePositionAndChildren() {
       this._updateAbsolutePosition();
-      this.node.getCurrentChildren().forEach(child => child.circleData._updateAbsolutePosition());
+      this._node.getCurrentChildren().forEach(child => child.nodeCircle._updateAbsolutePosition());
     }
 
     startMoveToIntermediatePosition() {
@@ -283,10 +260,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._parent;
     }
 
-    _getParentCircle() {
-      return !this.isRoot() ? this.getParent().circleData.absoluteCircle : new ZeroCircle();
-    }
-
     getOriginalChildren() {
       return this._originalChildren;
     }
@@ -358,7 +331,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     getRadius() {
-      return this.circleData.getRadius();
+      return this.nodeCircle.getRadius();
     }
 
     _updateViewOnCurrentChildrenChanged() {
@@ -386,19 +359,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       const promises = [];
       if (this.isCurrentlyLeaf()) {
-        promises.push(this.circleData.changeRadius(calculateDefaultRadius(this)));
+        promises.push(this.nodeCircle.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.circleData.moveToPosition(0, 0));
-        promises.push(this.circleData.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+        promises.push(onlyChild.nodeCircle.moveToPosition(0, 0));
+        promises.push(this.nodeCircle.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
           onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
-          r: c.circleData.getRadius()
+          r: c.nodeCircle.getRadius()
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.circleData.changeRadius(r));
+        promises.push(this.nodeCircle.changeRadius(r));
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -411,7 +384,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this.circleData.jumpToRelativeDisplacement(dx, dy);
+        this.nodeCircle.jumpToRelativeDisplacement(dx, dy);
         this._listener.forEach(listener => listener.onDrag(this));
 
         const nodesWithPotentialDependencies = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
@@ -434,12 +407,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _checkOverlappingWithSingleNode(node) {
-      const middlePointDistance = vectors.distance(this.circleData.absoluteCircle, node.circleData.absoluteCircle);
+      const middlePointDistance = vectors.distance(this.nodeCircle.absoluteCircle, node.nodeCircle.absoluteCircle);
       const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
       const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
       if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
         this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
-          sortedNodes.second.circleData.absoluteCircle));
+          sortedNodes.second.nodeCircle.absoluteCircle));
       }
       return areOverlapping;
     }
@@ -480,15 +453,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   const Root = class extends Node {
     constructor(jsonNode, svgContainer, onRadiusChanged) {
       super(jsonNode, svgContainer);
-      this._root = this; //FIXME: necessary??
-      this.circleData = new CircleData(this,
+      this._root = this;
+      this._parent = this;
+      this.nodeCircle = new NodeCircle(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.circleData.relativePosition),
-          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.circleData.getRadius(), this._text.getY()), onRadiusChanged(this.getRadius())]),
-          onMovedToPosition: () => this._view.moveToPosition(this.circleData.relativePosition).then(() => this._view.showIfVisible(this)),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.circleData.relativePosition)
+          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
+          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.nodeCircle.getRadius(), this._text.getY()), onRadiusChanged(this.getRadius())]),
+          onMovedToPosition: () => this._view.moveToPosition(this.nodeCircle.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeCircle.relativePosition)
         },
-        //FIXME:
         new ZeroCircle());
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
@@ -499,7 +472,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
       this.getByName = name => map.get(name);
       this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
-      this.doNext = fun => this._updatePromise.then(fun);
       let mustRelayout = false;
       this.relayoutCompletely = () => {
         mustRelayout = true;
@@ -533,7 +505,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this];
     }
 
-    //FIXME: is this method needed??
     isRoot() {
       return true;
     }
@@ -549,7 +520,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _relayoutCompletely() {
-      this._callOnSelfThenEveryDescendant(node => node.circleData.absoluteCircle.unfix());
+      this._callOnSelfThenEveryDescendant(node => node.nodeCircle.absoluteCircle.unfix());
       const promiseInitialLayout = this._initialLayout();
       const promiseForceLayout = this._forceLayout();
       return Promise.all([promiseInitialLayout, promiseForceLayout]);
@@ -557,7 +528,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _initialLayout() {
       const layoutPromise = super._initialLayout();
-      const promise = this.circleData.moveToPosition(this.getRadius(), this.getRadius()); // Shift root to the middle
+      const promise = this.nodeCircle.moveToPosition(this.getRadius(), this.getRadius()); // Shift root to the middle
       return Promise.all([layoutPromise, promise]);
     }
 
@@ -591,8 +562,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         }
 
         const getAbsolutePositionWithNodeId = node => {
-          node.circleData.absoluteCircle.id = node.getFullName();
-          return node.circleData.absoluteCircle;
+          node.nodeCircle.absoluteCircle.id = node.getFullName();
+          return node.nodeCircle.absoluteCircle;
         };
 
         const padding = visualizationStyles.getCirclePadding();
@@ -606,10 +577,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.circleData.takeAbsolutePosition());
+          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition());
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.map(node => node.circleData.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.map(node => node.nodeCircle.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -627,7 +598,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k);
 
-        newNodesArray.forEach(node => node.circleData.completeMoveToIntermediatePosition());
+        newNodesArray.forEach(node => node.nodeCircle.completeMoveToIntermediatePosition());
         currentNodes = newNodes;
       }
 
@@ -642,14 +613,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       super(jsonNode, svgContainer);
       this._root = root;
       this._parent = parent;
-      this.circleData = new CircleData(this,
+      this.nodeCircle = new NodeCircle(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.circleData.relativePosition),
-          onRadiusChanged: () => this._view.changeRadius(this.circleData.getRadius(), this._text.getY()),
-          onMovedToPosition: () => this._view.moveToPosition(this.circleData.relativePosition).then(() => this._view.showIfVisible(this)),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.circleData.relativePosition)
+          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
+          onRadiusChanged: () => this._view.changeRadius(this.nodeCircle.getRadius(), this._text.getY()),
+          onMovedToPosition: () => this._view.moveToPosition(this.nodeCircle.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeCircle.relativePosition)
         },
-        this._parent.circleData.absoluteCircle);
+        this._parent.nodeCircle.absoluteCircle);
+
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this._root, this));
       this._setFilteredChildren(this._originalChildren);
     }

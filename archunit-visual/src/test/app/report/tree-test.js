@@ -19,13 +19,15 @@ const testRoot = require('./test-object-creator').tree;
 const MAXIMUM_DELTA = 0.0001;
 
 const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((acc, p) =>
-  ({x: acc.x + p.circleData.relativePosition.x, y: acc.y + p.circleData.relativePosition.y}), {x: 0, y: 0});
+  ({x: acc.x + p.nodeCircle.relativePosition.x, y: acc.y + p.nodeCircle.relativePosition.y}), {x: 0, y: 0});
+
+const doNext = (root, fun) => root._updatePromise.then(fun);
 
 describe('Root', () => {
-  it('should have no parent', () => {
+  it('should have itself as parent', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getParent()).to.equal(undefined);
+    expect(root.getParent()).to.equal(root);
   });
 
   it('should know that it is the root', () => {
@@ -97,7 +99,7 @@ describe('Inner node', () => {
     expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
-    return root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
+    return doNext(root, () => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
   });
 
   it('can change the fold-state to unfolded', () => {
@@ -119,9 +121,9 @@ describe('Inner node', () => {
     expect(innerNode.isFolded()).to.equal(false);
     expect(innerNode.isCurrentlyLeaf()).to.equal(false);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
-    promises.push(root.doNext(() => expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(false)));
+    promises.push(doNext(root, () => expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(false)));
     expect(listenerStub.foldedNode()).to.equal(innerNode);
-    promises.push(root.doNext(() => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
+    promises.push(doNext(root, () => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
     return Promise.all(promises);
   });
 });
@@ -186,15 +188,15 @@ describe('Inner node or leaf', () => {
     const expCoordinates = {x: dx, y: dy};
 
     nodeToDrag._drag(dx, dy);
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect({
-        x: nodeToDrag.circleData.relativePosition.x,
-        y: nodeToDrag.circleData.relativePosition.y
+        x: nodeToDrag.nodeCircle.relativePosition.x,
+        y: nodeToDrag.nodeCircle.relativePosition.y
       }).to.deep.equal(expCoordinates);
       nodeToDrag.getSelfAndDescendants().forEach(node =>
         expect({
-          x: node.circleData.absoluteCircle.x,
-          y: node.circleData.absoluteCircle.y
+          x: node.nodeCircle.absoluteCircle.x,
+          y: node.nodeCircle.absoluteCircle.y
         }).to.deep.equal(getAbsolutePositionOfNode(node)));
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
@@ -214,10 +216,10 @@ describe('Inner node or leaf', () => {
     const dy = 100;
     const expCoordinates = {x: dx, y: dy};
     nodeToDrag._drag(dx, dy);
-    return root.doNext(() =>
+    return doNext(root, () =>
       expect({
-        x: nodeToDrag.circleData.relativePosition.x,
-        y: nodeToDrag.circleData.relativePosition.y
+        x: nodeToDrag.nodeCircle.relativePosition.x,
+        y: nodeToDrag.nodeCircle.relativePosition.y
       }).to.deep.equal(expCoordinates));
   });
 
@@ -234,12 +236,12 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
 
     nodeToDrag._drag(-50, 50);
-    return root.doNext(() => {
+    return doNext(root, () => {
       const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
       const expCoordinates = {x: -expD, y: expD};
 
-      expect(nodeToDrag.circleData.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
-      expect(nodeToDrag.circleData.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
+      expect(nodeToDrag.nodeCircle.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
+      expect(nodeToDrag.nodeCircle.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
     });
   });
 
@@ -260,16 +262,16 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
 
-    return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
+    return doNext(root, () => {
+      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
 
-      return root.doNext(() => {
+      return doNext(root, () => {
         const exp = [{
           overlappedNode: 'com.tngtech.archunit.pkgToBeOverlapped',
-          position: nodeToDrag.circleData.absoluteCircle
+          position: nodeToDrag.nodeCircle.absoluteCircle
         }];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
       });
@@ -292,13 +294,13 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
 
-    return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
+    return doNext(root, () => {
+      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
       dragVector.norm(3 * circlePadding);
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
 
-      return root.doNext(() => {
+      return doNext(root, () => {
         expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
       });
     });
@@ -321,13 +323,13 @@ describe('Inner node or leaf', () => {
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
 
-    return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
+    return doNext(root, () => {
+      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
 
-      return root.doNext(() => {
+      return doNext(root, () => {
         expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
       });
     });
@@ -349,37 +351,37 @@ describe('Inner node or leaf', () => {
     const node2 = root.getByName('com.tngtech.archunit.SomeClass2');
     const node3 = root.getByName('com.tngtech.archunit.SomeClass3');
 
-    return root.doNext(() => {
-      const vectorToNode3 = Vector.between(node2.circleData.relativePosition, node3.circleData.relativePosition);
+    return doNext(root, () => {
+      const vectorToNode3 = Vector.between(node2.nodeCircle.relativePosition, node3.nodeCircle.relativePosition);
       vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
       node2._drag(vectorToNode3.x, vectorToNode3.y);
 
-      return root.doNext(() => {
-        const vectorToNode2 = Vector.between(node1.circleData.relativePosition, node2.circleData.relativePosition);
+      return doNext(root, () => {
+        const vectorToNode2 = Vector.between(node1.nodeCircle.relativePosition, node2.nodeCircle.relativePosition);
         vectorToNode2.norm(vectorToNode2.length() - node2.getRadius());
-        const vectorToNode3 = Vector.between(node1.circleData.relativePosition, node3.circleData.relativePosition);
+        const vectorToNode3 = Vector.between(node1.nodeCircle.relativePosition, node3.nodeCircle.relativePosition);
         vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
         const dragVector = vectorToNode2.scale(0.5).add(vectorToNode3.scale(0.5));
 
         node1._drag(dragVector.x, dragVector.y);
 
-        return root.doNext(() => {
+        return doNext(root, () => {
           const exp = [
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.circleData.absoluteCircle
+              position: node3.nodeCircle.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node2.circleData.absoluteCircle
+              position: node2.nodeCircle.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node3.circleData.absoluteCircle
+              position: node3.nodeCircle.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.circleData.absoluteCircle
+              position: node3.nodeCircle.absoluteCircle
             }
           ];
           expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -405,17 +407,17 @@ describe('Inner node or leaf', () => {
     const nodeToOverlap = root.getByName('com.tngtech.archunit.pkgToDrag.SomeClass');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.ClassToBeOverlapped');
 
-    return root.doNext(() => {
-      const dragVector = Vector.between(nodeToOverlap.circleData.absoluteCircle, nodeToBeOverlapped.circleData.absoluteCircle);
+    return doNext(root, () => {
+      const dragVector = Vector.between(nodeToOverlap.nodeCircle.absoluteCircle, nodeToBeOverlapped.nodeCircle.absoluteCircle);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
 
-      return root.doNext(() => {
+      return doNext(root, () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.ClassToBeOverlapped',
-            position: nodeToOverlap.circleData.absoluteCircle
+            position: nodeToOverlap.nodeCircle.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -439,17 +441,17 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass$InnerClass2');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.SomeClass$InnerClass1');
 
-    return root.doNext(() => {
-      const dragVector = Vector.between(nodeToDrag.circleData.relativePosition, nodeToBeOverlapped.circleData.relativePosition);
+    return doNext(root, () => {
+      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
 
-      return root.doNext(() => {
+      return doNext(root, () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.SomeClass$InnerClass1',
-            position: nodeToDrag.circleData.absoluteCircle
+            position: nodeToDrag.nodeCircle.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -473,11 +475,11 @@ describe('Node layout', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.circleData.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
-        expect(node.circleData.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
+        expect(node.nodeCircle.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
+        expect(node.nodeCircle.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
       });
     });
   });
@@ -486,11 +488,11 @@ describe('Node layout', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
-        expect(node.circleData.absoluteCircle.fx).to.not.be.undefined;
-        expect(node.circleData.absoluteCircle.fy).to.not.be.undefined;
-        expect(node.circleData.absoluteCircle.isFixed()).to.be.true;
+        expect(node.nodeCircle.absoluteCircle.fx).to.not.be.undefined;
+        expect(node.nodeCircle.absoluteCircle.fy).to.not.be.undefined;
+        expect(node.nodeCircle.absoluteCircle.isFixed()).to.be.true;
       });
     });
   });
@@ -499,7 +501,7 @@ describe('Node layout', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           expect(node).to.locatedWithinWithPadding(node.getParent(), circlePadding);
@@ -528,7 +530,7 @@ describe('Node layout', () => {
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
       expect(onRadiusChangedWasCalled).to.equal(true);
       root.callOnEveryDescendantThenSelf(node => {
@@ -542,7 +544,7 @@ describe('Node layout', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           node.getParent().getOriginalChildren().filter(child => child != node).forEach(sibling =>
@@ -559,7 +561,7 @@ describe('Node layout', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
-    return root.doNext(() => {
+    return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         if (node.isRoot()) {
           expect(node._view.textOffset).to.closeTo(-node.getRadius() + nodeFontsize, MAXIMUM_DELTA);
@@ -643,7 +645,7 @@ describe('Node', () => {
 
     root.filterByType(false, true);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -681,7 +683,7 @@ describe('Node', () => {
 
     root.filterByType(true, false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -716,7 +718,7 @@ describe('Node', () => {
 
     root.filterByType(false, false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -755,7 +757,7 @@ describe('Node', () => {
     root.filterByType(true, false);
     root.filterByType(true, true);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
@@ -795,7 +797,7 @@ describe('Node', () => {
 
     root.filterByName('XMatching', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -833,7 +835,7 @@ describe('Node', () => {
 
     root.filterByName('XX ', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -873,7 +875,7 @@ describe('Node', () => {
 
     root.filterByName('X*Y', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -888,16 +890,16 @@ describe('Node', () => {
       'my.company.second.OtherClass');
 
     root.filterByName('my.*.first', false);
-    return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
+    return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
       .then(() => {
         root.filterByName('company*.Some', false);
-        return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
+        return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
           .then(() => {
             root.filterByName('company*.Some', true);
-            return root.doNext(() => expect(root).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
+            return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
               .then(() => {
                 root.filterByName('company*.Some ', false);
-                return root.doNext(() => expect(root).to.containNoClasses());
+                return doNext(root, () => expect(root).to.containNoClasses());
               });
           });
       });
@@ -937,7 +939,7 @@ describe('Node', () => {
 
     root.filterByName('XMatching', true);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -968,7 +970,7 @@ describe('Node', () => {
 
     root.filterByName('XX ', true);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1007,7 +1009,7 @@ describe('Node', () => {
     root.filterByName('XX ', false);
     root.filterByName('', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(pkgWithChangedCssClass._view.cssClass).to.contain(' foldable');
@@ -1042,7 +1044,7 @@ describe('Node', () => {
     root.filterByName('XMatching', false);
     root.filterByName('YMatching', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1094,7 +1096,7 @@ describe('Node', () => {
       .map(nodeFullName => root.getByName(nodeFullName));
     const interfaceWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX');
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1130,7 +1132,7 @@ describe('Node', () => {
     root.filterByType(true, false);
     root.filterByName('', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1156,7 +1158,7 @@ describe('Node', () => {
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     root.filterByName('X', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1183,7 +1185,7 @@ describe('Node', () => {
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1205,7 +1207,7 @@ describe('Node', () => {
     root.filterByName('X', true);
     root.filterByName('', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(pkgToFold.isFolded()).to.equal(true);
       expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
       expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
@@ -1228,7 +1230,7 @@ describe('Node', () => {
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     root.filterByName('', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(pkgToFold.isFolded()).to.equal(true);
       expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
       expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
@@ -1256,7 +1258,7 @@ describe('Node', () => {
     root.filterByName('X', false);
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
@@ -1283,7 +1285,7 @@ describe('Node', () => {
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     root.filterByName('X', false);
 
-    return root.doNext(() => {
+    return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
