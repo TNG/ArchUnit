@@ -1,3 +1,7 @@
+body {
+    min-height: 100%;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -18,11 +22,28 @@ div {
     --menu-height: 80px;
 }
 
+.horizontal-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    height: 100%;
+    min-height: inherit;
+}
+
 #menu {
     position: fixed;
     left: 0;
     top: 0;
     width: 100%;
+}
+
+#violations-container {
+    margin-left: 10px;
+    margin-top: 55px;
+    margin-right: 5px;
+    height: 100%;
+    min-height: inherit;
 }
 
 #container {

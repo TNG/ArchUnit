@@ -111,6 +111,16 @@ module.exports.create = () => {
           ]);
       };
 
+      graph.attachToViolationMenu = violationMenu => {
+        d3.json('80/violations.json', function (error, violations) {
+          if (error) {
+            return reject(error);
+          }
+          violationMenu.initialize(violations.map(violationGroup => violationGroup.rule), rule =>
+            violations.filter(violationGroup => violationGroup.rule === rule)[0].violations.forEach(violation => console.log(violation)));
+        });
+      };
+
       resolve(graph);
     });
   });

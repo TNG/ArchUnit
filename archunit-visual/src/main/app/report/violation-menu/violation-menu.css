@@ -1,0 +1,48 @@
+#bar-root {
+    background-color: ghostwhite;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    height: 100%;
+    min-height: 100%;
+
+    --border-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: var(--border-shadow);
+
+    --menu-font-size: 14px;
+    --menu-section-border: 1px solid #ccc;
+}
+
+.show-bar {
+    font-size: 30px;
+    font-family: "Calibri";
+    border-right: 1px solid silver;
+    border-left: 1px solid silver;
+    height: 100vh;
+    min-height: inherit;
+    cursor: pointer;
+    line-height: 100vh;
+    vertical-align: middle;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.show-bar:active {
+    box-shadow: var(--border-shadow);
+}
+
+.violation-rule-list {
+    display: none;
+    background: inherit;
+    padding: 10px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.violation-rule {
+    line-height: var(--menu-font-size);
+    font-size: var(--menu-font-size);
+    padding-bottom: 10px;
+    cursor: pointer;
+}

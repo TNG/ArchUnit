@@ -10,19 +10,26 @@
   <script src='visualization-bundle.js'></script>
 
   <link rel='import' href='menu.html'>
+  <link rel='import' href='violation-menu.html'>
 </head>
 <body>
 
 <visualization-menu id='menu'></visualization-menu>
 
-<div id='container'>
-  <svg id='visualization'>
-    <defs>
-      <marker id="end_arrow" viewBox="0 -5 10 10" refX="10" markerWidth="10" markerHeight="10" orient="auto">
-        <path d="M0,-5L10,0L0,5"></path>
-      </marker>
-    </defs>
-  </svg>
+<div class="horizontal-container">
+  <div id='container'>
+    <svg id='visualization'>
+      <defs>
+        <marker id="end_arrow" viewBox="0 -5 10 10" refX="10" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M0,-5L10,0L0,5"></path>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div id="violations-container">
+    <violation-menu id='violations'></violation-menu>
+  </div>
 </div>
 
 <!-- We use this svg to calculate text widths of rendered texts, see calculateTextWidth()-function -->
@@ -45,6 +52,7 @@
   ]).then(results => {
     const graph = results[0];
     graph.attachToMenu(document.querySelector('#menu'));
+    graph.attachToViolationMenu(document.querySelector('#violations'));
     document.body.onresize = graph.render;
   });
 </script>

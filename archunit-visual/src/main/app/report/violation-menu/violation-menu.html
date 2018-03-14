@@ -1,0 +1,37 @@
+<template id="violation-menu-template">
+  <link rel="stylesheet" href="violation-menu.css">
+  <div id="bar-root">
+    <div id="showbar" class="show-bar"><</div>
+    <div class="violation-rule-list"></div>
+  </div>
+</template>
+
+<script>
+  (function () {
+    const webComponents = require('web-component-infrastructure');
+    const d3 = require('visualization').d3;
+
+    webComponents.defineCustomElement('violation-menu', class extends HTMLElement {
+      initialize(rules, onRuleClick) {
+        const showBar = d3.select(this.shadowRoot.querySelector('#showbar'));
+        const violationRules = d3.select(this.shadowRoot.querySelector('.violation-rule-list'));
+
+        showBar.on('click', () => {
+          violationRules.style('display', () => {
+            if (violationRules.style('display') === 'flex') {
+              showBar.text('<');
+              return 'none';
+            }
+            else {
+              showBar.text('>');
+              return 'flex';
+            }
+          });
+        });
+
+        violationRules.selectAll('span').data(rules).enter().append('span').attr('class', 'violation-rule')
+          .text(rule => rule).on('click', rule => onRuleClick(rule));
+      }
+    });
+  }());
+</script>
