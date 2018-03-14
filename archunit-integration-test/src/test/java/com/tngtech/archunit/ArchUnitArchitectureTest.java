@@ -51,12 +51,14 @@ public class ArchUnitArchitectureTest {
             .layer("Lang").definedBy("com.tngtech.archunit.lang..")
             .layer("Library").definedBy("com.tngtech.archunit.library..")
             .layer("JUnit").definedBy("com.tngtech.archunit.junit..")
+            .layer("Visual").definedBy("com.tngtech.archunit.visual..")
 
+            .whereLayer("Visual").mayNotBeAccessedByAnyLayer()
             .whereLayer("JUnit").mayNotBeAccessedByAnyLayer()
-            .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit")
-            .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit")
-            .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit")
-            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit");
+            .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit", "Visual")
+            .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit", "Visual")
+            .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit", "Visual")
+            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit", "Visual");
 
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =

@@ -15,16 +15,16 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.List;
+
 import com.google.common.collect.Lists;
 import com.google.gson.annotations.Expose;
 
-import java.util.List;
-
-public class JsonEvaluationResult {
+class JsonEvaluationResult {
     @Expose
     private String rule;
     @Expose
-    private List<JsonViolation> violations = Lists.newArrayList();;
+    private List<JsonViolation> violations = Lists.newArrayList();
 
     JsonEvaluationResult(String rule) {
         this.rule = rule;
@@ -34,15 +34,15 @@ public class JsonEvaluationResult {
         violations.add(violation);
     }
 
-    public String getRule() {
+    String getRule() {
         return rule;
     }
 
-    public List<JsonViolation> getViolations() {
+    List<JsonViolation> getViolations() {
         return violations;
     }
 
-    public void setViolations(List<JsonViolation> violations) {
+    void setViolations(List<JsonViolation> violations) {
         this.violations = violations;
     }
 }

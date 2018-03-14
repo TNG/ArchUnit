@@ -15,7 +15,11 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -32,29 +36,34 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.list;
 
-@PublicAPI(usage = PublicAPI.Usage.ACCESS)
+@PublicAPI(usage = ACCESS)
 public final class Visualizer {
 
     private static final String JSON_FILE_NAME = "classes.json";
     private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
 
+    @PublicAPI(usage = ACCESS)
+    public Visualizer() {
+    }
+
     //TODO: method for only exporting violations
 
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
+    @PublicAPI(usage = ACCESS)
     public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
         exportJson(classes, targetDir, context);
         copyFiles(targetDir);
     }
 
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
+    @PublicAPI(usage = ACCESS)
     public void visualize(JavaClasses classes, final File targetDir) {
         visualize(classes, targetDir, VisualizationContext.everything());
     }
 
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
+    @PublicAPI(usage = ACCESS)
     public void visualize(JavaClasses classes, String rule, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
         exportJson(classes, targetDir, context);
         exportViolations(targetDir, rule, evaluationResult);

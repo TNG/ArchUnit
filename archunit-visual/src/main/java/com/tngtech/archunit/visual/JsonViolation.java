@@ -18,7 +18,7 @@ package com.tngtech.archunit.visual;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.JavaAccess;
 
-public class JsonViolation {
+class JsonViolation {
     @Expose
     private String origin;
     @Expose
@@ -29,7 +29,7 @@ public class JsonViolation {
         this.target = target;
     }
 
-    public static JsonViolation from(JavaAccess fieldAccess) {
+    static JsonViolation from(JavaAccess fieldAccess) {
         return new JsonViolation(
                 fieldAccess.getOrigin().getFullName(),
                 fieldAccess.getTarget().getFullName()

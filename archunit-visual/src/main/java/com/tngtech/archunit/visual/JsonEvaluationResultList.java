@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JsonEvaluationResultList {
+class JsonEvaluationResultList {
     List<JsonEvaluationResult> jsonEvaluationResultList;
 
-    public JsonEvaluationResultList(List<JsonEvaluationResult> jsonEvaluationResultList) {
+    JsonEvaluationResultList(List<JsonEvaluationResult> jsonEvaluationResultList) {
         this.jsonEvaluationResultList = jsonEvaluationResultList;
     }
 
@@ -44,7 +44,7 @@ public class JsonEvaluationResultList {
         jsonEvaluationResultList.add(newEvaluationResult);
     }
 
-    public List<JsonEvaluationResult> getJsonEvaluationResultList() {
+    List<JsonEvaluationResult> getJsonEvaluationResultList() {
         return jsonEvaluationResultList;
     }
 }
