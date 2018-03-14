@@ -51,17 +51,38 @@ final class JsonTestUtils {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-        Map<Object, Object> imported = importJsonFromReader(reader);
+        Map<Object, Object> imported = importJsonObjectFromReader(reader);
 
         return ensureOrderIgnored(imported);
     }
 
-    private static Map<Object, Object> importJsonFromReader(JsonReader reader) {
+    static Map<Object, Object>[] jsonToMapArray(File file) {
+        JsonReader reader;
+        try {
+            reader = new JsonReader(new FileReader(file));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        Map<Object, Object>[] imported = importJsonArrayFromReader(reader);
+
+        return ensureOrderIgnored(imported);
+    }
+
+    private static Map<Object, Object> importJsonObjectFromReader(JsonReader reader) {
         return checkNotNull(new Gson().<Map<Object, Object>>fromJson(reader, mapStringObjectType()));
+    }
+
+    private static Map<Object, Object>[] importJsonArrayFromReader(JsonReader reader) {
+        return checkNotNull(new Gson().<Map<Object, Object>[]>fromJson(reader, mapStringObjectArrayType()));
     }
 
     private static Type mapStringObjectType() {
         return new TypeToken<Map<String, Object>>() {
+        }.getType();
+    }
+
+    private static Type mapStringObjectArrayType() {
+        return new TypeToken<Map<String, Object>[]>() {
         }.getType();
     }
 

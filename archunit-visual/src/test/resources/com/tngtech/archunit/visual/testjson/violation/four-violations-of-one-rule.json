@@ -1,0 +1,23 @@
+[
+  {
+    "rule": "Rule1",
+    "violations": [
+      {
+        "origin": "OriginClass1",
+        "target": "TargetClass1"
+      },
+      {
+        "origin": "OriginClass2",
+        "target": "TargetClass2"
+      },
+      {
+        "origin": "OriginClass3",
+        "target": "TargetClass3"
+      },
+      {
+        "origin": "OriginClass4",
+        "target": "TargetClass4"
+      }
+    ]
+  }
+]

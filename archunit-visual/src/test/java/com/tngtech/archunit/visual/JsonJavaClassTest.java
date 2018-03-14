@@ -2,9 +2,7 @@ package com.tngtech.archunit.visual;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.visual.testclasses.SomeClass;
-import com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.ThirdSubPkgClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
@@ -13,7 +11,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class JsonJavaClassTest {
     @Test
-    public void getChild_returns_self_or_child_by_full_name() throws Exception {
+    public void getChild_returns_self_or_child_by_full_name() {
         JavaClasses classes = importClasses(SomeClass.class, SomeClass.InnerClass.class);
 
         String root = SomeClass.class.getPackage().getName();

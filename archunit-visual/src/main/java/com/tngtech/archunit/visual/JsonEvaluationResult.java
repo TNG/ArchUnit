@@ -24,7 +24,7 @@ public class JsonEvaluationResult {
     @Expose
     private String rule;
     @Expose
-    private final List<JsonViolation> violations = Lists.newArrayList();;
+    private List<JsonViolation> violations = Lists.newArrayList();;
 
     JsonEvaluationResult(String rule) {
         this.rule = rule;
@@ -32,5 +32,17 @@ public class JsonEvaluationResult {
 
     void addViolation(JsonViolation violation) {
         violations.add(violation);
+    }
+
+    public String getRule() {
+        return rule;
+    }
+
+    public List<JsonViolation> getViolations() {
+        return violations;
+    }
+
+    public void setViolations(List<JsonViolation> violations) {
+        this.violations = violations;
     }
 }

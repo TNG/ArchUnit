@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.visual.JsonTestUtils.assertThatOptional;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class JsonJavaPackageTest {
     private static final JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeClass.class);

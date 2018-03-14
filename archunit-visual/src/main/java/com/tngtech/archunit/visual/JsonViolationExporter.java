@@ -15,12 +15,13 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.Writer;
+import java.io.*;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.common.collect.Lists;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -33,11 +34,27 @@ class JsonViolationExporter {
             .create();
 
     //FIXME: maybe extract rule from result??
-    void export(String rule, EvaluationResult result, Writer writer) {
+    void export(String rule, EvaluationResult result, Reader jsonViolationReader, Writer jsonViolationWriter) {
+        List<JsonEvaluationResult> existingViolationsList =
+                gson.fromJson(jsonViolationReader, new TypeToken<List<JsonEvaluationResult>>() {
+                }.getType());
+        if (existingViolationsList == null) {
+            existingViolationsList = Lists.newArrayList();
+        }
+        export(rule, result, existingViolationsList, jsonViolationWriter);
+    }
+
+    void export(String rule, EvaluationResult result, Writer jsonViolationWriter) {
+        export(rule, result, Lists.<JsonEvaluationResult>newArrayList(), jsonViolationWriter);
+    }
+
+    private void export(String rule, EvaluationResult result, List<JsonEvaluationResult> existingViolationsList, Writer jsonViolationWriter) {
         final JsonEvaluationResult evaluationResult = new JsonEvaluationResult(rule);
         extractFieldAccesses(result, evaluationResult);
         extractJavaCalls(result, evaluationResult);
-        writeToWriter(evaluationResult, writer);
+        JsonEvaluationResultList existingViolations = new JsonEvaluationResultList(existingViolationsList);
+        existingViolations.insertEvaluationResult(evaluationResult);
+        writeToWriter(existingViolations.getJsonEvaluationResultList(), jsonViolationWriter);
     }
 
     private void extractJavaCalls(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
@@ -62,7 +79,7 @@ class JsonViolationExporter {
         });
     }
 
-    private void writeToWriter(final JsonEvaluationResult evaluationResult, Writer writer) {
-        gson.toJson(evaluationResult, writer);
+    private void writeToWriter(final List<JsonEvaluationResult> evaluationResults, Writer jsonViolationWriter) {
+        gson.toJson(evaluationResults, jsonViolationWriter);
     }
 }

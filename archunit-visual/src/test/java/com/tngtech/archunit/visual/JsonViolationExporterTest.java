@@ -12,7 +12,12 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
+
+import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.targetOwner;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 
 public class JsonViolationExporterTest {
 
@@ -28,6 +33,45 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         exporter.export(rule.getDescription(), result, writer);
+
+        String expectedJson = jsonFromFile("access-violations.json");
+        JSONAssert.assertEquals(expectedJson, writer.toString(), false);
+    }
+
+    @Test
+    public void exportNewViolationsToExistingFile() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field");
+        EvaluationResult result = rule.evaluate(classes);
+
+        final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
+        exporter.export(rule.getDescription(), result, reader, writer);
+
+        String expectedJson = jsonFromFile("added-access-violations.json");
+        JSONAssert.assertEquals(expectedJson, writer.toString(), false);
+    }
+
+    @Test
+    public void exportExistingViolationsToExistingFile() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses().should().callCodeUnitWhere(targetOwner(has(name("com.tngtech.archunit.visual.JsonViolationExporterTest$Target"))));
+        EvaluationResult result = rule.evaluate(classes);
+
+        final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
+        exporter.export(rule.getDescription(), result, reader, writer);
+
+        String expectedJson = jsonFromFile("javacall-violations.json");
+        JSONAssert.assertEquals(expectedJson, writer.toString(), false);
+    }
+
+    @Test
+    public void exportSomeNewAndSomeExistingViolationsToExistingFile() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses().should().accessClassesThat().areAssignableTo(Target.class);
+        EvaluationResult result = rule.evaluate(classes);
+
+        final StringReader reader = new StringReader(jsonFromFile("part-of-access-violations.json"));
+        exporter.export(rule.getDescription(), result, reader, writer);
 
         String expectedJson = jsonFromFile("access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);

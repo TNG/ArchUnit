@@ -35,4 +35,8 @@ public class JsonViolation {
                 fieldAccess.getTarget().getFullName()
         );
     }
+
+    String getIdentifier() {
+        return origin + "->" + target;
+    }
 }

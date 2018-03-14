@@ -15,10 +15,7 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -31,13 +28,10 @@ import java.util.jar.JarEntry;
 
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.lang.Priority;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.util.Collections.list;
 
 @PublicAPI(usage = PublicAPI.Usage.ACCESS)
@@ -77,8 +71,17 @@ public final class Visualizer {
     }
 
     private void exportViolations(final File targetDir, String rule, EvaluationResult evaluationResult) {
-        try (FileWriter violationsWriter = new FileWriter(new File(targetDir, VIOLATIONS_FILE_NAME))) {
-            new JsonViolationExporter().export(rule, evaluationResult, violationsWriter);
+        File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
+        try (FileWriter violationsWriter = new FileWriter(violationsFile, false)) {
+            if (violationsFile.exists()) {
+                try (FileReader violationsReader = new FileReader(violationsFile)) {
+                    new JsonViolationExporter().export(rule, evaluationResult, violationsReader, violationsWriter);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                new JsonViolationExporter().export(rule, evaluationResult, violationsWriter);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,0 +1,28 @@
+[
+  {
+    "rule": "Rule1",
+    "violations": [
+      {
+        "origin": "OriginClass1",
+        "target": "TargetClass1"
+      },
+      {
+        "origin": "OriginClass2",
+        "target": "TargetClass2"
+      }
+    ]
+  },
+  {
+    "rule": "Rule2",
+    "violations": [
+      {
+        "origin": "OriginClass1",
+        "target": "TargetClass1"
+      },
+      {
+        "origin": "OriginClass2",
+        "target": "TargetClass2"
+      }
+    ]
+  }
+]
