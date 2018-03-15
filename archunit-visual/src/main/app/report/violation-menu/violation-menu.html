@@ -2,7 +2,13 @@
   <link rel="stylesheet" href="violation-menu.css">
   <div id="bar-root">
     <div id="showbar" class="show-bar"><</div>
-    <div class="violation-rule-list"></div>
+    <div id="verticalDivider">
+      <div class="violation-rule-list"></div>
+      <div id="hideAllDepsWhenRuleSelectedSetting">
+        <input type="checkbox" class="checkbox" id="hideAllDepsWhenRuleSelected" checked>
+        <label for="hideAllDepsWhenRuleSelected">hide all other dependencies when rule selected</label>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -10,27 +16,44 @@
   (function () {
     const webComponents = require('web-component-infrastructure');
     const d3 = require('visualization').d3;
+    let violationMenuIsVisible = false;
+    const getDisplayByViolationMenuIsVisible = () => violationMenuIsVisible ? 'flex' : 'none';
+    const getShowBarTextByViolationMenuIsVisible = () => violationMenuIsVisible ? '>' : '<';
 
     webComponents.defineCustomElement('violation-menu', class extends HTMLElement {
-      initialize(rules, onRuleClick) {
+      initialize(rules, showViolationsOfRule, hideViolationsOfRule) {
         const showBar = d3.select(this.shadowRoot.querySelector('#showbar'));
-        const violationRules = d3.select(this.shadowRoot.querySelector('.violation-rule-list'));
+        const verticalDivider = d3.select(this.shadowRoot.querySelector('#verticalDivider'));
+
+        violationMenuIsVisible = verticalDivider.style('display') === 'flex';
 
         showBar.on('click', () => {
-          violationRules.style('display', () => {
-            if (violationRules.style('display') === 'flex') {
-              showBar.text('<');
-              return 'none';
-            }
-            else {
-              showBar.text('>');
-              return 'flex';
-            }
-          });
+          violationMenuIsVisible = !violationMenuIsVisible;
+          verticalDivider.style('display', getDisplayByViolationMenuIsVisible());
+          showBar.text(getShowBarTextByViolationMenuIsVisible());
         });
 
-        violationRules.selectAll('span').data(rules).enter().append('span').attr('class', 'violation-rule')
-          .text(rule => rule).on('click', rule => onRuleClick(rule));
+        const violationRuleList = d3.select(this.shadowRoot.querySelector('.violation-rule-list'));
+        const violationRules = violationRuleList.selectAll('span').data(rules).enter().append('span').text(rule => rule);
+        const markedRules = new Set();
+        violationRules.on('click', function (rule) {
+          if (markedRules.has(rule)) {
+            markedRules.delete(rule);
+            d3.select(this).attr('class', '');
+            hideViolationsOfRule(rule);
+          }
+          else {
+            markedRules.add(rule);
+            d3.select(this).attr('class', 'marked');
+            showViolationsOfRule(rule);
+          }
+        });
+      }
+
+      onHideAllDependenciesChanged(callback) {
+        const checkbox = this.shadowRoot.querySelector('#hideAllDepsWhenRuleSelected');
+        checkbox.onclick = () => callback(checkbox.checked);
+        callback(checkbox.checked); //sync initial state
       }
     });
   }());

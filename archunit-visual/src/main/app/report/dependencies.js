@@ -157,8 +157,15 @@ const init = (View) => {
       return Array.from(map.values());
     }
 
-    showViolation() { //violation
+    showViolations(violations) {
 
+    }
+
+    hideViolations(violations) {
+
+    }
+
+    onHideAllOtherDependenciesWhenViolationExists(hideOnlyViolations) {
     }
 
     createListener() {

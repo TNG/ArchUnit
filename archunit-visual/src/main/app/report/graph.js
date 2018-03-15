@@ -116,8 +116,11 @@ module.exports.create = () => {
           if (error) {
             return reject(error);
           }
-          violationMenu.initialize(violations.map(violationGroup => violationGroup.rule), rule =>
-            violations.filter(violationGroup => violationGroup.rule === rule)[0].violations.forEach(violation => graph.dependencies.showViolation(violation)));
+          const getViolationsOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0].violations;
+          violationMenu.initialize(violations.map(violationGroup => violationGroup.rule),
+            rule => graph.dependencies.showViolations(getViolationsOfRule(rule)),
+            rule => graph.dependencies.hideViolations(getViolationsOfRule(rule)));
+          violationMenu.onHideAllDependenciesChanged(hide => graph.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
         });
       };
 
