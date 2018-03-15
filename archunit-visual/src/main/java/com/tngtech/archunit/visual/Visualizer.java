@@ -15,11 +15,7 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -41,6 +37,8 @@ import static java.util.Collections.list;
 
 @PublicAPI(usage = ACCESS)
 public final class Visualizer {
+
+    private static final String ENCODING = "UTF-8";
 
     private static final String JSON_FILE_NAME = "classes.json";
     private static final String VIOLATIONS_FILE_NAME = "violations.json";
@@ -72,7 +70,7 @@ public final class Visualizer {
 
     private void exportJson(JavaClasses classes, final File targetDir, VisualizationContext context) {
         checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create " + targetDir.getAbsolutePath());
-        try (FileWriter classesWriter = new FileWriter(new File(targetDir, JSON_FILE_NAME))) {
+        try (Writer classesWriter = new OutputStreamWriter(new FileOutputStream(new File(targetDir, JSON_FILE_NAME)), ENCODING)) {
             new JsonExporter().export(classes, classesWriter, context);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -81,9 +79,9 @@ public final class Visualizer {
 
     private void exportViolations(final File targetDir, String rule, EvaluationResult evaluationResult) {
         File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
-        try (FileWriter violationsWriter = new FileWriter(violationsFile, false)) {
+        try (Writer violationsWriter = new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING)) {
             if (violationsFile.exists()) {
-                try (FileReader violationsReader = new FileReader(violationsFile)) {
+                try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
                     new JsonViolationExporter().export(rule, evaluationResult, violationsReader, violationsWriter);
                 } catch (IOException e) {
                     throw new RuntimeException(e);

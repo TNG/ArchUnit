@@ -157,6 +157,10 @@ const init = (View) => {
       return Array.from(map.values());
     }
 
+    showViolation() { //violation
+
+    }
+
     createListener() {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),

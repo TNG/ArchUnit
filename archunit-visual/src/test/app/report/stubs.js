@@ -91,7 +91,7 @@ const createNodeListenerStub = () => {
   let _foldedNode;
   let _onLayoutChangedWasCalled = false;
 
-  let overlappedNodesAndPosition = [];
+  const overlappedNodesAndPosition = [];
 
   return {
     onDrag: () => _onDragWasCalled = true,

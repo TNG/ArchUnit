@@ -117,7 +117,7 @@ module.exports.create = () => {
             return reject(error);
           }
           violationMenu.initialize(violations.map(violationGroup => violationGroup.rule), rule =>
-            violations.filter(violationGroup => violationGroup.rule === rule)[0].violations.forEach(violation => console.log(violation)));
+            violations.filter(violationGroup => violationGroup.rule === rule)[0].violations.forEach(violation => graph.dependencies.showViolation(violation)));
         });
       };
 

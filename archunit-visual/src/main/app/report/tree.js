@@ -2,7 +2,6 @@
 
 const predicates = require('./predicates');
 const nodeTypes = require('./node-types.json');
-const Vector = require('./vectors').Vector;
 const vectors = require('./vectors').vectors;
 const ZeroCircle = require('./circles').ZeroCircle;
 const NodeCircle = require('./circles').NodeCircle;

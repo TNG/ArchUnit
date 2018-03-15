@@ -68,4 +68,41 @@
         <Method name="syncFileSystem"/>
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
     </Match>
+    <Match>
+        <!-- exclude these methods from the bug-check OBL_UNSATISFIED_OBLIGATION, as a false positive warning would be
+             created (because of using of try-with-resources-statement in Java 9) -->
+        <Class name="com.tngtech.archunit.visual.Visualizer"/>
+        <Or>
+            <Method name="exportJson"
+                    params="com.tngtech.archunit.core.domain.JavaClasses, java.io.File, com.tngtech.archunit.visual.VisualizationContext"
+                    returns="void"/>
+            <Method name="exportViolations"
+                    params="java.io.File, java.lang.String, com.tngtech.archunit.lang.EvaluationResult" returns="void"/>
+        </Or>
+        <Bug code="OBL"/>
+    </Match>
+    <Match>
+        <!-- exclude these fields, as they are marked as unread, but they are read by Gson through the annotations -->
+        <Class name="com.tngtech.archunit.visual.JsonAccess"/>
+        <Or>
+            <Field name="target"/>
+            <Field name="startCodeUnit"/>
+            <Field name="targetCodeElement"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonJavaClass"/>
+        <Or>
+            <Field name="superclass"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonElement"/>
+        <Or>
+            <Field name="type"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
 </FindBugsFilter>
