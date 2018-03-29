@@ -120,12 +120,6 @@ const init = (View) => {
     }
 
     _recreateViolationsSet() {
-      const getFullNameOfViolationFullPath = fullPath => {
-        let lastIndexOfOpeningBracket = fullPath.lastIndexOf('('); //FIXME: brackets are false for fields //no, correct!
-        lastIndexOfOpeningBracket = lastIndexOfOpeningBracket === -1 ? fullPath.length : lastIndexOfOpeningBracket;
-        const endIndex = fullPath.substring(0, lastIndexOfOpeningBracket).lastIndexOf('.');
-        return fullPath.substring(0, endIndex);
-      };
       this.violationsSet = new Set([].concat.apply([], Array.from(this._violationGroups.values())
         .map(violationGroup => violationGroup.violations))
         .map(violation => `${violation.origin}-${violation.target}`));
