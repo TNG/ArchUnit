@@ -92,16 +92,16 @@ const init = (View) => {
   };
 
   const newFilters = (dependencies) => ({
-    typeFilter: null,
-    nameFilter: null,
-    violationsFilter: null,
+    typeFilter: () => null,
+    nameFilter: () => null,
+    violationsFilter: () => null,
 
     apply: function () {
       reapplyFilters(dependencies, this.values());
     },
 
     values: function () {
-      return [this.nameFilter, this.typeFilter, this.violationsFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
+      return [this.nameFilter(), this.typeFilter(), this.violationsFilter()].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
     }
   });
 
@@ -134,14 +134,17 @@ const init = (View) => {
     addViolationGroup(violationGroup) {
       this._violationGroups.set(violationGroup.rule, violationGroup);
       this._recreateViolationsSet();
-      //TODO: apply filter
       //TODO: mark violation-dependencies red, when the other dependencies are not hidden!! (and also in the detailed deps)
     }
 
     removeViolationGroup(violationGroup) {
       this._violationGroups.delete(violationGroup.rule);
       this._recreateViolationsSet();
-      //TODO: apply filter
+    }
+
+    getFilter() {
+      const violationsFilter = dependency => this.isEmpty() || this.containsDependency(dependency);
+      return dependencies => dependencies.filter(violationsFilter);
     }
   };
 
@@ -202,10 +205,12 @@ const init = (View) => {
 
     showViolations(violationGroup) {
       this._violations.addViolationGroup(violationGroup);
+      this._applyFiltersAndRepositionDependencies();
     }
 
     hideViolations(violationGroup) {
       this._violations.removeViolationGroup(violationGroup);
+      this._applyFiltersAndRepositionDependencies();
     }
 
     createListener() {
@@ -255,14 +260,17 @@ const init = (View) => {
     }
 
     onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
-      const violationsFilter = dependency => !hideAllOtherDependencies || this._violations.isEmpty() || this._violations.containsDependency(dependency);
-      this._filters.violationsFilter = dependencies => dependencies.filter(violationsFilter);
-      this._filters.apply();
-      this.doNext(() => this._jumpAllToTheirPositions());
+      if (!hideAllOtherDependencies) {
+        this._filters.violationsFilter = () => null;
+      }
+      else {
+        this._filters.violationsFilter = () => this._violations.getFilter();
+      }
+      this._applyFiltersAndRepositionDependencies();
     }
 
     setNodeFilters(filters) {
-      this._filters.nameFilter = dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
+      this._filters.nameFilter = () => dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
         filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
       this._filters.apply();
     }
@@ -284,7 +292,11 @@ const init = (View) => {
             && dependency.getEndNode().getParent() !== dependency.getStartNode())
             || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
-      this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
+      this._filters.typeFilter = () => dependencies => dependencies.filter(typeFilter);
+      this._applyFiltersAndRepositionDependencies();
+    }
+
+    _applyFiltersAndRepositionDependencies() {
       this._filters.apply();
       this.doNext(() => this._jumpAllToTheirPositions());
     }
