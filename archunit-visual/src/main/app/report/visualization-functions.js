@@ -28,12 +28,14 @@ module.exports.newInstance = calculateTextWidth => {
   };
 
   const createForceLinkSimulation = (padding, nodes, links) => {
+    const count = nodeId => links.filter(link => link.source === nodeId || link.target === nodeId).length;
     return createSimulation(0.06, nodes, {
       name: 'link',
       forceFunction: d3.forceLink(links)
         .id(n => n.id)
         .distance(d => d.source.r + d.target.r + 2 * padding)
-        .strength(() => 3) // Magic number, we don't know exactly how the scale affects the layout ('strength' of attraction)
+        .strength(link => 3 / Math.min(count(link.source), count(link.target))) // 3: magic number, we don't know
+        // exactly how the scale affects the layout ('strength' of attraction)
         .iterations(2)
     });
   };

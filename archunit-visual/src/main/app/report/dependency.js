@@ -237,6 +237,12 @@ const init = (View, nodeMap) => {
     toString() {
       return `${this.from}->${this.to}(${this.description.toString()})`;
     }
+
+    getIdentifyingString() {
+      const start = combinePathAndCodeUnit(this.from, this.description.startCodeUnit);
+      const end = combinePathAndCodeUnit(this.to, this.description.targetElement);
+      return `${start}-${end}`;
+    }
   };
 
   const GroupedDependency = class extends ElementaryDependency {
@@ -276,10 +282,6 @@ const init = (View, nodeMap) => {
       return this._isVisible;
     }
 
-    getIdentifyingString() {
-      return `${this.from}-${this.to}`;
-    }
-
     hideOnStartOverlapping(nodePosition) {
       this._hideOnOverlapping(this.visualData.startPoint, nodePosition);
     }
@@ -292,6 +294,10 @@ const init = (View, nodeMap) => {
       if (point.isWithinCircle(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
         this.hide();
       }
+    }
+
+    getIdentifyingString() {
+      return `${this.from}-${this.to}`;
     }
   };
 

@@ -21,7 +21,7 @@ const init = (View) => {
   const filter = dependencies => ({
     by: propertyFunc => ({
       startsWith: prefix => dependencies.filter(r =>
-      propertyFunc(r).startsWith(prefix) && isEmptyOrStartsWithFullnameSeparator(propertyFunc(r).substring(prefix.length))),
+        propertyFunc(r).startsWith(prefix) && isEmptyOrStartsWithFullnameSeparator(propertyFunc(r).substring(prefix.length))),
       equals: fullName => dependencies.filter(r => propertyFunc(r) === fullName)
     })
   });
@@ -94,15 +94,56 @@ const init = (View) => {
   const newFilters = (dependencies) => ({
     typeFilter: null,
     nameFilter: null,
+    violationsFilter: null,
 
     apply: function () {
       reapplyFilters(dependencies, this.values());
     },
 
     values: function () {
-      return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
+      return [this.nameFilter, this.typeFilter, this.violationsFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
     }
   });
+
+  const Violations = class {
+    constructor() {
+      this._violationGroups = new Map();
+      this.violationsSet = new Set();
+    }
+
+    containsDependency(dependency) {
+      return this.violationsSet.has(dependency.getIdentifyingString());
+    }
+
+    isEmpty() {
+      return this._violationGroups.size === 0;
+    }
+
+    _recreateViolationsSet() {
+      const getFullNameOfViolationFullPath = fullPath => {
+        let lastIndexOfOpeningBracket = fullPath.lastIndexOf('('); //FIXME: brackets are false for fields //no, correct!
+        lastIndexOfOpeningBracket = lastIndexOfOpeningBracket === -1 ? fullPath.length : lastIndexOfOpeningBracket;
+        const endIndex = fullPath.substring(0, lastIndexOfOpeningBracket).lastIndexOf('.');
+        return fullPath.substring(0, endIndex);
+      };
+      this.violationsSet = new Set([].concat.apply([], Array.from(this._violationGroups.values())
+        .map(violationGroup => violationGroup.violations))
+        .map(violation => `${violation.origin}-${violation.target}`));
+    }
+
+    addViolationGroup(violationGroup) {
+      this._violationGroups.set(violationGroup.rule, violationGroup);
+      this._recreateViolationsSet();
+      //TODO: apply filter
+      //TODO: mark violation-dependencies red, when the other dependencies are not hidden!! (and also in the detailed deps)
+    }
+
+    removeViolationGroup(violationGroup) {
+      this._violationGroups.delete(violationGroup.rule);
+      this._recreateViolationsSet();
+      //TODO: apply filter
+    }
+  };
 
   const makeUniqueByProperty = (arr, propertyFunc) => {
     const map = new Map();
@@ -114,6 +155,8 @@ const init = (View) => {
     constructor(jsonRoot, nodeMap, svgContainer) {
       nodes = nodeMap;
       dependencyCreator = initDependency(View, nodeMap);
+
+      this._violations = new Violations();
 
       this._transformers = new Map();
       this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
@@ -157,15 +200,12 @@ const init = (View) => {
       return Array.from(map.values());
     }
 
-    showViolations(violations) {
-
+    showViolations(violationGroup) {
+      this._violations.addViolationGroup(violationGroup);
     }
 
-    hideViolations(violations) {
-
-    }
-
-    onHideAllOtherDependenciesWhenViolationExists(hideOnlyViolations) {
+    hideViolations(violationGroup) {
+      this._violations.removeViolationGroup(violationGroup);
     }
 
     createListener() {
@@ -214,6 +254,13 @@ const init = (View) => {
       recreateVisibleDependencies(this);
     }
 
+    onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
+      const violationsFilter = dependency => !hideAllOtherDependencies || this._violations.isEmpty() || this._violations.containsDependency(dependency);
+      this._filters.violationsFilter = dependencies => dependencies.filter(violationsFilter);
+      this._filters.apply();
+      this.doNext(() => this._jumpAllToTheirPositions());
+    }
+
     setNodeFilters(filters) {
       this._filters.nameFilter = dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
         filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
@@ -222,6 +269,10 @@ const init = (View) => {
 
     filterByType(typeFilterConfig) {
       const typeFilter = dependency => {
+        if (this._violations.containsDependency(dependency)) {
+          return true;
+        }
+
         const type = dependency.description.getDependencyTypeNamesAsString();
         return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
           && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
@@ -230,8 +281,8 @@ const init = (View) => {
           && ((type !== dependencyTypes.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
           && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
           && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
-          && dependency.getEndNode().getParent() !== dependency.getStartNode())
-          || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
+            && dependency.getEndNode().getParent() !== dependency.getStartNode())
+            || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = dependencies => dependencies.filter(typeFilter);
       this._filters.apply();

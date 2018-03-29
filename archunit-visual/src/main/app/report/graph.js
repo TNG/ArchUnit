@@ -116,10 +116,10 @@ module.exports.create = () => {
           if (error) {
             return reject(error);
           }
-          const getViolationsOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0].violations;
+          const getViolationGroupOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0];
           violationMenu.initialize(violations.map(violationGroup => violationGroup.rule),
-            rule => graph.dependencies.showViolations(getViolationsOfRule(rule)),
-            rule => graph.dependencies.hideViolations(getViolationsOfRule(rule)));
+            rule => graph.dependencies.showViolations(getViolationGroupOfRule(rule)),
+            rule => graph.dependencies.hideViolations(getViolationGroupOfRule(rule)));
           violationMenu.onHideAllDependenciesChanged(hide => graph.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
         });
       };
