@@ -113,7 +113,7 @@ const init = (View, nodeMap) => {
     }
 
     toString() {
-      return `${this.startCodeUnit} ${this.typeName} ${this.targetElement}`;
+      return joinStrings(' ', this.startCodeUnit, this.typeName, this.targetElement);
     }
   };
 
@@ -176,8 +176,7 @@ const init = (View, nodeMap) => {
     }
 
     getDependencyTypeNamesAsString() {
-      const separator = this.inheritanceTypeName && this.accessTypeName ? ' ' : '';
-      return this.inheritanceTypeName + separator + this.accessTypeName;
+      return joinStrings(' ', this.inheritanceTypeName, this.accessTypeName);
     }
 
     toString() {
@@ -209,6 +208,8 @@ const init = (View, nodeMap) => {
 
   const combinePathAndCodeUnit = (path, codeUnit) => (path || '') + ((path && codeUnit) ? '.' : '') + (codeUnit || '');
 
+  const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
+
   const ElementaryDependency = class {
     constructor(from, to, description, isViolation = false) {
       this.from = from;
@@ -232,7 +233,7 @@ const init = (View, nodeMap) => {
     }
 
     getTypeNames() {
-      return `dependency ${this.description.getDependencyTypeNamesAsString()}`;
+      return joinStrings(' ', 'dependency', this.description.getDependencyTypeNamesAsString());
     }
 
     toString() {
@@ -307,7 +308,7 @@ const init = (View, nodeMap) => {
     }
 
     getProperties() {
-      return this.getTypeNames() + (this.isViolation ? ' violation' : '');
+      return joinStrings(' ', this.getTypeNames(), (this.isViolation ? 'violation' : ''));
     }
 
     getIdentifyingString() {

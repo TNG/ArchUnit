@@ -144,8 +144,20 @@ describe('ElementaryDependency', () => {
       .withDependencyDescription('implements');
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
-    expect(act.getTypeNames()).to.equal('dependency ');
+    expect(act.getTypeNames()).to.equal('dependency');
     expect(act.description.hasDetailedDescription()).to.equal(false);
+    expect(act.isViolation).to.equal(false);
+  });
+
+  it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
+    const tree = createTreeWithToClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.class2)
+      .withDependencyDescription('implements');
+    dependency.isViolation = true;
+    const act = dependencyCreator.shiftElementaryDependency(dependency,
+      dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
+    expect(act.isViolation).to.equal(true);
   });
 
   it('can be shifted to one of the end-nodes\' parents if both are classes and if the dependency has no detailed ' +
@@ -158,6 +170,18 @@ describe('ElementaryDependency', () => {
       dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
     expect(act.getTypeNames()).to.equal('dependency childrenAccess');
     expect(act.description.hasDetailedDescription()).to.equal(false);
+    expect(act.isViolation).to.equal(false);
+  });
+
+  it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
+    const tree = createTreeWithToClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.innerClass)
+      .withDependencyDescription('implements');
+    dependency.isViolation = true;
+    const act = dependencyCreator.shiftElementaryDependency(dependency,
+      dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
+    expect(act.isViolation).to.equal(true);
   });
 
   it('can be shifted to one of the end-nodes\' parents if both are classes and if the dependency has a detailed ' +
@@ -170,6 +194,7 @@ describe('ElementaryDependency', () => {
       dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
     expect(act.getTypeNames()).to.equal('dependency childrenAccess');
     expect(act.description.hasDetailedDescription()).to.equal(true);
+    expect(act.isViolation).to.equal(false);
   });
 });
 
@@ -242,16 +267,20 @@ describe('InheritanceDescription', () => {
 });
 
 describe('GroupedDependency', () => {
-  it('is not recreated when one with the same start and end node already exists: the description is updated', () => {
+  it('is not recreated when one with the same start and end node already exists: the description and the ' +
+    'violation-property are updated', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
     const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
+    expect(groupedDependency.isViolation).to.equal(false);
 
     const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
       .withDependencyDescription('implements');
+    elementaryDependency.isViolation = true;
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
     expect(act).to.equal(groupedDependency);
     expect(act.getTypeNames()).to.equal('dependency implements');
+    expect(act.isViolation).to.equal(true);
   });
 
   it('has no detailed description and no types, if one of the end nodes is a package', () => {
@@ -259,7 +288,7 @@ describe('GroupedDependency', () => {
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
     const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', tree.class2)
       .byGroupingDependencies([]);
-    expect(groupedDependency.getTypeNames()).to.equal('dependency ');
+    expect(groupedDependency.getTypeNames()).to.equal('dependency');
     expect(groupedDependency.description.hasDetailedDescription()).to.equal(false);
   });
 
@@ -272,6 +301,38 @@ describe('GroupedDependency', () => {
       .byGroupingDependencies([elementaryDependency]);
     expect(act.hasDetailedDescription()).to.equal(true);
     expect(act.getTypeNames()).to.equal('dependency fieldAccess');
+  });
+
+  it('returns correct properties consisting of the type names and the violation-property, if both end nodes are ' +
+    'classes and the dependency is no violation', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('implements');
+    const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
+    expect(groupedDependency.getProperties()).to.equal('dependency implements');
+  });
+
+  it('returns correct properties consisting of the type names and the violation-property, if both end nodes are ' +
+    'classes and the dependency is a violation', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('implements');
+    elementaryDependency.isViolation = true;
+    const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
+    expect(groupedDependency.getProperties()).to.equal('dependency implements violation');
+  });
+
+  it('returns correct properties consisting only of the violation-property, if one end node is a package' +
+    ' and the dependency is a violation', () => {
+    const tree = createTreeWithToClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('implements');
+    elementaryDependency.isViolation = true;
+    const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', tree.node2).byGroupingDependencies([elementaryDependency]);
+    expect(groupedDependency.getProperties()).to.equal('dependency violation');
   });
 
   it('is created correctly from two elementary dependencies with the same dependency group and kind', () => {
@@ -326,6 +387,23 @@ describe('GroupedDependency', () => {
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
     expect(act.hasDetailedDescription()).to.equal(true);
     expect(act.getTypeNames()).to.equal('dependency extends several');
+    expect(act.getProperties()).to.equal('dependency extends several');
+  });
+
+  it('returns correct properties consisting of the type names and the violation-property if one of the ' +
+    'elementary dependencies is a violation, when it is created correctly from three elementary dependencies', () => {
+    const tree = createTreeWithToClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('extends');
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('constructorCall');
+    elementaryDependency2.isViolation = true;
+    const elementaryDependency3 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
+      .withDependencyDescription('methodCall');
+    const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
+      .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
+    expect(act.getProperties()).to.equal('dependency extends several violation');
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {

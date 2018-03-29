@@ -128,7 +128,6 @@ const init = (View) => {
     addViolationGroup(violationGroup) {
       this._violationGroups.set(violationGroup.rule, violationGroup);
       this._recreateViolationsSet();
-      //TODO: mark violation-dependencies red, when the other dependencies are not hidden!! (and also in the detailed deps)
     }
 
     removeViolationGroup(violationGroup) {
