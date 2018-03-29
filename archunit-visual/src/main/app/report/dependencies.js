@@ -142,6 +142,13 @@ const init = (View) => {
       this._recreateViolationsSet();
     }
 
+    refreshMarkOfViolationDependencies(dependencies, markViolations) {
+      dependencies.forEach(dependency => dependency.unMarkAsViolation());
+      if (markViolations) {
+        dependencies.filter(dependency => this.containsDependency(dependency)).forEach(dependency => dependency.markAsViolation());
+      }
+    }
+
     getFilter() {
       const violationsFilter = dependency => this.isEmpty() || this.containsDependency(dependency);
       return dependencies => dependencies.filter(violationsFilter);
@@ -205,11 +212,16 @@ const init = (View) => {
 
     showViolations(violationGroup) {
       this._violations.addViolationGroup(violationGroup);
-      this._applyFiltersAndRepositionDependencies();
+      this._refreshViolationDependencies();
     }
 
     hideViolations(violationGroup) {
       this._violations.removeViolationGroup(violationGroup);
+      this._refreshViolationDependencies();
+    }
+
+    _refreshViolationDependencies() {
+      this._violations.refreshMarkOfViolationDependencies(this._elementary, !this._filters.violationsFilter());
       this._applyFiltersAndRepositionDependencies();
     }
 
@@ -260,13 +272,13 @@ const init = (View) => {
     }
 
     onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
-      if (!hideAllOtherDependencies) {
-        this._filters.violationsFilter = () => null;
-      }
-      else {
+      if (hideAllOtherDependencies) {
         this._filters.violationsFilter = () => this._violations.getFilter();
       }
-      this._applyFiltersAndRepositionDependencies();
+      else {
+        this._filters.violationsFilter = () => null;
+      }
+      this._refreshViolationDependencies();
     }
 
     setNodeFilters(filters) {
@@ -290,6 +302,7 @@ const init = (View) => {
           && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
           && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
             && dependency.getEndNode().getParent() !== dependency.getStartNode())
+            //FIXME: not working when nested inner classes
             || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = () => dependencies => dependencies.filter(typeFilter);

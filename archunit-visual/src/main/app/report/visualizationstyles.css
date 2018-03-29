@@ -76,6 +76,8 @@ line.dependency {
     stroke: black;
 }
 
+/*TODO: group some styles*/
+
 line.methodCall {
     stroke: #0000FF;
 }
@@ -93,11 +95,11 @@ tspan.fieldAccess {
 }
 
 line.constructorCall {
-    stroke: #FF0000;
+    stroke: #FFA500;
 }
 
 tspan.constructorCall {
-    fill: #FF0000;
+    fill: #FFA500;
 }
 
 line.implementsAnonymous {
@@ -123,6 +125,11 @@ line.extends {
 
 line.implements {
     stroke-dasharray: 2px;
+}
+
+line.violation {
+    stroke: red;
+    stroke-width: 3px;
 }
 
 text.access {

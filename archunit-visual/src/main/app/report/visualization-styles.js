@@ -5,7 +5,7 @@ const CIRCLE_STYLE_SELECTOR = '.circle';
 
 const LINE_STYLE_PREFIX = 'line.';
 
-const DEPENDENCY_TEXT_STYLE_SELECTOR = "text.access";
+const DEPENDENCY_TEXT_STYLE_SELECTOR = 'text.access';
 
 const rgbToHex = (rgbString, defaultHex) => {
   if (!rgbString) {

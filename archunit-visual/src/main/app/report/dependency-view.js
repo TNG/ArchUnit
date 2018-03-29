@@ -33,7 +33,7 @@ const init = (DetailedView, transitionDuration) => {
 
       d3.select(this._svgElement)
         .append('line')
-        .attr('class', dependency.getTypeNames());
+        .attr('class', dependency.getProperties());
 
       d3.select(this._svgElement)
         .append('line')
@@ -52,7 +52,7 @@ const init = (DetailedView, transitionDuration) => {
     }
 
     _show(dependency) {
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getTypeNames());
+      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getProperties());
       d3.select(this._svgElement).style('visibility', 'visible');
       d3.select(this._svgElement).select('line.area').style('pointer-events', dependency.hasDetailedDescription() ? 'all' : 'none');
     }

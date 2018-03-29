@@ -191,11 +191,11 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const getOrCreateUniqueDependency = (from, to, description, svgElement, callForAllViews, getDetailedDependencies) => {
+  const getOrCreateUniqueDependency = (from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
     if (!allDependencies.has(`${from}-${to}`)) {
-      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description, svgElement, callForAllViews, getDetailedDependencies));
+      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies));
     }
-    return allDependencies.get(`${from}-${to}`).withDescription(description)
+    return allDependencies.get(`${from}-${to}`).withDescriptionAndViolation(description, isViolation)
   };
 
   const createDependencyDescription = (type, startCodeUnit, targetElement) => {
@@ -210,10 +210,11 @@ const init = (View, nodeMap) => {
   const combinePathAndCodeUnit = (path, codeUnit) => (path || '') + ((path && codeUnit) ? '.' : '') + (codeUnit || '');
 
   const ElementaryDependency = class {
-    constructor(from, to, description) {
+    constructor(from, to, description, isViolation = false) {
       this.from = from;
       this.to = to;
       this.description = description;
+      this.isViolation = isViolation;
     }
 
     getStartNode() {
@@ -243,11 +244,19 @@ const init = (View, nodeMap) => {
       const end = combinePathAndCodeUnit(this.to, this.description.targetElement);
       return `${start}-${end}`;
     }
+
+    markAsViolation() {
+      this.isViolation = true;
+    }
+
+    unMarkAsViolation() {
+      this.isViolation = false;
+    }
   };
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(from, to, description, svgElement, callForAllViews, getDetailedDependencies) {
-      super(from, to, description);
+    constructor(from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
+      super(from, to, description, isViolation);
       this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
       this._isVisible = false;
       this.visualData = new VisualData({
@@ -256,8 +265,9 @@ const init = (View, nodeMap) => {
       });
     }
 
-    withDescription(description) {
+    withDescriptionAndViolation(description, isViolation) {
       this.description = description;
+      this.isViolation = isViolation;
       return this;
     }
 
@@ -296,6 +306,10 @@ const init = (View, nodeMap) => {
       }
     }
 
+    getProperties() {
+      return this.getTypeNames() + (this.isViolation ? ' violation' : '');
+    }
+
     getIdentifyingString() {
       return `${this.from}-${this.to}`;
     }
@@ -314,24 +328,24 @@ const init = (View, nodeMap) => {
   const getUniqueDependency = (from, to, svgElement, callForAllViews, getDetailedDependencies) => ({
     byGroupingDependencies: (dependencies) => {
       if (containsPackage(from, to)) {
-        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription(), svgElement, callForAllViews, getDetailedDependencies);
+        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription(), dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       }
       else {
         const description = new GroupedDependencyDescription();
         dependencies.forEach(d => description.addDependencyDescription(d.description));
-        return getOrCreateUniqueDependency(from, to, description, svgElement, callForAllViews, getDetailedDependencies);
+        return getOrCreateUniqueDependency(from, to, description, dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       }
     }
   });
 
   const shiftElementaryDependency = (dependency, newFrom, newTo) => {
     if (containsPackage(newFrom, newTo)) {
-      return new ElementaryDependency(newFrom, newTo, new EmptyDependencyDescription());
+      return new ElementaryDependency(newFrom, newTo, new EmptyDependencyDescription(), dependency.isViolation);
     }
     if (newFrom === dependency.from && newTo === dependency.to) {
       return dependency;
     }
-    return new ElementaryDependency(newFrom, newTo, new ChildAccessDescription(dependency.description.hasDetailedDescription()));
+    return new ElementaryDependency(newFrom, newTo, new ChildAccessDescription(dependency.description.hasDetailedDescription()), dependency.isViolation);
   };
 
   return {
