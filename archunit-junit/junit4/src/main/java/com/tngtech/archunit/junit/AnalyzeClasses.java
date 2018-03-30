@@ -47,12 +47,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface AnalyzeClasses {
     /**
-     * @return Packages to look for in all URLs known to the actual {@link java.net.URLClassLoader}
+     * @return Packages to look for within the classpath / modulepath
      */
     String[] packages() default {};
 
     /**
-     * @return Classes that specify packages to look for in all URLs known to the actual {@link java.net.URLClassLoader}
+     * @return Classes that specify packages to look for within the classpath / modulepath
      */
     Class<?>[] packagesOf() default {};
 

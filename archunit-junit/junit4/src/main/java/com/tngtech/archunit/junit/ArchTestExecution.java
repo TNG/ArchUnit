@@ -24,8 +24,6 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 abstract class ArchTestExecution {
     final Class<?> testClass;
     private final boolean ignore;
@@ -36,7 +34,8 @@ abstract class ArchTestExecution {
     }
 
     static <T extends Member> T validatePublicStatic(T member) {
-        checkArgument(Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
+        ArchUnitTestInitializationException.check(
+                Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
                 "With @%s annotated members must be public and static", ArchTest.class.getSimpleName());
         return member;
     }

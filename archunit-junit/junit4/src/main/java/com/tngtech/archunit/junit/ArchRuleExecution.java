@@ -23,7 +23,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 
 class ArchRuleExecution extends ArchTestExecution {
@@ -35,7 +34,7 @@ class ArchRuleExecution extends ArchTestExecution {
         super(testClass, ignore);
 
         validatePublicStatic(ruleField);
-        checkArgument(ArchRule.class.isAssignableFrom(ruleField.getType()),
+        ArchUnitTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
                 "Rule field %s.%s to check must be of type %s",
                 testClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
 
