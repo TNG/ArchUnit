@@ -23,6 +23,8 @@ dependencies {
 configureSlowTestsFor this
 
 shadowJar {
+    exclude 'META-INF/**'
+    
     dependencies {
         exclude(project(':archunit'))
         exclude(dependency(dependency.junit4))
@@ -31,26 +33,4 @@ shadowJar {
     }
 }
 
-// These files are already relocated into archunit.jar, so they're transitively available
-task removeDuplicateThirdParty(type: Jar, dependsOn: shadowJar) {
-    exclude "${thirdPartyRelocationPackage.replace('.', '/')}/**"
-
-    File tempPath = tempJar(jar.archivePath)
-    from zipTree(shadowJar.archivePath)
-    archiveName tempPath.name
-
-    doLast {
-        assert shadowJar.archivePath.delete()
-        assert tempPath.renameTo(shadowJar.archivePath)
-    }
-}
-finishArchive.dependsOn removeDuplicateThirdParty
-
-def configureDependencies = { pom ->
-    pom.dependencies.removeAll {
-        it.scope != 'compile' || !(it.artifactId in ['archunit', 'junit'])
-    }
-    pom.dependencies.find { it.artifactId == 'archunit' }.classifier = null
-}
-install.repositories.mavenInstaller.pom.whenConfigured configureDependencies
-uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependencies
+this.with project(':archunit-junit').configureJUnitArchive

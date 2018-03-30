@@ -44,11 +44,10 @@ class ArchTestMethodExecution extends ArchTestExecution {
     }
 
     private void executeTestMethod(JavaClasses classes) throws Throwable {
-        if (!Arrays.equals(testMethod.getParameterTypes(), new Class<?>[]{JavaClasses.class})) {
-            throw new IllegalArgumentException(String.format(
-                    "Methods annotated with @%s must have exactly one parameter of type %s",
-                    ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName()));
-        }
+        ArchUnitTestInitializationException.check(
+                Arrays.equals(testMethod.getParameterTypes(), new Class<?>[]{JavaClasses.class}),
+                "Methods annotated with @%s must have exactly one parameter of type %s",
+                ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName());
 
         new FrameworkMethod(testMethod).invokeExplosively(newInstanceOf(testClass), classes);
     }

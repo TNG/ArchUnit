@@ -37,7 +37,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.ArchTestExecution.validatePublicStatic;
@@ -73,7 +72,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
         AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        checkArgument(analyzeClasses != null,
+        ArchUnitTestInitializationException.check(analyzeClasses != null,
                 "Class %s must be annotated with @%s",
                 testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
         return analyzeClasses;
