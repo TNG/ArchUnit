@@ -112,4 +112,14 @@ public class JsonJavaPackageTest {
                 .as("created package structure")
                 .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
     }
+
+    @Test
+    public void testCreatePackageStructureWithWrongPackageOrder() {
+        Set<String> pkgs = new LinkedHashSet<>(Arrays.asList("com.tngtech.pkg1.subpkg1", "com.tngtech.pkg1"));
+        JsonJavaPackage act = JsonJavaPackage.createPackageStructure(pkgs);
+        File expectedJson = JsonTestUtils.getJsonFile("/testcreatepackagestructurewrongorder.json");
+        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(act)))
+                .as("created package structure")
+                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+    }
 }

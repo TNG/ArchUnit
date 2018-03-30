@@ -66,7 +66,8 @@ class JsonJavaPackage extends JsonElement {
 
     private boolean tryToInsertToExistingPackage(String pkg) {
         for (JsonJavaPackage c : subPackages) {
-            if (pkg.startsWith(c.fullName)) {
+            if (pkg.startsWith(c.fullName) && pkg.substring(c.fullName.length())
+                    .matches("(\\" + PACKAGE_SEPARATOR + "|^$).*")) {
                 c.insertPackage(pkg);
                 return true;
             }

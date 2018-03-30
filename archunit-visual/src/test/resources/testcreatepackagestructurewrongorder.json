@@ -1,0 +1,34 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "name": "subpkg1",
+                  "fullName": "com.tngtech.pkg1.subpkg1",
+                  "type": "package"
+                }
+              ],
+              "name": "pkg1",
+              "fullName": "com.tngtech.pkg1",
+              "type": "package"
+            }
+          ],
+          "name": "tngtech",
+          "fullName": "com.tngtech",
+          "type": "package"
+        }
+      ],
+      "name": "com",
+      "fullName": "com",
+      "type": "package"
+    }
+  ],
+  "name": "default",
+  "fullName": "default",
+  "type": "package"
+}
