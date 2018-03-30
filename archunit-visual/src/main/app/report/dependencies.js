@@ -105,6 +105,7 @@ const init = (View) => {
     }
   });
 
+  //TODO: maybe extract to own file and create tests??
   const Violations = class {
     constructor() {
       this._violationGroups = new Map();
@@ -203,11 +204,17 @@ const init = (View) => {
       return Array.from(map.values());
     }
 
+    //TODO: tests for this
+    //not hide other deps -> show: must be marked
+    //hide other deps -> show: not marked, but others hidden
+    //not hide other deps -> filter dependencies (so that a violation would be hidden) -> show violation: must not be hidden
     showViolations(violationGroup) {
       this._violations.addViolationGroup(violationGroup);
       this._refreshViolationDependencies();
     }
 
+    //TODO: tests for this
+    //not hide other -> filter dependencies (so that a violation would be hidden) -> show violation -> hide: must be hidden again
     hideViolations(violationGroup) {
       this._violations.removeViolationGroup(violationGroup);
       this._refreshViolationDependencies();
@@ -265,6 +272,8 @@ const init = (View) => {
       recreateVisibleDependencies(this);
     }
 
+    //TODO: tests for this
+    //filter must be applied, mark might change
     onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
       if (hideAllOtherDependencies) {
         this._filters.violationsFilter = () => this._violations.getFilter();
@@ -296,7 +305,7 @@ const init = (View) => {
           && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
           && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
             && dependency.getEndNode().getParent() !== dependency.getStartNode())
-            //FIXME: not working when nested inner classes
+            //FIXME: not working for nested inner classes: use isPredecessorOf instead
             || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = () => dependencies => dependencies.filter(typeFilter);
