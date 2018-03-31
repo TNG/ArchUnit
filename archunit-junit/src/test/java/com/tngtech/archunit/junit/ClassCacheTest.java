@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -18,7 +19,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
@@ -28,6 +31,7 @@ import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -53,6 +57,9 @@ public class ClassCacheTest {
 
     @InjectMocks
     private ClassCache cache = new ClassCache();
+
+    @Captor
+    private ArgumentCaptor<Collection<Location>> locationCaptor;
 
     @Test
     public void loads_classes() {
@@ -163,6 +170,24 @@ public class ClassCacheTest {
         verifyNumberOfImports(1);
     }
 
+    @DataProvider
+    public static Object[][] test_classes_without_any_imported_classes() {
+        return testForEach(
+                new TestAnalysisRequest().withPackages("does.not.exist"),
+                new TestAnalysisRequest().withLocationProviders(EmptyLocations.class));
+    }
+
+    @Test
+    @UseDataProvider("test_classes_without_any_imported_classes")
+    public void when_there_are_only_nonexisting_sources_nothing_is_imported(TestAnalysisRequest analysisRequest) {
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analysisRequest);
+
+        assertThat(classes).isEmpty();
+
+        verify(cacheClassFileImporter).importClasses(any(ImportOptions.class), locationCaptor.capture());
+        assertThat(locationCaptor.getValue()).isEmpty();
+    }
+
     @Test
     public void distinguishes_import_option_when_caching() {
         JavaClasses importingWholeClasspathWithFilter =
@@ -260,6 +285,13 @@ public class ClassCacheTest {
         private WrongLocationProviderWithPrivateConstructor() {
         }
 
+        @Override
+        public Set<Location> get(Class<?> testClass) {
+            return Collections.emptySet();
+        }
+    }
+
+    static class EmptyLocations implements LocationProvider {
         @Override
         public Set<Location> get(Class<?> testClass) {
             return Collections.emptySet();
