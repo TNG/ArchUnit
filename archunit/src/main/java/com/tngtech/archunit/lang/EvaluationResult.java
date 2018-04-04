@@ -87,6 +87,11 @@ public final class EvaluationResult {
         return priority;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public String getRuleText() {
+        return rule.getDescription();
+    }
+
     /**
      * Filters all recorded {@link ConditionEvent ConditionEvents} by their textual description.
      * I.e. the lines of the description of an event are passed to the supplied predicate to
