@@ -254,8 +254,7 @@ const init = (View) => {
     }
 
     jumpSpecificDependenciesToTheirPositions(node) {
-      //FIXME: missing check of the fullname-separator
-      this.getVisible().filter(d => d.from.startsWith(node.getFullName()) || d.to.startsWith(node.getFullName())).forEach(d => d.jumpToPosition());
+      this.getVisible().filter(d => node.isPredecessorOfOrNodeItself(d.from) || node.isPredecessorOfOrNodeItself(d.to)).forEach(d => d.jumpToPosition());
     }
 
     moveAllToTheirPositions() {

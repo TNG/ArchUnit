@@ -451,6 +451,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return (nodeFullName.startsWith(this.getFullName())
         && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
     }
+    //TODO: test this
+    isPredecessorOfOrNodeItself(nodeFullName) {
+      const separator = /[\\.\\$]|/;
+      return (nodeFullName.startsWith(this.getFullName())
+        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
+    }
 
     getSelfAndPredecessorsUntilExclusively(predecessor) {
       if (predecessor === this) {
