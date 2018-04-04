@@ -34,8 +34,11 @@ module.exports.newInstance = calculateTextWidth => {
       forceFunction: d3.forceLink(links)
         .id(n => n.id)
         .distance(d => d.source.r + d.target.r + 2 * padding)
-        .strength(link => 3 / Math.min(count(link.source), count(link.target))) // 3: magic number, we don't know
-        // exactly how the scale affects the layout ('strength' of attraction)
+
+        // 3: magic number, we don't know exactly how the scale affects the layout ('strength' of attraction)
+        // removing this line causes an infinite-loop in d3
+        .strength(link => 3 / Math.min(count(link.source), count(link.target)))
+
         .iterations(2)
     });
   };
