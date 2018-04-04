@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 
 import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.targetOwner;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -32,7 +33,7 @@ public class JsonViolationExporterTest {
                 .should().accessClassesThat().areAssignableTo(Target.class);
         EvaluationResult result = rule.evaluate(classes);
 
-        exporter.export(rule.getDescription(), result, writer);
+        exporter.export(Arrays.asList(result), writer);
 
         String expectedJson = jsonFromFile("access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -41,11 +42,11 @@ public class JsonViolationExporterTest {
     @Test
     public void exportNewViolationsToExistingFile() throws Exception {
         JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
-        ArchRule rule = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field");
+        ArchRule rule = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field1");
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
-        exporter.export(rule.getDescription(), result, reader, writer);
+        exporter.export(Arrays.asList(result), reader, writer);
 
         String expectedJson = jsonFromFile("added-access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -58,7 +59,7 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
-        exporter.export(rule.getDescription(), result, reader, writer);
+        exporter.export(Arrays.asList(result), reader, writer);
 
         String expectedJson = jsonFromFile("javacall-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -71,9 +72,24 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("part-of-access-violations.json"));
-        exporter.export(rule.getDescription(), result, reader, writer);
+        exporter.export(Arrays.asList(result), reader, writer);
 
         String expectedJson = jsonFromFile("access-violations.json");
+        JSONAssert.assertEquals(expectedJson, writer.toString(), false);
+    }
+
+    @Test
+    public void exportNewViolationsOfDifferentRulesToNewFile() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule1 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field1");
+        EvaluationResult result1 = rule1.evaluate(classes);
+
+        ArchRule rule2 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field2");
+        EvaluationResult result2 = rule2.evaluate(classes);
+
+        exporter.export(Arrays.asList(result1, result2), writer);
+
+        String expectedJson = jsonFromFile("access-violations-of-different-rules.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
     }
 
@@ -91,13 +107,18 @@ public class JsonViolationExporterTest {
             new Target().complexMethod(foo, bar, this);
         }
 
-        public void fieldAccess(Target target) {
-            target.field = "accessed";
+        public void fieldAccess1(Target target) {
+            target.field1 = "accessed";
+        }
+
+        public void fieldAccess2(Target target) {
+            target.field2 = "accessed";
         }
     }
 
     public static class Target {
-        public String field = "";
+        public String field1 = "";
+        public String field2 = "";
 
         public void method() {
         }

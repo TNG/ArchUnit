@@ -291,6 +291,8 @@ const init = (View) => {
 
     filterByType(typeFilterConfig) {
       const typeFilter = dependency => {
+
+        //TODO: apply filter also to violation-dependencies
         if (this._violations.containsDependency(dependency)) {
           return true;
         }

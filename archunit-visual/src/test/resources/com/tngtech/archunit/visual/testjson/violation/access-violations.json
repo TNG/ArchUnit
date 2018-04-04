@@ -11,8 +11,12 @@
         "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.complexMethod(java.lang.String, java.lang.Object, com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor)"
       },
       {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field"
+        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
+        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1"
+      },
+      {
+        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess2(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
+        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field2"
       },
       {
         "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.complexMethodCall(java.lang.String, java.lang.Object)",

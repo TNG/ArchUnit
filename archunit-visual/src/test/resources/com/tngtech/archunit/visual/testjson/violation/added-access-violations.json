@@ -21,11 +21,11 @@
     ]
   },
   {
-    "rule": "no classes should access field Target.field",
+    "rule": "no classes should access field Target.field1",
     "violations": [
       {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field"
+        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
+        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1"
       }
     ]
   }

@@ -2,8 +2,6 @@ package com.tngtech.archunit.visual;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
@@ -13,8 +11,11 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.jar.JarFile;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class VisualizerTest {
     @Test
@@ -39,8 +40,8 @@ public class VisualizerTest {
         File outputDir = new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "visualizer-file-test");
         ArchRule rule = ArchRuleDefinition.noClasses().should().callMethod(ComplexClass2.class, "sayHelloAndBye");
         EvaluationResult evaluationResult = rule.evaluate(classes);
-        new Visualizer().visualize(classes, rule.getDescription(), evaluationResult, outputDir,
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"));
+        new Visualizer().visualize(classes, outputDir,
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"), Arrays.asList(evaluationResult));
         File jsonFile = new File(outputDir, "classes.json");
         File violationFile = new File(outputDir, "violations.json");
         assertThat(jsonFile).exists();

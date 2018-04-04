@@ -15,21 +15,17 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.*;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.jar.JarEntry;
-
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
+
+import java.io.*;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.jar.JarEntry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -62,9 +58,9 @@ public final class Visualizer {
     }
 
     @PublicAPI(usage = ACCESS)
-    public void visualize(JavaClasses classes, String rule, EvaluationResult evaluationResult, final File targetDir, VisualizationContext context) {
+    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context, Iterable<EvaluationResult> evaluationResults) {
         exportJson(classes, targetDir, context);
-        exportViolations(targetDir, rule, evaluationResult);
+        exportViolations(targetDir, evaluationResults);
         copyFiles(targetDir);
     }
 
@@ -77,17 +73,17 @@ public final class Visualizer {
         }
     }
 
-    private void exportViolations(final File targetDir, String rule, EvaluationResult evaluationResult) {
+    private void exportViolations(final File targetDir, Iterable<EvaluationResult> evaluationResults) {
         File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
         try (Writer violationsWriter = new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING)) {
             if (violationsFile.exists()) {
                 try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
-                    new JsonViolationExporter().export(rule, evaluationResult, violationsReader, violationsWriter);
+                    new JsonViolationExporter().export(evaluationResults, violationsReader, violationsWriter);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                new JsonViolationExporter().export(rule, evaluationResult, violationsWriter);
+                new JsonViolationExporter().export(evaluationResults, violationsWriter);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
