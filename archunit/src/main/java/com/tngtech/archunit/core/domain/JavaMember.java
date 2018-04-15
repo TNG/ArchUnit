@@ -105,6 +105,26 @@ public abstract class JavaMember implements
     }
 
     @Override
+    public boolean isMetaAnnotatedWith(Class<? extends Annotation> type) {
+        return isMetaAnnotatedWith(type.getName());
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(String typeName) {
+        for (JavaAnnotation annotation : annotations.get().values()) {
+            if (annotation.getType().isAnnotatedWith(typeName) || annotation.getType().isMetaAnnotatedWith(typeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
+    }
+
+    @Override
     public JavaClass getOwner() {
         return owner;
     }

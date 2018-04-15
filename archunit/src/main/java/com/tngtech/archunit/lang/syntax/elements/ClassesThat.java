@@ -309,6 +309,68 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
 
     /**
+     * Matches classes meta-annotated with a certain type of annotation. A meta-annotation is
+     * an annotation that is declared on another annotation.
+     *
+     * @param annotationType Specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areMetaAnnotatedWith(Class<? extends Annotation> annotationType);
+
+    /**
+     * Matches classes not meta-annotated with a certain type of annotation. A meta-annotation is
+     * an annotation that is declared on another annotation.
+     *
+     * @param annotationType Specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotMetaAnnotatedWith(Class<? extends Annotation> annotationType);
+
+    /**
+     * Matches classes meta-annotated with a certain type of annotation. A meta-annotation is
+     * an annotation that is declared on another annotation.
+     *
+     * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areMetaAnnotatedWith(String annotationTypeName);
+
+    /**
+     * Matches classes not meta-annotated with a certain type of annotation. A meta-annotation is
+     * an annotation that is declared on another annotation.
+     *
+     * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotMetaAnnotatedWith(String annotationTypeName);
+
+    /**
+     * Matches classes meta-annotated with a certain annotation, where matching meta-annotations are
+     * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
+     * another annotation.
+     *
+     * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+
+    /**
+     * Matches classes not meta-annotated with a certain annotation, where matching meta-annotations are
+     * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
+     * another annotation.
+     *
+     * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+
+    /**
      * Matches classes that implement a certain interface.
      *
      * @param type An interface type matching classes must implement

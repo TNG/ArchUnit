@@ -8,6 +8,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaMemberTest {
@@ -34,6 +35,38 @@ public class JavaMemberTest {
                 .as("predicate matches").isTrue();
         assertThat(importField(SomeClass.class, "someField")
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .as("predicate matches").isFalse();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_type() {
+        JavaClass clazz = importClassesWithContext(SomeClass.class, Deprecated.class).get(SomeClass.class);
+
+        assertThat(clazz.getField("someField").isMetaAnnotatedWith(Deprecated.class))
+                .as("field is meta-annotated with @Deprecated").isFalse();
+        assertThat(clazz.getField("someField").isMetaAnnotatedWith(Retention.class))
+                .as("field is meta-annotated with @Retention").isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_typeName() {
+        JavaClass clazz = importClassesWithContext(SomeClass.class, Deprecated.class).get(SomeClass.class);
+
+        assertThat(clazz.getField("someField").isMetaAnnotatedWith(Deprecated.class.getName()))
+                .as("field is meta-annotated with @Deprecated").isFalse();
+        assertThat(clazz.getField("someField").isMetaAnnotatedWith(Retention.class.getName()))
+                .as("field is meta-annotated with @Retention").isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_predicate() {
+        JavaClass clazz = importClassesWithContext(SomeClass.class, Deprecated.class).get(SomeClass.class);
+
+        assertThat(clazz.getField("someField")
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .as("predicate matches").isTrue();
+        assertThat(clazz.getField("someField")
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
