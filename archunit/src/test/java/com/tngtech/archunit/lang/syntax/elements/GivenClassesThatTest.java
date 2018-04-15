@@ -337,6 +337,56 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(hasNamePredicate))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+    }
+
+    @Test
     public void implement_type() {
         List<JavaClass> classes = filterResultOf(classes().that().implement(Collection.class))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -624,6 +674,11 @@ public class GivenClassesThatTest {
     private @interface SomeAnnotation {
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @SomeAnnotation
+    private @interface MetaAnnotatedAnnotation {
+    }
+
     private static class SimpleClass {
     }
 
@@ -640,5 +695,9 @@ public class GivenClassesThatTest {
 
     @SomeAnnotation
     private static class AnnotatedClass {
+    }
+
+    @MetaAnnotatedAnnotation
+    private static class MetaAnnotatedClass {
     }
 }

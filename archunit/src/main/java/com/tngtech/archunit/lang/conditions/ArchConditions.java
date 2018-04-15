@@ -547,6 +547,36 @@ public final class ArchConditions {
         return not(beAnnotatedWith(predicate));
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beMetaAnnotatedWith(Class<? extends Annotation> type) {
+        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(type));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeMetaAnnotatedWith(Class<? extends Annotation> type) {
+        return not(beMetaAnnotatedWith(type));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beMetaAnnotatedWith(String typeName) {
+        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeMetaAnnotatedWith(String typeName) {
+        return not(beMetaAnnotatedWith(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(predicate));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return not(beMetaAnnotatedWith(predicate));
+    }
+
     private static ArchCondition<JavaClass> createAnnotatedCondition(final DescribedPredicate<CanBeAnnotated> annotatedWith) {
         return new ArchCondition<JavaClass>(be(annotatedWith).getDescription()) {
             @Override

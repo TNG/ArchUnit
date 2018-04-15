@@ -31,6 +31,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameCo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -92,6 +93,36 @@ class GivenClassesThatInternal implements GivenClassesThat {
     @Override
     public GivenClassesConjunction areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(not(annotatedWith(predicate))));
+    }
+
+    @Override
+    public GivenClassesConjunction areMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return givenWith(are(metaAnnotatedWith(annotationType)));
+    }
+
+    @Override
+    public GivenClassesConjunction areNotMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return givenWith(are(not(metaAnnotatedWith(annotationType))));
+    }
+
+    @Override
+    public GivenClassesConjunction areMetaAnnotatedWith(String annotationTypeName) {
+        return givenWith(are(metaAnnotatedWith(annotationTypeName)));
+    }
+
+    @Override
+    public GivenClassesConjunction areNotMetaAnnotatedWith(String annotationTypeName) {
+        return givenWith(are(not(metaAnnotatedWith(annotationTypeName))));
+    }
+
+    @Override
+    public GivenClassesConjunction areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return givenWith(are(metaAnnotatedWith(predicate)));
+    }
+
+    @Override
+    public GivenClassesConjunction areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return givenWith(are(not(metaAnnotatedWith(predicate))));
     }
 
     @Override

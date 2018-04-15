@@ -9,6 +9,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.TestUtils.withinImportedClasses;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +63,61 @@ public class AccessTargetTest {
                 .isFalse();
         assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
                 .as("target is annotated with anything")
+                .isFalse();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_type_on_resolved_target() {
+        JavaClasses classes = importClassesWithContext(Origin.class, Target.class, QueriedAnnotation.class);
+        JavaCall<?> call = simulateCall().from(classes.get(Origin.class), "call").to(classes.get(Target.class).getMethod("called"));
+
+        assertThat(call.getTarget().isMetaAnnotatedWith(QueriedAnnotation.class))
+                .as("target is meta-annotated with @" + QueriedAnnotation.class.getSimpleName())
+                .isFalse();
+        assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class))
+                .as("target is meta-annotated with @" + Retention.class.getSimpleName())
+                .isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_typeName_on_resolved_target() {
+        JavaClasses classes = importClassesWithContext(Origin.class, Target.class, QueriedAnnotation.class);
+        JavaCall<?> call = simulateCall().from(classes.get(Origin.class), "call").to(classes.get(Target.class).getMethod("called"));
+
+        assertThat(call.getTarget().isMetaAnnotatedWith(QueriedAnnotation.class.getName()))
+                .as("target is meta-annotated with @" + QueriedAnnotation.class.getSimpleName())
+                .isFalse();
+        assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class.getName()))
+                .as("target is meta-annotated with @" + Retention.class.getSimpleName())
+                .isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_predicate_on_resolved_target() {
+        JavaClasses classes = importClassesWithContext(Origin.class, Target.class, QueriedAnnotation.class);
+        JavaCall<?> call = simulateCall().from(classes.get(Origin.class), "call").to(classes.get(Target.class).getMethod("called"));
+
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .as("target is meta-annotated with anything")
+                .isTrue();
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .as("target is meta-annotated with nothing")
+                .isFalse();
+    }
+
+    @Test
+    public void meta_annotated_on_unresolved_target() {
+        JavaClasses classes = importClassesWithContext(Origin.class, Target.class, QueriedAnnotation.class);
+        JavaCall<?> call = simulateCall().from(classes.get(Origin.class), "call").toUnresolved(Target.class, "called");
+
+        assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class))
+                .as("target is meta-annotated with @" + Retention.class.getSimpleName())
+                .isFalse();
+        assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class.getName()))
+                .as("target is meta-annotated with @" + Retention.class.getSimpleName())
+                .isFalse();
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .as("target is meta-annotated with anything")
                 .isFalse();
     }
 

@@ -330,6 +330,68 @@ public class ShouldAccessClassesThatTest {
     }
 
     @Test
+    public void areMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
     public void implement_type() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClasses().should().accessClassesThat().implement(Collection.class))
@@ -615,6 +677,13 @@ public class ShouldAccessClassesThatTest {
         }
     }
 
+    private static class ClassAccessingMetaAnnotatedClass {
+        @SuppressWarnings("unused")
+        void call() {
+            new MetaAnnotatedClass();
+        }
+    }
+
     private static class SimpleClass {
     }
 
@@ -636,7 +705,16 @@ public class ShouldAccessClassesThatTest {
     private @interface SomeAnnotation {
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @SomeAnnotation
+    private @interface MetaAnnotatedAnnotation {
+    }
+
     @SomeAnnotation
     private static class AnnotatedClass {
+    }
+
+    @MetaAnnotatedAnnotation
+    private static class MetaAnnotatedClass {
     }
 }
