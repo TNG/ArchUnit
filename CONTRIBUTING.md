@@ -8,7 +8,7 @@ Contributions are very welcome. The following will provide some helpful guidelin
 * You will only submit contributions to which you have the necessary rights. 
 This means in particular, that if you are employed you have received the necessary permissions 
 from your employer to make the contributions.
-* Whatever content you contribute will be provided under the project license(s) (see !["LICENSE.txt"](LICENSE.txt))
+* Whatever content you contribute will be provided under the project license(s) (see ["LICENSE.txt"](LICENSE.txt))
 
 ## How to contribute
 
@@ -20,7 +20,7 @@ If you want to submit a contribution, please follow the following workflow:
 * When you're completely done, build the project and run all tests via `./gradlew clean build -PallTests`
 * Create a Pull Request
 
-### Commit messages
+### Commits
 
 Commit messages should be clear and fully elaborate the context and the reason of a change.
 If your commit refers to an issue, please post-fix it with the issue number, e.g.
@@ -28,6 +28,8 @@ If your commit refers to an issue, please post-fix it with the issue number, e.g
 ```
 Issue: #123
 ```
+
+Furthermore, commits should be signed according to the [DCO](DCO.md).
 
 ### Pull Requests
 
@@ -46,7 +48,7 @@ I hereby agree to the terms of the ArchUnit Contributor License Agreement.
 ### Formatting
 
 Please adjust your code formatter to the general style of the project. To help with this, you can
-use the code formatters within the ![develop](develop) folder. Furthermore, imports should be
+use the code formatters within the [develop](develop) folder. Furthermore, imports should be
 added in a consistent way, in particular lay out your imports
 
 * java.*
