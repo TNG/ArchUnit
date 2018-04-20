@@ -413,6 +413,83 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     }
 
     @Test
+    public void areMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                SimpleClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_type() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                SimpleClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                SimpleClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
     public void implement_type() {
         List<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classes().should().onlyBeAccessed().byClassesThat().implement(SomeInterface.class))
@@ -694,6 +771,9 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     private static class ClassBeingAccessedByAnnotatedClass {
     }
 
+    private static class ClassBeingAccessedByMetaAnnotatedClass {
+    }
+
     private static class SimpleClass {
     }
 
@@ -725,10 +805,22 @@ public class ShouldOnlyBeAccessedByClassesThatTest {
     private @interface SomeAnnotation {
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @SomeAnnotation
+    private @interface MetaAnnotatedAnnotation {
+    }
+
     @SomeAnnotation
     private static class AnnotatedClass {
         void call() {
             new ClassBeingAccessedByAnnotatedClass();
+        }
+    }
+
+    @MetaAnnotatedAnnotation
+    private static class MetaAnnotatedClass {
+        void call() {
+            new ClassBeingAccessedByMetaAnnotatedClass();
         }
     }
 

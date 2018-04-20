@@ -37,6 +37,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameCo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -108,6 +109,36 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
     @Override
     public ClassesShouldConjunction areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return shouldWith(are(not(annotatedWith(predicate))));
+    }
+
+    @Override
+    public ClassesShouldConjunction areMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return shouldWith(are(metaAnnotatedWith(annotationType)));
+    }
+
+    @Override
+    public ClassesShouldConjunction areNotMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return shouldWith(are(not(metaAnnotatedWith(annotationType))));
+    }
+
+    @Override
+    public ClassesShouldConjunction areMetaAnnotatedWith(String annotationTypeName) {
+        return shouldWith(are(metaAnnotatedWith(annotationTypeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction areNotMetaAnnotatedWith(String annotationTypeName) {
+        return shouldWith(are(not(metaAnnotatedWith(annotationTypeName))));
+    }
+
+    @Override
+    public ClassesShouldConjunction areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return shouldWith(are(metaAnnotatedWith(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return shouldWith(are(not(metaAnnotatedWith(predicate))));
     }
 
     @Override
