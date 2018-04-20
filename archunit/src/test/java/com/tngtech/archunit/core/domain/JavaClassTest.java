@@ -168,12 +168,44 @@ public class JavaClassTest {
     }
 
     @Test
-    public void predicate_isAnnotatedWith() {
+    public void isAnnotatedWith_predicate() {
         assertThat(importClassWithContext(Parent.class)
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importClassWithContext(Parent.class)
                 .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .as("predicate matches").isFalse();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_type() {
+        JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
+
+        assertThat(clazz.isMetaAnnotatedWith(SomeAnnotation.class))
+                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isFalse();
+        assertThat(clazz.isMetaAnnotatedWith(Retention.class))
+                .as("Parent is meta-annotated with @" + Retention.class.getSimpleName()).isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_typeName() {
+        JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
+
+        assertThat(clazz.isMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isFalse();
+        assertThat(clazz.isMetaAnnotatedWith(Retention.class.getName()))
+                .as("Parent is meta-annotated with @" + Retention.class.getSimpleName()).isTrue();
+    }
+
+    @Test
+    public void isMetaAnnotatedWith_predicate() {
+        JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
+
+        assertThat(clazz
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .as("predicate matches").isTrue();
+        assertThat(clazz
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 

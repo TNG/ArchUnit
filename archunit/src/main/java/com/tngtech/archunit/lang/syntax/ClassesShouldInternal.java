@@ -220,6 +220,36 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction beMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(annotationType)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(annotationType)));
+    }
+
+    @Override
+    public ClassesShouldConjunction beMetaAnnotatedWith(String annotationTypeName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(annotationTypeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeMetaAnnotatedWith(String annotationTypeName) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(annotationTypeName)));
+    }
+
+    @Override
+    public ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(predicate)));
+    }
+
+    @Override
     public ClassesShouldConjunction implement(Class<?> type) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(type)));
     }

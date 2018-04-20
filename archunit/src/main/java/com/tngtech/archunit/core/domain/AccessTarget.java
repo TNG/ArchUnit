@@ -146,6 +146,31 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         });
     }
 
+    @Override
+    public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return isMetaAnnotatedWith(annotationType.getName());
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(final String annotationTypeName) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isMetaAnnotatedWith(annotationTypeName);
+            }
+        });
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        return anyMember(new Predicate<JavaMember>() {
+            @Override
+            public boolean apply(JavaMember input) {
+                return input.isMetaAnnotatedWith(predicate);
+            }
+        });
+    }
+
     private boolean anyMember(Predicate<JavaMember> predicate) {
         for (final JavaMember member : resolve()) {
             if (predicate.apply(member)) {

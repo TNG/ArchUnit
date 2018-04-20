@@ -147,6 +147,26 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
+    @Override
+    public boolean isMetaAnnotatedWith(Class<? extends Annotation> type) {
+        return isMetaAnnotatedWith(type.getName());
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(String typeName) {
+        for (JavaAnnotation annotation : annotations.get().values()) {
+            if (annotation.getType().isAnnotatedWith(typeName) || annotation.getType().isMetaAnnotatedWith(typeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
+    }
+
     /**
      * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
      * @return An {@link Annotation} of the given annotation type
