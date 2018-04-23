@@ -24,6 +24,10 @@ dependencies {
     testCompile project(path: ':archunit', configuration: 'tests')
 }
 
+shadowJar {
+    exclude 'META-INF/maven/**'
+}
+
 /* We only depend on archunit core and nothing else */
 install.repositories.mavenInstaller.pom.whenConfigured { pom ->
     pom.dependencies.removeAll {

@@ -43,7 +43,7 @@ public class VisualExtension implements ArchUnitExtension {
 
     @Override
     public void handle(EvaluatedRule evaluatedRule) {
-        System.out.println("export violations...");
+        System.out.println("Writing report to " + targetDirectory.getAbsolutePath());
         new Visualizer().visualize(evaluatedRule.getClasses(), targetDirectory,
                 VisualizationContext.everything(), Arrays.asList(evaluatedRule.getResult()));
     }
