@@ -1,6 +1,9 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const expect = chai.expect;
+const generalExtensions = require('./chai/general-chai-extensions');
+chai.use(generalExtensions);
 
 const initDependency = require('./main-files').get('dependency').init;
 
@@ -429,11 +432,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 33.287, y: 30.6296};
     const expEndPoint = {x: 27.809, y: 26.247};
 
-    //FIXME: maybe create chai-extension deepCloseTo
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper side', () => {
@@ -451,10 +451,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 20, y: 45};
     const expEndPoint = {x: 20, y: 30};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper right corner', () => {
@@ -472,10 +470,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 33.287, y: 29.370};
     const expEndPoint = {x: 27.809, y: 33.753};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the right side', () => {
@@ -493,10 +489,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 35, y: 20};
     const expEndPoint = {x: 50, y: 20};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower right corner', () => {
@@ -514,10 +508,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 27.809, y: 26.247};
     const expEndPoint = {x: 33.287, y: 30.6296};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower side', () => {
@@ -535,10 +527,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 20, y: 30};
     const expEndPoint = {x: 20, y: 45};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower left corner', () => {
@@ -556,10 +546,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 27.809, y: 33.753};
     const expEndPoint = {x: 33.287, y: 29.370};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the left side', () => {
@@ -577,10 +565,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 50, y: 20};
     const expEndPoint = {x: 35, y: 20};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the end node is within the start node', () => {
@@ -598,10 +584,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 16.718, y: 27.812};
     const expEndPoint = {x: 22.519, y: 31.680};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the start node is within the end node', () => {
@@ -619,10 +603,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 22.519, y: 31.680};
     const expEndPoint = {x: 16.718, y: 27.812};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the end node is exactly in the middle of the start node: ' +
@@ -641,10 +623,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 78.284, y: 78.284};
     const expEndPoint = {x: 60.607, y: 60.607};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency', () => {
@@ -663,10 +643,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 30.056, y: 38.701};
     const expEndPoint = {x: 21.104, y: 29.939};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency ' +
@@ -686,10 +664,8 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 23.093, y: 20.402};
     const expEndPoint = {x: 29.231, y: 26.154};
 
-    expect(dependency.visualData.startPoint.x).to.closeTo(expStartPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.startPoint.y).to.closeTo(expStartPoint.y, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.x).to.closeTo(expEndPoint.x, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint.y).to.closeTo(expEndPoint.y, MAXIMUM_DELTA);
+    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
+    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
   });
 
   it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {

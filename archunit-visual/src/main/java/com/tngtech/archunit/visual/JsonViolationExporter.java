@@ -35,7 +35,6 @@ class JsonViolationExporter {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    //FIXME: maybe extract rule from result??
     void export(Iterable<EvaluationResult> results, Reader jsonViolationReader, Writer jsonViolationWriter) {
         List<JsonEvaluationResult> existingViolationsList =
                 gson.fromJson(jsonViolationReader, new TypeToken<List<JsonEvaluationResult>>() {

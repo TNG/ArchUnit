@@ -1,6 +1,10 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const expect = chai.expect;
+const generalExtensions = require('./chai/general-chai-extensions');
+chai.use(generalExtensions);
+
 require('./chai/node-chai-extensions');
 const Vector = require('./main-files').get('vectors').Vector;
 
@@ -240,8 +244,7 @@ describe('Inner node or leaf', () => {
       const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
       const expCoordinates = {x: -expD, y: expD};
 
-      expect(nodeToDrag.nodeCircle.relativePosition.x).to.closeTo(expCoordinates.x, MAXIMUM_DELTA);
-      expect(nodeToDrag.nodeCircle.relativePosition.y).to.closeTo(expCoordinates.y, MAXIMUM_DELTA);
+      expect(nodeToDrag.nodeCircle.relativePosition).to.deep.closeTo(expCoordinates, MAXIMUM_DELTA);
     });
   });
 
@@ -504,8 +507,7 @@ describe('Node layout', () => {
     return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.nodeCircle.absoluteCircle.x).to.closeTo(absolutePosition.x, MAXIMUM_DELTA);
-        expect(node.nodeCircle.absoluteCircle.y).to.closeTo(absolutePosition.y, MAXIMUM_DELTA);
+        expect(node.nodeCircle.absoluteCircle).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
       });
     });
   });

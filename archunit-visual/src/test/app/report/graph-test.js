@@ -10,7 +10,7 @@ const testJson = require('./test-json-creator');
 const appContext = require('./main-files').get('app-context').newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),
   calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub, //FIXME: really necessary??
+  NodeView: stubs.NodeViewStub,
   DependencyView: stubs.DependencyViewStub,
   GraphView: stubs.GraphViewStub
 });

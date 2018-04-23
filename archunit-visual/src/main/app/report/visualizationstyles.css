@@ -76,8 +76,6 @@ line.dependency {
     stroke: black;
 }
 
-/*TODO: group some styles*/
-
 line.methodCall {
     stroke: #0000FF;
 }

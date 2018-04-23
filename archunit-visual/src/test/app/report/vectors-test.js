@@ -1,6 +1,9 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const expect = chai.expect;
+const generalExtensions = require('./chai/general-chai-extensions');
+chai.use(generalExtensions);
 
 const vectors = require('./main-files').get('vectors').vectors;
 const Vector = require('./main-files').get('vectors').Vector;
@@ -62,8 +65,8 @@ describe('Vector', () => {
   it('returns the default vector when getting the null vector', () => {
     const nullVector = new Vector(0, 0);
     nullVector.makeDefaultIfNull();
-    expect(nullVector.x).to.closeTo(0.7071, MAXIMUM_DELTA);
-    expect(nullVector.y).to.closeTo(0.7071, MAXIMUM_DELTA);
+    const exp = new Vector(0.7071, 0.7071);
+    expect(nullVector).to.deep.closeTo(exp, MAXIMUM_DELTA);
   });
 
   it('returns the vector when getting not the null vector', () => {
@@ -87,8 +90,8 @@ describe('Vector', () => {
   it('can be normed and then scaled', () => {
     const vector = new Vector(3, -5);
     vector.norm(3);
-    expect(vector.x).to.be.closeTo(1.54349, MAXIMUM_DELTA);
-    expect(vector.y).to.be.closeTo(-2.57248, MAXIMUM_DELTA);
+    const exp = new Vector(1.54349, -2.57248);
+    expect(vector).to.deep.closeTo(exp, MAXIMUM_DELTA);
   });
 
   it('can be spanned between two other vectors', () => {
