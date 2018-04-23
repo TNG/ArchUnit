@@ -136,11 +136,9 @@ const init = (View) => {
       this._recreateViolationsSet();
     }
 
-    refreshMarkOfViolationDependencies(dependencies, markViolations) {
+    refreshMarkOfViolationDependencies(dependencies) {
       dependencies.forEach(dependency => dependency.unMarkAsViolation());
-      if (markViolations) {
-        dependencies.filter(dependency => this.containsDependency(dependency)).forEach(dependency => dependency.markAsViolation());
-      }
+      dependencies.filter(dependency => this.containsDependency(dependency)).forEach(dependency => dependency.markAsViolation());
     }
 
     getFilter() {
@@ -221,7 +219,7 @@ const init = (View) => {
     }
 
     _refreshViolationDependencies() {
-      this._violations.refreshMarkOfViolationDependencies(this._elementary, !this._filters.violationsFilter());
+      this._violations.refreshMarkOfViolationDependencies(this._elementary);
       this._applyFiltersAndRepositionDependencies();
     }
 
@@ -291,12 +289,6 @@ const init = (View) => {
 
     filterByType(typeFilterConfig) {
       const typeFilter = dependency => {
-
-        //TODO: apply filter also to violation-dependencies
-        if (this._violations.containsDependency(dependency)) {
-          return true;
-        }
-
         const type = dependency.description.getDependencyTypeNamesAsString();
         return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
           && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
