@@ -288,9 +288,8 @@ const init = (View) => {
           && ((type !== dependencyTypes.allDependencies.methodCall || typeFilterConfig.showMethodCall))
           && ((type !== dependencyTypes.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
           && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
-          && ((dependency.getStartNode().getParent() !== dependency.getEndNode()
-            && dependency.getEndNode().getParent() !== dependency.getStartNode())
-            //FIXME: not working for nested inner classes: use isPredecessorOf instead
+          && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
+            && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
             || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
       this._filters.typeFilter = () => dependencies => dependencies.filter(typeFilter);

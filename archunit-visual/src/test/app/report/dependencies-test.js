@@ -1042,6 +1042,36 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 
+  it('can filter by type: show no dependencies between a class and its inner classes', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.clazz('Class1', 'class')
+        .havingInnerClass(
+          testJson.clazz('InnerClass1', 'class')
+            .havingInnerClass(testJson.clazz('InnerInnerClass1', 'class').build())
+            .havingInnerClass(testJson.clazz('InnerInnerClass2', 'class')
+              .accessingField('com.tngtech.archunit.Class1', 'startMethod()', 'targetField')
+              .accessingField('com.tngtech.archunit.Class1$InnerClass1$InnerInnerClass1', 'startMethod()', 'targetField').build())
+            .build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const exp = ['com.tngtech.archunit.Class1$InnerClass1$InnerInnerClass2->com.tngtech.archunit.Class1$InnerClass1$InnerInnerClass1(fieldAccess)'];
+
+    dependencies.filterByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: true,
+      showAnonymousImplementation: true,
+      showDepsBetweenChildAndParent: false
+    });
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
   it('can reset the filter by type: show all dependencies again', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
