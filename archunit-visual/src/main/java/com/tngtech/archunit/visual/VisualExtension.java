@@ -15,15 +15,16 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.tngtech.archunit.lang.extension.ArchUnitExtension;
-import com.tngtech.archunit.lang.extension.EvaluatedRule;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Properties;
 
+import com.tngtech.archunit.lang.extension.ArchUnitExtension;
+import com.tngtech.archunit.lang.extension.EvaluatedRule;
+
 public class VisualExtension implements ArchUnitExtension {
-    public static final String UNIQUE_IDENTIFIER = "archunit-visual";
+    private static final String REPORT_DIR_SYSTEM_PROPERTY = "archunit.visual.report.dir";
+    private static final String UNIQUE_IDENTIFIER = "archunit-visual";
 
     private File targetDirectory;
 
@@ -34,8 +35,10 @@ public class VisualExtension implements ArchUnitExtension {
 
     @Override
     public void configure(Properties properties) {
-        File projectDir = new File(System.getProperty("user.dir"), "build");
-        targetDirectory = new File(projectDir, properties.getProperty("targetDir"));
+        String configuredReportDir = System.getProperty(REPORT_DIR_SYSTEM_PROPERTY);
+        targetDirectory = configuredReportDir != null
+                ? new File(configuredReportDir)
+                : new File(getClass().getResource("/").getFile(), "archunit-report");
     }
 
     @Override
