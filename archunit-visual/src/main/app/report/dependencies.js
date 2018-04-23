@@ -202,17 +202,11 @@ const init = (View) => {
       return Array.from(map.values());
     }
 
-    //TODO: tests for this
-    //not hide other deps -> show: must be marked
-    //hide other deps -> show: not marked, but others hidden
-    //not hide other deps -> filter dependencies (so that a violation would be hidden) -> show violation: must not be hidden
     showViolations(violationGroup) {
       this._violations.addViolationGroup(violationGroup);
       this._refreshViolationDependencies();
     }
 
-    //TODO: tests for this
-    //not hide other -> filter dependencies (so that a violation would be hidden) -> show violation -> hide: must be hidden again
     hideViolations(violationGroup) {
       this._violations.removeViolationGroup(violationGroup);
       this._refreshViolationDependencies();
@@ -269,8 +263,6 @@ const init = (View) => {
       recreateVisibleDependencies(this);
     }
 
-    //TODO: tests for this
-    //filter must be applied, mark might change
     onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
       if (hideAllOtherDependencies) {
         this._filters.violationsFilter = () => this._violations.getFilter();

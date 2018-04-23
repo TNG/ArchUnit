@@ -57,6 +57,14 @@ const jsonRoot = testJson.package('com.tngtech')
   .build();
 const root = new Root(jsonRoot, null, () => Promise.resolve());
 
+const jsonRootWithTwoClassesAndTwoDeps = testJson.package('com.tngtech')
+  .add(testJson.clazz('SomeClass1', 'class')
+    .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField').build())
+  .add(testJson.clazz('SomeClass2', 'class')
+    .accessingField('com.tngtech.SomeClass1', 'startMethod()', 'targetField').build())
+  .build();
+const rootWithTwoClassesAndTwoDeps = new Root(jsonRootWithTwoClassesAndTwoDeps, null, () => Promise.resolve());
+
 describe('Dependencies', () => {
   it('creates correct elementary dependencies from json-input', () => {
     const dependencies = new Dependencies(jsonRoot, root);
@@ -97,7 +105,7 @@ describe('Dependencies', () => {
     const hasEndNodes = (node1, node2) => d => (d.from === node1 || d.to === node1) && (d.from === node2 || d.to === node2);
     const filter = d => hasEndNodes('com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface',
       'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface')(d)
-    || hasEndNodes('com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.SomeClass2')(d);
+      || hasEndNodes('com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.SomeClass2')(d);
     const dependenciesSharingNodes = dependencies.getVisible().filter(filter);
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
     expect(mapToMustShareNodes(dependenciesSharingNodes)).to.not.include(false);
@@ -970,9 +978,9 @@ describe('Dependencies', () => {
 
     const filter = d1 => dependencies._elementary.filter(
       d2 =>
-      d1.from === d2.from &&
-      d1.to === d2.to &&
-      d2.description.typeName === 'implements').length > 0;
+        d1.from === d2.from &&
+        d1.to === d2.to &&
+        d2.description.typeName === 'implements').length > 0;
     const visibleDependencies = dependencies.getVisible().filter(filter);
     const hiddenDependencies = dependencies.getVisible().filter(d => !filter(d));
 
@@ -1210,5 +1218,114 @@ describe('Dependencies', () => {
     const act = dependencies.getAllLinks();
 
     expect(act).to.deep.equal(exp);
+  });
+
+  it('can show a violation: all dependencies of the violation are marked', () => {
+    const rule = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule);
+    expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass1')[0].isViolation).to.be.true;
+    expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass2')[0].isViolation).to.be.false;
+  });
+
+  it('can hide a violation again: the corresponding dependencies are unmarked', () => {
+    const rule = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule);
+    dependencies.hideViolations(rule);
+    expect(dependencies.getVisible().map(d => d.isViolation)).to.not.include(true);
+  });
+
+  it('does not unmark a dependency on hiding a violation of this dependency is part of another violation ' +
+    '(which is not hidden)', () => {
+    const rule1 = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const rule2 = {
+      rule: 'rule2',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule1);
+    dependencies.showViolations(rule2);
+    dependencies.hideViolations(rule1);
+    expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass1')[0].isViolation).to.be.true;
+    expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass2')[0].isViolation).to.be.false;
+  });
+
+  it('shows all dependencies again when the last violation-rule is hidden again', () => {
+    const rule = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule);
+    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
+    dependencies.hideViolations(rule);
+
+    const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
+      'com.tngtech.SomeClass2->com.tngtech.SomeClass1(fieldAccess)'];
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can hide all dependencies that are not part of a violation when a violation is shown', () => {
+    const rule = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule);
+
+    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
+
+    const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)'];
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can show all dependencies, also those that are not part of a violation, again', () => {
+    const rule = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+    const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    dependencies.showViolations(rule);
+
+    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
+    dependencies.onHideAllOtherDependenciesWhenViolationExists(false);
+
+    const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
+      'com.tngtech.SomeClass2->com.tngtech.SomeClass1(fieldAccess)'];
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
 });
