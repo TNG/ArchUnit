@@ -460,6 +460,32 @@ describe('Inner node or leaf', () => {
   });
 });
 
+describe('Arbitrary node', () => {
+  it('should know whether it is the predecessor of another node', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkg')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    expect(root.getByName('com.tngtech.archunit.pkg').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+    expect(root.getByName('com.tngtech.archunit').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+    expect(root.getByName('com.tngtech.archunit.pkg.SomeClass1').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.false;
+  });
+
+  it('should know whether it is the predecessor of another node or the node itself', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkg')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    expect(root.getByName('com.tngtech.archunit.pkg.SomeClass1').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+    expect(root.getByName('com.tngtech.archunit.pkg').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+    expect(root.getByName('com.tngtech.archunit').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+  });
+});
+
 describe('Node layout', () => {
   const jsonRoot = testJson.package('com.tngtech.archunit')
     .add(testJson.clazz('SomeClass1', 'class').build())

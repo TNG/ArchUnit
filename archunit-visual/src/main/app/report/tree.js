@@ -105,6 +105,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._isLeaf() || this._folded;
     }
 
+    isPredecessorOf(nodeFullName) {
+      const separator = /[\\.\\$]/;
+      return (nodeFullName.startsWith(this.getFullName())
+        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
+    }
+
+    isPredecessorOfOrNodeItself(nodeFullName) {
+      const separator = /[\\.\\$]/;
+      const keyAfterFullName = nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1);
+      return (nodeFullName.startsWith(this.getFullName())
+        && (keyAfterFullName.length === 0 || separator.test(keyAfterFullName)));
+    }
+
     isFolded() {
       return this._folded;
     }
@@ -444,18 +457,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         return this;
       }
       return this._parent.getSelfOrFirstPredecessorMatching(matchingFunction);
-    }
-
-    isPredecessorOf(nodeFullName) {
-      const separator = /[\\.\\$]/;
-      return (nodeFullName.startsWith(this.getFullName())
-        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
-    }
-    //TODO: test this
-    isPredecessorOfOrNodeItself(nodeFullName) {
-      const separator = /[\\.\\$]|/;
-      return (nodeFullName.startsWith(this.getFullName())
-        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
     }
 
     getSelfAndPredecessorsUntilExclusively(predecessor) {
