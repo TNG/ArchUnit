@@ -51,9 +51,12 @@
     webComponentsInitialized
   ]).then(results => {
     const graph = results[0];
-    graph.attachToMenu(document.querySelector('#menu'));
-    graph.attachToViolationMenu(document.querySelector('#violations'));
-    document.body.onresize = graph.render;
+    visualization.resources.getViolations().then(violations => {
+      document.querySelector('#violations').setViolations(violations);
+      graph.attachToMenu(document.querySelector('#menu'));
+      graph.attachToViolationMenu(document.querySelector('#violations'));
+      document.body.onresize = graph.render;
+    });
   });
 </script>
 </body>
