@@ -493,8 +493,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return Root;
 };
 
-module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
-  return {
-    Root: init(View, NodeText, visualizationFunctions, visualizationStyles)
-  };
-};
+module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => ({
+  Root: init(View, NodeText, visualizationFunctions, visualizationStyles)
+});

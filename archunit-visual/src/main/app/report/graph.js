@@ -3,13 +3,14 @@
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonRoot, svg) {
+    constructor(jsonRoot, violations, svg) {
       this._view = new View(svg);
       this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
       this.root.relayoutCompletely();
+      this._violations = violations;
     }
 
     foldAllNodes() {
@@ -83,7 +84,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     attachToViolationMenu(violationMenu) {
-      violationMenu.initialize(
+      violationMenu.initialize(this._violations,
         violationsGroup => this.dependencies.showViolations(violationsGroup),
         violationsGroup => this.dependencies.hideViolations(violationsGroup),
         hide => this.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
@@ -97,19 +98,16 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
 module.exports.init = init; // FIXME: Make create() the only public API
 
-module.exports.create = () => {
+module.exports.create = () => new Promise((resolve, reject) => {
+  const d3 = require('d3');
+  const resources = require('./resources');
 
-  return new Promise((resolve, reject) => {
-    const d3 = require('d3');
-    const resources = require('./resources').resources;
+  const appContext = require('./app-context').newInstance();
+  const Graph = appContext.getGraph();
 
-    const appContext = require('./app-context').newInstance();
-    const Graph = appContext.getGraph();
-
-    resources.getClassesToVisualize().then(jsonRoot => {
-      const graph = new Graph(jsonRoot, d3.select('#visualization').node());
-      graph.foldAllNodes();
-      resolve(graph);
-    }, reject);
-  });
-};
+  resources.getJsonResources().then(resources => {
+    const graph = new Graph(resources.jsonRoot, resources.violations, d3.select('#visualization').node());
+    graph.foldAllNodes();
+    resolve(graph);
+  }, reject);
+});

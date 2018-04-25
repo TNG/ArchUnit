@@ -17,8 +17,6 @@
   (function () {
     const webComponents = require('web-component-infrastructure');
     const d3 = require('visualization').d3;
-    let violationRules;
-    let getViolationGroupOfRule;
 
     webComponents.defineCustomElement('violation-menu', class extends HTMLElement {
       postConnected() {
@@ -32,15 +30,13 @@
         });
       }
 
-      setViolations(violations) {
-        getViolationGroupOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0];
+      initialize(violations, showViolationsOfRule, hideViolationsOfRule, onHideAllDependenciesChanged) {
+        const getViolationGroupOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0];
 
         const violationRuleList = d3.select(this.shadowRoot.querySelector('.violation-rule-list'));
         const rules = violations.map(violationGroup => violationGroup.rule);
-        violationRules = violationRuleList.selectAll('span').data(rules).enter().append('span').text(rule => rule);
-      }
+        const violationRules = violationRuleList.selectAll('span').data(rules).enter().append('span').text(rule => rule);
 
-      initialize(showViolationsOfRule, hideViolationsOfRule, onHideAllDependenciesChanged) {
         const markedRules = new Set();
         violationRules.on('click', function (rule) {
           if (markedRules.has(rule)) {

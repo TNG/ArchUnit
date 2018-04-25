@@ -51,12 +51,11 @@
     webComponentsInitialized
   ]).then(results => {
     const graph = results[0];
-    visualization.resources.getViolations().then(violations => {
-      document.querySelector('#violations').setViolations(violations);
-      graph.attachToMenu(document.querySelector('#menu'));
-      graph.attachToViolationMenu(document.querySelector('#violations'));
-      document.body.onresize = graph.render;
-    });
+    graph.attachToMenu(document.querySelector('#menu'));
+    graph.attachToViolationMenu(document.querySelector('#violations'));
+    document.body.onresize = graph.render;
+
+    //FIXME: besser übergibt der Graph die violations an das Menü... --> resources in app-context --> dann bei den Tests create aus Graph zusammen mit der "gemockten" resources verwenden!!!
   });
 </script>
 </body>

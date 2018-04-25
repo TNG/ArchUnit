@@ -11,7 +11,12 @@ const loadJsonResource = fileName => new Promise((resolve, reject) => {
   });
 });
 
-module.exports.resources = {
-  getClassesToVisualize: () => loadJsonResource('80/classes.json'),
-  getViolations: () => loadJsonResource('80/violations.json')
+const getClassesToVisualize = () => loadJsonResource('80/classes.json');
+const getViolations = () => loadJsonResource('80/violations.json');
+
+const getJsonResources = () => getClassesToVisualize().then(jsonRoot =>
+  getViolations().then(violations => Promise.resolve({jsonRoot, violations})));
+
+module.exports = {
+  getJsonResources
 };
