@@ -104,12 +104,8 @@ module.exports.create = () => {
     const resources = require('./resources').resources;
 
     const appContext = require('./app-context').newInstance();
-    const visualizationStyles = appContext.getVisualizationStyles();
-    const Root = appContext.getRoot(); // FIXME: Correct dependency tree
-    const Dependencies = appContext.getDependencies(); // FIXME: Correct dependency tree
-    const graphView = appContext.getGraphView();
+    const Graph = appContext.getGraph();
 
-    const Graph = init(Root, Dependencies, graphView, visualizationStyles).Graph;
     resources.getClassesToVisualize().then(jsonRoot => {
       const graph = new Graph(jsonRoot, d3.select('#visualization').node());
       graph.foldAllNodes();

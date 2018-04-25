@@ -5,9 +5,7 @@
  */
 const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth) => {
 
-  const getVisualizationFunctions = () => {
-    return require('./visualization-functions').newInstance(getCalculateTextWidth());
-  };
+  const getVisualizationFunctions = () => require('./visualization-functions').newInstance(getCalculateTextWidth());
 
   const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
 
@@ -15,9 +13,7 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
   const getDependencies = () => require('./dependencies').init(getDependencyView()).Dependencies;
 
-  const getGraph = () => {
-    return require('./graph').init(getRoot(), getDependencies(), getGraphView()).Graph;
-  };
+  const getGraph = () => require('./graph').init(getRoot(), getDependencies(), getGraphView(), getVisualizationStyles()).Graph;
 
   return {
     getVisualizationStyles,
