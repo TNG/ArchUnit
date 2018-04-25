@@ -92,10 +92,7 @@ public final class Visualizer {
 
     private void copyFiles(final File targetDir) {
         URL url = getClass().getResource(DIR);
-        //Problem: beim Ausführen der example-tests wird die Resource report nicht gefunden und deshalb das
-        //ganze Zeug nicht kopiert...mit dem Gradle-Runner werden die tests nicht einmal ausgeführt (außer man
-        //entfernt den test-Task im build.gradle, aber dann wird die Extension auch nicht ausgeführt...)
-        System.out.println("Res url: " + url);
+        //FIXME: the url null found when using the IntelliJ-Test-Runner
         try {
             createCopyFor(url).copyTo(targetDir);
         } catch (IOException e) {
