@@ -10,6 +10,10 @@ ext.moduleName = 'com.tngtech.archunit.example'
 
         addTestJarTo proj
 
+        test {
+            systemProperty "archunit.visual.report.dir", System.getProperty("archunit.visual.report.dir")
+        }
+
         proj.with {
             dependencies {
                 // NOTE: The pure javaee-api dependencies are crippled,
