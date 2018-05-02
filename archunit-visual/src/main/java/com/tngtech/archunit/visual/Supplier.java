@@ -15,6 +15,6 @@
  */
 package com.tngtech.archunit.visual;
 
-public interface Supplier<T> {
+interface Supplier<T> {
     T get() throws Exception;
 }
