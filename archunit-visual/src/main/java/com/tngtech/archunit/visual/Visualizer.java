@@ -74,19 +74,21 @@ public final class Visualizer {
     }
 
     private void exportViolations(final File targetDir, Iterable<EvaluationResult> evaluationResults) {
-        File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
-        try (Writer violationsWriter = new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING)) {
-            if (violationsFile.exists()) {
-                try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
-                    new JsonViolationExporter().export(evaluationResults, violationsReader, violationsWriter);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                new JsonViolationExporter().export(evaluationResults, violationsWriter);
+        final File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
+        Supplier<Writer> getViolationsWriter = new Supplier<Writer>() {
+            @Override
+            public Writer get() throws FileNotFoundException, UnsupportedEncodingException {
+                return new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        };
+        if (violationsFile.exists()) {
+            try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
+                new JsonViolationExporter().export(evaluationResults, violationsReader, getViolationsWriter);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            new JsonViolationExporter().export(evaluationResults, getViolationsWriter);
         }
     }
 

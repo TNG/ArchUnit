@@ -35,18 +35,26 @@ class JsonViolationExporter {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    void export(Iterable<EvaluationResult> results, Reader jsonViolationReader, Writer jsonViolationWriter) {
+    void export(Iterable<EvaluationResult> results, Reader jsonViolationReader, Supplier<Writer> getJsonViolationWriter) {
         List<JsonEvaluationResult> existingViolationsList =
                 gson.fromJson(jsonViolationReader, new TypeToken<List<JsonEvaluationResult>>() {
                 }.getType());
         if (existingViolationsList == null) {
             existingViolationsList = Lists.newArrayList();
         }
-        export(results, existingViolationsList, jsonViolationWriter);
+        try (Writer writer = getJsonViolationWriter.get()) {
+            export(results, existingViolationsList, writer);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    void export(Iterable<EvaluationResult> results, Writer jsonViolationWriter) {
-        export(results, Lists.<JsonEvaluationResult>newArrayList(), jsonViolationWriter);
+    void export(Iterable<EvaluationResult> results, Supplier<Writer> getJsonViolationWriter) {
+        try (Writer writer = getJsonViolationWriter.get()) {
+            export(results, Lists.<JsonEvaluationResult>newArrayList(), writer);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void export(Iterable<EvaluationResult> results, List<JsonEvaluationResult> existingViolationsList, Writer jsonViolationWriter) {

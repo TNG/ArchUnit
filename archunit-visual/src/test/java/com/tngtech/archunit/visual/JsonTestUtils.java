@@ -1,15 +1,5 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -18,6 +8,13 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import org.assertj.guava.api.Assertions;
 import org.assertj.guava.api.OptionalAssert;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,15 +54,12 @@ final class JsonTestUtils {
     }
 
     static Map<Object, Object>[] jsonToMapArray(File file) {
-        JsonReader reader;
-        try {
-            reader = new JsonReader(new FileReader(file));
-        } catch (FileNotFoundException e) {
+        try (JsonReader reader = new JsonReader(new FileReader(file))) {
+            Map<Object, Object>[] imported = importJsonArrayFromReader(reader);
+            return ensureOrderIgnored(imported);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Map<Object, Object>[] imported = importJsonArrayFromReader(reader);
-
-        return ensureOrderIgnored(imported);
     }
 
     private static Map<Object, Object> importJsonObjectFromReader(JsonReader reader) {

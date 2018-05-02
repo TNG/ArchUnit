@@ -10,10 +10,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Arrays;
 
 import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.targetOwner;
@@ -25,6 +22,12 @@ public class JsonViolationExporterTest {
     private final JsonViolationExporter exporter = new JsonViolationExporter();
 
     private final StringWriter writer = new StringWriter();
+    private final Supplier<Writer> getWriter = new Supplier<Writer>() {
+        @Override
+        public Writer get() {
+            return writer;
+        }
+    };
 
     @Test
     public void testExportProducesCorrectOutput() throws Exception {
@@ -33,7 +36,7 @@ public class JsonViolationExporterTest {
                 .should().accessClassesThat().areAssignableTo(Target.class);
         EvaluationResult result = rule.evaluate(classes);
 
-        exporter.export(Arrays.asList(result), writer);
+        exporter.export(Arrays.asList(result), getWriter);
 
         String expectedJson = jsonFromFile("access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -46,7 +49,7 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
-        exporter.export(Arrays.asList(result), reader, writer);
+        exporter.export(Arrays.asList(result), reader, getWriter);
 
         String expectedJson = jsonFromFile("added-access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -59,7 +62,7 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("javacall-violations.json"));
-        exporter.export(Arrays.asList(result), reader, writer);
+        exporter.export(Arrays.asList(result), reader, getWriter);
 
         String expectedJson = jsonFromFile("javacall-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -72,7 +75,7 @@ public class JsonViolationExporterTest {
         EvaluationResult result = rule.evaluate(classes);
 
         final StringReader reader = new StringReader(jsonFromFile("part-of-access-violations.json"));
-        exporter.export(Arrays.asList(result), reader, writer);
+        exporter.export(Arrays.asList(result), reader, getWriter);
 
         String expectedJson = jsonFromFile("access-violations.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
@@ -87,7 +90,7 @@ public class JsonViolationExporterTest {
         ArchRule rule2 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field2");
         EvaluationResult result2 = rule2.evaluate(classes);
 
-        exporter.export(Arrays.asList(result1, result2), writer);
+        exporter.export(Arrays.asList(result1, result2), getWriter);
 
         String expectedJson = jsonFromFile("access-violations-of-different-rules.json");
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);

@@ -1,0 +1,11 @@
+[
+  {
+    "rule": "no classes should call method ComplexClass2.sayHelloAndBye()",
+    "violations": [
+      {
+        "origin": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass3.sayHelloAndBye()",
+        "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2.sayHelloAndBye()"
+      }
+    ]
+  }
+]
