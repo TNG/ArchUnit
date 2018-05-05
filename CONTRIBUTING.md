@@ -8,7 +8,7 @@ Contributions are very welcome. The following will provide some helpful guidelin
 * You will only submit contributions to which you have the necessary rights. 
 This means in particular, that if you are employed you have received the necessary permissions 
 from your employer to make the contributions.
-* Whatever content you contribute will be provided under the project license(s) (see ["LICENSE.txt"](LICENSE.txt))
+* Whatever content you contribute will be provided under the project license(s) (see ["LICENSE"](LICENSE))
 
 ## How to contribute
 
@@ -29,7 +29,7 @@ If your commit refers to an issue, please post-fix it with the issue number, e.g
 Issue: #123
 ```
 
-Furthermore, commits should be signed according to the [DCO](DCO.md).
+Furthermore, commits should be signed according to the [DCO](DCO).
 
 ### Pull Requests
 
