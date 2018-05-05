@@ -33,7 +33,7 @@ ext {
     guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm               : 'org.ow2.asm:asm:6.0',
+            asm               : 'org.ow2.asm:asm:6.1.1',
             guava             : 'com.google.guava:guava:19.0',
             slf4j             : 'org.slf4j:slf4j-api:1.7.7',
             log4j_api         : 'org.apache.logging.log4j:log4j-api:2.1',
@@ -96,6 +96,10 @@ task wrapper(type: Wrapper) {
 allprojects {
     group = 'com.tngtech.archunit'
     version = '1.0.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
@@ -113,10 +117,6 @@ subprojects {
 
     sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_7
-
-    repositories {
-        mavenCentral()
-    }
 
     test {
         maxHeapSize = "2G"

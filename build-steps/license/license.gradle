@@ -1,4 +1,3 @@
-String archUnitLicenseFile = 'licenses/archunit.license'
 String guavaLicenseFile = 'licenses/guava.license'
 String asmLicenseFile = 'licenses/asm.license'
 
@@ -9,8 +8,12 @@ def fillTemplateFile = {
             replace('${owner}', "${company.name}")
 }
 
+def pomOf = { String dep ->
+    "${dep}@pom"
+}
+
 def parentPomOf = { String dep ->
-    dep.replaceAll(/(.*:)(.*)(:.*)/, /$1$2-parent$3@pom/)
+    pomOf(dep.replaceAll(/(.*:)(.*)(:.*)/, /$1$2-parent$3/))
 }
 
 configurations {
@@ -19,7 +22,7 @@ configurations {
 }
 
 dependencies {
-    thirdpartyAsm parentPomOf(dependency.asm)
+    thirdpartyAsm pomOf(dependency.asm)
     thirdpartyGuava parentPomOf(dependency.guava)
 }
 
@@ -63,23 +66,22 @@ ${text}
 // Pretty dirty, but I couldn't find an official plain text version online
 def unwrapHtml = { htmlInput ->
     def html = htmlInput
-    while (!html.startsWith('Copyright (c)') && html.contains('<pre>')) {
+    while (!html.matches(/(?s)[^<]*Copyright.*/) && html.contains('<pre>')) {
         html = html.substring(html.indexOf('<pre>') + 5, html.length()).trim()
     }
 
-    assert html.startsWith('Copyright (c)'):
-            "Couldn't find license tag (looked for <pre>Copyright (c)...</pre> within ${html})"
+    assert html.contains('Copyright'):
+            "Couldn't find license tag (looked for <pre>...Copyright...</pre> within ${html})"
 
     html.substring(0, html.indexOf('</pre>'))
 }
 
 task updateLicenses {
     doLast {
-        rootProject.file(archUnitLicenseFile).text = fillTemplateFile('archunit.license.template')
-        rootProject.file('LICENSE.txt').text = rootProject.file(archUnitLicenseFile).text // so Github can understand it
-
-        rootProject.file(asmLicenseFile).text = createLicense(parseLicenseInfoFrom(configurations.thirdpartyAsm), unwrapHtml)
-
+        def asmLicenseWorkaround = parseLicenseInfoFrom(configurations.thirdpartyAsm)
+        // No, they can never adhere to conventions :-( The URL from the POM at the moment forwards to the root page
+        asmLicenseWorkaround = [name: asmLicenseWorkaround.name, url: new URL(asmLicenseWorkaround.url.toString().replace('.org', '.io'))]
+        rootProject.file(asmLicenseFile).text = createLicense(asmLicenseWorkaround, unwrapHtml)
         rootProject.file(guavaLicenseFile).text = createLicense(parseLicenseInfoFrom(configurations.thirdpartyGuava))
     }
 }
