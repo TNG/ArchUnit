@@ -2,6 +2,7 @@ package com.tngtech.archunit.junit;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -13,6 +14,8 @@ import com.tngtech.archunit.junit.testexamples.SimpleRuleField;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleMethod;
 import com.tngtech.archunit.junit.testexamples.SimpleRules;
+import com.tngtech.archunit.junit.testexamples.TestClassWithTags;
+import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodWrongParameters;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestTag;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -34,8 +38,10 @@ import org.mockito.Mock;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.junit.EngineExecutionTestListener.onlyElement;
 import static com.tngtech.archunit.junit.testexamples.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.testexamples.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
+import static com.tngtech.archunit.junit.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
 import static java.util.Collections.singleton;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -207,6 +213,37 @@ class ArchUnitTestEngineTest {
                     assertThat(d.getSource().isPresent()).as("source is present").isTrue());
         }
 
+        @Test
+        void tags_of_test_classes() {
+            UniqueId uniqueId = uniqueTestId();
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("tag-one"), TestTag.create("tag-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("tag-one"), TestTag.create("tag-two"))
+            );
+        }
+
+        @Test
+        void tags_of_rule_methods() {
+            UniqueId uniqueId = uniqueTestId();
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestMethodWithTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
+
+            TestDescriptor testMethod = getArchRulesDescriptorsOfOnlyChild(descriptor)
+                    .filter(d -> d.getUniqueId().toString().contains(METHOD_WITH_TAG_NAME))
+                    .collect(onlyElement());
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-tag-one"), TestTag.create("method-tag-two"));
+        }
+
         private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
             TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
             TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
@@ -229,6 +266,16 @@ class ArchUnitTestEngineTest {
 
         private TestDescriptor findRulesDescriptor(Collection<TestDescriptor> archRulesDescriptors, Class<?> clazz) {
             return archRulesDescriptors.stream().filter(d -> d.getUniqueId().toString().contains(clazz.getSimpleName())).findFirst().get();
+        }
+
+        private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
+            Set<TestDescriptor> result = new HashSet<>();
+            descriptor.accept(possibleLeaf -> {
+                if (possibleLeaf.getChildren().isEmpty()) {
+                    result.add(possibleLeaf);
+                }
+            });
+            return result;
         }
     }
 
