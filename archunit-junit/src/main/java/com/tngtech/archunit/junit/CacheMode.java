@@ -23,7 +23,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
- * Determines how the JUnit test support caches classes.<br/>
+ * Determines how the JUnit test support caches classes.<br>
  * The test support can cache imported classes according to their location between several runs
  * of different test classes, i.e. if <code>ATest</code> analyses <code>file:///some/path</code> and
  * <code>BTest</code> analyses the same classes, the classes imported for <code>ATest</code>
