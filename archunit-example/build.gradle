@@ -1,22 +1,23 @@
 ext.moduleName = 'com.tngtech.archunit.example'
 
-dependencies {
-    // NOTE: The pure javaee-api dependencies are crippled,
-    //       so to run any test we need to choose a full implementation provider
-    compile 'org.apache.geronimo.specs:geronimo-ejb_3.1_spec:1.0'
-    compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
+[
+        project(':archunit-example:example-plain'),
+        project(':archunit-example:example-junit4'),
+        project(':archunit-example:example-junit5')
+].each {
+    proj ->
+        productionProjects.each { proj.compileTestJava.dependsOn(it.finishArchive) }
 
-    testCompile project(path: ':archunit')
-    testCompile project(path: ':archunit-junit4')
-}
+        addTestJarTo proj
 
-addTestJarTo this
+        proj.with {
+            dependencies {
+                // NOTE: The pure javaee-api dependencies are crippled,
+                //       so to run any test we need to choose a full implementation provider
+                compile 'org.apache.geronimo.specs:geronimo-ejb_3.1_spec:1.0'
+                compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
 
-test {
-    if (!project.hasProperty('example')) {
-        useJUnit {
-            excludeCategories 'com.tngtech.archunit.exampletest.Example'
+                testCompile project(path: ':archunit')
+            }
         }
-    }
 }
-productionProjects.each { compileTestJava.dependsOn(it.finishArchive) }

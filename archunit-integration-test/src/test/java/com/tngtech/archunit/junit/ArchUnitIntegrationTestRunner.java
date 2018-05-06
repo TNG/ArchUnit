@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.integration.junit.ExpectedViolationFrom;
+import com.tngtech.archunit.integration.junit4.ExpectedViolationFrom;
 import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;

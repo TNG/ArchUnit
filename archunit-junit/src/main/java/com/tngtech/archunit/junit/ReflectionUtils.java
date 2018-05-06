@@ -85,6 +85,7 @@ class ReflectionUtils {
     @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
     static <T> T getValue(Field field, Object owner) {
         try {
+            field.setAccessible(true);
             return (T) field.get(owner);
         } catch (IllegalAccessException e) {
             throw new ReflectionException(e);
