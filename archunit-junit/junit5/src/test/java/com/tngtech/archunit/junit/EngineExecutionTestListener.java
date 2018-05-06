@@ -95,7 +95,7 @@ class EngineExecutionTestListener implements EngineExecutionListener {
         }
     }
 
-    private static <T> Collector<T, Collection<T>, T> onlyElement() {
+    static <T> Collector<T, Collection<T>, T> onlyElement() {
         Supplier<Collection<T>> supplier = ArrayList::new;
         BiConsumer<Collection<T>, T> accumulator = Collection::add;
         BinaryOperator<Collection<T>> combiner = (left, right) -> {
