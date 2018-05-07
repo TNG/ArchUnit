@@ -97,6 +97,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 };
 
 module.exports.init = init; // FIXME: Make create() the only public API
+//FIXME: Lösung dafür: getGraph verschwindet aus dem appContext, stattdessen wird init von Graph in create aufgerufen
+//mit den Parametern aus dem appContext. Dieser wird auch nicht selbst aus der Datei geholt, sondern als Parameter
+//in create übergeben, genauso wie Resources --> dadurch können bei Tests einfach die testJsons als resources übergeben
+// werden und mit create kann ein neuer Graph erzeugt werden. foldAllNodes() wird dann erst im report aufgerufen
 
 module.exports.create = () => new Promise((resolve, reject) => {
   const d3 = require('d3');
@@ -107,6 +111,7 @@ module.exports.create = () => new Promise((resolve, reject) => {
 
   resources.getJsonResources().then(resources => {
     const graph = new Graph(resources.jsonRoot, resources.violations, d3.select('#visualization').node());
+    //TODO: alle nodes folden bevor die svg-elemente erzeugt werden (für Performance)
     graph.foldAllNodes();
     resolve(graph);
   }, reject);

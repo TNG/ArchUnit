@@ -26,8 +26,8 @@ public class VisualizerTest {
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.visual.testjson.structure");
         File outputDir = new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "visualizer-file-test");
         outputDir.delete();
-        new Visualizer().visualize(classes, outputDir,
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"));
+        new Visualizer(classes, outputDir,
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure")).visualize();
         File jsonFile = new File(outputDir, "classes.json");
         assertThat(jsonFile).exists();
         assertThat(new File(outputDir, "report.html")).exists();
@@ -44,8 +44,8 @@ public class VisualizerTest {
         File violationFile = new File(outputDir, "violations.json");
         ArchRule rule = ArchRuleDefinition.noClasses().should().callMethod(ComplexClass2.class, "sayHelloAndBye");
         EvaluationResult evaluationResult = rule.evaluate(classes);
-        new Visualizer().visualize(classes, outputDir,
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"), Arrays.asList(evaluationResult));
+        new Visualizer(classes, outputDir,
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure")).visualize(Arrays.asList(evaluationResult), true);
         File jsonFile = new File(outputDir, "classes.json");
         assertThat(jsonFile).exists();
         assertThat(violationFile).exists();
@@ -78,8 +78,8 @@ public class VisualizerTest {
 
         ArchRule rule = ArchRuleDefinition.noClasses().should().callMethod(ComplexClass1.class, "sayHi");
         EvaluationResult evaluationResult = rule.evaluate(classes);
-        new Visualizer().visualize(classes, outputDir,
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"), Arrays.asList(evaluationResult));
+        new Visualizer(classes, outputDir,
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure")).visualize(Arrays.asList(evaluationResult), false);
         assertThat(violationFile).exists();
         assertThat(JsonTestUtils.jsonToMapArray(violationFile))
                 .as("violations")
@@ -102,8 +102,8 @@ public class VisualizerTest {
         JavaClasses classes = new ClassFileImporter().importJar(new JarFile(JsonTestUtils.getJsonFile("/TestJson.jar")));
 
         File outputDir = new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "visualizer-jar-test");
-        new Visualizer().visualize(classes, outputDir,
-                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure"));
+        new Visualizer(classes, outputDir,
+                VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure")).visualize();
         File jsonFile = new File(outputDir, "classes.json");
         assertThat(jsonFile).exists();
         assertThat(new File(outputDir, "report.html")).exists();

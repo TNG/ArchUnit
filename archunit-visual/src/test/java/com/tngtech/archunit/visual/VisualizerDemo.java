@@ -25,9 +25,9 @@ public class VisualizerDemo {
         ArchRule rule2 = ArchRuleDefinition.noClasses().should().callMethod(ComplexClass1.class, "sayHello");
         EvaluationResult evaluationResult2 = rule2.evaluate(classes);
 
-        new Visualizer().visualize(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report"),
+        new Visualizer(classes,
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report")
                 //VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
-                VisualizationContext.everything(), Arrays.asList(evaluationResult1, evaluationResult2));
+        ).visualize(Arrays.asList(evaluationResult1, evaluationResult2), false);
     }
 }

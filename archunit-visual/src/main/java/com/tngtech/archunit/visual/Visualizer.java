@@ -40,32 +40,39 @@ public final class Visualizer {
     private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
 
+    private final JavaClasses classes;
+    private final File targetDir;
+    private final VisualizationContext context;
+
     @PublicAPI(usage = ACCESS)
-    public Visualizer() {
+    public Visualizer(JavaClasses classes, final File targetDir, VisualizationContext context) {
+        checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create " + targetDir.getAbsolutePath());
+        this.classes = classes;
+        this.targetDir = targetDir;
+        this.context = context;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Visualizer(JavaClasses classes, final File targetDir) {
+        this(classes, targetDir, VisualizationContext.everything());
     }
 
     //TODO: method for only exporting violations
 
     @PublicAPI(usage = ACCESS)
-    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context) {
-        exportJson(classes, targetDir, context);
-        copyFiles(targetDir);
+    public void visualize() {
+        exportJson();
+        copyFiles();
     }
 
     @PublicAPI(usage = ACCESS)
-    public void visualize(JavaClasses classes, final File targetDir) {
-        visualize(classes, targetDir, VisualizationContext.everything());
+    public void visualize(Iterable<EvaluationResult> evaluationResults, boolean overwriteViolations) {
+        exportJson();
+        exportViolations(evaluationResults, overwriteViolations);
+        copyFiles();
     }
 
-    @PublicAPI(usage = ACCESS)
-    public void visualize(JavaClasses classes, final File targetDir, VisualizationContext context, Iterable<EvaluationResult> evaluationResults) {
-        exportJson(classes, targetDir, context);
-        exportViolations(targetDir, evaluationResults);
-        copyFiles(targetDir);
-    }
-
-    private void exportJson(JavaClasses classes, final File targetDir, VisualizationContext context) {
-        checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create " + targetDir.getAbsolutePath());
+    private void exportJson() {
         try (Writer classesWriter = new OutputStreamWriter(new FileOutputStream(new File(targetDir, JSON_FILE_NAME)), ENCODING)) {
             new JsonExporter().export(classes, classesWriter, context);
         } catch (IOException e) {
@@ -73,7 +80,7 @@ public final class Visualizer {
         }
     }
 
-    private void exportViolations(final File targetDir, Iterable<EvaluationResult> evaluationResults) {
+    private void exportViolations(Iterable<EvaluationResult> evaluationResults, boolean overwriteViolations) {
         final File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
         Supplier<Writer> getViolationsWriter = new Supplier<Writer>() {
             @Override
@@ -81,7 +88,7 @@ public final class Visualizer {
                 return new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING);
             }
         };
-        if (violationsFile.exists()) {
+        if (!overwriteViolations && violationsFile.exists()) {
             try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
                 new JsonViolationExporter().export(evaluationResults, violationsReader, getViolationsWriter);
             } catch (IOException e) {
@@ -92,7 +99,7 @@ public final class Visualizer {
         }
     }
 
-    private void copyFiles(final File targetDir) {
+    private void copyFiles() {
         URL url = getClass().getResource(DIR);
         //FIXME: the url null found when using the IntelliJ-Test-Runner
         try {
