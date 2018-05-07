@@ -6,8 +6,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
 import com.tngtech.archunit.lang.CompositeArchRule;
-import com.tngtech.archunit.visual.VisualExtension;
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -63,10 +61,5 @@ public class CodingRulesTest {
     public void no_classes_should_access_standard_streams_or_throw_generic_exceptions() {
         CompositeArchRule.of(NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS)
                 .and(NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS).check(classes);
-    }
-
-    @AfterClass
-    public static void createVisualization() {
-        VisualExtension.createVisualization(classes);
     }
 }
