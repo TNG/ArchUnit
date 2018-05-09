@@ -25,6 +25,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.jar.JarEntry;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -62,6 +63,7 @@ public final class Visualizer {
     @PublicAPI(usage = ACCESS)
     public void visualize() {
         exportJson();
+        exportViolations(new ArrayList<EvaluationResult>(), false);
         copyFiles();
     }
 
