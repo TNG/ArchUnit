@@ -82,12 +82,6 @@ const init = (View) => {
   const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-  //FIXME: optimize performance by using a set with from->to instead of iterating the array that often
-  const setMustShareNodes = (dependency, dependencies) => {
-    dependency.visualData.mustShareNodes =
-      dependencies._visibleDependencies.filter(e => e.from === dependency.to && e.to === dependency.from).length > 0;
-  };
-
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
       dependencies._elementary);
@@ -268,9 +262,15 @@ const init = (View) => {
         fun => this.getVisible().forEach(d => fun(d._view)),
         (from, to) => this.getDetailedDependenciesOf(from, to));
 
-      this._visibleDependencies.forEach(d => setMustShareNodes(d, this));
+      this._setMustShareNodes();
       this._visibleDependencies.forEach(d => d._isVisible = true);
       this._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
+    }
+
+    _setMustShareNodes() {
+      const swappedDependenciesSet = new Set(this._visibleDependencies.map(d => `${d.to}-${d.from}`));
+      const setMustShareNodes = d => d.visualData.mustShareNodes = swappedDependenciesSet.has(`${d.from}-${d.to}`);
+      this._visibleDependencies.forEach(setMustShareNodes);
     }
 
     _resetVisibility() {
