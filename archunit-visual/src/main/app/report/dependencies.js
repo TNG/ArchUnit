@@ -26,6 +26,19 @@ const init = (View) => {
     })
   });
 
+  const split = dependencies => ({
+    by: propertyFunc => ({
+      startsWith: prefix => {
+        const matching = [];
+        const notMatching = [];
+        dependencies.forEach(d => (propertyFunc(d).startsWith(prefix)
+        && isEmptyOrStartsWithFullnameSeparator(propertyFunc(d).substring(prefix.length)) ? matching : notMatching)
+          .push(d));
+        return {matching, notMatching};
+      }
+    })
+  });
+
   const uniteDependencies = (dependencies, svgElement, callForAllViews, getDetailedDependencies) => {
     const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
     const map = new Map();
@@ -42,8 +55,9 @@ const init = (View) => {
       startsWith: prefix => ({
         eliminateSelfDeps: noSelfDeps => ({
           to: transformer => {
-            const matching = filter(dependencies).by(propertyFunc).startsWith(prefix);
-            const rest = dependencies.filter(r => !matching.includes(r));
+            const splitted = split(dependencies).by(propertyFunc).startsWith(prefix);
+            const matching = splitted.matching;
+            const rest = splitted.notMatching;
             let folded = matching.map(transformer);
             if (noSelfDeps) {
               folded = folded.filter(r => r.from !== r.to);
@@ -68,6 +82,7 @@ const init = (View) => {
   const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
+  //FIXME: optimize performance by using a set with from->to instead of iterating the array that often
   const setMustShareNodes = (dependency, dependencies) => {
     dependency.visualData.mustShareNodes =
       dependencies._visibleDependencies.filter(e => e.from === dependency.to && e.to === dependency.from).length > 0;
@@ -139,6 +154,24 @@ const init = (View) => {
     const map = new Map();
     arr.forEach(d => map.set(propertyFunc(d), d));
     return [...map.values()];
+  };
+
+  /**
+   * selects all transformers whose key-node has no predecessor in the transformers.key()-array
+   * @param transformers Map nodeFullName->transformer
+   * @return {*} all transformers that fulfill the property described above
+   */
+  const getTransformersOfTopMostNodes = transformers => {
+    const sortedKeys = Array.from(transformers.keys()).sort((node1, node2) => node1.length - node2.length);
+    const res = new Set();
+    sortedKeys.forEach(nodeFullName => {
+      //TODO: test whether filtering the array has better performance than getting the predecessors
+      const selfAndPredecessors = nodes.getByName(nodeFullName).getSelfAndPredecessors();
+      if (!selfAndPredecessors.some(predecessor => res.has(predecessor.getFullName()))) {
+        res.add(nodeFullName);
+      }
+    });
+    return Array.from(transformers.entries()).filter(entry => res.has(entry[0])).map(entry => entry[1]);
   };
 
   const Dependencies = class {
@@ -218,13 +251,23 @@ const init = (View) => {
       }
     }
 
+    /**
+     * FIXME: performance
+     * Avoid the multiple calls of recreateVisible at the beginning:
+     * 5 calls: in the Dep-constructor, when synchronizing the node- and the dep-filter (in filter.html)
+     * and the violations (in violation-menu.html),
+     * in foldAllNodes
+     */
     recreateVisible() {
       const visibleDependenciesBefore = this._visibleDependencies || [];
-      this._visibleDependencies = uniteDependencies(
-        applyTransformersOnDependencies(this._transformers.values(), this._filtered),
+
+      const relevantTransformers = getTransformersOfTopMostNodes(this._transformers);
+      const transformedDependencies = applyTransformersOnDependencies(relevantTransformers, this._filtered);
+      this._visibleDependencies = uniteDependencies(transformedDependencies,
         this._svgContainer,
         fun => this.getVisible().forEach(d => fun(d._view)),
         (from, to) => this.getDetailedDependenciesOf(from, to));
+
       this._visibleDependencies.forEach(d => setMustShareNodes(d, this));
       this._visibleDependencies.forEach(d => d._isVisible = true);
       this._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
@@ -316,6 +359,7 @@ const init = (View) => {
       return this._visibleDependencies;
     }
 
+    //FIXME: probably also performance problems here
     getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);

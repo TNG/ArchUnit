@@ -50,6 +50,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
+      //FIXME: do not create views for all node at the beginning but only when they are shown
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
       this._filters = newFilters(this);
       this._listener = [];
