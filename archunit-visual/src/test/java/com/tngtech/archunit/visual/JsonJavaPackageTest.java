@@ -1,8 +1,5 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.util.*;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -12,7 +9,10 @@ import com.tngtech.archunit.visual.testclasses.SomeClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass;
 import org.junit.Test;
 
-import static com.tngtech.archunit.visual.JsonTestUtils.assertThatOptional;
+import java.io.File;
+import java.util.*;
+
+import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonJavaPackageTest {
@@ -22,26 +22,26 @@ public class JsonJavaPackageTest {
     public void testInsertPackage() {
         JsonJavaPackage rootPackage = new JsonJavaPackage("com", "com");
         rootPackage.insertPackage("com.tngtech");
-        File expectedJson = JsonTestUtils.getJsonFile("/testinsertpackage1.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(rootPackage)))
+        File expectedJson = ResourcesUtils.getResource("/testinsertpackage1.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(rootPackage)))
                 .as("structure after inserting a single package")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
 
         rootPackage.insertPackage("com.tngtech.pkg.subpkg");
-        expectedJson = JsonTestUtils.getJsonFile("/testinsertpackage2.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(rootPackage)))
+        expectedJson = ResourcesUtils.getResource("/testinsertpackage2.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(rootPackage)))
                 .as("structure after inserting a package with sub-package")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
     public void testInsertPackageToDefaultRoot() {
         JsonJavaPackage rootPackage = JsonJavaPackage.createPackageStructure(Collections.<String>emptySet());
         rootPackage.insertPackage("com.tngtech");
-        File expectedJson = JsonTestUtils.getJsonFile("/testinsertpackageToDefaultRoot.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(rootPackage)))
+        File expectedJson = ResourcesUtils.getResource("/testinsertpackageToDefaultRoot.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(rootPackage)))
                 .as("structure after inserting a single package")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
@@ -51,10 +51,10 @@ public class JsonJavaPackageTest {
         rootPackage.insert(new JsonJavaClass(classes.get(SomeClass.class), false));
         rootPackage.insert(new JsonJavaClass(classes.get(SubPkgClass.class), false));
 
-        File expectedJson = JsonTestUtils.getJsonFile("/testinsert.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(rootPackage)))
+        File expectedJson = ResourcesUtils.getResource("/testinsert.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(rootPackage)))
                 .as("structure after inserting two classes")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
@@ -62,10 +62,10 @@ public class JsonJavaPackageTest {
         JsonJavaPackage pkg = JsonJavaPackage.createPackageStructure(new HashSet<String>(Arrays.asList("com")));
         pkg.normalize();
 
-        File expectedJson = JsonTestUtils.getJsonFile("/testnormalize1.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
+        File expectedJson = ResourcesUtils.getResource("/testnormalize1.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(pkg)))
                 .as("structure after normalizing with unnecessary default package and another package")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
@@ -80,10 +80,10 @@ public class JsonJavaPackageTest {
         pkg.insert(new JsonJavaClass(classes.get(SubPkgClass.class), false));
         pkg.normalize();
 
-        File expectedJson = JsonTestUtils.getJsonFile("/testnormalize2.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(pkg)))
+        File expectedJson = ResourcesUtils.getResource("/testnormalize2.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(pkg)))
                 .as("structure after normalizing with several packages")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
@@ -107,19 +107,19 @@ public class JsonJavaPackageTest {
         Set<String> pkgs = new HashSet<>(Arrays.asList("com.tngtech.pkg1", "com.tngtech.pkg1.subpkg1",
                 "com.tngtech.pkg2", "java.lang"));
         JsonJavaPackage act = JsonJavaPackage.createPackageStructure(pkgs);
-        File expectedJson = JsonTestUtils.getJsonFile("/testcreatepackagestructure.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(act)))
+        File expectedJson = ResourcesUtils.getResource("/testcreatepackagestructure.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(act)))
                 .as("created package structure")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 
     @Test
     public void testCreatePackageStructureWithWrongPackageOrder() {
         Set<String> pkgs = new LinkedHashSet<>(Arrays.asList("com.tngtech.pkg1.subpkg1", "com.tngtech.pkg1"));
         JsonJavaPackage act = JsonJavaPackage.createPackageStructure(pkgs);
-        File expectedJson = JsonTestUtils.getJsonFile("/testcreatepackagestructurewrongorder.json");
-        assertThat(JsonTestUtils.jsonToMap(JsonTestUtils.getJsonStringOf(act)))
+        File expectedJson = ResourcesUtils.getResource("/testcreatepackagestructurewrongorder.json");
+        assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(act)))
                 .as("created package structure")
-                .isEqualTo(JsonTestUtils.jsonToMap(expectedJson));
+                .isEqualTo(ResourcesUtils.jsonToMap(expectedJson));
     }
 }

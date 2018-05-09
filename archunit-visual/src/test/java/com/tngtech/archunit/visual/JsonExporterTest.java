@@ -1,11 +1,5 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -18,6 +12,12 @@ import org.json.JSONException;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import some.other.OtherClass;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JsonExporterTest {
     private final JsonExporter jsonExporter = new JsonExporter();
@@ -92,7 +92,7 @@ public class JsonExporterTest {
     }
 
     private void assertWriterContainsJsonEqualToFile(String fileName) throws IOException, JSONException {
-        File jsonFile = JsonTestUtils.getJsonFile("testjson/structure/" + fileName);
+        File jsonFile = ResourcesUtils.getResource("testjson/structure/" + fileName);
         String expectedJson = Files.toString(jsonFile, Charsets.UTF_8);
         JSONAssert.assertEquals(expectedJson, writer.toString(), false);
     }

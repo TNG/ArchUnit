@@ -97,7 +97,7 @@ public class JsonViolationExporterTest {
     }
 
     private String jsonFromFile(String fileName) throws IOException {
-        File jsonFile = JsonTestUtils.getJsonFile("testjson/violation/" + fileName);
+        File jsonFile = ResourcesUtils.getResource("testjson/violation/" + fileName);
         return Files.toString(jsonFile, Charsets.UTF_8);
     }
 

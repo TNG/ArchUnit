@@ -5,7 +5,7 @@ import com.tngtech.archunit.visual.testclasses.SomeInterface;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.visual.JsonTestUtils.assertThatOptional;
+import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
 
 public class JsonJavaInterfaceTest {
     @Test

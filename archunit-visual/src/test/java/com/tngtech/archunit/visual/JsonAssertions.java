@@ -1,16 +1,11 @@
 package com.tngtech.archunit.visual;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
+
+import java.io.File;
+import java.util.*;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptySet;
@@ -27,11 +22,11 @@ class JsonAssertions {
         private final Map<Object, Object> actualJson;
 
         JsonAssertion(File jsonFile) {
-            this.actualJson = JsonTestUtils.jsonToMap(jsonFile);
+            this.actualJson = ResourcesUtils.jsonToMap(jsonFile);
         }
 
         void isEquivalentToJsonIn(File jsonFile) {
-            Map<Object, Object> expectedJson = JsonTestUtils.jsonToMap(jsonFile);
+            Map<Object, Object> expectedJson = ResourcesUtils.jsonToMap(jsonFile);
             Set<JsonDifference> differences = differences(actualJson, expectedJson);
             if (!differences.isEmpty()) {
                 Assert.fail(String.format(

@@ -87,7 +87,7 @@ public class JsonEvaluationResultListTest {
     }
 
     private void assertStringContainsJsonEqualToFile(String act, String fileName) throws IOException, JSONException {
-        File jsonFile = JsonTestUtils.getJsonFile("testjson/violation/" + fileName);
+        File jsonFile = ResourcesUtils.getResource("testjson/violation/" + fileName);
         String expectedJson = Files.toString(jsonFile, Charsets.UTF_8);
         JSONAssert.assertEquals(expectedJson, act, false);
     }

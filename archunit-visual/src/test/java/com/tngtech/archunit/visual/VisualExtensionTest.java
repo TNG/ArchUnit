@@ -46,10 +46,10 @@ public class VisualExtensionTest {
         assertThat(CLASSES_FILE).exists();
         assertThat(VIOLATION_FILE).exists();
         assertThat(REPORT_FILE).exists();
-        assertThat(JsonTestUtils.jsonToMap(CLASSES_FILE))
+        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
                 .as("created package structure")
                 .containsValue("default");
-        assertThat(JsonTestUtils.jsonToMapArray(VIOLATION_FILE))
+        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
                 .as("violations")
                 .areAtLeastOne(new Condition<Map<Object, Object>>() {
                     @Override
@@ -78,10 +78,10 @@ public class VisualExtensionTest {
         assertThat(CLASSES_FILE).exists();
         assertThat(VIOLATION_FILE).exists();
         assertThat(REPORT_FILE).exists();
-        assertThat(JsonTestUtils.jsonToMap(CLASSES_FILE))
+        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
                 .as("created package structure")
                 .containsValue("default");
-        assertThat(JsonTestUtils.jsonToMapArray(VIOLATION_FILE))
+        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
                 .as("violations")
                 .areAtLeastOne(new Condition<Map<Object, Object>>() {
                     @Override
@@ -118,10 +118,10 @@ public class VisualExtensionTest {
         assertThat(CLASSES_FILE).exists();
         assertThat(VIOLATION_FILE).exists();
         assertThat(REPORT_FILE).exists();
-        assertThat(JsonTestUtils.jsonToMap(CLASSES_FILE))
+        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
                 .as("created package structure")
                 .containsValue("default");
-        assertThat(JsonTestUtils.jsonToMapArray(VIOLATION_FILE))
+        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
                 .as("violations")
                 .areAtLeastOne(new Condition<Map<Object, Object>>() {
                     @Override

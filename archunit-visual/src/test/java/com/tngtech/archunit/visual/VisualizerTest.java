@@ -31,7 +31,7 @@ public class VisualizerTest {
         File jsonFile = new File(outputDir, "classes.json");
         assertThat(jsonFile).exists();
         assertThat(new File(outputDir, "report.html")).exists();
-        assertThat(JsonTestUtils.jsonToMap(jsonFile))
+        assertThat(ResourcesUtils.jsonToMap(jsonFile))
                 .as("created package structure")
                 .containsValue("com.tngtech.archunit.visual.testjson.structure");
     }
@@ -50,10 +50,10 @@ public class VisualizerTest {
         assertThat(jsonFile).exists();
         assertThat(violationFile).exists();
         assertThat(new File(outputDir, "report.html")).exists();
-        assertThat(JsonTestUtils.jsonToMap(jsonFile))
+        assertThat(ResourcesUtils.jsonToMap(jsonFile))
                 .as("created package structure")
                 .containsValue("com.tngtech.archunit.visual.testjson.structure");
-        assertThat(JsonTestUtils.jsonToMapArray(violationFile))
+        assertThat(ResourcesUtils.jsonToMapArray(violationFile))
                 .as("violations")
                 .areAtLeastOne(new Condition<Map<Object, Object>>() {
                     @Override
@@ -71,7 +71,7 @@ public class VisualizerTest {
         File violationFile = new File(outputDir, "violations.json");
         try {
             violationFile.createNewFile();
-            Files.copy(JsonTestUtils.getJsonFile("testjson/violation/existing-violations.json").toPath(), violationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(ResourcesUtils.getResource("testjson/violation/existing-violations.json").toPath(), violationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -81,7 +81,7 @@ public class VisualizerTest {
         new Visualizer(classes, outputDir,
                 VisualizationContext.includeOnly("com.tngtech.archunit.visual.testjson.structure")).visualize(Arrays.asList(evaluationResult), false);
         assertThat(violationFile).exists();
-        assertThat(JsonTestUtils.jsonToMapArray(violationFile))
+        assertThat(ResourcesUtils.jsonToMapArray(violationFile))
                 .as("violations")
                 .areAtLeastOne(new Condition<Map<Object, Object>>() {
                     @Override
@@ -99,7 +99,7 @@ public class VisualizerTest {
 
     @Test
     public void testVisualizeFromJarWithoutEvaluationResult() throws IOException {
-        JavaClasses classes = new ClassFileImporter().importJar(new JarFile(JsonTestUtils.getJsonFile("/TestJson.jar")));
+        JavaClasses classes = new ClassFileImporter().importJar(new JarFile(ResourcesUtils.getResource("/TestJson.jar")));
 
         File outputDir = new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "visualizer-jar-test");
         new Visualizer(classes, outputDir,
@@ -107,7 +107,7 @@ public class VisualizerTest {
         File jsonFile = new File(outputDir, "classes.json");
         assertThat(jsonFile).exists();
         assertThat(new File(outputDir, "report.html")).exists();
-        assertThat(JsonTestUtils.jsonToMap(jsonFile))
+        assertThat(ResourcesUtils.jsonToMap(jsonFile))
                 .as("created package structure")
                 .containsValue("com.tngtech.archunit.visual.testjson.structure");
     }

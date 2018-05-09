@@ -6,7 +6,7 @@ import com.tngtech.archunit.visual.testclasses.subpkg.ThirdSubPkgClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.visual.JsonTestUtils.assertThatOptional;
+import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class JsonJavaClassTest {
