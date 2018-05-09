@@ -13,14 +13,11 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
   const getDependencies = () => require('./dependencies').init(getDependencyView()).Dependencies;
 
-  const getGraph = () => require('./graph').init(getRoot(), getDependencies(), getGraphView(), getVisualizationStyles()).Graph;
-
   return {
     getVisualizationStyles,
     getRoot,
     getDependencies,
     getGraphView,
-    getGraph
   }
 };
 

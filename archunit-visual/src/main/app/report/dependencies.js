@@ -221,11 +221,18 @@ const init = (View) => {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
+        onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
+        onAllNodesFoldedFinished: () => this.recreateVisible(this),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
         finishOnNodesOverlapping: () => this.getVisible().forEach(d => d._view._showIfVisible(d))
       }
+    }
+
+    recreateVisible() {
+      //FIXME: move this function to this method
+      recreateVisibleDependencies(this);
     }
 
     _resetVisibility() {
@@ -251,6 +258,15 @@ const init = (View) => {
 
     moveAllToTheirPositions() {
       return this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
+    }
+
+    noteThatNodeFolded(foldedNode, isFolded) {
+      if (isFolded) {
+        this._transformers.set(foldedNode, foldTransformer(foldedNode));
+      }
+      else {
+        this._transformers.delete(foldedNode);
+      }
     }
 
     updateOnNodeFolded(foldedNode, isFolded) {

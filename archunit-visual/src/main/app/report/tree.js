@@ -122,10 +122,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._folded;
     }
 
-    _setFolded(getFolded) {
+    _setFolded(getFolded, callback) {
       this._folded = getFolded();
       this._updateViewOnCurrentChildrenChanged();
-      this._listener.forEach(listener => listener.onFold(this));
+      callback();
     }
 
 
@@ -329,6 +329,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    foldAllNodes() {
+      this.callOnEveryDescendantThenSelf(node => node._initialFold());
+      this._listener.forEach(listener => listener.onAllNodesFoldedFinished());
+      this.relayoutCompletely();
+    }
+
     getSelfOrFirstPredecessorMatching(matchingFunction) {
       if (matchingFunction(this)) {
         return this;
@@ -351,7 +357,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return true;
     }
 
-    foldIfInnerNode() {
+    _initialFold() {
     }
 
     _changeFoldIfInnerNodeAndRelayout() {
@@ -471,15 +477,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return false;
     }
 
-    foldIfInnerNode() {
+    _initialFold() {
       if (!this._isLeaf()) {
-        this._setFolded(() => true);
+        this._setFolded(() => true, () => this._listener.forEach(listener => listener.onInitialFold(this)));
       }
     }
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
-        this._setFolded(() => !this._folded);
+        this._setFolded(() => !this._folded, () => this._listener.forEach(listener => listener.onFold(this)));
         this._root.relayoutCompletely();
       }
     }

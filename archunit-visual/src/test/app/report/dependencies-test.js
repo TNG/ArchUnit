@@ -143,6 +143,54 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.include.members(visibleDependencies);
   });
 
+  it('should recreate correctly its visible dependencies after folding several nodes: old dependencies are hidden, ' +
+    'all new ones are visible but they are not re-instantiated, dependencies are correctly transformed', () => {
+    const jsonRoot = testJson.package('com.tngtech')
+      .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testJson.package('pkg1')
+        .add(testJson.clazz('SomeClass', 'class')
+          .callingMethod('com.tngtech.pkg2.SomeClass', 'startMethod()', 'targetMethod')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.package('pkg2')
+        .add(testJson.clazz('SomeClass', 'class')
+          .implementing('com.tngtech.SomeInterface')
+          .build())
+        .build())
+      .add(testJson.clazz('SomeClass', 'class')
+        .implementing('com.tngtech.SomeInterface')
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    const dependencies = new Dependencies(jsonRoot, root);
+
+    const filterForHiddenDependencies = d => d.from === 'com.tngtech.pkg1.SomeClass' ||
+      d.from === 'com.tngtech.pkg2.SomeClass' || d.to === 'com.tngtech.pkg2.SomeClass';
+    const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
+    const visibleDependencies = dependencies.getVisible().filter(d => !filterForHiddenDependencies(d));
+
+    dependencies.noteThatNodeFolded('com.tngtech.pkg1', true);
+    dependencies.noteThatNodeFolded('com.tngtech.pkg2', true);
+    dependencies.recreateVisible();
+
+    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
+
+    //ensure that the dependencies are not recreated
+    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+
+    const exp = [
+      'com.tngtech.pkg1->com.tngtech.pkg2()',
+      'com.tngtech.pkg1->com.tngtech.SomeInterface()',
+      'com.tngtech.pkg2->com.tngtech.SomeInterface()',
+      'com.tngtech.SomeClass->com.tngtech.SomeInterface(implements)'
+    ];
+
+    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
   it('should recreate its visible dependencies correctly after folding a class with an inner class: old dependencies ' +
     'are hidden, all new ones are visible but they are not re-instantiated', () => {
     const jsonRoot = testJson.package('com.tngtech')
@@ -1171,6 +1219,7 @@ describe('Dependencies', () => {
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
     const dependencies = new Dependencies(jsonRoot, root);
 
     const exp = [
@@ -1184,7 +1233,7 @@ describe('Dependencies', () => {
       }
     ];
 
-    root.getByName('com.tngtech.SomeClass1').foldIfInnerNode();
+    root.getByName('com.tngtech.SomeClass1')._changeFoldIfInnerNodeAndRelayout();
     dependencies.updateOnNodeFolded('com.tngtech.SomeClass1', true);
 
     const act = dependencies.getDetailedDependenciesOf('com.tngtech.SomeClass1', 'com.tngtech.SomeClass2');

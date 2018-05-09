@@ -45,7 +45,7 @@ describe('Root', () => {
   it('should not fold or change its fold-state', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit').build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.foldIfInnerNode();
+    root._initialFold();
     expect(root.isFolded()).to.equal(false);
     root._changeFoldIfInnerNodeAndRelayout();
     expect(root.isFolded()).to.equal(false);
@@ -60,10 +60,34 @@ describe('Root', () => {
     expect(root.getByName('com.tngtech.archunit.SomeClass1').getFullName()).to.equal('com.tngtech.archunit.SomeClass1');
     expect(root.getByName('com.tngtech.archunit.SomeClass2').getFullName()).to.equal('com.tngtech.archunit.SomeClass2');
   });
+
+  it('can fold all nodes', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkg1')
+        .add(testJson.clazz('SomeClass', 'class')
+          .build())
+        .build())
+      .add(testJson.package('pkg2')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
+
+    root.foldAllNodes();
+
+    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+    expect(listenerStub.onAllNodesFoldedFinishedWasCalled()).to.equal(true);
+    return root._updatePromise;
+  });
 });
 
 describe('Inner node', () => {
-  it('can fold', () => {
+  it('can fold a node initially', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.package('test')
         .add(testJson.clazz('SomeClass1', 'class').build())
@@ -75,12 +99,12 @@ describe('Inner node', () => {
     root.addListener(listenerStub);
     const innerNode = root.getByName('com.tngtech.archunit.test');
 
-    innerNode.foldIfInnerNode();
+    innerNode._initialFold();
 
     expect(innerNode.isFolded()).to.equal(true);
     expect(innerNode.isCurrentlyLeaf()).to.equal(true);
     expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-    expect(listenerStub.foldedNode()).to.equal(innerNode);
+    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
     expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
   });
 
@@ -139,7 +163,7 @@ describe('Leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const leaf = root.getByName('com.tngtech.archunit.Leaf');
-    leaf.foldIfInnerNode();
+    leaf._initialFold();
     expect(leaf.isFolded()).to.equal(false);
     leaf._changeFoldIfInnerNodeAndRelayout();
     expect(leaf.isFolded()).to.equal(false);

@@ -14,8 +14,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     foldAllNodes() {
-      this.root.callOnEveryDescendantThenSelf(node => node.foldIfInnerNode());
-      this.root.relayoutCompletely();
+      this.root.foldAllNodes();
     }
 
     filterNodesByNameContaining(filterString) {
@@ -96,23 +95,19 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   };
 };
 
-module.exports.init = init; // FIXME: Make create() the only public API
+//module.exports.init = init; // FIXME: Make create() the only public API
 //FIXME: Lösung dafür: getGraph verschwindet aus dem appContext, stattdessen wird init von Graph in create aufgerufen
 //mit den Parametern aus dem appContext. Dieser wird auch nicht selbst aus der Datei geholt, sondern als Parameter
 //in create übergeben, genauso wie Resources --> dadurch können bei Tests einfach die testJsons als resources übergeben
 // werden und mit create kann ein neuer Graph erzeugt werden. foldAllNodes() wird dann erst im report aufgerufen
 
-module.exports.create = () => new Promise((resolve, reject) => {
-  const d3 = require('d3');
-  const resources = require('./resources');
-
-  const appContext = require('./app-context').newInstance();
-  const Graph = appContext.getGraph();
+module.exports.create = (appContext, resources, svgElement) => new Promise((resolve, reject) => {
+  const Graph = init(appContext.getRoot(), appContext.getDependencies(),
+    appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
   resources.getJsonResources().then(resources => {
-    const graph = new Graph(resources.jsonRoot, resources.violations, d3.select('#visualization').node());
+    const graph = new Graph(resources.jsonRoot, resources.violations, svgElement);
     //TODO: alle nodes folden bevor die svg-elemente erzeugt werden (für Performance)
-    graph.foldAllNodes();
     resolve(graph);
   }, reject);
 });

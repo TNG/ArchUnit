@@ -47,10 +47,11 @@
   });
 
   Promise.all([
-    visualization.createGraph(),
+    visualization.createGraph(visualization.d3.select('#visualization').node()),
     webComponentsInitialized
   ]).then(results => {
     const graph = results[0];
+    graph.foldAllNodes();
     graph.attachToMenu(document.querySelector('#menu'));
     graph.attachToViolationMenu(document.querySelector('#violations'));
     document.body.onresize = graph.render;
