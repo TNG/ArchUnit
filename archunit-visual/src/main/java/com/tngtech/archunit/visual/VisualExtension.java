@@ -104,7 +104,4 @@ public class VisualExtension implements ArchUnitExtension {
     public static void createVisualization() {
         createVisualization(visualizedClasses);
     }
-
-    //TODO: testen, ob Verwenden der FQNs der classes auch als Key funktioniert (10 000 FQNs generieren, sortieren,
-    //vergleichen mit anderem und schauen, wie lange das dauert...) --> wäre etwas komfortabler
 }

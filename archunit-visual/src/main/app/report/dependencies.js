@@ -73,22 +73,10 @@ const init = (View) => {
       dependencies._visibleDependencies.filter(e => e.from === dependency.to && e.to === dependency.from).length > 0;
   };
 
-  const recreateVisibleDependencies = dependencies => {
-    const visibleDependenciesBefore = dependencies._visibleDependencies || [];
-    dependencies._visibleDependencies = uniteDependencies(
-      applyTransformersOnDependencies(dependencies._transformers.values(), dependencies._filtered),
-      dependencies._svgContainer,
-      fun => dependencies.getVisible().forEach(d => fun(d._view)),
-      (from, to) => dependencies.getDetailedDependenciesOf(from, to));
-    dependencies._visibleDependencies.forEach(d => setMustShareNodes(d, dependencies));
-    dependencies._visibleDependencies.forEach(d => d._isVisible = true);
-    dependencies._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
-  };
-
   const reapplyFilters = (dependencies, filters) => {
     dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
       dependencies._elementary);
-    recreateVisibleDependencies(dependencies);
+    dependencies.recreateVisible();
   };
 
   const newFilters = (dependencies) => ({
@@ -165,7 +153,7 @@ const init = (View) => {
 
       this._filtered = this._elementary;
       this._svgContainer = svgContainer;
-      recreateVisibleDependencies(this);
+      this.recreateVisible();
       this._filters = newFilters(this);
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
@@ -222,7 +210,7 @@ const init = (View) => {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
-        onAllNodesFoldedFinished: () => this.recreateVisible(this),
+        onAllNodesFoldedFinished: () => this.recreateVisible(),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -231,8 +219,15 @@ const init = (View) => {
     }
 
     recreateVisible() {
-      //FIXME: move this function to this method
-      recreateVisibleDependencies(this);
+      const visibleDependenciesBefore = this._visibleDependencies || [];
+      this._visibleDependencies = uniteDependencies(
+        applyTransformersOnDependencies(this._transformers.values(), this._filtered),
+        this._svgContainer,
+        fun => this.getVisible().forEach(d => fun(d._view)),
+        (from, to) => this.getDetailedDependenciesOf(from, to));
+      this._visibleDependencies.forEach(d => setMustShareNodes(d, this));
+      this._visibleDependencies.forEach(d => d._isVisible = true);
+      this._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
     }
 
     _resetVisibility() {
@@ -276,7 +271,7 @@ const init = (View) => {
       else {
         this._transformers.delete(foldedNode);
       }
-      recreateVisibleDependencies(this);
+      this.recreateVisible();
     }
 
     onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
