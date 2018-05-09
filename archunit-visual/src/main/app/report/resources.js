@@ -5,7 +5,7 @@ const d3 = require('d3');
 const loadJsonResource = fileName => new Promise((resolve, reject) => {
   d3.json(fileName, function (error, json) {
     if (error) {
-      return reject(error);
+      reject(error);
     }
     resolve(json);
   });
