@@ -39,14 +39,16 @@ module.exports.newInstance = () => {
         // removing this line causes an infinite-loop in d3
         .strength(link => 3 / Math.min(count(link.source), count(link.target)))
 
-        .iterations(2)
+      //.iterations(2)
     });
   };
 
   const createForceCollideSimulation = (padding, nodes) => {
     return createSimulation(0.02, nodes, {
       name: 'collide',
-      forceFunction: d3.forceCollide().radius(n => n.r + padding).iterations(3)
+      forceFunction: d3.forceCollide().radius(n => n.r + padding)
+
+      //.iterations(3)
     });
   };
 
