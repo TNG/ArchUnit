@@ -419,7 +419,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition(visualizationStyles.getCirclePadding()));
+          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition(padding));
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
             promises = promises.concat(newNodesArray.map(node => node.nodeCircle.startMoveToIntermediatePosition()));

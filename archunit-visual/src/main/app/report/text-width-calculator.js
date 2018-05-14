@@ -3,7 +3,7 @@
 const guiElements = require('./gui-elements');
 
 module.exports = (text, cssClassOfText) => {
-  const textSvg = guiElements.textSizeComputationSvg().style('display', 'inline');
+  const textSvg = guiElements.textSizeComputationSvg();
   const textElement = textSvg.select('text');
   if (cssClassOfText) {
     textElement.attr('class', cssClassOfText)
@@ -13,6 +13,5 @@ module.exports = (text, cssClassOfText) => {
   if (cssClassOfText) {
     textElement.classed(cssClassOfText, false)
   }
-  textSvg.style('display', 'none');
   return width;
 };
