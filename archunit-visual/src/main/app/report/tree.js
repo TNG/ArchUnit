@@ -56,6 +56,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener = [];
     }
 
+    getNameWidth() {
+      return this._view.getTextWidth();
+    }
+
     addListener(listener) {
       this._listener.push(listener);
       this._originalChildren.forEach(child => child.addListener(listener));

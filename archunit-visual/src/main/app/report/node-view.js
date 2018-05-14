@@ -36,6 +36,10 @@ const init = (transitionDuration) => {
       this._onClick(onClick);
     }
 
+    getTextWidth() {
+      return this._text.getComputedTextLength();
+    }
+
     updateNodeType(nodeType) {
       d3.select(this._svgElement).attr('class', nodeType);
     }

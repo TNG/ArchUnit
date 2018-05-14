@@ -16,12 +16,12 @@ module.exports.newInstance = calculateTextWidth => {
 
   const calculateDefaultRadius = node => {
     const isOriginalLeaf = node => node.getOriginalChildren().length === 0;
-    const radius = calculateTextWidth(node.getName()) / 2 + CIRCLE_TEXT_PADDING;
+    const radius = node.getNameWidth() / 2 + CIRCLE_TEXT_PADDING;
     return isOriginalLeaf(node) ? radius : Math.max(radius, MIN_NODE_RADIUS);
   };
 
   const calculateDefaultRadiusForNodeWithOneChild = (node, childRadius, nodeFontSize) => {
-    const halfTextWidth = calculateTextWidth(node.getName()) / 2 + CIRCLE_TEXT_PADDING;
+    const halfTextWidth = node.getNameWidth() / 2 + CIRCLE_TEXT_PADDING;
     childRadius = childRadius + nodeFontSize;
     const radius = Math.sqrt(halfTextWidth * halfTextWidth + childRadius * childRadius);
     return Math.max(radius, MIN_NODE_RADIUS);
