@@ -81,7 +81,6 @@ describe('Root', () => {
     root.foldAllNodes();
 
     expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    expect(listenerStub.onAllNodesFoldedFinishedWasCalled()).to.equal(true);
     return root._updatePromise;
   });
 });

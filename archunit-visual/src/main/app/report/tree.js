@@ -179,6 +179,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this.getClass());
+      //FIXME: try to remove svg-element of hidden nodes (for big class trees)
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
     }
@@ -332,8 +333,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     foldAllNodes() {
       this.callOnEveryDescendantThenSelf(node => node._initialFold());
-      this._listener.forEach(listener => listener.onAllNodesFoldedFinished());
-      this.relayoutCompletely();
     }
 
     getSelfOrFirstPredecessorMatching(matchingFunction) {

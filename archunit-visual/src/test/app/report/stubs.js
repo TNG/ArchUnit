@@ -91,7 +91,6 @@ const createNodeListenerStub = () => {
   let _foldedNode;
   let _initialFoldedNode;
   let _onLayoutChangedWasCalled = false;
-  let _onAllNodesFoldedFinishedWasCalled = false;
 
   const overlappedNodesAndPosition = [];
 
@@ -100,13 +99,11 @@ const createNodeListenerStub = () => {
     onFold: node => _foldedNode = node,
     onLayoutChanged: () => _onLayoutChangedWasCalled = true,
     onInitialFold: node => _initialFoldedNode = node,
-    onAllNodesFoldedFinished: () => _onAllNodesFoldedFinishedWasCalled = true,
 
     onDragWasCalled: () => _onDragWasCalled,
     foldedNode: () => _foldedNode,
     initialFoldedNode: () => _initialFoldedNode,
     onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled,
-    onAllNodesFoldedFinishedWasCalled: () => _onAllNodesFoldedFinishedWasCalled,
 
     onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) =>
       overlappedNodesAndPosition.push({overlappedNode: fullNameOfOverlappedNode, position: positionOfOverlappingNode}),

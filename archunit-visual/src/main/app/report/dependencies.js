@@ -11,16 +11,20 @@ const init = (View) => {
   let nodes = new Map();
   let dependencyCreator;
 
-  const fullnameSeparators = {
+  const fullNameSeparators = {
     packageSeparator: '.',
     classSeparator: '$'
   };
 
-  const isEmptyOrStartsWithFullnameSeparator = string => !string || string.startsWith(fullnameSeparators.packageSeparator) || string.startsWith(fullnameSeparators.classSeparator);
+  const isEmptyOrStartsWithFullnameSeparator = string => !string || string.startsWith(fullNameSeparators.packageSeparator) || string.startsWith(fullNameSeparators.classSeparator);
+
+  const fullNameStartsWithOtherFullName = (fullName, prefix) => fullName.startsWith(prefix) && (fullName.length === prefix.length || isFullNameSeparator(fullName.charAt(prefix.length)));
+  const isFullNameSeparator = char => char === fullNameSeparators.packageSeparator || char === fullNameSeparators.classSeparator;
 
   const filter = dependencies => ({
     by: propertyFunc => ({
       startsWith: prefix => dependencies.filter(r =>
+        //FIXME: replace usage of isEmptyOrStartsWithFullnameSeparator as in function 'split'
         propertyFunc(r).startsWith(prefix) && isEmptyOrStartsWithFullnameSeparator(propertyFunc(r).substring(prefix.length))),
       equals: fullName => dependencies.filter(r => propertyFunc(r) === fullName)
     })
@@ -31,9 +35,7 @@ const init = (View) => {
       startsWith: prefix => {
         const matching = [];
         const notMatching = [];
-        dependencies.forEach(d => (propertyFunc(d).startsWith(prefix)
-        && isEmptyOrStartsWithFullnameSeparator(propertyFunc(d).substring(prefix.length)) ? matching : notMatching)
-          .push(d));
+        dependencies.forEach(d => (fullNameStartsWithOtherFullName(propertyFunc(d), prefix) ? matching : notMatching).push(d));
         return {matching, notMatching};
       }
     })
@@ -68,7 +70,6 @@ const init = (View) => {
       })
     })
   });
-
 
   const foldTransformer = foldedElement => (
     dependencies => {
@@ -180,7 +181,6 @@ const init = (View) => {
 
       this._filtered = this._elementary;
       this._svgContainer = svgContainer;
-      this.recreateVisible();
       this._filters = newFilters(this);
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
@@ -237,7 +237,6 @@ const init = (View) => {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
-        onAllNodesFoldedFinished: () => this.recreateVisible(),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -248,9 +247,7 @@ const init = (View) => {
     /**
      * FIXME: performance
      * Avoid the multiple calls of recreateVisible at the beginning:
-     * 5 calls: in the Dep-constructor, when synchronizing the node- and the dep-filter (in filter.html)
-     * and the violations (in violation-menu.html),
-     * in foldAllNodes
+     * when synchronizing the node- and the dep-filter (in filter.html) and the violations (in violation-menu.html)
      */
     recreateVisible() {
       const visibleDependenciesBefore = this._visibleDependencies || [];
@@ -359,7 +356,6 @@ const init = (View) => {
       return this._visibleDependencies;
     }
 
-    //FIXME: probably also performance problems here
     getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);

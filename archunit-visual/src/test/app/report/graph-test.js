@@ -47,12 +47,10 @@ describe('Graph', () => {
     });
   });
 
-  it('can fold all nodes', () => {
-    return createGraph(appContext, createResources(jsonRootWithTwoClasses)).then(graph => {
+  it('can initially fold all nodes', () => {
+    return createGraph(appContext, createResources(jsonRootWithTwoClasses), null, true).then(graph => {
       const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
       const expDeps = ['com.tngtech.archunit.pkg1->com.tngtech.archunit.pkg2()'];
-
-      graph.foldAllNodes();
 
       expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
       expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);

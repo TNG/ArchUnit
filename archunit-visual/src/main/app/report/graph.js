@@ -3,18 +3,18 @@
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonRoot, violations, svg) {
+    constructor(jsonRoot, violations, svg, foldAllNodes) {
       this._view = new View(svg);
       this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
+      if (foldAllNodes) {
+        this.root.foldAllNodes();
+      }
+      this.dependencies.recreateVisible();
       this.root.relayoutCompletely();
       this._violations = violations;
-    }
-
-    foldAllNodes() {
-      this.root.foldAllNodes();
     }
 
     filterNodesByNameContaining(filterString) {
@@ -35,12 +35,9 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.root.relayoutCompletely();
     }
 
+    //FIXME: why has this so bad performance??
     filterDependenciesByType(typeFilterConfig) {
       this.dependencies.filterByType(typeFilterConfig);
-    }
-
-    refresh() {
-      this.root.relayoutCompletely();
     }
 
     attachToMenu(menu) {
@@ -53,7 +50,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
           (circleFontSize, circlePadding) => {
             visualizationStyles.setNodeFontSize(circleFontSize);
             visualizationStyles.setCirclePadding(circlePadding);
-            this.refresh();
+            this.root.relayoutCompletely();
           })
         .onNodeTypeFilterChanged(
           filter => {
@@ -95,12 +92,12 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   };
 };
 
-module.exports.create = (appContext, resources, svgElement) => new Promise((resolve, reject) => {
+module.exports.create = (appContext, resources, svgElement, foldAllNodes) => new Promise((resolve, reject) => {
   const Graph = init(appContext.getRoot(), appContext.getDependencies(),
     appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
   resources.getJsonResources().then(resources => {
-    const graph = new Graph(resources.jsonRoot, resources.violations, svgElement);
+    const graph = new Graph(resources.jsonRoot, resources.violations, svgElement, foldAllNodes);
     resolve(graph);
   }, reject);
 });

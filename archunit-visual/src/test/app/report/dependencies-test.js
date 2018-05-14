@@ -86,6 +86,7 @@ describe('Dependencies', () => {
 
   it('creates correct visible dependencies from the elementary dependencies', () => {
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
     const exp = [
       'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg1.SomeClass2(several)',
       'com.tngtech.pkg1.SomeClass1->com.tngtech.pkg2.SomeInterface1(implements)',
@@ -102,6 +103,7 @@ describe('Dependencies', () => {
 
   it('know if they must share one of the end nodes', () => {
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
     const hasEndNodes = (node1, node2) => d => (d.from === node1 || d.to === node1) && (d.from === node2 || d.to === node2);
     const filter = d => hasEndNodes('com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface',
       'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface')(d)
@@ -128,6 +130,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.startPkg.StartClass';
     const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
@@ -164,6 +167,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.pkg1.SomeClass' ||
       d.from === 'com.tngtech.pkg2.SomeClass' || d.to === 'com.tngtech.pkg2.SomeClass';
@@ -207,6 +211,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.StartClassWithInnerClass$InnerClass';
     const hiddenDependencies = dependencies.getVisible().filter(filterForHiddenDependencies);
@@ -236,6 +241,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const visibleDependencies1 = dependencies.getVisible().filter(d => d.from === 'com.tngtech.startPkg.StartClass');
 
@@ -483,6 +489,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const draggedNode = 'com.tngtech.SomeClass1';
     const filter = d => d.from === draggedNode || d.to === draggedNode;
@@ -509,6 +516,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const promise = dependencies.moveAllToTheirPositions();
 
@@ -529,6 +537,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
       'com.tngtech.SomeClass2->com.tngtech.SomeClass1(methodCall)',
@@ -633,6 +642,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
     const hiddenDependencies = dependencies.getVisible().filter(d => !filterForVisibleDependencies(d));
@@ -1023,6 +1033,7 @@ describe('Dependencies', () => {
     ' old dependencies are hidden, all new ones are visible but they are not re-instantiated', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+    dependencies.recreateVisible();
 
     const filter = d1 => dependencies._elementary.filter(
       d2 =>
@@ -1123,6 +1134,7 @@ describe('Dependencies', () => {
   it('can reset the filter by type: show all dependencies again', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+    dependencies.recreateVisible();
     const exp = dependencies.getVisible().map(d => d.toString());
 
     dependencies.filterByType({
@@ -1263,6 +1275,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.recreateVisible();
 
     const exp = [
       {
