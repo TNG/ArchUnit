@@ -3,11 +3,11 @@
 /*
  * Some poor man's DI solution...
  */
-const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth) => {
+const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles) => {
 
-  const getVisualizationFunctions = () => require('./visualization-functions').newInstance(getCalculateTextWidth());
+  const getVisualizationFunctions = () => require('./visualization-functions').newInstance();
 
-  const getNodeText = () => require('./node-text').init(getVisualizationStyles(), getCalculateTextWidth());
+  const getNodeText = () => require('./node-text').init(getVisualizationStyles());
 
   const getRoot = () => require('./tree').init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles()).Root;
 
@@ -33,5 +33,5 @@ module.exports.newInstance = overrides => {
   const getDependencyView = () => overrides.DependencyView || require('./dependency-view').init(getDetailedDependencyView(), TRANSITION_DURATION).View;
   const getGraphView = () => overrides.GraphView || require('./graph-view').init(TRANSITION_DURATION).View;
 
-  return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles, getCalculateTextWidth);
+  return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles);
 };

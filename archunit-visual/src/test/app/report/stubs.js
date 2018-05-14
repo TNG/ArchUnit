@@ -11,8 +11,6 @@ const createVisualizationStylesStub = (circlePadding = 1, nodeFontSize = 10) => 
   };
 };
 
-const calculateTextWidthStub = text => text.length * 7;
-
 //all nodes are added to this list when they are moved to their position to be able to track the process
 let movedNodes = [];
 const saveMovedNodesTo = arr => movedNodes = arr;
@@ -23,6 +21,8 @@ const NodeViewStub = class {
     this.isVisible = true;
     this.hasMovedToPosition = false;
     this.hasMovedToRadius = false;
+
+    this.getTextWidth = () => node.getName().length * 7;
 
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
@@ -116,7 +116,6 @@ const createNodeListenerStub = () => {
 
 module.exports = {
   visualizationStylesStub: createVisualizationStylesStub,
-  calculateTextWidthStub: calculateTextWidthStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
   GraphViewStub: GraphViewStub,

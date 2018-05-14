@@ -608,7 +608,6 @@ describe('Node layout', () => {
   it('should put the text at the correct position in the circle: for leaves in the middle, for inner nodes at the top ' +
     'and for the root at the very top; furthermore the text must be within the circle (except for the root)', () => {
     const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
-    const calculateTextWith = stubs.calculateTextWidthStub;
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
@@ -619,10 +618,10 @@ describe('Node layout', () => {
         }
         else if (node.isCurrentlyLeaf()) {
           expect(node._view.textOffset).to.equal(0);
-          expect(calculateTextWith(node.getName()) / 2).to.be.at.most(node.getRadius());
+          expect(node.getNameWidth() / 2).to.be.at.most(node.getRadius());
         }
         else {
-          const halfTextWith = calculateTextWith(node.getName()) / 2;
+          const halfTextWith = node.getNameWidth() / 2;
           const offset = node._view.textOffset;
           expect(Math.sqrt(halfTextWith * halfTextWith + offset * offset)).to.be.at.most(node.getRadius());
         }

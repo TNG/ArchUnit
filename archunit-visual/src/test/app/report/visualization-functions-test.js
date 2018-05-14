@@ -66,7 +66,7 @@ const nodeWithoutChildren = nodeName => newNode(nodeName, 0);
 const nodeWithChildren = nodeName => newNode(nodeName, 1);
 const newNode = (nodeName, numberOfChildren) => {
   return {
-    getName: () => nodeName,
+    getNameWidth: () => nodeName.length * 3,
     getOriginalChildren: () => new Array(numberOfChildren).fill().map(() => ({}))
   };
 };
@@ -76,29 +76,27 @@ const expectedTextPadding = 5;
 
 describe('Calculate default radius', () => {
   it(`should simply adjust the size to the node text for original leafs and add ${expectedTextPadding}px of padding`, () => {
-    const nodeName = 'Short';
-    const calculateTextWidth = text => text.length * 3;
-    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance(calculateTextWidth).calculateDefaultRadius;
+    const node = nodeWithoutChildren('Short');
+    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance().calculateDefaultRadius;
 
-    const radius = calculateDefaultRadius(nodeWithoutChildren(nodeName));
+    const radius = calculateDefaultRadius(node);
 
-    const radiusForText = calculateTextWidth(nodeName) / 2;
+    const radiusForText = node.getNameWidth() / 2;
     expect(radius).to.be.lessThan(expectedDefaultRadius);
     expect(radius).to.equal(radiusForText + expectedTextPadding);
   });
 
   it(`should adjust the size same as for leafs, but enforce a minimum of ${expectedDefaultRadius}px`, () => {
-    const calculateTextWidth = text => text.length * 3;
-    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance(calculateTextWidth).calculateDefaultRadius;
+    const calculateDefaultRadius = visualizationFunctionsFactory.newInstance().calculateDefaultRadius;
 
     let radius = calculateDefaultRadius(nodeWithChildren('Short'));
 
     expect(radius).to.equal(expectedDefaultRadius);
 
-    const nodeName = 'TwentyThreeCharsFillThis';
-    radius = calculateDefaultRadius(nodeWithChildren(nodeName));
+    const node = nodeWithChildren('TwentyThreeCharsFillThis');
+    radius = calculateDefaultRadius(node);
 
-    const radiusForText = calculateTextWidth(nodeName) / 2;
+    const radiusForText = node.getNameWidth() / 2;
     const expectedWidth = radiusForText + expectedTextPadding;
     expect(expectedWidth).to.equal(expectedDefaultRadius + 1);
     expect(radius).to.equal(expectedWidth);

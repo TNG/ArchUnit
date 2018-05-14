@@ -2,7 +2,7 @@
 
 const d3 = require('d3');
 
-module.exports.newInstance = calculateTextWidth => {
+module.exports.newInstance = () => {
   const CIRCLE_TEXT_PADDING = 5;
   const MIN_NODE_RADIUS = 40;
 
@@ -82,8 +82,6 @@ module.exports.newInstance = calculateTextWidth => {
   };
 
   return {
-    calculateTextWidth,
-
     /**
      * Creates a circle packing for the supplied circles (circles are represented as {x: $x, y: $y, r: $radius}).
      * Only the radius of the supplied circles is relevant,

@@ -1,6 +1,6 @@
 'use strict';
 
-const init = (visualizationStyles, calculateTextWidth) => {
+const init = visualizationStyles => {
 
   const computeTextShift = (radius, width) => {
     const yCoordTopBorder = -1 * Math.sqrt(Math.pow(radius, 2) - Math.pow(width / 2, 2));
@@ -23,7 +23,7 @@ const init = (visualizationStyles, calculateTextWidth) => {
       }
       else {
         const r = this._node.getRadius();
-        return computeTextShift(r, calculateTextWidth(this._node.getName(), this._node.getClass()));
+        return computeTextShift(r, this._node.getNameWidth());
       }
     }
   };
