@@ -27,7 +27,7 @@ public class SecurityTest {
     @Test
     public void only_security_infrastructure_should_use_java_security_on_whole_classpath() {
         ArchRule rule = classes().that().resideInAPackage("java.security.cert..")
-                .should().onlyBeAccessed().byAnyPackage("..example.security..", "java..", "..sun..", "javax..");
+                .should().onlyBeAccessed().byAnyPackage("..example.security..", "java..", "..sun..", "javax..", "apple.security..");
 
         JavaClasses classes = new ClassFileImporter().importClasspath(onlyAppAndRuntime());
 

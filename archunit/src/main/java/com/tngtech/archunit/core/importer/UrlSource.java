@@ -28,6 +28,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.net.UrlEscapers;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
@@ -96,9 +97,12 @@ interface UrlSource extends Iterable<URL> {
 
         private static Optional<URL> newUrl(String protocol, String path) {
             try {
-                return Optional.of(new URL(protocol + "://" + path));
+                return Optional.of(new URL(protocol + "://" + UrlEscapers.urlFragmentEscaper().escape(path)));
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
+                return Optional.absent();
+            } catch (IllegalArgumentException e){
+                LOG.warn("Cannot escape fragments from path " + path, e);
                 return Optional.absent();
             }
         }

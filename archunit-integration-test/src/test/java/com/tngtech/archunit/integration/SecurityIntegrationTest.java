@@ -29,7 +29,7 @@ public class SecurityIntegrationTest extends SecurityTest {
     @Override
     public void only_security_infrastructure_should_use_java_security_on_whole_classpath() {
         expectViolationFromWrongSecurityCheck("classes that reside in a package 'java.security.cert..' "
-                + "should only be accessed by any package ['..example.security..', 'java..', '..sun..', 'javax..']");
+                + "should only be accessed by any package ['..example.security..', 'java..', '..sun..', 'javax..', 'apple.security..']");
 
         super.only_security_infrastructure_should_use_java_security_on_whole_classpath();
     }
