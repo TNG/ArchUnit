@@ -87,7 +87,7 @@ interface UrlSource extends Iterable<URL> {
         }
 
         private static Optional<URL> newFileUri(String path) {
-            path = path.endsWith("/") ? path : path + "/";
+            path = path.endsWith("/") || path.endsWith(".class") ? path : path + "/";
             return newUrl("file", path);
         }
 
@@ -101,7 +101,7 @@ interface UrlSource extends Iterable<URL> {
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
                 return Optional.absent();
-            } catch (IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
                 LOG.warn("Cannot escape fragments from path " + path, e);
                 return Optional.absent();
             }

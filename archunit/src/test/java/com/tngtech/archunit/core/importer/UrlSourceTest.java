@@ -3,12 +3,16 @@ package com.tngtech.archunit.core.importer;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +22,9 @@ public class UrlSourceTest {
 
     @Rule
     public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
     public void resolves_from_system_property() throws MalformedURLException {
@@ -55,6 +62,19 @@ public class UrlSourceTest {
         UrlSource source = UrlSource.From.iterable(redundantInput);
 
         assertThat(source).hasSize(1).containsOnly(url);
+    }
+
+    @Test
+    public void handles_paths_with_spaces() throws Exception {
+        Path path_with_spaces = temporaryFolder.newFolder("path with spaces").toPath();
+        Path destination = path_with_spaces.resolve(getClass().getName() + ".class");
+        Files.copy(Paths.get(LocationTest.urlOfClass(getClass()).toURI()), destination);
+
+        String classPath = createClassPathProperty(destination.toString());
+        System.setProperty(JAVA_CLASS_PATH_PROP, classPath);
+        UrlSource urls = UrlSource.From.classPathSystemProperties();
+
+        assertThat(urls).contains(destination.toUri().toURL());
     }
 
     private String createClassPathProperty(String... paths) {
