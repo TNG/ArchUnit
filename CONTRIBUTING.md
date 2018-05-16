@@ -2,14 +2,6 @@
 
 Contributions are very welcome. The following will provide some helpful guidelines.
 
-## ArchUnit Contributor License Agreement
-
-* You will only submit contributions where you have authored 100% of the content.
-* You will only submit contributions to which you have the necessary rights. 
-This means in particular, that if you are employed you have received the necessary permissions 
-from your employer to make the contributions.
-* Whatever content you contribute will be provided under the project license(s) (see ["LICENSE"](LICENSE))
-
 ## How to contribute
 
 If you want to submit a contribution, please follow the following workflow:
