@@ -67,6 +67,7 @@ so they can be reused be several rules declared within the same class. On the ot
 will cache the classes by location, so a second test, that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
 soft references, so the classes will be dropped from memory, if the heap runs low.
+For further information see <<Controlling the Cache>>.
 
 ==== Controlling the Import
 
@@ -113,6 +114,27 @@ production code, and only consider code that is directly supplied and does not c
 
 As explained in <<The Core API>>, you can write your own custom implementation of `ImportOption`
 and then supply the type to `@AnalyzeClasses`.
+
+==== Controlling the Cache
+
+By default the `ArchUnitRunner` will cache all classes by location. This means that between different
+test class runs imported Java classes will be reused, if the exact combination of locations has already
+been imported.
+
+If the heap runs low, and thus the garbage collector has to do a big sweep in one run,
+this can cause a noticeable delay. On the other hand, if it is known, that no other test class will
+reuse the imported Java classes, it would make sense to deactivate this cache.
+
+This can be achieved by configuring `CacheMode.PER_CLASS`, e.g.
+
+[source,java,options="nowrap"]
+----
+@AnalyzeClasses(packages = "com.myapp.special", cacheMode = CacheMode.PER_CLASS)
+----
+
+The Java classes imported during this test run will not be cached by location and just be reused within
+the same test class. After all tests of this class have been run,
+the imported Java classes will simply be dropped.
 
 ==== Ignoring Tests
 
