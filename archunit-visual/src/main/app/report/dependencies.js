@@ -16,16 +16,13 @@ const init = (View) => {
     classSeparator: '$'
   };
 
-  const isEmptyOrStartsWithFullnameSeparator = string => !string || string.startsWith(fullNameSeparators.packageSeparator) || string.startsWith(fullNameSeparators.classSeparator);
-
   const fullNameStartsWithOtherFullName = (fullName, prefix) => fullName.startsWith(prefix) && (fullName.length === prefix.length || isFullNameSeparator(fullName.charAt(prefix.length)));
   const isFullNameSeparator = char => char === fullNameSeparators.packageSeparator || char === fullNameSeparators.classSeparator;
 
   const filter = dependencies => ({
     by: propertyFunc => ({
       startsWith: prefix => dependencies.filter(r =>
-        //FIXME: replace usage of isEmptyOrStartsWithFullnameSeparator as in function 'split'
-        propertyFunc(r).startsWith(prefix) && isEmptyOrStartsWithFullnameSeparator(propertyFunc(r).substring(prefix.length))),
+        fullNameStartsWithOtherFullName(propertyFunc(r), prefix)),
       equals: fullName => dependencies.filter(r => propertyFunc(r) === fullName)
     })
   });
