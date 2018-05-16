@@ -68,9 +68,9 @@ public final class Visualizer {
     }
 
     @PublicAPI(usage = ACCESS)
-    public void visualize(Iterable<EvaluationResult> evaluationResults, boolean overwriteViolations) {
+    public void visualize(Iterable<EvaluationResult> evaluationResults, boolean overwriteExistingViolations) {
         exportJson();
-        exportViolations(evaluationResults, overwriteViolations);
+        exportViolations(evaluationResults, overwriteExistingViolations);
         copyFiles();
     }
 
