@@ -48,6 +48,35 @@ describe('matching strings by checking for a certain substring', () => {
     testStringContains('.$?[]\\^+').against('.$?[.\\^+').is(false);
   });
 
+  describe('| separates different options', () => {
+    testStringContains('fo|ba').against('foo').is(true);
+    testStringContains('fo|ba').against('bar').is(true);
+    testStringContains('fo|ba|te').against('test').is(true);
+
+    testStringContains('fo|ba').against('anyOther').is(false);
+    testStringContains('fo|ba|te').against('notMatching').is(false);
+  });
+
+  describe('leading whitespaces before | are ignored', () => {
+    testStringContains(' fo| ba').against('foo').is(true);
+    testStringContains(' fo| ba').against('bar').is(true);
+    testStringContains(' fo|   ba').against('bar').is(true);
+    testStringContains(' fo| ba| te').against('test').is(true);
+
+    testStringContains(' fo| ba').against('anyOther').is(false);
+  });
+
+  describe('substrings with whitespaces before ' | ' must end with one of the optional patterns', () => {
+    testStringContains('foo |bar ').against('foo').is(true);
+    testStringContains('foo |bar ').against('bar').is(true);
+    testStringContains('foo |bar |test ').against('test').is(true);
+
+    testStringContains('foo |bar ').against('fo').is(false);
+    testStringContains('foo |bar ').against('ba').is(false);
+    testStringContains('foo |bar |test ').against('test1').is(false);
+
+  });
+
   describe('some typical scenarios when filtering fully qualified class names', () => {
     testStringContains('SimpleClass').against('my.company.SimpleClass').is(true);
     testStringContains('Json').against('some.evil.long.pkg.JsonParser').is(true);

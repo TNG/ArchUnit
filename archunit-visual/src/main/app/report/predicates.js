@@ -13,15 +13,28 @@ module.exports.not = predicate => input => !predicate(input);
 module.exports.and = (...predicates) => input => predicates.every(p => p(input));
 
 const escapeRegExp = str => {
-  return str.replace(/[-[\]/{}()+?.\\^$|]/g, '\\$&');
+  //FIXME: is this correct??
+  //* and | are not escaped, as they have special meaning for the filter
+  return str.replace(/[-[\]/{}()+?.\\^$]/g, '\\$&');
 };
 
 const stringContains = substring => {
+  const withoutLeadingWhitespace = substring
+  //remove leading whitespaces
+    .replace(/^\s+/, '')
+    //remove leading whitespaces before the "options" separated by |
+    .replace(/\|\s+/g, '|');
+  const escaped = escapeRegExp(withoutLeadingWhitespace);
+  const pattern = escaped
+  //if substring ends with spaces, match only the strings ending with substring
+    .replace(/\s+$/, '$')
+    //if substring consists of several "options" separated by |, do the same for them
+    .replace(/\s+\|/g, '$|')
+    //a star in the substring stands for any characters
+    .replace(/\*/g, '.*');
+  const regex = new RegExp(pattern);
   return string => {
-    const withoutLeadingWhitespace = substring.replace(/^\s+/, '');
-    const escaped = escapeRegExp(withoutLeadingWhitespace);
-    const pattern = escaped.replace(/ +$/, '$').replace(/\*/g, '.*');
-    return new RegExp(pattern).test(string);
+    return regex.test(string);
   }
 };
 

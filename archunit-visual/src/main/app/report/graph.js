@@ -57,6 +57,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
             this.filterDependenciesByType(filter);
           })
         .onNodeNameFilterChanged((filterString, exclude) => {
+          //TODO: is this if-query useful??
           if (exclude) {
             this.filterNodesByNameNotContaining(filterString);
           } else {
