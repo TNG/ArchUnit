@@ -15,12 +15,12 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.*;
-
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+
+import java.util.*;
 
 class ClassesToVisualize {
     private ClassList classList = new ClassList();
@@ -90,7 +90,7 @@ class ClassesToVisualize {
         private SortedMap<Integer, Map<String, JavaClass>> classes = new TreeMap<>();
 
         void addClass(JavaClass clazz) {
-            int depth = getInnerClassDepth(clazz);
+            int depth = getInnerClassDepth(clazz.getName());
             Map<String, JavaClass> map = classes.containsKey(depth) ? classes.get(depth) : new HashMap<String, JavaClass>();
             map.put(clazz.getName(), clazz);
             classes.put(depth, map);
@@ -120,8 +120,9 @@ class ClassesToVisualize {
             return result;
         }
 
-        private int getInnerClassDepth(JavaClass clazz) {
-            return !clazz.getEnclosingClass().isPresent() ? 0 : 1 + getInnerClassDepth(clazz.getEnclosingClass().get());
+        private int getInnerClassDepth(String classFullName) {
+            return !classFullName.contains("$") ? 0 : 1 +
+                    getInnerClassDepth(classFullName.substring(0, classFullName.lastIndexOf("$")));
         }
     }
 }
