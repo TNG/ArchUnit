@@ -578,15 +578,15 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = [
       'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
       'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)'
     ];
     root.filterByName('Matching', false);
-    dependencies.setNodeFilters(root.getFilters());
-
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('resets the node filter correctly', () => {
@@ -607,6 +607,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.MatchingClass1(methodCall)',
@@ -616,11 +617,10 @@ describe('Dependencies', () => {
       'com.tngtech.SomeInterface->com.tngtech.SomeClass1(fieldAccess)'
     ];
     root.filterByName('Matching', false);
-    dependencies.setNodeFilters(root.getFilters());
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('should recreate correctly its visible dependencies after setting the node filter: old dependencies are hidden, ' +
@@ -642,6 +642,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
     dependencies.recreateVisible();
 
     const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
@@ -649,12 +650,13 @@ describe('Dependencies', () => {
     const visibleDependencies = dependencies.getVisible().filter(filterForVisibleDependencies);
 
     root.filterByName('Matching', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
-    expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
-    expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
-    expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+    return root._updatePromise.then(() => {
+      expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
+      expect(hiddenDependencies.map(d => d.isVisible())).to.not.include(true);
+      expect(hiddenDependencies.map(d => d._view.isVisible)).to.not.include(true);
+      expect(dependencies.getVisible()).to.include.members(visibleDependencies);
+    });
   });
 
   it('updates on node filtering whether they must share one of the end nodes', () => {
@@ -670,15 +672,17 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
     root.filterByName('InnerClass', true);
-    dependencies.setNodeFilters(root.getFilters());
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
-    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(true);
+
+    return root._updatePromise.then(() =>
+      expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(true));
   });
 
   it('updates on resetting the node filter whether they must share one of the end nodes', () => {
@@ -694,17 +698,17 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
     root.filterByName('InnerClass', true);
-    dependencies.setNodeFilters(root.getFilters());
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
-    expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(false);
+    return root._updatePromise.then(() =>
+      expect(mapToMustShareNodes(dependencies.getVisible())).to.not.include(false));
   });
 
   it('can do this: fold pkg -> node filter, so that a dependency of the folded package is removed when the ' +
@@ -725,14 +729,15 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: fold class -> node filter, so that a dependency of the folded class is changed when the ' +
@@ -748,14 +753,15 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: fold pkg -> node filter -> reset node filter, so that a dependency of the folded package is ' +
@@ -777,6 +783,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()',
       'com.tngtech.SomeClass->com.tngtech.pkgToFold()'];
@@ -784,9 +791,9 @@ describe('Dependencies', () => {
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     root.filterByName('X', true);
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: fold class -> node filter -> reset node filter, so that can a dependency of the folded class ' +
@@ -803,15 +810,16 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     root.filterByName('X', true);
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: fold pkg -> node filter -> unfold pkg, so that the unfolding does not affect the filter', () => {
@@ -828,15 +836,16 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: fold class -> node filter -> unfold class, so that the unfolding does not affect the filter', () => {
@@ -852,15 +861,17 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
+
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: filter -> fold pkg, so that folding does not affect the filter', () => {
@@ -877,14 +888,15 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: filter -> fold class, so that folding does not affect the filter', () => {
@@ -900,14 +912,15 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: filter -> fold pkg -> unfold pkg, so that unfolding does not affect the filter', () => {
@@ -924,15 +937,16 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: filter -> fold class -> unfolding class, so that unfolding does not affect the filter', () => {
@@ -948,15 +962,16 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
 
@@ -974,17 +989,17 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
       'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   it('can do this: node filter -> fold class -> reset node filter, so that the fold state is not changed', () => {
@@ -1000,16 +1015,16 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
+    root.addListener(dependencies.createListener());
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
     root.filterByName('X', true);
-    dependencies.setNodeFilters(root.getFilters());
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     root.filterByName('', false);
-    dependencies.setNodeFilters(root.getFilters());
 
-    expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+    return root._updatePromise.then(() =>
+      expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
 
   const jsonRootWithAllDependencies = testJson.package('com.tngtech')

@@ -19,23 +19,19 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
     filterNodesByNameContaining(filterString) {
       this.root.filterByName(filterString, false);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.root.relayoutCompletely();
     }
 
     filterNodesByNameNotContaining(filterString) {
       this.root.filterByName(filterString, true);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.root.relayoutCompletely();
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
-      this.dependencies.setNodeFilters(this.root.getFilters());
       this.root.relayoutCompletely();
     }
 
-    //FIXME: why has this so bad performance??
     filterDependenciesByType(typeFilterConfig) {
       this.dependencies.filterByType(typeFilterConfig);
     }

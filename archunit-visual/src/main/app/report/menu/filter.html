@@ -65,7 +65,6 @@
           box.onclick = () => onClicked(checkboxIdToCheckedBoolean())
         });
 
-        //FIXME: don't call recreateVisible  twice (only once after the whole initializing)
         onClicked(checkboxIdToCheckedBoolean()); // Sync the initial state
       }
     };

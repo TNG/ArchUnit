@@ -31,7 +31,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     nameFilter: null,
 
     apply: function () {
-      root._resetFiltering();
+      root._resetFilteredChildren();
       const applyFilter = (node, filter) => {
         node._setFilteredChildren(node._filteredChildren.filter(filter));
         node._filteredChildren.forEach(c => applyFilter(c, filter));
@@ -50,7 +50,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
-      //FIXME: do not create views for all node at the beginning but only when they are shown
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
       this._filters = newFilters(this);
       this._listener = [];
@@ -65,9 +64,25 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._originalChildren.forEach(child => child.addListener(listener));
     }
 
+    _notMatchesFilter() {
+      this._matchesFilter = false;
+      this.getOriginalChildren().forEach(child => child._notMatchesFilter());
+    }
+
+    matchesFilter() {
+      return this._matchesFilter;
+    }
+
     _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
+      this._filteredChildren.forEach(child => child._matchesFilter = true);
+      arrayDifference(this.getOriginalChildren(), this._filteredChildren).forEach(child => child._notMatchesFilter());
       this._updateViewOnCurrentChildrenChanged();
+    }
+
+    _resetFilteredChildren() {
+      this.getOriginalChildren().forEach(node => node._resetFilteredChildren());
+      this._filteredChildren = this.getOriginalChildren();
     }
 
     isPackage() {
@@ -133,11 +148,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       callback();
     }
 
-
-    getFilters() {
-      return this._filters;
-    }
-
     getClass() {
       const foldableStyle = this._isLeaf() ? "not-foldable" : "foldable";
       return `node ${this._description.type} ${foldableStyle}`;
@@ -183,7 +193,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this.getClass());
-      //FIXME: try to remove svg-element of hidden nodes (for big class trees)
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
     }
@@ -265,11 +274,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return areOverlapping;
     }
 
-    _resetFiltering() {
-      this.getOriginalChildren().forEach(node => node._resetFiltering());
-      this._setFilteredChildren(this.getOriginalChildren());
-    }
-
     /**
      * Hides all nodes that don't contain the supplied filterString.
      *
@@ -285,7 +289,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
       this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
-      this._root.doNextAndWaitFor(() => this._filters.apply());
+      this._root.doNextAndWaitFor(() => {
+        this._filters.apply();
+        this._listener.forEach(listener => listener.onNodeFiltersChanged());
+      });
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -294,7 +301,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
       this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
-      this._root.doNextAndWaitFor(() => this._filters.apply());
+      this._root.doNextAndWaitFor(() => {
+        this._filters.apply();
+        this._listener.forEach(listener => listener.onNodeFiltersChanged());
+      });
     }
   };
 

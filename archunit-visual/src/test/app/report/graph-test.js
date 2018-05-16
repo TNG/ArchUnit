@@ -76,8 +76,10 @@ describe('Graph', () => {
 
       graph.filterNodesByNameContaining('Some', false);
 
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      return graph.root._updatePromise.then(() => expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes));
+      return graph.root._updatePromise.then(() => {
+        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+      });
     });
   });
 
@@ -99,8 +101,10 @@ describe('Graph', () => {
 
       graph.filterNodesByNameNotContaining('Matching', true);
 
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      return graph.root._updatePromise.then(() => expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes));
+      return graph.root._updatePromise.then(() => {
+        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+      });
     });
   });
 
@@ -122,8 +126,10 @@ describe('Graph', () => {
 
       graph.filterNodesByType({showInterfaces: false, showClasses: true});
 
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      return graph.root._updatePromise.then(() => expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes));
+      return graph.root._updatePromise.then(() => {
+        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+      });
     });
   });
 

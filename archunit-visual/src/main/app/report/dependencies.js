@@ -160,7 +160,6 @@ const init = (View) => {
     const sortedKeys = Array.from(transformers.keys()).sort((node1, node2) => node1.length - node2.length);
     const res = new Set();
     sortedKeys.forEach(nodeFullName => {
-      //TODO: test whether filtering the array has better performance than getting the predecessors
       const selfAndPredecessors = nodes.getByName(nodeFullName).getSelfAndPredecessors();
       if (!selfAndPredecessors.some(predecessor => res.has(predecessor.getFullName()))) {
         res.add(nodeFullName);
@@ -237,6 +236,7 @@ const init = (View) => {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
+        onNodeFiltersChanged: () => this._updateNodeFilters(),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -244,11 +244,6 @@ const init = (View) => {
       }
     }
 
-    /**
-     * FIXME: performance
-     * Avoid the multiple calls of recreateVisible at the beginning:
-     * when synchronizing the node- and the dep-filter (in filter.html) and the violations (in violation-menu.html)
-     */
     recreateVisible() {
       const visibleDependenciesBefore = this._visibleDependencies || [];
 
@@ -324,9 +319,8 @@ const init = (View) => {
       this._refreshViolationDependencies();
     }
 
-    setNodeFilters(filters) {
-      this._filters.nameFilter = () => dependencies => Array.from(filters.values()).reduce((filteredDeps, filter) =>
-        filteredDeps.filter(d => filter(nodes.getByName(d.from)) && filter(nodes.getByName(d.to))), dependencies);
+    _updateNodeFilters() {
+      this._filters.nameFilter = () => dependencies => dependencies.filter(d => nodes.getByName(d.from).matchesFilter() && nodes.getByName(d.to).matchesFilter());
       this._filters.apply();
     }
 
