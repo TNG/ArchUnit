@@ -24,6 +24,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -61,7 +62,6 @@ public class ClassCacheTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void reuses_loaded_classes_by_test() {
         cache.getClassesToAnalyzeFor(TestClass.class);
         cache.getClassesToAnalyzeFor(TestClass.class);
@@ -70,12 +70,20 @@ public class ClassCacheTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void reuses_loaded_classes_by_urls() {
+    public void reuses_loaded_classes_by_locations_if_cacheMode_is_FOREVER() {
         cache.getClassesToAnalyzeFor(TestClass.class);
         cache.getClassesToAnalyzeFor(EquivalentTestClass.class);
 
         verifyNumberOfImports(1);
+    }
+
+    @Test
+    public void doesnt_reuse_loaded_classes_by_locations_if_cacheMode_is_PER_CLASS() {
+        cache.getClassesToAnalyzeFor(TestClassWithCacheModePerClass.class);
+        assertThat(cache.cachedByLocations.asMap()).as("Classes cached by location").isEmpty();
+
+        cache.getClassesToAnalyzeFor(EquivalentTestClass.class);
+        verifyNumberOfImports(2);
     }
 
     @Test
@@ -192,6 +200,10 @@ public class ClassCacheTest {
 
     @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class EquivalentTestClass {
+    }
+
+    @AnalyzeClasses(packages = "com.tngtech.archunit.junit", cacheMode = PER_CLASS)
+    public static class TestClassWithCacheModePerClass {
     }
 
     @AnalyzeClasses(packagesOf = Rule.class)

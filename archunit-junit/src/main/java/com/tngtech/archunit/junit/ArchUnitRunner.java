@@ -51,10 +51,8 @@ import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnore
  *     public static final ArchRule some_rule = //...
  * }
  * </code></pre>
- * Important information about the caching behavior: The cache uses soft references, meaning that a small heap
- * may dramatically reduce performance, if multiple classes running with {@link ArchUnitRunner} are executed.
- * The cache will hold imported classes as long as there is sufficient memory, and reuse them, if the same
- * locations (i.e. URLs) are imported.
+ *
+ * The runner will cache classes between test runs, for details please refer to {@link ClassCache}.
  */
 @PublicAPI(usage = ACCESS)
 public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {

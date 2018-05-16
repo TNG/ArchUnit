@@ -62,4 +62,11 @@ public @interface AnalyzeClasses {
      * @return The types of {@link ImportOption} to use for the import
      */
     Class<? extends ImportOption>[] importOptions() default {};
+
+    /**
+     * Controls when the {@link ArchUnitRunner} clears the {@link ClassCache}.
+     *
+     * @return The {@link CacheMode} to use for this test class.
+     */
+    CacheMode cacheMode() default CacheMode.FOREVER;
 }

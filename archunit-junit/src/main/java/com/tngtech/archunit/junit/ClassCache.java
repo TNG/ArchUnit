@@ -35,13 +35,29 @@ import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 
+import static com.tngtech.archunit.junit.CacheMode.FOREVER;
+
+/**
+ * The {@link ClassCache} takes care of caching {@link JavaClasses} between test runs. On the one hand,
+ * it caches {@link JavaClasses} between different {@link ArchTest @ArchTest} evaluations,
+ * on the other hand, it caches {@link JavaClasses} between different test classes,
+ * i.e. if two test classes <code>ATest</code> and <code>BTest</code>
+ * import the same locations (e.g. packages, URLs, etc.), the imported {@link JavaClasses} from <code>ATest</code> will be
+ * reused for <code>BTest</code>. This behavior can be controlled by the supplied {@link CacheMode}.
+ * <br/><br/>
+ * Important information regarding performance: The cache uses soft references, meaning that a small heap
+ * may dramatically reduce performance, if multiple test classes are executed.
+ * The cache will hold imported classes as long as there is sufficient memory, and reuse them, if the same
+ * locations (i.e. URLs) are imported.
+ */
 class ClassCache {
     @VisibleForTesting
     final Map<Class<?>, JavaClasses> cachedByTest = new ConcurrentHashMap<>();
-    private final LoadingCache<LocationsKey, LazyJavaClasses> cachedByLocations =
+    @VisibleForTesting
+    final LoadingCache<LocationsKey, LazyJavaClasses> cachedByLocations =
             CacheBuilder.newBuilder().softValues().build(new CacheLoader<LocationsKey, LazyJavaClasses>() {
                 @Override
-                public LazyJavaClasses load(LocationsKey key) throws Exception {
+                public LazyJavaClasses load(LocationsKey key) {
                     return new LazyJavaClasses(key.locations, key.importOptionTypes);
                 }
             });
@@ -56,9 +72,17 @@ class ClassCache {
         }
 
         LocationsKey locations = locationsToImport(testClass);
-        JavaClasses classes = cachedByLocations.getUnchecked(locations).get();
+
+        JavaClasses classes = getCacheMode(testClass) == FOREVER
+                ? cachedByLocations.getUnchecked(locations).get()
+                : new LazyJavaClasses(locations.locations, locations.importOptionTypes).get();
+
         cachedByTest.put(testClass, classes);
         return classes;
+    }
+
+    private CacheMode getCacheMode(Class<?> testClass) {
+        return testClass.getAnnotation(AnalyzeClasses.class).cacheMode();
     }
 
     private LocationsKey locationsToImport(Class<?> testClass) {
