@@ -139,6 +139,11 @@ def javaConfigs = [
                 """<compilerArgs>
                             <arg>--add-modules</arg>
                             <arg>java.xml.ws.annotation</arg>
+                        </compilerArgs>"""],
+        [suffix: "java10", javaVersion: "10", jdkProp: "java10Home", extraCompilerArgs:
+                """<compilerArgs>
+                            <arg>--add-modules</arg>
+                            <arg>java.xml.ws.annotation</arg>
                         </compilerArgs>"""]
 ]
 

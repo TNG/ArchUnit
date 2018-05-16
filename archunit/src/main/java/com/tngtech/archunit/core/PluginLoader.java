@@ -137,10 +137,10 @@ public class PluginLoader<T> {
             @Override
             public boolean isLessOrEqualThan(String version) {
                 // The new versioning scheme starting with JDK 9 is 9.x, before it was sth. like 1.8.0_122
-                return parseFirstDigitOfJavaVersion(version) >= 9;
+                return parseFirstGroupOfJavaVersion(version) >= 9;
             }
 
-            private int parseFirstDigitOfJavaVersion(String javaVersion) {
+            private int parseFirstGroupOfJavaVersion(String javaVersion) {
                 Matcher matcher = VERSION_PATTERN.matcher(javaVersion);
                 if (!matcher.matches()) {
                     throw new IllegalArgumentException("Can't parse Java version " + javaVersion);
