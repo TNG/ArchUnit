@@ -1,7 +1,7 @@
 plugins {
-    id 'com.gradle.build-scan' version '1.8'
-    id 'com.github.johnrengelman.shadow' version '2.0.2'
-    id "com.github.spotbugs" version "1.6.0"
+    id 'com.gradle.build-scan' version '1.12.1'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id "com.github.spotbugs" version "1.6.1"
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
@@ -90,7 +90,7 @@ ext {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.5.1'
+    gradleVersion = '4.7'
 }
 
 allprojects {
@@ -117,6 +117,10 @@ subprojects {
 
     sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_7
+
+    javadoc {
+        options.addBooleanOption('html5', true)
+    }
 
     test {
         maxHeapSize = "2G"
