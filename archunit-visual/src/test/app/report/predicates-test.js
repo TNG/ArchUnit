@@ -66,7 +66,7 @@ describe('matching strings by checking for a certain substring', () => {
     testStringContains(' fo| ba').against('anyOther').is(false);
   });
 
-  describe('substrings with whitespaces before ' | ' must end with one of the optional patterns', () => {
+  describe('substrings with whitespaces before | must end with one of the optional patterns', () => {
     testStringContains('foo |bar ').against('foo').is(true);
     testStringContains('foo |bar ').against('bar').is(true);
     testStringContains('foo |bar |test ').against('test').is(true);
