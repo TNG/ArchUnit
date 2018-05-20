@@ -62,7 +62,6 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
 
     private static TestDescriptor descriptorFor(TestDescriptor parent, UniqueId uniqueId, Class<?> testClass, Field field,
             Supplier<JavaClasses> classes) {
-        uniqueId = uniqueId.append("field", field.getName());
         return ArchRules.class.isAssignableFrom(field.getType())
                 ? new ArchUnitRulesDescriptor(parent, uniqueId, getDeclaredRules(testClass, field), classes, field)
                 : new ArchUnitRuleDescriptor(parent, uniqueId, getValue(field, null), classes, field);
@@ -78,7 +77,7 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
     }
 
     @Override
-    public void after(ArchUnitEngineExecutionContext context) throws Exception {
+    public void after(ArchUnitEngineExecutionContext context) {
         classCache.clear(testClass);
     }
 
@@ -87,7 +86,7 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         private final Supplier<JavaClasses> classes;
 
         ArchUnitRuleDescriptor(TestDescriptor parent, UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId.append("rule", rule.getDescription()), rule.getDescription(), FieldSource.from(field), field);
+            super(uniqueId.append("field", field.getName()), field.getName(), FieldSource.from(field), field);
             setParent(parent);
             this.rule = rule;
             this.classes = classes;
@@ -99,8 +98,7 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         }
 
         @Override
-        public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor)
-                throws Exception {
+        public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
             rule.check(classes.get());
             return context;
         }
@@ -139,9 +137,7 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         }
 
         @Override
-        public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor)
-                throws Exception {
-
+        public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
             unwrapException(() -> method.invoke(null, classes.get()))
                     .ifPresent(this::rethrowUnchecked);
             return context;
@@ -172,7 +168,9 @@ public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
 
         ArchUnitRulesDescriptor(TestDescriptor parent, UniqueId uniqueId, DeclaredArchRules rules,
                 Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId.append("class", rules.getDefinitionLocation().getName()),
+            super(uniqueId
+                            .append("field", field.getName())
+                            .append("class", rules.getDefinitionLocation().getName()),
                     rules.getDisplayName(),
                     ClassSource.from(rules.getDefinitionLocation()),
                     field);

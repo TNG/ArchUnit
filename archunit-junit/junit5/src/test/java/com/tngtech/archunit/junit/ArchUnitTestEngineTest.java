@@ -20,7 +20,6 @@ import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodWrongParameters;
 import com.tngtech.archunit.junit.testutil.MockitoExtension;
-import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -415,8 +414,7 @@ class ArchUnitTestEngineTest {
     private UniqueId simpleRuleFieldTestId(UniqueId uniqueId) {
         return uniqueId
                 .append("class", SimpleRuleField.class.getName())
-                .append("field", SIMPLE_RULE_FIELD_NAME)
-                .append("rule", SimpleRuleField.simple_rule.getDescription());
+                .append("field", SIMPLE_RULE_FIELD_NAME);
     }
 
     private UniqueId simpleRuleMethodTestId(UniqueId uniqueId) {
@@ -431,8 +429,7 @@ class ArchUnitTestEngineTest {
                 .append("field", SimpleRuleLibrary.RULES_ONE_FIELD)
                 .append("class", SimpleRules.class.getName());
         Set<UniqueId> simpleRulesFields = SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName -> simpleRules
-                .append("field", fieldName)
-                .append("rule", getDescription(SimpleRules.class, fieldName))).collect(toSet());
+                .append("field", fieldName)).collect(toSet());
         Set<UniqueId> simpleRulesMethods = SimpleRules.RULE_METHOD_NAMES.stream().map(methodName -> simpleRules
                 .append("method", methodName)).collect(toSet());
 
@@ -442,13 +439,4 @@ class ArchUnitTestEngineTest {
         return Stream.of(simpleRulesFields, simpleRulesMethods, simpleRuleField)
                 .flatMap(Set::stream).collect(toSet());
     }
-
-    private String getDescription(Class<?> clazz, String fieldName) {
-        try {
-            return ((ArchRule) clazz.getField(fieldName).get(null)).getDescription();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }
