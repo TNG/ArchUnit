@@ -13,6 +13,7 @@ dependencies {
     testCompile project(path: ':archunit', configuration: 'tests')
     testCompile dependency.assertj
     testCompile dependency.mockito
+    testCompile dependency.junit5JupiterApi
 }
 
 configureSlowTestsFor this
