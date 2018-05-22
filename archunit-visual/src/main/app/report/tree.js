@@ -82,7 +82,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _resetFilteredChildren() {
       this.getOriginalChildren().forEach(node => node._resetFilteredChildren());
-      this._filteredChildren = this.getOriginalChildren();
+      this._setFilteredChildren(this.getOriginalChildren());
     }
 
     isPackage() {
@@ -284,11 +284,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * i.e. nodes with names not containing the string will pass the filter.
      */
     filterByName(nodeNameSubstring, exclude) {
-      const stringContainsSubstring = predicates.stringContains(nodeNameSubstring);
-      const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
-      const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
+      if (!nodeNameSubstring.replace(/\s/g, '') && !exclude) {
+        this._filters.nameFilter = null;
+      }
+      else {
+        const stringContainsSubstring = predicates.stringContains(nodeNameSubstring);
+        const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
+        const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-      this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+      }
       this._root.doNextAndWaitFor(() => {
         this._filters.apply();
         this._listener.forEach(listener => listener.onNodeFiltersChanged());
@@ -296,11 +301,16 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     filterByType(showInterfaces, showClasses) {
-      let predicate = node => !node.isPackage();
-      predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
-      predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
+      if (showInterfaces && showClasses) {
+        this._filters.typeFilter = null;
+      }
+      else {
+        let predicate = node => !node.isPackage();
+        predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
+        predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
-      this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
+        this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
+      }
       this._root.doNextAndWaitFor(() => {
         this._filters.apply();
         this._listener.forEach(listener => listener.onNodeFiltersChanged());

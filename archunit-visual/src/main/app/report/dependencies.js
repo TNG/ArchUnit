@@ -317,6 +317,7 @@ const init = (View) => {
     }
 
     _updateNodeFilters() {
+      //TODO: either set nameFilter already in newFilters or remove it, when both nodeFilters are null
       this._filters.nameFilter = () => dependencies => dependencies.filter(d => nodes.getByName(d.from).matchesFilter() && nodes.getByName(d.to).matchesFilter());
       this._filters.apply();
     }
