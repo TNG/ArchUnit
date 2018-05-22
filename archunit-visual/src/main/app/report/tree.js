@@ -284,6 +284,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * i.e. nodes with names not containing the string will pass the filter.
      */
     filterByName(nodeNameSubstring, exclude) {
+      //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
       if (!nodeNameSubstring.replace(/\s/g, '') && !exclude) {
         this._filters.nameFilter = null;
       }
