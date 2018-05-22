@@ -74,7 +74,7 @@ describe('Graph', () => {
       const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
       const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterNodesByNameContaining('Some', false);
+      graph.filterNodesByName('Some', false);
 
       return graph.root._updatePromise.then(() => {
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
@@ -99,7 +99,7 @@ describe('Graph', () => {
       const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
       const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterNodesByNameNotContaining('Matching', true);
+      graph.filterNodesByName('Matching', true);
 
       return graph.root._updatePromise.then(() => {
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);

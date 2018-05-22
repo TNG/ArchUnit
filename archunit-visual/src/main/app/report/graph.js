@@ -17,13 +17,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this._violations = violations;
     }
 
-    filterNodesByNameContaining(filterString) {
-      this.root.filterByName(filterString, false);
-      this.root.relayoutCompletely();
-    }
-
-    filterNodesByNameNotContaining(filterString) {
-      this.root.filterByName(filterString, true);
+    filterNodesByName(filterString, exclude) {
+      this.root.filterByName(filterString, exclude);
       this.root.relayoutCompletely();
     }
 
@@ -57,12 +52,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
             this.filterDependenciesByType(filter);
           })
         .onNodeNameFilterChanged((filterString, exclude) => {
-          //TODO: is this if-query useful??
-          if (exclude) {
-            this.filterNodesByNameNotContaining(filterString);
-          } else {
-            this.filterNodesByNameContaining(filterString);
-          }
+          this.filterNodesByName(filterString, exclude);
         })
         .initializeLegend([
           visualizationStyles.getLineStyle('constructorCall', 'constructor call'),
