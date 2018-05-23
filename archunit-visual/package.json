@@ -49,6 +49,7 @@
     "eslint": "^4.1.0",
     "eslint-plugin-html": "^3.0.0",
     "eslint-plugin-promise": "^3.5.0",
+    "grunt": "^1.0.2",
     "http-server": "^0.10.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0"
