@@ -1,21 +1,31 @@
 const path = require('path');
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+//const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+//const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const buildPath = 'build/resources/main/com/tngtech/archunit/visual/report';
 
 module.exports = {
-  entry: './src/main/app/report/visualization.js',
-  output: {
-    filename: 'visualization-bundle.js',
-    path: path.resolve(__dirname, 'build/resources/main/com/tngtech/archunit/visual/report') //FIXME
+  optimization: {
+    minimize: false
   },
+  entry: {
+    'visualization-bundle': ['./src/main/app/report/visualization.js',
+      './src/main/app/report/web-component-infrastructure.js'],
+    'webcomponents-loader': './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js'
+  },
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, buildPath)
+  }
+  /*,
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'src/main/app/report/report.html'),
+      template: path.resolve(__dirname, buildPath + '/report.html'),
       filename: 'report.html',
-      inlineSource: '.(js|css)$',
+      inlineSource: '.js$',
     }),
     new HtmlWebpackInlineSourcePlugin(),
-  ]
+  ]*/
 };
 
 //TODO: css-files werden irgendwie nicht geinlined
