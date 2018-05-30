@@ -83,14 +83,25 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void defining_constraint_on_non_existing_layer_is_rejected() {
+    public void defining_constraint_on_non_existing_target_layer_is_rejected() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("no layer");
-        thrown.expectMessage("Other");
+        thrown.expectMessage("NotThere");
 
         layeredArchitecture()
                 .layer("Some").definedBy("any")
-                .whereLayer("Other").mayNotBeAccessedByAnyLayer();
+                .whereLayer("NotThere").mayNotBeAccessedByAnyLayer();
+    }
+
+    @Test
+    public void defining_constraint_on_non_existing_origin_is_rejected() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("no layer");
+        thrown.expectMessage("NotThere");
+
+        layeredArchitecture()
+                .layer("Some").definedBy("any")
+                .whereLayer("Some").mayOnlyBeAccessedByLayers("NotThere");
     }
 
     @Test
