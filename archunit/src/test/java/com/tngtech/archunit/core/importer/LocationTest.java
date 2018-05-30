@@ -106,7 +106,7 @@ public class LocationTest {
     public void iterate_entries_of_non_existing_jar_url() throws Exception {
         File nonExistingJar = new File(createNonExistingFolder(), "not-there.jar");
 
-        Location location = Location.of(URI.create("jar:file:" + nonExistingJar.getAbsolutePath() + "!/"));
+        Location location = Location.of(URI.create("jar:" + nonExistingJar.toURI() + "!/"));
 
         assertThat(location.iterateEntries())
                 .as("entries of JAR")
@@ -129,7 +129,7 @@ public class LocationTest {
 
     @Test
     public void iterate_entries_of_non_existing_file_url() throws Exception {
-        Location location = Location.of(URI.create("file:" + createNonExistingFolder().getAbsolutePath()));
+        Location location = Location.of(createNonExistingFolder().toURI());
 
         assertThat(location.iterateEntries())
                 .as("entries of DIR")

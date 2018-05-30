@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,7 +29,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.net.UrlEscapers;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
@@ -88,21 +88,21 @@ interface UrlSource extends Iterable<URL> {
 
         private static Optional<URL> newFileUri(String path) {
             path = path.endsWith("/") || path.endsWith(".class") ? path : path + "/";
-            return newUrl("file", path);
-        }
-
-        private static Optional<URL> newJarUri(String path) {
-            return newUrl("jar:file", path + "!/");
-        }
-
-        private static Optional<URL> newUrl(String protocol, String path) {
             try {
-                return Optional.of(new URL(protocol + "://" + UrlEscapers.urlFragmentEscaper().escape(path)));
+                return Optional.of(Paths.get(path).toUri().toURL());
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
                 return Optional.absent();
-            } catch (IllegalArgumentException e) {
-                LOG.warn("Cannot escape fragments from path " + path, e);
+            }
+        }
+
+        private static Optional<URL> newJarUri(String path) {
+            Optional<URL> fileUri = newFileUri(path);
+
+            try {
+                return fileUri.isPresent() ? Optional.of(new URL("jar:" + fileUri.get() + "!/")) : Optional.<URL>absent();
+            } catch (MalformedURLException e) {
+                LOG.warn("Cannot parse URL from path " + path, e);
                 return Optional.absent();
             }
         }
