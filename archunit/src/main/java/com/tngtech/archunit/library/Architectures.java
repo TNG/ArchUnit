@@ -39,6 +39,8 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
@@ -222,8 +224,14 @@ public final class Architectures {
 
         @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
-            checkArgument(layerDefinitions.containsKey(name), "There is no layer named '%s'", name);
+            checkLayersExist(name);
             return new LayerDependencySpecification(name);
+        }
+
+        private void checkLayersExist(String... layerNames) {
+            for (String layerName : layerNames) {
+                checkArgument(layerDefinitions.containsKey(layerName), "There is no layer named '%s'", layerName);
+            }
         }
 
         public final class LayerDefinition {
@@ -231,6 +239,7 @@ public final class Architectures {
             private Set<String> packageIdentifiers;
 
             private LayerDefinition(String name) {
+                checkState(!isNullOrEmpty(name), "Layer name must be present");
                 this.name = name;
             }
 
@@ -263,6 +272,7 @@ public final class Architectures {
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
+                checkLayersExist(layerNames);
                 allowedAccessors.addAll(asList(layerNames));
                 descriptionSuffix = String.format("may only be accessed by layers ['%s']",
                         Joiner.on("', '").join(allowedAccessors));
