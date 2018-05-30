@@ -101,3 +101,22 @@ The `ArchUnitRunner` will automatically import (or reuse) the specified classes 
 evaluate any rule annotated with `@ArchTest` against those classes.
 
 For further information on how to use the JUnit 4 support refer to <<JUnit Support>>.
+
+=== Using JUnit 4 with Kotlin
+
+As Kotlin removed the `static` keyword from the language, you need to use both a companion object
+and a Java-specific annotation:
+
+[source,kotlin,options="nowrap"]
+----
+@RunWith(ArchUnitRunner::class)
+@AnalyzeClasses(packages = ["com.mycompany.myapp"])
+class MyArchitectureTest {
+
+    companion object {
+        @ArchTest @JvmField val myRule = classes()
+            .that().resideInAPackage("..service..")
+            .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
+		}
+}
+----
