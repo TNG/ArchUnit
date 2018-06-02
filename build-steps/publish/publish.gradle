@@ -15,6 +15,11 @@ productionProjects*.with {
     signArchives.dependsOn finishArchive
 
     uploadArchives {
+        doFirst {
+            assert project.property('org.gradle.parallel') == 'false':
+                    'uploading archives with parallel execution seems to lead to broken uploads in Sonatype Nexus'
+        }
+
         repositories {
             mavenDeployer {
                 beforeDeployment { deployment ->
