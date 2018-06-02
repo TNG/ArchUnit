@@ -467,6 +467,7 @@ h4 {
 <li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
 <li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
+    <li><a href="#_using_junit_4_with_kotlin">3.4. Using JUnit 4 with Kotlin</a></li>
 </ul>
 </li>
 <li><a href="#_what_to_check">4. What to Check</a>
@@ -591,7 +592,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.0&lt;/version&gt;
+    &lt;version&gt;0.8.1&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -600,7 +601,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit-junit:0.8.0'
+   testCompile 'com.tngtech.archunit:archunit-junit:0.8.1'
 }</code></pre>
 </div>
 </div>
@@ -617,7 +618,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.0&lt;/version&gt;
+    &lt;version&gt;0.8.1&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -626,7 +627,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.8.0'
+   testCompile 'com.tngtech.archunit:archunit:0.8.1'
 }</code></pre>
 </div>
 </div>
@@ -750,6 +751,27 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 </div>
 <div class="paragraph">
 <p>For further information on how to use the JUnit 4 support refer to <a href="#_junit_support">JUnit Support</a>.</p>
+</div>
+</div>
+    <div class="sect2">
+        <h3 id="_using_junit_4_with_kotlin"><a class="anchor" href="#_using_junit_4_with_kotlin"></a>3.4. Using JUnit 4 with Kotlin</h3>
+        <div class="paragraph">
+            <p>As Kotlin removed the <code>static</code> keyword from the language, you need to use both a companion object
+                and a Java-specific annotation:</p>
+        </div>
+        <div class="listingblock">
+            <div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class)
+@AnalyzeClasses(packages = ["com.mycompany.myapp"])
+class MyArchitectureTest {
+
+    companion object {
+        @ArchTest @JvmField val myRule = classes()
+            .that().resideInAPackage("..service..")
+            .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
+    }
+}</code></pre>
+            </div>
 </div>
 </div>
 </div>
