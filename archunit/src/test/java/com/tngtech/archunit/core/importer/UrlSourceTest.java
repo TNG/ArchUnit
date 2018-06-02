@@ -28,21 +28,28 @@ public class UrlSourceTest {
 
     @Test
     public void resolves_from_system_property() throws MalformedURLException {
-        String classPath = createClassPathProperty(
-                "/some/path/classes", "/other/lib/some.jar", "/more/classes", "/my/.m2/repo/greatlib.jar");
+        Path firstFileEntry = Paths.get("some", "path", "classes");
+        Path firstJarEntry = Paths.get("other", "lib", "some.jar");
+        Path secondFileEntry = Paths.get("more", "classes");
+        Path secondJarEntry = Paths.get("my", ".m2", "repo", "greatlib.jar");
+        String classPath = createClassPathProperty(firstFileEntry.toString(), firstJarEntry.toString(),
+                secondFileEntry.toString(), secondJarEntry.toString());
         System.setProperty(JAVA_CLASS_PATH_PROP, classPath);
-        String bootstrapClassPath = createClassPathProperty("/some/bootstrap/classes", "/more/bootstrap/bootlib.jar");
+
+        Path bootstrapFileEntry = Paths.get("some", "bootstrap", "classes");
+        Path bootstrapJarEntry = Paths.get("more", "bootstrap", "bootlib.jar");
+        String bootstrapClassPath = createClassPathProperty(bootstrapFileEntry.toString(), bootstrapJarEntry.toString());
         System.setProperty(JAVA_BOOT_PATH_PROP, bootstrapClassPath);
 
         UrlSource urlSource = UrlSource.From.classPathSystemProperties();
 
         assertThat(urlSource).containsOnly(
-                new URL("file:/some/path/classes/"),
-                new URL("jar:file:/other/lib/some.jar!/"),
-                new URL("file:/more/classes/"),
-                new URL("jar:file:/my/.m2/repo/greatlib.jar!/"),
-                new URL("file:/some/bootstrap/classes/"),
-                new URL("jar:file:/more/bootstrap/bootlib.jar!/")
+                firstFileEntry.toUri().toURL(),
+                new URL("jar:" + firstJarEntry.toUri() + "!/"),
+                secondFileEntry.toUri().toURL(),
+                new URL("jar:" + secondJarEntry.toUri() + "!/"),
+                bootstrapFileEntry.toUri().toURL(),
+                new URL("jar:" + bootstrapJarEntry.toUri() + "!/")
         );
     }
 
