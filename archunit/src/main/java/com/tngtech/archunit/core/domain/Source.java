@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -175,9 +177,9 @@ public class Source {
         }
 
         private static Optional<byte[]> read(URI uri) {
-            try {
-                return Optional.of(ByteStreams.toByteArray(uri.toURL().openStream()));
-            } catch (Exception e) {
+            try (InputStream in = uri.toURL().openStream()) {
+                return Optional.of(ByteStreams.toByteArray(in));
+            } catch (IOException | RuntimeException e) {
                 return Optional.absent();
             }
         }
