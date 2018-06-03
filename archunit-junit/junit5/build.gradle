@@ -8,12 +8,14 @@ dependencies {
     compile project(path: ':archunit-junit')
     compile dependency.guava
     compile dependency.slf4j
-    compile dependency.junit5JupiterEngine
+    // FIXME: We should not rely on Jupiter!!
+    compileOnly dependency.junit5JupiterEngine
 
     testCompile project(path: ':archunit', configuration: 'tests')
     testCompile dependency.assertj
     testCompile dependency.mockito
     testCompile dependency.junit5JupiterApi
+    testCompile dependency.junitPlatformEngine
 }
 
 configureSlowTestsFor this

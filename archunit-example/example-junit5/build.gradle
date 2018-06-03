@@ -3,9 +3,13 @@ ext.moduleName = 'com.tngtech.archunit.example.junit5'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+// FIXME: We should not rely on Jupiter, neither API nor engine (i.e. replace @Tag, ... by custom one)
 dependencies {
+    testCompile dependency.junit5JupiterApi
     testCompile project(path: ':archunit-junit5')
     testCompile project(path: ':archunit-example:example-plain')
+
+    testRuntime dependency.junit5JupiterEngine
 }
 
 test {

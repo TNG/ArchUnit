@@ -39,7 +39,7 @@ import org.junit.runners.model.Statement;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
-import static com.tngtech.archunit.junit.ArchTestExecution.validatePublicStatic;
+import static com.tngtech.archunit.junit.ArchTestExecution.validateStatic;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 
 /**
@@ -126,7 +126,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchRules getArchRules(Field field) {
-        validatePublicStatic(field);
+        validateStatic(field);
         return getValue(field, null);
     }
 

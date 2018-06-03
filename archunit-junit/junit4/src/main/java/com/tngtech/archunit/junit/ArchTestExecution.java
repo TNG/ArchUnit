@@ -33,10 +33,10 @@ abstract class ArchTestExecution {
         this.ignore = ignore;
     }
 
-    static <T extends Member> T validatePublicStatic(T member) {
+    static <T extends Member> T validateStatic(T member) {
         ArchUnitTestInitializationException.check(
-                Modifier.isPublic(member.getModifiers()) && Modifier.isStatic(member.getModifiers()),
-                "With @%s annotated members must be public and static", ArchTest.class.getSimpleName());
+                Modifier.isStatic(member.getModifiers()),
+                "With @%s annotated members must be static", ArchTest.class.getSimpleName());
         return member;
     }
 

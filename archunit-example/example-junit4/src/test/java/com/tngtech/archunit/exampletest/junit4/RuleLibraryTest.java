@@ -16,7 +16,7 @@ public class RuleLibraryTest {
     public static final ArchRules LIBRARY = ArchRules.in(RuleSetsTest.class);
 
     @ArchTest
-    public static final ArchRules FURTHER_CODING_RULES = ArchRules.in(CodingRulesMethodsTest.class);
+    public static final ArchRules FURTHER_CODING_RULES = ArchRules.in(CodingRulesTest.class);
 
     @ArchTest
     public static final ArchRules SLICES_ISOLATION_RULES = ArchRules.in(SlicesIsolationTest.class);

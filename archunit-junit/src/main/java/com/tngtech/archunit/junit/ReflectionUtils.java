@@ -17,6 +17,7 @@ package com.tngtech.archunit.junit;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -76,7 +77,9 @@ class ReflectionUtils {
 
     static <T> T newInstanceOf(Class<T> type) {
         try {
-            return type.getDeclaredConstructor().newInstance();
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
         } catch (Exception e) {
             throw new ReflectionException(e);
         }

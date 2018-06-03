@@ -10,7 +10,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.InitializationError;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -32,7 +31,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,7 +71,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
-    public void should_find_children() throws Exception {
+    public void should_find_children() {
         assertThat(runner.getChildren()).as("Rules defined in Test Class").hasSize(3);
     }
 
@@ -98,17 +97,17 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
-    public void should_fail_on_wrong_field_visibility() throws InitializationError {
+    public void should_fail_on_wrong_field_visibility() {
         ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongModifier.class, cache);
 
         thrown.expectMessage("With @" + ArchTest.class.getSimpleName() +
-                " annotated members must be public and static");
+                " annotated members must be static");
 
         runner.runChild(ArchUnitRunnerTestUtils.getRule(WRONG_MODIFIER_FIELD_NAME, runner), runNotifier);
     }
 
     @Test
-    public void should_fail_on_wrong_field_type() throws InitializationError {
+    public void should_fail_on_wrong_field_type() {
         ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongFieldType.class, cache);
 
         thrown.expectMessage("Rule field " +
@@ -141,7 +140,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
-    public void should_skip_ignored_test() throws InitializationError {
+    public void should_skip_ignored_test() {
         ArchUnitRunner runner = newRunnerFor(IgnoredArchTest.class, cache);
 
         runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_ONE_IN_IGNORED_TEST, runner), runNotifier);

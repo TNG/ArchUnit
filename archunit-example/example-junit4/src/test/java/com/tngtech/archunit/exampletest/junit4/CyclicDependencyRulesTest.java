@@ -50,7 +50,9 @@ public class CyclicDependencyRulesTest {
 
     @ArchTest
     public static final ArchRule no_cycles_in_complex_scenario_with_custom_ignore =
-            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles()
+            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1")
+                    .as("Slices of complex scenario ignoring some violations")
+                    .should().beFreeOfCycles()
                     .ignoreDependency(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, ClassCallingConstructorInSliceFive.class)
                     .ignoreDependency(resideInAPackage("..slice4.."), DescribedPredicate.<JavaClass>alwaysTrue());
 }

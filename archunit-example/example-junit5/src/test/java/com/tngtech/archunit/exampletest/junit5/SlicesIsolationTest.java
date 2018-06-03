@@ -15,7 +15,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 @Tag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
-class SlicesIsolationTest {
+public class SlicesIsolationTest {
     @ArchTest
     static final ArchRule controllers_should_only_use_their_own_slice =
             slices().matching("..controller.(*)..").namingSlices("Controller $1")

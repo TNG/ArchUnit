@@ -13,4 +13,3 @@ test {
         }
     }
 }
-productionProjects.each { compileTestJava.dependsOn(it.finishArchive) }

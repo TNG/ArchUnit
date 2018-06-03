@@ -45,7 +45,7 @@ import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
  * i.e. if two test classes <code>ATest</code> and <code>BTest</code>
  * import the same locations (e.g. packages, URLs, etc.), the imported {@link JavaClasses} from <code>ATest</code> will be
  * reused for <code>BTest</code>. This behavior can be controlled by the supplied {@link CacheMode}.
- * <br/><br/>
+ * <br><br>
  * Important information regarding performance: The cache uses soft references, meaning that a small heap
  * may dramatically reduce performance, if multiple test classes are executed.
  * The cache will hold imported classes as long as there is sufficient memory, and reuse them, if the same

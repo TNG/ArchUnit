@@ -1,4 +1,4 @@
-package com.tngtech.archunit.integration.junit4;
+package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,18 +9,19 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.tngtech.archunit.junit.ExpectedRelation;
-import com.tngtech.archunit.junit.MessageAssertionChain;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Iterables.getLast;
 
-class CyclicErrorMatcher implements MessageAssertionChain.Link {
+public class CyclicErrorMatcher implements MessageAssertionChain.Link {
     private final List<String> cycleDescriptions = new ArrayList<>();
     private final Multimap<String, ExpectedRelation> details = LinkedHashMultimap.create();
 
-    static CyclicErrorMatcher cycle() {
+    private CyclicErrorMatcher() {
+    }
+
+    public static CyclicErrorMatcher cycle() {
         return new CyclicErrorMatcher();
     }
 
@@ -42,12 +43,12 @@ class CyclicErrorMatcher implements MessageAssertionChain.Link {
         return result;
     }
 
-    CyclicErrorMatcher from(String sliceName) {
+    public CyclicErrorMatcher from(String sliceName) {
         cycleDescriptions.add(sliceName);
         return this;
     }
 
-    CyclicErrorMatcher by(ExpectedRelation dependency) {
+    public CyclicErrorMatcher by(ExpectedRelation dependency) {
         details.put(getLast(cycleDescriptions), dependency);
         return this;
     }

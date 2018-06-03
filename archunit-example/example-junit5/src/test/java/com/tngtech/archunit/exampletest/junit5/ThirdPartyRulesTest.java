@@ -1,16 +1,15 @@
-package com.tngtech.archunit.exampletest;
+package com.tngtech.archunit.exampletest.junit5;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchCondition;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import com.tngtech.archunit.lang.ArchRule;
+import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -24,21 +23,18 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
-@Category(Example.class)
+@Tag("example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class ThirdPartyRulesTest {
 
-    private final JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassViolatingThirdPartyRules.class);
+    @ArchTest
+    static final ArchRule third_party_class_should_only_be_instantiated_via_workaround =
+            classes().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
+                    .as("not instantiate %s and its subclasses, but instead use %s",
+                            ThirdPartyClassWithProblem.class.getSimpleName(),
+                            ThirdPartyClassWorkaroundFactory.class.getSimpleName()));
 
-    @Test
-    public void third_party_class_should_only_be_instantiated_via_workaround() {
-        classes().should(notCreateProblematicClassesOutsideOfWorkaroundFactory()
-                .as("not instantiate %s and its subclasses, but instead use %s",
-                        ThirdPartyClassWithProblem.class.getSimpleName(),
-                        ThirdPartyClassWorkaroundFactory.class.getSimpleName()))
-                .check(classes);
-    }
-
-    private ArchCondition<JavaClass> notCreateProblematicClassesOutsideOfWorkaroundFactory() {
+    private static ArchCondition<JavaClass> notCreateProblematicClassesOutsideOfWorkaroundFactory() {
         DescribedPredicate<JavaCall<?>> constructorCallOfThirdPartyClass =
                 target(is(constructor())).and(targetOwner(is(assignableTo(ThirdPartyClassWithProblem.class))));
 

@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeSet;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -16,115 +18,121 @@ import com.tngtech.archunit.junit.ExpectedAccess.ExpectedCall;
 import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.ViolationHandler;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Sets.union;
+import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
-class HandlingAssertion implements ExpectsViolations, TestRule {
-    private final Set<ExpectedRelation> expectedFieldAccesses = new HashSet<>();
-    private final Set<ExpectedRelation> expectedMethodCalls = new HashSet<>();
-    private final Set<ExpectedRelation> expectedConstructorCalls = new HashSet<>();
-    private final Set<ExpectedRelation> expectedDependencies = new HashSet<>();
+@SuppressWarnings("Convert2Lambda")
+        // We need the reified type parameter here
+class HandlingAssertion {
+    private final Set<ExpectedRelation> expectedFieldAccesses;
+    private final Set<ExpectedRelation> expectedMethodCalls;
+    private final Set<ExpectedRelation> expectedConstructorCalls;
+    private final Set<ExpectedRelation> expectedDependencies;
 
-    @Override
-    public ExpectsViolations ofRule(String ruleText) {
-        return this;
+    private HandlingAssertion() {
+        this(new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
     }
 
-    @Override
-    public ExpectsViolations by(ExpectedFieldAccess access) {
+    private HandlingAssertion(
+            Set<ExpectedRelation> expectedFieldAccesses,
+            Set<ExpectedRelation> expectedMethodCalls,
+            Set<ExpectedRelation> expectedConstructorCalls,
+            Set<ExpectedRelation> expectedDependencies) {
+
+        this.expectedFieldAccesses = expectedFieldAccesses;
+        this.expectedMethodCalls = expectedMethodCalls;
+        this.expectedConstructorCalls = expectedConstructorCalls;
+        this.expectedDependencies = expectedDependencies;
+    }
+
+    void by(ExpectedFieldAccess access) {
         expectedFieldAccesses.add(access);
-        return this;
     }
 
-    @Override
-    public ExpectsViolations by(ExpectedCall call) {
+    void by(ExpectedCall call) {
         if (call.isToConstructor()) {
             expectedConstructorCalls.add(call);
         } else {
             expectedMethodCalls.add(call);
         }
-        return this;
     }
 
-    @Override
-    public ExpectsViolations by(ExpectedDependency dependency) {
-        expectedDependencies.add(dependency);
-        return this;
+    void by(ExpectedDependency inheritance) {
+        expectedDependencies.add(inheritance);
     }
 
-    @Override
-    public ExpectsViolations by(MessageAssertionChain.Link assertion) {
-        return this;
-    }
-
-    static HandlingAssertion none() {
+    static HandlingAssertion ofRule() {
         return new HandlingAssertion();
     }
 
-    @Override
-    public Statement apply(Statement base, Description description) {
-        return base;
-    }
-
-    void assertResult(EvaluationResult result) {
-        checkFieldAccesses(result);
-        checkMethodCalls(result);
-        checkConstructorCalls(result);
-        checkCalls(result);
-        checkAccesses(result);
-        checkDependencies(result);
+    Result evaluate(EvaluationResult evaluationResult) {
+        Result result = new Result();
+        result.addAll(evaluateFieldAccesses(evaluationResult));
+        result.addAll(evaluateMethodCalls(evaluationResult));
+        result.addAll(evaluateConstructorCalls(evaluationResult));
+        result.addAll(evaluateCalls(evaluationResult));
+        result.addAll(evaluateAccesses(evaluationResult));
+        result.addAll(evaluateDependencies(evaluationResult));
+        return result;
     }
 
     // Too bad Java erases types, otherwise a lot of boilerplate could be avoided here :-(
     // This way we must write explicitly ViolationHandler<ConcreteType> or the bound wont work correctly
-    private void checkFieldAccesses(EvaluationResult result) {
+    private Set<String> evaluateFieldAccesses(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<>(this.expectedFieldAccesses);
         result.handleViolations(new ViolationHandler<JavaFieldAccess>() {
             @Override
             public void handle(Collection<JavaFieldAccess> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void checkMethodCalls(EvaluationResult result) {
+    private Set<String> evaluateMethodCalls(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<>(expectedMethodCalls);
         result.handleViolations(new ViolationHandler<JavaMethodCall>() {
             @Override
             public void handle(Collection<JavaMethodCall> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void checkConstructorCalls(EvaluationResult result) {
+    private Set<String> evaluateConstructorCalls(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<>(expectedConstructorCalls);
         result.handleViolations(new ViolationHandler<JavaConstructorCall>() {
             @Override
             public void handle(Collection<JavaConstructorCall> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void checkCalls(EvaluationResult result) {
+    private Set<String> evaluateCalls(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<>(Sets.union(expectedConstructorCalls, expectedMethodCalls));
         result.handleViolations(new ViolationHandler<JavaCall<?>>() {
             @Override
             public void handle(Collection<JavaCall<?>> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void checkAccesses(EvaluationResult result) {
+    private Set<String> evaluateAccesses(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<ExpectedRelation>() {
             {
                 addAll(expectedConstructorCalls);
@@ -135,40 +143,57 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
         result.handleViolations(new ViolationHandler<JavaAccess<?>>() {
             @Override
             public void handle(Collection<JavaAccess<?>> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void checkDependencies(EvaluationResult result) {
+    private Set<String> evaluateDependencies(EvaluationResult result) {
+        Set<String> errorMessages = new HashSet<>();
         final Set<ExpectedRelation> left = new HashSet<>(expectedDependencies);
         result.handleViolations(new ViolationHandler<Dependency>() {
             @Override
             public void handle(Collection<Dependency> violatingObjects, String message) {
-                removeExpectedAccesses(violatingObjects, left);
+                errorMessages.addAll(removeExpectedAccesses(violatingObjects, left));
             }
         });
-        checkEmpty(left);
+        return union(errorMessages, errorMessagesFrom(left));
     }
 
-    private void removeExpectedAccesses(Collection<?> violatingObjects, Set<? extends ExpectedRelation> left) {
+    private Set<String> removeExpectedAccesses(Collection<?> violatingObjects, Set<? extends ExpectedRelation> left) {
         Object violatingObject = getOnlyElement(violatingObjects);
         for (Iterator<? extends ExpectedRelation> actualMethodCalls = left.iterator(); actualMethodCalls.hasNext(); ) {
             ExpectedRelation next = actualMethodCalls.next();
             if (next.correspondsTo(violatingObject)) {
                 actualMethodCalls.remove();
-                return;
+                return emptySet();
             }
         }
-        // NOTE: Don't throw AssertionError, since that will be caught and analyzed
-        throw new RuntimeException("Unexpected access: " + violatingObject);
+        return singleton("Unexpected access: " + violatingObject);
     }
 
-    private void checkEmpty(Set<?> set) {
-        if (!set.isEmpty()) {
-            // NOTE: Don't throw AssertionError, since that will be caught and analyzed
-            throw new RuntimeException("Unhandled accesses: " + set);
+    private Set<String> errorMessagesFrom(Set<?> set) {
+        return set.stream().map(Object::toString).map(m -> "Violation not handled: " + m).collect(toSet());
+    }
+
+    HandlingAssertion copy() {
+        return new HandlingAssertion(expectedFieldAccesses, expectedMethodCalls, expectedConstructorCalls, expectedDependencies);
+    }
+
+    static class Result {
+        private final Set<String> errorMessages = new TreeSet<>();
+
+        boolean isSuccess() {
+            return errorMessages.isEmpty();
+        }
+
+        void addAll(Set<String> errorMessages) {
+            this.errorMessages.addAll(errorMessages);
+        }
+
+        String describe() {
+            return Joiner.on(lineSeparator()).join(errorMessages);
         }
     }
 }
