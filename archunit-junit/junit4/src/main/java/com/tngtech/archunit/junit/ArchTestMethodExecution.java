@@ -30,7 +30,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean ignore) {
         super(testClass, ignore);
-        this.testMethod = validatePublicStatic(testMethod);
+        this.testMethod = validateStatic(testMethod);
     }
 
     @Override

@@ -29,11 +29,9 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -126,24 +124,15 @@ public class ClassCacheTest {
         assertThatClasses(classes).dontContain(getClass());
     }
 
-    @DataProvider
-    public static Object[][] illegalLocationProviderClasses() {
-        return $$(
-                $(WrongLocationProviderWithConstructorParam.class),
-                $(WrongLocationProviderWithPrivateConstructor.class)
-        );
-    }
-
     @Test
-    @UseDataProvider("illegalLocationProviderClasses")
-    public void rejects_LocationProviders_without_public_default_constructor(
-            Class<? extends LocationProvider> illegalProviderClass) {
+    public void rejects_LocationProviders_without_default_constructor() {
 
         thrown.expect(ArchTestExecutionException.class);
         thrown.expectMessage("public default constructor");
         thrown.expectMessage(LocationProvider.class.getSimpleName());
 
-        cache.getClassesToAnalyzeFor(illegalProviderClass, analyzeLocation(illegalProviderClass));
+        cache.getClassesToAnalyzeFor(WrongLocationProviderWithConstructorParam.class,
+                analyzeLocation(WrongLocationProviderWithConstructorParam.class));
     }
 
     @Test
@@ -273,16 +262,6 @@ public class ClassCacheTest {
     static class WrongLocationProviderWithConstructorParam implements LocationProvider {
         @SuppressWarnings("unused")
         public WrongLocationProviderWithConstructorParam(String illegalParameter) {
-        }
-
-        @Override
-        public Set<Location> get(Class<?> testClass) {
-            return Collections.emptySet();
-        }
-    }
-
-    static class WrongLocationProviderWithPrivateConstructor implements LocationProvider {
-        private WrongLocationProviderWithPrivateConstructor() {
         }
 
         @Override

@@ -32,22 +32,24 @@ ext {
     guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm               : 'org.ow2.asm:asm:6.1.1',
-            guava             : 'com.google.guava:guava:19.0',
-            slf4j             : 'org.slf4j:slf4j-api:1.7.7',
-            log4j_api         : 'org.apache.logging.log4j:log4j-api:2.1',
-            log4j_core        : 'org.apache.logging.log4j:log4j-core:2.1',
-            log4j_slf4j       : 'org.apache.logging.log4j:log4j-slf4j-impl:2.1',
+            asm                : 'org.ow2.asm:asm:6.1.1',
+            guava              : 'com.google.guava:guava:19.0',
+            slf4j              : 'org.slf4j:slf4j-api:1.7.7',
+            log4j_api          : 'org.apache.logging.log4j:log4j-api:2.1',
+            log4j_core         : 'org.apache.logging.log4j:log4j-core:2.1',
+            log4j_slf4j        : 'org.apache.logging.log4j:log4j-slf4j-impl:2.1',
 
             junit4             : 'junit:junit:4.12',
             junit5VintageEngine: 'org.junit.vintage:junit-vintage-engine:5.2.0',
             junit5JupiterApi   : 'org.junit.jupiter:junit-jupiter-api:5.2.0',
             junit5JupiterEngine: 'org.junit.jupiter:junit-jupiter-engine:5.2.0',
-            hamcrest          : 'org.hamcrest:hamcrest-core:1.3',
-            junit_dataprovider: 'com.tngtech.java:junit-dataprovider:1.11.0',
-            mockito           : 'org.mockito:mockito-core:2.13.0',
-            assertj           : 'org.assertj:assertj-core:2.4.1',
-            assertj_guava     : 'org.assertj:assertj-guava:2.0.0'
+            junitPlatform      : 'org.junit.platform:junit-platform-runner:1.2.0',
+            junitPlatformEngine: 'org.junit.platform:junit-platform-engine:1.2.0',
+            hamcrest           : 'org.hamcrest:hamcrest-core:1.3',
+            junit_dataprovider : 'com.tngtech.java:junit-dataprovider:1.11.0',
+            mockito            : 'org.mockito:mockito-core:2.13.0',
+            assertj            : 'org.assertj:assertj-core:2.4.1',
+            assertj_guava      : 'org.assertj:assertj-guava:2.0.0'
     ]
 
     postfixedJar = { File jarFile, String postfix ->

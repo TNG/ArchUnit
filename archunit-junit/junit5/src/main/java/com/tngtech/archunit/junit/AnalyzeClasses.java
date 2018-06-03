@@ -18,6 +18,7 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -26,6 +27,7 @@ import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import org.junit.platform.commons.annotation.Testable;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -46,6 +48,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Testable
 @Target(TYPE)
 @Retention(RUNTIME)
+@PublicAPI(usage = ACCESS)
 public @interface AnalyzeClasses {
     /**
      * @return Packages to look for within the classpath / modulepath

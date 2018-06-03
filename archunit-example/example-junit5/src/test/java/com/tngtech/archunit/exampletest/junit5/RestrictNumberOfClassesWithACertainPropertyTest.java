@@ -17,6 +17,5 @@ public class RestrictNumberOfClassesWithACertainPropertyTest {
     static final ArchRule no_new_classes_should_implement_SomeBusinessInterface =
             classes().that().implement(SomeBusinessInterface.class)
                     .should().containNumberOfElements(lessThanOrEqualTo(1))
-                    .because("from now on new classes should implement "
-                            + SomeOtherBusinessInterface.class.getName());
+                    .because("from now on new classes should implement " + SomeOtherBusinessInterface.class.getName());
 }

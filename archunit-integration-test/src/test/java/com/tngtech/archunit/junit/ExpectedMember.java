@@ -1,7 +1,6 @@
 package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
 abstract class ExpectedMember {
@@ -64,7 +64,7 @@ abstract class ExpectedMember {
     private List<String> getParameters(Object member) {
         return member instanceof HasParameterTypes ?
                 ((HasParameterTypes) member).getParameters().getNames() :
-                Collections.<String>emptyList();
+                emptyList();
     }
 
     static class ExpectedOrigin extends ExpectedMember {

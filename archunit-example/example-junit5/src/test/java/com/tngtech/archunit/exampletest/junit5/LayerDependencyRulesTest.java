@@ -10,7 +10,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @Tag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
-class LayerDependencyRulesTest {
+public class LayerDependencyRulesTest {
 
     @ArchTest
     static final ArchRule services_should_not_access_controllers =

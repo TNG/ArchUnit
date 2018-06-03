@@ -39,7 +39,7 @@ import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 import static java.lang.reflect.Modifier.isStatic;
 
-public class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
+class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
     private final Class<?> testClass;
     private ClassCache classCache;
 

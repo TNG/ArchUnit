@@ -21,35 +21,23 @@ import com.google.common.base.Splitter;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.junit.ExpectedAccess.ExpectedCall;
 import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsConsecutiveLines;
 import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
 import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
 import static java.lang.System.lineSeparator;
+import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
 
-public class ExpectedViolation implements TestRule, ExpectsViolations {
-    private final MessageAssertionChain assertionChain = new MessageAssertionChain();
+public class ExpectedViolation {
+    private final MessageAssertionChain assertionChain;
 
-    private ExpectedViolation() {
-    }
+    private ExpectedViolation(String ruleText) {
+        this(new MessageAssertionChain());
 
-    @Override
-    public Statement apply(Statement base, Description description) {
-        return new ExpectedViolationStatement(base);
-    }
-
-    public static ExpectedViolation none() {
-        return new ExpectedViolation();
-    }
-
-    @Override
-    public ExpectedViolation ofRule(String ruleText) {
         LinkedList<String> ruleLines = new LinkedList<>(Splitter.on(lineSeparator()).splitToList(ruleText));
         checkArgument(!ruleLines.isEmpty(), "Rule text may not be empty");
         if (ruleLines.size() == 1) {
@@ -57,7 +45,14 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
         } else {
             addMultiLineRuleAssertion(ruleLines);
         }
-        return this;
+    }
+
+    private ExpectedViolation(MessageAssertionChain assertionChain) {
+        this.assertionChain = checkNotNull(assertionChain);
+    }
+
+    static ExpectedViolation ofRule(String ruleText) {
+        return new ExpectedViolation(ruleText);
     }
 
     private void addSingleLineRuleAssertion(String ruleText) {
@@ -67,27 +62,37 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
 
     private void addMultiLineRuleAssertion(LinkedList<String> ruleLines) {
         assertionChain.add(matchesLine(String.format(
-                "Architecture Violation .* Rule '%s", quote(ruleLines.pollFirst()))));
-        assertionChain.add(matchesLine(String.format("%s' was violated.*", quote(ruleLines.pollLast()))));
+                "Architecture Violation .* Rule '%s", quote(requireNonNull(ruleLines.pollFirst())))));
+        assertionChain.add(matchesLine(String.format("%s' was violated.*", quote(requireNonNull(ruleLines.pollLast())))));
         assertionChain.add(containsConsecutiveLines(ruleLines));
     }
 
-    @Override
-    public ExpectedViolation by(ExpectedFieldAccess access) {
+    void by(ExpectedFieldAccess access) {
         access.associateLines(toAssertionChain());
-        return this;
     }
 
-    @Override
-    public ExpectedViolation by(ExpectedCall call) {
+    void by(ExpectedCall call) {
         call.associateLines(toAssertionChain());
-        return this;
     }
 
-    @Override
-    public ExpectsViolations by(ExpectedDependency dependency) {
+    void by(ExpectedDependency dependency) {
         dependency.associateLines(toAssertionChain());
-        return this;
+    }
+
+    void by(MessageAssertionChain.Link assertion) {
+        assertionChain.add(assertion);
+    }
+
+    ViolationComparisonResult evaluate(AssertionError error) {
+        return assertionChain.evaluate(error);
+    }
+
+    ExpectedViolation copy() {
+        return new ExpectedViolation(assertionChain.copy());
+    }
+
+    String describe() {
+        return assertionChain.toString();
     }
 
     private ExpectedRelation.LineAssociation toAssertionChain() {
@@ -102,12 +107,6 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
                 assertionChain.add(containsLine(string));
             }
         };
-    }
-
-    @Override
-    public ExpectedViolation by(MessageAssertionChain.Link assertion) {
-        assertionChain.add(assertion);
-        return this;
     }
 
     public static PackageAssertionCreator javaPackageOf(Class<?> clazz) {
@@ -152,30 +151,6 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
 
         public MessageAssertionChain.Link beingAnInterface() {
             return containsLine("class %s is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
-        }
-    }
-
-    private class ExpectedViolationStatement extends Statement {
-        private final Statement base;
-
-        private ExpectedViolationStatement(Statement base) {
-            this.base = base;
-        }
-
-        @Override
-        public void evaluate() throws Throwable {
-            try {
-                base.evaluate();
-                throw new NoExpectedViolationException(assertionChain);
-            } catch (AssertionError assertionError) {
-                assertionChain.evaluate(assertionError);
-            }
-        }
-    }
-
-    private static class NoExpectedViolationException extends RuntimeException {
-        private NoExpectedViolationException(MessageAssertionChain assertionChain) {
-            super("Rule was not violated in the expected way: Expected " + assertionChain);
         }
     }
 }

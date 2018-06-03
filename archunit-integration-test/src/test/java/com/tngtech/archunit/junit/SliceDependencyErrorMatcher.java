@@ -1,4 +1,4 @@
-package com.tngtech.archunit.integration.junit4;
+package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,26 +7,24 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.junit.ExpectedAccess;
-import com.tngtech.archunit.junit.MessageAssertionChain;
 
-class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
+public class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
     private String dependencyDescription;
     private final Set<ExpectedAccess> expectedAccesses = new HashSet<>();
 
-    static SliceDependencyErrorMatcher sliceDependency() {
+    public static SliceDependencyErrorMatcher sliceDependency() {
         return new SliceDependencyErrorMatcher();
     }
 
     private SliceDependencyErrorMatcher() {
     }
 
-    SliceDependencyErrorMatcher described(String description) {
+    public SliceDependencyErrorMatcher described(String description) {
         dependencyDescription = description;
         return this;
     }
 
-    SliceDependencyErrorMatcher by(ExpectedAccess expectedAccess) {
+    public SliceDependencyErrorMatcher by(ExpectedAccess expectedAccess) {
         expectedAccesses.add(expectedAccess);
         return this;
     }

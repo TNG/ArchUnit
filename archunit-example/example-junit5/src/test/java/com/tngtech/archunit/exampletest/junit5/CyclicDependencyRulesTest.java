@@ -13,7 +13,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 @Tag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example.cycle")
-class CyclicDependencyRulesTest {
+public class CyclicDependencyRulesTest {
 
     @ArchTest
     static final ArchRule no_cycles_by_method_calls_between_slices =
@@ -45,7 +45,9 @@ class CyclicDependencyRulesTest {
 
     @ArchTest
     static final ArchRule no_cycles_in_complex_scenario_with_custom_ignore =
-            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles()
+            slices().matching("..(complexcycles).(*)..").namingSlices("$2 of $1")
+                    .as("Slices of complex scenario ignoring some violations")
+                    .should().beFreeOfCycles()
                     .ignoreDependency(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, ClassCallingConstructorInSliceFive.class)
                     .ignoreDependency(resideInAPackage("..slice4.."), alwaysTrue());
 }

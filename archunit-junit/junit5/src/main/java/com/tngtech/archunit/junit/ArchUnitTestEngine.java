@@ -26,7 +26,7 @@ import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 /**
  * A simple test engine to discover and execute ArchUnit tests with JUnit 5. In particular the engine
  * uses a {@link ClassCache} to avoid the costly import process as much as possible.
- * <br/><br/>
+ * <br><br>
  * Mark classes to be executed by the {@link ArchUnitTestEngine} with {@link AnalyzeClasses @AnalyzeClasses} and
  * rule fields or methods with {@link ArchTest @ArchTest}. Example:
  * <pre><code>
@@ -38,7 +38,7 @@ import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
  * </code></pre>
  */
 @Internal
-public class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
+public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
     @Override

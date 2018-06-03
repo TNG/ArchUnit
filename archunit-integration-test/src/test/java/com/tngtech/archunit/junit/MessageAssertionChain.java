@@ -1,26 +1,11 @@
-/*
- * Copyright 2017 TNG Technology Consulting GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.tngtech.archunit.junit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -32,7 +17,15 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
 
 public class MessageAssertionChain {
-    private final List<Link> links = new ArrayList<>();
+    private final List<Link> links;
+
+    MessageAssertionChain() {
+        this(new ArrayList<>());
+    }
+
+    private MessageAssertionChain(List<Link> links) {
+        this.links = links;
+    }
 
     void add(Link link) {
         links.add(link);
@@ -120,7 +113,7 @@ public class MessageAssertionChain {
                                 expectedLines.get(i), checkLine != null ? "'" + checkLine + "'" : "<empty>"));
                     }
                 }
-                return Optional.absent();
+                return Optional.empty();
             }
 
             @Override
@@ -130,26 +123,30 @@ public class MessageAssertionChain {
         };
     }
 
-    void evaluate(AssertionError error) {
+    ViolationComparisonResult evaluate(AssertionError error) {
         List<String> remainingLines = Splitter.on(lineSeparator()).splitToList(error.getMessage());
         for (Link link : links) {
             Link.Result result = link.filterMatching(remainingLines);
             if (!result.matches) {
-                throw new AssertionError(createErrorMessage(link, result));
+                return ViolationComparisonResult.failure(createErrorMessage(link, result));
             }
             remainingLines = result.remainingLines;
         }
-        if (!remainingLines.isEmpty()) {
-            throw new AssertionError("Unexpected message lines: " + remainingLines);
-        }
+        return !remainingLines.isEmpty()
+                ? ViolationComparisonResult.failure("Unexpected message lines: " + remainingLines)
+                : ViolationComparisonResult.success();
     }
 
     private String createErrorMessage(Link link, Link.Result result) {
         String message = "Expected: " + link.getDescription();
-        String mismatchDescription = result.mismatchDescription
-                .or("The following lines were unexpected: " + result.remainingLines);
+        String mismatchDescription = result.getMismatchDescription()
+                .orElse("The following lines were unexpected: " + result.remainingLines);
         message += lineSeparator() + "But: " + mismatchDescription;
         return message;
+    }
+
+    MessageAssertionChain copy() {
+        return new MessageAssertionChain(links);
     }
 
     @Internal
@@ -162,7 +159,7 @@ public class MessageAssertionChain {
         class Result {
             private final boolean matches;
             private final List<String> remainingLines;
-            private final Optional<String> mismatchDescription;
+            private final String mismatchDescription;
 
             static Result success(List<String> remainingLines) {
                 return new Result(true, remainingLines);
@@ -177,17 +174,13 @@ public class MessageAssertionChain {
             }
 
             public Result(boolean matches, List<String> remainingLines) {
-                this(matches, remainingLines, Optional.<String>absent());
+                this(matches, remainingLines, null);
             }
 
             public Result(boolean matches, List<String> remainingLines, String mismatchDescription) {
-                this(matches, remainingLines, Optional.of(mismatchDescription));
-            }
-
-            private Result(boolean matches, List<String> remainingLines, Optional<String> mismatchDescription) {
-                this.mismatchDescription = mismatchDescription;
                 this.matches = matches;
                 this.remainingLines = remainingLines;
+                this.mismatchDescription = mismatchDescription;
             }
 
             static List<String> difference(List<String> list, String toSubtract) {
@@ -200,38 +193,37 @@ public class MessageAssertionChain {
                 return result;
             }
 
+            Optional<String> getMismatchDescription() {
+                return Optional.ofNullable(mismatchDescription);
+            }
+
             @Internal
             public static class Builder {
                 private final List<Link> subLinks = new ArrayList<>();
 
-                public Builder containsLine(String line) {
+                Builder containsLine(String line) {
                     subLinks.add(MessageAssertionChain.containsLine(line));
                     return this;
                 }
 
-                public Builder matchesLine(String pattern) {
+                Builder matchesLine(String pattern) {
                     subLinks.add(MessageAssertionChain.matchesLine(pattern));
                     return this;
                 }
 
-                public Result build(List<String> lines) {
+                Result build(List<String> lines) {
                     boolean matches = true;
                     List<String> remainingLines = new ArrayList<>(lines);
-                    Optional<String> mismatchDescription = Optional.absent();
+                    StringBuilder mismatchDescription = new StringBuilder();
                     for (Link link : subLinks) {
                         Result result = link.filterMatching(remainingLines);
                         matches = matches && result.matches;
                         remainingLines = result.remainingLines;
-                        mismatchDescription = append(mismatchDescription, result.mismatchDescription);
+                        mismatchDescription.append(result.getMismatchDescription()
+                                .map(d -> lineSeparator() + d)
+                                .orElse(""));
                     }
-                    return new Result(matches, remainingLines, mismatchDescription);
-                }
-
-                private Optional<String> append(Optional<String> description, Optional<String> part) {
-                    if (!description.isPresent() || !part.isPresent()) {
-                        return description.or(part);
-                    }
-                    return Optional.of(description.get() + lineSeparator() + part.get());
+                    return new Result(matches, remainingLines, mismatchDescription.toString());
                 }
             }
         }

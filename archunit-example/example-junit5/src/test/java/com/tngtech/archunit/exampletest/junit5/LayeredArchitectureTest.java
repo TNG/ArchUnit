@@ -11,7 +11,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @Tag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
-class LayeredArchitectureTest {
+public class LayeredArchitectureTest {
     @ArchTest
     static final ArchRule layer_dependencies_are_respected = layeredArchitecture()
 

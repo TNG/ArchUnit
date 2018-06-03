@@ -12,7 +12,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @Tag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
-class NamingConventionTest {
+public class NamingConventionTest {
 
     @ArchTest
     static ArchRule services_should_be_prefixed =

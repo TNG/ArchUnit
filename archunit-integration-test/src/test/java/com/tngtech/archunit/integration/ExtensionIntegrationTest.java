@@ -1,29 +1,27 @@
-package com.tngtech.archunit.integration.junit4;
+package com.tngtech.archunit.integration;
 
 import java.util.Map;
 import java.util.Objects;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
 import com.tngtech.archunit.exampletest.extension.EvaluatedRuleEvent;
 import com.tngtech.archunit.exampletest.extension.ExampleExtension;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.assertj.core.api.Condition;
-import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packagesOf = ClassViolatingCodingRules.class)
 public class ExtensionIntegrationTest {
-    @ArchTest
-    public static void evaluation_results_are_dispatched_to_extensions(JavaClasses classes) {
+    private final JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassViolatingCodingRules.class);
+
+    @Test
+    public void evaluation_results_are_dispatched_to_extensions() {
         ExampleExtension.reset();
         try {
             ArchConfiguration.get().configureExtension(ExampleExtension.UNIQUE_IDENTIFIER)
@@ -46,8 +44,8 @@ public class ExtensionIntegrationTest {
         }
     }
 
-    @ArchTest
-    public static void evaluation_results_are_only_dispatched_to_enabled_extensions(JavaClasses classes) {
+    @Test
+    public void evaluation_results_are_only_dispatched_to_enabled_extensions() {
         ExampleExtension.reset();
         try {
             ArchConfiguration.get().configureExtension(ExampleExtension.UNIQUE_IDENTIFIER)
