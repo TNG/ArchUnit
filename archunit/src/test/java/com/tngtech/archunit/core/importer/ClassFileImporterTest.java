@@ -1616,7 +1616,7 @@ public class ClassFileImporterTest {
     @Test
     public void imports_urls_of_jars() throws IOException {
         Set<URL> urls = newHashSet(urlOf(Test.class), urlOf(RunWith.class));
-        assumeTrue("We can't completely ensure, that this will always be taken from a JAR file, though it's very likely",
+        assumeTrue("We can't completely ensure that this will always be taken from a JAR file, though it's very likely",
                 "jar".equals(urls.iterator().next().getProtocol()));
 
         JavaClasses classes = new ClassFileImporter().importUrls(urls)

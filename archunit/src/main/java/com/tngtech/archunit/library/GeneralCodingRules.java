@@ -20,6 +20,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
@@ -42,10 +43,22 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+/**
+ * When checking these rules, it is always important to remember that all necessary classes need to be
+ * imported. E.g. if {@link #ACCESS_STANDARD_STREAMS} is checked, which looks for calls on classes
+ * assignable to {@link Throwable}, it is important to ensure that {@link Exception} and {@link RuntimeException}
+ * are imported as well, otherwise ArchUnit does not know about the inheritance structure of these exceptions,
+ * and thus will not consider a call of {@link RuntimeException} a violation, since it does not know that
+ * {@link RuntimeException} extends {@link Throwable}.
+ * For further information refer to {@link ClassFileImporter}.
+ */
 public final class GeneralCodingRules {
     private GeneralCodingRules() {
     }
 
+    /**
+     * For information about checking this condition, refer to {@link GeneralCodingRules}.
+     */
     @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> ACCESS_STANDARD_STREAMS = accessStandardStreams();
 
@@ -66,11 +79,16 @@ public final class GeneralCodingRules {
      * <li>Writing to the console cannot be configured in production</li>
      * <li>Writing to the console is synchronized and can lead to bottle necks</li>
      * </ul>
+     *
+     * For information about checking this rule, refer to {@link GeneralCodingRules}.
      */
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS =
             noClasses().should(ACCESS_STANDARD_STREAMS);
 
+    /**
+     * For information about checking this condition, refer to {@link GeneralCodingRules}.
+     */
     @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> THROW_GENERIC_EXCEPTIONS = throwGenericExceptions();
 
@@ -90,11 +108,16 @@ public final class GeneralCodingRules {
     /**
      * It is generally good practice to throw specific exceptions like {@link java.lang.IllegalArgumentException}
      * or custom exceptions, instead of throwing generic exceptions like {@link java.lang.RuntimeException}.
+     * <br>
+     * For information about checking this rule, refer to {@link GeneralCodingRules}.
      */
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS =
             noClasses().should(THROW_GENERIC_EXCEPTIONS);
 
+    /**
+     * For information about checking this condition, refer to {@link GeneralCodingRules}.
+     */
     @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
             setFieldWhere(resideInAPackage("java.util.logging..")
@@ -104,6 +127,8 @@ public final class GeneralCodingRules {
     /**
      * Most projects use the more powerful LOG4J or Logback instead of java.util.logging, often hidden behind
      * SLF4J. In this case it's important to ensure consistent use of the agreed logging framework.
+     * <br>
+     * For information about checking this rule, refer to {@link GeneralCodingRules}.
      */
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING =

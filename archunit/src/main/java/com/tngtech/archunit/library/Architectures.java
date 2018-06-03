@@ -81,7 +81,7 @@ public final class Architectures {
      * {@link LayeredArchitecture LayeredArchitecture} only supports the white list way, because it prevents detours "outside of
      * the architecture", e.g.<br>
      * 'Persistence' --&gt; 'my.application.somehelper' --&gt; 'Business Logic'<br>
-     * The white list way enforces, that every class that wants to interact with classes inside of
+     * The white list way enforces that every class that wants to interact with classes inside of
      * the layered architecture must be part of the layered architecture itself and thus adhere to the same rules.
      *
      * @return An {@link ArchRule} enforcing the specified layered architecture

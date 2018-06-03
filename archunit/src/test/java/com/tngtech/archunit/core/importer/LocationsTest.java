@@ -63,7 +63,7 @@ public class LocationsTest {
 
         for (ClassFileLocation classFileLocation : source) {
             try (InputStream ignored = classFileLocation.openStream()) {
-                // we only care, that we can open the stream
+                // we only care that we can open the stream
             }
         }
 
@@ -113,7 +113,7 @@ public class LocationsTest {
         return result;
     }
 
-    private URI resolvedUri(Class<?> base, String part) throws Exception {
+    private URI resolvedUri(Class<?> base, String part) {
         String urlAsString = urlOfClass(base).toExternalForm();
         String baseResourcePart = '/' + base.getName().replace('.', '/');
         String resolved = urlAsString.substring(0, urlAsString.lastIndexOf(baseResourcePart)) + part;

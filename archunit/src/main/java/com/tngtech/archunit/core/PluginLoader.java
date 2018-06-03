@@ -76,7 +76,7 @@ public class PluginLoader<T> {
             return fallback;
         }
 
-        @SuppressWarnings("unchecked") // We explicitly check, that the loaded class is assignable to T (i.e. pluginType)
+        @SuppressWarnings("unchecked") // We explicitly check that the loaded class is assignable to T (i.e. pluginType)
         @MayResolveTypesViaReflection(reason = "This only resolves ArchUnit's own classes, it's not dependent on any project classpath")
         private T create(String className) {
             try {
