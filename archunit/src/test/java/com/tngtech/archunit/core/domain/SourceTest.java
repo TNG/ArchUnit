@@ -142,7 +142,7 @@ public class SourceTest {
 
         assertThat(Md5sum.of("any".getBytes())).isEqualTo(Md5sum.DISABLED);
 
-        // NOTE: This tests, that URIs are note resolved, which costs performance, if it would be resolved, we would get UNDETERMINED
+        // NOTE: This tests that URIs are note resolved, which costs performance, if it would be resolved, we would get UNDETERMINED
         assertThat(new Source(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
     }
 

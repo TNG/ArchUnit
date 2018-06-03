@@ -44,10 +44,10 @@ import static com.tngtech.archunit.junit.ArchTestExecution.elementShouldBeIgnore
  * </p>
  * Example:
  * <pre><code>
- * {@literal @}RunWith(ArchUnitRunner.class)
- * {@literal @}AnalyzeClasses(packages = "com.example")
+ *{@literal @}RunWith(ArchUnitRunner.class)
+ *{@literal @}AnalyzeClasses(packages = "com.example")
  * public class SomeArchTest {
- *     {@literal @}ArchTest
+ *    {@literal @}ArchTest
  *     public static final ArchRule some_rule = //...
  * }
  * </code></pre>

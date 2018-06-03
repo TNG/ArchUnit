@@ -27,7 +27,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A {@link ClassResolver}, that tries to locate missing dependencies on the classpath.
+ * A {@link ClassResolver} that tries to locate missing dependencies on the classpath.
  * I.e. uses {@link Class#getResource(String)} to find the {@link URI} of the classfile for the missing
  * type, then uses the supplied {@link ClassResolver.ClassUriImporter} to import the type.
  */

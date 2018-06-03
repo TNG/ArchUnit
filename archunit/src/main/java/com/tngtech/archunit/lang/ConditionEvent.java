@@ -65,7 +65,7 @@ public interface ConditionEvent {
     void handleWith(Handler handler);
 
     /**
-     * Handles the data of a {@link ConditionEvent}, that is the corresponding objects and the description
+     * Handles the data of a {@link ConditionEvent} that is the corresponding objects and the description
      * (compare {@link #handleWith(Handler)}).<br>
      * As an example, this could be a single element of type {@link JavaMethodCall} together with a description, like
      * <p>

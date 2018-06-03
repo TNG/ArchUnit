@@ -25,14 +25,14 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
  * Will be evaluated for every class location, to determine if the class should be imported.<br><br>
- * <b>IMPORTANT</b>: For things like caching to work, it's important, that the behavior of any implementation
+ * <b>IMPORTANT</b>: For things like caching to work, it's important that the behavior of any implementation
  * is constant, i.e. throughout the whole run of a test suite, for any {@link Location} x, the result of
  * <code>importOption.includes(x)</code> must return the same value on consecutive calls for EVERY instance
  * of the custom implementation of {@link ImportOption}.<br>
  * In other words, if you for example create a custom implementation of {@link ImportOption},
  * where you look at some test specific file, if a certain class should be imported, this will
  * cause wrong caching (i.e. the second run will assume, the classes are already cached, because it can't
- * be determined, that the {@link ImportOption} would choose different classes to be selected for this run)
+ * be determined that the {@link ImportOption} would choose different classes to be selected for this run)
  */
 @PublicAPI(usage = INHERITANCE)
 public interface ImportOption {

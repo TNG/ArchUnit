@@ -32,8 +32,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <br><br>
  * To ignore certain classes (e.g. classes in test scope) see {@link #importOptions()}, in particular {@link DontIncludeTests} and
  * {@link DontIncludeJars}.
+ * <br><br>
+ * When checking rules, it is important to remember that all relevant information/classes need to be imported for the rules
+ * to work. For example, if class A accesses class B and class B extends class C, but class B is not imported, then
+ * a rule checking for no accesses to classes assignable to C will not fail, since ArchUnit does not know about the details
+ * of class B, but only simple information like the fully qualified name. For information how to configure the import and
+ * resolution behavior of missing classes, compare {@link ClassFileImporter}.
  *
  * @see ArchUnitRunner
+ * @see ClassFileImporter
  */
 @Target(TYPE)
 @Retention(RUNTIME)

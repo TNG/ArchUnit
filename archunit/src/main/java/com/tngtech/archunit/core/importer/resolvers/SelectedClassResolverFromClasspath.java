@@ -26,7 +26,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
- * Only resolves classes from classpath, that are beneath the configured {@link #packageRoots}. E.g. useful,
+ * Only resolves classes from classpath that are beneath the configured {@link #packageRoots}. E.g. useful,
  * if one wants to import com.my.app.foo, but resolve all dependencies to com.my.app, but not to java.util..
  * or similar.
  *
