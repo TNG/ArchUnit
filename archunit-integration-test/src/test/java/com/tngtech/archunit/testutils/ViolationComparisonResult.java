@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 class ViolationComparisonResult {
     private final String message;

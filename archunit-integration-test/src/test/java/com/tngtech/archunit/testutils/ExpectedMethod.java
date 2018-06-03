@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 

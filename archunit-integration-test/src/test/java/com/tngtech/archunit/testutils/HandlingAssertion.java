@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -14,10 +14,10 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedCall;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.ViolationHandler;
+import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedCall;
+import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedFieldAccess;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;

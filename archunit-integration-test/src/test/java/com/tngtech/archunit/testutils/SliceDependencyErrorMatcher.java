@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import java.util.ArrayList;
 import java.util.HashSet;

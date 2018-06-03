@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import com.google.common.collect.Iterables;
 import com.tngtech.archunit.Internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.tngtech.archunit.junit.MessageAssertionChain.Link.Result.difference;
+import static com.tngtech.archunit.testutils.MessageAssertionChain.Link.Result.difference;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
 

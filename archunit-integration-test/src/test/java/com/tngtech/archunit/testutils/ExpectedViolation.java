@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import java.util.LinkedList;
 
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedCall;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
+import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedCall;
+import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedFieldAccess;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.junit.MessageAssertionChain.containsConsecutiveLines;
-import static com.tngtech.archunit.junit.MessageAssertionChain.containsLine;
-import static com.tngtech.archunit.junit.MessageAssertionChain.matchesLine;
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
@@ -56,15 +53,15 @@ public class ExpectedViolation {
     }
 
     private void addSingleLineRuleAssertion(String ruleText) {
-        assertionChain.add(matchesLine(String.format(
+        assertionChain.add(MessageAssertionChain.matchesLine(String.format(
                 "Architecture Violation .* Rule '%s' was violated.*", quote(ruleText))));
     }
 
     private void addMultiLineRuleAssertion(LinkedList<String> ruleLines) {
-        assertionChain.add(matchesLine(String.format(
+        assertionChain.add(MessageAssertionChain.matchesLine(String.format(
                 "Architecture Violation .* Rule '%s", quote(requireNonNull(ruleLines.pollFirst())))));
-        assertionChain.add(matchesLine(String.format("%s' was violated.*", quote(requireNonNull(ruleLines.pollLast())))));
-        assertionChain.add(containsConsecutiveLines(ruleLines));
+        assertionChain.add(MessageAssertionChain.matchesLine(String.format("%s' was violated.*", quote(requireNonNull(ruleLines.pollLast())))));
+        assertionChain.add(MessageAssertionChain.containsConsecutiveLines(ruleLines));
     }
 
     void by(ExpectedFieldAccess access) {
@@ -99,12 +96,12 @@ public class ExpectedViolation {
         return new ExpectedRelation.LineAssociation() {
             @Override
             public void associateIfPatternMatches(String pattern) {
-                assertionChain.add(matchesLine(pattern));
+                assertionChain.add(MessageAssertionChain.matchesLine(pattern));
             }
 
             @Override
             public void associateIfStringIsContained(String string) {
-                assertionChain.add(containsLine(string));
+                assertionChain.add(MessageAssertionChain.containsLine(string));
             }
         };
     }
@@ -122,7 +119,7 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return containsLine("class %s doesn't reside in a package '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("class %s doesn't reside in a package '%s' in (%s.java:0)",
                     clazz.getName(), packageIdentifier, clazz.getSimpleName());
         }
     }
@@ -140,17 +137,17 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link havingNameMatching(String regex) {
-            return containsLine("class %s matches '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("class %s matches '%s' in (%s.java:0)",
                     clazz.getName(), regex, clazz.getSimpleName());
         }
 
         public MessageAssertionChain.Link havingSimpleNameContaining(String infix) {
-            return containsLine("simple name of %s contains '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("simple name of %s contains '%s' in (%s.java:0)",
                     clazz.getName(), infix, clazz.getSimpleName());
         }
 
         public MessageAssertionChain.Link beingAnInterface() {
-            return containsLine("class %s is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
+            return MessageAssertionChain.containsLine("class %s is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
         }
     }
 }
