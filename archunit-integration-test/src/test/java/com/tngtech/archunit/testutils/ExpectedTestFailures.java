@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.junit.ExpectedAccess.ExpectedFieldAccess;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.platform.runner.JUnitPlatform;
@@ -53,7 +52,7 @@ public class ExpectedTestFailures {
         return this;
     }
 
-    public ExpectedTestFailures by(ExpectedFieldAccess access) {
+    public ExpectedTestFailures by(ExpectedAccess.ExpectedFieldAccess access) {
         expectedViolations.getLast().by(access);
         return this;
     }
@@ -336,7 +335,7 @@ public class ExpectedTestFailures {
             return failurePredicate.test(failure);
         }
 
-        void by(ExpectedFieldAccess access) {
+        void by(ExpectedAccess.ExpectedFieldAccess access) {
             expectedViolation.by(access);
             handlingAssertion.by(access);
         }

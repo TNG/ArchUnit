@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 public class ExpectedLocation {
     public static Creator javaClass(Class<?> clazz) {

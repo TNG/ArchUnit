@@ -1,14 +1,14 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.testutils;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.junit.ExpectedMember.ExpectedConstructorTarget;
-import com.tngtech.archunit.junit.ExpectedMember.ExpectedFieldTarget;
-import com.tngtech.archunit.junit.ExpectedMember.ExpectedMethodTarget;
-import com.tngtech.archunit.junit.ExpectedMember.ExpectedOrigin;
-import com.tngtech.archunit.junit.ExpectedMember.ExpectedTarget;
+import com.tngtech.archunit.testutils.ExpectedMember.ExpectedConstructorTarget;
+import com.tngtech.archunit.testutils.ExpectedMember.ExpectedFieldTarget;
+import com.tngtech.archunit.testutils.ExpectedMember.ExpectedMethodTarget;
+import com.tngtech.archunit.testutils.ExpectedMember.ExpectedOrigin;
+import com.tngtech.archunit.testutils.ExpectedMember.ExpectedTarget;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
