@@ -38,7 +38,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,7 +79,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     @Test
-    public void should_find_children_in_rule_set() throws Exception {
+    public void should_find_children_in_rule_set() {
         assertThat(runnerForRuleSet.getChildren()).as("Rules defined in Test Class").hasSize(2);
         assertThat(runnerForRuleSet.getChildren())
                 .extracting(resultOf("describeSelf"))
@@ -88,7 +88,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     @Test
-    public void should_find_children_in_rule_library() throws Exception {
+    public void should_find_children_in_rule_library() {
         assertThat(runnerForRuleLibrary.getChildren()).as("Rules defined in Library").hasSize(3);
         assertThat(runnerForRuleLibrary.getChildren())
                 .extracting(resultOf("describeSelf"))
@@ -97,13 +97,20 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     @Test
-    public void can_run_rule_field() throws Exception {
+    public void can_run_rule_field() {
         run(someFieldRuleName, runnerForRuleSet, verifyTestRan());
     }
 
     @Test
-    public void can_run_rule_method() throws Exception {
+    public void can_run_rule_method() {
         run(someMethodRuleName, runnerForRuleSet, verifyTestRan());
+    }
+
+    @Test
+    public void describes_nested_rules_within_their_declaring_class() {
+        for (ArchTestExecution execution : runnerForRuleSet.getChildren()) {
+            assertThat(execution.describeSelf().getTestClass()).isEqualTo(Rules.class);
+        }
     }
 
     @Test
