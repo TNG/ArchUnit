@@ -169,17 +169,17 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         }
     }
 
-    private class ExecutionTransformer implements ArchRuleDeclaration.Handler {
+    private static class ExecutionTransformer implements ArchRuleDeclaration.Handler {
         private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
 
         @Override
         public void handleFieldDeclaration(Field field, boolean ignore) {
-            executions.add(new ArchRuleExecution(getTestClass().getJavaClass(), field, ignore));
+            executions.add(new ArchRuleExecution(field.getDeclaringClass(), field, ignore));
         }
 
         @Override
         public void handleMethodDeclaration(Method method, boolean ignore) {
-            executions.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), method, ignore));
+            executions.add(new ArchTestMethodExecution(method.getDeclaringClass(), method, ignore));
         }
 
         Set<ArchTestExecution> getExecutions() {
