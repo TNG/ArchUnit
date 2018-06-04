@@ -68,8 +68,8 @@ public class TestResultTest {
 
         private Set<SingleTest> getTestsIn(Class<?> clazz) {
             Set<SingleTest> result = new HashSet<>();
-            result.addAll(getTestMethods(ImmutableSet.copyOf(clazz.getMethods())));
-            result.addAll(getTestFields(ImmutableSet.copyOf(clazz.getFields())));
+            result.addAll(getTestMethods(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
+            result.addAll(getTestFields(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             return result;
         }
 
@@ -133,7 +133,7 @@ public class TestResultTest {
             final Path root = fileFromResource("/").toPath();
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String fileName = file.getFileName().toString();
                     if (fileName.endsWith("Test.class") && !fileName.contains(TestResultTest.class.getSimpleName())) {
                         String resolvedClassFile = root.relativize(file).toString();
@@ -196,7 +196,20 @@ public class TestResultTest {
         }
 
         void assertMatchWith(GivenTestClasses givenTestClasses) {
-            assertThat(failedArchitectureTests).isEqualTo(givenTestClasses.tests);
+            Set<SingleTest> onlyGiven = difference(givenTestClasses.tests, failedArchitectureTests);
+            assertThat(onlyGiven).as("Tests that were expected to fail, but didn't").isEmpty();
+            Set<SingleTest> onlyFailed = difference(failedArchitectureTests, givenTestClasses.tests);
+            assertThat(onlyFailed).as("Tests that unexpectedly failed").isEmpty();
+        }
+
+        private <T> Set<T> difference(Set<T> set, Set<T> toSubtract) {
+            Set<T> result = new HashSet<>();
+            for (T elem : set) {
+                if (!toSubtract.contains(elem)) {
+                    result.add(elem);
+                }
+            }
+            return result;
         }
 
         void markProcessed(List<File> testReports) {
