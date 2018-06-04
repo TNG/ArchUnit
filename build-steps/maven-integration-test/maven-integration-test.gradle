@@ -75,8 +75,12 @@ def addMavenTest = { config ->
                                         .replace('#{extraCompilerArgs}', config.extraCompilerArgs ?: '')
 
                 copy {
-                    from new File(project(':archunit-example').projectDir, 'src')
-                    into mavenSrc
+                    from new File(new File(project(':archunit-example:example-plain').projectDir, 'src'), 'main')
+                    into new File(mavenSrc, 'main')
+                }
+                copy {
+                    from new File(new File(project(':archunit-example:example-junit4').projectDir, 'src'), 'test')
+                    into new File(mavenSrc, 'test')
                 }
                 copy {
                     from verificationTestPath

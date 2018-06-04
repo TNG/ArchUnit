@@ -20,7 +20,7 @@
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <groups>com.tngtech.archunit.exampletest.Example</groups>
+                            <groups>com.tngtech.archunit.exampletest.junit4.Example</groups>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
-            <artifactId>archunit-junit</artifactId>
+            <artifactId>archunit-junit4</artifactId>
             <version>#{archunit.version}</version>
             <scope>test</scope>
         </dependency>
