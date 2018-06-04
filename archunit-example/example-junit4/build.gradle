@@ -3,13 +3,12 @@ ext.moduleName = 'com.tngtech.archunit.example.junit4'
 dependencies {
     testCompile project(path: ':archunit-junit4')
     testCompile project(path: ':archunit-example:example-plain')
-    testCompile project(path: ':archunit-example:example-plain', configuration: 'tests')
 }
 
 test {
     if (!project.hasProperty('example')) {
         useJUnit {
-            excludeCategories 'com.tngtech.archunit.exampletest.Example'
+            excludeCategories 'com.tngtech.archunit.exampletest.junit4.Example'
         }
     }
 }

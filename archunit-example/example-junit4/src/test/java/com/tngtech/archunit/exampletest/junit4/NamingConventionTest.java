@@ -3,7 +3,6 @@ package com.tngtech.archunit.exampletest.junit4;
 import com.tngtech.archunit.example.AbstractController;
 import com.tngtech.archunit.example.MyController;
 import com.tngtech.archunit.example.MyService;
-import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
