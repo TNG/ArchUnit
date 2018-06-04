@@ -2,7 +2,6 @@ package com.tngtech.archunit.exampletest.junit4;
 
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.example.SomeOtherBusinessInterface;
-import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;

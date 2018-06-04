@@ -5,7 +5,6 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
-import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;

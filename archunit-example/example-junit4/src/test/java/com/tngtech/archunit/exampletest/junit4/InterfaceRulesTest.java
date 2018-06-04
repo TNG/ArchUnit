@@ -8,7 +8,6 @@ import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.example.persistence.first.dao.SomeDao;
 import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
-import com.tngtech.archunit.exampletest.Example;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
