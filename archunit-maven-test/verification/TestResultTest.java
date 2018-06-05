@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +24,7 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import static com.tngtech.archunit.thirdparty.com.google.common.base.Preconditions.checkState;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joox.JOOX.$;
 
@@ -105,14 +105,16 @@ public class TestResultTest {
 
         private Set<SingleTest> getTestsFrom(ArchRules archRules) {
             Set<SingleTest> result = new HashSet<>();
-            result.addAll(getTestFields(this.<Field>getValue(archRules, "fields")));
-            result.addAll(getTestMethods(this.<Method>getValue(archRules, "methods")));
+            Class<?> definitionLocation = getValue("definitionLocation", archRules);
+            result.addAll(getTestFields(asList(definitionLocation.getDeclaredFields())));
+            result.addAll(getTestMethods(asList(definitionLocation.getDeclaredMethods())));
             return result;
         }
 
-        private <T> Collection<T> getValue(ArchRules archRules, String name) {
+        @SuppressWarnings("unchecked")
+        private <T> T getValue(String fieldName, Object owner) {
             try {
-                return getValue(ArchRules.class.getDeclaredField(name), archRules);
+                return getValue(owner.getClass().getDeclaredField(fieldName), owner);
             } catch (NoSuchFieldException e) {
                 throw new RuntimeException(e);
             }
