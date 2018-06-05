@@ -16,6 +16,8 @@ dependencies {
     testCompile dependency.mockito
     testCompile dependency.junit5JupiterApi
     testCompile dependency.junitPlatformEngine
+
+    testRuntime dependency.junit5JupiterEngine
 }
 
 configureSlowTestsFor this

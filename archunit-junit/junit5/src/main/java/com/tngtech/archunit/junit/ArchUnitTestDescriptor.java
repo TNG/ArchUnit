@@ -33,6 +33,7 @@ import org.junit.platform.engine.support.descriptor.MethodSource;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
+import static com.tngtech.archunit.junit.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
@@ -218,7 +219,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         }
 
         void forEachDeclaration(Consumer<ArchRuleDeclaration<?>> doWithDeclaration) {
-            rules.asDeclarations(testClass, false).forEach(doWithDeclaration);
+            toDeclarations(rules, testClass, false).forEach(doWithDeclaration);
         }
     }
 

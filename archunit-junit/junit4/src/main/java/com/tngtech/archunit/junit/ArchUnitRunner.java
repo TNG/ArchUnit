@@ -39,6 +39,7 @@ import org.junit.runners.model.Statement;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
+import static com.tngtech.archunit.junit.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.ArchTestExecution.validateStatic;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 
@@ -119,7 +120,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private Set<ArchTestExecution> asTestExecutions(ArchRules archRules, boolean forceIgnore) {
         ExecutionTransformer executionTransformer = new ExecutionTransformer();
-        for (ArchRuleDeclaration<?> declaration : archRules.asDeclarations(getTestClass().getJavaClass(), forceIgnore)) {
+        for (ArchRuleDeclaration<?> declaration : toDeclarations(archRules, getTestClass().getJavaClass(), forceIgnore)) {
             declaration.handleWith(executionTransformer);
         }
         return executionTransformer.getExecutions();
