@@ -802,4 +802,38 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeInterfaces();
+
+    /**
+     * Asserts that the rule matches exactly the given class.
+     *
+     * @param clazz the only class the should be matched
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction be(Class<?> clazz);
+
+    /**
+     * Asserts that the rule does not match the given class.
+     *
+     * @param clazz the class that should not be matched
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBe(Class<?> clazz);
+
+    /**
+     * Asserts that the rule matches exactly the class with the given fully qualified class name.
+     *
+     * @param className the name of the only class that should be matched.
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction be(String className);
+
+    /**
+     * Asserts that the rule does not match the class with the given fully qualified class name.
+     *
+     * @param className the name of the class that should not be matched.
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    ClassesShouldConjunction notBe(String className);
 }
