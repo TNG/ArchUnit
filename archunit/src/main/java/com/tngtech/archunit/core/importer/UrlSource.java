@@ -87,7 +87,7 @@ interface UrlSource extends Iterable<URL> {
         }
 
         private static Optional<URL> newFileUri(String path) {
-            path = path.endsWith("/") || path.endsWith(".class") ? path : path + "/";
+            path = path.endsWith(File.separator) || path.endsWith(".class") ? path : path + File.separator;
             try {
                 return Optional.of(Paths.get(path).toUri().toURL());
             } catch (MalformedURLException e) {
