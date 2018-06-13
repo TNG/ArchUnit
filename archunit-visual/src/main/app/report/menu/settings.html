@@ -15,31 +15,4 @@
   </div>
 </template>
 
-<script>
-  (function () {
-    const webComponents = require('web-component-infrastructure');
-    let circleFontSizeInput;
-    let circlePaddingInput;
-    let onChanged;
-
-    webComponents.defineCustomElement('visualization-settings', class extends HTMLElement {
-      postConnected() {
-        circleFontSizeInput = this.shadowRoot.querySelector('#circleFontSize');
-        circlePaddingInput = this.shadowRoot.querySelector('#circlePadding');
-
-        const onOneValueChanged = () => onChanged(circleFontSizeInput.value, circlePaddingInput.value);
-        circleFontSizeInput.oninput = onOneValueChanged;
-        circlePaddingInput.oninput = onOneValueChanged;
-      }
-
-      initialize(settingsInit) {
-        circleFontSizeInput.value = settingsInit.initialCircleFontSize;
-        circlePaddingInput.value = settingsInit.initialCirclePadding;
-      }
-
-      onSettingsChanged(newOnChanged) {
-        onChanged = newOnChanged;
-      }
-    });
-  })();
-</script>
+<script src="/settings.js"></script>

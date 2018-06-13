@@ -13,7 +13,7 @@ const noOpStyler = {
 // The ShadyCSS Polyfill doesn't work out of the box, we have to activate it, if the Polyfill is present
 const styler = window.ShadyCSS ? shadyCssStyler : noOpStyler;
 
-module.exports.defineCustomElement = function (tagName, elementClass) {
+export function defineCustomElement(tagName, elementClass) {
   const templateId = `#${tagName}-template`;
   const template = document.currentScript.ownerDocument.querySelector(templateId);
   if (!template) {
