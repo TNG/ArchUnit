@@ -96,5 +96,4 @@ const Vector = class {
 const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
 const zeroVector = new Vector(0, 0);
 
-module.exports.Vector = Vector;
-module.exports.vectors = vectors;
+export {Vector, vectors};

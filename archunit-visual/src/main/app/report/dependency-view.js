@@ -1,7 +1,7 @@
 'use strict';
 
-const d3 = require('d3');
 const clickAreaWidth = 10;
+import * as d3 from 'd3';
 
 const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
   return selection
@@ -102,6 +102,4 @@ const init = (DetailedView, transitionDuration) => {
   return View;
 };
 
-module.exports.init = (DetailedView, transitionDuration) => ({
-  View: init(DetailedView, transitionDuration)
-});
+export default {init};

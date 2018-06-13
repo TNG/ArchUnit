@@ -1,8 +1,8 @@
 'use strict';
 
-const d3 = require('d3');
+import * as d3 from 'd3';
 
-module.exports.newInstance = () => {
+const newInstance = () => {
   const CIRCLE_TEXT_PADDING = 5;
   const MIN_NODE_RADIUS = 40;
 
@@ -105,3 +105,5 @@ module.exports.newInstance = () => {
     runSimulations
   };
 };
+
+export default {newInstance};

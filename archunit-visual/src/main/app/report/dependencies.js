@@ -2,7 +2,7 @@
 
 const dependencyTypes = require('./dependency-types.json');
 const nodeTypes = require('./node-types.json');
-const initDependency = require('./dependency.js').init;
+import initDependency from './dependency.js';
 
 const init = (View) => {
 
@@ -399,6 +399,4 @@ const init = (View) => {
   return Dependencies;
 };
 
-module.exports.init = (View) => ({
-  Dependencies: init(View)
-});
+export default {init};

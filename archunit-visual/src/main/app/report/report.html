@@ -3,11 +3,11 @@
 <head>
   <meta charset='UTF-8'>
   <title>Visualization</title>
-  <link rel='stylesheet' href='styles.css'>
-  <link id='visualization-styles' rel='stylesheet' href='visualizationstyles.css'>
+  <link rel='stylesheet' href='styless.css'>
 
   <script src='webcomponents-loader.js'></script>
-  <script src='visualization-bundle.js'></script>
+  <script src='web-component-infrastructure.js'></script>
+  <script src='d3.js'></script>
 
   <link rel='import' href='menu.html'>
   <link rel='import' href='violation-menu.html'>
@@ -37,24 +37,7 @@
   <text></text>
 </svg>
 
-<script>
-  const visualization = require('visualization');
+<script src='report-bundle.js'></script>
 
-  const webComponentsInitialized = new Promise(resolve => {
-    window.addEventListener('WebComponentsReady', function () {
-      resolve();
-    });
-  });
-
-  Promise.all([
-    visualization.createGraph(visualization.d3.select('#visualization').node(), true),
-    webComponentsInitialized
-  ]).then(results => {
-    const graph = results[0];
-    graph.attachToMenu(document.querySelector('#menu'));
-    graph.attachToViolationMenu(document.querySelector('#violations'));
-    document.body.onresize = graph.render;
-  });
-</script>
 </body>
 </html>

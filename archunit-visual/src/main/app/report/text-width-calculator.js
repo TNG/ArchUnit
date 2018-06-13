@@ -1,9 +1,9 @@
 'use strict';
 
-const guiElements = require('./gui-elements');
+import {getTextSizeComputationSvg} from './gui-elements';
 
-module.exports = (text, cssClassOfText) => {
-  const textSvg = guiElements.textSizeComputationSvg();
+const calculateTextWidth = (text, cssClassOfText) => {
+  const textSvg = getTextSizeComputationSvg();
   const textElement = textSvg.select('text');
   if (cssClassOfText) {
     textElement.attr('class', cssClassOfText)
@@ -15,3 +15,5 @@ module.exports = (text, cssClassOfText) => {
   }
   return width;
 };
+
+export default calculateTextWidth;

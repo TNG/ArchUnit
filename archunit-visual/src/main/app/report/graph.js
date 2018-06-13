@@ -79,7 +79,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   };
 };
 
-module.exports.create = (appContext, resources, svgElement, foldAllNodes) => new Promise((resolve, reject) => {
+export default (appContext, resources, svgElement, foldAllNodes) => new Promise((resolve, reject) => {
   const Graph = init(appContext.getRoot(), appContext.getDependencies(),
     appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 

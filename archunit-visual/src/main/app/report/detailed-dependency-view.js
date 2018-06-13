@@ -1,7 +1,7 @@
 'use strict';
 
-const d3 = require('d3');
 const textPadding = 5;
+import * as d3 from 'd3';
 
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
@@ -141,6 +141,4 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
   return View;
 };
 
-module.exports.init = (appearDuration, hideDuration, textPadding, calculateTextWidth, visualizationStyles) => ({
-  View: init(appearDuration, hideDuration, textPadding, calculateTextWidth, visualizationStyles)
-});
+export default {init};

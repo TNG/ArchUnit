@@ -3,15 +3,27 @@
 /*
  * Some poor man's DI solution...
  */
+
+import visualizationFunctions from './visualization-functions';
+import nodeText from './node-text';
+import tree from './tree';
+import dependencies from './dependencies';
+import textWidthCalculator from './text-width-calculator';
+import visualizationStyles from './visualization-styles';
+import nodeView from './node-view';
+import detailedDependencyView from './detailed-dependency-view';
+import dependencyView from './dependency-view';
+import graphView from './graph-view';
+
 const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles) => {
 
-  const getVisualizationFunctions = () => require('./visualization-functions').newInstance();
+  const getVisualizationFunctions = () => visualizationFunctions.newInstance();
 
-  const getNodeText = () => require('./node-text').init(getVisualizationStyles());
+  const getNodeText = () => nodeText.init(getVisualizationStyles());
 
-  const getRoot = () => require('./tree').init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles()).Root;
+  const getRoot = () => tree.init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
 
-  const getDependencies = () => require('./dependencies').init(getDependencyView()).Dependencies;
+  const getDependencies = () => dependencies.init(getDependencyView());
 
   return {
     getVisualizationStyles,
@@ -23,15 +35,17 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
 const TRANSITION_DURATION = 1000;
 
-module.exports.newInstance = overrides => {
-  overrides = overrides || {};
+export default {
+  newInstance: overrides => {
+    overrides = overrides || {};
 
-  const getCalculateTextWidth = () => overrides.calculateTextWidth || require('./text-width-calculator');
-  const getVisualizationStyles = () => overrides.visualizationStyles || require('./visualization-styles').fromEmbeddedStyleSheet();
-  const getNodeView = () => overrides.NodeView || require('./node-view').init(TRANSITION_DURATION).View;
-  const getDetailedDependencyView = () => overrides.DetailedDependencyView || require('./detailed-dependency-view').init(TRANSITION_DURATION, getCalculateTextWidth(), getVisualizationStyles()).View;
-  const getDependencyView = () => overrides.DependencyView || require('./dependency-view').init(getDetailedDependencyView(), TRANSITION_DURATION).View;
-  const getGraphView = () => overrides.GraphView || require('./graph-view').init(TRANSITION_DURATION).View;
+    const getCalculateTextWidth = () => overrides.calculateTextWidth || textWidthCalculator;
+    const getVisualizationStyles = () => overrides.visualizationStyles || visualizationStyles.fromEmbeddedStyleSheet();
+    const getNodeView = () => overrides.NodeView || nodeView.init(TRANSITION_DURATION);
+    const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(TRANSITION_DURATION, getCalculateTextWidth(), getVisualizationStyles());
+    const getDependencyView = () => overrides.DependencyView || dependencyView.init(getDetailedDependencyView(), TRANSITION_DURATION);
+    const getGraphView = () => overrides.GraphView || graphView.init(TRANSITION_DURATION);
 
-  return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles);
+    return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles);
+  }
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-const d3 = require('d3');
+import * as d3 from 'd3';
 
 const loadJsonResource = fileName => new Promise((resolve, reject) => {
   d3.json(fileName, function (error, json) {
@@ -11,12 +11,10 @@ const loadJsonResource = fileName => new Promise((resolve, reject) => {
   });
 });
 
-const getClassesToVisualize = () => loadJsonResource('80/classes.json');
-const getViolations = () => loadJsonResource('80/violations.json');
+const getClassesToVisualize = () => loadJsonResource('classes.json');
+const getViolations = () => loadJsonResource('violations.json');
 
 const getJsonResources = () => getClassesToVisualize().then(jsonRoot =>
   getViolations().then(violations => Promise.resolve({jsonRoot, violations})));
 
-module.exports = {
-  getJsonResources
-};
+export default {getJsonResources};

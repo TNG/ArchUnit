@@ -1,7 +1,6 @@
 'use strict';
 
-const Vector = require('./vectors').Vector;
-const vectors = require('./vectors').vectors;
+import {Vector, vectors} from './vectors';
 
 const Circle = class extends Vector {
   constructor(x, y, r) {
@@ -176,6 +175,4 @@ const NodeCircle = class {
   }
 };
 
-module.exports.NodeCircle = NodeCircle;
-module.exports.ZeroCircle = ZeroCircle;
-module.exports.Circle = Circle;
+export {NodeCircle, ZeroCircle, Circle};

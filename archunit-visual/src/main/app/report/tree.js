@@ -1,10 +1,10 @@
 'use strict';
 
-const predicates = require('./predicates');
+import predicates from './predicates';
+import {vectors} from './vectors';
+import {NodeCircle, ZeroCircle} from './circles';
+
 const nodeTypes = require('./node-types.json');
-const vectors = require('./vectors').vectors;
-const ZeroCircle = require('./circles').ZeroCircle;
-const NodeCircle = require('./circles').NodeCircle;
 
 let layer = 0;
 
@@ -524,6 +524,4 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return Root;
 };
 
-module.exports.init = (View, NodeText, visualizationFunctions, visualizationStyles) => ({
-  Root: init(View, NodeText, visualizationFunctions, visualizationStyles)
-});
+export default {init};

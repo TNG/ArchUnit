@@ -2,8 +2,8 @@
 
 const dependencyTypes = require('./dependency-types.json');
 
-const vectors = require('./vectors.js').vectors;
-const Vector = require('./vectors.js').Vector;
+import {Vector, vectors} from './vectors';
+
 const OVERLAP_DELTA = 0.1;
 
 const init = (View, nodeMap) => {
@@ -356,4 +356,4 @@ const init = (View, nodeMap) => {
   };
 };
 
-module.exports.init = (View, nodeMap) => init(View, nodeMap);
+export default init;
