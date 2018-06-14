@@ -75,6 +75,16 @@ task eslint(type: NpmTask, dependsOn: 'setupNode') {
     args = ['run', 'lint']
 }
 
+task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'eslint']) {
+    executable = 'npm'
+    args = ['run', 'createJsBundle']
+}
+
+task inlinehtml(type: Exec, dependsOn: 'webpack') {
+    executable = 'npm'
+    args = ['run', 'inlineHtml']
+}
+
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
 
 task createReportDir {
@@ -89,22 +99,6 @@ task copyStatic(type: Copy, dependsOn: createReportDir) {
     into reportOutputDir
 }
 
-task copyJsLibs(type: Copy, dependsOn: createReportDir) {
-    from 'node_modules/d3/build'
-    from 'node_modules/@webcomponents/webcomponentsjs'
-    include 'd3.js'
-    include 'webcomponents-*.js'
-    into "${reportOutputDir}/lib"
-}
-
-task browserify(type: NodeTask, dependsOn: ['setupNode', 'createReportDir', 'eslint']) {
-    script = file('./node_modules/browserify/bin/cmd.js')
-    args = [
-            '-r', './src/main/app/report/visualization.js:visualization',
-            '-r', './src/main/app/report/web-component-infrastructure.js:web-component-infrastructure',
-            '-o', "${reportOutputDir}/visualization-bundle.js"]
-}
-
-task buildReport(dependsOn: ['copyStatic', 'copyJsLibs', 'mocha', 'eslint', 'browserify']) {}
+task buildReport(dependsOn: ['copyStatic', 'mocha', 'eslint', 'webpack', 'inlinehtml']) {}
 
 assemble.dependsOn buildReport
