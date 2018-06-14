@@ -86,7 +86,6 @@ const findFile = (path, fileToFind) => {
 
 const readTagsFromHtml = (htmlContent, regex, attr, filePath) => {
   return getAllMatches(htmlContent, regex).map(match => ({
-    startIndex: match.index,
     tagString: match[0],
     referredFile: findFile(filePath, getAttributeValue(match[0], attr))
   }));
@@ -96,10 +95,18 @@ const readTagsFromHtml = (htmlContent, regex, attr, filePath) => {
 const HtmlFile = class {
   constructor(fileName, config, defaultConfig) {
     this.fileName = fileName;
+    this._createOutputFileName(config, defaultConfig);
     this._content = fs.readFileSync(this.fileName);
     this._styleSheets = readTagsFromHtml(this._content, createRegexForStyleSheet(), fileMarkerForLink, config.stylesheetPath || defaultConfig.stylesheetPath);
     this._scripts = readTagsFromHtml(this._content, createRegexForScript(), fileMarkerForScript, config.scriptPath || defaultConfig.scriptPath);
     this._htmlPages = readTagsFromHtml(this._content, createRegexForWebcomponent(), fileMarkerForLink, config.htmlPath || defaultConfig.htmlPath);
+  }
+
+  _createOutputFileName(config, defaultConfig) {
+    const start = this.fileName.lastIndexOf('/') + 1;
+    const path = config.outputPath || defaultConfig.outputPath;
+    const simpleFileName = this.fileName.substring(start);
+    this.outputFileName = [path, simpleFileName].filter(e => e).join('/');
   }
 };
 
@@ -128,9 +135,48 @@ const sortFilesTopologically = files => {
   return res;
 };
 
+const replaceTagInFile = (htmlFile, tag, referredFileContent, open, close) => {
+  const tagIndex = htmlFile._content.indexOf(tag.tagString);
+  htmlFile._content = htmlFile._content.slice(0, tagIndex)
+    + open
+    + referredFileContent
+    + close
+    + htmlFile._content.slice(tagIndex + tag.tagString.length);
+};
+
+const replaceCSSOrJsTagInFile = (htmlFile, tag, open, close) => {
+  const referredFileContent = fs.readFileSync(tag.referredFile);
+  replaceTagInFile(htmlFile, tag, referredFileContent, open, close);
+};
+
+const replaceHtmlTagInFile = (htmlFile, tag, fileMap) => {
+  let referredFileContent;
+  if (fileMap.has(tag.referredFile)) {
+    referredFileContent = fileMap.get(tag.referredFile)._content;
+  }
+  else {
+    let referredFileContent = fs.readFileSync(tag.referredFile);
+  }
+  replaceTagInFile(htmlFile, tag, referredFileContent, '', '');
+};
+
 const inlineToHtml = () => {
   const sortedFiles = sortFilesTopologically(parseAllFiles());
+  const fileMap = new Map(sortedFiles.map(file => [file.fileName, file]));
+  sortedFiles.forEach(file => {
+    file._styleSheets.forEach(styleSheetTag => replaceCSSOrJsTagInFile(file, styleSheetTag, '<style>', '</style>'));
+    file._scripts.forEach(scriptTag => replaceCSSOrJsTagInFile(file, scriptTag, '<script>', '</script>'));
+    file._htmlPages.forEach(htmlTag => replaceHtmlTagInFile(file, htmlTag, fileMap));
+  });
 
+  sortedFiles.forEach(file => {
+    fs.writeFile(file.outputFileName, file._content, err => {
+      if (err) {
+        throw err;
+      }
+      console.log(`Writing ${file.outputFileName}`);
+    });
+  })
 };
 
 inlineToHtml();
