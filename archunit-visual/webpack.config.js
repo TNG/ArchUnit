@@ -1,9 +1,8 @@
 const path = require('path');
 
 const srcPath = './src/main/app/report/';
-const buildPath = 'build/resources/main/com/tngtech/archunit/visual/report';
 
-module.exports = {
+module.exports = env => ({
   optimization: {
     splitChunks: {
       cacheGroups: {
@@ -38,7 +37,7 @@ module.exports = {
   output: {
     filename: '[name].js',
     chunkFilename: '[name].js',
-    path: path.resolve(__dirname, buildPath)
+    path: path.resolve(__dirname, env.buildPath)
   },
   module: {
     rules: [
@@ -50,7 +49,6 @@ module.exports = {
         ],
         include: /visualizationstyles.css/
       },
-      //TODO: is this necessary?
       {
         test: /.css$/,
         use: [
@@ -61,6 +59,8 @@ module.exports = {
       }
     ]
   }
-};
+});
 
 //TODO: delete inlined files in the build-dir
+
+//TODO: change watch-js package.json

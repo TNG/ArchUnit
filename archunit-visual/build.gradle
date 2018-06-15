@@ -77,22 +77,22 @@ task eslint(type: Exec, dependsOn: 'setupNode') {
     args = ['run', 'lint']
 }
 
-task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'eslint']) {
-    executable = 'npm'
-    args = ['run', 'createJsBundle']
-}
-
-task inlinehtml(type: Exec, dependsOn: 'webpack') {
-    executable = 'npm'
-    args = ['run', 'inlineHtml']
-}
-
 def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
 
 task createReportDir {
     doFirst {
         file(reportOutputDir).mkdirs()
     }
+}
+
+task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'eslint']) {
+    executable = 'npm'
+    args = ['run', 'createJsBundle', '--', '--env.buildPath=' + reportOutputDir]
+}
+
+task inlinehtml(type: Exec, dependsOn: 'webpack') {
+    executable = 'npm'
+    args = ['run', 'inlineHtml']
 }
 
 task deleteJsBundles(type: Delete, dependsOn: 'inlinehtml') {
