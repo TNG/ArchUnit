@@ -1,11 +1,13 @@
 'use strict';
 
-const expect = require('chai').expect;
+import chai from 'chai';
+import visualizationFunctionsFactory from '../../../main/app/report/visualization-functions';
+import {Vector} from '../../../main/app/report/vectors';
 
-const visualizationFunctionsFactory = require('./main-files').get('visualization-functions');
+const expect = chai.expect;
+
 const visualizationFunctions = visualizationFunctionsFactory.newInstance(() => () => 1);
 const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
-const Vector = require('./main-files').get('vectors').Vector;
 
 const twoElementSubSets = arr => {
   if (arr.length < 2) {

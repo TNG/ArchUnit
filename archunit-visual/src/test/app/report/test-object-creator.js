@@ -1,8 +1,10 @@
 'use strict';
 
-const stubs = require('./stubs');
-const testJson = require("./test-json-creator");
-const appContext = require('./main-files').get('app-context').newInstance({
+import stubs from './stubs';
+import testJson from './test-json-creator';
+import AppContext from '../../../main/app/report/app-context';
+
+const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub,
@@ -95,6 +97,4 @@ const classNamesToJson = (classNames) => {
   return mapToJson(jsonAsMap);
 };
 
-module.exports.tree = (...classNames) => {
-  return new Root(classNamesToJson(classNames));
-};
+export default (...classNames) => new Root(classNamesToJson(classNames));

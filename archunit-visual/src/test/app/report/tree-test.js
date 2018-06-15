@@ -1,24 +1,24 @@
 'use strict';
 
-const chai = require('chai');
+import chai from 'chai';
+import generalExtensions from './chai/general-chai-extensions';
+import './chai/node-chai-extensions';
+import {Vector} from '../../../main/app/report/vectors';
+import stubs from './stubs';
+import AppContext from '../../../main/app/report/app-context';
+import testJson from './test-json-creator';
+import testRoot from './test-object-creator';
+
 const expect = chai.expect;
-const generalExtensions = require('./chai/general-chai-extensions');
 chai.use(generalExtensions);
 
-require('./chai/node-chai-extensions');
-const Vector = require('./main-files').get('vectors').Vector;
-
-const stubs = require('./stubs');
-const appContext = require('./main-files').get('app-context').newInstance({
+const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub
 });
 const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Root = appContext.getRoot();
-const testJson = require('./test-json-creator');
-
-const testRoot = require('./test-object-creator').tree;
 
 const MAXIMUM_DELTA = 0.0001;
 

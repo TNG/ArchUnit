@@ -1,20 +1,24 @@
 'use strict';
 
-const expect = require('chai').expect;
-require('./chai/node-chai-extensions');
-require('./chai/dependencies-chai-extension');
+import chai from 'chai';
+import './chai/node-chai-extensions';
+import './chai/dependencies-chai-extension';
 
-const stubs = require('./stubs');
+import stubs from './stubs';
+import testJson from './test-json-creator';
+import AppContext from '../../../main/app/report/app-context';
+import createGraph from '../../../main/app/report/graph';
 
-const testJson = require('./test-json-creator');
-const appContext = require('./main-files').get('app-context').newInstance({
+const expect = chai.expect;
+
+const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub,
   DependencyView: stubs.DependencyViewStub,
   GraphView: stubs.GraphViewStub
 });
-const createGraph = require('./main-files').get('graph').create;
+
 const createResources = (jsonRoot, violations) => ({
   getJsonResources: () => Promise.resolve({jsonRoot, violations})
 });

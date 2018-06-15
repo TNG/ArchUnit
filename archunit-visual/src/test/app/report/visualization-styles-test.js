@@ -1,7 +1,9 @@
 'use strict';
 
-const visualizationStyles = require('./main-files').get('visualization-styles');
-const expect = require('chai').expect;
+import visualizationStyles from '../../../main/app/report/visualization-styles';
+import chai from 'chai';
+
+const expect = chai.expect;
 
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';

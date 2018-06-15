@@ -1,12 +1,12 @@
 'use strict';
 
-const chai = require('chai');
-const expect = chai.expect;
-const generalExtensions = require('./chai/general-chai-extensions');
-chai.use(generalExtensions);
+import chai from 'chai';
+import generalExtensions from './chai/general-chai-extensions';
+import {Vector} from '../../../main/app/report/vectors';
+import {Circle} from '../../../main/app/report/circles';
 
-const Vector = require('./main-files').get('vectors').Vector;
-const Circle = require('./main-files').get('circles').Circle;
+const expect = chai.expect;
+chai.use(generalExtensions);
 
 const MAXIMUM_DELTA = 0.0001;
 

@@ -7,7 +7,7 @@ const changeFullName = (node, path, separator) => {
   }
 };
 
-module.exports = {
+export default {
   package: function (pkgname) {
     const res = {
       fullName: pkgname,

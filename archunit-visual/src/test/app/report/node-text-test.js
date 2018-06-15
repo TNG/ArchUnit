@@ -1,8 +1,14 @@
 'use strict';
 
-const expect = require('chai').expect;
-const visualizationStyles = require('./stubs').visualizationStylesStub();
-const NodeText = require('./main-files').get('node-text').init(visualizationStyles);
+import chai from 'chai';
+import stubs from './stubs';
+import nodeTextFactory from '../../../main/app/report/node-text';
+
+const expect = chai.expect;
+
+const visualizationStyles = stubs.visualizationStylesStub();
+
+const NodeText = nodeTextFactory.init(visualizationStyles);
 
 const withRadius = obj => ({
   withRadius: radius => {

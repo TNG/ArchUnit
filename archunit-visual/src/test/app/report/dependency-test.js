@@ -1,22 +1,26 @@
 'use strict';
 
-const chai = require('chai');
-const expect = chai.expect;
-const generalExtensions = require('./chai/general-chai-extensions');
-chai.use(generalExtensions);
+import chai from 'chai';
+import generalExtensions from './chai/general-chai-extensions';
+import testJson from './test-json-creator';
+import stubs from './stubs';
+import initDependency from '../../../main/app/report/dependency';
+import AppContext from '../../../main/app/report/app-context';
 
-const initDependency = require('./main-files').get('dependency').init;
+const expect = chai.expect;
+
+chai.use(generalExtensions);
 
 const MAXIMUM_DELTA = 0.001;
 const CIRCLE_PADDING = 30;
-const stubs = require('./stubs');
-const appContext = require('./main-files').get('app-context').newInstance({
+
+const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(CIRCLE_PADDING),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub
 });
+
 const Root = appContext.getRoot();
-const testJson = require('./test-json-creator');
 
 const createTreeWithToClasses = () => {
   const jsonRoot = testJson.package('com.tngtech.archunit')

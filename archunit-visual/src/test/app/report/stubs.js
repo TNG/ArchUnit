@@ -114,7 +114,7 @@ const createNodeListenerStub = () => {
   }
 };
 
-module.exports = {
+export default {
   visualizationStylesStub: createVisualizationStylesStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,

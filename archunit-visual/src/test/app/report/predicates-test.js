@@ -1,7 +1,9 @@
 'use strict';
 
-const expect = require('chai').expect;
-const nodePredicates = require('./main-files').get('predicates');
+import chai from 'chai';
+import nodePredicates from '../../../main/app/report/predicates';
+
+const expect = chai.expect;
 
 const testStringContains = (subString) => ({
   against: input => ({
