@@ -8,19 +8,23 @@ module.exports = {
       scriptPath: buildPath,
       stylesheetPath: undefined,
       htmlPath: undefined,
-      outputPath: buildPath
+      outputPath: buildPath,
+      writeOutput: undefined
     },
     reportConfig: {
       stylesheetPath: srcPath,
-      htmlPath: srcPath
+      htmlPath: srcPath,
+      writeOutput: true
     },
     menuConfig: {
       stylesheetPath: `${srcPath}/menu`,
-      htmlPath: `${srcPath}/menu`
+      htmlPath: `${srcPath}/menu`,
+      writeOutput: false
     },
     violationMenuConfig: {
       stylesheetPath: `${srcPath}/violation-menu`,
-      htmlPath: `${srcPath}/violation-menu`
+      htmlPath: `${srcPath}/violation-menu`,
+      writeOutput: false
     }
   },
   files: [

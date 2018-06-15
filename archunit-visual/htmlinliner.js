@@ -91,11 +91,12 @@ const readTagsFromHtml = (htmlContent, regex, attr, filePath) => {
   }));
 };
 
-
+//TODO: check configs!!
 const HtmlFile = class {
   constructor(fileName, config, defaultConfig) {
     this.fileName = fileName;
     this._createOutputFileName(config, defaultConfig);
+    this.writeOutput = config.writeOutput || defaultConfig.writeOutput;
     this._content = fs.readFileSync(this.fileName);
     this._styleSheets = readTagsFromHtml(this._content, createRegexForStyleSheet(), fileMarkerForLink, config.stylesheetPath || defaultConfig.stylesheetPath);
     this._scripts = readTagsFromHtml(this._content, createRegexForScript(), fileMarkerForScript, config.scriptPath || defaultConfig.scriptPath);
@@ -160,6 +161,9 @@ const replaceHtmlTagInFile = (htmlFile, tag, fileMap) => {
   replaceTagInFile(htmlFile, tag, referredFileContent, '', '');
 };
 
+/**
+ * TODO: optimize: files with writeOutput=false that are not referenced by another file should be ignored completely
+ */
 const inlineToHtml = () => {
   const sortedFiles = sortFilesTopologically(parseAllFiles());
   const fileMap = new Map(sortedFiles.map(file => [file.fileName, file]));
@@ -169,7 +173,7 @@ const inlineToHtml = () => {
     file._htmlPages.forEach(htmlTag => replaceHtmlTagInFile(file, htmlTag, fileMap));
   });
 
-  sortedFiles.forEach(file => {
+  sortedFiles.filter(file => file.writeOutput).forEach(file => {
     fs.writeFile(file.outputFileName, file._content, err => {
       if (err) {
         throw err;
