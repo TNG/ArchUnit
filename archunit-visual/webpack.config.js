@@ -1,5 +1,4 @@
 const path = require('path');
-
 const srcPath = './src/main/app/report/';
 
 module.exports = env => ({
@@ -60,7 +59,5 @@ module.exports = env => ({
     ]
   }
 });
-
-//TODO: delete inlined files in the build-dir
 
 //TODO: change watch-js package.json

@@ -1,6 +1,25 @@
 'use strict';
 
-const config = require('./htmlinliner.config');
+const parseEnv = () => {
+  const env = {};
+  const envMarker = '--env.';
+  const separator = '=';
+  process.argv.slice(2).forEach(val => {
+    if (val.startsWith(envMarker)) {
+      const sepPos = val.indexOf(separator);
+      const optionName = val.substring(envMarker.length, sepPos);
+      const optionValue = val.substring(sepPos + 1);
+      env[optionName] = optionValue;
+    }
+  });
+  return env;
+};
+
+let config = require('./htmlinliner.config');
+if (typeof config === 'function') {
+  config = config(parseEnv());
+}
+
 const fs = require('fs');
 
 const noClosingTag = "[^>]*?";

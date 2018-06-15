@@ -1,14 +1,13 @@
 const path = require('path');
-const buildPath = './build/resources/main/com/tngtech/archunit/visual/report';
 const srcPath = './src/main/app/report';
 
-module.exports = {
+module.exports = env => ({
   configs: {
     default: {
-      scriptPath: buildPath,
+      scriptPath: env.buildPath,
       stylesheetPath: undefined,
       htmlPath: undefined,
-      outputPath: buildPath,
+      outputPath: env.buildPath,
       writeOutput: undefined
     },
     reportConfig: {
@@ -63,4 +62,4 @@ module.exports = {
       config: 'violationMenuConfig'
     }
   ]
-};
+});
