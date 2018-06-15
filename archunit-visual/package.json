@@ -6,7 +6,7 @@
     "createJsBundle": "webpack",
     "inlineHtml": "node ./htmlinliner.js",
     "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
-    "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run copyStatic && npm run browserify'",
+    "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run createJsBundle && npm run inlineHtml'",
     "lint": "./node_modules/eslint/bin/eslint.js 'src/**/*.{js,html}'",
     "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/classes/example-report/"
   },
