@@ -3,6 +3,7 @@
 import createGraph from './visualization';
 import * as d3 from 'd3';
 // eslint-disable-next-line no-unused-vars
+import visualizationstyles from './visualizationstyles.css';
 
 const webComponentsInitialized = new Promise(resolve => {
   window.addEventListener('WebComponentsReady', function () {
