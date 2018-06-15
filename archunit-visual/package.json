@@ -5,7 +5,7 @@
   "scripts": {
     "createJsBundle": "webpack",
     "inlineHtml": "node ./htmlinliner.js",
-    "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --reporter spec src/test/app/**/*.js",
+    "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run copyStatic && npm run browserify'",
     "lint": "./node_modules/eslint/bin/eslint.js 'src/**/*.{js,html}'",
     "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/classes/example-report/"
@@ -44,6 +44,10 @@
     }
   },
   "devDependencies": {
+    "babel-plugin-dynamic-import-node": "^1.2.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-register": "^6.26.0",
     "browserify": "^14.3.0",
     "chai": "^3.5.0",
     "css-loader": "^0.28.11",
@@ -51,7 +55,7 @@
     "eslint-plugin-html": "^3.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "http-server": "^0.10.0",
-    "mocha": "^3.4.2",
+    "mocha": "^3.5.3",
     "nodemon": "^1.11.0",
     "style-loader": "^0.21.0",
     "web-webpack-plugin": "^1.10.4",
@@ -60,6 +64,7 @@
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^1.0.1",
+    "babel-polyfill": "^6.26.0",
     "d3": "^4.9.1"
   }
 }
