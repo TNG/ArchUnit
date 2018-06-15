@@ -2,6 +2,7 @@
 
 import createGraph from './visualization';
 import * as d3 from 'd3';
+import visualizationstyles from './visualizationstyles.css';
 
 const webComponentsInitialized = new Promise(resolve => {
   window.addEventListener('WebComponentsReady', function () {
