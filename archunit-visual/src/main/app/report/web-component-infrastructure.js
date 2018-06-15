@@ -35,4 +35,4 @@ export function defineCustomElement(tagName, elementClass) {
     }
   });
   window.customElements.define(tagName, elementClass);
-};
+}

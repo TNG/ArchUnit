@@ -2,7 +2,7 @@
 
 import createGraph from './visualization';
 import * as d3 from 'd3';
-import visualizationstyles from './visualizationstyles.css';
+// eslint-disable-next-line no-unused-vars
 
 const webComponentsInitialized = new Promise(resolve => {
   window.addEventListener('WebComponentsReady', function () {
