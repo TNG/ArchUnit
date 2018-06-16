@@ -85,7 +85,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void rejects_missing_analyze_annotation() throws InitializationError {
-        thrown.expect(ArchUnitTestInitializationException.class);
+        thrown.expect(ArchTestInitializationException.class);
         thrown.expectMessage(Object.class.getSimpleName());
         thrown.expectMessage("must be annotated");
         thrown.expectMessage(AnalyzeClasses.class.getSimpleName());

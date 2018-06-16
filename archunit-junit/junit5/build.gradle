@@ -3,14 +3,41 @@ ext.moduleName = 'com.tngtech.archunit.junit5'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+addApiJarTo this
+apiJar {
+    from project(':archunit-junit').sourceSets.api.output
+}
+
+configurations {
+    engineApi
+    compile.extendsFrom engineApi
+    testCompile.extendsFrom engineApi
+}
+
+sourceSets {
+    engineApi {
+        java {
+            srcDirs = ['src/engine-api/java']
+        }
+        compileClasspath = configurations.engineApi
+    }
+}
+
 dependencies {
-    compile project(path: ':archunit')
-    compile project(path: ':archunit-junit')
+    api project(path: ':archunit-junit', configuration: 'api')
+    api dependency.junitPlatformCommons
+    engineApi dependency.junitPlatformEngine
+    engineApi project(path: ':archunit', configuration: 'shadow')
+
+    compile sourceSets.engineApi.output
+    compile project(path: ':archunit', configuration: 'shadow')
+    compile project(path: ':archunit-junit', configuration: 'shadow')
     compile dependency.guava
     compile dependency.slf4j
     // FIXME: We should not rely on Jupiter!!
     compileOnly dependency.junit5JupiterEngine
 
+    testCompile sourceSets.engineApi.output
     testCompile project(path: ':archunit', configuration: 'tests')
     testCompile dependency.assertj
     testCompile dependency.mockito

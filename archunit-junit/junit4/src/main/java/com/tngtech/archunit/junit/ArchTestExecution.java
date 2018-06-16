@@ -34,7 +34,7 @@ abstract class ArchTestExecution {
     }
 
     static <T extends Member> T validateStatic(T member) {
-        ArchUnitTestInitializationException.check(
+        ArchTestInitializationException.check(
                 Modifier.isStatic(member.getModifiers()),
                 "With @%s annotated members must be static", ArchTest.class.getSimpleName());
         return member;

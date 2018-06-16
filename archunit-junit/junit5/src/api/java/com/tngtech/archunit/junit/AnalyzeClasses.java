@@ -76,7 +76,7 @@ public @interface AnalyzeClasses {
     Class<? extends ImportOption>[] importOptions() default {};
 
     /**
-     * Controls, if the {@link ClassCache} should cache {@link JavaClasses} by location,
+     * Controls, if {@link JavaClasses} should be cached by location,
      * to be reused between several test classes, or just within the same class.
      *
      * @return The {@link CacheMode} to use for this test class.
