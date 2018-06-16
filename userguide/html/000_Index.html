@@ -467,7 +467,7 @@ h4 {
 <li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
 <li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
-    <li><a href="#_using_junit_4_with_kotlin">3.4. Using JUnit 4 with Kotlin</a></li>
+<li><a href="#_using_junit_4_with_kotlin">3.4. Using JUnit 4 with Kotlin</a></li>
 </ul>
 </li>
 <li><a href="#_what_to_check">4. What to Check</a>
@@ -530,7 +530,7 @@ h4 {
 <h2 id="_introduction"><a class="anchor" href="#_introduction"></a>1. Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph">
-    <p><a href="https://archunit.org">ArchUnit</a> is a free, simple and extensible library for checking the
+<p><a href="https://archunit.org">ArchUnit</a> is a free, simple and extensible library for checking the
 architecture of your Java code.
 That is, ArchUnit can check dependencies between packages and classes, layers and slices,
 check for cyclic dependencies and more. It does so by analyzing given Java bytecode,
@@ -592,7 +592,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.1&lt;/version&gt;
+    &lt;version&gt;0.8.2&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -601,7 +601,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit-junit:0.8.1'
+   testCompile 'com.tngtech.archunit:archunit-junit:0.8.2'
 }</code></pre>
 </div>
 </div>
@@ -618,7 +618,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.1&lt;/version&gt;
+    &lt;version&gt;0.8.2&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -627,7 +627,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.8.1'
+   testCompile 'com.tngtech.archunit:archunit:0.8.2'
 }</code></pre>
 </div>
 </div>
@@ -753,14 +753,14 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 <p>For further information on how to use the JUnit 4 support refer to <a href="#_junit_support">JUnit Support</a>.</p>
 </div>
 </div>
-    <div class="sect2">
-        <h3 id="_using_junit_4_with_kotlin"><a class="anchor" href="#_using_junit_4_with_kotlin"></a>3.4. Using JUnit 4 with Kotlin</h3>
-        <div class="paragraph">
-            <p>As Kotlin removed the <code>static</code> keyword from the language, you need to use both a companion object
-                and a Java-specific annotation:</p>
-        </div>
-        <div class="listingblock">
-            <div class="content">
+<div class="sect2">
+<h3 id="_using_junit_4_with_kotlin"><a class="anchor" href="#_using_junit_4_with_kotlin"></a>3.4. Using JUnit 4 with Kotlin</h3>
+<div class="paragraph">
+<p>As Kotlin removed the <code>static</code> keyword from the language, you need to use both a companion object
+and a Java-specific annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class)
 @AnalyzeClasses(packages = ["com.mycompany.myapp"])
 class MyArchitectureTest {
@@ -771,7 +771,7 @@ class MyArchitectureTest {
             .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
     }
 }</code></pre>
-            </div>
+</div>
 </div>
 </div>
 </div>
@@ -1741,8 +1741,8 @@ public class ArchitectureTest {
 so they can be reused be several rules declared within the same class. On the other hand, it
 will cache the classes by location, so a second test, that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
-    soft references, so the classes will be dropped from memory, if the heap runs low.
-    For further information see <a href="#_controlling_the_cache">Controlling the Cache</a>.</p>
+soft references, so the classes will be dropped from memory, if the heap runs low.
+For further information see <a href="#_controlling_the_cache">Controlling the Cache</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1798,33 +1798,33 @@ and then supply the type to <code>@AnalyzeClasses</code>.</p>
 </div>
 </div>
 <div class="sect3">
-    <h4 id="_controlling_the_cache"><a class="anchor" href="#_controlling_the_cache"></a>9.1.3. Controlling the Cache</h4>
-    <div class="paragraph">
-        <p>By default the <code>ArchUnitRunner</code> will cache all classes by location. This means that between different
-            test class runs imported Java classes will be reused, if the exact combination of locations has already
-            been imported.</p>
-    </div>
-    <div class="paragraph">
-        <p>If the heap runs low, and thus the garbage collector has to do a big sweep in one run,
-            this can cause a noticeable delay. On the other hand, if it is known, that no other test class will
-            reuse the imported Java classes, it would make sense to deactivate this cache.</p>
-    </div>
-    <div class="paragraph">
-        <p>This can be achieved by configuring <code>CacheMode.PER_CLASS</code>, e.g.</p>
-    </div>
-    <div class="listingblock">
-        <div class="content">
-            <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packages = "com.myapp.special", cacheMode = CacheMode.PER_CLASS)</code></pre>
-        </div>
-    </div>
-    <div class="paragraph">
-        <p>The Java classes imported during this test run will not be cached by location and just be reused within
-            the same test class. After all tests of this class have been run,
-            the imported Java classes will simply be dropped.</p>
-    </div>
+<h4 id="_controlling_the_cache"><a class="anchor" href="#_controlling_the_cache"></a>9.1.3. Controlling the Cache</h4>
+<div class="paragraph">
+<p>By default the <code>ArchUnitRunner</code> will cache all classes by location. This means that between different
+test class runs imported Java classes will be reused, if the exact combination of locations has already
+been imported.</p>
 </div>
-    <div class="sect3">
-        <h4 id="_ignoring_tests"><a class="anchor" href="#_ignoring_tests"></a>9.1.4. Ignoring Tests</h4>
+<div class="paragraph">
+<p>If the heap runs low, and thus the garbage collector has to do a big sweep in one run,
+this can cause a noticeable delay. On the other hand, if it is known, that no other test class will
+reuse the imported Java classes, it would make sense to deactivate this cache.</p>
+</div>
+<div class="paragraph">
+<p>This can be achieved by configuring <code>CacheMode.PER_CLASS</code>, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packages = "com.myapp.special", cacheMode = CacheMode.PER_CLASS)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Java classes imported during this test run will not be cached by location and just be reused within
+the same test class. After all tests of this class have been run,
+the imported Java classes will simply be dropped.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ignoring_tests"><a class="anchor" href="#_ignoring_tests"></a>9.1.4. Ignoring Tests</h4>
 <div class="paragraph">
 <p>The runner will ignore tests annotated with <code>@ArchIgnore</code>, for example:</p>
 </div>
@@ -1847,7 +1847,7 @@ public class ArchitectureTest {
 </div>
 </div>
 <div class="sect3">
-    <h4 id="_grouping_rules"><a class="anchor" href="#_grouping_rules"></a>9.1.5. Grouping Rules</h4>
+<h4 id="_grouping_rules"><a class="anchor" href="#_grouping_rules"></a>9.1.5. Grouping Rules</h4>
 <div class="paragraph">
 <p>Often a project might end up with different categories of rules, for example "service rules"
 and "persistence rules". It is possible to write one class for each set of rules, and then
