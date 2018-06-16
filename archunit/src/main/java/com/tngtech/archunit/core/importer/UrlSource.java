@@ -18,7 +18,9 @@ package com.tngtech.archunit.core.importer;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -92,6 +94,26 @@ interface UrlSource extends Iterable<URL> {
                 return Optional.of(Paths.get(path).toUri().toURL());
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
+                return Optional.absent();
+            } catch (InvalidPathException e) {
+                Optional<URL> fallback = tryResolvePathFromUrl(path);
+                if (!fallback.isPresent()) {
+                    LOG.warn("Cannot parse URL from path " + path, e);
+                }
+                return fallback;
+            }
+        }
+
+        /*
+         * Eclipse on Windows sometimes adds URL paths like '/C:/foo/bar' to the classpath property,
+         * as well as regular paths like 'C:\foo\bar'.
+         * We will try to be resilient and parse as much as possible, but convert the url to path
+         * and back to make sure it represents a valid file path in the end.
+         */
+        private static Optional<URL> tryResolvePathFromUrl(String path) {
+            try {
+                return Optional.of(Paths.get(new URL("file:" + path).toURI()).toUri().toURL());
+            } catch (MalformedURLException | URISyntaxException | InvalidPathException e) {
                 return Optional.absent();
             }
         }
