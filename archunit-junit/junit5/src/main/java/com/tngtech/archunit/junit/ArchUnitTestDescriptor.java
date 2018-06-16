@@ -121,12 +121,12 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         }
 
         private void validate(Method method) {
-            ArchUnitTestInitializationException.check(
+            ArchTestInitializationException.check(
                     isStatic(method.getModifiers()),
                     "@%s Method %s.%s must be static",
                     ArchTest.class.getSimpleName(), method.getDeclaringClass().getSimpleName(), method.getName());
 
-            ArchUnitTestInitializationException.check(
+            ArchTestInitializationException.check(
                     method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JavaClasses.class),
                     "@%s Method %s.%s must have exactly one parameter of type %s",
                     ArchTest.class.getSimpleName(), method.getDeclaringClass().getSimpleName(), method.getName(), JavaClasses.class.getName());

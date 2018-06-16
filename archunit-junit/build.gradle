@@ -1,6 +1,9 @@
 ext.moduleName = 'com.tngtech.archunit.junit'
 
+addApiJarTo this
+
 dependencies {
+    api project(path: ':archunit', configuration: 'shadow')
     compile project(path: ':archunit', configuration: 'shadow')
     compile dependency.guava
     compile dependency.slf4j

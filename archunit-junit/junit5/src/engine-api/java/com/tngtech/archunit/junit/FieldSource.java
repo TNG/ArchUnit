@@ -32,10 +32,12 @@ public final class FieldSource implements TestSource {
         fieldName = field.getName();
     }
 
+    @PublicAPI(usage = ACCESS)
     public String getClassName() {
         return className;
     }
 
+    @PublicAPI(usage = ACCESS)
     public String getFieldName() {
         return fieldName;
     }

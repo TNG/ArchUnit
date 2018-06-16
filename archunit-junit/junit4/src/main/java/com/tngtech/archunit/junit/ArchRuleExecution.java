@@ -32,7 +32,7 @@ class ArchRuleExecution extends ArchTestExecution {
         super(testClass, ignore);
 
         validateStatic(ruleField);
-        ArchUnitTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
+        ArchTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
                 "Rule field %s.%s to check must be of type %s",
                 testClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
 

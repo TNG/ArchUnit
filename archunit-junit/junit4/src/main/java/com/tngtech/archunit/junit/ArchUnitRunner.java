@@ -73,7 +73,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
         AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        ArchUnitTestInitializationException.check(analyzeClasses != null,
+        ArchTestInitializationException.check(analyzeClasses != null,
                 "Class %s must be annotated with @%s",
                 testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
         return analyzeClasses;

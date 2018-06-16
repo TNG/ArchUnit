@@ -48,13 +48,13 @@ sourceSets {
         java {
             srcDirs = jdk9MainDirs
         }
-        compileClasspath = compileClasspath + sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.compileClasspath
     }
     jdk9test {
         java {
             srcDirs = jdk9TestDirs
         }
-        compileClasspath = compileClasspath + sourceSets.test.compileClasspath
+        compileClasspath += sourceSets.test.compileClasspath
     }
 }
 

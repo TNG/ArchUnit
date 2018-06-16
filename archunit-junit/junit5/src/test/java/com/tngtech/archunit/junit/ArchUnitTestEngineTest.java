@@ -368,7 +368,7 @@ class ArchUnitTestEngineTest {
             UniqueId uniqueId = uniqueTestId();
 
             assertThatThrownBy(() -> execute(uniqueId, WrongRuleMethodNotStatic.class))
-                    .isInstanceOf(ArchUnitTestInitializationException.class)
+                    .isInstanceOf(ArchTestInitializationException.class)
                     .hasMessageContaining(ArchTest.class.getSimpleName())
                     .hasMessageContaining(WrongRuleMethodNotStatic.class.getSimpleName())
                     .hasMessageContaining(WrongRuleMethodNotStatic.NOT_STATIC_METHOD_NAME)
@@ -380,7 +380,7 @@ class ArchUnitTestEngineTest {
             UniqueId uniqueId = uniqueTestId();
 
             assertThatThrownBy(() -> execute(uniqueId, WrongRuleMethodWrongParameters.class))
-                    .isInstanceOf(ArchUnitTestInitializationException.class)
+                    .isInstanceOf(ArchTestInitializationException.class)
                     .hasMessageContaining(ArchTest.class.getSimpleName())
                     .hasMessageContaining(WrongRuleMethodWrongParameters.class.getSimpleName())
                     .hasMessageContaining(WrongRuleMethodWrongParameters.WRONG_PARAMETERS_METHOD_NAME)
