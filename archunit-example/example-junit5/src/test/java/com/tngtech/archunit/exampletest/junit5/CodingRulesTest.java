@@ -2,9 +2,9 @@ package com.tngtech.archunit.exampletest.junit5;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.ACCESS_STANDARD_STREAMS;
@@ -12,7 +12,7 @@ import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class CodingRulesTest {
 

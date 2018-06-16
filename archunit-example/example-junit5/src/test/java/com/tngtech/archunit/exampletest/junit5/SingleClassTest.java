@@ -5,15 +5,15 @@ import com.tngtech.archunit.example.core.CoreSatellite;
 import com.tngtech.archunit.example.core.HighSecurity;
 import com.tngtech.archunit.example.core.VeryCentralCore;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClass;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.theClass;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class SingleClassTest {
 

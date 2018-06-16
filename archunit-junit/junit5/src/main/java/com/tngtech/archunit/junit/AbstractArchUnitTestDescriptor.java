@@ -17,10 +17,10 @@ package com.tngtech.archunit.junit;
 
 import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.TestTag;
@@ -34,13 +34,13 @@ import static java.util.stream.Collectors.toSet;
 abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor implements Node<ArchUnitEngineExecutionContext> {
     private final Set<TestTag> tags;
 
-    AbstractArchUnitTestDescriptor(UniqueId uniqueId, String displayName, TestSource source, AnnotatedElement testElement) {
+    AbstractArchUnitTestDescriptor(UniqueId uniqueId, String displayName, TestSource source, AnnotatedElement... elements) {
         super(uniqueId, displayName, source);
-        this.tags = findTagsOn(testElement);
+        this.tags = Arrays.stream(elements).map(this::findTagsOn).flatMap(Collection::stream).collect(toSet());
     }
 
-    private Set<TestTag> findTagsOn(AnnotatedElement testClass) {
-        return Arrays.stream(testClass.getAnnotationsByType(Tag.class))
+    private Set<TestTag> findTagsOn(AnnotatedElement annotatedElement) {
+        return Arrays.stream(annotatedElement.getAnnotationsByType(ArchTag.class))
                 .map(annotation -> TestTag.create(annotation.value()))
                 .collect(toSet());
     }

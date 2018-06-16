@@ -3,14 +3,14 @@ package com.tngtech.archunit.exampletest.junit5;
 import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.example.SomeOtherBusinessInterface;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class RestrictNumberOfClassesWithACertainPropertyTest {
     @ArchTest
