@@ -20,6 +20,8 @@ public class UrlSourceTest {
     private static final String JAVA_CLASS_PATH_PROP = "java.class.path";
     private static final String JAVA_BOOT_PATH_PROP = "sun.boot.class.path";
 
+    private static final char CHARACTER_THAT_IS_HOPEFULLY_ILLEGAL_ON_EVERY_PLATFORM = '\0';
+
     @Rule
     public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
 
@@ -54,11 +56,22 @@ public class UrlSourceTest {
     }
 
     @Test
-    public void resolves_resiliently_from_system_property() {
+    public void resolves_missing_system_properties_resiliently() {
         System.clearProperty(JAVA_BOOT_PATH_PROP);
         System.clearProperty(JAVA_CLASS_PATH_PROP);
 
         assertThat(UrlSource.From.classPathSystemProperties()).isEmpty();
+    }
+
+    @Test
+    public void ignores_invalid_paths_in_class_path_property() throws MalformedURLException {
+        Path valid = Paths.get("some", "valid", "path");
+
+        String classPath = createClassPathProperty(valid.toString(),
+                "/invalid/path/because/of/" + CHARACTER_THAT_IS_HOPEFULLY_ILLEGAL_ON_EVERY_PLATFORM + "/");
+        System.setProperty(JAVA_CLASS_PATH_PROP, classPath);
+
+        assertThat(UrlSource.From.classPathSystemProperties()).containsOnly(valid.toUri().toURL());
     }
 
     @Test
