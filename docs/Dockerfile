@@ -1,4 +1,4 @@
-FROM jekyll/jekyll:3.6
+FROM jekyll/jekyll:stable
 
 MAINTAINER Peter Gafert <peter.gafert@tngtech.com>
 
