@@ -2,19 +2,23 @@ package com.tngtech.archunit.junit;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
+import com.tngtech.archunit.junit.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.testexamples.FullAnalyzeClassesSpec;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleField;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleMethod;
 import com.tngtech.archunit.junit.testexamples.SimpleRules;
 import com.tngtech.archunit.junit.testexamples.TestClassWithTags;
+import com.tngtech.archunit.junit.testexamples.TestFieldWithTags;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodNotStatic;
@@ -35,11 +39,13 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.junit.EngineExecutionTestListener.onlyElement;
 import static com.tngtech.archunit.junit.testexamples.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.testexamples.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
+import static com.tngtech.archunit.junit.testexamples.TestFieldWithTags.FIELD_WITH_TAG_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
 import static java.util.Collections.singleton;
 import static java.util.function.Function.identity;
@@ -230,17 +236,73 @@ class ArchUnitTestEngineTest {
         }
 
         @Test
+        void tags_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_TAG_NAME, TestFieldWithTags.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-tag-one"), TestTag.create("field-tag-two"));
+        }
+
+        @Test
         void tags_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_TAG_NAME, TestMethodWithTags.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-tag-one"), TestTag.create("method-tag-two"));
+        }
+
+        @Test
+        void complex_tags() {
             UniqueId uniqueId = uniqueTestId();
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestMethodWithTags.class);
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexTags.class);
 
             TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
 
-            TestDescriptor testMethod = getArchRulesDescriptorsOfOnlyChild(descriptor)
-                    .filter(d -> d.getUniqueId().toString().contains(METHOD_WITH_TAG_NAME))
-                    .collect(onlyElement());
+            Map<UniqueId, Set<TestTag>> tagsById = new HashMap<>();
+            descriptor.accept(d -> tagsById.put(d.getUniqueId(), d.getTags()));
 
-            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-tag-one"), TestTag.create("method-tag-two"));
+            assertThat(getTagsForIdEndingIn(ComplexTags.class.getSimpleName(), tagsById))
+                    .containsOnly(TestTag.create("library-tag"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithTags.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("rules-tag"),
+                            TestTag.create("tag-one"),
+                            TestTag.create("tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("rules-tag"),
+                            TestTag.create("tag-one"),
+                            TestTag.create("tag-two"));
+
+            assertThat(getTagsForIdEndingIn(ComplexTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("field-tag"));
+
+            assertThat(getTagsForIdEndingIn(ComplexTags.METHOD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("method-tag"));
+        }
+
+        private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {
+            UniqueId matchingId = tagsById.keySet().stream()
+                    .filter(id -> getLast(id.getSegments()).getValue().endsWith(suffix))
+                    .collect(onlyElement());
+            return tagsById.get(matchingId);
+        }
+
+        private TestDescriptor getOnlyChildWithDescriptorContaining(String idPart, Class<?> testClass) {
+            UniqueId uniqueId = uniqueTestId();
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(testClass);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
+
+            return getArchRulesDescriptorsOfOnlyChild(descriptor)
+                    .filter(d -> d.getUniqueId().toString().contains(idPart))
+                    .collect(onlyElement());
         }
 
         private TestDescriptor getOnlyTest(TestDescriptor descriptor) {

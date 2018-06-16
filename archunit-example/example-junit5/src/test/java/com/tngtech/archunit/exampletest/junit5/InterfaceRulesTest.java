@@ -9,14 +9,14 @@ import com.tngtech.archunit.example.SomeBusinessInterface;
 import com.tngtech.archunit.example.persistence.first.dao.SomeDao;
 import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.LocationProvider;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(locations = InterfaceRulesTest.RelevantExampleClasses.class)
 public class InterfaceRulesTest {
 

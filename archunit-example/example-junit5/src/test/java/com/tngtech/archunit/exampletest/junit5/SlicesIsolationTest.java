@@ -4,16 +4,16 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.Slice;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class SlicesIsolationTest {
     @ArchTest

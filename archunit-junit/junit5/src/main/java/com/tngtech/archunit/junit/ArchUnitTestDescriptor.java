@@ -174,7 +174,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
                             .append("class", rules.getDefinitionLocation().getName()),
                     rules.getDisplayName(),
                     ClassSource.from(rules.getDefinitionLocation()),
-                    field);
+                    field, rules.getDefinitionLocation());
 
             setParent(parent);
 

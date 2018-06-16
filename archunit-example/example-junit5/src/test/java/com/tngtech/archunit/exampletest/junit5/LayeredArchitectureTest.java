@@ -3,13 +3,13 @@ package com.tngtech.archunit.exampletest.junit5;
 import com.tngtech.archunit.example.SomeMediator;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Tag;
 
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class LayeredArchitectureTest {
     @ArchTest

@@ -2,10 +2,10 @@ package com.tngtech.archunit.exampletest.junit5;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchRules;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
-import org.junit.jupiter.api.Tag;
 
-@Tag("example")
+@ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 class RuleSetsTest {
     @ArchTest
