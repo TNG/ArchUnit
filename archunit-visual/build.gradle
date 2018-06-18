@@ -94,8 +94,8 @@ task bundleHtml(type: Exec, dependsOn: 'webpack') {
     executable = 'npm'
     args = ['run', 'bundleHtml',
             '--',
-            '--redirect', 'build://|build/resources/main/com/tngtech/archunit/visual/report/',
-            '--out-file', 'build/resources/main/com/tngtech/archunit/visual/report/report.html',
+            '--redirect', 'build://|' + reportOutputDir + '/',
+            '--out-file', reportOutputDir + '/report.html',
             'src/main/app/report/report.html']
 }
 
