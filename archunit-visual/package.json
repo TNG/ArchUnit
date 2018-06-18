@@ -4,7 +4,6 @@
   "description": "ArchUnit Visualization",
   "scripts": {
     "createJsBundle": "webpack",
-    "inlineHtml": "node ./htmlinliner.js",
     "bundleHtml": "polymer-bundler --inline-scripts --inline-css",
     "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run createJsBundle && npm run inlineHtml'",

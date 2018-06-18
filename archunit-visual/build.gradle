@@ -108,5 +108,3 @@ task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
 task buildReport(dependsOn: ['mocha', 'eslint', 'webpack', 'bundleHtml', 'deleteJsBundles']) {}
 
 assemble.dependsOn buildReport
-
-//polymer-bundler --inline-scripts --inline-css --redirect "app://|build/resources/main/com/tngtech/archunit/visual/report/" --out-file build/resources/main/com/tngtech/archunit/visual/report/report.html src/main/app/report/report.html
