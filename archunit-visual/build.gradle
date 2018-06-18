@@ -92,7 +92,11 @@ task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'e
 
 task bundleHtml(type: Exec, dependsOn: 'webpack') {
     executable = 'npm'
-    args = ['run', 'bundleHtml']
+    args = ['run', 'bundleHtml',
+            '--',
+            '--redirect', 'build://|build/resources/main/com/tngtech/archunit/visual/report/',
+            '--out-file', 'build/resources/main/com/tngtech/archunit/visual/report/report.html',
+            'src/main/app/report/report.html']
 }
 
 task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
