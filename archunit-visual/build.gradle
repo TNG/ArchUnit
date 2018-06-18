@@ -90,17 +90,19 @@ task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'e
     args = ['run', 'createJsBundle', '--', '--env.buildPath=' + reportOutputDir]
 }
 
-task inlinehtml(type: Exec, dependsOn: 'webpack') {
+task bundleHtml(type: Exec, dependsOn: 'webpack') {
     executable = 'npm'
-    args = ['run', 'inlineHtml', '--', '--env.buildPath=' + reportOutputDir]
+    args = ['run', 'bundleHtml']
 }
 
-task deleteJsBundles(type: Delete, dependsOn: 'inlinehtml') {
+task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
     delete fileTree(reportOutputDir) {
         include '**/*.js'
     }
 }
 
-task buildReport(dependsOn: ['mocha', 'eslint', 'webpack', 'inlinehtml', 'deleteJsBundles']) {}
+task buildReport(dependsOn: ['mocha', 'eslint', 'webpack', 'bundleHtml', 'deleteJsBundles']) {}
 
 assemble.dependsOn buildReport
+
+//polymer-bundler --inline-scripts --inline-css --redirect "app://|build/resources/main/com/tngtech/archunit/visual/report/" --out-file build/resources/main/com/tngtech/archunit/visual/report/report.html src/main/app/report/report.html

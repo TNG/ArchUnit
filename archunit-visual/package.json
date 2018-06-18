@@ -5,6 +5,7 @@
   "scripts": {
     "createJsBundle": "webpack",
     "inlineHtml": "node ./htmlinliner.js",
+    "bundleHtml": "polymer-bundler --inline-scripts --inline-css --redirect \"build://|build/resources/main/com/tngtech/archunit/visual/report/\" --out-file build/resources/main/com/tngtech/archunit/visual/report/report.html src/main/app/report/report.html",
     "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run createJsBundle && npm run inlineHtml'",
     "lint": "./node_modules/eslint/bin/eslint.js 'src/**/*.{js,html}'",
