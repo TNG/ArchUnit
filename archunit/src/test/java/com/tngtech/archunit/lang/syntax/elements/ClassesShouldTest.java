@@ -29,7 +29,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
-import com.tngtech.archunit.lang.syntax.elements.testclasses.RightNamedClass;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.WrongNamedClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -68,7 +68,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
-    private static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
+    static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -76,23 +76,23 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveFullyQualifiedName_rules() {
         return $$(
-                $(classes().should().haveFullyQualifiedName(RightNamedClass.class.getName())),
-                $(classes().should(ArchConditions.haveFullyQualifiedName(RightNamedClass.class.getName())))
+                $(classes().should().haveFullyQualifiedName(SomeClass.class.getName())),
+                $(classes().should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())))
         );
     }
 
     @Test
     @UseDataProvider("haveFullyQualifiedName_rules")
     public void haveFullyQualifiedName(ArchRule rule) {
-        EvaluationResult result = rule.evaluate(importClasses(RightNamedClass.class, WrongNamedClass.class));
+        EvaluationResult result = rule.evaluate(importClasses(SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have fully qualified name '%s'", RightNamedClass.class.getName()))
+                .contains(String.format("classes should have fully qualified name '%s'", SomeClass.class.getName()))
                 .containsPattern(String.format("class %s doesn't have fully qualified name '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
-                        quote(RightNamedClass.class.getName()),
+                        quote(SomeClass.class.getName()),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotMatch(String.format(".*%s .*name.*", quote(RightNamedClass.class.getName())));
+                .doesNotMatch(String.format(".*%s .*name.*", quote(SomeClass.class.getName())));
     }
 
     @DataProvider
@@ -107,19 +107,19 @@ public class ClassesShouldTest {
     @UseDataProvider("notHaveFullyQualifiedName_rules")
     public void notHaveFullyQualifiedName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not have fully qualified name '%s'", WrongNamedClass.class.getName()))
                 .contains(String.format("%s has fully qualified name '%s'", WrongNamedClass.class.getName(), WrongNamedClass.class.getName()))
-                .doesNotContain(String.format("%s .*name", RightNamedClass.class.getName()));
+                .doesNotContain(String.format("%s .*name", SomeClass.class.getName()));
     }
 
     @DataProvider
     public static Object[][] haveSimpleName_rules() {
         return $$(
-                $(classes().should().haveSimpleName(RightNamedClass.class.getSimpleName())),
-                $(classes().should(ArchConditions.haveSimpleName(RightNamedClass.class.getSimpleName())))
+                $(classes().should().haveSimpleName(SomeClass.class.getSimpleName())),
+                $(classes().should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())))
         );
     }
 
@@ -127,15 +127,15 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleName_rules")
     public void haveSimpleName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple name '%s'", RightNamedClass.class.getSimpleName()))
+                .contains(String.format("classes should have simple name '%s'", SomeClass.class.getSimpleName()))
                 .containsPattern(String.format("class %s doesn't have simple name '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
-                        quote(RightNamedClass.class.getSimpleName()),
+                        quote(SomeClass.class.getSimpleName()),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotMatch(String.format(".*class %s .*simple name.*", RightNamedClass.class.getSimpleName()));
+                .doesNotMatch(String.format(".*class %s .*simple name.*", SomeClass.class.getSimpleName()));
     }
 
     @DataProvider
@@ -150,7 +150,7 @@ public class ClassesShouldTest {
     @UseDataProvider("notHaveSimpleName_rules")
     public void notHaveSimpleName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not have simple name '%s'", WrongNamedClass.class.getSimpleName()))
@@ -158,12 +158,12 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(WrongNamedClass.class.getSimpleName()),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotMatch(String.format(".*class %s .*simple name.*", RightNamedClass.class.getSimpleName()));
+                .doesNotMatch(String.format(".*class %s .*simple name.*", SomeClass.class.getSimpleName()));
     }
 
     @DataProvider
     public static Object[][] haveNameMatching_rules() {
-        String regex = containsPartOfRegex(RightNamedClass.class.getSimpleName());
+        String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
         return $$(
                 $(classes().should().haveNameMatching(regex), regex),
                 $(classes().should(ArchConditions.haveNameMatching(regex)), regex)
@@ -174,7 +174,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveNameMatching_rules")
     public void haveNameMatching(ArchRule rule, String regex) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name matching '%s'", regex))
@@ -182,7 +182,7 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(regex),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(String.format("%s", RightNamedClass.class.getSimpleName()));
+                .doesNotContain(String.format("%s", SomeClass.class.getSimpleName()));
     }
 
     @DataProvider
@@ -198,7 +198,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveNameNotMatching_rules")
     public void haveNameNotMatching(ArchRule rule, String regex) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name not matching '%s'", regex))
@@ -206,12 +206,12 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(regex),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(String.format("%s", RightNamedClass.class.getSimpleName()));
+                .doesNotContain(String.format("%s", SomeClass.class.getSimpleName()));
     }
 
     @DataProvider
     public static Object[][] haveSimpleNameStartingWith_rules() {
-        String simpleName = RightNamedClass.class.getSimpleName();
+        String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         return $$(
                 $(classes().should().haveSimpleNameStartingWith(prefix), prefix),
@@ -223,7 +223,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameStartingWith_rules")
     public void haveSimpleNameStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name starting with '%s'", prefix))
@@ -231,12 +231,12 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(prefix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
     public static Object[][] haveSimpleNameContaining_rules() {
-        String simpleName = RightNamedClass.class.getSimpleName();
+        String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         return $$(
                 $(classes().should().haveSimpleNameContaining(infix), infix),
@@ -248,7 +248,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameContaining_rules")
     public void haveSimpleNameContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name containing '%s'", infix))
@@ -256,7 +256,7 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
@@ -273,7 +273,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameNotContaining_rules")
     public void haveSimpleNameNotContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not containing '%s'", infix))
@@ -281,7 +281,7 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
@@ -298,7 +298,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameNotStartingWith_rules")
     public void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not starting with '%s'", prefix))
@@ -306,12 +306,12 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(prefix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
     public static Object[][] haveSimpleNameEndingWith_rules() {
-        String simpleName = RightNamedClass.class.getSimpleName();
+        String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1, simpleName.length());
         return $$(
                 $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
@@ -323,7 +323,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameEndingWith_rules")
     public void haveSimpleNameEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name ending with '%s'", suffix))
@@ -331,7 +331,7 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(suffix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
@@ -348,7 +348,7 @@ public class ClassesShouldTest {
     @UseDataProvider("haveSimpleNameNotEndingWith_rules")
     public void haveSimpleNameNotEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
-                RightNamedClass.class, WrongNamedClass.class));
+                SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not ending with '%s'", suffix))
@@ -356,7 +356,7 @@ public class ClassesShouldTest {
                         quote(WrongNamedClass.class.getName()),
                         quote(suffix),
                         locationPattern(WrongNamedClass.class)))
-                .doesNotContain(RightNamedClass.class.getName());
+                .doesNotContain(SomeClass.class.getName());
     }
 
     @DataProvider
@@ -1149,11 +1149,57 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
     }
 
+    @DataProvider
+    public static Object[][] beClass_rules() {
+        return $$(
+                $(classes().should().be(String.class), String.class, Collection.class),
+                $(classes().should().be(String.class.getName()), String.class, Collection.class),
+                $(classes().should(ArchConditions.be(String.class)), String.class, Collection.class),
+                $(classes().should(ArchConditions.be(String.class.getName())), String.class, Collection.class));
+    }
+
+    @Test
+    @UseDataProvider("beClass_rules")
+    public void beClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be " + satisfied.getName())
+                .containsPattern(String.format("class %s is not %s in %s",
+                        quote(violated.getName()),
+                        quote(satisfied.getName()),
+                        locationPattern(violated)))
+                .doesNotMatch(String.format(".*class %s .* is .*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeClass_rules() {
+        return $$(
+                $(classes().should().notBe(Collection.class), String.class, Collection.class),
+                $(classes().should().notBe(Collection.class.getName()), String.class, Collection.class),
+                $(classes().should(ArchConditions.notBe(Collection.class)), String.class, Collection.class),
+                $(classes().should(ArchConditions.notBe(Collection.class.getName())), String.class, Collection.class));
+    }
+
+    @Test
+    @UseDataProvider("notBeClass_rules")
+    public void notBeClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be " + violated.getName())
+                .containsPattern(String.format("class %s is %s in %s",
+                        quote(violated.getName()),
+                        quote(violated.getName()),
+                        locationPattern(violated)))
+                .doesNotMatch(String.format(".*class %s .* is .*", quote(satisfied.getName())));
+    }
+
     static String locationPattern(Class<?> clazz) {
         return String.format("\\(%s.java:0\\)", quote(clazz.getSimpleName()));
     }
 
-    private String singleLineFailureReportOf(EvaluationResult result) {
+    static String singleLineFailureReportOf(EvaluationResult result) {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
 
@@ -1166,7 +1212,7 @@ public class ClassesShouldTest {
         };
     }
 
-    private static String containsPartOfRegex(String fullString) {
+    static String containsPartOfRegex(String fullString) {
         return String.format(".*%s.*", fullString.substring(1, fullString.length() - 1));
     }
 
@@ -1194,7 +1240,7 @@ public class ClassesShouldTest {
         return JavaCall.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
     }
 
-    private static DescribedPredicate<JavaAccess<?>> accessTargetIs(Class<?> type) {
+    static DescribedPredicate<JavaAccess<?>> accessTargetIs(Class<?> type) {
         return JavaAccess.Predicates.target(owner(type(type))).as("target is " + type.getSimpleName());
     }
 
@@ -1233,7 +1279,7 @@ public class ClassesShouldTest {
         }
     }
 
-    private Pattern accessesFieldRegex(Class<?> origin, String accessType, Class<?> targetClass, String fieldName) {
+    static Pattern accessesFieldRegex(Class<?> origin, String accessType, Class<?> targetClass, String fieldName) {
         String originAccesses = String.format("%s[^%s]* %s", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER, accessType);
         String target = String.format("[^%s]*%s\\.%s", FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), fieldName);
         return Pattern.compile(String.format(".*%s field %s.*", originAccesses, target));
@@ -1280,6 +1326,7 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static class ClassAccessingWrongField {
         ClassAccessingField classAccessingField;
 
