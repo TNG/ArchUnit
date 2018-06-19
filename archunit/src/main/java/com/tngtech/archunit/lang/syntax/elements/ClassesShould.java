@@ -827,6 +827,7 @@ public interface ClassesShould {
      * @param className the name of the only class that should be matched.
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction be(String className);
 
     /**
@@ -835,5 +836,6 @@ public interface ClassesShould {
      * @param className the name of the class that should not be matched.
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
+    @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBe(String className);
 }

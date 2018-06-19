@@ -123,7 +123,7 @@ public class ExpectedViolation implements TestRule, ExpectsViolations {
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return containsLine("Class %s doesn't reside in a package '%s' in (%s.java:0)",
+            return containsLine("class %s doesn't reside in a package '%s' in (%s.java:0)",
                     clazz.getName(), packageIdentifier, clazz.getSimpleName());
         }
     }

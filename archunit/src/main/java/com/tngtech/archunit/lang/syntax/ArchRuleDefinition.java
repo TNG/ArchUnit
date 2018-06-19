@@ -70,18 +70,22 @@ public final class ArchRuleDefinition {
         return priority(MEDIUM).noClasses();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClass theClass(Class<?> clazz) {
         return priority(MEDIUM).theClass(clazz);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClass theClass(String className) {
         return priority(MEDIUM).theClass(className);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClass noClass(Class<?> clazz) {
         return priority(MEDIUM).noClass(clazz);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static GivenClass noClass(String className) {
         return priority(MEDIUM).noClass(className);
     }
