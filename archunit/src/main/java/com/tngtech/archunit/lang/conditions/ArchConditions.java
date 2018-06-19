@@ -275,14 +275,17 @@ public final class ArchConditions {
                 .as(ownerName + "." + fieldName);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> be(final Class<?> clazz) {
         return be(clazz.getName());
     }
 
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBe(final Class<?> clazz) {
         return not(be(clazz));
     }
 
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> be(final String className) {
         return new ArchCondition<JavaClass>("be " + className) {
             @Override
@@ -298,6 +301,7 @@ public final class ArchConditions {
         };
     }
 
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBe(final String className) {
         return not(be(className));
     }

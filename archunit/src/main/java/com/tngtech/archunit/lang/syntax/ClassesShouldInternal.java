@@ -59,10 +59,12 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         super(classesTransformer, priority, conditionAggregator, prepareCondition);
     }
 
+    @Override
     public ClassesShouldConjunction be(final Class<?> clazz) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(clazz)));
     }
 
+    @Override
     public ClassesShouldConjunction notBe(final Class<?> clazz) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(clazz)));
     }
@@ -72,6 +74,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(className)));
     }
 
+    @Override
     public ClassesShouldConjunction notBe(String className) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(className)));
     }
