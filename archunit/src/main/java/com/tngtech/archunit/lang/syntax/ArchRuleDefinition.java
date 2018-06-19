@@ -17,19 +17,23 @@ package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.elements.GivenClass;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static java.util.Collections.singleton;
 
 public final class ArchRuleDefinition {
     private ArchRuleDefinition() {
@@ -64,6 +68,22 @@ public final class ArchRuleDefinition {
     @PublicAPI(usage = ACCESS)
     public static GivenClasses noClasses() {
         return priority(MEDIUM).noClasses();
+    }
+
+    public static GivenClass theClass(Class<?> clazz) {
+        return priority(MEDIUM).theClass(clazz);
+    }
+
+    public static GivenClass theClass(String className) {
+        return priority(MEDIUM).theClass(className);
+    }
+
+    public static GivenClass noClass(Class<?> clazz) {
+        return priority(MEDIUM).noClass(clazz);
+    }
+
+    public static GivenClass noClass(String className) {
+        return priority(MEDIUM).noClass(className);
     }
 
     public static final class Creator {
@@ -109,6 +129,37 @@ public final class ArchRuleDefinition {
                     priority,
                     classesTransformer.as("no " + classesTransformer.getDescription()),
                     ArchRuleDefinition.<TYPE>negateCondition());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenClass theClass(final Class<?> clazz) {
+            return theClass(clazz.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenClass theClass(final String className) {
+            ClassesTransformer<JavaClass> theClass = theClassTransformer(className);
+            return new GivenClassInternal(priority, theClass, Functions.<ArchCondition<JavaClass>>identity());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenClass noClass(final Class<?> clazz) {
+            return noClass(clazz.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenClass noClass(final String className) {
+            ClassesTransformer<JavaClass> noClass = theClassTransformer(className).as("no class " + className);
+            return new GivenClassInternal(priority, noClass, ArchRuleDefinition.<JavaClass>negateCondition());
+        }
+
+        private ClassesTransformer<JavaClass> theClassTransformer(final String className) {
+            return new AbstractClassesTransformer<JavaClass>("the class " + className) {
+                @Override
+                public Iterable<JavaClass> doTransform(JavaClasses classes) {
+                    return singleton(classes.get(className));
+                }
+            };
         }
     }
 
