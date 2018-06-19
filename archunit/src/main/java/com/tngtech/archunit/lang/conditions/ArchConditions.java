@@ -65,7 +65,6 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.be;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
@@ -276,6 +275,33 @@ public final class ArchConditions {
                 .as(ownerName + "." + fieldName);
     }
 
+    public static ArchCondition<JavaClass> be(final Class<?> clazz) {
+        return be(clazz.getName());
+    }
+
+    public static ArchCondition<JavaClass> notBe(final Class<?> clazz) {
+        return not(be(clazz));
+    }
+
+    public static ArchCondition<JavaClass> be(final String className) {
+        return new ArchCondition<JavaClass>("be " + className) {
+            @Override
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                boolean itemEquivalentToClazz = javaClass.getName().equals(className);
+                String message = String.format("class %s %s %s in %s",
+                        javaClass.getName(),
+                        itemEquivalentToClazz ? "is" : "is not",
+                        className,
+                        formatLocation(javaClass, 0));
+                events.add(new SimpleConditionEvent(javaClass, itemEquivalentToClazz, message));
+            }
+        };
+    }
+
+    public static ArchCondition<JavaClass> notBe(final String className) {
+        return not(be(className));
+    }
+
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveFullyQualifiedName(final String name) {
         final DescribedPredicate<HasName> haveFullyQualifiedName = have(fullyQualifiedName(name));
@@ -442,7 +468,7 @@ public final class ArchConditions {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = resideInAPackage.apply(item);
-                String message = String.format("Class %s %s %s in %s",
+                String message = String.format("class %s %s %s in %s",
                         item.getName(),
                         satisfied ? "does" : "doesn't",
                         resideInAPackage.getDescription(),
@@ -578,7 +604,7 @@ public final class ArchConditions {
     }
 
     private static ArchCondition<JavaClass> createAnnotatedCondition(final DescribedPredicate<CanBeAnnotated> annotatedWith) {
-        return new ArchCondition<JavaClass>(be(annotatedWith).getDescription()) {
+        return new ArchCondition<JavaClass>(ArchPredicates.be(annotatedWith).getDescription()) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = annotatedWith.apply(item);
@@ -720,7 +746,7 @@ public final class ArchConditions {
     }
 
     private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {
-        return new ArchCondition<JavaClass>(be(assignable).getDescription()) {
+        return new ArchCondition<JavaClass>(ArchPredicates.be(assignable).getDescription()) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = assignable.apply(item);
