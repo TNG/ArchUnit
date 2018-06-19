@@ -60,6 +60,26 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction be(final Class<?> clazz) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(clazz)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBe(final Class<?> clazz) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(clazz)));
+    }
+
+    @Override
+    public ClassesShouldConjunction be(String className) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(className)));
+    }
+
+    @Override
+    public ClassesShouldConjunction notBe(String className) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(className)));
+    }
+
+    @Override
     public ClassesShouldConjunction haveFullyQualifiedName(final String name) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveFullyQualifiedName(name)));
     }
