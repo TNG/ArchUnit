@@ -29,7 +29,6 @@ public class JsonEvaluationResultListTest {
         assertStringContainsJsonEqualToFile(act, "two-violations-of-one-rule.json");
     }
 
-    //FIXME: is this necessary??
     @Test
     public void testInsertNewEvaluationResultOfExistingRuleToNonEmptyList() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, JSONException {
         JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList();

@@ -15,38 +15,36 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 class JsonEvaluationResultList {
-    private List<JsonEvaluationResult> jsonEvaluationResultList = Lists.newArrayList();
+    private Map<String, JsonEvaluationResult> jsonEvaluationResultMap = Maps.newHashMap();
 
     JsonEvaluationResultList() {
     }
 
     void insertEvaluationResult(JsonEvaluationResult newEvaluationResult) {
-        //FIXME: is this still necessary??
-        for (JsonEvaluationResult evaluationResult : jsonEvaluationResultList) {
-            if (evaluationResult.getRule().equals(newEvaluationResult.getRule())) {
-                Map<String, JsonViolation> jsonViolationMap= new HashMap<>();
-                for (JsonViolation jsonViolation : evaluationResult.getViolations()) {
-                    jsonViolationMap.put(jsonViolation.getIdentifier(), jsonViolation);
-                }
-                for (JsonViolation jsonViolation: newEvaluationResult.getViolations()) {
-                    jsonViolationMap.put(jsonViolation.getIdentifier(), jsonViolation);
-                }
-                evaluationResult.setViolations(new ArrayList<>(jsonViolationMap.values()));
-                return;
+        if (jsonEvaluationResultMap.containsKey(newEvaluationResult.getRule())) {
+            JsonEvaluationResult evaluationResult = jsonEvaluationResultMap.get(newEvaluationResult.getRule());
+            Map<String, JsonViolation> jsonViolationMap = new HashMap<>();
+            for (JsonViolation jsonViolation : evaluationResult.getViolations()) {
+                jsonViolationMap.put(jsonViolation.getIdentifier(), jsonViolation);
             }
+            for (JsonViolation jsonViolation : newEvaluationResult.getViolations()) {
+                jsonViolationMap.put(jsonViolation.getIdentifier(), jsonViolation);
+            }
+            evaluationResult.setViolations(new ArrayList<>(jsonViolationMap.values()));
+        } else {
+            jsonEvaluationResultMap.put(newEvaluationResult.getRule(), newEvaluationResult);
         }
-        jsonEvaluationResultList.add(newEvaluationResult);
     }
 
-    List<JsonEvaluationResult> getJsonEvaluationResultList() {
-        return jsonEvaluationResultList;
+    Collection<JsonEvaluationResult> getJsonEvaluationResultList() {
+        return jsonEvaluationResultMap.values();
     }
 }
