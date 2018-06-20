@@ -58,7 +58,7 @@ public class VisualExtension implements ArchUnitExtension {
     /**
      * when using the ArchUnitRunner for running archunit-tests, then a further @ArchTest-method should be added,
      * which calls this method and hands the classes over.
-     * If the ArchUnitRunner is not used, this method need not to be called.
+     * If the ArchUnitRunner is not used, this method needs not to be called.
      *
      * @param classes the classes that are analyzed by archunit-tests
      */

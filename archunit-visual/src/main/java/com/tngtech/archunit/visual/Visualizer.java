@@ -16,6 +16,7 @@
 package com.tngtech.archunit.visual;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -96,10 +97,18 @@ public final class Visualizer {
     }
 
     private class ReportFile {
-        private static final String JSON_ROOT_MARKER = "\"injectJsonClassesToVisualizeHere\"";
-        private static final String JSON_VIOLATION_MARKER = "\"injectJsonViolationsToVisualizeHere\"";
+        private final String[] JSON_ROOT_MARKERS = {
+                "\"injectJsonClassesToVisualizeHere\"",
+                "'injectJsonClassesToVisualizeHere'"
+        };
+        private final String[] JSON_VIOLATION_MARKERS = {
+                "\"injectJsonViolationsToVisualizeHere\"",
+                "'injectJsonViolationsToVisualizeHere'"
+        };
         File file;
         String content;
+        private String jsonRootMarker;
+        private String jsonViolationMarker;
 
         ReportFile() {
             file = new File(targetDir, REPORT_FILE_NAME);
@@ -110,19 +119,34 @@ public final class Visualizer {
                 throw new RuntimeException(e);
             }
             content = new String(encodedContent, Charsets.UTF_8);
+            defineJsonMarkers();
             checkContent();
         }
 
+        private String findJsonMarker(String[] markers) {
+            for (String s : markers) {
+                if (content.contains(s)) {
+                    return s;
+                }
+            }
+            throw new RuntimeException("The " + REPORT_FILE_NAME + "-file does not contain one of " + Joiner.on(", ").join(markers));
+        }
+
+        private void defineJsonMarkers() {
+            jsonRootMarker = findJsonMarker(JSON_ROOT_MARKERS);
+            jsonViolationMarker = findJsonMarker(JSON_VIOLATION_MARKERS);
+        }
+
         private int countOccurrencesInContent(String str) {
-            return (str.length() - str.replace(str, "").length()) / str.length();
+            return (content.length() - content.replace(str, "").length()) / str.length();
         }
 
         private void checkContent() {
-            if (countOccurrencesInContent(JSON_ROOT_MARKER) > 1) {
-                throw new RuntimeException(JSON_ROOT_MARKER + " may exactly occur once in " + REPORT_FILE_NAME);
+            if (countOccurrencesInContent(jsonRootMarker) > 1) {
+                throw new RuntimeException(jsonRootMarker + " may exactly occur once in " + REPORT_FILE_NAME);
             }
-            if (countOccurrencesInContent(JSON_VIOLATION_MARKER) > 1) {
-                throw new RuntimeException(JSON_VIOLATION_MARKER + " may exactly occur once in " + REPORT_FILE_NAME);
+            if (countOccurrencesInContent(jsonViolationMarker) != 1) {
+                throw new RuntimeException(jsonViolationMarker + " may exactly occur once in " + REPORT_FILE_NAME);
             }
         }
 
@@ -131,11 +155,11 @@ public final class Visualizer {
         }
 
         void insertJsonRoot(String jsonRoot) {
-            insertJson(jsonRoot, JSON_ROOT_MARKER);
+            insertJson(jsonRoot, jsonRootMarker);
         }
 
         void insertJsonViolations(String jsonViolations) {
-            insertJson(jsonViolations, JSON_VIOLATION_MARKER);
+            insertJson(jsonViolations, jsonViolationMarker);
         }
 
         void write() {
