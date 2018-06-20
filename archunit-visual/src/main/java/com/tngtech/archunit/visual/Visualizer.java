@@ -15,21 +15,20 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.jar.JarEntry;
-import java.util.regex.Matcher;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -61,17 +60,13 @@ public final class Visualizer {
 
     @PublicAPI(usage = ACCESS)
     public void visualize() {
-        copyFiles();
-        ReportFile reportFile = new ReportFile();
-        exportJson(reportFile);
-        exportViolations(new ArrayList<EvaluationResult>(), reportFile);
-        reportFile.write();
+        visualize(new ArrayList<EvaluationResult>());
     }
 
     @PublicAPI(usage = ACCESS)
     public void visualize(Iterable<EvaluationResult> evaluationResults) {
         copyFiles();
-        ReportFile reportFile = new ReportFile();
+        ReportFile reportFile = new ReportFile(targetDir, REPORT_FILE_NAME);
         exportJson(reportFile);
         exportViolations(evaluationResults, reportFile);
         reportFile.write();
@@ -93,81 +88,6 @@ public final class Visualizer {
             createCopyFor(url).copyTo(targetDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private class ReportFile {
-        private final String[] JSON_ROOT_MARKERS = {
-                "\"injectJsonClassesToVisualizeHere\"",
-                "'injectJsonClassesToVisualizeHere'"
-        };
-        private final String[] JSON_VIOLATION_MARKERS = {
-                "\"injectJsonViolationsToVisualizeHere\"",
-                "'injectJsonViolationsToVisualizeHere'"
-        };
-        File file;
-        String content;
-        private String jsonRootMarker;
-        private String jsonViolationMarker;
-
-        ReportFile() {
-            file = new File(targetDir, REPORT_FILE_NAME);
-            byte[] encodedContent;
-            try {
-                encodedContent = Files.readAllBytes(file.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            content = new String(encodedContent, Charsets.UTF_8);
-            defineJsonMarkers();
-            checkContent();
-        }
-
-        private String findJsonMarker(String[] markers) {
-            for (String s : markers) {
-                if (content.contains(s)) {
-                    return s;
-                }
-            }
-            throw new RuntimeException("The " + REPORT_FILE_NAME + "-file does not contain one of " + Joiner.on(", ").join(markers));
-        }
-
-        private void defineJsonMarkers() {
-            jsonRootMarker = findJsonMarker(JSON_ROOT_MARKERS);
-            jsonViolationMarker = findJsonMarker(JSON_VIOLATION_MARKERS);
-        }
-
-        private int countOccurrencesInContent(String str) {
-            return (content.length() - content.replace(str, "").length()) / str.length();
-        }
-
-        private void checkContent() {
-            if (countOccurrencesInContent(jsonRootMarker) > 1) {
-                throw new RuntimeException(jsonRootMarker + " may exactly occur once in " + REPORT_FILE_NAME);
-            }
-            if (countOccurrencesInContent(jsonViolationMarker) != 1) {
-                throw new RuntimeException(jsonViolationMarker + " may exactly occur once in " + REPORT_FILE_NAME);
-            }
-        }
-
-        private void insertJson(String stringToInsert, String stringToReplace) {
-            content = content.replaceFirst(stringToReplace, "'" + Matcher.quoteReplacement(stringToInsert) + "'");
-        }
-
-        void insertJsonRoot(String jsonRoot) {
-            insertJson(jsonRoot, jsonRootMarker);
-        }
-
-        void insertJsonViolations(String jsonViolations) {
-            insertJson(jsonViolations, jsonViolationMarker);
-        }
-
-        void write() {
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
-                writer.write(content);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
