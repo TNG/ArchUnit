@@ -8,6 +8,11 @@ const nodeTypes = require('./node-types.json');
 
 let layer = 0;
 
+const fullNameSeparators = {
+  packageSeparator: '.',
+  classSeparator: '$'
+};
+
 const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
@@ -126,16 +131,18 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     isPredecessorOf(nodeFullName) {
-      const separator = /[\\.\\$]/;
-      return (nodeFullName.startsWith(this.getFullName())
-        && separator.test(nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1)));
+      const keyAfterFullName = nodeFullName.charAt(this.getFullName().length);
+      return nodeFullName.startsWith(this.getFullName())
+        && (keyAfterFullName === fullNameSeparators.packageSeparator
+          || keyAfterFullName === fullNameSeparators.classSeparator);
     }
 
     isPredecessorOfOrNodeItself(nodeFullName) {
-      const separator = /[\\.\\$]/;
-      const keyAfterFullName = nodeFullName.substring(this.getFullName().length, this.getFullName().length + 1);
-      return (nodeFullName.startsWith(this.getFullName())
-        && (keyAfterFullName.length === 0 || separator.test(keyAfterFullName)));
+      const keyAfterFullName = nodeFullName.charAt(this.getFullName().length);
+      return nodeFullName.startsWith(this.getFullName())
+        && (keyAfterFullName.length === 0
+          || keyAfterFullName === fullNameSeparators.packageSeparator
+          || keyAfterFullName === fullNameSeparators.classSeparator);
     }
 
     isFolded() {

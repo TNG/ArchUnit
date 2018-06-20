@@ -1,11 +1,8 @@
 'use strict';
 
-const jsonRoot = 'injectJsonClassesToVisualizeHere';
-const jsonViolations = 'injectJsonViolationsToVisualizeHere';
-
 const getResources = () => ({
-  root: JSON.parse(jsonRoot),
-  violations: JSON.parse(jsonViolations)
+  root: JSON.parse(window.jsonRoot),
+  violations: JSON.parse(window.jsonViolations)
 });
 
 export default {getResources};

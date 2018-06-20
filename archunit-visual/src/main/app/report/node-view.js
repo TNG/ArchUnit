@@ -31,13 +31,14 @@ const init = (transitionDuration) => {
         .append('text')
         .text(node.getName())
         .node();
+      this._textWidth = this._text.getComputedTextLength();
 
       this._onDrag(onDrag);
       this._onClick(onClick);
     }
 
     getTextWidth() {
-      return this._text.getComputedTextLength();
+      return this._textWidth;
     }
 
     updateNodeType(nodeType) {
