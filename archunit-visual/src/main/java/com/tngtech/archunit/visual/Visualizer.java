@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -27,6 +28,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.jar.JarEntry;
+import java.util.regex.Matcher;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -34,12 +36,8 @@ import static java.util.Collections.list;
 
 @PublicAPI(usage = ACCESS)
 public final class Visualizer {
-
-    private static final String ENCODING = "UTF-8";
-
-    private static final String JSON_FILE_NAME = "classes.json";
-    private static final String VIOLATIONS_FILE_NAME = "violations.json";
     private static final String DIR = "report";
+    private static final String REPORT_FILE_NAME = "report.html";
 
     private final JavaClasses classes;
     private final File targetDir;
@@ -62,45 +60,31 @@ public final class Visualizer {
 
     @PublicAPI(usage = ACCESS)
     public void visualize() {
-        exportJson();
-        exportViolations(new ArrayList<EvaluationResult>(), false);
         copyFiles();
+        ReportFile reportFile = new ReportFile();
+        exportJson(reportFile);
+        exportViolations(new ArrayList<EvaluationResult>(), reportFile);
+        reportFile.write();
     }
 
     @PublicAPI(usage = ACCESS)
-    public void visualize(Iterable<EvaluationResult> evaluationResults, boolean overwriteExistingViolations) {
-        exportJson();
-        exportViolations(evaluationResults, overwriteExistingViolations);
+    public void visualize(Iterable<EvaluationResult> evaluationResults) {
         copyFiles();
+        ReportFile reportFile = new ReportFile();
+        exportJson(reportFile);
+        exportViolations(evaluationResults, reportFile);
+        reportFile.write();
     }
 
-    private void exportJson() {
-        try (Writer classesWriter = new OutputStreamWriter(new FileOutputStream(new File(targetDir, JSON_FILE_NAME)), ENCODING)) {
-            new JsonExporter().export(classes, classesWriter, context);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private void exportJson(ReportFile reportFile) {
+        reportFile.insertJsonRoot(new JsonExporter().exportToJson(classes, context));
     }
 
-    private void exportViolations(Iterable<EvaluationResult> evaluationResults, boolean overwriteViolations) {
-        final File violationsFile = new File(targetDir, VIOLATIONS_FILE_NAME);
-        Supplier<Writer> getViolationsWriter = new Supplier<Writer>() {
-            @Override
-            public Writer get() throws FileNotFoundException, UnsupportedEncodingException {
-                return new OutputStreamWriter(new FileOutputStream(violationsFile, false), ENCODING);
-            }
-        };
-        if (!overwriteViolations && violationsFile.exists()) {
-            try (Reader violationsReader = new InputStreamReader(new FileInputStream(violationsFile), ENCODING)) {
-                new JsonViolationExporter().export(evaluationResults, violationsReader, getViolationsWriter);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            new JsonViolationExporter().export(evaluationResults, getViolationsWriter);
-        }
+    private void exportViolations(Iterable<EvaluationResult> evaluationResults, ReportFile reportFile) {
+        reportFile.insertJsonViolations(new JsonViolationExporter().exportToJson(evaluationResults));
     }
 
+    //TODO: only copy report.html
     private void copyFiles() {
         URL url = getClass().getResource(DIR);
         //FIXME: the url null found when using the IntelliJ-Test-Runner
@@ -108,6 +92,58 @@ public final class Visualizer {
             createCopyFor(url).copyTo(targetDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private class ReportFile {
+        private static final String JSON_ROOT_MARKER = "\"injectJsonClassesToVisualizeHere\"";
+        private static final String JSON_VIOLATION_MARKER = "\"injectJsonViolationsToVisualizeHere\"";
+        File file;
+        String content;
+
+        ReportFile() {
+            file = new File(targetDir, REPORT_FILE_NAME);
+            byte[] encodedContent;
+            try {
+                encodedContent = Files.readAllBytes(file.toPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            content = new String(encodedContent, Charsets.UTF_8);
+            checkContent();
+        }
+
+        private int countOccurrencesInContent(String str) {
+            return (str.length() - str.replace(str, "").length()) / str.length();
+        }
+
+        private void checkContent() {
+            if (countOccurrencesInContent(JSON_ROOT_MARKER) > 1) {
+                throw new RuntimeException(JSON_ROOT_MARKER + " may exactly occur once in " + REPORT_FILE_NAME);
+            }
+            if (countOccurrencesInContent(JSON_VIOLATION_MARKER) > 1) {
+                throw new RuntimeException(JSON_VIOLATION_MARKER + " may exactly occur once in " + REPORT_FILE_NAME);
+            }
+        }
+
+        private void insertJson(String stringToInsert, String stringToReplace) {
+            content = content.replaceFirst(stringToReplace, "'" + Matcher.quoteReplacement(stringToInsert) + "'");
+        }
+
+        void insertJsonRoot(String jsonRoot) {
+            insertJson(jsonRoot, JSON_ROOT_MARKER);
+        }
+
+        void insertJsonViolations(String jsonViolations) {
+            insertJson(jsonViolations, JSON_VIOLATION_MARKER);
+        }
+
+        void write() {
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
+                writer.write(content);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

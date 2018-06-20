@@ -88,7 +88,7 @@ public class VisualExtension implements ArchUnitExtension {
     public static void createVisualization(JavaClasses classes) {
         System.out.println("Writing report to " + targetDirectory.getAbsolutePath());
         if (evaluatedRules.containsKey(classes)) {
-            new Visualizer(classes, targetDirectory).visualize(evaluatedRules.get(classes), true);
+            new Visualizer(classes, targetDirectory).visualize(evaluatedRules.get(classes));
             evaluatedRules = new ConcurrentHashMap<>();
         } else {
             evaluatedRules = new ConcurrentHashMap<>();

@@ -25,6 +25,6 @@ public class VisualizerDemoManyClasses {
 
         new Visualizer(classes,
                 new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report-many-classes")
-        ).visualize(Arrays.asList(evaluationResult1), true);
+        ).visualize(Arrays.asList(evaluationResult1));
     }
 }

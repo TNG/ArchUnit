@@ -15,29 +15,23 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.io.Writer;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 class JsonExporter {
     private static final Gson GSON = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    void export(JavaClasses classes, Writer writer, VisualizationContext context) {
+    String exportToJson(JavaClasses classes, VisualizationContext context) {
         ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, context);
         JsonJavaPackage root = createPackageClassTree(classesToVisualize, context);
-        writeToWriter(root, writer);
+        return GSON.toJson(root);
     }
 
     private JsonJavaPackage createPackageClassTree(ClassesToVisualize classesToVisualize, VisualizationContext context) {
@@ -67,10 +61,6 @@ class JsonExporter {
         for (JavaClass c : dependencies) {
             root.insert(parseJavaElementWithoutDependencies(c));
         }
-    }
-
-    private void writeToWriter(JsonJavaPackage root, Writer writer) {
-        GSON.toJson(root, writer);
     }
 
     private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass anonymousInnerClass) {

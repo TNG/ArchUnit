@@ -7,12 +7,10 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1;
 import com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2;
 import com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1;
-import org.assertj.core.api.Condition;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +20,6 @@ public class VisualExtensionTest {
     private static final JavaClasses COMPLEX_INHERIT_CLASSES = new ClassFileImporter().importPackages("com.tngtech.archunit.visual.testjson.structure.complexinherit");
     private static final JavaClasses SIMPLE_INHERIT_CLASSES = new ClassFileImporter().importPackages("com.tngtech.archunit.visual.testjson.structure.simpleinherit");
     private static final File OUTPUT_DIR = new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile().getParentFile(), "visual-report-test");
-    private static final File CLASSES_FILE = new File(OUTPUT_DIR, "classes.json");
-    private static final File VIOLATION_FILE = new File(OUTPUT_DIR, "violations.json");
     private static final File REPORT_FILE = new File(OUTPUT_DIR, "report.html");
 
     private static final ArchRule NO_CLASSES_SHOULD_CALL_METHOD_1 = ArchRuleDefinition.noClasses().should().callMethod(ComplexClass2.class, "sayHelloAndBye");
@@ -43,20 +39,10 @@ public class VisualExtensionTest {
         }
         VisualExtension.createVisualization(ALL_TEST_CLASSES);
 
-        assertThat(CLASSES_FILE).exists();
-        assertThat(VIOLATION_FILE).exists();
         assertThat(REPORT_FILE).exists();
-        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
-                .as("created package structure")
-                .containsValue("default");
-        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
-                .as("violations")
-                .areAtLeastOne(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method ComplexClass2.sayHelloAndBye()");
-                    }
-                });
+        String reportContent = ResourcesUtils.getStringOfFile(REPORT_FILE);
+        assertThat(reportContent).contains("\"default\"");
+        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
     }
 
     @Test
@@ -75,32 +61,12 @@ public class VisualExtensionTest {
         }
         VisualExtension.createVisualization(ALL_TEST_CLASSES);
 
-        assertThat(CLASSES_FILE).exists();
-        assertThat(VIOLATION_FILE).exists();
+        String reportContent = ResourcesUtils.getStringOfFile(REPORT_FILE);
         assertThat(REPORT_FILE).exists();
-        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
-                .as("created package structure")
-                .containsValue("default");
-        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
-                .as("violations")
-                .areAtLeastOne(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method SimpleClass1.sayHi()");
-                    }
-                })
-                .areAtLeastOne(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method ComplexClass1.sayHello()");
-                    }
-                })
-                .areAtLeastOne(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method ComplexClass2.sayHelloAndBye()");
-                    }
-                });
+        assertThat(reportContent).contains("\"default\"");
+        assertThat(reportContent).contains("\"no classes should call method SimpleClass1.sayHi()\"");
+        assertThat(reportContent).contains("\"no classes should call method ComplexClass1.sayHello()\"");
+        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
     }
 
     @Test
@@ -115,25 +81,10 @@ public class VisualExtensionTest {
         }
         VisualExtension.createVisualization(COMPLEX_INHERIT_CLASSES);
 
-        assertThat(CLASSES_FILE).exists();
-        assertThat(VIOLATION_FILE).exists();
+        String reportContent = ResourcesUtils.getStringOfFile(REPORT_FILE);
         assertThat(REPORT_FILE).exists();
-        assertThat(ResourcesUtils.jsonToMap(CLASSES_FILE))
-                .as("created package structure")
-                .containsValue("default");
-        assertThat(ResourcesUtils.jsonToMapArray(VIOLATION_FILE))
-                .as("violations")
-                .areAtLeastOne(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method ComplexClass2.sayHelloAndBye()");
-                    }
-                })
-                .areNot(new Condition<Map<Object, Object>>() {
-                    @Override
-                    public boolean matches(Map<Object, Object> value) {
-                        return value.containsValue("no classes should call method SimpleClass1.sayHi()");
-                    }
-                });
+        assertThat(reportContent).contains("\"default\"");
+        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
+        assertThat(reportContent).doesNotContain("\"\"no classes should call method SimpleClass1.sayHi()\"\"");
     }
 }

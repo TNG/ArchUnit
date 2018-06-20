@@ -1,5 +1,6 @@
 package com.tngtech.archunit.visual;
 
+import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -14,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -23,6 +25,16 @@ final class ResourcesUtils {
     // FIXME: We have to make a shadow Jar of archunit-visual to use the test support, but for that we need to refactor the shrinking process within archunit-junit and make it reusable
     static <T> OptionalAssert<T> assertThatOptional(Optional<T> optional) {
         return Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    static String getStringOfFile(File file) {
+        byte[] encodedContent;
+        try {
+            encodedContent = Files.readAllBytes(file.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return new String(encodedContent, Charsets.UTF_8);
     }
 
     static String getJsonStringOf(JsonElement element) {

@@ -79,12 +79,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   };
 };
 
-export default (appContext, resources, svgElement, foldAllNodes) => new Promise((resolve, reject) => {
+export default (appContext, resources, svgElement, foldAllNodes) => {
   const Graph = init(appContext.getRoot(), appContext.getDependencies(),
     appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
-  resources.getJsonResources().then(resources => {
-    const graph = new Graph(resources.jsonRoot, resources.violations, svgElement, foldAllNodes);
-    resolve(graph);
-  }, reject);
-});
+  const {root, violations} = resources.getResources();
+  return new Graph(root, violations, svgElement, foldAllNodes);
+};

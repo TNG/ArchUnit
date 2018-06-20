@@ -4,7 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.assertj.core.util.Lists;
 import org.json.JSONException;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -21,7 +20,7 @@ public class JsonEvaluationResultListTest {
     
     @Test
     public void testInsertNewEvaluationResultToEmptyList() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, JSONException {
-        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList(Lists.<JsonEvaluationResult>newArrayList());
+        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList();
         JsonEvaluationResult jsonEvaluationResult = new JsonEvaluationResult("Rule1");
         jsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));
         jsonEvaluationResult.addViolation(createJsonViolation("OriginClass2", "TargetClass2"));
@@ -30,29 +29,16 @@ public class JsonEvaluationResultListTest {
         assertStringContainsJsonEqualToFile(act, "two-violations-of-one-rule.json");
     }
 
-    @Test
-    public void testInsertNewEvaluationResultOfNewRuleToNonEmptyList() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, JSONException {
-        JsonEvaluationResult existingJsonEvaluationResult = new JsonEvaluationResult("Rule1");
-        existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));
-        existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass2", "TargetClass2"));
-        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList(Lists.newArrayList(existingJsonEvaluationResult));
-
-        JsonEvaluationResult newJsonEvaluationResult = new JsonEvaluationResult("Rule2");
-        newJsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));
-        newJsonEvaluationResult.addViolation(createJsonViolation("OriginClass2", "TargetClass2"));
-
-        jsonEvaluationResultList.insertEvaluationResult(newJsonEvaluationResult);
-
-        String act = gson.toJson(jsonEvaluationResultList.getJsonEvaluationResultList());
-        assertStringContainsJsonEqualToFile(act, "two-violations-of-two-rules.json");
-    }
-
+    //FIXME: is this necessary??
     @Test
     public void testInsertNewEvaluationResultOfExistingRuleToNonEmptyList() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, JSONException {
+        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList();
+
         JsonEvaluationResult existingJsonEvaluationResult = new JsonEvaluationResult("Rule1");
         existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));
         existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass2", "TargetClass2"));
-        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList(Lists.newArrayList(existingJsonEvaluationResult));
+
+        jsonEvaluationResultList.insertEvaluationResult(existingJsonEvaluationResult);
 
         JsonEvaluationResult newJsonEvaluationResult = new JsonEvaluationResult("Rule1");
         newJsonEvaluationResult.addViolation(createJsonViolation("OriginClass3", "TargetClass3"));
@@ -66,10 +52,13 @@ public class JsonEvaluationResultListTest {
 
     @Test
     public void testInsertExistingEvaluationResultOfExistingRuleToNonEmptyList() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, JSONException {
+        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList();
+
         JsonEvaluationResult existingJsonEvaluationResult = new JsonEvaluationResult("Rule1");
         existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));
         existingJsonEvaluationResult.addViolation(createJsonViolation("OriginClass2", "TargetClass2"));
-        JsonEvaluationResultList jsonEvaluationResultList = new JsonEvaluationResultList(Lists.newArrayList(existingJsonEvaluationResult));
+
+        jsonEvaluationResultList.insertEvaluationResult(existingJsonEvaluationResult);
 
         JsonEvaluationResult newJsonEvaluationResult = new JsonEvaluationResult("Rule1");
         newJsonEvaluationResult.addViolation(createJsonViolation("OriginClass1", "TargetClass1"));

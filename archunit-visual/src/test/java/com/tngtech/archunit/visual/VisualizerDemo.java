@@ -28,6 +28,6 @@ public class VisualizerDemo {
         new Visualizer(classes,
                 new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report")
                 //VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
-        ).visualize(Arrays.asList(evaluationResult1, evaluationResult2), false);
+        ).visualize(Arrays.asList(evaluationResult1, evaluationResult2));
     }
 }

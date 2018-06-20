@@ -15,19 +15,14 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.ViolationHandler;
 
-import java.io.Reader;
-import java.io.Writer;
 import java.util.Collection;
-import java.util.List;
 
 class JsonViolationExporter {
 
@@ -35,37 +30,15 @@ class JsonViolationExporter {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    void export(Iterable<EvaluationResult> results, Reader jsonViolationReader, Supplier<Writer> getJsonViolationWriter) {
-        List<JsonEvaluationResult> existingViolationsList =
-                gson.fromJson(jsonViolationReader, new TypeToken<List<JsonEvaluationResult>>() {
-                }.getType());
-        if (existingViolationsList == null) {
-            existingViolationsList = Lists.newArrayList();
-        }
-        try (Writer writer = getJsonViolationWriter.get()) {
-            export(results, existingViolationsList, writer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    void export(Iterable<EvaluationResult> results, Supplier<Writer> getJsonViolationWriter) {
-        try (Writer writer = getJsonViolationWriter.get()) {
-            export(results, Lists.<JsonEvaluationResult>newArrayList(), writer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void export(Iterable<EvaluationResult> results, List<JsonEvaluationResult> existingViolationsList, Writer jsonViolationWriter) {
-        JsonEvaluationResultList existingViolations = new JsonEvaluationResultList(existingViolationsList);
+    String exportToJson(Iterable<EvaluationResult> results) {
+        JsonEvaluationResultList violations = new JsonEvaluationResultList();
         for (EvaluationResult result : results) {
             final JsonEvaluationResult evaluationResult = new JsonEvaluationResult(result.getRuleText());
             extractFieldAccesses(result, evaluationResult);
             extractJavaCalls(result, evaluationResult);
-            existingViolations.insertEvaluationResult(evaluationResult);
+            violations.insertEvaluationResult(evaluationResult);
         }
-        writeToWriter(existingViolations.getJsonEvaluationResultList(), jsonViolationWriter);
+        return gson.toJson(violations.getJsonEvaluationResultList());
     }
 
     private void extractJavaCalls(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
@@ -88,9 +61,5 @@ class JsonViolationExporter {
                 }
             }
         });
-    }
-
-    private void writeToWriter(final List<JsonEvaluationResult> evaluationResults, Writer jsonViolationWriter) {
-        gson.toJson(evaluationResults, jsonViolationWriter);
     }
 }

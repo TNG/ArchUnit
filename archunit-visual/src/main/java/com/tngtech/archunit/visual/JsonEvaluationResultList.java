@@ -15,19 +15,21 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class JsonEvaluationResultList {
-    List<JsonEvaluationResult> jsonEvaluationResultList;
+    private List<JsonEvaluationResult> jsonEvaluationResultList = Lists.newArrayList();
 
-    JsonEvaluationResultList(List<JsonEvaluationResult> jsonEvaluationResultList) {
-        this.jsonEvaluationResultList = jsonEvaluationResultList;
+    JsonEvaluationResultList() {
     }
 
     void insertEvaluationResult(JsonEvaluationResult newEvaluationResult) {
+        //FIXME: is this still necessary??
         for (JsonEvaluationResult evaluationResult : jsonEvaluationResultList) {
             if (evaluationResult.getRule().equals(newEvaluationResult.getRule())) {
                 Map<String, JsonViolation> jsonViolationMap= new HashMap<>();

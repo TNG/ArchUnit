@@ -19,8 +19,8 @@ const appContext = AppContext.newInstance({
   GraphView: stubs.GraphViewStub
 });
 
-const createResources = (jsonRoot, violations) => ({
-  getJsonResources: () => Promise.resolve({jsonRoot, violations})
+const createResources = (root, violations) => ({
+  getResources: () => ({root, violations})
 });
 
 describe('Graph', () => {
@@ -36,30 +36,28 @@ describe('Graph', () => {
     .build();
 
   it('creates a correct tree-structure with dependencies and a correct layout', () => {
-    return createGraph(appContext, createResources(jsonRootWithTwoClasses)).then(graph => {
+    const graph = createGraph(appContext, createResources(jsonRootWithTwoClasses));
 
-      const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1',
-        'com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2',
-        'com.tngtech.archunit.pkg2.SomeClass'];
-      const expDeps = ['com.tngtech.archunit.pkg1.SomeClass->com.tngtech.archunit.pkg2.SomeClass(methodCall)'];
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1',
+      'com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2',
+      'com.tngtech.archunit.pkg2.SomeClass'];
+    const expDeps = ['com.tngtech.archunit.pkg1.SomeClass->com.tngtech.archunit.pkg2.SomeClass(methodCall)'];
 
-      const actNodes = graph.root.getSelfAndDescendants();
-      const actDeps = graph.dependencies.getVisible();
-      expect(actNodes).to.containExactlyNodes(expNodes);
-      expect(actDeps).to.haveDependencyStrings(expDeps);
-      return graph.root._updatePromise;
-    });
+    const actNodes = graph.root.getSelfAndDescendants();
+    const actDeps = graph.dependencies.getVisible();
+    expect(actNodes).to.containExactlyNodes(expNodes);
+    expect(actDeps).to.haveDependencyStrings(expDeps);
+    return graph.root._updatePromise;
   });
 
   it('can initially fold all nodes', () => {
-    return createGraph(appContext, createResources(jsonRootWithTwoClasses), null, true).then(graph => {
-      const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
-      const expDeps = ['com.tngtech.archunit.pkg1->com.tngtech.archunit.pkg2()'];
+    const graph = createGraph(appContext, createResources(jsonRootWithTwoClasses), null, true);
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
+    const expDeps = ['com.tngtech.archunit.pkg1->com.tngtech.archunit.pkg2()'];
 
-      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      return graph.root._updatePromise;
-    });
+    expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+    expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+    return graph.root._updatePromise;
   });
 
   it('can filter node by name containing', () => {
@@ -74,16 +72,15 @@ describe('Graph', () => {
         .build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-      const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
+    const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterNodesByName('Some', false);
+    graph.filterNodesByName('Some', false);
 
-      return graph.root._updatePromise.then(() => {
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      });
+    return graph.root._updatePromise.then(() => {
+      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
     });
   });
 
@@ -99,16 +96,15 @@ describe('Graph', () => {
         .build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-      const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
+    const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterNodesByName('Matching', true);
+    graph.filterNodesByName('Matching', true);
 
-      return graph.root._updatePromise.then(() => {
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      });
+    return graph.root._updatePromise.then(() => {
+      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
     });
   });
 
@@ -124,16 +120,15 @@ describe('Graph', () => {
         .build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-      const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
+    const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterNodesByType({showInterfaces: false, showClasses: true});
+    graph.filterNodesByType({showInterfaces: false, showClasses: true});
 
-      return graph.root._updatePromise.then(() => {
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
-      });
+    return graph.root._updatePromise.then(() => {
+      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
     });
   });
 
@@ -147,21 +142,20 @@ describe('Graph', () => {
         .build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    const expDeps = ['com.tngtech.archunit.SomeClass1->com.tngtech.archunit.SomeClass2(methodCall)'];
 
-      graph.filterDependenciesByType({
-        showImplementing: false,
-        showExtending: false,
-        showConstructorCall: false,
-        showMethodCall: true,
-        showFieldAccess: false,
-        showAnonymousImplementation: false,
-        showDepsBetweenChildAndParent: true
-      });
-
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+    graph.filterDependenciesByType({
+      showImplementing: false,
+      showExtending: false,
+      showConstructorCall: false,
+      showMethodCall: true,
+      showFieldAccess: false,
+      showAnonymousImplementation: false,
+      showDepsBetweenChildAndParent: true
     });
+
+    expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
   });
 
   it('transforms the dependencies if a node is folded', () => {
@@ -174,15 +168,14 @@ describe('Graph', () => {
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      const exp = ['com.tngtech.archunit.pkgToFold->com.tngtech.archunit.SomeClass2()'];
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    const exp = ['com.tngtech.archunit.pkgToFold->com.tngtech.archunit.SomeClass2()'];
 
-      graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
+    graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
 
-      expect(graph.dependencies.getVisible()).to.haveDependencyStrings(exp);
+    expect(graph.dependencies.getVisible()).to.haveDependencyStrings(exp);
 
-      return graph.root._updatePromise;
-    });
+    return graph.root._updatePromise;
   });
 
   it('updates the positions of the dependencies if a node is dragged', () => {
@@ -193,9 +186,8 @@ describe('Graph', () => {
       .add(testJson.clazz('SomeClass2', 'class').build())
       .build();
 
-    return createGraph(appContext, createResources(jsonRoot)).then(graph => {
-      graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
-      return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()[0]._view.hasJumpedToPosition).to.equal(true));
-    });
+    const graph = createGraph(appContext, createResources(jsonRoot));
+    graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
+    return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()[0]._view.hasJumpedToPosition).to.equal(true));
   });
 });
