@@ -25,14 +25,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.jar.JarEntry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static java.util.Collections.list;
 
 @PublicAPI(usage = ACCESS)
 public final class Visualizer {
@@ -80,9 +77,8 @@ public final class Visualizer {
         reportFile.insertJsonViolations(new JsonViolationExporter().exportToJson(evaluationResults));
     }
 
-    //TODO: only copy report.html
     private void copyFiles() {
-        URL url = getClass().getResource(DIR);
+        URL url = getClass().getResource(DIR + "/" + REPORT_FILE_NAME);
         //FIXME: the url null found when using the IntelliJ-Test-Runner
         try {
             createCopyFor(url).copyTo(targetDir);
@@ -115,19 +111,12 @@ public final class Visualizer {
 
             @Override
             public void copyTo(final File targetDir) throws IOException {
-                Files.walkFileTree(Paths.get(url.getFile()),
-                        new SimpleFileVisitor<Path>() {
-                            @Override
-                            public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
-                                if (!path.toFile().isDirectory()) {
-                                    com.google.common.io.Files.copy(path.toFile(), new File(targetDir, path.toFile().getName()));
-                                }
-                                return super.visitFile(path, basicFileAttributes);
-                            }
-                        });
+                File file = new File(url.getFile());
+                com.google.common.io.Files.copy(file, new File(targetDir, file.getName()));
             }
         }
 
+        //TODO: test this
         private static class FromJar extends Copy {
             FromJar(URL url) {
                 super(url);
@@ -137,11 +126,10 @@ public final class Visualizer {
             public void copyTo(File targetDir) throws IOException {
                 String folder = getClass().getPackage().getName().replace(".", "/") + "/" + "report";
                 JarURLConnection connection = (JarURLConnection) url.openConnection();
-                for (JarEntry entry : list(connection.getJarFile().entries())) {
-                    if (entry.getName().startsWith(folder) && !entry.isDirectory()) {
-                        try (FileOutputStream to = new FileOutputStream(new File(targetDir, entry.getName().replaceAll(".*/", "")))) {
-                            ByteStreams.copy(connection.getJarFile().getInputStream(entry), to);
-                        }
+                JarEntry entry = connection.getJarEntry();
+                if (entry.getName().startsWith(folder)) {
+                    try (FileOutputStream to = new FileOutputStream(new File(targetDir, entry.getName().replaceAll(".*/", "")))) {
+                        ByteStreams.copy(connection.getJarFile().getInputStream(entry), to);
                     }
                 }
             }
