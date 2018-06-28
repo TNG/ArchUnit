@@ -358,7 +358,12 @@ public abstract class RandomSyntaxTestBase {
                 .add(new SpecificParameterProvider(DescribedPredicate.class) {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
-                        return new Parameter(DescribedPredicate.alwaysTrue().as("custom predicate"), "custom predicate");
+                        if ("containNumberOfElements".equals(methodName)) {
+                            final DescribedPredicate<Integer> predicate = DescribedPredicate.lessThan(123);
+                            return new Parameter(predicate, predicate.getDescription());
+                        } else {
+                            return new Parameter(DescribedPredicate.alwaysTrue().as("custom predicate"), "custom predicate");
+                        }
                     }
                 })
                 .add(new SpecificParameterProvider(ArchCondition.class) {

@@ -16,15 +16,18 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -777,6 +780,31 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeInterfaces() {
         return not(beInterfaces());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> containNumberOfElements(final DescribedPredicate<Integer> predicate) {
+        return new ArchCondition<JavaClass>("contain number of elements " + predicate.getDescription()) {
+            private Iterable<JavaClass> allObjectsToTest;
+
+            @Override
+            public void init(Iterable<JavaClass> allObjectsToTest) {
+                this.allObjectsToTest = allObjectsToTest;
+            }
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                // no-op, classes checked at finish method
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                final int size = Guava.Iterables.size(allObjectsToTest);
+                final boolean conditionSatisfied = predicate.apply(size);
+                final String message = String.format("there is/are %d element(s) in classes %s", size, Guava.Iterables.toString(allObjectsToTest));
+                events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
+            }
+        };
     }
 
     private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {

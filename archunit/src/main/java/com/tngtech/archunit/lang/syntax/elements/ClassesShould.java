@@ -846,4 +846,12 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBe(String className);
+
+    /**
+     * Asserts that number of matched elements conforms supplied predicated.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate);
 }
