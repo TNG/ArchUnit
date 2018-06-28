@@ -479,6 +479,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeInterfaces()));
     }
 
+    @Override
+    public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.containNumberOfElements(predicate)));
+    }
+
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
         return new ClassesShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }
