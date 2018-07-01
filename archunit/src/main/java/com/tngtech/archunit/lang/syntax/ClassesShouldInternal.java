@@ -200,8 +200,8 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction beImmutable() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beImmutable()));
+    public ClassesShouldConjunction haveOnlyFinalFields() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveOnlyFinalFields()));
     }
 
     @Override
