@@ -682,61 +682,60 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-
     @DataProvider
     public static Object[][] theClass_should_haveOnlyFinalFields_rules() {
         return $$(
-                $(theClass(ImmutableClass.class).should().haveOnlyFinalFields(),
-                        theClass(MutableClass.class).should().haveOnlyFinalFields()),
-                $(theClass(ImmutableClass.class).should(ArchConditions.haveOnlyFinalFields()),
-                        theClass(MutableClass.class).should(ArchConditions.haveOnlyFinalFields())),
-                $(theClass(ImmutableClass.class.getName()).should().haveOnlyFinalFields(),
-                        theClass(MutableClass.class.getName()).should().haveOnlyFinalFields()),
-                $(theClass(ImmutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
-                        theClass(MutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
+                $(theClass(ClassWithFinalFields.class).should().haveOnlyFinalFields(),
+                        theClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields()),
+                $(theClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
+                        theClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields())),
+                $(theClass(ClassWithFinalFields.class.getName()).should().haveOnlyFinalFields(),
+                        theClass(ClassWithNonFinalFields.class.getName()).should().haveOnlyFinalFields()),
+                $(theClass(ClassWithFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                        theClass(ClassWithNonFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
         );
     }
 
     @Test
     @UseDataProvider("theClass_should_haveOnlyFinalFields_rules")
     public void theClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
-        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+        assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithFinalFields.class, ClassWithNonFinalFields.class)
                 .haveSuccessfulRuleText("the class %s should have only final fields",
-                        ImmutableClass.class.getName())
+                        ClassWithFinalFields.class.getName())
                 .haveFailingRuleText("the class %s should have only final fields",
-                        MutableClass.class.getName())
-                .containFailureDetail(String.format("class %s has mutable fields \\[integer, string\\] in %s",
-                        quote(MutableClass.class.getName()),
+                        ClassWithNonFinalFields.class.getName())
+                .containFailureDetail(String.format("class %s has non-final fields \\[integerField, stringField\\] in %s",
+                        quote(ClassWithNonFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
-                .doNotContainFailureDetail(quote(ImmutableClass.class.getName()));
+                .doNotContainFailureDetail(quote(ClassWithFinalFields.class.getName()));
     }
 
     @DataProvider
     public static Object[][] noClass_should_haveOnlyFinalFields_rules() {
         return $$(
-                $(noClass(MutableClass.class).should().haveOnlyFinalFields(),
-                        noClass(ImmutableClass.class).should().haveOnlyFinalFields()),
-                $(noClass(MutableClass.class).should(ArchConditions.haveOnlyFinalFields()),
-                        noClass(ImmutableClass.class).should(ArchConditions.haveOnlyFinalFields())),
-                $(noClass(MutableClass.class.getName()).should().haveOnlyFinalFields(),
-                        noClass(ImmutableClass.class.getName()).should().haveOnlyFinalFields()),
-                $(noClass(MutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
-                        noClass(ImmutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
+                $(noClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields(),
+                        noClass(ClassWithFinalFields.class).should().haveOnlyFinalFields()),
+                $(noClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
+                        noClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields())),
+                $(noClass(ClassWithNonFinalFields.class.getName()).should().haveOnlyFinalFields(),
+                        noClass(ClassWithFinalFields.class.getName()).should().haveOnlyFinalFields()),
+                $(noClass(ClassWithNonFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                        noClass(ClassWithFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
         );
     }
 
     @Test
     @UseDataProvider("noClass_should_haveOnlyFinalFields_rules")
     public void noClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
-        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+        assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithFinalFields.class, ClassWithNonFinalFields.class)
                 .haveSuccessfulRuleText("no class %s should have only final fields",
-                        MutableClass.class.getName())
+                        ClassWithNonFinalFields.class.getName())
                 .haveFailingRuleText("no class %s should have only final fields",
-                        ImmutableClass.class.getName())
-                .containFailureDetail(String.format("class %s doesn't have any mutable fields in %s",
-                        quote(ImmutableClass.class.getName()),
+                        ClassWithFinalFields.class.getName())
+                .containFailureDetail(String.format("class %s doesn't have any non-final fields in %s",
+                        quote(ClassWithFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
-                .doNotContainFailureDetail(quote(MutableClass.class.getName()));
+                .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
     }
 
 
@@ -1464,28 +1463,31 @@ public class GivenClassShouldTest {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PublicClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected static class ProtectedClass {
     }
 
+    @SuppressWarnings("WeakerAccess")
     static class PackagePrivateClass {
     }
 
     private static class PrivateClass {
     }
 
-    private static class MutableClass {
-        String string;
-        int integer;
+    private static class ClassWithNonFinalFields {
+        String stringField;
+        int integerField;
     }
 
-    private static class ImmutableClass {
-        private final String string;
+    private static class ClassWithFinalFields {
+        private final String stringField;
 
-        ImmutableClass(String string) {
-            this.string = string;
+        ClassWithFinalFields(String stringField) {
+            this.stringField = stringField;
         }
     }
 

@@ -17,7 +17,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
@@ -63,6 +63,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameSt
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
@@ -554,21 +555,24 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> haveOnlyFinalFields() {
         return new ArchCondition<JavaClass>("have only final fields") {
             @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                Set<JavaField> fields = item.getFields();
-                TreeSet<String> notFinalFieldNames = new TreeSet<>();
-                for (JavaField field : fields) {
-                    if (!field.getModifiers().contains(JavaModifier.FINAL)) {
-                        String name = field.getName();
-                        notFinalFieldNames.add(name);
-                    }
-                }
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
                 boolean satisfied = notFinalFieldNames.isEmpty();
                 String message = String.format("class %s %s in %s",
-                        item.getName(),
-                        satisfied ? "doesn't have any mutable fields" : "has mutable fields " + notFinalFieldNames,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
+                        javaClass.getName(),
+                        satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames,
+                        formatLocation(javaClass, 0));
+                events.add(new SimpleConditionEvent(javaClass, satisfied, message));
+            }
+
+            private SortedSet<String> getNonFinalFieldNamesOf(JavaClass javaClass) {
+                TreeSet<String> notFinalFieldNames = new TreeSet<>();
+                for (JavaField field : javaClass.getFields()) {
+                    if (!field.getModifiers().contains(FINAL)) {
+                        notFinalFieldNames.add(field.getName());
+                    }
+                }
+                return notFinalFieldNames;
             }
         };
     }
