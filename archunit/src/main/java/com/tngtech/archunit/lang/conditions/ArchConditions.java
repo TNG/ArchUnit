@@ -17,6 +17,8 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
@@ -33,6 +35,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -545,6 +548,29 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBePrivate() {
         return not(haveModifier(JavaModifier.PRIVATE)).as("not be private");
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveOnlyFinalFields() {
+        return new ArchCondition<JavaClass>("have only final fields") {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                Set<JavaField> fields = item.getFields();
+                TreeSet<String> notFinalFieldNames = new TreeSet<>();
+                for (JavaField field : fields) {
+                    if (!field.getModifiers().contains(JavaModifier.FINAL)) {
+                        String name = field.getName();
+                        notFinalFieldNames.add(name);
+                    }
+                }
+                boolean satisfied = notFinalFieldNames.isEmpty();
+                String message = String.format("class %s %s in %s",
+                        item.getName(),
+                        satisfied ? "doesn't have any mutable fields" : "has mutable fields " + notFinalFieldNames,
+                        formatLocation(item, 0));
+                events.add(new SimpleConditionEvent(item, satisfied, message));
+            }
+        };
     }
 
     @PublicAPI(usage = ACCESS)
