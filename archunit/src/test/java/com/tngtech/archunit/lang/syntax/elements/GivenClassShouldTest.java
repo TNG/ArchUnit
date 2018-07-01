@@ -682,6 +682,64 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
+
+    @DataProvider
+    public static Object[][] theClass_should_beImmutable_rules() {
+        return $$(
+                $(theClass(ImmutableClass.class).should().beImmutable(),
+                        theClass(MutableClass.class).should().beImmutable()),
+                $(theClass(ImmutableClass.class).should(ArchConditions.beImmutable()),
+                        theClass(MutableClass.class).should(ArchConditions.beImmutable())),
+                $(theClass(ImmutableClass.class.getName()).should().beImmutable(),
+                        theClass(MutableClass.class.getName()).should().beImmutable()),
+                $(theClass(ImmutableClass.class.getName()).should(ArchConditions.beImmutable()),
+                        theClass(MutableClass.class.getName()).should(ArchConditions.beImmutable()))
+        );
+    }
+
+    @Test
+    @UseDataProvider("theClass_should_beImmutable_rules")
+    public void theClass_should_beImmutable(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+                .haveSuccessfulRuleText("the class %s should be immutable",
+                        ImmutableClass.class.getName())
+                .haveFailingRuleText("the class %s should be immutable",
+                        MutableClass.class.getName())
+                .containFailureDetail(String.format("class %s has mutable fields \\[integer, string\\] in %s",
+                        quote(MutableClass.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .doNotContainFailureDetail(quote(ImmutableClass.class.getName()));
+    }
+
+    @DataProvider
+    public static Object[][] noClass_should_beImmutable_rules() {
+        return $$(
+                $(noClass(MutableClass.class).should().beImmutable(),
+                        noClass(ImmutableClass.class).should().beImmutable()),
+                $(noClass(MutableClass.class).should(ArchConditions.beImmutable()),
+                        noClass(ImmutableClass.class).should(ArchConditions.beImmutable())),
+                $(noClass(MutableClass.class.getName()).should().beImmutable(),
+                        noClass(ImmutableClass.class.getName()).should().beImmutable()),
+                $(noClass(MutableClass.class.getName()).should(ArchConditions.beImmutable()),
+                        noClass(ImmutableClass.class.getName()).should(ArchConditions.beImmutable()))
+        );
+    }
+
+    @Test
+    @UseDataProvider("noClass_should_beImmutable_rules")
+    public void noClass_should_beImmutable(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+                .haveSuccessfulRuleText("no class %s should be immutable",
+                        MutableClass.class.getName())
+                .haveFailingRuleText("no class %s should be immutable",
+                        ImmutableClass.class.getName())
+                .containFailureDetail(String.format("class %s doesn't have mutable fields in %s",
+                        quote(ImmutableClass.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .doNotContainFailureDetail(quote(MutableClass.class.getName()));
+    }
+
+
     @DataProvider
     public static Object[][] theClass_should_beProtected_rules() {
         return $$(
@@ -1416,6 +1474,19 @@ public class GivenClassShouldTest {
     }
 
     private static class PrivateClass {
+    }
+
+    private static class MutableClass {
+        String string;
+        int integer;
+    }
+
+    private static class ImmutableClass {
+        private final String string;
+
+        ImmutableClass(String string) {
+            this.string = string;
+        }
     }
 
     @RuntimeRetentionAnnotation
