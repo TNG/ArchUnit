@@ -56,7 +56,11 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.*;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -547,8 +551,8 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> beImmutable() {
-        return new ArchCondition<JavaClass>("be immutable") {
+    public static ArchCondition<JavaClass> haveOnlyFinalFields() {
+        return new ArchCondition<JavaClass>("have only final fields") {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 Set<JavaField> fields = item.getFields();
@@ -562,7 +566,7 @@ public final class ArchConditions {
                 boolean satisfied = notFinalFieldNames.isEmpty();
                 String message = String.format("class %s %s in %s",
                         item.getName(),
-                        satisfied ? "doesn't have mutable fields" : "has mutable fields " + notFinalFieldNames,
+                        satisfied ? "doesn't have any mutable fields" : "has mutable fields " + notFinalFieldNames,
                         formatLocation(item, 0));
                 events.add(new SimpleConditionEvent(item, satisfied, message));
             }
