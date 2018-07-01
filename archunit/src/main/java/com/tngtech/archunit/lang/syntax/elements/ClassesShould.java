@@ -247,6 +247,14 @@ public interface ClassesShould {
     ClassesShouldConjunction notBePrivate();
 
     /**
+     * Asserts that classes have only final fields.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction haveOnlyFinalFields();
+
+    /**
      * Asserts that classes have a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

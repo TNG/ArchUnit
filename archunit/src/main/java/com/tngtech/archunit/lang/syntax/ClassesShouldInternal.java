@@ -200,6 +200,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction haveOnlyFinalFields() {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveOnlyFinalFields()));
+    }
+
+    @Override
     public ClassesShouldConjunction haveModifier(JavaModifier modifier) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveModifier(modifier)));
     }

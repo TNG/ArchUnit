@@ -682,6 +682,64 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
+
+    @DataProvider
+    public static Object[][] theClass_should_haveOnlyFinalFields_rules() {
+        return $$(
+                $(theClass(ImmutableClass.class).should().haveOnlyFinalFields(),
+                        theClass(MutableClass.class).should().haveOnlyFinalFields()),
+                $(theClass(ImmutableClass.class).should(ArchConditions.haveOnlyFinalFields()),
+                        theClass(MutableClass.class).should(ArchConditions.haveOnlyFinalFields())),
+                $(theClass(ImmutableClass.class.getName()).should().haveOnlyFinalFields(),
+                        theClass(MutableClass.class.getName()).should().haveOnlyFinalFields()),
+                $(theClass(ImmutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                        theClass(MutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
+        );
+    }
+
+    @Test
+    @UseDataProvider("theClass_should_haveOnlyFinalFields_rules")
+    public void theClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+                .haveSuccessfulRuleText("the class %s should have only final fields",
+                        ImmutableClass.class.getName())
+                .haveFailingRuleText("the class %s should have only final fields",
+                        MutableClass.class.getName())
+                .containFailureDetail(String.format("class %s has mutable fields \\[integer, string\\] in %s",
+                        quote(MutableClass.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .doNotContainFailureDetail(quote(ImmutableClass.class.getName()));
+    }
+
+    @DataProvider
+    public static Object[][] noClass_should_haveOnlyFinalFields_rules() {
+        return $$(
+                $(noClass(MutableClass.class).should().haveOnlyFinalFields(),
+                        noClass(ImmutableClass.class).should().haveOnlyFinalFields()),
+                $(noClass(MutableClass.class).should(ArchConditions.haveOnlyFinalFields()),
+                        noClass(ImmutableClass.class).should(ArchConditions.haveOnlyFinalFields())),
+                $(noClass(MutableClass.class.getName()).should().haveOnlyFinalFields(),
+                        noClass(ImmutableClass.class.getName()).should().haveOnlyFinalFields()),
+                $(noClass(MutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                        noClass(ImmutableClass.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
+        );
+    }
+
+    @Test
+    @UseDataProvider("noClass_should_haveOnlyFinalFields_rules")
+    public void noClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+        assertThatRules(satisfiedRule, unsatisfiedRule, ImmutableClass.class, MutableClass.class)
+                .haveSuccessfulRuleText("no class %s should have only final fields",
+                        MutableClass.class.getName())
+                .haveFailingRuleText("no class %s should have only final fields",
+                        ImmutableClass.class.getName())
+                .containFailureDetail(String.format("class %s doesn't have any mutable fields in %s",
+                        quote(ImmutableClass.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .doNotContainFailureDetail(quote(MutableClass.class.getName()));
+    }
+
+
     @DataProvider
     public static Object[][] theClass_should_beProtected_rules() {
         return $$(
@@ -1416,6 +1474,19 @@ public class GivenClassShouldTest {
     }
 
     private static class PrivateClass {
+    }
+
+    private static class MutableClass {
+        String string;
+        int integer;
+    }
+
+    private static class ImmutableClass {
+        private final String string;
+
+        ImmutableClass(String string) {
+            this.string = string;
+        }
     }
 
     @RuntimeRetentionAnnotation
