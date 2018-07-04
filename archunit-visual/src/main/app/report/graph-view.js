@@ -38,15 +38,17 @@ const init = (transitionDuration) => {
       const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
       const requiredSize = parseInt(2 * rootRadius + 4);
       const expandedSize = parseInt(3 * rootRadius + 4);
-      const requiredWidth = Math.max(windowWidth, requiredSize);
-      const requiredHeight = Math.max(windowHeight, requiredSize);
-      if (requiredWidth > this._width) {
-        this._width = requiredSize < windowWidth ? windowWidth : expandedSize;
+      const minWidth = Math.max(windowWidth, requiredSize);
+      const maxWidth = Math.max(windowWidth, expandedSize);
+      const minHeight = Math.max(windowHeight, requiredSize);
+      const maxHeight = Math.max(windowHeight, expandedSize);
+      if (minWidth > this._width || maxWidth < this._width) {
+        this._width = Math.max(expandedSize, windowWidth);
         d3.select(this._svg).attr('width', this._width);
       }
 
-      if (requiredHeight > this._height) {
-        this._height = requiredSize < windowHeight ? windowHeight : expandedSize;
+      if (minHeight > this._height || maxHeight < this._height) {
+        this._height = Math.max(expandedSize, windowHeight);
         d3.select(this._svg).attr('height', this._height);
       }
     }
