@@ -21,7 +21,7 @@ If your commit refers to an issue, please post-fix it with the issue number, e.g
 Issue: #123
 ```
 
-Furthermore, commits should be signed according to the [DCO](DCO).
+Furthermore, commits should be signed off according to the [DCO](DCO).
 
 ### Pull Requests
 
@@ -29,12 +29,6 @@ If your Pull Request resolves an issue, please add a respective line to the end,
 
 ```
 Resolves #123
-```
-
-Furthermore, please add the following line to your Pull Request description:
-
-```
-I hereby agree to the terms of the ArchUnit Contributor License Agreement.
 ```
 
 ### Formatting
