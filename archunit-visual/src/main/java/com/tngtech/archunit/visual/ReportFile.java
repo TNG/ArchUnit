@@ -22,7 +22,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
 
-public class ReportFile {
+class ReportFile {
     private static final String[] JSON_ROOT_MARKERS = {
             "\"injectJsonClassesToVisualizeHere\"",
             "'injectJsonClassesToVisualizeHere'"
