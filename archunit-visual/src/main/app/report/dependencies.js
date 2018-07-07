@@ -182,6 +182,7 @@ const init = (View) => {
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
 
+    //TODO: maybe keep only one dependency of possible mutual dependencies
     getAllLinks() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
       const simpleDependencies = this.getVisible().map(dependency => createSimpleDependency(dependency.from, dependency.to));
@@ -346,6 +347,11 @@ const init = (View) => {
 
     getVisible() {
       return this._visibleDependencies;
+    }
+
+    getDistinctNodesHavingDependencies() {
+      const nodeFullNames = this.getVisible().map(dep => dep.from).concat(this.getVisible().map(dep => dep.to));
+      return new Map(nodeFullNames.map(nodeFullName => [nodeFullName, nodes.getByName(nodeFullName)]));
     }
 
     getDetailedDependenciesOf(from, to) {

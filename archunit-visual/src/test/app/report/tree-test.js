@@ -205,6 +205,7 @@ describe('Inner node or leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -236,6 +237,7 @@ describe('Inner node or leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
     root.relayoutCompletely();
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass');
@@ -259,6 +261,7 @@ describe('Inner node or leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
     root.relayoutCompletely();
     const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
 
@@ -287,6 +290,8 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
+
+    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
       const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
@@ -319,6 +324,8 @@ describe('Inner node or leaf', () => {
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
+    const node = root.getByName('com.tngtech.archunit.pkgToBeOverlapped.SomeClass');
+    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [node.getFullName(), node]]);
 
     return doNext(root, () => {
       const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
@@ -348,6 +355,7 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
     nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
+    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
       const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
@@ -376,6 +384,7 @@ describe('Inner node or leaf', () => {
     const node1 = root.getByName('com.tngtech.archunit.SomeClass1');
     const node2 = root.getByName('com.tngtech.archunit.SomeClass2');
     const node3 = root.getByName('com.tngtech.archunit.SomeClass3');
+    root.getNodesWithDependencies = () => new Map([[node1.getFullName(), node1], [node2.getFullName(), node2], [node3.getFullName(), node3]]);
 
     return doNext(root, () => {
       const vectorToNode3 = Vector.between(node2.nodeCircle.relativePosition, node3.nodeCircle.relativePosition);
@@ -432,6 +441,7 @@ describe('Inner node or leaf', () => {
     const nodeToDrag = root.getByName('com.tngtech.archunit.pkgToDrag');
     const nodeToOverlap = root.getByName('com.tngtech.archunit.pkgToDrag.SomeClass');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.ClassToBeOverlapped');
+    root.getNodesWithDependencies = () => new Map([[nodeToOverlap.getFullName(), nodeToOverlap], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
       const dragVector = Vector.between(nodeToOverlap.nodeCircle.absoluteCircle, nodeToBeOverlapped.nodeCircle.absoluteCircle);
@@ -466,6 +476,7 @@ describe('Inner node or leaf', () => {
 
     const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass$InnerClass2');
     const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.SomeClass$InnerClass1');
+    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
       const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);

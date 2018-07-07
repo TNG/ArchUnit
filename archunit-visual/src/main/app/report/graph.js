@@ -9,6 +9,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
+      this.root.getNodesWithDependencies = () => this.dependencies.getDistinctNodesHavingDependencies();
       if (foldAllNodes) {
         this.root.foldAllNodes();
       }

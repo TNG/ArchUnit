@@ -150,6 +150,7 @@ const NodeCircle = class {
     return Promise.resolve();
   }
 
+  //TODO: remove return value
   completeMoveToIntermediatePosition() {
     this._updateAbsolutePositionAndChildren();
     if (!this.absoluteCircle.isFixed()) {

@@ -42,7 +42,7 @@ const newInstance = () => {
   };
 
   const createForceCollideSimulation = (padding, nodes) => {
-    return createSimulation(0.04, nodes, {
+    return createSimulation(0.03, nodes, {
       name: 'collide',
       forceFunction: d3.forceCollide().radius(n => n.r + padding).strength(1)
     });

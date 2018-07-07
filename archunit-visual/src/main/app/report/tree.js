@@ -250,23 +250,25 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._root.doNextAndWaitFor(() => {
         this.nodeCircle.jumpToRelativeDisplacement(dx, dy);
         this._listener.forEach(listener => listener.onDrag(this));
-
-        const nodesWithPotentialDependencies = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
+        const allRelevantNodes = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
+        const allRelevantNodesMap = new Map(allRelevantNodes.map(node => [node.getFullName(), node]));
+        const nodesHavingDeps = this._root.getNodesWithDependencies(); //subset of allRelevantNodes
         this._listener.forEach(listener => listener.resetNodesOverlapping());
-        nodesWithPotentialDependencies.reduce((acc, node) => node._checkOverlappingWithNodes(acc), nodesWithPotentialDependencies);
+        allRelevantNodes.forEach(node => node._checkOverlappingWithNodesIfHavingDeps(allRelevantNodesMap, nodesHavingDeps));
         this._listener.forEach(listener => listener.finishOnNodesOverlapping());
       });
     }
 
-    _checkOverlappingWithNodes(nodes) {
-      const nodesWithoutOwnDescendants = nodes.filter(node => !(node === this || this.isPredecessorOf(node.getFullName())));
-
-      const isOverlappingWithAnyNode = nodesWithoutOwnDescendants.map(node => this._checkOverlappingWithSingleNode(node)).some(bol => bol);
-      if (this._description.type !== nodeTypes.package || isOverlappingWithAnyNode) {
-        return nodes.filter(node => node !== this);
+    _checkOverlappingWithNodesIfHavingDeps(nodesMap, nodesHavingDepsMap) {
+      if (nodesHavingDepsMap.has(this.getFullName())) {
+        const removedNodes = [];
+        this._callOnSelfThenEveryDescendant(node => nodesMap.delete(node.getFullName()) && node !== this ? removedNodes.push(node) : {});
+        [...nodesMap.values()]
+          .map(node => this._checkOverlappingWithSingleNode(node));
+        removedNodes.forEach(node => nodesMap.set(node.getFullName(), node));
       }
       else {
-        return nodesWithoutOwnDescendants.filter(node => node !== this);
+        nodesMap.delete(this.getFullName());
       }
     }
 
@@ -278,7 +280,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
           sortedNodes.second.nodeCircle.absoluteCircle));
       }
-      return areOverlapping;
     }
 
     /**
