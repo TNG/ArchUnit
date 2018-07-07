@@ -61,7 +61,8 @@
     "style-loader": "^0.21.0",
     "web-webpack-plugin": "^1.10.4",
     "webpack": "^4.8.3",
-    "webpack-cli": "^2.1.3"
+    "webpack-cli": "^2.1.3",
+    "polymer-bundler": "^4.0.2"
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^1.0.1",
