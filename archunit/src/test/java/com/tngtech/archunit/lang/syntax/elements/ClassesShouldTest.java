@@ -1152,12 +1152,12 @@ public class ClassesShouldTest {
 
     @Test
     @UseDataProvider("containNumberOfElements_rules")
-    public void haveMatchedFound(DescribedPredicate<Integer> predicate) {
+    public void containNumberOfElements(DescribedPredicate<Integer> predicate) {
         EvaluationResult result = classes().should().containNumberOfElements(predicate).evaluate(importClasses(String.class, Integer.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains("contain number of elements")
-                .contains("there is/are 2 element(s) in classes [JavaClass{name='java.lang.String'}, JavaClass{name='java.lang.Integer'}]");
+                .contains("contain number of elements " + predicate.getDescription())
+                .contains("there is/are 2 element(s) in classes [java.lang.Integer, java.lang.String]");
     }
 
     @DataProvider
