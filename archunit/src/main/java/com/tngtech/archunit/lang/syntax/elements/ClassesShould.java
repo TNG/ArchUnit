@@ -848,7 +848,7 @@ public interface ClassesShould {
     ClassesShouldConjunction notBe(String className);
 
     /**
-     * Asserts that number of matched elements conforms supplied predicated.
+     * Asserts that the number of classes checked by this rule conforms to the supplied predicate.
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
