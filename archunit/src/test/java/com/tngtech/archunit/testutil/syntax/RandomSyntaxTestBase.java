@@ -60,13 +60,22 @@ public abstract class RandomSyntaxTestBase {
         assertThat(archRule.getDescription()).as("description of constructed ArchRule").isEqualTo(expectedDescription);
 
         archRule.evaluate(importClassesWithContext());
-        archRule.check(importClassesWithContext());
+        assertCheckEitherPassesOrThrowsAssertionError(archRule);
 
         ArchRule overriddenText = archRule.as("overridden rule text");
         assertThat(overriddenText.getDescription()).isEqualTo("overridden rule text");
         assertThat(overriddenText.evaluate(
                 importClassesWithContext()).getFailureReport().toString()).contains(
                 "overridden rule text");
+    }
+
+    private void assertCheckEitherPassesOrThrowsAssertionError(ArchRule archRule) {
+        try {
+            archRule.check(importClassesWithContext());
+            // it is okay if this passes
+        } catch (AssertionError e) {
+            // it is also okay, if this throws an AssertionError, but no other exception must be thrown
+        }
     }
 
     private static class SyntaxSpec<T> {
