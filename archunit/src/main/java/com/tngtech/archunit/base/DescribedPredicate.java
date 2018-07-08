@@ -98,6 +98,22 @@ public abstract class DescribedPredicate<T> {
         return new EqualToPredicate<>(object);
     }
 
+    public static <T extends Comparable<T>> DescribedPredicate<T> lessThan(final T value) {
+        return new LessThanPredicate<>(value);
+    }
+
+    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThan(final T value) {
+        return new GreaterThanPredicate<>(value);
+    }
+
+    public static <T extends Comparable<T>> DescribedPredicate<T> lessThanOrEqualTo(final T value) {
+        return new LessThanOrEqualToPredicate<>(value);
+    }
+
+    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThanOrEqualTo(final T value) {
+        return new GreaterThanOrEqualToPredicate<>(value);
+    }
+
     public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<T> predicate) {
         return not(predicate).as("doesn't %s", predicate.getDescription());
     }
@@ -187,16 +203,72 @@ public abstract class DescribedPredicate<T> {
     }
 
     private static class EqualToPredicate<T> extends DescribedPredicate<T> {
-        private final T object;
+        private final T value;
 
-        EqualToPredicate(T object) {
-            super("equal to '%s'", object);
-            this.object = checkNotNull(object);
+        EqualToPredicate(T value) {
+            super("equal to '%s'", value);
+            this.value = checkNotNull(value);
         }
 
         @Override
         public boolean apply(T input) {
-            return object.equals(input);
+            return value.equals(input);
+        }
+    }
+
+    private static class LessThanPredicate<T extends Comparable<T>> extends DescribedPredicate<T> {
+        private final T value;
+
+        LessThanPredicate(T value) {
+            super("less than '%s'", value);
+            this.value = checkNotNull(value);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return input.compareTo(value) < 0;
+        }
+    }
+
+    private static class GreaterThanPredicate<T extends Comparable<T>> extends DescribedPredicate<T> {
+        private final T value;
+
+        GreaterThanPredicate(T value) {
+            super("greater than '%s'", value);
+            this.value = checkNotNull(value);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return input.compareTo(value) > 0;
+        }
+    }
+
+    private static class LessThanOrEqualToPredicate<T extends Comparable<T>> extends DescribedPredicate<T> {
+        private final T value;
+
+        LessThanOrEqualToPredicate(T value) {
+            super("less than or equal to '%s'", value);
+            this.value = checkNotNull(value);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return input.compareTo(value) <= 0;
+        }
+    }
+
+    private static class GreaterThanOrEqualToPredicate<T extends Comparable<T>> extends DescribedPredicate<T> {
+        private final T value;
+
+        GreaterThanOrEqualToPredicate(T value) {
+            super("greater than or equal to '%s'", value);
+            this.value = checkNotNull(value);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return input.compareTo(value) >= 0;
         }
     }
 }

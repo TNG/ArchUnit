@@ -11,6 +11,10 @@ import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.base.DescribedPredicate.doesnt;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
+import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
+import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
+import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -56,6 +60,54 @@ public class DescribedPredicateTest {
 
         Object object = new Object();
         assertThat(equalTo(object).apply(object)).isTrue();
+    }
+
+    @Test
+    public void lessThan_works() {
+        assertThat(lessThan(4).apply(3)).isTrue();
+        assertThat(lessThan(4).getDescription()).contains("less than '4'");
+        assertThat(lessThan(4).apply(4)).isFalse();
+        assertThat(lessThan(4).apply(5)).isFalse();
+
+        assertThat(lessThan(Foo.SECOND).apply(Foo.FIRST)).isTrue();
+        assertThat(lessThan(Foo.SECOND).apply(Foo.SECOND)).isFalse();
+        assertThat(lessThan(Foo.SECOND).apply(Foo.THIRD)).isFalse();
+    }
+
+    @Test
+    public void greaterThan_works() {
+        assertThat(greaterThan(5).apply(6)).isTrue();
+        assertThat(greaterThan(5).getDescription()).contains("greater than '5'");
+        assertThat(greaterThan(5).apply(5)).isFalse();
+        assertThat(greaterThan(5).apply(4)).isFalse();
+
+        assertThat(greaterThan(Foo.SECOND).apply(Foo.FIRST)).isFalse();
+        assertThat(greaterThan(Foo.SECOND).apply(Foo.SECOND)).isFalse();
+        assertThat(greaterThan(Foo.SECOND).apply(Foo.THIRD)).isTrue();
+    }
+
+    @Test
+    public void lessThanOrEqualTo_works() {
+        assertThat(lessThanOrEqualTo(5).apply(4)).isTrue();
+        assertThat(lessThanOrEqualTo(5).getDescription()).contains("less than or equal to '5'");
+        assertThat(lessThanOrEqualTo(5).apply(5)).isTrue();
+        assertThat(lessThanOrEqualTo(5).apply(6)).isFalse();
+
+        assertThat(lessThanOrEqualTo(Foo.SECOND).apply(Foo.FIRST)).isTrue();
+        assertThat(lessThanOrEqualTo(Foo.SECOND).apply(Foo.SECOND)).isTrue();
+        assertThat(lessThanOrEqualTo(Foo.SECOND).apply(Foo.THIRD)).isFalse();
+    }
+
+    @Test
+    public void greaterThanOrEqualTo_works() {
+        assertThat(greaterThanOrEqualTo(5).apply(6)).isTrue();
+        assertThat(greaterThanOrEqualTo(5).getDescription()).contains("greater than or equal to '5'");
+        assertThat(greaterThanOrEqualTo(5).apply(5)).isTrue();
+        assertThat(greaterThanOrEqualTo(5).apply(4)).isFalse();
+
+        assertThat(greaterThanOrEqualTo(Foo.SECOND).apply(Foo.FIRST)).isFalse();
+        assertThat(greaterThanOrEqualTo(Foo.SECOND).apply(Foo.SECOND)).isTrue();
+        assertThat(greaterThanOrEqualTo(Foo.SECOND).apply(Foo.THIRD)).isTrue();
     }
 
     @DataProvider
@@ -123,5 +175,9 @@ public class DescribedPredicateTest {
         public String toString() {
             return expectedPrefix;
         }
+    }
+
+    enum Foo {
+        FIRST, SECOND, THIRD
     }
 }
