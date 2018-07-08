@@ -779,6 +779,30 @@ public final class ArchConditions {
         return not(beInterfaces());
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> containNumberOfElements(final DescribedPredicate<Integer> predicate) {
+        return new ArchCondition<JavaClass>("contain number of elements " + predicate.getDescription()) {
+            private SortedSet<String> allClassNames = new TreeSet<>();
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                allClassNames.add(item.getName());
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                int size = allClassNames.size();
+                boolean conditionSatisfied = predicate.apply(size);
+                String message = String.format("there is/are %d element(s) in classes %s", size, join(allClassNames));
+                events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
+            }
+
+            private String join(SortedSet<String> strings) {
+                return "[" + Joiner.on(", ").join(strings) + "]";
+            }
+        };
+    }
+
     private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {
         return new ArchCondition<JavaClass>(ArchPredicates.be(assignable).getDescription()) {
             @Override

@@ -39,6 +39,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
+import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
+import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
+import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -1127,6 +1132,32 @@ public class ClassesShouldTest {
                         quote(violated.getName()),
                         locationPattern(violated)))
                 .doesNotMatch(String.format(".*class %s .* interface.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] containNumberOfElements_rules() {
+        return $$(
+                $(equalTo(999)),
+                $(lessThan(0)),
+                $(lessThan(1)),
+                $(lessThan(2)),
+                $(greaterThan(2)),
+                $(greaterThan(3)),
+                $(greaterThan(999)),
+                $(lessThanOrEqualTo(0)),
+                $(lessThanOrEqualTo(1)),
+                $(greaterThanOrEqualTo(3)),
+                $(greaterThanOrEqualTo(999)));
+    }
+
+    @Test
+    @UseDataProvider("containNumberOfElements_rules")
+    public void containNumberOfElements(DescribedPredicate<Integer> predicate) {
+        EvaluationResult result = classes().should().containNumberOfElements(predicate).evaluate(importClasses(String.class, Integer.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("contain number of elements " + predicate.getDescription())
+                .contains("there is/are 2 element(s) in classes [java.lang.Integer, java.lang.String]");
     }
 
     @DataProvider
