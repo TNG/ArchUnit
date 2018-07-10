@@ -329,3 +329,12 @@ It is possible to add
 
 All violations mentioning `some.pkg.LegacyService` will consequently be ignored, and rules that
 are only violated by such violations will report success instead of failure.
+
+It is possible to add comments to ignore patterns by prefixing the line with a '#':
+
+[source,bash]
+.archunit_ignore_patterns.txt
+----
+# There are many known violations where LegacyService is involved; we'll ignore them all
+.*some\.pkg\.LegacyService.*
+----
