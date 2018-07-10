@@ -73,6 +73,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
 
         static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
+        private static final String COMMENT_LINE_PREFIX = "#";
 
         @PublicAPI(usage = ACCESS)
         public static void check(ArchRule rule, JavaClasses classes) {
@@ -123,7 +124,9 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         private static Set<Pattern> readPatternsFrom(URL ignorePatternsResource) throws IOException {
             ImmutableSet.Builder<Pattern> result = ImmutableSet.builder();
             for (String line : readLines(ignorePatternsResource, UTF_8)) {
-                result.add(Pattern.compile(line));
+                if (!line.startsWith(COMMENT_LINE_PREFIX)) {
+                    result.add(Pattern.compile(line));
+                }
             }
             return result.build();
         }
