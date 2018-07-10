@@ -84,6 +84,17 @@ public class ArchRuleTest {
     }
 
     @Test
+    public void ignored_pattern_with_comment() throws IOException {
+        writeIgnoreFileWithPatterns("# comment1", "#comment2", "regular_reg_exp");
+
+        expectAssertionErrorWithMessages("# comment1", "#comment2");
+
+        all(classes())
+                .should(conditionThatReportsErrors("# comment1", "#comment2", "regular_reg_exp"))
+                .check(importClassesWithContext(EvaluationResultTest.class));
+    }
+
+    @Test
     public void description_can_be_overridden() throws IOException {
         writeIgnoreFileWithPatterns(".*");
 
