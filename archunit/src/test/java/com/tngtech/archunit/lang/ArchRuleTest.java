@@ -15,6 +15,8 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClassesTest;
 import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInitAndFinish;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -81,6 +83,20 @@ public class ArchRuleTest {
 
         all(classes()).should(conditionThatReportsErrors("first one", "second two"))
                 .check(importClassesWithContext(EvaluationResultTest.class));
+    }
+
+    @Test
+    public void ignored_pattern_with_comment() throws IOException {
+        writeIgnoreFileWithPatterns("# comment1", "#comment2", "regular_reg_exp");
+
+        Assertions.assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                all(classes())
+                        .should(conditionThatReportsErrors("# comment1", "#comment2", "regular_reg_exp"))
+                        .check(importClassesWithContext(EvaluationResultTest.class));
+            }
+        }).isInstanceOf(AssertionError.class).hasMessageContaining(String.format("was violated (2 times):%n# comment1%n#comment2"));
     }
 
     @Test
