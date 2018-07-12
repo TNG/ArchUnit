@@ -44,8 +44,6 @@ public class VisualExtension implements ArchUnitExtension {
                 : new File(configuredReportDir);
     }
 
-    private static JavaClasses visualizedClasses;
-
     @Override
     public String getUniqueIdentifier() {
         return UNIQUE_IDENTIFIER;
@@ -53,18 +51,6 @@ public class VisualExtension implements ArchUnitExtension {
 
     @Override
     public void configure(Properties properties) {
-    }
-
-    /**
-     * when using the ArchUnitRunner for running archunit-tests, then a further @ArchTest-method should be added,
-     * which calls this method and hands the classes over.
-     * If the ArchUnitRunner is not used, this method needs not to be called.
-     *
-     * @param classes the classes that are analyzed by archunit-tests
-     */
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
-    public static void setClasses(JavaClasses classes) {
-        visualizedClasses = classes;
     }
 
     @Override
@@ -75,6 +61,11 @@ public class VisualExtension implements ArchUnitExtension {
             evaluatedRules.put(evaluatedRule.getClasses(), Collections.synchronizedSet(
                     new HashSet<>(Arrays.asList(evaluatedRule.getResult()))));
         }
+    }
+
+    @Override
+    public void onFinishAnalyzingClasses(JavaClasses classes) {
+        createVisualization(classes);
     }
 
     /**
@@ -94,14 +85,5 @@ public class VisualExtension implements ArchUnitExtension {
             evaluatedRules = new ConcurrentHashMap<>();
             throw new RuntimeException(classes.getDescription() + " was not part of a test");
         }
-    }
-
-    /**
-     * When using the ArchUnitRunner, this method should be called after running the archunit-tests,
-     * e.g. within an @AfterClass-annotated method, to finish the visualization.
-     */
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
-    public static void createVisualization() {
-        createVisualization(visualizedClasses);
     }
 }

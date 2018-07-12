@@ -1,10 +1,11 @@
 package com.tngtech.archunit.lang.extension.examples;
 
-import java.util.Properties;
-
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
+
+import java.util.Properties;
 
 public class TestExtension implements ArchUnitExtension {
     public static final String UNIQUE_IDENTIFIER = "test-extension";
@@ -35,6 +36,10 @@ public class TestExtension implements ArchUnitExtension {
     @Override
     public void handle(EvaluatedRule evaluatedRule) {
         this.evaluatedRule = evaluatedRule;
+    }
+
+    @Override
+    public void onFinishAnalyzingClasses(JavaClasses classes) {
     }
 
     public ImmutableMap<Object, Object> getConfiguredProperties() {

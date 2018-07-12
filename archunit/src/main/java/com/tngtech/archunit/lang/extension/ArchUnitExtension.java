@@ -15,11 +15,12 @@
  */
 package com.tngtech.archunit.lang.extension;
 
-import java.util.Properties;
-import java.util.ServiceLoader;
-
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
+
+import java.util.Properties;
+import java.util.ServiceLoader;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -83,4 +84,11 @@ public interface ArchUnitExtension {
      *                      classes and the result of the evaluation
      */
     void handle(EvaluatedRule evaluatedRule);
+
+    /**
+     * The ArchUnitRunner will call this method after running all tests
+     *
+     * @param classes classes having been used for the ArchTests
+     */
+    void onFinishAnalyzingClasses(JavaClasses classes);
 }
