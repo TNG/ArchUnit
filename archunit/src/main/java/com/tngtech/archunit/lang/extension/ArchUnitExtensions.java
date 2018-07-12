@@ -40,26 +40,47 @@ public class ArchUnitExtensions {
         this.extensionLoader = extensionLoader;
     }
 
-    public void dispatch(EvaluatedRule evaluatedRule) {
+    public void dispatch(final EvaluatedRule evaluatedRule) {
+        callOnEnabledExtensions(new ExtensionCallable() {
+            @Override
+            public void call(ArchUnitExtension extension) {
+                extension.handle(evaluatedRule);
+            }
+        });
+    }
+
+    public void finish(final JavaClasses classes) {
+        callOnEnabledExtensions(new ExtensionCallable() {
+            @Override
+            public void call(ArchUnitExtension extension) {
+                extension.onFinishAnalyzingClasses(classes);
+            }
+        });
+    }
+
+    private void callOnEnabledExtensions(ExtensionCallable callable) {
         for (ArchUnitExtension extension : extensionLoader.getAll()) {
-            dispatch(evaluatedRule, extension);
+            callOnExtensionIfEnabled(extension, callable);
         }
     }
 
-    public void finish(JavaClasses classes) {
-        for (ArchUnitExtension extension : extensionLoader.getAll()) {
-            extension.onFinishAnalyzingClasses(classes);
-        }
-    }
-
-    private void dispatch(EvaluatedRule evaluatedRule, ArchUnitExtension extension) {
+    private void callOnExtensionIfEnabled(ArchUnitExtension extension, ExtensionCallable callable) {
         ArchConfiguration configuration = ArchConfiguration.get();
         Properties extensionProperties = configuration.getExtensionProperties(extension.getUniqueIdentifier());
         if (isEnabled(extensionProperties)) {
-            configureAndDispatch(extension, extensionProperties, evaluatedRule);
+            configureAndCall(extension, extensionProperties, callable);
         } else if (LOG.isDebugEnabled()) {
             LOG.debug("Extension '{}' is disabled, skipping... (to enable this extension, configure extension.{}.{}=true)",
                     extension.getUniqueIdentifier(), extension.getUniqueIdentifier(), ENABLED_PROPERTY);
+        }
+    }
+
+    private void configureAndCall(ArchUnitExtension extension, Properties extensionProperties, ExtensionCallable callable) {
+        try {
+            extension.configure(extensionProperties);
+            callable.call(extension);
+        } catch (RuntimeException e) {
+            LOG.warn(String.format("Error in extension '%s'", extension.getUniqueIdentifier()), e);
         }
     }
 
@@ -67,12 +88,7 @@ public class ArchUnitExtensions {
         return Boolean.valueOf(extensionProperties.getProperty(ENABLED_PROPERTY, "false"));
     }
 
-    private void configureAndDispatch(ArchUnitExtension extension, Properties extensionProperties, EvaluatedRule evaluatedRule) {
-        try {
-            extension.configure(extensionProperties);
-            extension.handle(evaluatedRule);
-        } catch (RuntimeException e) {
-            LOG.warn(String.format("Error in extension '%s'", extension.getUniqueIdentifier()), e);
-        }
+    private interface ExtensionCallable {
+        void call(ArchUnitExtension extension);
     }
 }

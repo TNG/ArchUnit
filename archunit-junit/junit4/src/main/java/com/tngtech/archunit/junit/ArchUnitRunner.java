@@ -96,10 +96,10 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private Statement withExtensionFinisher(final Statement statement) {
-        final JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                final JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
                 statement.evaluate();
                 new ArchUnitExtensions().finish(classes);
             }
