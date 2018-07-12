@@ -32,6 +32,13 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.dependencies.filterByType(typeFilterConfig);
     }
 
+    changeFoldStatesToShowAllViolations() {
+      const nodesContainingViolations = this.dependencies.getNodesContainingViolations();
+      nodesContainingViolations.forEach(node => node.callOnEveryPredecessorThenSelf(node => node.unfold()));
+      this.dependencies.recreateVisible();
+      this.root.relayoutCompletely();
+    }
+
     attachToMenu(menu) {
       menu.initializeSettings(
         {
@@ -70,8 +77,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     attachToViolationMenu(violationMenu) {
       violationMenu.initialize(this._violations,
         violationsGroup => this.dependencies.showViolations(violationsGroup),
-        violationsGroup => this.dependencies.hideViolations(violationsGroup),
+        violationsGroup => this.dependencies.hideViolations(violationsGroup));
+      violationMenu.onHideAllDependenciesChanged(
         hide => this.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
+      violationMenu.onClickChangeFoldStatesToShowAllViolations(() => this.changeFoldStatesToShowAllViolations())
     }
   };
 

@@ -60,6 +60,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._listener = [];
     }
 
+    //TODO: declare abstract methods and throw errors in them
+
     getNameWidth() {
       return this._view.getTextWidth();
     }
@@ -183,6 +185,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     callOnEveryDescendantThenSelf(fun) {
       this.getCurrentChildren().forEach(c => c.callOnEveryDescendantThenSelf(fun));
+      fun(this);
+    }
+
+    callOnEveryPredecessorThenSelf(fun) {
+      if (!this.isRoot()) {
+        this.getParent().callOnEveryPredecessorThenSelf(fun);
+      }
       fun(this);
     }
 
@@ -393,6 +402,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _initialFold() {
     }
 
+    fold() {
+    }
+
+    unfold() {
+    }
+
     _changeFoldIfInnerNodeAndRelayout() {
     }
 
@@ -511,15 +526,31 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _initialFold() {
-      if (!this._isLeaf()) {
-        this._setFolded(() => true, () => this._listener.forEach(listener => listener.onInitialFold(this)));
-      }
+      this._setFoldedIfInnerNode(true);
     }
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
         this._setFolded(() => !this._folded, () => this._listener.forEach(listener => listener.onFold(this)));
         this._root.relayoutCompletely();
+      }
+    }
+
+    fold() {
+      if (!this._folded) {
+        this._setFoldedIfInnerNode(true);
+      }
+    }
+
+    unfold() {
+      if (this._folded) {
+        this._setFoldedIfInnerNode(false);
+      }
+    }
+
+    _setFoldedIfInnerNode(folded) {
+      if (!this._isLeaf()) {
+        this._setFolded(() => folded, () => this._listener.forEach(listener => listener.onInitialFold(this)));
       }
     }
 

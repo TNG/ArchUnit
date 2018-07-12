@@ -49,6 +49,8 @@ describe('Root', () => {
     expect(root.isFolded()).to.equal(false);
     root._changeFoldIfInnerNodeAndRelayout();
     expect(root.isFolded()).to.equal(false);
+    root.fold();
+    expect(root.isFolded()).to.equal(false);
   });
 
   it('should return the correct node by name', () => {
@@ -152,6 +154,86 @@ describe('Inner node', () => {
     expect(listenerStub.foldedNode()).to.equal(innerNode);
     promises.push(doNext(root, () => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
     return Promise.all(promises);
+  });
+
+  it('can be folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.fold();
+
+    expect(innerNode.isFolded()).to.equal(true);
+    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
+    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
+    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
+    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
+  });
+
+  it('can unfold', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.fold();
+    innerNode.unfold();
+
+    expect(innerNode.isFolded()).to.equal(false);
+    expect(innerNode.isCurrentlyLeaf()).to.equal(false);
+    expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
+    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
+    expect(innerNode._originalChildren.map(node => node._isVisible)).to.not.include(false);
+  });
+
+  it('does not call the listeners on folding if it is already folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+    innerNode.fold();
+
+    listenerStub.resetInitialFoldedNode();
+    innerNode.fold();
+    expect(listenerStub.initialFoldedNode()).to.equal(null);
+  });
+
+  it('does not call the listeners on unfolding if it is already unfolded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('test')
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    const innerNode = root.getByName('com.tngtech.archunit.test');
+
+    innerNode.unfold();
+
+    expect(listenerStub.initialFoldedNode()).to.equal(null);
   });
 });
 

@@ -2,6 +2,7 @@
 
 import chai from 'chai';
 import './chai/dependencies-chai-extension';
+import './chai/node-chai-extensions';
 import stubs from './stubs';
 import testJson from './test-json-creator';
 import AppContext from '../../../main/app/report/app-context';
@@ -1436,5 +1437,86 @@ describe('Dependencies', () => {
       'com.tngtech.SomeClass2->com.tngtech.SomeClass1(fieldAccess)'];
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
+  });
+
+  it('can return all node-fullnames containing violations', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.package('pkg1')
+          .add(testJson.package('pkg2')
+            .add(testJson.package('pkg3')
+              .add(testJson.clazz('SomeClass2', 'class')
+                .extending('com.tngtech.pkg1.pkg2.SomeClass1')
+                .build())
+              .build())
+            .add(testJson.clazz('SomeClass1', 'class').build())
+            .build())
+          .build())
+        .add(testJson.clazz('SomeClass1', 'class')
+          .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField')
+          .build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build();
+
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+
+    const rule1 = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+
+    const rule2 = {
+      rule: 'rule2',
+      violations: [{
+        origin: 'com.tngtech.pkg1.pkg2.pkg3.SomeClass2',
+        target: 'com.tngtech.pkg1.pkg2.SomeClass1'
+      }]
+    };
+
+    const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.showViolations(rule1);
+    dependencies.showViolations(rule2);
+
+    const exp = ['com.tngtech', 'com.tngtech.pkg1.pkg2'];
+
+    expect(dependencies.getNodesContainingViolations()).to.containExactlyNodes(exp);
+  });
+
+  it('does not return node-fullnames of violations that are hidden by a filter', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.clazz('SomeClass1', 'class')
+          .accessingField('com.tngtech.SomeClass2', 'startMethod()', 'targetField')
+          .build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build();
+
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+
+    const rule1 = {
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.SomeClass1.startMethod()',
+        target: 'com.tngtech.SomeClass2.targetField'
+      }]
+    };
+
+    const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.showViolations(rule1);
+
+    dependencies.filterByType({
+      showImplementing: true,
+      showExtending: true,
+      showConstructorCall: true,
+      showMethodCall: true,
+      showFieldAccess: false,
+      showAnonymousImplementation: true,
+      showDepsBetweenChildAndParent: true
+    });
+
+    expect(dependencies.getNodesContainingViolations()).to.containExactlyNodes([]);
   });
 });

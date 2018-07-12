@@ -68,7 +68,8 @@ const DependencyViewStub = class {
       this.hasJumpedToPosition = true;
       this.isVisible = dependency.isVisible();
     };
-    this._showIfVisible = () => {};
+    this._showIfVisible = () => {
+    };
     this.moveToPositionAndShowIfVisible = dependency => {
       this.hasMovedToPosition = true;
       this.isVisible = dependency.isVisible();
@@ -82,14 +83,15 @@ const DependencyViewStub = class {
 
 const GraphViewStub = class {
   constructor() {
-    this.renderWithTransition = () => {};
+    this.renderWithTransition = () => {
+    };
   }
 };
 
 const createNodeListenerStub = () => {
   let _onDragWasCalled = false;
   let _foldedNode;
-  let _initialFoldedNode;
+  let _initialFoldedNode = null;
   let _onLayoutChangedWasCalled = false;
 
   const overlappedNodesAndPosition = [];
@@ -107,10 +109,14 @@ const createNodeListenerStub = () => {
 
     onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) =>
       overlappedNodesAndPosition.push({overlappedNode: fullNameOfOverlappedNode, position: positionOfOverlappingNode}),
-    resetNodesOverlapping: () => {},
-    finishOnNodesOverlapping: () => {},
+    resetNodesOverlapping: () => {
+    },
+    finishOnNodesOverlapping: () => {
+    },
 
     overlappedNodesAndPosition: () => overlappedNodesAndPosition,
+
+    resetInitialFoldedNode: () => _initialFoldedNode = null
   }
 };
 

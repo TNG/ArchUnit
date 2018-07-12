@@ -190,4 +190,41 @@ describe('Graph', () => {
     graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
     return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()[0]._view.hasJumpedToPosition).to.equal(true));
   });
+
+  it('can change the fold-states of the nodes to show all violations', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.package('pkg1')
+          .add(testJson.package('pkg2')
+            .add(testJson.clazz('SomeClass2', 'class')
+              .extending('com.tngtech.pkg1.SomeClass1')
+              .build())
+            .build())
+          .add(testJson.clazz('SomeClass1', 'class')
+            .accessingField('com.tngtech.pkg1.pkg2.SomeClass2', 'startMethod()', 'targetField')
+            .build())
+          .build())
+        .build();
+
+    const violations = [{
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.pkg1.pkg2.SomeClass2',
+        target: 'com.tngtech.pkg1.SomeClass1'
+      }]
+    }];
+
+    const graph = createGraph(appContext, createResources(jsonRoot, violations), null, true);
+
+    return graph.root._updatePromise.then(() => {
+      graph.dependencies.showViolations(violations[0]);
+      graph.changeFoldStatesToShowAllViolations();
+
+      return graph.root._updatePromise.then(() => {
+        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.SomeClass1'];
+        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+        return graph.root._updatePromise;
+      });
+    });
+  });
 });

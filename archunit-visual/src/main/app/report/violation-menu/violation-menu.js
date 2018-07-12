@@ -7,16 +7,16 @@ import * as d3 from 'd3';
   defineCustomElement('violation-menu', class extends HTMLElement {
     postConnected() {
       const showBar = d3.select(this.shadowRoot.querySelector('#showbar'));
-      const verticalDivider = d3.select(this.shadowRoot.querySelector('#verticalDivider'));
-      let violationMenuIsVisible = verticalDivider.style('display') === 'flex';
+      const menuContainer = d3.select(this.shadowRoot.querySelector('#menuContainer'));
+      let violationMenuIsVisible = menuContainer.style('display') === 'flex';
       showBar.on('click', () => {
         violationMenuIsVisible = !violationMenuIsVisible;
-        verticalDivider.style('display', violationMenuIsVisible ? 'flex' : 'none');
+        menuContainer.style('display', violationMenuIsVisible ? 'flex' : 'none');
         showBar.text(violationMenuIsVisible ? '>' : '<');
       });
     }
 
-    initialize(violations, showViolationsOfRule, hideViolationsOfRule, onHideAllDependenciesChanged) {
+    initialize(violations, showViolationsOfRule, hideViolationsOfRule) {
       const getViolationGroupOfRule = rule => violations.filter(violationGroup => violationGroup.rule === rule)[0];
 
       const violationRuleList = d3.select(this.shadowRoot.querySelector('.violation-rule-list'));
@@ -36,14 +36,17 @@ import * as d3 from 'd3';
           showViolationsOfRule(getViolationGroupOfRule(rule));
         }
       });
-
-      this._onHideAllDependenciesChanged(onHideAllDependenciesChanged);
     }
 
-    _onHideAllDependenciesChanged(callback) {
+    onHideAllDependenciesChanged(callback) {
       const checkbox = this.shadowRoot.querySelector('#hideAllDepsWhenRuleSelected');
       checkbox.onclick = () => callback(checkbox.checked);
       callback(checkbox.checked); //sync initial state
+    }
+
+    onClickChangeFoldStatesToShowAllViolations(callback) {
+      const button = this.shadowRoot.querySelector('#changeFoldStatesToShowAllViolations');
+      button.onclick = () => callback();
     }
   });
 }());

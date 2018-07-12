@@ -32,12 +32,20 @@
     box-shadow: var(--border-shadow);
 }
 
-#verticalDivider {
+#menuContainer {
     display: none;
+    margin-bottom: 20px;
+}
+
+.verticalDivider {
     flex-direction: column;
     align-items: stretch;
     background: inherit;
-    margin-bottom: 20px;
+}
+
+.group > div {
+    margin-left: 10px;
+    padding-bottom: 10px;
 }
 
 .title {
@@ -45,11 +53,12 @@
     padding: 10px;
 }
 
+button {
+    font-size: var(--menu-font-size);
+}
+
 .violation-rule-list {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    background: inherit;
     padding: 10px;
     overflow: scroll;
 }
@@ -57,7 +66,7 @@
 .violation-rule-list span {
     line-height: var(--menu-font-size);
     font-size: var(--menu-font-size);
-    padding: 5px;
+    padding: 5px 5px 5px 10px;
     margin-bottom: 10px;
     cursor: pointer;
 }

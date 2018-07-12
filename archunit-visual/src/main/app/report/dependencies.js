@@ -224,6 +224,14 @@ const init = (View) => {
       this._refreshViolationDependencies();
     }
 
+    getNodesContainingViolations() {
+      const violationDependencies = this._filtered.filter(d => this._violations.containsDependency(d));
+      const everyFirstCommonPredecessor = violationDependencies.map(d =>
+        nodes.getByName(d.from).getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(d.to)));
+      const distinctNodes = new Map(everyFirstCommonPredecessor.map(node => [node.getFullName(), node])).values();
+      return [...distinctNodes];
+    }
+
     _refreshViolationDependencies() {
       this._violations.refreshMarkOfViolationDependencies(this._elementary);
       this._applyFiltersAndRepositionDependencies();

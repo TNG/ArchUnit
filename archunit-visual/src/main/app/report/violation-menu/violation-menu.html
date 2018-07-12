@@ -2,12 +2,17 @@
   <link rel="stylesheet" href="violation-menu/violation-menu.css">
   <div id="bar-root">
     <div id="showbar" class="show-bar"><</div>
-    <div id="verticalDivider">
+    <div id="menuContainer" class="verticalDivider">
       <div class="title">Violation-rules:</div>
-      <div class="violation-rule-list"></div>
-      <div id="hideAllDepsWhenRuleSelectedSetting">
-        <input type="checkbox" class="checkbox" id="hideAllDepsWhenRuleSelected" checked>
-        <label for="hideAllDepsWhenRuleSelected">hide all other dependencies when rule selected</label>
+      <div class="violation-rule-list verticalDivider"></div>
+      <div class="verticalDivider group">
+        <div>
+          <button id="changeFoldStatesToShowAllViolations">change fold-states to show all violations</button>
+        </div>
+        <div id="hideAllDepsWhenRuleSelectedSetting">
+          <input type="checkbox" class="checkbox" id="hideAllDepsWhenRuleSelected" checked>
+          <label for="hideAllDepsWhenRuleSelected">hide all other dependencies when rule selected</label>
+        </div>
       </div>
     </div>
   </div>
