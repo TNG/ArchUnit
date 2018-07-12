@@ -39,9 +39,9 @@ public class VisualExtension implements ArchUnitExtension {
 
     static {
         String configuredReportDir = System.getProperty(REPORT_DIR_SYSTEM_PROPERTY);
-        targetDirectory = configuredReportDir != null
-                ? new File(configuredReportDir)
-                : new File(VisualExtension.class.getResource("/").getFile(), "archunit-report");
+        targetDirectory = configuredReportDir == null || configuredReportDir.length() == 0
+                ? new File(VisualExtension.class.getResource("/").getFile(), "archunit-report")
+                : new File(configuredReportDir);
     }
 
     private static JavaClasses visualizedClasses;
