@@ -40,32 +40,74 @@ import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 import static java.lang.reflect.Modifier.isStatic;
 
-class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
+class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
+    static final String CLASS_SEGMENT_TYPE = "class";
+    static final String FIELD_SEGMENT_TYPE = "field";
+    static final String METHOD_SEGMENT_TYPE = "method";
+
     private final Class<?> testClass;
     private ClassCache classCache;
 
-    ArchUnitTestDescriptor(UniqueId uniqueId, Class<?> testClass, ClassCache classCache) {
-        super(uniqueId.append("class", testClass.getName()), testClass.getSimpleName(), ClassSource.from(testClass), testClass);
+    private ArchUnitTestDescriptor(ElementResolver resolver, Class<?> testClass, ClassCache classCache) {
+        super(resolver.getUniqueId(), testClass.getSimpleName(), ClassSource.from(testClass), testClass);
         this.testClass = testClass;
         this.classCache = classCache;
-
-        createChildren();
     }
 
-    private void createChildren() {
+    static void resolve(TestDescriptor parent, ElementResolver resolver, ClassCache classCache) {
+        resolver.resolveClass()
+                .ifRequestedAndResolved(CreatesChildren::createChildren)
+                .ifRequestedButUnresolved((clazz, childResolver) ->
+                {
+                    ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
+                    parent.addChild(classDescriptor);
+                    classDescriptor.createChildren(childResolver);
+                });
+    }
+
+    @Override
+    public void createChildren(ElementResolver resolver) {
         Supplier<JavaClasses> classes =
                 memoize(() -> classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass)))::get;
+
         getAllFields(testClass, withAnnotation(ArchTest.class))
-                .forEach(field -> addChild(descriptorFor(this, getUniqueId(), testClass, field, classes)));
+                .forEach(field -> resolveField(resolver, classes, field));
         getAllMethods(testClass, withAnnotation(ArchTest.class))
-                .forEach(method -> addChild(new ArchUnitMethodDescriptor(this, getUniqueId(), method, classes)));
+                .forEach(method -> resolveMethod(resolver, classes, method));
     }
 
-    private static TestDescriptor descriptorFor(TestDescriptor parent, UniqueId uniqueId, Class<?> testClass, Field field,
-            Supplier<JavaClasses> classes) {
-        return ArchRules.class.isAssignableFrom(field.getType())
-                ? new ArchUnitRulesDescriptor(parent, uniqueId, getDeclaredRules(testClass, field), classes, field)
-                : new ArchUnitRuleDescriptor(parent, uniqueId, getValue(field, null), classes, field);
+    private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field) {
+        resolver.resolveField(field)
+                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, testClass, field, classes));
+    }
+
+    private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method) {
+        resolver.resolveMethod(method)
+                .ifUnresolved(childResolver -> addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
+    }
+
+    private static void resolveChildren(
+            TestDescriptor parent, ElementResolver resolver, Class<?> testClass, Field field, Supplier<JavaClasses> classes) {
+
+        if (ArchRules.class.isAssignableFrom(field.getType())) {
+            resolveArchRules(parent, resolver, testClass, field, classes);
+        } else {
+            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field, null), classes, field));
+        }
+    }
+
+    private static void resolveArchRules(
+            TestDescriptor parent, ElementResolver resolver, Class<?> testClass, Field field, Supplier<JavaClasses> classes) {
+
+        DeclaredArchRules rules = getDeclaredRules(testClass, field);
+
+        resolver.resolveClass(rules.getDefinitionLocation())
+                .ifRequestedAndResolved(CreatesChildren::createChildren)
+                .ifRequestedButUnresolved((clazz, childResolver) -> {
+                    ArchUnitRulesDescriptor rulesDescriptor = new ArchUnitRulesDescriptor(childResolver, rules, classes, field);
+                    parent.addChild(rulesDescriptor);
+                    rulesDescriptor.createChildren(childResolver);
+                });
     }
 
     private static DeclaredArchRules getDeclaredRules(Class<?> testClass, Field field) {
@@ -86,9 +128,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         private final ArchRule rule;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitRuleDescriptor(TestDescriptor parent, UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId.append("field", field.getName()), field.getName(), FieldSource.from(field), field);
-            setParent(parent);
+        ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
+            super(uniqueId, field.getName(), FieldSource.from(field), field);
             this.rule = rule;
             this.classes = classes;
         }
@@ -109,12 +150,10 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         private final Method method;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitMethodDescriptor(TestDescriptor parent, UniqueId uniqueId, Method method,
-                Supplier<JavaClasses> classes) {
+        ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes) {
             super(uniqueId.append("method", method.getName()), method.getName(), MethodSource.from(method), method);
             validate(method);
 
-            setParent(parent);
             this.method = method;
             this.classes = classes;
             this.method.setAccessible(true);
@@ -165,28 +204,34 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor {
         }
     }
 
-    private static class ArchUnitRulesDescriptor extends AbstractArchUnitTestDescriptor {
+    private static class ArchUnitRulesDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
+        private final DeclaredArchRules rules;
+        private final Supplier<JavaClasses> classes;
 
-        ArchUnitRulesDescriptor(TestDescriptor parent, UniqueId uniqueId, DeclaredArchRules rules,
-                Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId
-                            .append("field", field.getName())
-                            .append("class", rules.getDefinitionLocation().getName()),
+        ArchUnitRulesDescriptor(ElementResolver resolver, DeclaredArchRules rules, Supplier<JavaClasses> classes, Field field) {
+
+            super(resolver.getUniqueId(),
                     rules.getDisplayName(),
                     ClassSource.from(rules.getDefinitionLocation()),
-                    field, rules.getDefinitionLocation());
+                    field,
+                    rules.getDefinitionLocation());
+            this.rules = rules;
+            this.classes = classes;
+        }
 
-            setParent(parent);
-
+        @Override
+        public void createChildren(ElementResolver resolver) {
             rules.forEachDeclaration(declaration -> declaration.handleWith(new ArchRuleDeclaration.Handler() {
                 @Override
                 public void handleFieldDeclaration(Field field, boolean ignore) {
-                    addChild(descriptorFor(ArchUnitRulesDescriptor.this, getUniqueId(), rules.getTestClass(), field, classes));
+                    resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
+                            resolveChildren(ArchUnitRulesDescriptor.this, childResolver, rules.getTestClass(), field, classes));
                 }
 
                 @Override
                 public void handleMethodDeclaration(Method method, boolean ignore) {
-                    addChild(new ArchUnitMethodDescriptor(ArchUnitRulesDescriptor.this, getUniqueId(), method, classes));
+                    resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
+                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
                 }
             }));
         }
