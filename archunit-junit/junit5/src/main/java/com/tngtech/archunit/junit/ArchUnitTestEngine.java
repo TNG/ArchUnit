@@ -15,12 +15,15 @@
  */
 package com.tngtech.archunit.junit;
 
+import java.util.Optional;
+
 import com.tngtech.archunit.Internal;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 
 /**
@@ -39,20 +42,26 @@ import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
  */
 @Internal
 public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
+    static final String UNIQUE_ID = "junit-archunit";
+
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
     @Override
     public String getId() {
-        return "junit-archunit";
+        return UNIQUE_ID;
     }
 
+    // FIXME: Throw exception if class is meant for test engine but @AnalyzeClasses is missing
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
         ArchUnitEngineDescriptor result = new ArchUnitEngineDescriptor(uniqueId);
-        discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
-                .filter(selector -> selector.getJavaClass().getAnnotation(AnalyzeClasses.class) != null)
-                .map(selector -> new ArchUnitTestDescriptor(uniqueId, selector.getJavaClass(), cache.get()))
-                .forEach(result::addChild);
+        discoveryRequest.getSelectorsByType(UniqueIdSelector.class).stream()
+                .filter(selector -> selector.getUniqueId().getEngineId().equals(Optional.of(getId())))
+                .forEach(selector -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, selector.getUniqueId()), cache.get()));
+        discoveryRequest.getSelectorsByType(ClassSelector.class)
+                .forEach(selector -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, selector.getJavaClass()), cache.get()));
         return result;
     }
 

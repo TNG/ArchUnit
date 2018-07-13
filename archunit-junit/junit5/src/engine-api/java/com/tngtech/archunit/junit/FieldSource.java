@@ -16,6 +16,7 @@
 package com.tngtech.archunit.junit;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 import com.tngtech.archunit.PublicAPI;
 import org.junit.platform.engine.TestSource;
@@ -41,6 +42,29 @@ public final class FieldSource implements TestSource {
     public String getFieldName() {
         return fieldName;
     }
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(className, fieldName);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		final FieldSource other = (FieldSource) obj;
+		return Objects.equals(this.className, other.className)
+				&& Objects.equals(this.fieldName, other.fieldName);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{" + className + '.' + fieldName + '}';
+	}
 
     static FieldSource from(Field field) {
         return new FieldSource(field);

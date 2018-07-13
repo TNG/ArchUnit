@@ -15,6 +15,7 @@ import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.ReportEntry;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
@@ -71,6 +72,13 @@ class EngineExecutionTestListener implements EngineExecutionListener {
         assertThat(test.result.getThrowable().get().getMessage())
                 .as("AssertionError message of " + test)
                 .containsSequence(messagePart);
+    }
+
+    void verifyNoOtherStartExceptHierarchyOf(UniqueId uniqueId) {
+        List<TestDescriptor> unwanted = startedTests.stream()
+                .filter(descriptor -> !uniqueId.hasPrefix(descriptor.getUniqueId()))
+                .collect(toList());
+        assertThat(unwanted).as("Unwanted started descriptors").isEmpty();
     }
 
     private static class FinishedTest {
