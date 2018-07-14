@@ -278,7 +278,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
 
         void forEachDeclaration(Consumer<ArchRuleDeclaration<?>> doWithDeclaration) {
-            toDeclarations(rules, testClass, false).forEach(doWithDeclaration);
+            toDeclarations(rules, testClass, ArchTest.class, false).forEach(doWithDeclaration);
         }
     }
 

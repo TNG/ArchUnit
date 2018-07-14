@@ -18,20 +18,37 @@ package com.tngtech.archunit.junit;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.ArchRule;
+import org.junit.platform.commons.annotation.Testable;
+
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks rules (annotated with <code>@ArchTest</code>) to be ignored by the test support.
- * I.e. rules marked this way will be skipped during evaluation.
+ * Marks ArchUnit tests to be executed by the test infrastructure. These tests can have the following form:
+ * <ul>
+ *     <li>
+ *         A static field of type {@link ArchRule} -&gt; this rule will automatically be checked against the imported classes
+ *     </li>
+ *     <li>
+ *         A static method with one parameter {@link JavaClasses} -&gt; this method will be called with the imported classes
+ *     </li>
+ * </ul>
+ * <br>Example:
+ * <pre><code>
+ *{@literal @}ArchTest
+ * public static final ArchRule someRule = classes()... ;
+ *
+ *{@literal @}ArchTest
+ * public static void someMethod(JavaClasses classes) {
+ *     // do something with classes
+ * }
+ * </code></pre>
  */
-@Target({TYPE, FIELD, METHOD})
+@Testable
+@Target({FIELD, METHOD})
 @Retention(RUNTIME)
-public @interface ArchIgnore {
-    /**
-     * @return why the test is ignored
-     */
-    String reason() default "";
+public @interface ArchTest {
 }

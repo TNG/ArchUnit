@@ -120,7 +120,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private Set<ArchTestExecution> asTestExecutions(ArchRules archRules, boolean forceIgnore) {
         ExecutionTransformer executionTransformer = new ExecutionTransformer();
-        for (ArchRuleDeclaration<?> declaration : toDeclarations(archRules, getTestClass().getJavaClass(), forceIgnore)) {
+        for (ArchRuleDeclaration<?> declaration : toDeclarations(archRules, getTestClass().getJavaClass(), ArchTest.class, forceIgnore)) {
             declaration.handleWith(executionTransformer);
         }
         return executionTransformer.getExecutions();
