@@ -35,6 +35,7 @@ import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestTag;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.MethodSelector;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -281,7 +282,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void no_redundant_library_descriptors() {
-            UniqueId simpleRulesId = simpleRulesId(engineId);
+            UniqueId simpleRulesId = simpleRulesInLibraryId(engineId);
             UniqueId ruleIdOne = simpleRulesId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             UniqueId ruleIdTwo = simpleRulesId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
@@ -308,7 +309,7 @@ class ArchUnitTestEngineTest {
 
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("children discovered by " + ClasspathRootSelector.class.getSimpleName())
-                    .contains(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME))
+                    .contains(simpleRulesInLibraryId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME))
                     .contains(simpleRuleFieldTestId(engineId))
                     .contains(simpleRuleMethodTestId(engineId));
         }
@@ -346,9 +347,25 @@ class ArchUnitTestEngineTest {
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("children discovered by " + PackageSelector.class.getSimpleName())
                     .contains(
-                            simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME),
+                            simpleRulesInLibraryId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME),
                             simpleRuleFieldTestId(engineId),
                             simpleRuleMethodTestId(engineId));
+        }
+
+        @Test
+        void methods() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withMethod(SimpleRules.class, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + MethodSelector.class.getSimpleName())
+                    .containsOnly(
+                            simpleRuleMethodTestId(engineId),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName())
+                                    .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME));
         }
 
         @Test
@@ -613,7 +630,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void rule_by_unique_id_without_violation() {
-            UniqueId fieldRuleInLibrary = simpleRulesId(engineId)
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
                     .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_SATISFYING_RULES);
 
@@ -626,7 +643,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void rule_by_unique_id_with_violation() {
-            UniqueId fieldRuleInLibrary = simpleRulesId(engineId)
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
                     .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
 
@@ -639,9 +656,9 @@ class ArchUnitTestEngineTest {
 
         @Test
         void mixed_rules_by_unique_id_and_class_with_violation() {
-            UniqueId fieldRuleInLibrary = simpleRulesId(engineId)
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
                     .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
-            UniqueId methodRuleInLibrary = simpleRulesId(engineId)
+            UniqueId methodRuleInLibrary = simpleRulesInLibraryId(engineId)
                     .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
             simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
             simulateCachedClassesForTest(SimpleRuleField.class, UnwantedClass.CLASS_VIOLATING_RULES);
@@ -743,7 +760,7 @@ class ArchUnitTestEngineTest {
                 .append(METHOD_SEGMENT_TYPE, SIMPLE_RULE_METHOD_NAME);
     }
 
-    private UniqueId simpleRulesId(UniqueId uniqueId) {
+    private UniqueId simpleRulesInLibraryId(UniqueId uniqueId) {
         return uniqueId
                 .append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName())
                 .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD)

@@ -1,11 +1,13 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.platform.engine.ConfigurationParameters;
 import org.junit.platform.engine.DiscoveryFilter;
 import org.junit.platform.engine.DiscoverySelector;
@@ -15,6 +17,7 @@ import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.MethodSelector;
 import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -22,11 +25,13 @@ import org.junit.platform.engine.discovery.UniqueIdSelector;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
 
 class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
     private final List<URI> classpathRootsToDiscover = new ArrayList<>();
     private final List<String> packagesToDiscover = new ArrayList<>();
     private final List<Class<?>> classesToDiscover = new ArrayList<>();
+    private final List<Method> methodsToDiscover = new ArrayList<>();
     private final List<UniqueId> idsToDiscover = new ArrayList<>();
 
     private final List<ClassNameFilter> classNameFilters = new ArrayList<>();
@@ -44,6 +49,9 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         if (ClassSelector.class.equals(selectorType)) {
             return (List<T>) createClassSelectors(classesToDiscover);
         }
+        if (MethodSelector.class.equals(selectorType)) {
+            return (List<T>) createMethodSelectors(methodsToDiscover);
+        }
         if (UniqueIdSelector.class.equals(selectorType)) {
             return (List<T>) createUniqueIdSelectors(idsToDiscover);
         }
@@ -60,6 +68,10 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     private List<ClassSelector> createClassSelectors(List<Class<?>> classesToDiscover) {
         return classesToDiscover.stream().map(DiscoverySelectors::selectClass).collect(toList());
+    }
+
+    private List<MethodSelector> createMethodSelectors(List<Method> methodsToDiscover) {
+        return methodsToDiscover.stream().map(m -> selectMethod(m.getDeclaringClass(), m)).collect(toList());
     }
 
     private List<UniqueIdSelector> createUniqueIdSelectors(List<UniqueId> idsToDiscover) {
@@ -110,6 +122,15 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     EngineDiscoveryTestRequest withPackageNameFilter(PackageNameFilter packageNameFilter) {
         packageNameFilters.add(packageNameFilter);
+        return this;
+    }
+
+    EngineDiscoveryTestRequest withMethod(Class<?> clazz, String methodName) {
+        try {
+            methodsToDiscover.add(clazz.getDeclaredMethod(methodName, JavaClasses.class));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 

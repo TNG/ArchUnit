@@ -36,6 +36,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.MethodSelector;
 import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -78,6 +79,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         resolveRequestedClasspathRoot(discoveryRequest, uniqueId, result);
         resolveRequestedPackages(discoveryRequest, uniqueId, result);
         resolveRequestedClasses(discoveryRequest, uniqueId, result);
+        resolveRequestedMethods(discoveryRequest, uniqueId, result);
         resolveRequestedUniqueIds(discoveryRequest, uniqueId, result);
 
         return result;
@@ -115,6 +117,13 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
                 .filter(this::isArchUnitTestCandidate)
                 .forEach(clazz -> ArchUnitTestDescriptor.resolve(
                         result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
+    }
+
+    private void resolveRequestedMethods(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
+        discoveryRequest.getSelectorsByType(MethodSelector.class).stream()
+                .filter(s -> s.getJavaMethod().isAnnotationPresent(ArchTest.class))
+                .forEach(selector -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, selector.getJavaClass(), selector.getJavaMethod()), cache.get()));
     }
 
     private void resolveRequestedUniqueIds(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
