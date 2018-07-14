@@ -65,6 +65,8 @@ import static org.junit.platform.engine.TestDescriptor.Type.CONTAINER;
 import static org.junit.platform.engine.TestDescriptor.Type.TEST;
 import static org.junit.platform.engine.discovery.ClassNameFilter.excludeClassNamePatterns;
 import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
+import static org.junit.platform.engine.discovery.PackageNameFilter.excludePackageNames;
+import static org.junit.platform.engine.discovery.PackageNameFilter.includePackageNames;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -445,6 +447,41 @@ class ArchUnitTestEngineTest {
 
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void filtering_excluded_packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(excludePackageNames(
+                            SimpleRuleField.class.getPackage().getName(),
+                            SimpleRules.class.getPackage().getName(),
+                            WrongRuleMethodNotStatic.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .contains(engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()))
+                    .doesNotContain(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void filtering_included_packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(includePackageNames(
+                            SimpleRuleField.class.getPackage().getName(),
+                            SimpleRules.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
         }
 

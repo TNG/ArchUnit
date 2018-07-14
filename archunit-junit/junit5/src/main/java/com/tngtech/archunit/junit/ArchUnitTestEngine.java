@@ -18,6 +18,7 @@ package com.tngtech.archunit.junit;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -29,11 +30,13 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.ExecutionRequest;
+import org.junit.platform.engine.Filter;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
@@ -41,6 +44,7 @@ import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A simple test engine to discover and execute ArchUnit tests with JUnit 5. In particular the engine
@@ -133,9 +137,13 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     }
 
     private Predicate<JavaClass> isAllowedBy(EngineDiscoveryRequest discoveryRequest) {
-        return javaClass -> discoveryRequest.getFiltersByType(ClassNameFilter.class).stream()
-                .map(ClassNameFilter::toPredicate)
-                .allMatch(p -> p.test(javaClass.getName()));
+        List<Predicate<String>> filters = Stream
+                .concat(discoveryRequest.getFiltersByType(ClassNameFilter.class).stream(),
+                        discoveryRequest.getFiltersByType(PackageNameFilter.class).stream())
+                .map(Filter::toPredicate)
+                .collect(toList());
+
+        return javaClass -> filters.stream().allMatch(p -> p.test(javaClass.getName()));
     }
 
     private boolean isArchUnitTestCandidate(JavaClass javaClass) {

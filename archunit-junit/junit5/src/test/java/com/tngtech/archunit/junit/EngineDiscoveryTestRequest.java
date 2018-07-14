@@ -15,6 +15,7 @@ import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 
@@ -29,6 +30,7 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
     private final List<UniqueId> idsToDiscover = new ArrayList<>();
 
     private final List<ClassNameFilter> classNameFilters = new ArrayList<>();
+    private final List<PackageNameFilter> packageNameFilters = new ArrayList<>();
 
     @Override
     @SuppressWarnings("unchecked") // compatibility is explicitly checked
@@ -70,6 +72,9 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         if (ClassNameFilter.class.equals(filterType)) {
             return (List<T>) classNameFilters;
         }
+        if (PackageNameFilter.class.equals(filterType)) {
+            return (List<T>) packageNameFilters;
+        }
         return emptyList();
     }
 
@@ -100,6 +105,11 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     EngineDiscoveryTestRequest withClassNameFilter(ClassNameFilter filter) {
         classNameFilters.add(filter);
+        return this;
+    }
+
+    EngineDiscoveryTestRequest withPackageNameFilter(PackageNameFilter packageNameFilter) {
+        packageNameFilters.add(packageNameFilter);
         return this;
     }
 
