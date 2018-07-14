@@ -228,8 +228,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void an_unique_id() {
-            UniqueId ruleIdToDiscover = engineId
-                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName())
+            UniqueId ruleIdToDiscover = simpleRulesId(engineId)
                     .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withUniqueId(ruleIdToDiscover);
 
@@ -246,7 +245,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void multiple_unique_ids() {
-            UniqueId testId = engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName());
+            UniqueId testId = simpleRulesId(engineId);
             UniqueId firstRuleIdToDiscover = testId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             UniqueId secondRuleIdToDiscover = testId.append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
@@ -261,8 +260,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void no_redundant_descriptors() {
-            UniqueId redundantId = engineId
-                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName())
+            UniqueId redundantId = simpleRulesId(engineId)
                     .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
                     .withClass(SimpleRules.class)
@@ -327,7 +325,7 @@ class ArchUnitTestEngineTest {
                     .containsOnly(
                             engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                             engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
-                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                            simpleRulesId(engineId));
         }
 
         @Test
@@ -342,7 +340,7 @@ class ArchUnitTestEngineTest {
                     .as("tests discovered by " + PackageSelector.class.getSimpleName())
                     .contains(
                             engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()),
-                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                            simpleRulesId(engineId));
 
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("children discovered by " + PackageSelector.class.getSimpleName())
@@ -364,8 +362,48 @@ class ArchUnitTestEngineTest {
                     .as("children discovered by " + MethodSelector.class.getSimpleName())
                     .containsOnly(
                             simpleRuleMethodTestId(engineId),
-                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName())
+                            simpleRulesId(engineId)
                                     .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME));
+        }
+
+        @Test
+        void fields() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withField(SimpleRules.class, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + FieldSelector.class.getSimpleName())
+                    .containsOnly(
+                            simpleRuleFieldTestId(engineId),
+                            simpleRulesId(engineId)
+                                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
+        }
+
+        @Test
+        void mixed_class_methods_and_fields() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withClass(SimpleRules.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> expectedLeafIds = new HashSet<>();
+            expectedLeafIds.add(simpleRuleFieldTestId(engineId));
+            expectedLeafIds.add(simpleRuleMethodTestId(engineId));
+            Stream.concat(
+                    SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName ->
+                            simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, fieldName)),
+                    SimpleRules.RULE_METHOD_NAMES.stream().map(methodName ->
+                            simpleRulesId(engineId).append(METHOD_SEGMENT_TYPE, methodName)))
+                    .forEach(expectedLeafIds::add);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by mixed selectors")
+                    .containsOnlyElementsOf(expectedLeafIds);
         }
 
         @Test
@@ -464,7 +502,7 @@ class ArchUnitTestEngineTest {
 
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
-                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                    simpleRulesId(engineId));
         }
 
         @Test
@@ -483,7 +521,7 @@ class ArchUnitTestEngineTest {
                     .doesNotContain(
                             engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                             engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
-                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                            simpleRulesId(engineId));
         }
 
         @Test
@@ -499,7 +537,7 @@ class ArchUnitTestEngineTest {
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
-                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                    simpleRulesId(engineId));
         }
 
         @Test
@@ -512,7 +550,7 @@ class ArchUnitTestEngineTest {
 
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
-                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+                    simpleRulesId(engineId));
         }
 
         private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {
@@ -760,18 +798,20 @@ class ArchUnitTestEngineTest {
                 .append(METHOD_SEGMENT_TYPE, SIMPLE_RULE_METHOD_NAME);
     }
 
+    private UniqueId simpleRulesId(UniqueId rootId) {
+        return rootId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName());
+    }
+
     private UniqueId simpleRulesInLibraryId(UniqueId uniqueId) {
-        return uniqueId
+        return simpleRulesId(uniqueId
                 .append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName())
-                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD)
-                .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName());
+                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
     }
 
     private Set<UniqueId> getExpectedIdsForSimpleRuleLibrary(UniqueId uniqueId) {
         UniqueId simpleRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName());
-        UniqueId simpleRules = simpleRuleLibrary
-                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD)
-                .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName());
+        UniqueId simpleRules = simpleRulesId(simpleRuleLibrary
+                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
         Set<UniqueId> simpleRulesFields = SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName -> simpleRules
                 .append(FIELD_SEGMENT_TYPE, fieldName)).collect(toSet());
         Set<UniqueId> simpleRulesMethods = SimpleRules.RULE_METHOD_NAMES.stream().map(methodName -> simpleRules
