@@ -127,9 +127,16 @@ class ElementResolver {
         return new ElementResolver(engineDescriptor, rootId, getRemainingSegments(rootId, targetId));
     }
 
-    static ElementResolver create(ArchUnitEngineDescriptor engineDescriptor, UniqueId rootId, Class<?> javaClass) {
-        UniqueId targetId = rootId.append(CLASS_SEGMENT_TYPE, javaClass.getName());
-        return new ElementResolver(engineDescriptor, rootId, getRemainingSegments(rootId, targetId));
+    static ElementResolver create(ArchUnitEngineDescriptor engineDescriptor, UniqueId rootId, Class<?> testClass) {
+        UniqueId targetId = rootId.append(CLASS_SEGMENT_TYPE, testClass.getName());
+        return create(engineDescriptor, rootId, targetId);
+    }
+
+    static ElementResolver create(ArchUnitEngineDescriptor engineDescriptor, UniqueId rootId, Class<?> testClass, Method testMethod) {
+        UniqueId targetId = rootId
+                .append(CLASS_SEGMENT_TYPE, testClass.getName())
+                .append(METHOD_SEGMENT_TYPE, testMethod.getName());
+        return create(engineDescriptor, rootId, targetId);
     }
 
     private static Deque<UniqueId.Segment> getRemainingSegments(UniqueId rootId, UniqueId targetId) {
