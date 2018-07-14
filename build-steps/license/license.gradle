@@ -112,9 +112,10 @@ releaseProjects*.with {
 
     task addLicenseHeader {
         doLast {
-            def javaFiles = sourceSets.asMap.containsKey('jdk9main') ?
-                    [sourceSets.main.allJava.asList(), sourceSets.jdk9main.allJava.asList()].flatten() :
-                    sourceSets.main.allJava
+            def javaFiles = ['main', 'jdk9main', 'api', 'engineApi']
+                    .findAll(sourceSets.asMap.&containsKey)
+                    .collect { sourceSets[it].allJava.asList() }
+                    .flatten()
 
             def headerText = fillTemplateFile('archunit.header.template')
 

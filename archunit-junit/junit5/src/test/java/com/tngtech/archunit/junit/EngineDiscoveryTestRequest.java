@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -22,6 +23,7 @@ import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 
+import static com.tngtech.archunit.junit.FieldSelector.selectField;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -32,6 +34,7 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
     private final List<String> packagesToDiscover = new ArrayList<>();
     private final List<Class<?>> classesToDiscover = new ArrayList<>();
     private final List<Method> methodsToDiscover = new ArrayList<>();
+    private final List<Field> fieldsToDiscover = new ArrayList<>();
     private final List<UniqueId> idsToDiscover = new ArrayList<>();
 
     private final List<ClassNameFilter> classNameFilters = new ArrayList<>();
@@ -51,6 +54,9 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         }
         if (MethodSelector.class.equals(selectorType)) {
             return (List<T>) createMethodSelectors(methodsToDiscover);
+        }
+        if (FieldSelector.class.equals(selectorType)) {
+            return (List<T>) createFieldSelectors(fieldsToDiscover);
         }
         if (UniqueIdSelector.class.equals(selectorType)) {
             return (List<T>) createUniqueIdSelectors(idsToDiscover);
@@ -72,6 +78,10 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     private List<MethodSelector> createMethodSelectors(List<Method> methodsToDiscover) {
         return methodsToDiscover.stream().map(m -> selectMethod(m.getDeclaringClass(), m)).collect(toList());
+    }
+
+    private List<FieldSelector> createFieldSelectors(List<Field> fieldsToDiscover) {
+        return fieldsToDiscover.stream().map(f -> selectField(f.getDeclaringClass(), f)).collect(toList());
     }
 
     private List<UniqueIdSelector> createUniqueIdSelectors(List<UniqueId> idsToDiscover) {
@@ -129,6 +139,15 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         try {
             methodsToDiscover.add(clazz.getDeclaredMethod(methodName, JavaClasses.class));
         } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    EngineDiscoveryTestRequest withField(Class<?> clazz, String fieldName) {
+        try {
+            fieldsToDiscover.add(clazz.getDeclaredField(fieldName));
+        } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
         return this;

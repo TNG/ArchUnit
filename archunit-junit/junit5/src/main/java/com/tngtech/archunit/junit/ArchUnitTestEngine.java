@@ -80,6 +80,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         resolveRequestedPackages(discoveryRequest, uniqueId, result);
         resolveRequestedClasses(discoveryRequest, uniqueId, result);
         resolveRequestedMethods(discoveryRequest, uniqueId, result);
+        resolveRequestedFields(discoveryRequest, uniqueId, result);
         resolveRequestedUniqueIds(discoveryRequest, uniqueId, result);
 
         return result;
@@ -124,6 +125,13 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
                 .filter(s -> s.getJavaMethod().isAnnotationPresent(ArchTest.class))
                 .forEach(selector -> ArchUnitTestDescriptor.resolve(
                         result, ElementResolver.create(result, uniqueId, selector.getJavaClass(), selector.getJavaMethod()), cache.get()));
+    }
+
+    private void resolveRequestedFields(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
+        discoveryRequest.getSelectorsByType(FieldSelector.class).stream()
+                .filter(s -> s.getJavaField().isAnnotationPresent(ArchTest.class))
+                .forEach(selector -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, selector.getJavaClass(), selector.getJavaField()), cache.get()));
     }
 
     private void resolveRequestedUniqueIds(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {

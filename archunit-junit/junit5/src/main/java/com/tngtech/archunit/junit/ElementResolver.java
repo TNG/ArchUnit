@@ -139,6 +139,13 @@ class ElementResolver {
         return create(engineDescriptor, rootId, targetId);
     }
 
+    static ElementResolver create(ArchUnitEngineDescriptor engineDescriptor, UniqueId rootId, Class<?> testClass, Field testField) {
+        UniqueId targetId = rootId
+                .append(CLASS_SEGMENT_TYPE, testClass.getName())
+                .append(FIELD_SEGMENT_TYPE, testField.getName());
+        return create(engineDescriptor, rootId, targetId);
+    }
+
     private static Deque<UniqueId.Segment> getRemainingSegments(UniqueId rootId, UniqueId targetId) {
         Deque<UniqueId.Segment> remainingSegments = new LinkedList<>(targetId.getSegments());
         rootId.getSegments().forEach(segment -> {
