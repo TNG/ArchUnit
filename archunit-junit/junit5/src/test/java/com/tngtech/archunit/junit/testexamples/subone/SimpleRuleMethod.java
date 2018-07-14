@@ -1,8 +1,10 @@
-package com.tngtech.archunit.junit.testexamples;
+package com.tngtech.archunit.junit.testexamples.subone;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.testexamples.RuleThatFails;
+import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 
 @AnalyzeClasses(packages = "some.dummy.package")
 public class SimpleRuleMethod {

@@ -1,4 +1,4 @@
-package com.tngtech.archunit.junit.testexamples;
+package com.tngtech.archunit.junit.testexamples.subtwo;
 
 import java.util.Set;
 
@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.testexamples.RuleThatFails;
+import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.lang.ArchRule;
 
 @AnalyzeClasses(packages = "some.dummy.package")

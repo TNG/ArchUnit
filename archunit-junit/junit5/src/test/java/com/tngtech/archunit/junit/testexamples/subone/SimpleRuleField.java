@@ -1,7 +1,9 @@
-package com.tngtech.archunit.junit.testexamples;
+package com.tngtech.archunit.junit.testexamples.subone;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.testexamples.RuleThatFails;
+import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.lang.ArchRule;
 
 @AnalyzeClasses(packages = "some.dummy.package")

@@ -8,8 +8,8 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
-class RuleThatFails {
-    static ArchRule on(Class<?> input) {
+public class RuleThatFails {
+    public static ArchRule on(Class<?> input) {
         return classes().should(new ArchCondition<JavaClass>("not be " + input.getName()) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {

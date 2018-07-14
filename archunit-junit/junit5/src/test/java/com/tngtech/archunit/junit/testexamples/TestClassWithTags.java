@@ -5,6 +5,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField;
 import com.tngtech.archunit.lang.ArchRule;
 
 @ArchTag("tag-one")

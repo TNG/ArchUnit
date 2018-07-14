@@ -3,6 +3,8 @@ package com.tngtech.archunit.junit.testexamples;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField;
+import com.tngtech.archunit.junit.testexamples.subtwo.SimpleRules;
 
 @AnalyzeClasses(packages = "some.dummy.package")
 public class SimpleRuleLibrary {
