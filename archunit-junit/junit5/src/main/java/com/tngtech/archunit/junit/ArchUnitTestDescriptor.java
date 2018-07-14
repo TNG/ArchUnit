@@ -30,6 +30,8 @@ import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
@@ -41,6 +43,8 @@ import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 import static java.lang.reflect.Modifier.isStatic;
 
 class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
+    private static final Logger LOG = LoggerFactory.getLogger(ArchUnitTestDescriptor.class);
+
     static final String CLASS_SEGMENT_TYPE = "class";
     static final String FIELD_SEGMENT_TYPE = "field";
     static final String METHOD_SEGMENT_TYPE = "method";
@@ -57,12 +61,22 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     static void resolve(TestDescriptor parent, ElementResolver resolver, ClassCache classCache) {
         resolver.resolveClass()
                 .ifRequestedAndResolved(CreatesChildren::createChildren)
-                .ifRequestedButUnresolved((clazz, childResolver) ->
-                {
-                    ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
-                    parent.addChild(classDescriptor);
-                    classDescriptor.createChildren(childResolver);
-                });
+                .ifRequestedButUnresolved((clazz, childResolver) -> createTestDescriptor(parent, classCache, clazz, childResolver));
+    }
+
+    private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver) {
+        if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
+            LOG.warn("Class {} is not annotated with @{} and thus run as top level test. "
+                            + "This warning can be ignored, if {} is only used as part of a rules library, included via {}.in({}.class).",
+                    clazz.getName(), AnalyzeClasses.class.getSimpleName(),
+                    clazz.getSimpleName(), ArchRules.class.getSimpleName(), clazz.getSimpleName());
+
+            return;
+        }
+
+        ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
+        parent.addChild(classDescriptor);
+        classDescriptor.createChildren(childResolver);
     }
 
     @Override
