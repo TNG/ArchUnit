@@ -15,6 +15,7 @@ import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 
 import static java.util.Collections.emptyList;
@@ -22,9 +23,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
-    private final List<UniqueId> idsToDiscover = new ArrayList<>();
-    private final List<Class<?>> classesToDiscover = new ArrayList<>();
     private final List<URI> classpathRootsToDiscover = new ArrayList<>();
+    private final List<String> packagesToDiscover = new ArrayList<>();
+    private final List<Class<?>> classesToDiscover = new ArrayList<>();
+    private final List<UniqueId> idsToDiscover = new ArrayList<>();
 
     private final List<ClassNameFilter> classNameFilters = new ArrayList<>();
 
@@ -33,6 +35,9 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
     public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
         if (ClasspathRootSelector.class.equals(selectorType)) {
             return (List<T>) createClasspathRootSelectors(classpathRootsToDiscover);
+        }
+        if (PackageSelector.class.equals(selectorType)) {
+            return (List<T>) createPackageSelectors(packagesToDiscover);
         }
         if (ClassSelector.class.equals(selectorType)) {
             return (List<T>) createClassSelectors(classesToDiscover);
@@ -45,6 +50,10 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     private List<ClasspathRootSelector> createClasspathRootSelectors(List<URI> classpathRootsToDiscover) {
         return DiscoverySelectors.selectClasspathRoots(classpathRootsToDiscover.stream().map(Paths::get).collect(toSet()));
+    }
+
+    private List<PackageSelector> createPackageSelectors(List<String> packagesToDiscover) {
+        return packagesToDiscover.stream().map(DiscoverySelectors::selectPackage).collect(toList());
     }
 
     private List<ClassSelector> createClassSelectors(List<Class<?>> classesToDiscover) {
@@ -71,6 +80,11 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     EngineDiscoveryTestRequest withClasspathRoot(URI uri) {
         classpathRootsToDiscover.add(uri);
+        return this;
+    }
+
+    EngineDiscoveryTestRequest withPackage(String pkg) {
+        packagesToDiscover.add(pkg);
         return this;
     }
 

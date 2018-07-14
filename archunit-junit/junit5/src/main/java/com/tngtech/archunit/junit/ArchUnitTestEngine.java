@@ -34,6 +34,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 
@@ -71,6 +72,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         ArchUnitEngineDescriptor result = new ArchUnitEngineDescriptor(uniqueId);
 
         resolveRequestedClasspathRoot(discoveryRequest, uniqueId, result);
+        resolveRequestedPackages(discoveryRequest, uniqueId, result);
         resolveRequestedClasses(discoveryRequest, uniqueId, result);
         resolveRequestedUniqueIds(discoveryRequest, uniqueId, result);
 
@@ -78,13 +80,29 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     }
 
     private void resolveRequestedClasspathRoot(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
-        discoveryRequest.getSelectorsByType(ClasspathRootSelector.class).stream()
-                .flatMap(this::getContainedClasses)
-                .filter(isAllowedBy(discoveryRequest))
-                .filter(this::isArchUnitTestCandidate)
-                .flatMap(this::safelyReflect)
+        Stream<JavaClass> classes = discoveryRequest.getSelectorsByType(ClasspathRootSelector.class).stream()
+                .flatMap(this::getContainedClasses);
+        filterCandidatesAndLoadClasses(classes, discoveryRequest)
                 .forEach(clazz -> ArchUnitTestDescriptor.resolve(
                         result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
+    }
+
+    private void resolveRequestedPackages(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
+        String[] packages = discoveryRequest.getSelectorsByType(PackageSelector.class).stream()
+                .map(PackageSelector::getPackageName)
+                .toArray(String[]::new);
+        Stream<JavaClass> classes = getContainedClasses(packages);
+
+        filterCandidatesAndLoadClasses(classes, discoveryRequest)
+                .forEach(clazz -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
+    }
+
+    private Stream<Class<?>> filterCandidatesAndLoadClasses(Stream<JavaClass> classes, EngineDiscoveryRequest discoveryRequest) {
+        return classes
+                .filter(isAllowedBy(discoveryRequest))
+                .filter(this::isArchUnitTestCandidate)
+                .flatMap(this::safelyReflect);
     }
 
     private void resolveRequestedClasses(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
@@ -102,8 +120,15 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
                         result, ElementResolver.create(result, uniqueId, selector.getUniqueId()), cache.get()));
     }
 
+    private Stream<JavaClass> getContainedClasses(String[] packages) {
+        return stream(new ClassFileImporter().importPackages(packages));
+    }
+
     private Stream<JavaClass> getContainedClasses(ClasspathRootSelector selector) {
-        JavaClasses classes = new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot()));
+        return stream(new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot())));
+    }
+
+    private Stream<JavaClass> stream(JavaClasses classes) {
         return StreamSupport.stream(classes.spliterator(), false);
     }
 

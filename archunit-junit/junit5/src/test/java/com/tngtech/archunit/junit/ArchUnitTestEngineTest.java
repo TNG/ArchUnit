@@ -35,6 +35,7 @@ import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestTag;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.mockito.ArgumentCaptor;
@@ -303,11 +304,49 @@ class ArchUnitTestEngineTest {
 
             TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
 
-            assertThat(getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet()))
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("children discovered by " + ClasspathRootSelector.class.getSimpleName())
                     .contains(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME))
                     .contains(simpleRuleFieldTestId(engineId))
                     .contains(simpleRuleMethodTestId(engineId));
+        }
+
+        @Test
+        void packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleField.class.getPackage().getName())
+                    .withPackage(SimpleRules.class.getPackage().getName());
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .as("tests discovered by " + PackageSelector.class.getSimpleName())
+                    .containsOnly(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void subpackages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withClassNameFilter(excludeClassNamePatterns(".*(W|w)rong.*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .as("tests discovered by " + PackageSelector.class.getSimpleName())
+                    .contains(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + PackageSelector.class.getSimpleName())
+                    .contains(
+                            simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME),
+                            simpleRuleFieldTestId(engineId),
+                            simpleRuleMethodTestId(engineId));
         }
 
         @Test
@@ -461,6 +500,10 @@ class ArchUnitTestEngineTest {
 
         private TestDescriptor findRulesDescriptor(Collection<TestDescriptor> archRulesDescriptors, Class<?> clazz) {
             return archRulesDescriptors.stream().filter(d -> d.getUniqueId().toString().contains(clazz.getSimpleName())).findFirst().get();
+        }
+
+        private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
+            return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
         }
 
         private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
