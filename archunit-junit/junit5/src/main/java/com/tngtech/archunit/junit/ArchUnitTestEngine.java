@@ -15,16 +15,31 @@
  */
 package com.tngtech.archunit.junit;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.discovery.ClassNameFilter;
 import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.ClasspathRootSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
+
+import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
+import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
+import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 
 /**
  * A simple test engine to discover and execute ArchUnit tests with JUnit 5. In particular the engine
@@ -51,18 +66,80 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         return UNIQUE_ID;
     }
 
-    // FIXME: Throw exception if class is meant for test engine but @AnalyzeClasses is missing
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
         ArchUnitEngineDescriptor result = new ArchUnitEngineDescriptor(uniqueId);
+
+        resolveRequestedClasspathRoot(discoveryRequest, uniqueId, result);
+        resolveRequestedClasses(discoveryRequest, uniqueId, result);
+        resolveRequestedUniqueIds(discoveryRequest, uniqueId, result);
+
+        return result;
+    }
+
+    private void resolveRequestedClasspathRoot(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
+        discoveryRequest.getSelectorsByType(ClasspathRootSelector.class).stream()
+                .flatMap(this::getContainedClasses)
+                .filter(isAllowedBy(discoveryRequest))
+                .filter(this::isArchUnitTestCandidate)
+                .flatMap(this::safelyReflect)
+                .forEach(clazz -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
+    }
+
+    private void resolveRequestedClasses(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
+        discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
+                .map(ClassSelector::getJavaClass)
+                .filter(this::isArchUnitTestCandidate)
+                .forEach(clazz -> ArchUnitTestDescriptor.resolve(
+                        result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
+    }
+
+    private void resolveRequestedUniqueIds(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
         discoveryRequest.getSelectorsByType(UniqueIdSelector.class).stream()
                 .filter(selector -> selector.getUniqueId().getEngineId().equals(Optional.of(getId())))
                 .forEach(selector -> ArchUnitTestDescriptor.resolve(
                         result, ElementResolver.create(result, uniqueId, selector.getUniqueId()), cache.get()));
-        discoveryRequest.getSelectorsByType(ClassSelector.class)
-                .forEach(selector -> ArchUnitTestDescriptor.resolve(
-                        result, ElementResolver.create(result, uniqueId, selector.getJavaClass()), cache.get()));
-        return result;
+    }
+
+    private Stream<JavaClass> getContainedClasses(ClasspathRootSelector selector) {
+        JavaClasses classes = new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot()));
+        return StreamSupport.stream(classes.spliterator(), false);
+    }
+
+    private Predicate<JavaClass> isAllowedBy(EngineDiscoveryRequest discoveryRequest) {
+        return javaClass -> discoveryRequest.getFiltersByType(ClassNameFilter.class).stream()
+                .map(ClassNameFilter::toPredicate)
+                .allMatch(p -> p.test(javaClass.getName()));
+    }
+
+    private boolean isArchUnitTestCandidate(JavaClass javaClass) {
+        return javaClass.getAllMembers().stream().anyMatch(m -> m.isAnnotatedWith(ArchTest.class));
+    }
+
+    private Stream<Class<?>> safelyReflect(JavaClass javaClass) {
+        try {
+            return Stream.of(javaClass.reflect());
+        } catch (NoClassDefFoundError | RuntimeException e) {
+            return Stream.empty();
+        }
+    }
+
+    private boolean isArchUnitTestCandidate(Class<?> clazz) {
+        try {
+            return !getAllFields(clazz, withAnnotation(ArchTest.class)).isEmpty()
+                    || !getAllMethods(clazz, withAnnotation(ArchTest.class)).isEmpty();
+        } catch (NoClassDefFoundError | Exception e) {
+            return false;
+        }
+    }
+
+    private URL toUrl(URI uri) {
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException e) {
+            throw new ArchTestInitializationException(e);
+        }
     }
 
     @Override
