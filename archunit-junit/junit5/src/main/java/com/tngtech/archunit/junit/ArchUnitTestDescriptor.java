@@ -237,13 +237,13 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         public void createChildren(ElementResolver resolver) {
             rules.forEachDeclaration(declaration -> declaration.handleWith(new ArchRuleDeclaration.Handler() {
                 @Override
-                public void handleFieldDeclaration(Field field, boolean ignore) {
+                public void handleFieldDeclaration(Field field, boolean unimportantBecauseTheHierarchyAlreadyDoesThis) {
                     resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
                             resolveChildren(ArchUnitRulesDescriptor.this, childResolver, rules.getTestClass(), field, classes));
                 }
 
                 @Override
-                public void handleMethodDeclaration(Method method, boolean ignore) {
+                public void handleMethodDeclaration(Method method, boolean unimportantBecauseTheHierarchyAlreadyDoesThis) {
                     resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
                             addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
                 }

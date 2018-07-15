@@ -20,6 +20,10 @@ import com.tngtech.archunit.junit.testexamples.TestClassWithTags;
 import com.tngtech.archunit.junit.testexamples.TestFieldWithTags;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
+import com.tngtech.archunit.junit.testexamples.ignores.IgnoredClass;
+import com.tngtech.archunit.junit.testexamples.ignores.IgnoredField;
+import com.tngtech.archunit.junit.testexamples.ignores.IgnoredLibrary;
+import com.tngtech.archunit.junit.testexamples.ignores.IgnoredMethod;
 import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField;
 import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleMethod;
 import com.tngtech.archunit.junit.testexamples.subtwo.SimpleRules;
@@ -732,27 +736,6 @@ class ArchUnitTestEngineTest {
             verify(classCache, atLeastOnce()).getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class));
             verifyNoMoreInteractions(classCache);
         }
-
-        private void simulateCachedClassesForTest(Class<?> testClass, Class<?> classToReturn) {
-            when(classCache.getClassesToAnalyzeFor(eq(testClass), classAnalysisRequestOf(testClass)))
-                    .thenReturn(importClasses(classToReturn));
-        }
-
-        private ClassAnalysisRequest classAnalysisRequestOf(Class<?> testClass) {
-            return argThat(r -> Arrays.equals(r.getPackages(), testClass.getAnnotation(AnalyzeClasses.class).packages()));
-        }
-
-        private EngineExecutionTestListener execute(UniqueId uniqueId, Class<?> testClass) {
-            return execute(uniqueId, new EngineDiscoveryTestRequest().withClass(testClass));
-        }
-
-        private EngineExecutionTestListener execute(UniqueId uniqueId, EngineDiscoveryTestRequest discoveryRequest) {
-            TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
-
-            EngineExecutionTestListener listener = new EngineExecutionTestListener();
-            testEngine.execute(new ExecutionRequest(descriptor, listener, discoveryRequest.getConfigurationParameters()));
-            return listener;
-        }
     }
 
     @Nested
@@ -779,6 +762,105 @@ class ArchUnitTestEngineTest {
                     .hasMessageContaining(WrongRuleMethodWrongParameters.class.getSimpleName())
                     .hasMessageContaining(WrongRuleMethodWrongParameters.WRONG_PARAMETERS_METHOD_NAME)
                     .hasMessageContaining("must have exactly one parameter of type " + JavaClasses.class.getName());
+        }
+    }
+
+    @Nested
+    class Ignores {
+        @Test
+        void fields() {
+            simulateCachedClassesForTest(IgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredField.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.IGNORED_RULE_FIELD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.UNIGNORED_RULE_FIELD));
+        }
+
+        @Test
+        void methods() {
+            simulateCachedClassesForTest(IgnoredMethod.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredMethod.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void classes() {
+            simulateCachedClassesForTest(IgnoredClass.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredClass.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredClass.class.getName()));
+
+            testListener.verifyNoOtherStartExceptHierarchyOf(engineId);
+        }
+
+        @Test
+        void libraries() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.IGNORED_LIB_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void library_referenced_classes() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.UNIGNORED_LIB_ONE_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, IgnoredClass.class.getName()));
+        }
+
+        @Test
+        void library_sub_rules() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            UniqueId classWithIgnoredMethod = engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.UNIGNORED_LIB_TWO_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName());
+
+            testListener.verifySkipped(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void with_reason() {
+            simulateCachedClassesForTest(IgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredField.class);
+
+            UniqueId ignoredId = engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.IGNORED_RULE_FIELD);
+            testListener.verifySkipped(ignoredId, "some example description");
         }
     }
 
@@ -826,6 +908,27 @@ class ArchUnitTestEngineTest {
 
     private Set<UniqueId> toUniqueIds(TestDescriptor rootDescriptor) {
         return rootDescriptor.getChildren().stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private void simulateCachedClassesForTest(Class<?> testClass, Class<?> classToReturn) {
+        when(classCache.getClassesToAnalyzeFor(eq(testClass), classAnalysisRequestOf(testClass)))
+                .thenReturn(importClasses(classToReturn));
+    }
+
+    private ClassAnalysisRequest classAnalysisRequestOf(Class<?> testClass) {
+        return argThat(r -> Arrays.equals(r.getPackages(), testClass.getAnnotation(AnalyzeClasses.class).packages()));
+    }
+
+    private EngineExecutionTestListener execute(UniqueId uniqueId, Class<?> testClass) {
+        return execute(uniqueId, new EngineDiscoveryTestRequest().withClass(testClass));
+    }
+
+    private EngineExecutionTestListener execute(UniqueId uniqueId, EngineDiscoveryTestRequest discoveryRequest) {
+        TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
+
+        EngineExecutionTestListener listener = new EngineExecutionTestListener();
+        testEngine.execute(new ExecutionRequest(descriptor, listener, discoveryRequest.getConfigurationParameters()));
+        return listener;
     }
 
     private static URI rootOfClass(Class<?> clazz) {

@@ -33,16 +33,28 @@ import static java.util.stream.Collectors.toSet;
 
 abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor implements Node<ArchUnitEngineExecutionContext> {
     private final Set<TestTag> tags;
+    private final SkipResult skipResult;
 
     AbstractArchUnitTestDescriptor(UniqueId uniqueId, String displayName, TestSource source, AnnotatedElement... elements) {
         super(uniqueId, displayName, source);
-        this.tags = Arrays.stream(elements).map(this::findTagsOn).flatMap(Collection::stream).collect(toSet());
+        tags = Arrays.stream(elements).map(this::findTagsOn).flatMap(Collection::stream).collect(toSet());
+        skipResult = Arrays.stream(elements)
+                .filter(e -> e.isAnnotationPresent(ArchIgnore.class))
+                .map(e -> e.getAnnotation(ArchIgnore.class))
+                .findFirst()
+                .map(ignore -> SkipResult.skip(ignore.reason()))
+                .orElse(SkipResult.doNotSkip());
     }
 
     private Set<TestTag> findTagsOn(AnnotatedElement annotatedElement) {
         return Arrays.stream(annotatedElement.getAnnotationsByType(ArchTag.class))
                 .map(annotation -> TestTag.create(annotation.value()))
                 .collect(toSet());
+    }
+
+    @Override
+    public SkipResult shouldBeSkipped(ArchUnitEngineExecutionContext context) {
+        return skipResult;
     }
 
     @Override
