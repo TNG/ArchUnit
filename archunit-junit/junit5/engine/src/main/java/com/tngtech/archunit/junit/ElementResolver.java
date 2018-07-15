@@ -24,6 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 
@@ -99,6 +100,7 @@ class ElementResolver {
         return result;
     }
 
+    @MayResolveTypesViaReflection(reason = "Within the ArchUnitTestEngine we may resolve types via reflection, since they are needed anyway")
     private Class<?> classOf(UniqueId.Segment segment) {
         try {
             return Class.forName(segment.getValue());

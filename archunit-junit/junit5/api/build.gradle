@@ -1,0 +1,18 @@
+ext.moduleName = 'com.tngtech.archunit.junit5.api'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+    compile project(path: ':archunit')
+    compile project(path: ':archunit-junit', configuration: 'api')
+    compile dependency.junitPlatformCommons
+}
+
+def configureDependencies = { pom ->
+    pom.dependencies.removeAll {
+        it.scope != 'compile' || !(it.artifactId in ['archunit'])
+    }
+    pom.dependencies.find { it.artifactId == 'archunit' }.classifier = null
+}
+this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)

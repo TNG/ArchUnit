@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -167,6 +168,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         return javaClass.getAllMembers().stream().anyMatch(m -> m.isAnnotatedWith(ArchTest.class));
     }
 
+    @MayResolveTypesViaReflection(reason = "Within the ArchUnitTestEngine we may resolve types via reflection, since they are needed anyway")
     private Stream<Class<?>> safelyReflect(JavaClass javaClass) {
         try {
             return Stream.of(javaClass.reflect());

@@ -1,6 +1,8 @@
 include 'archunit', 'archunit-example', 'archunit-integration-test',
-        'archunit-junit', 'archunit-junit4', 'archunit-junit5',
+        'archunit-junit', 'archunit-junit4', 'archunit-junit5-api','archunit-junit5-engine-api','archunit-junit5-engine',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5'
 
 project(':archunit-junit4').projectDir = file('archunit-junit/junit4')
-project(':archunit-junit5').projectDir = file('archunit-junit/junit5')
+project(':archunit-junit5-api').projectDir = file('archunit-junit/junit5/api')
+project(':archunit-junit5-engine-api').projectDir = file('archunit-junit/junit5/engine-api')
+project(':archunit-junit5-engine').projectDir = file('archunit-junit/junit5/engine')

@@ -47,18 +47,14 @@ def addCleanThirdPartyTask = {
     }
     finishArchive.dependsOn removeDuplicateThirdParty
 }
-ext.configureJUnitArchive = {
-    delegate.with addCleanThirdPartyTask
-    compileJava.dependsOn project(':archunit-junit').finishArchive
+ext.configureJUnitArchive = { configureDependencies ->
+    return {
+        delegate.with addCleanThirdPartyTask
+        compileJava.dependsOn project(':archunit-junit').finishArchive
 
-    def configureDependencies = { pom ->
-        pom.dependencies.removeAll {
-            it.scope != 'compile' || !(it.artifactId in ['archunit', 'junit'])
-        }
-        pom.dependencies.find { it.artifactId == 'archunit' }.classifier = null
+        install.repositories.mavenInstaller.pom.whenConfigured configureDependencies
+        uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependencies
     }
-    install.repositories.mavenInstaller.pom.whenConfigured configureDependencies
-    uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependencies
 }
 
 this.with addCleanThirdPartyTask
