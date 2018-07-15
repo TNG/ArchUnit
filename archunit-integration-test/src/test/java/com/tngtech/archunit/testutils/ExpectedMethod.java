@@ -5,7 +5,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public class ExpectedMethod {
-    public static ExpectedMethod.Creator method(Class<?> owner, String methodName, Class<?>... params) {
+    public static ExpectedMethod.Creator of(Class<?> owner, String methodName, Class<?>... params) {
         return new ExpectedMethod.Creator(owner, methodName, params);
     }
 

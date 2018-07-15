@@ -13,9 +13,11 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 @ArchTag("example")
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 public class RestrictNumberOfClassesWithACertainPropertyTest {
+
     @ArchTest
     static final ArchRule no_new_classes_should_implement_SomeBusinessInterface =
             classes().that().implement(SomeBusinessInterface.class)
                     .should().containNumberOfElements(lessThanOrEqualTo(1))
                     .because("from now on new classes should implement " + SomeOtherBusinessInterface.class.getName());
+
 }
