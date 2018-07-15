@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import org.junit.platform.engine.DiscoverySelector;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -72,6 +73,7 @@ public final class FieldSelector implements DiscoverySelector {
         return selectField(classForName(className), fieldName);
     }
 
+    @MayResolveTypesViaReflection(reason = "Within the ArchUnitTestEngine we may resolve types via reflection, since they are needed anyway")
     private static Class<?> classForName(String className) {
         try {
             return Class.forName(className);

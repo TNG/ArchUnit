@@ -14,9 +14,11 @@ dependencies {
     testCompile dependency.log4j_slf4j
     testCompile project(path: ':archunit', configuration: 'tests')
     testCompile project(path: ':archunit-junit4')
-    testCompile project(path: ':archunit-junit5')
+    testCompile project(path: ':archunit-junit5-api')
     testCompile project(path: ':archunit-example:example-plain')
     testCompile project(path: ':archunit-example:example-plain', configuration: 'tests')
     testCompile project(path: ':archunit-example:example-junit4', configuration: 'tests')
     testCompile project(path: ':archunit-example:example-junit5', configuration: 'tests')
+
+    testRuntime project(path: ':archunit-junit5-engine')
 }
