@@ -70,16 +70,19 @@ def addMavenTest = { config ->
 
                 mavenPom.text = mavenPom.text
                                         .replace('#{archunit.version}', "${version}")
+                                        .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
                                         .replace('#{repositories}', repositories)
-                                        .replace('#{javaVersion}', config.javaVersion)
+                                        .replace('#{javaVersion}', "${config.javaVersion}")
                                         .replace('#{extraCompilerArgs}', config.extraCompilerArgs ?: '')
+                                        .replace('#{surefireDependencies}', config.surefireDependencies ?: '')
+                                        .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
 
                 copy {
                     from new File(new File(project(':archunit-example:example-plain').projectDir, 'src'), 'main')
                     into new File(mavenSrc, 'main')
                 }
                 copy {
-                    from new File(new File(project(':archunit-example:example-junit4').projectDir, 'src'), 'test')
+                    from new File(new File(project(":archunit-example:example-${config.examplePathSuffix}").projectDir, 'src'), 'test')
                     into new File(mavenSrc, 'test')
                 }
                 copy {
@@ -137,14 +140,14 @@ def addMavenTest = { config ->
 }
 
 def javaConfigs = [
-        [suffix: "java7", javaVersion: "1.7", jdkProp: "java7Home"],
-        [suffix: "java8", javaVersion: "1.8", jdkProp: "java8Home"],
-        [suffix: "java9", javaVersion: "9", jdkProp: "java9Home", extraCompilerArgs:
+        [suffix: "java7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
+        [suffix: "java8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
+        [suffix: "java9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home", extraCompilerArgs:
                 """<compilerArgs>
                             <arg>--add-modules</arg>
                             <arg>java.xml.ws.annotation</arg>
                         </compilerArgs>"""],
-        [suffix: "java10", javaVersion: "10", jdkProp: "java10Home", extraCompilerArgs:
+        [suffix: "java10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home", extraCompilerArgs:
                 """<compilerArgs>
                             <arg>--add-modules</arg>
                             <arg>java.xml.ws.annotation</arg>
@@ -154,13 +157,54 @@ def javaConfigs = [
 javaConfigs = javaConfigs.findAll { project.hasProperty(it.jdkProp) }
                          .collect { config -> config + [jdkPath: project[config.jdkProp]] }
 
-javaConfigs = javaConfigs ?: [[suffix: 'java7', javaVersion: '1.7']]
-javaConfigs.each { config ->
-    project.with(addMavenTest(config))
+javaConfigs = javaConfigs ?: [[suffix: 'java7', javaVersion: JavaVersion.VERSION_1_7]]
+
+javaConfigs = javaConfigs.collect { config ->
+    // JUnit 5 needs at least Java 8
+    def testSupportTypes = config.javaVersion > JavaVersion.VERSION_1_7 ?
+            ['plain', 'junit4', 'junit5'] :
+            ['plain', 'junit4']
+    testSupportTypes.collect { testType ->
+        config + [suffix: config.suffix + testType] + [examplePathSuffix: testType]
+    }
+}.flatten()
+
+javaConfigs.findAll { it.suffix.endsWith('plain') }*.with {
+    surefireExampleConfiguration = '<groups>com.tngtech.archunit.exampletest.Example</groups>'
+    archunitTestArtifact = 'archunit'
 }
 
-Task findTask(String name) {
-    tasks[name]
+javaConfigs.findAll { it.suffix.endsWith('junit4') }*.with {
+    surefireExampleConfiguration = '<groups>com.tngtech.archunit.exampletest.junit4.Example</groups>'
+    archunitTestArtifact = 'archunit-junit4'
+}
+
+def archUnitVersion = version
+javaConfigs.findAll { it.suffix.endsWith('junit5') }*.with {
+    surefireExampleConfiguration = '<groups>example</groups>'
+    archunitTestArtifact = 'archunit-junit5-api'
+    surefireDependencies = """
+            <dependencies>
+                <dependency>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-surefire-provider</artifactId>
+                    <version>1.2.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.tngtech.archunit</groupId>
+                    <artifactId>archunit-junit5-engine</artifactId>
+                    <version>${archUnitVersion}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                    <version>5.2.0</version>
+                </dependency>
+            </dependencies>"""
+}
+
+javaConfigs.each { config ->
+    project.with(addMavenTest(config))
 }
 
 def suffixes = javaConfigs*.suffix.sort()
