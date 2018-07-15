@@ -23,6 +23,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 class EngineExecutionTestListener implements EngineExecutionListener {
     private final List<TestDescriptor> startedTests = new ArrayList<>();
     private final List<FinishedTest> finishedTests = new ArrayList<>();
+    private final List<SkippedTest> skippedTests = new ArrayList<>();
 
     @Override
     public void dynamicTestRegistered(TestDescriptor testDescriptor) {
@@ -30,6 +31,7 @@ class EngineExecutionTestListener implements EngineExecutionListener {
 
     @Override
     public void executionSkipped(TestDescriptor testDescriptor, String reason) {
+        skippedTests.add(new SkippedTest(testDescriptor, reason));
     }
 
     @Override
@@ -57,6 +59,10 @@ class EngineExecutionTestListener implements EngineExecutionListener {
         assertThat(testStarted).as("Test with id " + testId + " was started").isTrue();
     }
 
+    void verifyViolation(UniqueId testId) {
+        verifyViolation(testId, "");
+    }
+
     void verifyViolation(UniqueId testId, String messagePart) {
         verifyStarted(testId);
         FinishedTest test = finishedTests.stream().filter(result -> result.hasId(testId)).collect(onlyElement());
@@ -72,6 +78,17 @@ class EngineExecutionTestListener implements EngineExecutionListener {
         assertThat(test.result.getThrowable().get().getMessage())
                 .as("AssertionError message of " + test)
                 .containsSequence(messagePart);
+    }
+
+    void verifySkipped(UniqueId testId) {
+        verifySkipped(testId, "");
+    }
+
+    void verifySkipped(UniqueId testId, String reasonPart) {
+        SkippedTest test = skippedTests.stream().filter(result -> result.hasId(testId)).collect(onlyElement());
+        assertThat(test.reason)
+                .as("reason of " + test)
+                .containsSequence(reasonPart);
     }
 
     void verifyNoOtherStartExceptHierarchyOf(UniqueId uniqueId) {
@@ -99,6 +116,28 @@ class EngineExecutionTestListener implements EngineExecutionListener {
             return "FinishedTest{" +
                     "testDescriptor=" + testDescriptor +
                     ", result=" + result +
+                    '}';
+        }
+    }
+
+    private static class SkippedTest {
+        final TestDescriptor testDescriptor;
+        final String reason;
+
+        SkippedTest(TestDescriptor testDescriptor, String reason) {
+            this.testDescriptor = testDescriptor;
+            this.reason = reason;
+        }
+
+        boolean hasId(UniqueId testId) {
+            return testDescriptor.getUniqueId().equals(testId);
+        }
+
+        @Override
+        public String toString() {
+            return "SkippedTest{" +
+                    "testDescriptor=" + testDescriptor +
+                    ", reason='" + reason + '\'' +
                     '}';
         }
     }
