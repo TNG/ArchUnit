@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
+import com.tngtech.archunit.junit.testexamples.ComplexRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.testexamples.FullAnalyzeClassesSpec;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
@@ -228,6 +229,17 @@ class ArchUnitTestEngineTest {
             assertClassSource(testDescriptor, SimpleRuleField.class);
             testDescriptor.getChildren().forEach(d ->
                     assertThat(d.getSource().isPresent()).as("source is present").isTrue());
+        }
+
+        @Test
+        void a_class_with_complex_hierarchy() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of complex hierarchy")
+                    .containsOnlyElementsOf(getExpectedIdsForComplexRuleLibrary(engineId));
         }
 
         @Test
@@ -892,18 +904,32 @@ class ArchUnitTestEngineTest {
 
     private Set<UniqueId> getExpectedIdsForSimpleRuleLibrary(UniqueId uniqueId) {
         UniqueId simpleRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName());
-        UniqueId simpleRules = simpleRulesId(simpleRuleLibrary
-                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
+        Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(
+                simpleRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
+        Set<UniqueId> simpleRuleFieldIds = singleton(simpleRuleFieldTestId(
+                simpleRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_TWO_FIELD)));
+
+        return Stream.of(simpleRulesIds, simpleRuleFieldIds)
+                .flatMap(Set::stream).collect(toSet());
+    }
+
+    private Set<UniqueId> getExpectedIdsForSimpleRules(UniqueId append) {
+        UniqueId simpleRules = simpleRulesId(append);
         Set<UniqueId> simpleRulesFields = SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName -> simpleRules
                 .append(FIELD_SEGMENT_TYPE, fieldName)).collect(toSet());
         Set<UniqueId> simpleRulesMethods = SimpleRules.RULE_METHOD_NAMES.stream().map(methodName -> simpleRules
                 .append(METHOD_SEGMENT_TYPE, methodName)).collect(toSet());
+        return Stream.of(simpleRulesFields, simpleRulesMethods).flatMap(Set::stream).collect(toSet());
+    }
 
-        Set<UniqueId> simpleRuleField = singleton(simpleRuleFieldTestId(
-                simpleRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_TWO_FIELD)));
+    private Set<UniqueId> getExpectedIdsForComplexRuleLibrary(UniqueId uniqueId) {
+        UniqueId complexRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, ComplexRuleLibrary.class.getName());
+        Set<UniqueId> simpleRuleLibraryIds = getExpectedIdsForSimpleRuleLibrary(complexRuleLibrary
+                .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_ONE_FIELD));
+        Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(complexRuleLibrary
+                .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_TWO_FIELD));
 
-        return Stream.of(simpleRulesFields, simpleRulesMethods, simpleRuleField)
-                .flatMap(Set::stream).collect(toSet());
+        return Stream.of(simpleRuleLibraryIds, simpleRulesIds).flatMap(Set::stream).collect(toSet());
     }
 
     private Set<UniqueId> toUniqueIds(TestDescriptor rootDescriptor) {

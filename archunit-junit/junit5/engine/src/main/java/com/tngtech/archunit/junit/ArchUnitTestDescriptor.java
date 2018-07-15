@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
-import static com.tngtech.archunit.junit.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
@@ -92,7 +91,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field) {
         resolver.resolveField(field)
-                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, testClass, field, classes));
+                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes));
     }
 
     private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method) {
@@ -101,19 +100,19 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static void resolveChildren(
-            TestDescriptor parent, ElementResolver resolver, Class<?> testClass, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
         if (ArchRules.class.isAssignableFrom(field.getType())) {
-            resolveArchRules(parent, resolver, testClass, field, classes);
+            resolveArchRules(parent, resolver, field, classes);
         } else {
             parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field, null), classes, field));
         }
     }
 
     private static void resolveArchRules(
-            TestDescriptor parent, ElementResolver resolver, Class<?> testClass, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
-        DeclaredArchRules rules = getDeclaredRules(testClass, field);
+        DeclaredArchRules rules = getDeclaredRules(field);
 
         resolver.resolveClass(rules.getDefinitionLocation())
                 .ifRequestedAndResolved(CreatesChildren::createChildren)
@@ -124,8 +123,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
                 });
     }
 
-    private static DeclaredArchRules getDeclaredRules(Class<?> testClass, Field field) {
-        return new DeclaredArchRules(testClass, getValue(field, null));
+    private static DeclaredArchRules getDeclaredRules(Field field) {
+        return new DeclaredArchRules(getValue(field, null));
     }
 
     @Override
@@ -235,19 +234,13 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         @Override
         public void createChildren(ElementResolver resolver) {
-            rules.forEachDeclaration(declaration -> declaration.handleWith(new ArchRuleDeclaration.Handler() {
-                @Override
-                public void handleFieldDeclaration(Field field, boolean unimportantBecauseTheHierarchyAlreadyDoesThis) {
+            rules.handleFields(field ->
                     resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
-                            resolveChildren(ArchUnitRulesDescriptor.this, childResolver, rules.getTestClass(), field, classes));
-                }
+                            resolveChildren(this, childResolver, field, classes)));
 
-                @Override
-                public void handleMethodDeclaration(Method method, boolean unimportantBecauseTheHierarchyAlreadyDoesThis) {
+            rules.handleMethods(method ->
                     resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
-                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
-                }
-            }));
+                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes))));
         }
 
         @Override
@@ -257,16 +250,10 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static class DeclaredArchRules {
-        private final Class<?> testClass;
         private final ArchRules rules;
 
-        DeclaredArchRules(Class<?> testClass, ArchRules rules) {
-            this.testClass = testClass;
+        DeclaredArchRules(ArchRules rules) {
             this.rules = rules;
-        }
-
-        Class<?> getTestClass() {
-            return testClass;
         }
 
         Class<?> getDefinitionLocation() {
@@ -277,8 +264,12 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
             return rules.getDefinitionLocation().getSimpleName();
         }
 
-        void forEachDeclaration(Consumer<ArchRuleDeclaration<?>> doWithDeclaration) {
-            toDeclarations(rules, testClass, ArchTest.class, false).forEach(doWithDeclaration);
+        void handleFields(Consumer<? super Field> doWithField) {
+            getAllFields(rules.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithField);
+        }
+
+        void handleMethods(Consumer<? super Method> doWithMethod) {
+            getAllMethods(rules.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithMethod);
         }
     }
 
