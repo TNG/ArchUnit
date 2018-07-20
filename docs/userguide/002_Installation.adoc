@@ -17,7 +17,7 @@ Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit</artifactId>
-    <version>0.8.2</version>
+    <version>0.8.3</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -26,7 +26,7 @@ Maven Central:
 .build.gradle
 ----
 dependencies {
-   testCompile 'com.tngtech.archunit:archunit-junit:0.8.2'
+   testCompile 'com.tngtech.archunit:archunit-junit:0.8.3'
 }
 ----
 
@@ -41,7 +41,7 @@ context, include the core ArchUnit dependency from Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit</artifactId>
-    <version>0.8.2</version>
+    <version>0.8.3</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -50,6 +50,6 @@ context, include the core ArchUnit dependency from Maven Central:
 .build.gradle
 ----
 dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.8.2'
+   testCompile 'com.tngtech.archunit:archunit:0.8.3'
 }
 ----
