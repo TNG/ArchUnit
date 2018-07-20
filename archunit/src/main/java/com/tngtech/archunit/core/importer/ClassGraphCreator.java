@@ -128,7 +128,7 @@ class ClassGraphCreator implements ImportContext {
 
     private void resolveInheritance(String currentTypeName, Function<JavaClass, Set<String>> inheritanceStrategy) {
         for (String parent : inheritanceStrategy.apply(classes.getOrResolve(currentTypeName))) {
-            resolveInheritance(parent, interfaceStrategy);
+            resolveInheritance(parent, inheritanceStrategy);
         }
     }
 
