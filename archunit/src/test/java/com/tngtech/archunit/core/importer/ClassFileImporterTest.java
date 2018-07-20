@@ -98,6 +98,9 @@ import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.Some
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubClass;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubInterface;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubClass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubClass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubSubClass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.YetAnotherInterface;
 import com.tngtech.archunit.core.importer.testexamples.complexexternal.ChildClass;
 import com.tngtech.archunit.core.importer.testexamples.complexexternal.ParentClass;
 import com.tngtech.archunit.core.importer.testexamples.complexmethodimport.ClassWithComplexMethod;
@@ -803,12 +806,14 @@ public class ClassFileImporterTest {
         JavaClass subClass = classes.get(SubClass.class);
         JavaClass otherSubClass = classes.get(OtherSubClass.class);
         JavaClass subSubClass = classes.get(SubSubClass.class);
+        JavaClass subSubSubClass = classes.get(SubSubSubClass.class);
+        JavaClass subSubSubSubClass = classes.get(SubSubSubSubClass.class);
 
         assertThat(baseClass.getSuperClass().get().reflect()).isEqualTo(Object.class);
         assertThat(baseClass.getSubClasses()).containsOnly(subClass, otherSubClass);
-        assertThat(baseClass.getAllSubClasses()).containsOnly(subClass, otherSubClass, subSubClass);
+        assertThat(baseClass.getAllSubClasses()).containsOnly(subClass, otherSubClass, subSubClass, subSubSubClass, subSubSubSubClass);
         assertThat(subClass.getSuperClass()).contains(baseClass);
-        assertThat(subClass.getAllSubClasses()).containsOnly(subSubClass);
+        assertThat(subClass.getAllSubClasses()).containsOnly(subSubClass, subSubSubClass, subSubSubSubClass);
         assertThat(subSubClass.getSuperClass()).contains(subClass);
     }
 
@@ -861,6 +866,8 @@ public class ClassFileImporterTest {
         JavaClass otherInterface = classes.get(OtherInterface.class);
         JavaClass subClass = classes.get(SubClass.class);
         JavaClass subSubClass = classes.get(SubSubClass.class);
+        JavaClass subSubSubClass = classes.get(SubSubSubClass.class);
+        JavaClass subSubSubSubClass = classes.get(SubSubSubSubClass.class);
         JavaClass subInterface = classes.get(SubInterface.class);
         JavaClass otherSubClass = classes.get(OtherSubClass.class);
         JavaClass parentInterface = classes.get(ParentInterface.class);
@@ -871,13 +878,34 @@ public class ClassFileImporterTest {
         assertThat(grandParentInterface.getSubClasses()).containsOnly(parentInterface, otherInterface);
         assertThat(grandParentInterface.getAllSubClasses()).containsOnly(
                 parentInterface, subInterface, otherInterface,
-                baseClass, subClass, otherSubClass, subSubClass, someCollection
+                baseClass, subClass, otherSubClass, subSubClass, subSubSubClass, subSubSubSubClass, someCollection
         );
         assertThat(parentInterface.getSubClasses()).containsOnly(subInterface, otherSubClass);
         assertThat(parentInterface.getAllSubClasses()).containsOnly(
-                subInterface, subClass, subSubClass, someCollection, otherSubClass);
+                subInterface, subClass, subSubClass, subSubSubClass, subSubSubSubClass, someCollection, otherSubClass);
         JavaClass collection = getOnlyElement(collectionInterface.getInterfaces());
         assertThat(collection.getAllSubClasses()).containsOnly(collectionInterface, someCollection);
+    }
+
+    @Test
+    public void creates_superclass_and_interface_relations_missing_from_context() {
+        JavaClass javaClass = new ClassFileImporter().importClass(SubSubSubSubClass.class);
+
+        assertThat(javaClass.getAllSuperClasses()).extracting("name")
+                .containsExactly(
+                        SubSubSubClass.class.getName(),
+                        SubSubClass.class.getName(),
+                        SubClass.class.getName(),
+                        BaseClass.class.getName(),
+                        Object.class.getName());
+
+        assertThat(javaClass.getAllInterfaces()).extracting("name")
+                .containsOnly(
+                        SubInterface.class.getName(),
+                        YetAnotherInterface.class.getName(),
+                        ParentInterface.class.getName(),
+                        GrandParentInterface.class.getName(),
+                        OtherInterface.class.getName());
     }
 
     @Test
@@ -1614,7 +1642,7 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_urls_of_jars() throws IOException {
+    public void imports_urls_of_jars() {
         Set<URL> urls = newHashSet(urlOf(Test.class), urlOf(RunWith.class));
         assumeTrue("We can't completely ensure that this will always be taken from a JAR file, though it's very likely",
                 "jar".equals(urls.iterator().next().getProtocol()));
@@ -1712,7 +1740,7 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_class_objects() throws Exception {
+    public void imports_class_objects() {
         JavaClasses classes = new ClassFileImporter().importClasses(ClassToImportOne.class, ClassToImportTwo.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
@@ -1722,7 +1750,7 @@ public class ClassFileImporterTest {
      * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder()}
      */
     @Test
-    public void imports_packages_even_if_jar_entry_for_package_is_missing() throws Exception {
+    public void imports_packages_even_if_jar_entry_for_package_is_missing() {
         String packageToImport = independentClasspathRule.getIndependentTopLevelPackage();
 
         ClassFileImporter classFileImporter = new ClassFileImporter();
