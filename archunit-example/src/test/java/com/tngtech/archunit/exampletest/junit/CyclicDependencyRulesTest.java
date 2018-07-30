@@ -37,6 +37,10 @@ public class CyclicDependencyRulesTest {
             slices().matching("..(fieldaccesscycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
 
     @ArchTest
+    public static final ArchRule no_cycles_by_member_dependencies_between_slices =
+            slices().matching("..(membercycle).(*)..").namingSlices("$2 of $1").should().beFreeOfCycles();
+
+    @ArchTest
     public static final ArchRule no_cycles_in_simple_scenario =
             slices().matching("..simplescenario.(*)..").namingSlices("$1").should().beFreeOfCycles();
 

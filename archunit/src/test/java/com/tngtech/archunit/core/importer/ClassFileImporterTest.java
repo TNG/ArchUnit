@@ -1443,7 +1443,7 @@ public class ClassFileImporterTest {
         );
 
         Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
+        for (Dependency dependency : withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf())) {
             targetClasses.add(dependency.getTargetClass());
         }
 
@@ -1809,6 +1809,16 @@ public class ClassFileImporterTest {
 
         classes = new ClassFileImporter().importUrl(new File("/broken.jar").toURI().toURL());
         assertThat(classes).isEmpty();
+    }
+
+    private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
+        Set<Dependency> result = new HashSet<>();
+        for (Dependency dependency : dependencies) {
+            if (!dependency.getTargetClass().getPackage().startsWith("java.lang")) {
+                result.add(dependency);
+            }
+        }
+        return result;
     }
 
     private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {

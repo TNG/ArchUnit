@@ -15,7 +15,10 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.core.domain.testobjects.ADependingOnB;
+import com.tngtech.archunit.core.domain.testobjects.AAccessingB;
+import com.tngtech.archunit.core.domain.testobjects.AExtendingSuperAImplementingInterfaceForA;
+import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
+import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
@@ -296,71 +299,104 @@ public class JavaClassTest {
     }
 
     @Test
-    public void direct_dependencies_from_self() {
-        JavaClass javaClass = importClasses(ADependingOnB.class, B.class).get(ADependingOnB.class);
+    public void has_no_dependencies_to_primitives() {
+        JavaClass javaClass = importClassWithContext(AllPrimitiveDependencies.class);
+        assertThat(javaClass.getDirectDependenciesFromSelf()).doNotHave(anyDependency().toPrimitives());
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_accesses() {
+        JavaClass javaClass = importClasses(AAccessingB.class, B.class).get(AAccessingB.class);
 
         assertThat(javaClass.getDirectDependenciesFromSelf())
-                .hasSize(6)
-                .areAtLeastOne(extendsDependency()
-                        .from(ADependingOnB.class)
-                        .to(SuperA.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(implementsDependency()
-                        .from(ADependingOnB.class)
-                        .to(InterfaceForA.class)
-                        .inLineNumber(0))
                 .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
-                        .to(SuperA.class, CONSTRUCTOR_NAME)
-                        .inLineNumber(4))
-                .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, CONSTRUCTOR_NAME)
                         .inLineNumber(5))
                 .areAtLeastOne(setFieldDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, "field")
                         .inLineNumber(6))
                 .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, "call")
                         .inLineNumber(7));
     }
 
     @Test
-    public void direct_dependencies_to_self() {
-        JavaClasses classes = importClasses(ADependingOnB.class, SuperA.class, InterfaceForA.class, B.class);
+    public void direct_dependencies_from_self_by_inheritance() {
+        JavaClass javaClass = importClassWithContext(AExtendingSuperAImplementingInterfaceForA.class);
 
-        assertThat(classes.get(B.class).getDirectDependenciesToSelf())
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(extendsDependency()
+                        .from(AExtendingSuperAImplementingInterfaceForA.class)
+                        .to(SuperA.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(implementsDependency()
+                        .from(AExtendingSuperAImplementingInterfaceForA.class)
+                        .to(InterfaceForA.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_member_declarations() {
+        JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(fieldTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(methodReturnTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(parameterTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(parameterTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(SuperA.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_accesses() {
+        JavaClass javaClass = importClassesWithContext(AAccessingB.class, B.class).get(B.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
                 .hasSize(3)
                 .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, CONSTRUCTOR_NAME)
                         .inLineNumber(5))
                 .areAtLeastOne(setFieldDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, "field")
                         .inLineNumber(6))
                 .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
+                        .from(AAccessingB.class)
                         .to(B.class, "call")
                         .inLineNumber(7));
+    }
 
-        assertThat(classes.get(SuperA.class).getDirectDependenciesToSelf())
-                .hasSize(2)
+    @Test
+    public void direct_dependencies_to_self_by_inheritance() {
+        JavaClass superClass = importClassesWithContext(SuperA.class, AExtendingSuperAImplementingInterfaceForA.class).get(SuperA.class);
+
+        assertThat(superClass.getDirectDependenciesToSelf())
                 .areAtLeastOne(extendsDependency()
-                        .from(ADependingOnB.class)
+                        .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(SuperA.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(callDependency()
-                        .from(ADependingOnB.class)
-                        .to(SuperA.class, CONSTRUCTOR_NAME)
-                        .inLineNumber(4));
+                        .inLineNumber(0));
 
-        assertThat(classes.get(InterfaceForA.class).getDirectDependenciesToSelf())
-                .hasSize(1)
+        JavaClass interfaceClass =
+                importClassesWithContext(InterfaceForA.class, AExtendingSuperAImplementingInterfaceForA.class).get(InterfaceForA.class);
+
+        assertThat(interfaceClass.getDirectDependenciesToSelf())
                 .areAtLeastOne(implementsDependency()
-                        .from(ADependingOnB.class)
+                        .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(InterfaceForA.class)
                         .inLineNumber(0));
     }
@@ -655,6 +691,33 @@ public class JavaClassTest {
 
     private static DependencyConditionCreation extendsDependency() {
         return new DependencyConditionCreation("extends");
+    }
+
+    private static DependencyConditionCreation fieldTypeDependency() {
+        return new DependencyConditionCreation("has type");
+    }
+
+    private static DependencyConditionCreation parameterTypeDependency() {
+        return new DependencyConditionCreation("has parameter of type");
+    }
+
+    private static DependencyConditionCreation methodReturnTypeDependency() {
+        return new DependencyConditionCreation("has return type");
+    }
+
+    private static AnyDependencyConditionCreation anyDependency() {
+        return new AnyDependencyConditionCreation();
+    }
+
+    private static class AnyDependencyConditionCreation {
+        Condition<Dependency> toPrimitives() {
+            return new Condition<Dependency>("any dependencies to primitives") {
+                @Override
+                public boolean matches(Dependency value) {
+                    return value.getTargetClass().isPrimitive();
+                }
+            };
+        }
     }
 
     private static class DependencyConditionCreation {

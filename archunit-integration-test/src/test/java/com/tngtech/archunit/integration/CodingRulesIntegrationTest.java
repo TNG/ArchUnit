@@ -10,8 +10,8 @@ import com.tngtech.archunit.junit.ExpectsViolations;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
-import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromMethod;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromStaticInitializer;
 
 public class CodingRulesIntegrationTest extends CodingRulesTest {
     @Rule
@@ -36,17 +36,17 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationByWritingToStandardStream(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should access standard streams")
-                .by(accessFrom(ClassViolatingCodingRules.class, "printToStandardStream")
-                        .accessing().field(System.class, "out")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
+                        .getting().field(System.class, "out")
                         .inLine(12))
-                .by(accessFrom(ClassViolatingCodingRules.class, "printToStandardStream")
-                        .accessing().field(System.class, "err")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
+                        .getting().field(System.class, "err")
                         .inLine(13))
-                .by(callFrom(ClassViolatingCodingRules.class, "printToStandardStream")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
                         .toMethod(SomeCustomException.class, "printStackTrace")
                         .inLine(14))
-                .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
-                        .accessing().field(System.class, "out")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                        .getting().field(System.class, "out")
                         .inLine(13));
     }
 
@@ -61,16 +61,16 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     static void expectViolationByThrowingGenericException(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should throw generic exceptions")
-                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
                         .inLine(22))
-                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Exception.class, String.class)
                         .inLine(24))
-                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(RuntimeException.class, String.class, Throwable.class)
                         .inLine(26))
-                .by(accessFrom(ClassViolatingCodingRules.class, "throwGenericExceptions")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Exception.class, String.class)
                         .inLine(26));
     }
@@ -86,7 +86,7 @@ public class CodingRulesIntegrationTest extends CodingRulesTest {
     @CalledByArchUnitIntegrationTestRunner
     public static void expectViolationByUsingJavaUtilLogging(ExpectsViolations expectsViolations) {
         expectsViolations.ofRule("no classes should use java.util.logging")
-                .by(accessFrom(ClassViolatingCodingRules.class, "<clinit>")
+                .by(callFromStaticInitializer(ClassViolatingCodingRules.class)
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(9));
     }

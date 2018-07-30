@@ -893,16 +893,16 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.setField(ClassWithField.class, "field")), "set", "sets"),
                 $(classes().should().setField(ClassWithField.class.getName(), "field"), "set", "sets"),
                 $(classes().should(ArchConditions.setField(ClassWithField.class.getName(), "field")), "set", "sets"),
-                $(classes().should().accessField(ClassWithField.class, "field"), "access", "accesses"),
-                $(classes().should(ArchConditions.accessField(ClassWithField.class, "field")), "access", "accesses"),
-                $(classes().should().accessField(ClassWithField.class.getName(), "field"), "access", "accesses"),
-                $(classes().should(ArchConditions.accessField(ClassWithField.class.getName(), "field")), "access", "accesses")
+                $(classes().should().accessField(ClassWithField.class, "field"), "access", "(gets|sets)"),
+                $(classes().should(ArchConditions.accessField(ClassWithField.class, "field")), "access", "(gets|sets)"),
+                $(classes().should().accessField(ClassWithField.class.getName(), "field"), "access", "(gets|sets)"),
+                $(classes().should(ArchConditions.accessField(ClassWithField.class.getName(), "field")), "access", "(gets|sets)")
         );
     }
 
     @Test
     @UseDataProvider("accessField_rules")
-    public void accessField(ArchRule rule, String accessTypePlural, String accessTypeSingular) {
+    public void accessField(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
@@ -910,10 +910,10 @@ public class ClassesShouldTest {
                 .contains(String.format("classes should %s field %s.%s",
                         accessTypePlural, ClassWithField.class.getSimpleName(), "field"))
                 .containsPattern(accessesFieldRegex(
-                        ClassAccessingWrongField.class, accessTypeSingular,
+                        ClassAccessingWrongField.class, accessTypeSingularRegex,
                         ClassAccessingField.class, "classWithField"))
                 .doesNotMatch(accessesFieldRegex(
-                        ClassAccessingField.class, accessTypeSingular,
+                        ClassAccessingField.class, accessTypeSingularRegex,
                         ClassWithField.class, "field"));
     }
 
@@ -924,14 +924,14 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))), "get", "gets"),
                 $(classes().should().setFieldWhere(accessTargetIs(ClassWithField.class)), "set", "sets"),
                 $(classes().should(ArchConditions.setFieldWhere(accessTargetIs(ClassWithField.class))), "set", "sets"),
-                $(classes().should().accessFieldWhere(accessTargetIs(ClassWithField.class)), "access", "accesses"),
-                $(classes().should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))), "access", "accesses")
+                $(classes().should().accessFieldWhere(accessTargetIs(ClassWithField.class)), "access", "(gets|sets)"),
+                $(classes().should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))), "access", "(gets|sets)")
         );
     }
 
     @Test
     @UseDataProvider("accessFieldWhere_rules")
-    public void accessFieldWhere(ArchRule rule, String accessTypePlural, String accessTypeSingular) {
+    public void accessFieldWhere(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
@@ -939,10 +939,10 @@ public class ClassesShouldTest {
                 .contains(String.format("classes should %s field where target is %s",
                         accessTypePlural, ClassWithField.class.getSimpleName()))
                 .containsPattern(accessesFieldRegex(
-                        ClassAccessingWrongField.class, accessTypeSingular,
+                        ClassAccessingWrongField.class, accessTypeSingularRegex,
                         ClassAccessingField.class, "classWithField"))
                 .doesNotMatch(accessesFieldRegex(
-                        ClassAccessingField.class, accessTypeSingular,
+                        ClassAccessingField.class, accessTypeSingularRegex,
                         ClassWithField.class, "field"));
     }
 
