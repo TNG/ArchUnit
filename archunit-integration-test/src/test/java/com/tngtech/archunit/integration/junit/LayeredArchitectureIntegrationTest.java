@@ -15,8 +15,7 @@ import com.tngtech.archunit.junit.ExpectsViolations;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
-import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromMethod;
 import static com.tngtech.archunit.junit.ExpectedDependency.inheritanceFrom;
 import static java.lang.System.lineSeparator;
 
@@ -38,7 +37,7 @@ public class LayeredArchitectureIntegrationTest {
     static void expectLayerViolations(ExpectsViolations expectsViolations) {
         expectLayerViolationsWithException(expectsViolations);
         expectsViolations
-                .by(callFrom(SomeMediator.class, "violateLayerRulesIndirectly")
+                .by(callFromMethod(SomeMediator.class, "violateLayerRulesIndirectly")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
                         .inLine(15)
                         .asDependency());
@@ -57,22 +56,22 @@ public class LayeredArchitectureIntegrationTest {
                 .by(inheritanceFrom(DaoCallingService.class)
                         .implementing(ServiceInterface.class))
 
-                .by(callFrom(DaoCallingService.class, "violateLayerRules")
+                .by(callFromMethod(DaoCallingService.class, "violateLayerRules")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
                         .inLine(14)
                         .asDependency())
 
-                .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toConstructor(UseCaseTwoController.class)
                         .inLine(14)
                         .asDependency())
 
-                .by(callFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .toMethod(UseCaseTwoController.class, "doSomethingTwo")
                         .inLine(15)
                         .asDependency())
 
-                .by(accessFrom(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(UseCaseOneTwoController.class, "someString")
                         .inLine(13)
                         .asDependency());

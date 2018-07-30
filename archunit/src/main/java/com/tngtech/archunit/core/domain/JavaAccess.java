@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Objects;
 
-import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -112,17 +111,12 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     @Override
     public String getDescription() {
-        return getDescriptionWithTemplate(descriptionTemplate());
-    }
-
-    @Internal
-    public String getDescriptionWithTemplate(String template) {
-        String description = String.format(template, getOwner().getFullName(), getTarget().getFullName());
+        String description = origin.getDescription() + " " + descriptionVerb() + " " + getTarget().getDescription();
         String location = formatLocation(getOriginOwner(), getLineNumber());
-        return String.format("%s in %s", description, location);
+        return description + " in " + location;
     }
 
-    protected abstract String descriptionTemplate();
+    protected abstract String descriptionVerb();
 
     public static final class Predicates {
         private Predicates() {

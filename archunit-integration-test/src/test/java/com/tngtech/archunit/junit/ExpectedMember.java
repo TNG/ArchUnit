@@ -48,6 +48,8 @@ abstract class ExpectedMember {
         return clazz;
     }
 
+    abstract String getExpectedDescription();
+
     @Override
     public String toString() {
         return String.format("%s.%s", clazz.getName(), memberName);
@@ -66,8 +68,16 @@ abstract class ExpectedMember {
     }
 
     static class ExpectedOrigin extends ExpectedMember {
-        ExpectedOrigin(Class<?> clazz, String methodName, Class<?>[] paramTypes) {
+        private final String memberDescription;
+
+        ExpectedOrigin(String memberDescription, Class<?> clazz, String methodName, Class<?>[] paramTypes) {
             super(clazz, methodName, paramTypes);
+            this.memberDescription = memberDescription;
+        }
+
+        @Override
+        String getExpectedDescription() {
+            return memberDescription + " <" + toString() + ">";
         }
 
         @Override
@@ -80,13 +90,6 @@ abstract class ExpectedMember {
         private ExpectedTarget(Class<?> clazz, String memberName, Class<?>[] paramTypes) {
             super(clazz, memberName, paramTypes);
         }
-
-        String messageFor(ExpectedAccess access) {
-            return String.format(template(),
-                    access.getOrigin(), access.getTarget(), access.getOrigin().lineMessage(access.getLineNumber()));
-        }
-
-        abstract String template();
     }
 
     static class ExpectedFieldTarget extends ExpectedTarget {
@@ -104,8 +107,8 @@ abstract class ExpectedMember {
         }
 
         @Override
-        String template() {
-            return "Method <%s> " + accesses + " field <%s> in %s";
+        String getExpectedDescription() {
+            return accesses + String.format(" field <%s>", toString());
         }
     }
 
@@ -115,8 +118,8 @@ abstract class ExpectedMember {
         }
 
         @Override
-        String template() {
-            return "Method <%s> calls method <%s> in %s";
+        String getExpectedDescription() {
+            return String.format("calls method <%s>", toString());
         }
 
         @Override
@@ -125,14 +128,19 @@ abstract class ExpectedMember {
         }
     }
 
-    static class ExpectedConstructorTarget extends ExpectedMethodTarget {
+    static class ExpectedConstructorTarget extends ExpectedTarget {
         ExpectedConstructorTarget(Class<?> clazz, Class<?>[] paramTypes) {
             super(clazz, CONSTRUCTOR_NAME, paramTypes);
         }
 
         @Override
-        String template() {
-            return "Method <%s> calls constructor <%s> in %s";
+        String getExpectedDescription() {
+            return String.format("calls constructor <%s>", toString());
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s(%s)", super.toString(), Joiner.on(", ").join(getParams()));
         }
     }
 }

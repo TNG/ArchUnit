@@ -31,13 +31,28 @@ public class DependencyTest {
 
     @Test
     public void Dependency_from_origin_and_target() {
+        JavaClass origin = importClassWithContext(getClass());
         JavaClass target = importClassWithContext(DependencyClass.class);
-        Dependency dependency = Dependency.fromInheritance(importClassWithContext(getClass()), target);
-        assertDependency(target, dependency, "extends");
+        Dependency dependency = createDependency(origin, target);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Class <" + origin.getName() + "> extends class <" + target.getName() + ">");
 
         target = importClassWithContext(DependencyInterface.class);
-        dependency = Dependency.fromInheritance(importClassWithContext(getClass()), target);
-        assertDependency(target, dependency, "implements");
+        dependency = createDependency(origin, target);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Class <" + origin.getName() + "> implements interface <" + target.getName() + ">");
+
+        origin = importClassWithContext(DependencySubInterface.class);
+        dependency = createDependency(origin, target);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Interface <" + origin.getName() + "> extends interface <" + target.getName() + ">");
+    }
+
+    private Dependency createDependency(JavaClass origin, JavaClass target) {
+        Dependency dependency = Dependency.fromInheritance(origin, target);
+        assertThat(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
+        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
+        return dependency;
     }
 
     @Test
@@ -111,19 +126,15 @@ public class DependencyTest {
                 importClassWithContext(originClass), importClassWithContext(targetClass));
     }
 
-    private void assertDependency(JavaClass target, Dependency dependency, String dependencyType) {
-        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
-        assertThat(dependency.getDescription()).as("description").isEqualTo(
-                getClass().getName() + " " + dependencyType + " " + target.getName() +
-                        " in (" + getClass().getSimpleName() + ".java:0)");
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).toString();
     }
 
     private static class DependencyClass {
+    }
+
+    private interface DependencySubInterface extends DependencyInterface {
     }
 
     private interface DependencyInterface {

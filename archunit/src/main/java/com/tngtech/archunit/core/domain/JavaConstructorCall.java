@@ -24,7 +24,7 @@ public class JavaConstructorCall extends JavaCall<ConstructorCallTarget> {
     }
 
     @Override
-    protected String descriptionTemplate() {
-        return "Method <%s> calls constructor <%s>";
+    protected String descriptionVerb() {
+        return "calls";
     }
 }
