@@ -24,7 +24,7 @@ public class JavaMethodCall extends JavaCall<MethodCallTarget> {
     }
 
     @Override
-    protected String descriptionTemplate() {
-        return "Method <%s> calls method <%s>";
+    protected String descriptionVerb() {
+        return "calls";
     }
 }

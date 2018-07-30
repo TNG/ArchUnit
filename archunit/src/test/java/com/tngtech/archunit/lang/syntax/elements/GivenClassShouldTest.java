@@ -1240,7 +1240,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("the class %s should access field %s.%s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName(), "field")
                 .containFailureDetail(accessesFieldRegex(
-                        ClassAccessingWrongField.class, "accesses",
+                        ClassAccessingWrongField.class, "gets",
                         ClassAccessingWrongField.class, "classAccessingField"))
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getName()) + ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX + "accesses");
     }
@@ -1268,7 +1268,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("no class %s should access field %s.%s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName(), "field")
                 .containFailureDetail(accessesFieldRegex(
-                        ClassAccessingField.class, "accesses",
+                        ClassAccessingField.class, "gets",
                         ClassWithField.class, "field"))
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }
@@ -1353,7 +1353,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("the class %s should access field where target is %s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName())
                 .containFailureDetail(accessesFieldRegex(
-                        ClassAccessingWrongField.class, "accesses",
+                        ClassAccessingWrongField.class, "gets",
                         ClassAccessingWrongField.class, "classAccessingField"))
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getSimpleName()) + ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX + "accesses");
     }
@@ -1381,7 +1381,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("no class %s should access field where target is %s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName())
                 .containFailureDetail(accessesFieldRegex(
-                        ClassAccessingField.class, "accesses",
+                        ClassAccessingField.class, "gets",
                         ClassWithField.class, "field"))
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }

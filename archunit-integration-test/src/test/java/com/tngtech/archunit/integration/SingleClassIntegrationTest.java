@@ -12,7 +12,7 @@ import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 
 import static com.tngtech.archunit.example.core.VeryCentralCore.DO_CORE_STUFF_METHOD_NAME;
-import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromMethod;
 import static com.tngtech.archunit.junit.ExpectedClass.javaClass;
 
 public class SingleClassIntegrationTest extends SingleClassTest {
@@ -24,10 +24,10 @@ public class SingleClassIntegrationTest extends SingleClassTest {
         expectedViolation
                 .ofRule(String.format("the class %s should only be accessed by classes that implement %s",
                         VeryCentralCore.class.getName(), CoreSatellite.class.getName()))
-                .by(callFrom(EvilCoreAccessor.class, "iShouldNotAccessCore")
+                .by(callFromMethod(EvilCoreAccessor.class, "iShouldNotAccessCore")
                         .toConstructor(VeryCentralCore.class)
                         .inLine(8))
-                .by(callFrom(EvilCoreAccessor.class, "iShouldNotAccessCore")
+                .by(callFromMethod(EvilCoreAccessor.class, "iShouldNotAccessCore")
                         .toMethod(VeryCentralCore.class, DO_CORE_STUFF_METHOD_NAME)
                         .inLine(8));
 
@@ -39,7 +39,7 @@ public class SingleClassIntegrationTest extends SingleClassTest {
         expectedViolation
                 .ofRule(String.format("no class %s should access classes that reside outside of packages ['..core..', 'java..']",
                         VeryCentralCore.class.getName()))
-                .by(callFrom(VeryCentralCore.class, "coreDoingIllegalStuff")
+                .by(callFromMethod(VeryCentralCore.class, "coreDoingIllegalStuff")
                         .toConstructor(AnnotatedController.class)
                         .inLine(15));
 

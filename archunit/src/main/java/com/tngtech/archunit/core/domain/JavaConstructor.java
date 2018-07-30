@@ -66,6 +66,11 @@ public final class JavaConstructor extends JavaCodeUnit {
         return constructorSupplier.get();
     }
 
+    @Override
+    String getDescription() {
+        return "Constructor <" + getFullName() + ">";
+    }
+
     void registerCallsToConstructor(Collection<JavaConstructorCall> calls) {
         this.callsToSelf = ImmutableSet.copyOf(calls);
     }

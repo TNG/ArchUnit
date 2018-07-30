@@ -82,8 +82,8 @@ public class JavaAccessTest {
         }
 
         @Override
-        protected String descriptionTemplate() {
-            return "";
+        protected String descriptionVerb() {
+            return "accesses";
         }
 
         public static class Creator {

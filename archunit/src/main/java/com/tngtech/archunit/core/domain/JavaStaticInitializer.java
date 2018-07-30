@@ -41,4 +41,9 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     public Member reflect() {
         throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
+
+    @Override
+    String getDescription() {
+        return "Static Initializer <" + getFullName() + ">";
+    }
 }

@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -51,9 +53,11 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.GET_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 
 public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
@@ -115,6 +119,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     @PublicAPI(usage = ACCESS)
     public String getPackage() {
         return javaType.getPackage();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isPrimitive() {
+        return javaType.isPrimitive();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -513,19 +522,14 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesFromSelf());
-        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
-            result.add(Dependency.fromInheritance(this, superType));
-        }
-        return result.build();
-    }
-
-    private ImmutableSet.Builder<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
-            result.add(Dependency.from(access));
-        }
-        return result;
+        result.addAll(dependenciesFromAccesses(getAccessesFromSelf()));
+        result.addAll(inheritanceDependenciesFromSelf());
+        result.addAll(fieldDependenciesFromSelf());
+        result.addAll(returnTypeDependenciesFromSelf());
+        result.addAll(methodParameterDependenciesFromSelf());
+        result.addAll(constructorParameterDependenciesFromSelf());
+        return result.build();
     }
 
     /**
@@ -536,21 +540,12 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesToSelf() {
-        ImmutableSet.Builder<Dependency> result = dependenciesFromAccesses(getAccessesToSelf());
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        result.addAll(dependenciesFromAccesses(getAccessesToSelf()));
         for (JavaClass subClass : getSubClasses()) {
             result.add(Dependency.fromInheritance(subClass, this));
         }
         return result.build();
-    }
-
-    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
-        Set<JavaAccess<?>> result = new HashSet<>();
-        for (JavaAccess<?> access : accesses) {
-            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
-                result.add(access);
-            }
-        }
-        return result;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -752,7 +747,83 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     @PublicAPI(usage = ACCESS)
     public boolean isAnonymous() {
-        return getSimpleName().isEmpty(); // This is implemented the same way within java.lang.Class
+        return getSimpleName().isEmpty();
+    }
+
+    private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
+            result.add(Dependency.from(access));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> inheritanceDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
+            result.add(Dependency.fromInheritance(this, superType));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> fieldDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaField field : nonPrimitive(getFields(), GET_TYPE)) {
+            result.add(Dependency.fromField(field));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> returnTypeDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaMethod method : nonPrimitive(getMethods(), GET_RETURN_TYPE)) {
+            result.add(Dependency.fromReturnType(method));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> methodParameterDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaMethod method : getMethods()) {
+            for (JavaClass parameter : nonPrimitive(method.getParameters())) {
+                result.add(Dependency.fromParameter(method, parameter));
+            }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> constructorParameterDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaConstructor constructor : getConstructors()) {
+            for (JavaClass parameter : nonPrimitive(constructor.getParameters())) {
+                result.add(Dependency.fromParameter(constructor, parameter));
+            }
+        }
+        return result.build();
+    }
+
+    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
+        Set<JavaAccess<?>> result = new HashSet<>();
+        for (JavaAccess<?> access : accesses) {
+            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
+                result.add(access);
+            }
+        }
+        return result;
+    }
+
+    private Set<JavaClass> nonPrimitive(Collection<JavaClass> classes) {
+        return nonPrimitive(classes, com.tngtech.archunit.base.Function.Functions.<JavaClass>identity());
+    }
+
+    private <T> Set<T> nonPrimitive(Collection<T> members, Function<? super T, JavaClass> getRelevantType) {
+        ImmutableSet.Builder<T> result = ImmutableSet.builder();
+        for (T member : members) {
+            if (!getRelevantType.apply(member).isPrimitive()) {
+                result.add(member);
+            }
+        }
+        return result.build();
     }
 
     public static final class Functions {

@@ -50,8 +50,8 @@ class HandlingAssertion implements ExpectsViolations, TestRule {
     }
 
     @Override
-    public ExpectsViolations by(ExpectedDependency inheritance) {
-        expectedDependencies.add(inheritance);
+    public ExpectsViolations by(ExpectedDependency dependency) {
+        expectedDependencies.add(dependency);
         return this;
     }
 
