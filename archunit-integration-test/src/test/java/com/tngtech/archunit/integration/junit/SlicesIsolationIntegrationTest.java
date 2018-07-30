@@ -17,7 +17,7 @@ import static com.tngtech.archunit.example.controller.one.UseCaseOneTwoControlle
 import static com.tngtech.archunit.example.controller.three.UseCaseThreeController.doSomethingThree;
 import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
 import static com.tngtech.archunit.integration.junit.SliceDependencyErrorMatcher.sliceDependency;
-import static com.tngtech.archunit.junit.ExpectedAccess.accessFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromMethod;
 
 @RunWith(ArchUnitIntegrationTestRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
@@ -34,18 +34,18 @@ public class SlicesIsolationIntegrationTest {
         expectsViolations
                 .by(sliceDependency()
                         .described("Controller one calls Controller two")
-                        .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .toConstructor(UseCaseTwoController.class)
                                 .inLine(10))
-                        .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .toMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .inLine(10)))
                 .by(sliceDependency()
                         .described("Controller three calls Controller one")
-                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
+                        .by(callFromMethod(UseCaseThreeController.class, doSomethingThree)
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(9))
-                        .by(accessFrom(UseCaseThreeController.class, doSomethingThree)
+                        .by(callFromMethod(UseCaseThreeController.class, doSomethingThree)
                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .inLine(9)));
     }
@@ -60,18 +60,18 @@ public class SlicesIsolationIntegrationTest {
         expectsViolations.ofRule("Controllers should not depend on each other")
                 .by(sliceDependency()
                         .described("Controller one calls Controller three")
-                        .by(accessFrom(UseCaseOneThreeController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneThreeController.class, doSomethingOne)
                                 .toConstructor(UseCaseThreeController.class)
                                 .inLine(9))
-                        .by(accessFrom(UseCaseOneThreeController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneThreeController.class, doSomethingOne)
                                 .toMethod(UseCaseThreeController.class, doSomethingThree)
                                 .inLine(9)))
                 .by(sliceDependency()
                         .described("Controller two calls Controller one")
-                        .by(accessFrom(UseCaseTwoController.class, doSomethingTwo)
+                        .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(9))
-                        .by(accessFrom(UseCaseTwoController.class, doSomethingTwo)
+                        .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .inLine(9)));
     }
@@ -86,18 +86,18 @@ public class SlicesIsolationIntegrationTest {
         expectsViolations.ofRule("Controllers one and two should not depend on each other")
                 .by(sliceDependency()
                         .described("Controller one calls Controller two")
-                        .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .toConstructor(UseCaseTwoController.class)
                                 .inLine(10))
-                        .by(accessFrom(UseCaseOneTwoController.class, doSomethingOne)
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .toMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .inLine(10)))
                 .by(sliceDependency()
                         .described("Controller two calls Controller one")
-                        .by(accessFrom(UseCaseTwoController.class, doSomethingTwo)
+                        .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(9))
-                        .by(accessFrom(UseCaseTwoController.class, doSomethingTwo)
+                        .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .inLine(9)));
     }

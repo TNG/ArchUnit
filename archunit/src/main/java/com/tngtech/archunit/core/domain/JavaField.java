@@ -62,6 +62,11 @@ public class JavaField extends JavaMember implements HasType {
         return fieldSupplier.get();
     }
 
+    @Override
+    String getDescription() {
+        return "Field <" + getFullName() + ">";
+    }
+
     void registerAccessesToField(Supplier<Set<JavaFieldAccess>> accesses) {
         this.accessesToSelf = checkNotNull(accesses);
     }

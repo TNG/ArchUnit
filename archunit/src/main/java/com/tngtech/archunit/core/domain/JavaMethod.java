@@ -72,6 +72,11 @@ public class JavaMethod extends JavaCodeUnit {
         return methodSupplier.get();
     }
 
+    @Override
+    String getDescription() {
+        return "Method <" + getFullName() + ">";
+    }
+
     void registerCallsToMethod(Supplier<Set<JavaMethodCall>> calls) {
         this.callsToSelf = checkNotNull(calls);
     }

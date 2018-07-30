@@ -28,6 +28,7 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the
@@ -40,21 +41,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * </ul>
  */
 public class Dependency implements HasDescription, Comparable<Dependency> {
-    static Dependency from(JavaAccess<?> access) {
-        return new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
-    }
-
-    static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
-        String dependencyType = targetSuperType.isInterface() ? "implements" : "extends";
-        return createDependency(origin, targetSuperType, dependencyType);
-    }
-
-    private static Dependency createDependency(JavaClass origin, JavaClass target, String dependencyType) {
-        String description = String.format("%s %s %s in %s",
-                origin.getName(), dependencyType, target.getName(), Formatters.formatLocation(origin, 0));
-        return new Dependency(origin, target, 0, description);
-    }
-
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final int lineNumber;
@@ -65,6 +51,53 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
         this.targetClass = targetClass;
         this.lineNumber = lineNumber;
         this.description = description;
+    }
+
+    static Dependency from(JavaAccess<?> access) {
+        return new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
+    }
+
+    static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
+        String originType = origin.isInterface() ? "Interface" : "Class";
+        String originDescription = originType + " " + bracketFormat(origin.getName());
+
+        String dependencyType = !origin.isInterface() && targetSuperType.isInterface() ? "implements" : "extends";
+
+        String targetType = targetSuperType.isInterface() ? "interface" : "class";
+        String targetDescription = bracketFormat(targetSuperType.getName());
+
+        String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
+
+        String description = dependencyDescription + " in " + formatLocation(origin, 0);
+        return new Dependency(origin, targetSuperType, 0, description);
+    }
+
+    static Dependency fromField(JavaField field) {
+        return createDependencyFromJavaMember("Field", field, "has type", field.getType());
+    }
+
+    static Dependency fromReturnType(JavaMethod method) {
+        return createDependencyFromJavaMember("Method", method, "has return type", method.getReturnType());
+    }
+
+    static Dependency fromParameter(JavaMethod method, JavaClass parameter) {
+        return createDependencyFromJavaMember("Method", method, "has parameter of type", parameter);
+    }
+
+    static Dependency fromParameter(JavaConstructor constructor, JavaClass parameter) {
+        return createDependencyFromJavaMember("Constructor", constructor, "has parameter of type", parameter);
+    }
+
+    private static Dependency createDependencyFromJavaMember(String memberType, JavaMember origin, String dependencyType, JavaClass target) {
+        String originDescription = memberType + " " + bracketFormat(origin.getFullName());
+        String targetDescription = bracketFormat(target.getName());
+        String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
+        String description = dependencyDescription + " in " + formatLocation(origin.getOwner(), 0);
+        return new Dependency(origin.getOwner(), target, 0, description);
+    }
+
+    private static String bracketFormat(String name) {
+        return "<" + name + ">";
     }
 
     @PublicAPI(usage = ACCESS)

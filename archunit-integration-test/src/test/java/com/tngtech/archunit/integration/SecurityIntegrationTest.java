@@ -9,7 +9,7 @@ import com.tngtech.archunit.junit.ExpectedViolation;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.junit.ExpectedAccess.callFrom;
+import static com.tngtech.archunit.junit.ExpectedAccess.callFromMethod;
 
 public class SecurityIntegrationTest extends SecurityTest {
     @Rule
@@ -37,10 +37,10 @@ public class SecurityIntegrationTest extends SecurityTest {
     private void expectViolationFromWrongSecurityCheck(String ruleText) {
         expectedViolation.ofRule(ruleText)
 
-                .by(callFrom(WrongSecurityCheck.class, "doCustomNonsense")
+                .by(callFromMethod(WrongSecurityCheck.class, "doCustomNonsense")
                         .toMethod(CertificateFactory.class, "getInstance", String.class)
                         .inLine(19))
-                .by(callFrom(WrongSecurityCheck.class, "doCustomNonsense")
+                .by(callFromMethod(WrongSecurityCheck.class, "doCustomNonsense")
                         .toMethod(CertificateFactory.class, "generateCertificate", InputStream.class)
                         .inLine(19));
     }

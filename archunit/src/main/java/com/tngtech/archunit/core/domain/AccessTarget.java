@@ -180,6 +180,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return false;
     }
 
+    abstract String getDescription();
+
     // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
     public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
         private final JavaClass type;
@@ -211,6 +213,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public Set<JavaField> resolve() {
             return resolveField().asSet();
+        }
+
+        @Override
+        String getDescription() {
+            return "field <" + getFullName() + ">";
         }
     }
 
@@ -269,6 +276,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public Set<JavaConstructor> resolve() {
             return resolveConstructor().asSet();
         }
+
+        @Override
+        String getDescription() {
+            return "constructor <" + getFullName() + ">";
+        }
     }
 
     public static final class MethodCallTarget extends CodeUnitCallTarget {
@@ -316,6 +328,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public Set<JavaMethod> resolve() {
             return methods.get();
+        }
+
+        @Override
+        String getDescription() {
+            return "method <" + getFullName() + ">";
         }
     }
 

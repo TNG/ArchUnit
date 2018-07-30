@@ -163,6 +163,8 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
 
+    abstract String getDescription();
+
     public static final class Predicates {
         private Predicates() {
         }
