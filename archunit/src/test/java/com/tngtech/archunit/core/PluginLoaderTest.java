@@ -27,6 +27,9 @@ public class PluginLoaderTest {
 
         System.setProperty("java.version", "9.0.1");
         assertThat(loadsArrayListForJava9FallbackHashSet().load()).isInstanceOf(ArrayList.class);
+
+        System.setProperty("java.version", "11-ea");
+        assertThat(loadsArrayListForJava9FallbackHashSet().load()).isInstanceOf(ArrayList.class);
     }
 
     // PluginLoader memoizes the loaded plugin

@@ -150,7 +150,7 @@ public class PluginLoader<T> {
         };
 
         private static final Ordering<JavaVersion> FROM_NEWEST_TO_OLDEST_ORDERING = Ordering.explicit(JAVA_9);
-        private static final Pattern VERSION_PATTERN = Pattern.compile("([^.]+).*");
+        private static final Pattern VERSION_PATTERN = Pattern.compile("([^.-]+).*");
 
         public abstract boolean isLessOrEqualThan(String version);
 
