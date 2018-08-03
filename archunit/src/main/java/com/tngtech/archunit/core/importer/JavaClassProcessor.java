@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
@@ -91,6 +90,13 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     @Override
+    public void visitSource(String source, String debug) {
+        if (source != null) {
+            javaClassBuilder.withSourceFileName(source);
+        }
+    }
+
+    @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.info("Analysing class '{}'", name);
         JavaType javaType = JavaTypeImporter.createFromAsmObjectTypeName(name);
@@ -106,7 +112,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.debug("Found superclass {} on class '{}'", superClassName.orNull(), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
-                .withSource(createSource(sourceURI))
+                .withSourceUri(sourceURI)
                 .withType(javaType)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withEnum(opCodeForEnumIsPresent)

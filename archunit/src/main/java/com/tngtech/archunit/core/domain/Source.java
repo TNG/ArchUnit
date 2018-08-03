@@ -28,6 +28,7 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -44,16 +45,23 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 public class Source {
     private final URI uri;
+    private final Optional<String> fileName;
     private final Md5sum md5sum;
 
-    Source(URI uri) {
-        this.uri = uri;
+    Source(URI uri, Optional<String> fileName) {
+        this.uri = checkNotNull(uri);
+        this.fileName = checkNotNull(fileName);
         md5sum = Md5sum.of(uri);
     }
 
     @PublicAPI(usage = ACCESS)
     public URI getUri() {
         return uri;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<String> getFileName() {
+        return fileName;
     }
 
     @PublicAPI(usage = ACCESS)
