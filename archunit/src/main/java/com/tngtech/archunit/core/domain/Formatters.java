@@ -21,12 +21,13 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
-    private static final String LOCATION_TEMPLATE = "(%s.java:%d)";
+    private static final String LOCATION_TEMPLATE = "(%s:%d)";
 
     private Formatters() {
     }
@@ -122,13 +123,17 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String formatLocation(JavaClass clazz, int lineNumber) {
-        return String.format(LOCATION_TEMPLATE, getLocationClass(clazz).getSimpleName(), lineNumber);
+        Optional<String> recordedSourceFileName = clazz.getSource().isPresent()
+                ? clazz.getSource().get().getFileName()
+                : Optional.<String>absent();
+        String sourceFileName = recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(clazz);
+        return String.format(LOCATION_TEMPLATE, sourceFileName, lineNumber);
     }
 
-    private static JavaClass getLocationClass(JavaClass location) {
+    private static String guessSourceFileName(JavaClass location) {
         while (location.getEnclosingClass().isPresent()) {
             location = location.getEnclosingClass().get();
         }
-        return location;
+        return location.getSimpleName() + ".java";
     }
 }

@@ -1727,11 +1727,19 @@ public class ClassFileImporterTest {
         JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
         Source source = clazzFromFile.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(ClassToImportOne.class).toURI());
+        assertThat(source.getFileName()).contains(ClassToImportOne.class.getSimpleName() + ".java");
         assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(ClassToImportOne.class))));
+
+        clazzFromFile = new ClassFileImporter().importClass(ClassWithInnerClass.Inner.class);
+        source = clazzFromFile.getSource().get();
+        assertThat(source.getUri()).isEqualTo(urlOf(ClassWithInnerClass.Inner.class).toURI());
+        assertThat(source.getFileName()).contains(ClassWithInnerClass.class.getSimpleName() + ".java");
+        assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(ClassWithInnerClass.Inner.class))));
 
         JavaClass clazzFromJar = new ClassFileImporter().importClass(Rule.class);
         source = clazzFromJar.getSource().get();
         assertThat(source.getUri()).isEqualTo(urlOf(Rule.class).toURI());
+        assertThat(source.getFileName()).contains(Rule.class.getSimpleName() + ".java");
         assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(Rule.class))));
 
         ArchConfiguration.get().setMd5InClassSourcesEnabled(false);

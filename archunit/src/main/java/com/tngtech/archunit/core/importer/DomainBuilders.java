@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -275,7 +277,8 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaClassBuilder {
-        private Optional<Source> source = Optional.absent();
+        private Optional<URI> sourceURI = Optional.absent();
+        private Optional<String> sourceFileName = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
         private boolean isEnum;
@@ -284,8 +287,13 @@ public final class DomainBuilders {
         JavaClassBuilder() {
         }
 
-        JavaClassBuilder withSource(Source source) {
-            this.source = Optional.of(source);
+        JavaClassBuilder withSourceUri(URI sourceUri) {
+            this.sourceURI = Optional.of(sourceUri);
+            return this;
+        }
+
+        JavaClassBuilder withSourceFileName(String sourceFileName) {
+            this.sourceFileName = Optional.of(sourceFileName);
             return this;
         }
 
@@ -315,7 +323,7 @@ public final class DomainBuilders {
         }
 
         public Optional<Source> getSource() {
-            return source;
+            return sourceURI.isPresent() ? Optional.of(createSource(sourceURI.get(), sourceFileName)) : Optional.<Source>absent();
         }
 
         public JavaType getJavaType() {

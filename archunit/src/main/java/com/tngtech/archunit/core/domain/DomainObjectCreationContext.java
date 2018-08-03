@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
@@ -126,8 +127,8 @@ public class DomainObjectCreationContext {
         return new JavaEnumConstant(builder);
     }
 
-    public static Source createSource(URI uri) {
-        return new Source(uri);
+    public static Source createSource(URI uri, Optional<String> sourceFileName) {
+        return new Source(uri, sourceFileName);
     }
 
     static class AccessContext {

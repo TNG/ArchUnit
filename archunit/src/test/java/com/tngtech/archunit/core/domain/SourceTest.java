@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -13,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.Source.Md5sum;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -23,15 +25,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class SourceTest {
     @After
     public void tearDown() {
         ArchConfiguration.get().reset();
+    }
+
+    @Test
+    public void source_file_name() throws URISyntaxException {
+        Source source = new Source(urlOf(Object.class).toURI(), Optional.of("SomeClass.java"));
+        assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
+
+        source = new Source(urlOf(Object.class).toURI(), Optional.<String>absent());
+        assertThat(source.getFileName()).as("source file name").isAbsent();
     }
 
     @DataProvider
@@ -61,7 +72,7 @@ public class SourceTest {
     @Test
     @UseDataProvider("classes")
     public void calculates_md5_correctly(URL url) throws Exception {
-        Source source = new Source(url.toURI());
+        Source source = newSource(url);
 
         assertThat(source.getUri()).as("source URI").isEqualTo(url.toURI());
         assertThat(source.getMd5sum().asBytes()).isEqualTo(expectedMd5BytesAt(url));
@@ -70,12 +81,12 @@ public class SourceTest {
     @Test
     @UseDataProvider("classes")
     public void equals_hashcode_and_toString(URL url) throws Exception {
-        Source source = new Source(url.toURI());
-        Source equalSource = new Source(url.toURI());
+        Source source = newSource(url);
+        Source equalSource = newSource(url);
 
         assertThat(source).as("source").isEqualTo(equalSource);
         assertThat(source.hashCode()).as("hashcode").isEqualTo(equalSource.hashCode());
-        assertThat(source).as("source").isNotEqualTo(new Source(urlOf(Object.class).toURI()));
+        assertThat(source).as("source").isNotEqualTo(newSource(urlOf(Object.class)));
         String expectedToString = String.format("%s [md5='%s']", url, Md5sum.toHex(expectedMd5BytesAt(url)));
         assertThat(source.toString()).as("source.toString()").isEqualTo(expectedToString);
     }
@@ -131,7 +142,7 @@ public class SourceTest {
 
     @Test
     public void compensates_error_on_md5_calculation() throws Exception {
-        Source source = new Source(new URI("bummer"));
+        Source source = newSource(new URI("bummer"));
 
         assertThat(source.getMd5sum()).isEqualTo(Md5sum.UNDETERMINED);
     }
@@ -143,7 +154,15 @@ public class SourceTest {
         assertThat(Md5sum.of("any".getBytes())).isEqualTo(Md5sum.DISABLED);
 
         // NOTE: This tests that URIs are note resolved, which costs performance, if it would be resolved, we would get UNDETERMINED
-        assertThat(new Source(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
+        assertThat(newSource(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
+    }
+
+    private Source newSource(URL url) throws URISyntaxException {
+        return newSource(url.toURI());
+    }
+
+    private Source newSource(URI uri) {
+        return new Source(uri, Optional.<String>absent());
     }
 
     private static byte[] expectedMd5BytesAt(URL url) throws IOException, NoSuchAlgorithmException {
