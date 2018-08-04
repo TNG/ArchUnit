@@ -10,7 +10,7 @@ dependencies {
     testCompile dependency.log4j_api
     testCompile dependency.log4j_core
     testCompile dependency.log4j_slf4j
-    testCompile dependency.junit
+    testCompile dependency.junit4
     testCompile dependency.junit_dataprovider
     testCompile dependency.mockito
     testCompile dependency.assertj
@@ -22,6 +22,8 @@ dependencies {
 
 ext.repackagesAsm = true // Will cause the ASM License to be packaged -> license.gradle
 shadowJar {
+    exclude 'META-INF/**'
+
     dependencies {
         exclude(dependency(dependency.slf4j))
     }
@@ -46,13 +48,13 @@ sourceSets {
         java {
             srcDirs = jdk9MainDirs
         }
-        compileClasspath = compileClasspath + sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.compileClasspath
     }
     jdk9test {
         java {
             srcDirs = jdk9TestDirs
         }
-        compileClasspath = compileClasspath + sourceSets.test.compileClasspath
+        compileClasspath += sourceSets.test.compileClasspath
     }
 }
 

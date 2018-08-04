@@ -15,6 +15,9 @@
  */
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 
 import static com.google.common.collect.Collections2.filter;
 
@@ -71,6 +75,26 @@ class ReflectionUtils {
         return collector.collected;
     }
 
+    static <T> T newInstanceOf(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (Exception e) {
+            throw new ReflectionException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
+    static <T> T getValue(Field field, Object owner) {
+        try {
+            field.setAccessible(true);
+            return (T) field.get(owner);
+        } catch (IllegalAccessException e) {
+            throw new ReflectionException(e);
+        }
+    }
+
     private abstract static class Collector<T> {
         private final List<T> collected = new ArrayList<>();
 
@@ -79,6 +103,15 @@ class ReflectionUtils {
         }
 
         protected abstract Collection<? extends T> extractFrom(Class<?> type);
+    }
+
+    static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
+        return new Predicate<AnnotatedElement>() {
+            @Override
+            public boolean apply(AnnotatedElement input) {
+                return input.getAnnotation(annotationType) != null;
+            }
+        };
     }
 
     interface Predicate<T> {

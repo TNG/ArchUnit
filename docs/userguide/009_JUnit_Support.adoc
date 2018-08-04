@@ -1,7 +1,7 @@
 == JUnit Support
 
-At the moment ArchUnit offers extended support for writing tests with JUnit 4. This mainly tackles
-the problem of caching classes between test runs and to remove some boilerplate.
+At the moment ArchUnit offers extended support for writing tests with JUnit 4 and JUnit 5.
+This mainly tackles the problem of caching classes between test runs and to remove some boilerplate.
 
 Consider a straight forward approach to write tests:
 
@@ -30,19 +30,20 @@ For bigger projects, this will have a significant performance impact, since the 
 a noticeable amount of time. Also rules will always be checked against the imported classes, thus
 the explicit call of `check(classes)` is bloat and error prone (i.e. it can be forgotten).
 
-=== JUnit 4 Support
+=== JUnit 4 & 5 Support
 
 Make sure you follow the installation instructions at <<Installation>>, in particular to include
-the correct dependency for JUnit 4 support.
+the correct dependency for the respective JUnit support.
 
 ==== Writing tests
 
-ArchUnit offers a specific `Runner` to take care of caching and checking rules.
-It can be used the following way:
+Tests look and behave very similar between JUnit 4 and 5. The only difference is, that with JUnit 4
+it is necessary to add a specific `Runner` to take care of caching and checking rules, while JUnit 5
+picks up the respective `TestEngine` transparently. A test typically looks the following way:
 
 [source,java,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner.class)
+@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
@@ -63,7 +64,7 @@ public class ArchitectureTest {
 ----
 
 The `JavaClass` cache will work in two ways. On the one hand it will cache the classes by test,
-so they can be reused be several rules declared within the same class. On the other hand, it
+so they can be reused by several rules declared within the same class. On the other hand, it
 will cache the classes by location, so a second test, that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
 soft references, so the classes will be dropped from memory, if the heap runs low.
@@ -117,7 +118,7 @@ and then supply the type to `@AnalyzeClasses`.
 
 ==== Controlling the Cache
 
-By default the `ArchUnitRunner` will cache all classes by location. This means that between different
+By default all classes will be cached by location. This means that between different
 test class runs imported Java classes will be reused, if the exact combination of locations has already
 been imported.
 
@@ -138,12 +139,10 @@ the imported Java classes will simply be dropped.
 
 ==== Ignoring Tests
 
-The runner will ignore tests annotated with `@ArchIgnore`, for example:
+It is possible to skip tests by annotating them with `@ArchIgnore`, for example:
 
 [source,java,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
     // will run
@@ -179,7 +178,7 @@ public class PersistenceRules {
     // further rules
 }
 
-@RunWith(ArchUnitRunner.class)
+@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses
 public class ArchitectureTest {
 
@@ -193,5 +192,5 @@ public class ArchitectureTest {
 ----
 
 The runner will evaluate all rules within `ServiceRules` and `PersistenceRules` against
-the classes declared in `ArchitectureTest`. This also allows an easy reuse of a rule library
+the classes declared at `ArchitectureTest`. This also allows an easy reuse of a rule library
 in different projects or modules.

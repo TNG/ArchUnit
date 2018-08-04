@@ -9,7 +9,6 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
-import org.assertj.core.api.iterable.Extractor;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -73,7 +72,7 @@ public class LocationsTest {
     }
 
     @Test
-    public void locations_of_packages_from_mixed_URIs() throws Exception {
+    public void locations_of_packages_from_mixed_URIs() {
         Set<Location> locations = Locations.ofPackage("com.tngtech");
 
         assertThat(urisOf(locations)).contains(
@@ -123,16 +122,5 @@ public class LocationsTest {
     private URI uriOfFolderOf(Class<?> clazz) throws Exception {
         String urlAsString = urlOfClass(clazz).toExternalForm();
         return new URL(urlAsString.substring(0, urlAsString.lastIndexOf("/")) + "/").toURI();
-    }
-
-    private static Extractor<Location, String> lastUriPart() {
-        return new Extractor<Location, String>() {
-            @Override
-            public String extract(Location input) {
-                return input.asURI().toString()
-                        .replaceAll("/$", "")
-                        .replaceAll(".*/", "");
-            }
-        };
     }
 }

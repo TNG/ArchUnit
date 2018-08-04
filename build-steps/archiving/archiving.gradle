@@ -38,7 +38,6 @@ productionProjects*.with {
 
         exclude 'org/apache/**'
         exclude 'Log4j*'
-        exclude 'META-INF/**'
         exclude 'module-info.class'
 
         relocate 'org.objectweb.asm', asmRelocationPackage

@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -16,8 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.tngtech.archunit.junit.ArchRules;
-import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableSet;
 import org.joox.Match;
@@ -25,6 +24,7 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import static com.tngtech.archunit.thirdparty.com.google.common.base.Preconditions.checkState;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joox.JOOX.$;
 
@@ -57,6 +57,7 @@ public class TestResultTest {
     }
 
     private static class GivenTestClasses {
+        private final SingleTestProvider singleTestProvider = createSingleTestProvider();
         private final Set<SingleTest> tests = new HashSet<>();
 
         GivenTestClasses(Set<Class<?>> testClasses) {
@@ -68,64 +69,9 @@ public class TestResultTest {
 
         private Set<SingleTest> getTestsIn(Class<?> clazz) {
             Set<SingleTest> result = new HashSet<>();
-            result.addAll(getTestMethods(ImmutableSet.copyOf(clazz.getMethods())));
-            result.addAll(getTestFields(ImmutableSet.copyOf(clazz.getFields())));
+            result.addAll(singleTestProvider.getTestMethods(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
+            result.addAll(singleTestProvider.getTestFields(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             return result;
-        }
-
-        private Set<SingleTest> getTestMethods(Iterable<Method> methods) {
-            Set<SingleTest> result = new HashSet<>();
-            for (Method method : methods) {
-                if (method.getAnnotation(ArchTest.class) != null || method.getAnnotation(Test.class) != null) {
-                    result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
-                }
-            }
-            return result;
-        }
-
-        private Set<SingleTest> getTestFields(Iterable<Field> fields) {
-            Set<SingleTest> result = new HashSet<>();
-            for (Field field : fields) {
-                if (field.getAnnotation(ArchTest.class) != null) {
-                    result.addAll(getTestFields(field));
-                }
-            }
-            return result;
-        }
-
-        private Set<SingleTest> getTestFields(Field field) {
-            if (ArchRule.class.isAssignableFrom(field.getType())) {
-                return Collections.singleton(new SingleTest(field.getDeclaringClass().getName(), field.getName()));
-            }
-            if (ArchRules.class.isAssignableFrom(field.getType())) {
-                return getTestsFrom(this.<ArchRules>getValue(field, null));
-            }
-            throw new IllegalStateException("Unknown @ArchTest: " + field);
-        }
-
-        private Set<SingleTest> getTestsFrom(ArchRules archRules) {
-            Set<SingleTest> result = new HashSet<>();
-            result.addAll(getTestFields(this.<Field>getValue(archRules, "fields")));
-            result.addAll(getTestMethods(this.<Method>getValue(archRules, "methods")));
-            return result;
-        }
-
-        private <T> Collection<T> getValue(ArchRules archRules, String name) {
-            try {
-                return getValue(ArchRules.class.getDeclaredField(name), archRules);
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        private <T> T getValue(Field field, Object owner) {
-            try {
-                field.setAccessible(true);
-                return (T) field.get(owner);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         static GivenTestClasses findAll() throws IOException {
@@ -133,7 +79,7 @@ public class TestResultTest {
             final Path root = fileFromResource("/").toPath();
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String fileName = file.getFileName().toString();
                     if (fileName.endsWith("Test.class") && !fileName.contains(TestResultTest.class.getSimpleName())) {
                         String resolvedClassFile = root.relativize(file).toString();
@@ -196,7 +142,20 @@ public class TestResultTest {
         }
 
         void assertMatchWith(GivenTestClasses givenTestClasses) {
-            assertThat(failedArchitectureTests).isEqualTo(givenTestClasses.tests);
+            Set<SingleTest> onlyGiven = difference(givenTestClasses.tests, failedArchitectureTests);
+            assertThat(onlyGiven).as("Tests that were expected to fail, but didn't").isEmpty();
+            Set<SingleTest> onlyFailed = difference(failedArchitectureTests, givenTestClasses.tests);
+            assertThat(onlyFailed).as("Tests that unexpectedly failed").isEmpty();
+        }
+
+        private <T> Set<T> difference(Set<T> set, Set<T> toSubtract) {
+            Set<T> result = new HashSet<>();
+            for (T elem : set) {
+                if (!toSubtract.contains(elem)) {
+                    result.add(elem);
+                }
+            }
+            return result;
         }
 
         void markProcessed(List<File> testReports) {
@@ -262,6 +221,113 @@ public class TestResultTest {
                     "owner='" + owner + '\'' +
                     ", testName='" + testName + '\'' +
                     '}';
+        }
+    }
+
+    private static SingleTestProvider createSingleTestProvider() {
+        try {
+            Class.forName("com.tngtech.archunit.junit.ArchTest");
+            return new JUnitSingleTestProvider();
+        } catch (ClassNotFoundException e) {
+            return new PlainSingleTestProvider();
+        }
+    }
+
+    private interface SingleTestProvider {
+        Set<SingleTest> getTestMethods(Collection<Method> methods);
+
+        Set<SingleTest> getTestFields(Collection<Field> fields);
+    }
+
+    private static class PlainSingleTestProvider implements SingleTestProvider {
+        @Override
+        public Set<SingleTest> getTestMethods(Collection<Method> methods) {
+            Set<SingleTest> result = new HashSet<>();
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(Test.class)) {
+                    result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Set<SingleTest> getTestFields(Collection<Field> fields) {
+            return Collections.emptySet();
+        }
+    }
+
+    private static class JUnitSingleTestProvider implements SingleTestProvider {
+        private final Class<? extends Annotation> archTestAnnotation;
+        private final Class<?> archRulesClass;
+
+        @SuppressWarnings("unchecked")
+        private JUnitSingleTestProvider() {
+            try {
+                this.archTestAnnotation = (Class<? extends Annotation>) Class.forName("com.tngtech.archunit.junit.ArchTest");
+                this.archRulesClass = Class.forName("com.tngtech.archunit.junit.ArchRules");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Set<SingleTest> getTestMethods(Collection<Method> methods) {
+            Set<SingleTest> result = new HashSet<>();
+            for (Method method : methods) {
+                if (method.getAnnotation(archTestAnnotation) != null || method.getAnnotation(Test.class) != null) {
+                    result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Set<SingleTest> getTestFields(Collection<Field> fields) {
+            Set<SingleTest> result = new HashSet<>();
+            for (Field field : fields) {
+                if (field.getAnnotation(archTestAnnotation) != null) {
+                    result.addAll(getTestFields(field));
+                }
+            }
+            return result;
+        }
+
+        private Set<SingleTest> getTestFields(Field field) {
+            if (ArchRule.class.isAssignableFrom(field.getType())) {
+                return Collections.singleton(new SingleTest(field.getDeclaringClass().getName(), field.getName()));
+            }
+            if (archRulesClass.isAssignableFrom(field.getType())) {
+                return getTestsFrom(getValue(field, null));
+            }
+            throw new IllegalStateException("Unknown @ArchTest: " + field);
+        }
+
+        private Set<SingleTest> getTestsFrom(Object archRules) {
+            Set<SingleTest> result = new HashSet<>();
+            Class<?> definitionLocation = getValue("definitionLocation", archRules);
+            result.addAll(getTestFields(asList(definitionLocation.getDeclaredFields())));
+            result.addAll(getTestMethods(asList(definitionLocation.getDeclaredMethods())));
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        private <T> T getValue(String fieldName, Object owner) {
+            try {
+                return getValue(owner.getClass().getDeclaredField(fieldName), owner);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> T getValue(Field field, Object owner) {
+            try {
+                field.setAccessible(true);
+                return (T) field.get(owner);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
