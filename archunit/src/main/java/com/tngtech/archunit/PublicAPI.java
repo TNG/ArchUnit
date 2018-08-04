@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 
 import static com.tngtech.archunit.PublicAPI.State.STABLE;
@@ -32,6 +33,7 @@ import static com.tngtech.archunit.PublicAPI.State.STABLE;
  */
 @Internal
 @Inherited
+@Documented
 public @interface PublicAPI {
     /**
      * Marks how this API is supposed to be used.

@@ -44,7 +44,7 @@ task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
 task updateArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
     doLast {
         def buildFile = new File(checkoutDir, 'build.gradle')
-        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit-junit:)[\d.]*/, "\$1${version}")
+        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit-junit4:)[\d.]*/, "\$1${version}")
     }
 }
 

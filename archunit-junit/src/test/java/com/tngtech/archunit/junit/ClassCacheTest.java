@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -18,7 +19,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
@@ -26,10 +29,9 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -54,51 +56,44 @@ public class ClassCacheTest {
     @InjectMocks
     private ClassCache cache = new ClassCache();
 
+    @Captor
+    private ArgumentCaptor<Collection<Location>> locationCaptor;
+
     @Test
     public void loads_classes() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit"));
 
         assertThat(classes).as("Classes were found").isNotEmpty();
     }
 
     @Test
     public void reuses_loaded_classes_by_test() {
-        cache.getClassesToAnalyzeFor(TestClass.class);
-        cache.getClassesToAnalyzeFor(TestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit"));
+        cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit"));
 
         verifyNumberOfImports(1);
     }
 
     @Test
     public void reuses_loaded_classes_by_locations_if_cacheMode_is_FOREVER() {
-        cache.getClassesToAnalyzeFor(TestClass.class);
-        cache.getClassesToAnalyzeFor(EquivalentTestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit"));
+        cache.getClassesToAnalyzeFor(EquivalentTestClass.class, analyzePackages("com.tngtech.archunit.junit"));
 
         verifyNumberOfImports(1);
     }
 
     @Test
     public void doesnt_reuse_loaded_classes_by_locations_if_cacheMode_is_PER_CLASS() {
-        cache.getClassesToAnalyzeFor(TestClassWithCacheModePerClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit").withCacheMode(PER_CLASS));
         assertThat(cache.cachedByLocations.asMap()).as("Classes cached by location").isEmpty();
 
-        cache.getClassesToAnalyzeFor(EquivalentTestClass.class);
+        cache.getClassesToAnalyzeFor(EquivalentTestClass.class, analyzePackages("com.tngtech.archunit.junit").withCacheMode(PER_CLASS));
         verifyNumberOfImports(2);
     }
 
     @Test
-    public void rejects_missing_analyze_annotation() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(Object.class.getSimpleName());
-        thrown.expectMessage("must be annotated");
-        thrown.expectMessage(AnalyzeClasses.class.getSimpleName());
-
-        cache.getClassesToAnalyzeFor(Object.class);
-    }
-
-    @Test
     public void filters_jars_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analyzePackagesOf(Rule.class));
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -108,46 +103,42 @@ public class ClassCacheTest {
 
     @Test
     public void gets_all_classes_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analyzePackagesOf(getClass()));
 
         assertThat(classes).isNotEmpty();
+        assertThat(classes.contain(getClass())).as("root class is contained itself").isTrue();
     }
 
     @Test
     public void get_all_classes_by_LocationProvider() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviders.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
+                .withPackagesRoots(ClassCacheTest.class)
+                .withLocationProviders(TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class));
 
         assertThatClasses(classes).contain(String.class, Rule.class, getClass());
 
-        classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class);
+        classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class,
+                analyzeLocation(LocationOfClass.Provider.class));
 
         assertThatClasses(classes).contain(String.class);
         assertThatClasses(classes).dontContain(getClass());
     }
 
-    @DataProvider
-    public static Object[][] illegalLocationProviderClasses() {
-        return $$(
-                $(TestClassWithIllegalLocationProviderWithConstructorParam.class),
-                $(TestClassWithIllegalLocationProviderWithPrivateConstructor.class)
-        );
-    }
-
     @Test
-    @UseDataProvider("illegalLocationProviderClasses")
-    public void rejects_LocationProviders_without_public_default_constructor(
-            Class<? extends LocationProvider> illegalProviderClass) {
+    public void rejects_LocationProviders_without_default_constructor() {
 
         thrown.expect(ArchTestExecutionException.class);
         thrown.expectMessage("public default constructor");
         thrown.expectMessage(LocationProvider.class.getSimpleName());
 
-        cache.getClassesToAnalyzeFor(illegalProviderClass);
+        cache.getClassesToAnalyzeFor(WrongLocationProviderWithConstructorParam.class,
+                analyzeLocation(WrongLocationProviderWithConstructorParam.class));
     }
 
     @Test
     public void filters_urls() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class,
+                new TestAnalysisRequest().withImportOptions(TestFilterForJUnitJars.class));
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -158,19 +149,41 @@ public class ClassCacheTest {
 
     @Test
     public void non_existing_packages_are_ignored() {
-        JavaClasses first = cache.getClassesToAnalyzeFor(TestClassWithNonExistingPackage.class);
-        JavaClasses second = cache.getClassesToAnalyzeFor(TestClassWithFilterJustByPackageOfClass.class);
+        JavaClasses first = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
+                .withPackages("something.that.doesnt.exist")
+                .withPackagesRoots(Rule.class));
+        JavaClasses second = cache.getClassesToAnalyzeFor(TestClass.class,
+                analyzePackagesOf(Rule.class));
 
         assertThat(first).isEqualTo(second);
         verifyNumberOfImports(1);
     }
 
+    @DataProvider
+    public static Object[][] test_classes_without_any_imported_classes() {
+        return testForEach(
+                new TestAnalysisRequest().withPackages("does.not.exist"),
+                new TestAnalysisRequest().withLocationProviders(EmptyLocations.class));
+    }
+
+    @Test
+    @UseDataProvider("test_classes_without_any_imported_classes")
+    public void when_there_are_only_nonexisting_sources_nothing_is_imported(TestAnalysisRequest analysisRequest) {
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analysisRequest);
+
+        assertThat(classes).isEmpty();
+
+        verify(cacheClassFileImporter).importClasses(any(ImportOptions.class), locationCaptor.capture());
+        assertThat(locationCaptor.getValue()).isEmpty();
+    }
+
     @Test
     public void distinguishes_import_option_when_caching() {
         JavaClasses importingWholeClasspathWithFilter =
-                cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJars.class);
+                cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest().withImportOptions(TestFilterForJUnitJars.class));
         JavaClasses importingWholeClasspathWithEquivalentButDifferentFilter =
-                cache.getClassesToAnalyzeFor(TestClassFilteringJustJUnitJarsWithDifferentFilter.class);
+                cache.getClassesToAnalyzeFor(EquivalentTestClass.class,
+                        new TestAnalysisRequest().withImportOptions(AnotherTestFilterForJUnitJars.class));
 
         assertThat(importingWholeClasspathWithFilter)
                 .as("number of classes imported")
@@ -181,7 +194,7 @@ public class ClassCacheTest {
 
     @Test
     public void clears_cache_by_class_on_command() {
-        cache.getClassesToAnalyzeFor(TestClass.class);
+        cache.getClassesToAnalyzeFor(TestClass.class, analyzePackages("com.tngtech.archunit.junit"));
         assertThat(cache.cachedByTest).isNotEmpty();
         cache.clear(EquivalentTestClass.class);
         assertThat(cache.cachedByTest).isNotEmpty();
@@ -189,62 +202,37 @@ public class ClassCacheTest {
         assertThat(cache.cachedByTest).isEmpty();
     }
 
+    private TestAnalysisRequest analyzePackages(String packages) {
+        return new TestAnalysisRequest().withPackages(packages);
+    }
+
+    private ClassAnalysisRequest analyzePackagesOf(Class<?> clazz) {
+        return new TestAnalysisRequest().withPackagesRoots(clazz);
+    }
+
+    private ClassAnalysisRequest analyzeLocation(Class<? extends LocationProvider> providerClass) {
+        return new TestAnalysisRequest().withLocationProviders(providerClass);
+    }
+
     private void verifyNumberOfImports(int number) {
         verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), ArgumentMatchers.<Location>anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class TestClass {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.junit")
     public static class EquivalentTestClass {
     }
 
-    @AnalyzeClasses(packages = "com.tngtech.archunit.junit", cacheMode = PER_CLASS)
-    public static class TestClassWithCacheModePerClass {
-    }
-
-    @AnalyzeClasses(packagesOf = Rule.class)
-    public static class TestClassWithFilterJustByPackageOfClass {
-    }
-
-    @AnalyzeClasses(packages = "something.that.doesnt.exist", packagesOf = Rule.class)
-    public static class TestClassWithNonExistingPackage {
-    }
-
-    @AnalyzeClasses(importOptions = TestFilterForJUnitJars.class)
-    public static class TestClassFilteringJustJUnitJars {
-    }
-
-    @AnalyzeClasses(importOptions = AnotherTestFilterForJUnitJars.class)
-    public static class TestClassFilteringJustJUnitJarsWithDifferentFilter {
-    }
-
-    @AnalyzeClasses(
-            packagesOf = ClassCacheTest.class,
-            locations = {TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class})
-    public static class TestClassWithLocationProviders {
-    }
-
     @LocationOfClass(String.class)
-    @AnalyzeClasses(locations = {LocationOfClass.Provider.class})
     public static class TestClassWithLocationProviderUsingTestClass {
-    }
-
-    @AnalyzeClasses(locations = WrongLocationProviderWithConstructorParam.class)
-    public static class TestClassWithIllegalLocationProviderWithConstructorParam {
-    }
-
-    @AnalyzeClasses(locations = WrongLocationProviderWithPrivateConstructor.class)
-    public static class TestClassWithIllegalLocationProviderWithPrivateConstructor {
     }
 
     public static class TestFilterForJUnitJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
-            return location.contains("junit") && location.contains(".jar");
+            return location.contains("/org/junit") && location.isJar();
         }
     }
 
@@ -282,10 +270,7 @@ public class ClassCacheTest {
         }
     }
 
-    static class WrongLocationProviderWithPrivateConstructor implements LocationProvider {
-        private WrongLocationProviderWithPrivateConstructor() {
-        }
-
+    static class EmptyLocations implements LocationProvider {
         @Override
         public Set<Location> get(Class<?> testClass) {
             return Collections.emptySet();
