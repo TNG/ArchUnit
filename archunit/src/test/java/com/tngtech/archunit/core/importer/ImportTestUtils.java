@@ -144,7 +144,7 @@ public class ImportTestUtils {
             }
             if (result instanceof Class[]) {
                 List<JavaClass> classes = javaClassesFrom((Class<?>[]) result, importedClasses);
-                return classes.toArray(new JavaClass[classes.size()]);
+                return classes.toArray(new JavaClass[0]);
             }
             if (result instanceof Enum<?>) {
                 return ImportTestUtils.enumConstant((Enum<?>) result);
@@ -177,7 +177,7 @@ public class ImportTestUtils {
         for (Enum<?> e : enums) {
             result.add(ImportTestUtils.enumConstant(e));
         }
-        return result.toArray(new JavaEnumConstant[result.size()]);
+        return result.toArray(new JavaEnumConstant[0]);
     }
 
     private static JavaAnnotation[] javaAnnotationsFrom(Annotation[] annotations) {
@@ -189,7 +189,7 @@ public class ImportTestUtils {
         for (Annotation a : annotations) {
             result.add(ImportTestUtils.javaAnnotationFrom(a, importedClasses));
         }
-        return result.toArray(new JavaAnnotation[result.size()]);
+        return result.toArray(new JavaAnnotation[0]);
     }
 
     public static JavaMethodCall newMethodCall(JavaMethod origin, MethodCallTarget target, int lineNumber) {
@@ -309,7 +309,7 @@ public class ImportTestUtils {
     }
 
     private static ImmutableMap<String, JavaAnnotation> annotationsFor(Class<?> inputClass, ImportedTestClasses importedClasses) {
-        return FluentIterable.of(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses))
+        return FluentIterable.from(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses))
                 .uniqueIndex(new Function<JavaAnnotation, String>() {
                     @Override
                     public String apply(JavaAnnotation input) {

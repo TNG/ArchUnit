@@ -8,11 +8,11 @@ import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.internal.cglib.asm.Type;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 

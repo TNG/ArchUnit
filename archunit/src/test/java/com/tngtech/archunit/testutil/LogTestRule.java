@@ -19,7 +19,7 @@ import org.junit.rules.ExternalResource;
 public class LogTestRule extends ExternalResource {
     private static final String APPENDER_NAME = "test_appender";
 
-    private final List<LogEvent> logEvents = new ArrayList<>();
+    private final List<RecordedLogEvent> logEvents = new ArrayList<>();
     private Class<?> loggerClass;
     private Level oldLevel;
 
@@ -28,7 +28,7 @@ public class LogTestRule extends ExternalResource {
         Appender appender = new AbstractAppender(APPENDER_NAME, null, PatternLayout.createDefaultLayout()) {
             @Override
             public void append(LogEvent event) {
-                logEvents.add(event);
+                logEvents.add(new RecordedLogEvent(event));
             }
         };
         appender.start();
@@ -58,8 +58,8 @@ public class LogTestRule extends ExternalResource {
     }
 
     public void assertLogMessage(Level level, String messagePart) {
-        for (LogEvent event : filterByLevel(logEvents, level)) {
-            if (event.getMessage().getFormattedMessage().contains(messagePart)) {
+        for (RecordedLogEvent event : filterByLevel(logEvents, level)) {
+            if (event.getMessage().contains(messagePart)) {
                 return;
             }
         }
@@ -70,7 +70,7 @@ public class LogTestRule extends ExternalResource {
     }
 
     public void assertException(Level level, Class<?> exceptionType, String messagePart) {
-        for (LogEvent event : filterByLevel(logEvents, level)) {
+        for (RecordedLogEvent event : filterByLevel(logEvents, level)) {
             if (exceptionType.isInstance(event.getThrown()) && event.getThrown().getMessage().contains(messagePart)) {
                 return;
             }
@@ -81,12 +81,40 @@ public class LogTestRule extends ExternalResource {
                 level, exceptionType.getSimpleName(), messagePart, logEvents));
     }
 
-    private Iterable<LogEvent> filterByLevel(List<LogEvent> events, final Level level) {
-        return FluentIterable.from(events).filter(new Predicate<LogEvent>() {
+    private Iterable<RecordedLogEvent> filterByLevel(List<RecordedLogEvent> events, final Level level) {
+        return FluentIterable.from(events).filter(new Predicate<RecordedLogEvent>() {
             @Override
-            public boolean apply(LogEvent input) {
+            public boolean apply(RecordedLogEvent input) {
                 return input.getLevel().equals(level);
             }
         });
+    }
+
+    private static class RecordedLogEvent {
+        private final Level level;
+        private final String message;
+        private final Throwable thrown;
+
+        private RecordedLogEvent(Level level, String message, Throwable thrown) {
+            this.level = level;
+            this.message = message;
+            this.thrown = thrown;
+        }
+
+        RecordedLogEvent(LogEvent event) {
+            this(event.getLevel(), event.getMessage().getFormattedMessage(), event.getThrown());
+        }
+
+        Level getLevel() {
+            return level;
+        }
+
+        Throwable getThrown() {
+            return thrown;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 }
