@@ -146,7 +146,7 @@ task wrapper(type: Wrapper) {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.9.0-junit5-SNAPSHOT'
+    version = '0.9.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
