@@ -55,6 +55,8 @@ import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ObjectAssert;
+import org.assertj.core.api.ObjectAssertFactory;
 import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -296,7 +298,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class JavaClassListAssertion extends AbstractListAssert<JavaClassListAssertion, List<? extends JavaClass>, JavaClass> {
+    public static class JavaClassListAssertion
+            extends AbstractListAssert<JavaClassListAssertion, List<? extends JavaClass>, JavaClass, ObjectAssert<JavaClass>> {
         private JavaClassListAssertion(JavaClassList javaClasses) {
             super(javaClasses, JavaClassListAssertion.class);
         }
@@ -306,6 +309,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
             for (int i = 0; i < actual.size(); i++) {
                 assertThat(actual.get(i)).as("Element %d", i).matches(classes[i]);
             }
+        }
+
+        @Override
+        protected ObjectAssert<JavaClass> toAssert(JavaClass value, String description) {
+            return new ObjectAssertFactory<JavaClass>().createAssert(value).as(description);
         }
     }
 
@@ -435,7 +443,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         for (JavaAnnotation annotation : annotations) {
             converted.add(annotation.as((Class) annotation.getType().reflect()));
         }
-        return propertiesOf(converted.toArray(new Annotation[converted.size()]));
+        return propertiesOf(converted.toArray(new Annotation[0]));
     }
 
     private static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
@@ -556,7 +564,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ConditionEventsAssert extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent> {
+    public static class ConditionEventsAssert
+            extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent, ObjectAssert<ConditionEvent>> {
         ConditionEventsAssert(ConditionEvents actual) {
             super(actual, ConditionEventsAssert.class);
         }
@@ -631,6 +640,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
                 }
             }
             throw new AssertionError(String.format("No message matches pattern '%s'", regex));
+        }
+
+        @Override
+        protected ObjectAssert<ConditionEvent> toAssert(ConditionEvent value, String description) {
+            return new ObjectAssertFactory<ConditionEvent>().createAssert(value).as(description);
         }
     }
 
