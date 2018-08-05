@@ -74,40 +74,6 @@ ext {
             project(':archunit-junit5-engine')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
-    addApiJarTo = { proj ->
-        proj.with {
-            configurations {
-                api
-                compile.extendsFrom api
-                testCompile.extendsFrom api
-            }
-
-            sourceSets {
-                api {
-                    java {
-                        srcDirs = ['src/api/java']
-                    }
-                    compileClasspath = configurations.api
-                }
-            }
-
-            dependencies {
-                compile sourceSets.api.output
-                testCompile sourceSets.api.output
-            }
-
-            task apiJar(type: Jar) {
-                archiveName = jar.archiveName.replace(project.name, "${project.name}-api")
-                from sourceSets.api.output
-            }
-            build.dependsOn apiJar
-
-            artifacts {
-                api apiJar
-            }
-        }
-    }
-
     addTestJarTo = { proj ->
         proj.with {
             configurations {

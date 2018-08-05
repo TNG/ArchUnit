@@ -1,6 +1,34 @@
 ext.moduleName = 'com.tngtech.archunit.junit'
 
-addApiJarTo this
+configurations {
+    api
+    compile.extendsFrom api
+    testCompile.extendsFrom api
+}
+
+sourceSets {
+    api {
+        java {
+            srcDirs = ['src/api/java']
+        }
+        compileClasspath = configurations.api
+    }
+}
+
+dependencies {
+    compileOnly sourceSets.api.output
+    testCompile sourceSets.api.output
+}
+
+task apiJar(type: Jar) {
+    archiveName = jar.archiveName.replace(project.name, "${project.name}-api")
+    from sourceSets.api.output
+}
+build.dependsOn apiJar
+
+artifacts {
+    api apiJar
+}
 
 dependencies {
     api project(path: ':archunit', configuration: 'shadow')
