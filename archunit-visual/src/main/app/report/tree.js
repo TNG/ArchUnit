@@ -306,8 +306,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._filters.nameFilter = null;
       }
       else {
-        const stringContainsSubstring = predicates.stringContains(nodeNameSubstring);
-        const stringPredicate = exclude ? predicates.not(stringContainsSubstring) : stringContainsSubstring;
+        const stringEqualsSubstring = predicates.stringEquals(nodeNameSubstring);
+        const stringPredicate = exclude ? predicates.not(stringEqualsSubstring) : stringEqualsSubstring;
         const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
         this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));

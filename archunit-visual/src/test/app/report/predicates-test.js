@@ -5,11 +5,11 @@ import nodePredicates from '../../../main/app/report/predicates';
 
 const expect = chai.expect;
 
-const testStringContains = (subString) => ({
+const testStringEquals = (subString) => ({
   against: input => ({
     is: expected => {
       it(`stringContains('${subString}')('${input}') == ${expected}`, () => {
-        expect(nodePredicates.stringContains(subString)(input)).to.equal(expected);
+        expect(nodePredicates.stringEquals(subString)(input)).to.equal(expected);
       });
     }
   })
@@ -17,78 +17,71 @@ const testStringContains = (subString) => ({
 
 describe('matching strings by checking for a certain substring', () => {
   describe('simple substrings', () => {
-    testStringContains('foo').against('foobar').is(true);
-    testStringContains('oba').against('foobar').is(true);
-    testStringContains('bar').against('foobar').is(true);
-    testStringContains('foobar').against('foobar').is(true);
+    testStringEquals('foobar').against('foobar').is(true);
+    testStringEquals('bar').against('foobar').is(false);
 
-    testStringContains('for').against('foobar').is(false);
+    testStringEquals('for').against('foobar').is(false);
   });
 
-  describe('leading whitespace is ignored', () => {
-    testStringContains(' foo').against('foobar').is(true);
-    testStringContains('   foobar').against('foobar').is(true);
+  describe('leading or concluding whitespace is ignored', () => {
+    testStringEquals(' foobar').against('foobar').is(true);
+    testStringEquals('   foobar').against('foobar').is(true);
+    testStringEquals('foobar ').against('foobar').is(true);
+    testStringEquals('foobar   ').against('foobar').is(true);
+    testStringEquals(' foobar ').against('foobar').is(true);
+    testStringEquals('  foobar  ').against('foobar').is(true);
 
-    testStringContains('fooar').against('foobar').is(false);
-  });
-
-  describe('substrings with trailing whitespace must end with pattern', () => {
-    testStringContains('bar ').against('foobar').is(true);
-    testStringContains('bar    ').against('foobar').is(true);
-    testStringContains(' bar ').against('foobar').is(true);
-
-    testStringContains('foo ').against('foobar').is(false);
-    testStringContains('fooba ').against('foobar').is(false);
+    testStringEquals('bar ').against('foobar').is(false);
+    testStringEquals('bar   ').against('foobar').is(false);
+    testStringEquals(' foo').against('foobar').is(false);
+    testStringEquals(' fooar ').against('foobar').is(false);
   });
 
   describe('only the asterisk (*) is interpreted as wildcard', () => {
-    testStringContains('f*ar').against('foobar').is(true);
-    testStringContains('some.r*.*Class').against('some.random.Class').is(true);
-    testStringContains('.$?[]\\^+').against('.$?[]\\^+').is(true);
+    testStringEquals('f*ar').against('foobar').is(true);
+    testStringEquals('some.r*.*Class').against('some.random.Class').is(true);
+    testStringEquals('.$?[]\\^+').against('.$?[]\\^+').is(true);
 
-    testStringContains('some.r*.*Class').against('some.randomClass').is(false);
-    testStringContains('.$?[]\\^+').against('.$?[.\\^+').is(false);
+    testStringEquals('some.r*.*Class').against('some.randomClass').is(false);
+    testStringEquals('.$?[]\\^+').against('.$?[.\\^+').is(false);
   });
 
   describe('| separates different options', () => {
-    testStringContains('fo|ba').against('foo').is(true);
-    testStringContains('fo|ba').against('bar').is(true);
-    testStringContains('fo|ba|te').against('test').is(true);
+    testStringEquals('foo|bar').against('foo').is(true);
+    testStringEquals('foo|bar').against('bar').is(true);
+    testStringEquals('foo|bar|test').against('test').is(true);
 
-    testStringContains('fo|ba').against('anyOther').is(false);
-    testStringContains('fo|ba|te').against('notMatching').is(false);
+    testStringEquals('foo|bar').against('anyOther').is(false);
+    testStringEquals('foo|bar|test').against('notMatching').is(false);
   });
 
-  describe('leading whitespaces before | are ignored', () => {
-    testStringContains(' fo| ba').against('foo').is(true);
-    testStringContains(' fo| ba').against('bar').is(true);
-    testStringContains(' fo|   ba').against('bar').is(true);
-    testStringContains(' fo| ba| te').against('test').is(true);
+  describe('leading and concluding whitespaces before | are ignored', () => {
+    testStringEquals(' foo| bar').against('foo').is(true);
+    testStringEquals(' foo| bar').against('bar').is(true);
+    testStringEquals(' foo|   bar').against('bar').is(true);
+    testStringEquals(' foo| bar| test').against('test').is(true);
+    testStringEquals('foo |bar ').against('foo').is(true);
+    testStringEquals('foo |bar ').against('bar').is(true);
+    testStringEquals('foo |bar |test ').against('test').is(true);
 
-    testStringContains(' fo| ba').against('anyOther').is(false);
-  });
-
-  describe('substrings with whitespaces before | must end with one of the optional patterns', () => {
-    testStringContains('foo |bar ').against('foo').is(true);
-    testStringContains('foo |bar ').against('bar').is(true);
-    testStringContains('foo |bar |test ').against('test').is(true);
-
-    testStringContains('foo |bar ').against('fo').is(false);
-    testStringContains('foo |bar ').against('ba').is(false);
-    testStringContains('foo |bar |test ').against('test1').is(false);
-
+    testStringEquals('foo |bar ').against('fo').is(false);
+    testStringEquals('foo |bar ').against('ba').is(false);
+    testStringEquals('foo |bar |test ').against('test1').is(false);
+    testStringEquals(' foo| bar').against('anyOther').is(false);
+    testStringEquals(' foo | bar ').against('anyOther').is(false);
   });
 
   describe('some typical scenarios when filtering fully qualified class names', () => {
-    testStringContains('SimpleClass').against('my.company.SimpleClass').is(true);
-    testStringContains('Json').against('some.evil.long.pkg.JsonParser').is(true);
-    testStringContains('Json ').against('some.evil.long.pkg.JsonParser').is(false);
+    testStringEquals('my.company.*').against('my.company.SimpleClass').is(true);
+    testStringEquals('*.SimpleClass').against('my.company.SimpleClass').is(true);
+    testStringEquals('*Json*').against('some.evil.long.pkg.JsonParser').is(true);
+    testStringEquals('*Json').against('some.evil.long.pkg.JsonParser').is(false);
 
-    testStringContains('pkg').against('some.evil.long.pkg.SomeClass').is(true);
-    testStringContains('.pkg.').against('some.evil.long.pkg.SomeClass').is(true);
-    testStringContains('.long.pkg.').against('some.evil.long.pkg.SomeClass').is(true);
-    testStringContains('.pk.').against('some.evil.long.pkg.SomeClass').is(false);
-    testStringContains('.evil..pkg.').against('some.evil.long.pkg.SomeClass').is(false);
+    testStringEquals('*pkg*').against('some.evil.long.pkg.SomeClass').is(true);
+    testStringEquals('*.pkg.*').against('some.evil.long.pkg.SomeClass').is(true);
+    testStringEquals('*.long.pkg.*').against('some.evil.long.pkg.SomeClass').is(true);
+    testStringEquals('*.pk.*').against('some.evil.long.pkg.SomeClass').is(false);
+    testStringEquals('*.evil..pkg.*').against('some.evil.long.pkg.SomeClass').is(false);
   });
 });
 

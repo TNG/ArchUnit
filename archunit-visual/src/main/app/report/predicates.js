@@ -19,37 +19,37 @@ const escapeRegExp = str => {
 };
 
 /**
- * Checks, if a String contains a certain substring. The '*' represents arbitrary many characters.
+ * Checks, if a String equals a certain string of some optional strings, which are separated by '|'.
+ * The '*' represents arbitrary many characters.
  * E.g.
- * - stringContains('foo')('foobar') => true
- * - stringContains('foo')('goobar') => false
- * - stringContains('f*ar')('foobar') => true
- * If the subString ends with a whitespace, it only matches Strings ending in the subString (minus the whitespace)
- * E.g.
- * - stringContains('foo ')('foobar') => false
- * - stringContains('bar ')('foobar') => true
- * Left whitespace is ignored.
+ * - stringEquals('foobar')('foobar') => true
+ * - stringEquals('foo')('foobar') => false
+ * - stringEquals('f*ar')('foobar') => true
+ * Left and right whitespaces are ignored (for each of the optional strings).
  *
  * @param substring The string the text must contain.
  */
-const stringContains = substring => {
-  const withoutLeadingWhitespace = substring
+const stringEquals = substring => {
+  const withoutLeadingOrClosingWhitespace = substring
   //remove leading whitespaces
     .replace(/^\s+/, '')
     //remove leading whitespaces before the "options" separated by |
-    .replace(/\|\s+/g, '|');
-  const escaped = escapeRegExp(withoutLeadingWhitespace);
+    .replace(/\|\s+/g, '|')
+    //remove closing whitespaces
+    .replace(/\s+$/, '')
+    //remove closing whitespaces before '|'
+    .replace(/\s+\|/g, '|');
+  const escaped = escapeRegExp(withoutLeadingOrClosingWhitespace);
   const pattern = escaped
-  //if substring ends with spaces, match only the strings ending with substring
-    .replace(/\s+$/, '$')
-    //if substring consists of several "options" separated by |, do the same for them
-    .replace(/\s+\|/g, '$|')
+  //match only the names that are exactly the same as one of the "options"
+    .replace(/\|/g, '$|^')
     //a star in the substring stands for any characters
     .replace(/\*/g, '.*');
-  const regex = new RegExp(pattern);
+  const patternWithLeadingAndEndingMarker = `^${pattern}$`;
+  const regex = new RegExp(patternWithLeadingAndEndingMarker);
   return string => {
     return regex.test(string);
   }
 };
 
-export default {not, and, stringContains};
+export default {not, and, stringEquals};

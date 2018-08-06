@@ -100,8 +100,11 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
             @Override
             public void evaluate() throws Throwable {
                 final JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
-                statement.evaluate();
-                new ArchUnitExtensions().finish(classes);
+                try {
+                    statement.evaluate();
+                } finally {
+                    new ArchUnitExtensions().finish(classes);
+                }
             }
         };
     }
