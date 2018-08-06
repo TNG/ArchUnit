@@ -297,20 +297,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param nodeNameSubstring The node's full name needs to contain this text, to pass the filter.
      * '*' matches any number of arbitrary characters. If nodeNamesSubstring ends with a space,
      * the node's full name has to end with nodeNamesSubstring to pass the filter.
-     * @param exclude If true, the condition is inverted,
-     * i.e. nodes with names not containing the string will pass the filter.
      */
-    filterByName(nodeNameSubstring, exclude) {
+    filterByName(nodeNameSubstring) {
       //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
-      if (!nodeNameSubstring.replace(/\s/g, '') && !exclude) {
+      if (!nodeNameSubstring.replace(/\s/g, '')) {
         this._filters.nameFilter = null;
       }
       else {
         const stringEqualsSubstring = predicates.stringEquals(nodeNameSubstring);
-        const stringPredicate = exclude ? predicates.not(stringEqualsSubstring) : stringEqualsSubstring;
         const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringPredicate));
+        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringEqualsSubstring));
       }
       this._root.doNextAndWaitFor(() => {
         this._filters.apply();

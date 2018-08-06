@@ -948,7 +948,7 @@ describe('Node', () => {
     root.filterByName('com.tngtech.archunit.MatchingClass|com.tngtech.archunit.MatchingInterface|' +
       'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild$MatchingClass|' +
       'com.tngtech.archunit.MatchingPkg|com.tngtech.archunit.pkgWithMatchingClass.MatchingClass|' +
-      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass', false);
+      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -988,7 +988,7 @@ describe('Node', () => {
       'com.tngtech.archunit.XMatchingYPkg', 'com.tngtech.archunit.XMatchingYPkg.MatchingClass'];
     const expHiddenNodes = ['com.tngtech.archunit.pkgWithNoMatchingYClass'].map(nodeFullName => root.getByName(nodeFullName));
 
-    root.filterByName('*X*Y*', false);
+    root.filterByName('*X*Y*');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1004,16 +1004,16 @@ describe('Node', () => {
       'my.company.second.SomeClass',
       'my.company.second.OtherClass');
 
-    root.filterByName('my.*.first.*', false);
+    root.filterByName('my.*.first.*');
     return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
       .then(() => {
-        root.filterByName('my.company*.SomeClass', false);
+        root.filterByName('my.company*.SomeClass');
         return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
           .then(() => {
-            root.filterByName('my.company*.SomeClass', true);
+            root.filterByName('~my.company*.SomeClass');
             return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
               .then(() => {
-                root.filterByName('my.company*.Some', false);
+                root.filterByName('my.company*.Some');
                 return doNext(root, () => expect(root).to.containNoClasses());
               });
           });
@@ -1027,14 +1027,14 @@ describe('Node', () => {
       'my.company.second.SomeClass',
       'my.company.second.OtherClass');
 
-    root.filterByName('my.company.first.*|~*SomeClass', false);
+    root.filterByName('my.company.first.*|~*SomeClass');
     return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']))
       .then(() => {
-        root.filterByName('~*.OtherClass|~*second*', false);
+        root.filterByName('~*.OtherClass|~*second*');
         return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first',
           'my.company.first.SomeClass']))
           .then(() => {
-            root.filterByName('*.OtherClass|~*.second.*', false);
+            root.filterByName('*.OtherClass|~*.second.*');
             return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']));
           });
       });
@@ -1072,7 +1072,7 @@ describe('Node', () => {
     const classWithChangedCssClass =
       root.getByName('com.tngtech.archunit.NotMatchingClassWithMatchingChild');
 
-    root.filterByName('*XMatching*', true);
+    root.filterByName('~*XMatching*');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1103,7 +1103,7 @@ describe('Node', () => {
       'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX.NotMatchingClass'];
     const expHiddenNodes = ['com.tngtech.archunit.MatchingClassXX'].map(nodeFullName => root.getByName(nodeFullName));
 
-    root.filterByName('*XX', true);
+    root.filterByName('~*XX');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1141,8 +1141,8 @@ describe('Node', () => {
     const pkgWithChangedCssClass = root.getByName('com.tngtech.archunit.matchingPkgWithNoMatchingClassXX');
     const classWithChangedCssClass = root.getByName('com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingChildXX');
 
-    root.filterByName('*XX', false);
-    root.filterByName('', false);
+    root.filterByName('*XX');
+    root.filterByName('');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1176,8 +1176,8 @@ describe('Node', () => {
       'com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.pkgWithNoMatchingClasses']
       .map(nodeFullName => root.getByName(nodeFullName));
 
-    root.filterByName('*XMatching*', false);
-    root.filterByName('*YMatching*', false);
+    root.filterByName('*XMatching*');
+    root.filterByName('*YMatching*');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1213,7 +1213,7 @@ describe('Node', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
 
-    root.filterByName('*X', false);
+    root.filterByName('*X');
     root.filterByType(true, false);
 
     const visibleNodes = ['com.tngtech.archunit',
@@ -1263,9 +1263,9 @@ describe('Node', () => {
     const expHiddenNodes = ['com.tngtech.archunit.NameMatchingClassX'].map(nodeFullName => root.getByName(nodeFullName));
     const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithChildOnlyMatchingNameFilterX');
 
-    root.filterByName('*X', false);
+    root.filterByName('*X');
     root.filterByType(true, false);
-    root.filterByName('', false);
+    root.filterByName('');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1291,7 +1291,7 @@ describe('Node', () => {
     const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.MatchingXClass'].map(nodeFullName => root.getByName(nodeFullName));
 
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    root.filterByName('*X*', false);
+    root.filterByName('*X*');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
@@ -1316,7 +1316,7 @@ describe('Node', () => {
       'com.tngtech.archunit.pkgToFold.MatchingXClass'];
     const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
 
-    root.filterByName('*X*', false);
+    root.filterByName('*X*');
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
 
@@ -1339,8 +1339,8 @@ describe('Node', () => {
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFoldX');
 
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    root.filterByName('*X*', true);
-    root.filterByName('', false);
+    root.filterByName('~*X*');
+    root.filterByName('');
 
     return doNext(root, () => {
       expect(pkgToFold.isFolded()).to.equal(true);
@@ -1361,9 +1361,9 @@ describe('Node', () => {
     root.getLinks = () => [];
     const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    root.filterByName('', false);
+    root.filterByName('');
 
     return doNext(root, () => {
       expect(pkgToFold.isFolded()).to.equal(true);
@@ -1390,7 +1390,7 @@ describe('Node', () => {
     const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
 
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    root.filterByName('*X*', false);
+    root.filterByName('*X*');
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
 
     return doNext(root, () => {
@@ -1418,7 +1418,7 @@ describe('Node', () => {
     const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
 
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    root.filterByName('*X*', false);
+    root.filterByName('*X*');
 
     return doNext(root, () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);

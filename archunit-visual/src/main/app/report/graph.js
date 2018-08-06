@@ -18,8 +18,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this._violations = violations;
     }
 
-    filterNodesByName(filterString, exclude) {
-      this.root.filterByName(filterString, exclude);
+    filterNodesByName(filterString) {
+      this.root.filterByName(filterString);
       this.root.relayoutCompletely();
     }
 
@@ -59,8 +59,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
           filter => {
             this.filterDependenciesByType(filter);
           })
-        .onNodeNameFilterChanged((filterString, exclude) => {
-          this.filterNodesByName(filterString, exclude);
+        .onNodeNameFilterChanged((filterString) => {
+          this.filterNodesByName(filterString);
         })
         .initializeLegend([
           visualizationStyles.getLineStyle('constructorCall', 'constructor call'),

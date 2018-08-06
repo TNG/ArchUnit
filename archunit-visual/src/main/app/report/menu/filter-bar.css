@@ -25,8 +25,3 @@ input[type=checkbox] {
     flex-grow: 1;
     margin-left: 10px;
 }
-
-#invert-checkbox {
-    display: inline-block;
-    margin-left: 10px;
-}

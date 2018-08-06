@@ -587,7 +587,7 @@ describe('Dependencies', () => {
       'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
       'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)'
     ];
-    root.filterByName('*Matching*', false);
+    root.filterByName('*Matching*');
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
@@ -619,8 +619,8 @@ describe('Dependencies', () => {
       'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)',
       'com.tngtech.SomeInterface->com.tngtech.SomeClass1(fieldAccess)'
     ];
-    root.filterByName('*Matching*', false);
-    root.filterByName('', false);
+    root.filterByName('*Matching*');
+    root.filterByName('');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -652,7 +652,7 @@ describe('Dependencies', () => {
     const hiddenDependencies = dependencies.getVisible().filter(d => !filterForVisibleDependencies(d));
     const visibleDependencies = dependencies.getVisible().filter(filterForVisibleDependencies);
 
-    root.filterByName('*Matching*', false);
+    root.filterByName('*Matching*');
 
     return root._updatePromise.then(() => {
       expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
@@ -680,7 +680,7 @@ describe('Dependencies', () => {
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
-    root.filterByName('*InnerClass*', true);
+    root.filterByName('~*InnerClass*');
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
 
@@ -706,8 +706,8 @@ describe('Dependencies', () => {
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
-    root.filterByName('*InnerClass*', true);
-    root.filterByName('', false);
+    root.filterByName('~*InnerClass*');
+    root.filterByName('');
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
     return root._updatePromise.then(() =>
@@ -737,7 +737,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -761,7 +761,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -792,8 +792,8 @@ describe('Dependencies', () => {
       'com.tngtech.SomeClass->com.tngtech.pkgToFold()'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('*X*', true);
-    root.filterByName('', false);
+    root.filterByName('~*X*');
+    root.filterByName('');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -818,8 +818,8 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('*X*', true);
-    root.filterByName('', false);
+    root.filterByName('~*X*');
+    root.filterByName('');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -844,7 +844,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
     return root._updatePromise.then(() =>
@@ -870,7 +870,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
     return root._updatePromise.then(() =>
@@ -895,7 +895,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
 
     return root._updatePromise.then(() =>
@@ -919,7 +919,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
 
     return root._updatePromise.then(() =>
@@ -944,7 +944,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
@@ -969,7 +969,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
@@ -997,9 +997,9 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
       'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('', false);
+    root.filterByName('');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -1022,9 +1022,9 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
-    root.filterByName('*X*', true);
+    root.filterByName('~*X*');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('', false);
+    root.filterByName('');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
