@@ -1020,6 +1020,26 @@ describe('Node', () => {
       });
   });
 
+  it('should filter out nodes that are excluded explicitly by the filter', () => {
+    const root = testRoot(
+      'my.company.first.SomeClass',
+      'my.company.first.OtherClass',
+      'my.company.second.SomeClass',
+      'my.company.second.OtherClass');
+
+    root.filterByName('my.company.first.*|~*SomeClass', false);
+    return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']))
+      .then(() => {
+        root.filterByName('~*.OtherClass|~*second*', false);
+        return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first',
+          'my.company.first.SomeClass']))
+          .then(() => {
+            root.filterByName('*.OtherClass|~*.second.*', false);
+            return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']));
+          });
+      });
+  });
+
   it('can filter nodes by name and exclude the matching nodes: changes CSS-class of not matching class with ' +
     'matching inner class (can occur in this scenario)', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')

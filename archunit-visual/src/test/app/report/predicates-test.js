@@ -37,6 +37,22 @@ describe('matching strings by checking for a certain substring', () => {
     testStringEquals(' fooar ').against('foobar').is(false);
   });
 
+  describe('leading and concluding whitespaces before | are ignored', () => {
+    testStringEquals(' foo| bar').against('foo').is(true);
+    testStringEquals(' foo| bar').against('bar').is(true);
+    testStringEquals(' foo|   bar').against('bar').is(true);
+    testStringEquals(' foo| bar| test').against('test').is(true);
+    testStringEquals('foo |bar ').against('foo').is(true);
+    testStringEquals('foo |bar ').against('bar').is(true);
+    testStringEquals('foo |bar |test ').against('test').is(true);
+
+    testStringEquals('foo |bar ').against('fo').is(false);
+    testStringEquals('foo |bar ').against('ba').is(false);
+    testStringEquals('foo |bar |test ').against('test1').is(false);
+    testStringEquals(' foo| bar').against('anyOther').is(false);
+    testStringEquals(' foo | bar ').against('anyOther').is(false);
+  });
+
   describe('only the asterisk (*) is interpreted as wildcard', () => {
     testStringEquals('f*ar').against('foobar').is(true);
     testStringEquals('some.r*.*Class').against('some.random.Class').is(true);
@@ -55,20 +71,16 @@ describe('matching strings by checking for a certain substring', () => {
     testStringEquals('foo|bar|test').against('notMatching').is(false);
   });
 
-  describe('leading and concluding whitespaces before | are ignored', () => {
-    testStringEquals(' foo| bar').against('foo').is(true);
-    testStringEquals(' foo| bar').against('bar').is(true);
-    testStringEquals(' foo|   bar').against('bar').is(true);
-    testStringEquals(' foo| bar| test').against('test').is(true);
-    testStringEquals('foo |bar ').against('foo').is(true);
-    testStringEquals('foo |bar ').against('bar').is(true);
-    testStringEquals('foo |bar |test ').against('test').is(true);
+  describe('options starting with ~ are excluded from the included set', () => {
+    testStringEquals('foo|~bar').against('foo').is(true);
+    testStringEquals('foo*|~*baz').against('foobar').is(true);
 
-    testStringEquals('foo |bar ').against('fo').is(false);
-    testStringEquals('foo |bar ').against('ba').is(false);
-    testStringEquals('foo |bar |test ').against('test1').is(false);
-    testStringEquals(' foo| bar').against('anyOther').is(false);
-    testStringEquals(' foo | bar ').against('anyOther').is(false);
+    testStringEquals('foo|~bar').against('bar').is(false);
+    testStringEquals('foo*|~*bar').against('foobar').is(false);
+    testStringEquals('*bar*|~*foo*').against('foobar').is(false);
+    testStringEquals('foo*|~*bar|~*baz').against('foobaz').is(false);
+    testStringEquals('foo|~foo').against('foo').is(false);
+    testStringEquals('foo|~foo').against('anyOther').is(false);
   });
 
   describe('some typical scenarios when filtering fully qualified class names', () => {
@@ -82,6 +94,7 @@ describe('matching strings by checking for a certain substring', () => {
     testStringEquals('*.long.pkg.*').against('some.evil.long.pkg.SomeClass').is(true);
     testStringEquals('*.pk.*').against('some.evil.long.pkg.SomeClass').is(false);
     testStringEquals('*.evil..pkg.*').against('some.evil.long.pkg.SomeClass').is(false);
+    testStringEquals('my.company.*|~*.SimpleClass').against('my.company.SimpleClass').is(false);
   });
 });
 
