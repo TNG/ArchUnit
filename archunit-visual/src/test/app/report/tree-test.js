@@ -909,7 +909,7 @@ describe('Node', () => {
   });
 
   it('can filter nodes by name using a simple string: hides packages with no matching classes, does not hide not ' +
-    'matching class with matching inner classes; changes the CSS-class of a matching node with no matching children', () => {
+    'matching class with matching inner classes', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('MatchingClass', 'class').build())
       .add(testJson.clazz('MatchingInterface', 'interface').build())
@@ -936,14 +936,12 @@ describe('Node', () => {
       'com.tngtech.archunit.MatchingClass', 'com.tngtech.archunit.MatchingInterface',
       'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild',
       'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild$MatchingClass',
-      'com.tngtech.archunit.MatchingPkg', 'com.tngtech.archunit.pkgWithMatchingClass',
-      'com.tngtech.archunit.pkgWithMatchingClass.MatchingClass',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass'];
+      'com.tngtech.archunit.MatchingPkg', 'com.tngtech.archunit.MatchingPkg.SomeClass',
+      'com.tngtech.archunit.pkgWithMatchingClass', 'com.tngtech.archunit.pkgWithMatchingClass.MatchingClass',
+      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass',
+      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass$NotMatchingClass'];
     const expHiddenNodes = ['com.tngtech.archunit.pkgWithNoMatchingClass',
       'com.tngtech.archunit.pkgWithMatchingClass.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    const pkgWithChangedCssClass = root.getByName('com.tngtech.archunit.MatchingPkg');
-    const classWithChangedCssClass = root.getByName('com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass');
 
     root.filterByName('com.tngtech.archunit.MatchingClass|com.tngtech.archunit.MatchingInterface|' +
       'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild$MatchingClass|' +
@@ -954,10 +952,6 @@ describe('Node', () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(pkgWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(pkgWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
-      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(classWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
     });
   });
 
@@ -1083,8 +1077,7 @@ describe('Node', () => {
     });
   });
 
-  it('can filter nodes by name using a string with a space at the end and exclude the matching nodes: does not hide ' +
-    'matching nodes with a not matching child', () => {
+  it('can filter nodes by name and exclude the matching nodes', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')
       .add(testJson.clazz('MatchingClassXX', 'class').build())
       .add(testJson.clazz('MatchingClassWithNotMatchingChildXX', 'class')
@@ -1096,12 +1089,11 @@ describe('Node', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
 
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX$NotMatchingClass',
+    const visibleNodes = ['com.tngtech.archunit'];
+    const expHiddenNodes = ['com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
       'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
-      'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX.NotMatchingClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.MatchingClassXX'].map(nodeFullName => root.getByName(nodeFullName));
+      'com.tngtech.archunit.MatchingClassXX', 'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX',
+      'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX'].map(nodeFullName => root.getByName(nodeFullName));
 
     root.filterByName('~*XX');
 
@@ -1213,7 +1205,7 @@ describe('Node', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
 
-    root.filterByName('*X');
+    root.filterByName('*X|~*.NameMatchingInterfaceWithNoMatchingChildX$NotNameMatchingInterface');
     root.filterByType(true, false);
 
     const visibleNodes = ['com.tngtech.archunit',

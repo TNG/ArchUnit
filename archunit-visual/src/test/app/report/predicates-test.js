@@ -15,9 +15,14 @@ const testStringEquals = (subString) => ({
   })
 });
 
-describe('matching strings by checking for a certain substring', () => {
+describe('matching strings by checking for a certain equal string or prefix-string', () => {
   describe('simple substrings', () => {
     testStringEquals('foobar').against('foobar').is(true);
+    testStringEquals('foo.bar').against('foo.bar').is(true);
+    testStringEquals('foo.bar').against('foo.bar.baz').is(true);
+    testStringEquals('foo.bar').against('foo.bar$baz').is(true);
+
+    testStringEquals('foo.bar').against('foo.barbaz').is(false);
     testStringEquals('bar').against('foobar').is(false);
 
     testStringEquals('for').against('foobar').is(false);
@@ -55,6 +60,8 @@ describe('matching strings by checking for a certain substring', () => {
 
   describe('only the asterisk (*) is interpreted as wildcard', () => {
     testStringEquals('f*ar').against('foobar').is(true);
+    testStringEquals('f*ar').against('foobar.baz').is(true);
+    testStringEquals('f*ar').against('foobar$baz').is(true);
     testStringEquals('some.r*.*Class').against('some.random.Class').is(true);
     testStringEquals('.$?[]\\^+').against('.$?[]\\^+').is(true);
 
@@ -66,6 +73,8 @@ describe('matching strings by checking for a certain substring', () => {
     testStringEquals('foo|bar').against('foo').is(true);
     testStringEquals('foo|bar').against('bar').is(true);
     testStringEquals('foo|bar|test').against('test').is(true);
+    testStringEquals('foo|bar|test').against('test.foo').is(true);
+    testStringEquals('foo|bar|test').against('test$foo').is(true);
 
     testStringEquals('foo|bar').against('anyOther').is(false);
     testStringEquals('foo|bar|test').against('notMatching').is(false);
@@ -76,6 +85,8 @@ describe('matching strings by checking for a certain substring', () => {
     testStringEquals('foo*|~*baz').against('foobar').is(true);
 
     testStringEquals('foo|~bar').against('bar').is(false);
+    testStringEquals('foo|~bar').against('bar.foo').is(false);
+    testStringEquals('foo|~bar').against('bar$foo').is(false);
     testStringEquals('foo*|~*bar').against('foobar').is(false);
     testStringEquals('*bar*|~*foo*').against('foobar').is(false);
     testStringEquals('foo*|~*bar|~*baz').against('foobaz').is(false);
@@ -85,6 +96,8 @@ describe('matching strings by checking for a certain substring', () => {
 
   describe('some typical scenarios when filtering fully qualified class names', () => {
     testStringEquals('my.company.*').against('my.company.SimpleClass').is(true);
+    testStringEquals('my.company').against('my.company.SimpleClass').is(true);
+    testStringEquals('my.company.SimpleClass').against('my.company.SimpleClass$InnerClass').is(true);
     testStringEquals('*.SimpleClass').against('my.company.SimpleClass').is(true);
     testStringEquals('*Json*').against('some.evil.long.pkg.JsonParser').is(true);
     testStringEquals('*Json').against('some.evil.long.pkg.JsonParser').is(false);

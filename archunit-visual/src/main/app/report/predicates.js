@@ -20,7 +20,11 @@ const escapeRegExp = str => {
 
 const formatStarAsWildcard = str => str.replace(/\*/g, '.*');
 
-const createRegexStringOfOptionsStrings = optionStrings => optionStrings.map(s => `^${s}$`).join('|');
+const createRegexStringOfOptionsStrings = optionStrings =>
+  //a matching string must either equal an option-string or be a prefix of an option-string, so that the following symbol is . or $
+  optionStrings.map(s => `^${s}(?=\\.|\\$|$)`);
+
+const joinToRegexOptions = optionsStrings => optionsStrings.join('|');
 
 /**
  * creates a function, that checks, if a string matches the given filterExpression.
@@ -65,12 +69,14 @@ const stringEquals = filterExpression => {
     const escapedWithStarAsWildcard = formatStarAsWildcard(escaped);
     (exclude ? partitionedAndEscaped.exclude : partitionedAndEscaped.include).push(escapedWithStarAsWildcard);
   });
+
+  const includeRegexString = joinToRegexOptions(createRegexStringOfOptionsStrings(partitionedAndEscaped.include));
+  const includeRegex = new RegExp(includeRegexString);
+
   //the exclude-array needs an additional empty string: if there are no strings excluded,
   //the resulting empty exclude-regex would match every string, but actually it should match no string
-  partitionedAndEscaped.exclude.push(formatStarAsWildcard(''));
-
-  const includeRegex = new RegExp(createRegexStringOfOptionsStrings(partitionedAndEscaped.include));
-  const excludeRegex = new RegExp(createRegexStringOfOptionsStrings(partitionedAndEscaped.exclude));
+  const excludeRegexString = joinToRegexOptions([...createRegexStringOfOptionsStrings(partitionedAndEscaped.exclude), '^$']);
+  const excludeRegex = new RegExp(excludeRegexString);
   return string => {
     return includeRegex.test(string) && !excludeRegex.test(string);
   }
