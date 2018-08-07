@@ -97,4 +97,5 @@ const classNamesToJson = (classNames) => {
   return mapToJson(jsonAsMap);
 };
 
-export default (...classNames) => new Root(classNamesToJson(classNames));
+export default (...classNames) => new Root(classNamesToJson(classNames), null, () => {
+});

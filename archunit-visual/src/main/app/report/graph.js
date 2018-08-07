@@ -20,12 +20,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
     filterNodesByName(filterString) {
       this.root.filterByName(filterString);
-      this.root.relayoutCompletely();
     }
 
     filterNodesByType(filter) {
       this.root.filterByType(filter.showInterfaces, filter.showClasses);
-      this.root.relayoutCompletely();
     }
 
     filterDependenciesByType(typeFilterConfig) {
@@ -40,7 +38,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     attachToMenu(menu) {
-      menu.initializeSettings(
+      this._menu = menu;
+      this._menu.initializeSettings(
         {
           initialCircleFontSize: visualizationStyles.getNodeFontSize(),
           initialCirclePadding: visualizationStyles.getCirclePadding()

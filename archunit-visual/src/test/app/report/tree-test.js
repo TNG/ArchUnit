@@ -777,6 +777,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass',
       'com.tngtech.archunit.SomeInterfaceWithInnerClass',
@@ -815,6 +816,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
@@ -852,6 +854,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.SomeInterface',
       'com.tngtech.archunit.SomeClassWithInnerInterface', 'com.tngtech.archunit.classes',
@@ -888,6 +891,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass',
@@ -931,6 +935,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.MatchingClass', 'com.tngtech.archunit.MatchingInterface',
@@ -973,6 +978,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.XMatchingClassY', 'com.tngtech.archunit.XNotMatchingClassWithMatchingChild',
@@ -997,6 +1003,7 @@ describe('Node', () => {
       'my.company.first.OtherClass',
       'my.company.second.SomeClass',
       'my.company.second.OtherClass');
+    root.getLinks = () => [];
 
     root.filterByName('my.*.first.*');
     return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
@@ -1020,6 +1027,7 @@ describe('Node', () => {
       'my.company.first.OtherClass',
       'my.company.second.SomeClass',
       'my.company.second.OtherClass');
+    root.getLinks = () => [];
 
     root.filterByName('my.company.first.*|~*SomeClass');
     return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']))
@@ -1054,6 +1062,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.NotMatchingClassWithMatchingChild',
@@ -1088,6 +1097,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit'];
     const expHiddenNodes = ['com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
@@ -1121,6 +1131,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.MatchingClassXX',
       'com.tngtech.archunit.MatchingInterfaceXX', 'com.tngtech.archunit.NotMatchingXXClass',
@@ -1159,6 +1170,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit',
       'com.tngtech.archunit.YMatchingInterface',
@@ -1178,7 +1190,7 @@ describe('Node', () => {
     });
   });
 
-  it('can filter by name (ending with a space) and filter by type (hiding classes): hides packages (not matching) ' +
+  it('can filter by name and filter by type (hiding classes): hides packages (not matching) ' +
     'without children matching both filters and does not hide not matching nodes with a matching child, and changes ' +
     'CSS-class of a node loosing its children only because of both filters (that means every child is matching exactly ' +
     'one filter)', () => {
@@ -1204,6 +1216,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     root.filterByName('*X|~*.NameMatchingInterfaceWithNoMatchingChildX$NotNameMatchingInterface');
     root.filterByType(true, false);
@@ -1246,6 +1259,7 @@ describe('Node', () => {
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
 
     const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.NameMatchingInterfaceX',
       'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.pkgWithNoNameMatchingChild',

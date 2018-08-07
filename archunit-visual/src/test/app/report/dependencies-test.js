@@ -582,6 +582,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = [
       'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
@@ -611,6 +612,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.MatchingClass1(methodCall)',
@@ -646,6 +648,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
     dependencies.recreateVisible();
 
     const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
@@ -676,6 +679,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
@@ -702,6 +706,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
@@ -733,6 +738,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
@@ -757,6 +763,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
@@ -787,6 +794,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()',
       'com.tngtech.SomeClass->com.tngtech.pkgToFold()'];
@@ -814,6 +822,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
@@ -840,6 +849,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
@@ -865,7 +875,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
-
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
@@ -892,6 +902,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()'];
 
@@ -916,6 +927,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
@@ -941,6 +953,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
@@ -966,6 +979,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
@@ -993,6 +1007,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
       'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
@@ -1019,6 +1034,7 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
+    root.getLinks = () => dependencies.getAllLinks();
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 

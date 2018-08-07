@@ -56,7 +56,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._text = new NodeText(this);
       this._folded = false;
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
-      this._filters = newFilters(this);
       this._listener = [];
     }
 
@@ -290,52 +289,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           sortedNodes.second.nodeCircle.absoluteCircle));
       }
     }
-
-    /**
-     * Hides all nodes that don't contain the supplied filterString.
-     *
-     * @param nodeNameSubstring The node's full name needs to contain this text, to pass the filter.
-     * '*' matches any number of arbitrary characters. If nodeNamesSubstring ends with a space,
-     * the node's full name has to end with nodeNamesSubstring to pass the filter.
-     */
-    filterByName(nodeNameSubstring) {
-      //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
-      if (!nodeNameSubstring.replace(/\s/g, '')) {
-        this._filters.nameFilter = null;
-      }
-      else {
-        const stringEqualsSubstring = predicates.stringEquals(nodeNameSubstring);
-        const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-
-        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringEqualsSubstring));
-      }
-      this._root.doNextAndWaitFor(() => {
-        this._filters.apply();
-        this._listener.forEach(listener => listener.onNodeFiltersChanged());
-      });
-    }
-
-    filterByType(showInterfaces, showClasses) {
-      if (showInterfaces && showClasses) {
-        this._filters.typeFilter = null;
-      }
-      else {
-        let predicate = node => !node.isPackage();
-        predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
-        predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
-
-        this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
-      }
-      this._root.doNextAndWaitFor(() => {
-        this._filters.apply();
-        this._listener.forEach(listener => listener.onNodeFiltersChanged());
-      });
-    }
   };
 
   const Root = class extends Node {
     constructor(jsonNode, svgContainer, onRadiusChanged) {
       super(jsonNode, svgContainer);
+      this._filters = newFilters(this);
       this._root = this;
       this._parent = this;
       this.nodeCircle = new NodeCircle(this,
@@ -368,6 +327,50 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           }
         });
       }
+    }
+
+
+    /**
+     * Hides all nodes that don't contain the supplied filterString.
+     *
+     * @param nodeNameSubstring The node's full name needs to equal this text or have this text as prefix
+     * with a following . or $, to pass the filter.
+     * '*' matches any number of arbitrary characters.
+     */
+    filterByName(nodeNameSubstring) {
+      //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
+      if (!nodeNameSubstring.replace(/\s/g, '')) {
+        this._filters.nameFilter = null;
+      }
+      else {
+        const stringEqualsSubstring = predicates.stringEquals(nodeNameSubstring);
+        const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
+
+        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringEqualsSubstring));
+      }
+      this._root.doNextAndWaitFor(() => {
+        this._filters.apply();
+        this._listener.forEach(listener => listener.onNodeFiltersChanged());
+      });
+      this._root.relayoutCompletely();
+    }
+
+    filterByType(showInterfaces, showClasses) {
+      if (showInterfaces && showClasses) {
+        this._filters.typeFilter = null;
+      }
+      else {
+        let predicate = node => !node.isPackage();
+        predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
+        predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
+
+        this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
+      }
+      this._root.doNextAndWaitFor(() => {
+        this._filters.apply();
+        this._listener.forEach(listener => listener.onNodeFiltersChanged());
+      });
+      this._root.relayoutCompletely();
     }
 
     foldAllNodes() {
