@@ -5,7 +5,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   const Graph = class {
     constructor(jsonRoot, violations, svg, foldAllNodes) {
       this._view = new View(svg);
-      this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius));
+      this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius), newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
       this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
@@ -35,6 +35,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       nodesContainingViolations.forEach(node => node.callOnEveryPredecessorThenSelf(node => node.unfold()));
       this.dependencies.recreateVisible();
       this.root.relayoutCompletely();
+    }
+
+    onNodeFilterStringChanged(newNodeFilterString) {
+      this._menu.changeNodeNameFilter(newNodeFilterString);
     }
 
     attachToMenu(menu) {

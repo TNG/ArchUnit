@@ -34,6 +34,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   const newFilters = (root) => ({
     typeFilter: null,
     nameFilter: null,
+    nameFilterString: '',
 
     apply: function () {
       root._resetFilteredChildren();
@@ -55,7 +56,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
-      this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy));
+      this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
+        () => this._root.addNodeToExcludeFilter(this.getFullName()));
       this._listener = [];
     }
 
@@ -292,11 +294,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   };
 
   const Root = class extends Node {
-    constructor(jsonNode, svgContainer, onRadiusChanged) {
+    constructor(jsonNode, svgContainer, onRadiusChanged, onNodeFilterStringChanged) {
       super(jsonNode, svgContainer);
       this._filters = newFilters(this);
       this._root = this;
       this._parent = this;
+      this._onNodeFilterStringChanged = onNodeFilterStringChanged;
       this.nodeCircle = new NodeCircle(this,
         {
           onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
@@ -329,21 +332,28 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    addNodeToExcludeFilter(nodeFullName) {
+      this.filterByName([this._filters.nameFilterString, '~' + nodeFullName].filter(el => el).join('|'));
+      this._onNodeFilterStringChanged(this._filters.nameFilterString);
+    }
+
 
     /**
      * Hides all nodes that don't contain the supplied filterString.
      *
-     * @param nodeNameSubstring The node's full name needs to equal this text or have this text as prefix
+     * @param nodeNameFilterString The node's full name needs to equal this text or have this text as prefix
      * with a following . or $, to pass the filter.
      * '*' matches any number of arbitrary characters.
      */
-    filterByName(nodeNameSubstring) {
+    filterByName(nodeNameFilterString) {
       //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
-      if (!nodeNameSubstring.replace(/\s/g, '')) {
+      if (!nodeNameFilterString.replace(/\s/g, '')) {
         this._filters.nameFilter = null;
+        this._filters.nameFilterString = '';
       }
       else {
-        const stringEqualsSubstring = predicates.stringEquals(nodeNameSubstring);
+        this._filters.nameFilterString = nodeNameFilterString;
+        const stringEqualsSubstring = predicates.stringEquals(nodeNameFilterString);
         const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
         this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringEqualsSubstring));

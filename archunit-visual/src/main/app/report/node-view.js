@@ -10,7 +10,7 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('interrupt', resolve).on('end', resolve));
 
   const View = class {
-    constructor(parentSvgElement, node, onClick, onDrag) {
+    constructor(parentSvgElement, node, onClick, onDrag, onCtrlClick) {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
         .data([node])
@@ -34,7 +34,7 @@ const init = (transitionDuration) => {
       this._textWidth = this._text.getComputedTextLength();
 
       this._onDrag(onDrag);
-      this._onClick(onClick);
+      this._onClick(onClick, onCtrlClick);
     }
 
     getTextWidth() {
@@ -77,9 +77,18 @@ const init = (transitionDuration) => {
       return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }
 
-    _onClick(handler) {
-      d3.select(this._svgElement).select('circle').on('click', handler);
-      d3.select(this._svgElement).select('text').on('click', handler);
+    _onClick(handler, ctrlHandler) {
+      const onClick = event => {
+        if (event.ctrlKey || event.altKey) {
+          ctrlHandler();
+        }
+        else {
+          handler();
+        }
+        return false;
+      };
+      d3.select(this._svgElement).select('circle').node().onclick = onClick;
+      d3.select(this._svgElement).select('text').node().onclick = onClick;
     }
 
     _onDrag(handler) {

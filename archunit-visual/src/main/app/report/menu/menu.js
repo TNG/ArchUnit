@@ -29,6 +29,10 @@ import {defineCustomElement} from '../web-component-infrastructure';
       return this;
     }
 
+    changeNodeNameFilter(filterString) {
+      this.shadowRoot.querySelector('#filter-bar').changeNodeNameFilter(filterString);
+    }
+
     initializeLegend(legendStyles) {
       this.shadowRoot.querySelector('#legend-menu').initialize(legendStyles);
       return this;

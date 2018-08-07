@@ -23,5 +23,9 @@ import {defineCustomElement} from '../web-component-infrastructure';
     onChanged(newOnChanged) {
       onChanged = newOnChanged;
     }
+
+    changeNodeNameFilter(filterString) {
+      this.shadowRoot.querySelector('#filter-string').value = filterString;
+    }
   });
 }());
