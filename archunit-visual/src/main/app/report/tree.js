@@ -332,8 +332,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    /**
+     * changes the name-filter so that the given node is excluded
+     * @param nodeFullName fullname of the node to exclude
+     */
     addNodeToExcludeFilter(nodeFullName) {
-      this.filterByName([this._filters.nameFilterString, '~' + nodeFullName].filter(el => el).join('|'));
+      this._filterByNameWithoutRelayout([this._filters.nameFilterString, '~' + nodeFullName].filter(el => el).join('|'));
       this._onNodeFilterStringChanged(this._filters.nameFilterString);
     }
 
@@ -346,7 +350,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * '*' matches any number of arbitrary characters.
      */
     filterByName(nodeNameFilterString) {
-      //TODO: better check this already in graph or even in the menu, and then call method resetFilter(); same for the type-filter
+      this._filterByNameWithoutRelayout(nodeNameFilterString);
+      this._root.relayoutCompletely();
+    }
+
+    _filterByNameWithoutRelayout(nodeNameFilterString) {
       if (!nodeNameFilterString.replace(/\s/g, '')) {
         this._filters.nameFilter = null;
         this._filters.nameFilterString = '';
@@ -362,7 +370,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         this._filters.apply();
         this._listener.forEach(listener => listener.onNodeFiltersChanged());
       });
-      this._root.relayoutCompletely();
     }
 
     filterByType(showInterfaces, showClasses) {

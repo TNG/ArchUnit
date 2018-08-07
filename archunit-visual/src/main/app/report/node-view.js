@@ -24,7 +24,13 @@ const init = (transitionDuration) => {
       if (node.isRoot()) {
         d3.select(this._svgElement)
           .select('circle')
-          .style('visibility', 'hidden')
+          .style('visibility', 'hidden');
+
+        document.onkeyup = event => {
+          if (event.key === 'Alt' || event.key === 'Control') {
+            node._relayoutCompletely();
+          }
+        }
       }
 
       this._text = d3.select(this._svgElement)
