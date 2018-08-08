@@ -86,6 +86,79 @@ describe('Root', () => {
     return root._updatePromise;
   });
 
+  it('can fold all visible nodes with minimum depth that have no specific descendant, when no nodes are folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkg1')
+        .add(testJson.clazz('SomeClass', 'class')
+          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+          .build())
+        .build())
+      .add(testJson.package('pkg2')
+        .add(testJson.clazz('SomeClass', 'class')
+          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+          .build())
+        .build())
+      .add(testJson.package('pkg3')
+        .add(testJson.clazz('SomeClass', 'class')
+          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg1.SomeClass',
+      'com.tngtech.archunit.pkg1.SomeClass$InnerClass', 'com.tngtech.archunit.pkg2',
+      'com.tngtech.archunit.pkg2.SomeClass', 'com.tngtech.archunit.pkg3'];
+
+    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg1.SomeClass$InnerClass',
+      'com.tngtech.archunit.pkg2.SomeClass']
+      .map(nodeFullName => root.getByName(nodeFullName));
+
+    root.foldNodesWithMinimumDepthThatHaveNotDescendants(new Set(nodes));
+
+    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+    expect(root.getByName('com.tngtech.archunit.pkg3.SomeClass$InnerClass').isFolded()).to.be.false;
+    return root._updatePromise;
+  });
+
+  it('can fold all visible nodes with minimum depth that have no specific descendant, when nodes are folded', () => {
+    const jsonRoot = testJson.package('com.tngtech.archunit')
+      .add(testJson.package('pkg1')
+        .add(testJson.clazz('SomeClass', 'class')
+          .build())
+        .build())
+      .add(testJson.package('pkg2')
+        .add(testJson.package('pkg3')
+          .add(testJson.clazz('SomeClass', 'class')
+            .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+            .build())
+          .build())
+        .build())
+      .add(testJson.package('pkg3')
+        .add(testJson.clazz('SomeClass', 'class').build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    root.getLinks = () => [];
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+
+    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg1.SomeClass',
+      'com.tngtech.archunit.pkg2', 'com.tngtech.archunit.pkg2.pkg3', 'com.tngtech.archunit.pkg3'];
+
+    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.pkg3.SomeClass']
+      .map(nodeFullName => root.getByName(nodeFullName));
+
+    root.getByName('com.tngtech.archunit.pkg2.pkg3').fold();
+    root.foldNodesWithMinimumDepthThatHaveNotDescendants(new Set(nodes));
+
+    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+    return root._updatePromise;
+  });
+
   it('can hide interfaces: hides packages with only interfaces, changes CSS-class of classes with only inner ' +
     'interfaces, does not hide interfaces with an inner class', () => {
     const jsonRoot = testJson.package('com.tngtech.archunit')

@@ -1501,6 +1501,71 @@ describe('Dependencies', () => {
     expect(dependencies.getNodesContainingViolations()).to.containExactlyNodes(exp);
   });
 
+  it('can return a set of all nodes that a involved in violations when these nodes are classes only', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.package('pkg1')
+          .add(testJson.package('pkg2')
+            .add(testJson.clazz('SomeClass2', 'class')
+              .extending('com.tngtech.pkg1.pkg2.SomeClass1')
+              .build())
+            .add(testJson.clazz('SomeClass1', 'class').build())
+            .build())
+          .build())
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build();
+
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+
+    const rule = {
+      rule: 'rule',
+      violations: [{
+        origin: 'com.tngtech.pkg1.pkg2.SomeClass2',
+        target: 'com.tngtech.pkg1.pkg2.SomeClass1'
+      }]
+    };
+
+    const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.showViolations(rule);
+
+    const exp = ['com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.pkg2.SomeClass1'];
+
+    expect([...dependencies.getNodesInvolvedInViolations()]).to.containExactlyNodes(exp);
+  });
+
+  it('can return a set of all nodes that a involved in violations when these nodes contain packages', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.package('pkg')
+          .add(testJson.clazz('SomeClass', 'class')
+            .extending('com.tngtech.SomeClass1')
+            .build())
+          .build())
+        .add(testJson.clazz('SomeClass1', 'class').build())
+        .add(testJson.clazz('SomeClass2', 'class').build())
+        .build();
+
+    const root = new Root(jsonRoot, null, () => Promise.resolve());
+
+    const rule = {
+      rule: 'rule',
+      violations: [{
+        origin: 'com.tngtech.pkg.SomeClass',
+        target: 'com.tngtech.SomeClass1'
+      }]
+    };
+
+    const dependencies = new Dependencies(jsonRoot, root);
+    dependencies.showViolations(rule);
+
+    root.getByName('com.tngtech.pkg').fold();
+
+    const exp = ['com.tngtech.pkg.SomeClass', 'com.tngtech.SomeClass1'];
+
+    expect([...dependencies.getNodesInvolvedInViolations()]).to.containExactlyNodes(exp);
+  });
+
   it('does not return node-fullnames of violations that are hidden by a filter', () => {
     const jsonRoot =
       testJson.package('com.tngtech')

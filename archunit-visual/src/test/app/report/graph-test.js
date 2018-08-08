@@ -218,10 +218,59 @@ describe('Graph', () => {
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violations[0]);
-      graph.changeFoldStatesToShowAllViolations();
+      graph.unfoldNodesToShowAllViolations();
 
       return graph.root._updatePromise.then(() => {
         const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.SomeClass1'];
+        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+        return graph.root._updatePromise;
+      });
+    });
+  });
+
+  it('can fold nodes with minimum depth that have no violations', () => {
+    const jsonRoot =
+      testJson.package('com.tngtech')
+        .add(testJson.package('pkg1')
+          .add(testJson.package('pkg2')
+            .add(testJson.clazz('SomeClass2', 'class')
+              .extending('com.tngtech.pkg1.SomeClass1')
+              .build())
+            .build())
+          .add(testJson.clazz('SomeClass1', 'class').build())
+          .build())
+        .add(testJson.package('pkg3')
+          .add(testJson.clazz('SomeOtherClass', 'class')
+            .accessingField('com.tngtech.pkg1.pkg2.SomeClass2', 'startMethod()', 'targetField')
+            .build())
+          .build())
+        .build();
+
+    const violations = [{
+      rule: 'rule1',
+      violations: [{
+        origin: 'com.tngtech.pkg1.pkg2.SomeClass2',
+        target: 'com.tngtech.pkg1.SomeClass1'
+      }]
+    },
+      {
+        rule: 'rule2',
+        violations: [{
+          origin: 'com.tngtech.pkg3.SomeOtherClass',
+          target: 'com.tngtech.pkg1.pkg2.SomeClass2'
+        }]
+      }];
+
+    const graph = createGraph(appContext, createResources(jsonRoot, violations), null, false);
+
+    return graph.root._updatePromise.then(() => {
+      graph.dependencies.showViolations(violations[0]);
+      graph.foldNodesWithMinimumDepthWithoutViolations();
+
+      return graph.root._updatePromise.then(() => {
+        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2',
+          'com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass2',
+          'com.tngtech.pkg3'];
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
         return graph.root._updatePromise;
       });

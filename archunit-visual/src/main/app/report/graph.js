@@ -30,9 +30,16 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.dependencies.filterByType(typeFilterConfig);
     }
 
-    changeFoldStatesToShowAllViolations() {
+    unfoldNodesToShowAllViolations() {
       const nodesContainingViolations = this.dependencies.getNodesContainingViolations();
       nodesContainingViolations.forEach(node => node.callOnEveryPredecessorThenSelf(node => node.unfold()));
+      this.dependencies.recreateVisible();
+      this.root.relayoutCompletely();
+    }
+
+    foldNodesWithMinimumDepthWithoutViolations() {
+      const nodesWithoutViolations = this.dependencies.getNodesInvolvedInViolations();
+      this.root.foldNodesWithMinimumDepthThatHaveNotDescendants(nodesWithoutViolations);
       this.dependencies.recreateVisible();
       this.root.relayoutCompletely();
     }
@@ -83,7 +90,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
         violationsGroup => this.dependencies.hideViolations(violationsGroup));
       violationMenu.onHideAllDependenciesChanged(
         hide => this.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
-      violationMenu.onClickChangeFoldStatesToShowAllViolations(() => this.changeFoldStatesToShowAllViolations())
+      violationMenu.onClickUnfoldNodesToShowAllViolations(() => this.unfoldNodesToShowAllViolations());
+      violationMenu.onClickFoldNodesToHideNodesWithoutViolations(() => this.foldNodesWithMinimumDepthWithoutViolations());
     }
   };
 

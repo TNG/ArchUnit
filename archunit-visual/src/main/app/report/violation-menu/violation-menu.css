@@ -45,6 +45,7 @@
 
 .group > div {
     margin-left: 10px;
+    margin-right: 10px;
     padding-bottom: 10px;
 }
 
@@ -73,4 +74,9 @@ button {
 
 .marked {
     border: 1px solid red;
+}
+
+div.buttons > button {
+    margin: 5px;
+    width: 100%;
 }

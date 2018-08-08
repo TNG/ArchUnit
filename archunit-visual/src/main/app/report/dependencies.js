@@ -224,12 +224,22 @@ const init = (View) => {
       this._refreshViolationDependencies();
     }
 
+    _getViolationDependencies() {
+      return this._filtered.filter(d => this._violations.containsDependency(d));
+    }
+
     getNodesContainingViolations() {
-      const violationDependencies = this._filtered.filter(d => this._violations.containsDependency(d));
+      const violationDependencies = this._getViolationDependencies();
       const everyFirstCommonPredecessor = violationDependencies.map(d =>
         nodes.getByName(d.from).getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(d.to)));
       const distinctNodes = new Map(everyFirstCommonPredecessor.map(node => [node.getFullName(), node])).values();
       return [...distinctNodes];
+    }
+
+    getNodesInvolvedInViolations() {
+      const violationDependencies = this._getViolationDependencies();
+      const nodesInvolvedInViolations = violationDependencies.map(d => nodes.getByName(d.from)).concat(violationDependencies.map(d => nodes.getByName(d.to)));
+      return new Set(nodesInvolvedInViolations);
     }
 
     _refreshViolationDependencies() {

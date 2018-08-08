@@ -44,8 +44,13 @@ import * as d3 from 'd3';
       callback(checkbox.checked); //sync initial state
     }
 
-    onClickChangeFoldStatesToShowAllViolations(callback) {
-      const button = this.shadowRoot.querySelector('#changeFoldStatesToShowAllViolations');
+    onClickUnfoldNodesToShowAllViolations(callback) {
+      const button = this.shadowRoot.querySelector('#unfoldNodesToShowAllViolations');
+      button.onclick = () => callback();
+    }
+
+    onClickFoldNodesToHideNodesWithoutViolations(callback) {
+      const button = this.shadowRoot.querySelector('#foldNodesToHideNodesWithoutViolations');
       button.onclick = () => callback();
     }
   });

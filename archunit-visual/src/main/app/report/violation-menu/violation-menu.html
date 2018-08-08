@@ -6,8 +6,14 @@
       <div class="title">Violation-rules:</div>
       <div class="violation-rule-list verticalDivider"></div>
       <div class="verticalDivider group">
-        <div>
-          <button id="changeFoldStatesToShowAllViolations">open selected violations</button>
+        <div class="buttons">
+          <button id="unfoldNodesToShowAllViolations" title="unfold all nodes that contain selected violations">
+            open selected violations
+          </button>
+          <button id="foldNodesToHideNodesWithoutViolations"
+                  title="fold all nodes with minimal depth that have no violation">
+            fold other nodes
+          </button>
         </div>
         <div id="hideAllDepsWhenRuleSelectedSetting">
           <input type="checkbox" class="checkbox" id="hideAllDepsWhenRuleSelected" checked>

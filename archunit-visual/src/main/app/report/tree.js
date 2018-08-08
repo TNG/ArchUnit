@@ -148,6 +148,25 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           || keyAfterFullName === fullNameSeparators.classSeparator);
     }
 
+    foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
+      const childrenWithResults = this.getCurrentChildren().map(child => ({
+        node: child,
+        canBeHidden: child.foldNodesWithMinimumDepthThatHaveNotDescendants(nodes)
+      }));
+      const thisCanBeFolded = childrenWithResults.every(n => n.canBeHidden);
+      if (thisCanBeFolded) {
+        if (nodes.has(this) || (this.isFolded() && [...nodes].some(n => this.isPredecessorOfOrNodeItself(n.getFullName())))) {
+          this.fold();
+          return false;
+        }
+        return true;
+      }
+      else {
+        childrenWithResults.filter(n => n.canBeHidden).forEach(n => n.node.fold());
+        return false;
+      }
+    }
+
     isFolded() {
       return this._folded;
     }
@@ -340,7 +359,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._filterByNameWithoutRelayout([this._filters.nameFilterString, '~' + nodeFullName].filter(el => el).join('|'));
       this._onNodeFilterStringChanged(this._filters.nameFilterString);
     }
-
 
     /**
      * Hides all nodes that don't contain the supplied filterString.
