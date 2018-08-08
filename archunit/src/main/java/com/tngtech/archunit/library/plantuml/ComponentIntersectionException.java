@@ -15,12 +15,8 @@
  */
 package com.tngtech.archunit.library.plantuml;
 
-class PlantUmlParseException extends RuntimeException {
-    PlantUmlParseException(Exception e) {
-        super(e);
-    }
-
-    PlantUmlParseException(String message, Throwable cause) {
-        super(message, cause);
+class ComponentIntersectionException extends RuntimeException {
+    ComponentIntersectionException(String format) {
+        super(format);
     }
 }

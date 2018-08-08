@@ -88,7 +88,9 @@ public final class PackageMatcher {
         for (int i = 0; i < packageIdentifier.length(); i++) {
             char c = packageIdentifier.charAt(i);
             if (!Character.isJavaIdentifierPart(c) && !PACKAGE_CONTROL_SYMBOLS.contains(c)) {
-                throw new IllegalArgumentException("Package Identifier may only consist of valid java identifier parts or the symbols '.)(*'");
+                throw new IllegalArgumentException(
+                        String.format("Package Identifier '%s' may only consist of valid java identifier parts or the symbols '.)(*'",
+                                packageIdentifier));
             }
         }
     }

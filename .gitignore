@@ -3,7 +3,7 @@
 *.iml
 build
 out
-target
+/archunit-maven-test/target
 .project
 .settings
 .classpath
