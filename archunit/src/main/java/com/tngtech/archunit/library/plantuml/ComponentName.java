@@ -24,9 +24,6 @@ class ComponentName {
 
     ComponentName(String value) {
         this.value = checkNotNull(value);
-        if (value.contains("-") || value.contains("_")) {
-            throw new IllegalDiagramException("Component Name '%s' should not contain character(s): '-' or '_'", value);
-        }
     }
 
     String asString() {

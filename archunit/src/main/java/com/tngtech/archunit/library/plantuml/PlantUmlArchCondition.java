@@ -58,13 +58,13 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependenciesWithOrigin(DescribedPredicate<JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_ORIGIN_CLASS.is(ignorePredicate)
-                .as("ignore dependencies with origin " + ignorePredicate.getDescription()));
+                .as("ignoring dependencies with origin " + ignorePredicate.getDescription()));
     }
 
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependenciesWithTarget(DescribedPredicate<JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_TARGET_CLASS.is(ignorePredicate)
-                .as("ignore dependencies with target " + ignorePredicate.getDescription()));
+                .as("ignoring dependencies with target " + ignorePredicate.getDescription()));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -76,13 +76,13 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     public PlantUmlArchCondition ignoreDependencies(final String from, final String to) {
         return ignoreDependencies(
                 GET_ORIGIN_CLASS.is(name(from)).and(GET_TARGET_CLASS.is(name(to)))
-                        .as("ignore dependencies from %s to %s", from, to));
+                        .as("ignoring dependencies from %s to %s", from, to));
     }
 
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependencies(DescribedPredicate<Dependency> ignorePredicate) {
-        return new PlantUmlArchCondition(getDescription()
-                + ", " + ignorePredicate.getDescription(),
+        String description = getDescription() + ", " + ignorePredicate.getDescription();
+        return new PlantUmlArchCondition(description,
                 this.ignorePredicate.or(ignorePredicate),
                 javaClassDiagramAssociation);
     }
@@ -136,7 +136,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     private static String getDescription(URL plantUmlUrl, String ignoreDescription) {
-        return String.format("adhere to PlantUML diagram <%s> while %s", getFileNameOf(plantUmlUrl), ignoreDescription);
+        return String.format("adhere to PlantUML diagram <%s>%s", getFileNameOf(plantUmlUrl), ignoreDescription);
     }
 
     private static String getFileNameOf(URL url) {
@@ -160,17 +160,17 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static Configuration considerAllDependencies() {
+        public static Configuration consideringAllDependencies() {
             return new Configuration() {
                 @Override
                 public DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return DescribedPredicate.<Dependency>alwaysFalse().as("ignoring no dependencies");
+                    return DescribedPredicate.<Dependency>alwaysFalse().as("");
                 }
             };
         }
 
         @PublicAPI(usage = ACCESS)
-        public static Configuration considerOnlyDependenciesInDiagram() {
+        public static Configuration consideringOnlyDependenciesInDiagram() {
             return new Configuration() {
                 @Override
                 public DescribedPredicate<Dependency> asIgnorePredicate(final JavaClassDiagramAssociation javaClassDiagramAssociation) {
@@ -180,7 +180,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static Configuration considerOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
+        public static Configuration consideringOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
             final List<String> packageIdentifiers = FluentIterable.from(singleton(packageIdentifier))
                     .append(furtherPackageIdentifiers)
                     .toList();
@@ -197,7 +197,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             private final JavaClassDiagramAssociation javaClassDiagramAssociation;
 
             NotContainedInDiagramPredicate(JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                super("ignoring dependencies not contained in the diagram");
+                super(" while ignoring dependencies not contained in the diagram");
                 this.javaClassDiagramAssociation = javaClassDiagramAssociation;
             }
 
@@ -211,7 +211,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             private final List<String> packageIdentifiers;
 
             NotContainedInPackagesPredicate(List<String> packageIdentifiers) {
-                super("ignoring dependencies outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
+                super(" while ignoring dependencies outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
                 this.packageIdentifiers = packageIdentifiers;
             }
 
