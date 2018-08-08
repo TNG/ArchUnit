@@ -47,7 +47,6 @@
   "devDependencies": {
     "babel-plugin-dynamic-import-node": "^1.2.0",
     "babel-preset-env": "^1.7.0",
-    "babel-preset-latest": "^6.24.1",
     "babel-register": "^6.26.0",
     "browserify": "^14.3.0",
     "chai": "^3.5.0",
@@ -58,11 +57,11 @@
     "http-server": "^0.10.0",
     "mocha": "^3.5.3",
     "nodemon": "^1.11.0",
+    "polymer-bundler": "^4.0.2",
     "style-loader": "^0.21.0",
     "web-webpack-plugin": "^1.10.4",
     "webpack": "^4.8.3",
-    "webpack-cli": "^2.1.3",
-    "polymer-bundler": "^4.0.2"
+    "webpack-cli": "^2.1.3"
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^1.0.1",
