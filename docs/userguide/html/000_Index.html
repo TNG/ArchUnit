@@ -510,6 +510,7 @@ h4 {
 <li><a href="#_architectures">8.1. Architectures</a></li>
 <li><a href="#_slices">8.2. Slices</a></li>
 <li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
+<li><a href="#_plantuml_component_diagrams_as_rules">8.4. PlantUML Component Diagrams as rules</a></li>
 </ul>
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
@@ -862,7 +863,7 @@ class MyArchitectureTest {
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-no-access.png" alt="package deps no access" width="461" height="76">
+<img src="package-deps-no-access.png" alt="package deps no access" width="438" height="77">
 </div>
 </div>
 <div class="listingblock">
@@ -873,7 +874,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-only-access.png" alt="package deps only access" width="496" height="334">
+<img src="package-deps-only-access.png" alt="package deps only access" width="463" height="338">
 </div>
 </div>
 <div class="listingblock">
@@ -887,7 +888,7 @@ class MyArchitectureTest {
 <h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-naming-deps.png" alt="class naming deps" width="334" height="214">
+<img src="class-naming-deps.png" alt="class naming deps" width="316" height="215">
 </div>
 </div>
 <div class="listingblock">
@@ -901,7 +902,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
+<img src="class-package-contain.png" alt="class package contain" width="333" height="205">
 </div>
 </div>
 <div class="listingblock">
@@ -915,7 +916,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="479" height="225">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="447" height="231">
 </div>
 </div>
 <div class="listingblock">
@@ -926,7 +927,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="587" height="267">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="544" height="269">
 </div>
 </div>
 <div class="listingblock">
@@ -940,7 +941,7 @@ class MyArchitectureTest {
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="597" height="220">
+<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="555" height="223">
 </div>
 </div>
 <div class="listingblock">
@@ -954,7 +955,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="653" height="598">
+<img src="layer-check.png" alt="layer check" width="629" height="603">
 </div>
 </div>
 <div class="listingblock">
@@ -974,7 +975,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="769" height="398">
+<img src="cycle-check.png" alt="cycle check" width="730" height="401">
 </div>
 </div>
 <div class="listingblock">
@@ -1177,7 +1178,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="985" height="442">
+<img src="domain-overview.png" alt="domain overview" width="932" height="445">
 </div>
 </div>
 <div class="paragraph">
@@ -1206,7 +1207,7 @@ inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-example.png" alt="resolution example" width="377" height="188">
+<img src="resolution-example.png" alt="resolution example" width="358" height="189">
 </div>
 </div>
 <div class="paragraph">
@@ -1221,7 +1222,7 @@ The situation looks roughly like</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-overview.png" alt="resolution overview" width="544" height="317">
+<img src="resolution-overview.png" alt="resolution overview" width="503" height="319">
 </div>
 </div>
 <div class="paragraph">
@@ -1241,7 +1242,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="513" height="223">
+<img src="diamond-example.png" alt="diamond example" width="459" height="228">
 </div>
 </div>
 <div class="paragraph">
@@ -1573,7 +1574,7 @@ a more generic API, that controls the types of objects that our concept targets.
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="import-vs-lang.png" alt="import vs lang" width="723" height="80">
+<img src="import-vs-lang.png" alt="import vs lang" width="666" height="84">
 </div>
 </div>
 <div class="paragraph">
@@ -1748,6 +1749,109 @@ Those can be found within</p>
 <div class="paragraph">
 <p>These for example contain rules not to use <code>java.util.logging</code>, not to write to <code>System.out</code>
 (but use logging instead) or not to throw generic exceptions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_plantuml_component_diagrams_as_rules"><a class="anchor" href="#_plantuml_component_diagrams_as_rules"></a>8.4. PlantUML Component Diagrams as rules</h3>
+<div class="paragraph">
+<p>The Library API offers a feature that supports <a href="http://plantuml.com/component-diagram">PlantUML</a> diagrams.
+This feature is located in</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.plantuml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ArchUnit can derive rules straight from PlantUML diagrams and check to make sure that all imported
+<code>JavaClasses</code> abide by the dependencies of the diagram. The respective rule can be created in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">URL myDiagram = getClass().getResource("my-diagram.puml");
+
+classes().should(adhereToPlantUmlDiagram(myDiagram, consideringAllDependencies()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Diagrams supported have to be component diagrams and associate classes to components via stereotypes.
+The way this works is to use the respective package identifiers (compare
+<code>ArchConditions.onlyHaveDependenciesInAnyPackage(..)</code>) as stereotypes:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="150" height="189">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>@startuml
+[Some Source] &lt;&lt;..some.source..&gt;&gt;
+[Some Target] &lt;&lt;..some.target..&gt;&gt; as target
+
+[Some Source] --&gt; target
+@enduml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Consider this diagram applied as a rule via <code>adhereToPlantUmlDiagram(..)</code>, then for example
+a class <code>some.target.Target</code> accessing <code>some.source.Source</code> would be reported as a violation.</p>
+</div>
+<div class="sect3">
+<h4 id="_configurations"><a class="anchor" href="#_configurations"></a>8.4.1. Configurations</h4>
+<div class="paragraph">
+<p>There are different ways to deal with dependencies of imported classes not covered by the
+diagram at all. The behavior of the PlantUML API can be configured by supplying a respective
+<code>Configuration</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// considers all dependencies possible (including java.lang, java.util, ...)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringAllDependencies())
+
+// considers only dependencies specified in the PlantUML diagram
+// (so any unknown depedency will be ignored)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInDiagram())
+
+// considers only dependencies in any specified package
+// (control the set of dependencies to consider, e.g. only com.myapp..)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInAnyPackage("..some.package.."))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is possible to further customize which dependencies to ignore:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// there are further ignore flavors available
+classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A PlantUML diagram used with ArchUnit must abide by a certain set of rules:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Components must have a name</p>
+</li>
+<li>
+<p>Components must have at least one stereotype. Each stereotype in the diagram must be unique</p>
+</li>
+<li>
+<p>Components may have an optional alias</p>
+</li>
+<li>
+<p>Components must be defined before declaring dependencies</p>
+</li>
+<li>
+<p>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></p>
+</li>
+</ol>
+</div>
 </div>
 </div>
 </div>

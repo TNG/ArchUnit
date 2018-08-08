@@ -53,3 +53,87 @@ com.tngtech.archunit.library.GeneralCodingRules
 
 These for example contain rules not to use `java.util.logging`, not to write to `System.out`
 (but use logging instead) or not to throw generic exceptions.
+
+=== PlantUML Component Diagrams as rules
+
+The Library API offers a feature that supports http://plantuml.com/component-diagram[PlantUML] diagrams.
+This feature is located in
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.library.plantuml
+----
+
+ArchUnit can derive rules straight from PlantUML diagrams and check to make sure that all imported
+`JavaClasses` abide by the dependencies of the diagram. The respective rule can be created in the following way:
+
+[source,java,options="nowrap"]
+----
+URL myDiagram = getClass().getResource("my-diagram.puml");
+
+classes().should(adhereToPlantUmlDiagram(myDiagram, consideringAllDependencies()));
+----
+
+Diagrams supported have to be component diagrams and associate classes to components via stereotypes.
+The way this works is to use the respective package identifiers (compare
+`ArchConditions.onlyHaveDependenciesInAnyPackage(..)`) as stereotypes:
+
+[plantuml, "simple-plantuml-archrule-example"]
+----
+[Some Source] <<..some.source..>>
+[Some Target] <<..some.target..>> as target
+
+[Some Source] --> target
+----
+
+[source,options="nowrap"]
+----
+@startuml
+[Some Source] <<..some.source..>>
+[Some Target] <<..some.target..>> as target
+
+[Some Source] --> target
+@enduml
+----
+
+Consider this diagram applied as a rule via `adhereToPlantUmlDiagram(..)`, then for example
+a class `some.target.Target` accessing `some.source.Source` would be reported as a violation.
+
+==== Configurations
+
+There are different ways to deal with dependencies of imported classes not covered by the
+diagram at all. The behavior of the PlantUML API can be configured by supplying a respective
+`Configuration`:
+
+[source,java,options="nowrap"]
+----
+// considers all dependencies possible (including java.lang, java.util, ...)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringAllDependencies())
+
+// considers only dependencies specified in the PlantUML diagram
+// (so any unknown depedency will be ignored)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInDiagram())
+
+// considers only dependencies in any specified package
+// (control the set of dependencies to consider, e.g. only com.myapp..)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInAnyPackage("..some.package.."))
+----
+
+It is possible to further customize which dependencies to ignore:
+
+[source,java,options="nowrap"]
+----
+// there are further ignore flavors available
+classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate))
+----
+
+A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
+
+1. Components must have a name
+2. Components must have at least one stereotype. Each stereotype in the diagram must be unique
+3. Components may have an optional alias
+4. Components must be defined before declaring dependencies
+5. Dependencies must use arrows only consisting of dashes, pointing right, e.g. `-\->`

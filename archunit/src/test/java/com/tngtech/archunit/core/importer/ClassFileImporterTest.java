@@ -248,6 +248,8 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
+        assertThat(javaClass.getEnclosingClass()).as("enclosing class").isAbsent();
+        assertThat(javaClass.isInnerClass()).as("is inner class").isFalse();
 
         assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
@@ -919,6 +921,7 @@ public class ClassFileImporterTest {
         assertThat(classWithInnerClass.isAnonymous()).as("class is anonymous").isFalse();
         assertThat(innerClass.isAnonymous()).as("class is anonymous").isFalse();
 
+        assertThat(innerClass.isInnerClass()).isTrue();
         assertThat(innerClass.getEnclosingClass()).contains(classWithInnerClass);
         assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
