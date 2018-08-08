@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.library.plantuml;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +29,6 @@ class PlantUmlDiagram {
     private final PlantUmlComponents plantUmlComponents;
 
     private PlantUmlDiagram(PlantUmlDiagram.Builder builder) {
-        validateStereotypes(builder.plantUmlComponents);
         this.plantUmlComponents = checkNotNull(builder.plantUmlComponents);
     }
 
@@ -40,18 +38,6 @@ class PlantUmlDiagram {
 
     Set<PlantUmlComponent> getComponentsWithAlias() {
         return ImmutableSet.copyOf(plantUmlComponents.getComponentsWithAlias());
-    }
-
-    private void validateStereotypes(PlantUmlComponents plantUmlComponents) {
-        Set<Stereotype> visited = new HashSet<>();
-        for (PlantUmlComponent component : plantUmlComponents.getAllComponents()) {
-            for (Stereotype stereotype : component.getStereotypes()) {
-                if (visited.contains(stereotype)) {
-                    throw new IllegalDiagramException(String.format("Stereotype '%s' should be unique", stereotype.getValue()));
-                }
-                visited.add(stereotype);
-            }
-        }
     }
 
     static class Builder {

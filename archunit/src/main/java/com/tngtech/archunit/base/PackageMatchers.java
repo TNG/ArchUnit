@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.base;
 
+import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
@@ -38,6 +39,11 @@ public final class PackageMatchers extends DescribedPredicate<String> {
 
     @PublicAPI(usage = ACCESS)
     public static PackageMatchers of(String... packageIdentifiers) {
+        return of(ImmutableSet.copyOf(packageIdentifiers));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static PackageMatchers of(Collection<String> packageIdentifiers) {
         return new PackageMatchers(ImmutableSet.copyOf(packageIdentifiers));
     }
 

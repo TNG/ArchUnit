@@ -140,19 +140,6 @@ public class PlantUmlParserTest {
     }
 
     @Test
-    public void rejects_duplicate_stereotype() {
-        File file = TestDiagram.in(temporaryFolder)
-                .component("first").withStereoTypes("..identical..")
-                .component("second").withStereoTypes("..identical..")
-                .write();
-
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("Stereotype '..identical..' should be unique");
-
-        createDiagram(file);
-    }
-
-    @Test
     public void parses_a_tricky_alias() {
         PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
                 .component("tricky").withAlias("because it's quoted").withStereoTypes("..tricky..")

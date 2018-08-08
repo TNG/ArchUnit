@@ -26,7 +26,7 @@ class Stereotype {
         this.value = checkNotNull(value);
     }
 
-    String getValue() {
+    String asString() {
         return value;
     }
 

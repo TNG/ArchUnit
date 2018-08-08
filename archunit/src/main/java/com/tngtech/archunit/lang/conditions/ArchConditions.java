@@ -25,6 +25,7 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -53,6 +54,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSet
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
@@ -253,7 +255,43 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsWhere(DescribedPredicate<? super Dependency> predicate) {
         String description = "only have dependents where " + predicate.getDescription();
-        return new AllDependenciesOnClassCondition(description, predicate);
+        return new AllDependenciesCondition(description, predicate, new Function<JavaClass, Collection<Dependency>>() {
+            @Override
+            public Collection<Dependency> apply(JavaClass input) {
+                return input.getDirectDependenciesToSelf();
+            }
+        });
+    }
+
+    /**
+     * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
+     * @return A condition matching {@link JavaClass classes} that depend on
+     * other classes (e.g. this class calling methods of other classes)
+     * with a package matching any of the identifiers
+     */
+    @PublicAPI(usage = ACCESS)
+    public static AllDependenciesCondition onlyHaveDependenciesInAnyPackage(String... packageIdentifiers) {
+        String description = String.format("only have dependencies in any package ['%s']",
+                Joiner.on("', '").join(packageIdentifiers));
+        return onlyHaveDependenciesWhere(dependencyTarget(GET_PACKAGE.is(PackageMatchers.of(packageIdentifiers))))
+                .as(description);
+    }
+
+    /**
+     * @param predicate A predicate identifying relevant dependencies from this class to other classes
+     * @return A condition matching {@link JavaClass classes} that depend on
+     * other classes (e.g. this class calling methods of other classes)
+     * where the respective dependency is matched by the predicate
+     */
+    @PublicAPI(usage = ACCESS)
+    public static AllDependenciesCondition onlyHaveDependenciesWhere(DescribedPredicate<? super Dependency> predicate) {
+        String description = "only have dependencies where " + predicate.getDescription();
+        return new AllDependenciesCondition(description, predicate, new Function<JavaClass, Collection<Dependency>>() {
+            @Override
+            public Collection<Dependency> apply(JavaClass input) {
+                return input.getDirectDependenciesFromSelf();
+            }
+        });
     }
 
     @PublicAPI(usage = ACCESS)
