@@ -27,6 +27,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -41,6 +42,49 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesInAnyPackage;
 import static java.util.Collections.singleton;
 
+/**
+ * Allows to evaluate <a href="http://plantuml.com/component-diagram">PlantUML Component Diagrams</a>
+ * as ArchUnit rules.
+ * <br><br>
+ * The general syntax to use is
+ * <br><br>
+ * <pre><code>
+ * classes().should(adhereToPlantUmlDiagram(someDiagramUrl, consideringAllDependencies()));
+ * </code></pre>
+ * The supported diagram syntax uses component diagram stereotypes to associate package patterns
+ * (compare {@link PackageMatcher}) with components. An example could look like
+ * <pre><code>
+ * [Some Source] <<..some.source..>>
+ * [Some Target] <<..some.target..>>
+ *
+ * [Some Source] --> [Some Target]
+ * </code></pre>
+ * Applying such a diagram as an ArchUnit rule would demand dependencies only from <code>..some.source..</code>
+ * to <code>..some.target..</code>, but forbid them vice versa.<br>
+ * There are various factory method for different input formats (file, url, ...), compare
+ * <ul>
+ *     <li>{@link #adhereToPlantUmlDiagram(URL, Configuration)}</li>
+ *     <li>{@link #adhereToPlantUmlDiagram(File, Configuration)}</li>
+ *     <li>{@link #adhereToPlantUmlDiagram(Path, Configuration)}</li>
+ *     <li>{@link #adhereToPlantUmlDiagram(String, Configuration)}</li>
+ * </ul>
+ * Which dependencies should be considered by the rule can be configured via {@link Configuration}.
+ * Candidates are
+ * <ul>
+ *     <li>{@link Configurations#consideringAllDependencies()}</li>
+ *     <li>{@link Configurations#consideringOnlyDependenciesInDiagram()}</li>
+ *     <li>{@link Configurations#consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
+ * </ul>
+ * <br>
+ * A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
+ * <ol>
+ *     <li>Components must have a name</li>
+ *     <li>Components must have at least one stereotype. Each stereotype in the diagram must be unique</li>
+ *     <li>Components may have an optional alias</li>
+ *     <li>Components must be defined before declaring dependencies</li>
+ *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--></code></li>
+ * </ol>
+ */
 public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     private final DescribedPredicate<Dependency> ignorePredicate;
     private final JavaClassDiagramAssociation javaClassDiagramAssociation;
@@ -68,15 +112,15 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependencies(final Class<?> from, final Class<?> to) {
-        return ignoreDependencies(from.getName(), to.getName());
+    public PlantUmlArchCondition ignoreDependencies(final Class<?> origin, final Class<?> target) {
+        return ignoreDependencies(origin.getName(), target.getName());
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependencies(final String from, final String to) {
+    public PlantUmlArchCondition ignoreDependencies(final String origin, final String target) {
         return ignoreDependencies(
-                GET_ORIGIN_CLASS.is(name(from)).and(GET_TARGET_CLASS.is(name(to)))
-                        .as("ignoring dependencies from %s to %s", from, to));
+                GET_ORIGIN_CLASS.is(name(origin)).and(GET_TARGET_CLASS.is(name(target)))
+                        .as("ignoring dependencies from %s to %s", origin, target));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -108,21 +152,33 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         return FluentIterable.from(item.getDirectDependenciesFromSelf()).allMatch(toGuava(ignorePredicate));
     }
 
+    /**
+     * @see PlantUmlArchCondition
+     */
     @PublicAPI(usage = ACCESS)
     public static PlantUmlArchCondition adhereToPlantUmlDiagram(URL url, Configuration configuration) {
         return create(url, configuration);
     }
 
+    /**
+     * @see PlantUmlArchCondition
+     */
     @PublicAPI(usage = ACCESS)
     public static PlantUmlArchCondition adhereToPlantUmlDiagram(String fileName, Configuration configuration) {
         return create(toUrl(Paths.get(fileName)), configuration);
     }
 
+    /**
+     * @see PlantUmlArchCondition
+     */
     @PublicAPI(usage = ACCESS)
     public static PlantUmlArchCondition adhereToPlantUmlDiagram(Path path, Configuration configuration) {
         return create(toUrl(path), configuration);
     }
 
+    /**
+     * @see PlantUmlArchCondition
+     */
     @PublicAPI(usage = ACCESS)
     public static PlantUmlArchCondition adhereToPlantUmlDiagram(File file, Configuration configuration) {
         return create(toUrl(file.toPath()), configuration);
@@ -159,6 +215,9 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         private Configurations() {
         }
 
+        /**
+         * Considers all dependencies of every imported class, including basic Java classes like {@link Object}
+         */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringAllDependencies() {
             return new Configuration() {
@@ -169,6 +228,11 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             };
         }
 
+        /**
+         * Considers only dependencies of the imported classes that are contained within diagram components.
+         * This makes it easy to ignore dependencies to irrelevant classes like {@link Object}, but bears the
+         * danger of missing dependencies to components that have simply been forgotten to be added to the diagram.
+         */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringOnlyDependenciesInDiagram() {
             return new Configuration() {
@@ -179,6 +243,11 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             };
         }
 
+        /**
+         * Considers only dependencies of the imported classes that have targets in the package identifiers.
+         * This can for example be used to limit checked dependencies to those contained in the own project,
+         * e.g. '<code>com.myapp..</code>'.
+         */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
             final List<String> packageIdentifiers = FluentIterable.from(singleton(packageIdentifier))
@@ -222,6 +291,14 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         }
     }
 
+    /**
+     * Used to specify which dependencies should be checked by the condition. Compare concrete instances:
+     * <ul>
+     *     <li>{@link Configurations#consideringAllDependencies()}</li>
+     *     <li>{@link Configurations#consideringOnlyDependenciesInDiagram()}</li>
+     *     <li>{@link Configurations#consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
+     * </ul>
+     */
     interface Configuration {
         DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation);
     }
