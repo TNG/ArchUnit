@@ -5,6 +5,7 @@ import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -84,11 +85,18 @@ import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
 import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
 import com.tngtech.archunit.example.service.impl.WronglyNamedSvc;
+import com.tngtech.archunit.example.shopping.address.Address;
+import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
+import com.tngtech.archunit.example.shopping.customer.Customer;
+import com.tngtech.archunit.example.shopping.importer.ProductImport;
+import com.tngtech.archunit.example.shopping.order.Order;
+import com.tngtech.archunit.example.shopping.product.Product;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.example.thirdparty.ThirdPartySubClassWithProblem;
 import com.tngtech.archunit.example.web.AnnotatedController;
 import com.tngtech.archunit.example.web.InheritedControllerImpl;
+import com.tngtech.archunit.exampletest.PlantUmlArchitectureTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
@@ -575,6 +583,51 @@ class ExamplesIntegrationTest {
                 .by(javaClass(AnnotatedController.class).notResidingIn("..controller.."))
                 .by(javaClass(InheritedControllerImpl.class).notResidingIn("..controller.."))
                 .by(javaClass(MyController.class).notResidingIn("..controller.."))
+
+                .toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> PlantUmlArchitectureTest() {
+        return ExpectedTestFailures
+                .forTests(
+                        PlantUmlArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit4.PlantUmlArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit5.PlantUmlArchitectureTest.class)
+
+                .ofRule("classes should adhere to PlantUML diagram <shopping_example.puml>"
+                        + " while ignoring dependencies outside of packages ['..catalog']")
+                .by(field(Address.class, "productCatalog")
+                        .ofType(ProductCatalog.class))
+
+                .ofRule("classes should adhere to PlantUML diagram <shopping_example.puml>"
+                        + " while ignoring dependencies not contained in the diagram")
+                .by(field(Address.class, "productCatalog")
+                        .ofType(ProductCatalog.class))
+                .by(field(Product.class, "customer")
+                        .ofType(Customer.class))
+                .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                        .toConstructor(Order.class).inLine(12).asDependency())
+                .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                        .toMethod(Order.class, "addProducts", Set.class).inLine(13).asDependency())
+                .by(callFromMethod(ProductImport.class, "getCustomer")
+                        .toConstructor(Customer.class).inLine(14).asDependency())
+                .by(method(ProductImport.class, "getCustomer")
+                        .withReturnType(Customer.class))
+
+                .ofRule(String.format("classes should adhere to PlantUML diagram <shopping_example.puml>,"
+                                + " ignoring dependencies with origin equivalent to %s,"
+                                + " ignoring dependencies with target equivalent to %s,"
+                                + " ignoring dependencies from %s to %s",
+                        ProductCatalog.class.getName(), Object.class.getName(), Order.class.getName(), Set.class.getName()))
+                .by(field(Address.class, "productCatalog")
+                        .ofType(ProductCatalog.class))
+                .by(field(Product.class, "customer")
+                        .ofType(Customer.class))
+                .by(callFromMethod(ProductImport.class, "getCustomer")
+                        .toConstructor(Customer.class).inLine(14).asDependency())
+                .by(method(ProductImport.class, "getCustomer")
+                        .withReturnType(Customer.class))
 
                 .toDynamicTests();
     }

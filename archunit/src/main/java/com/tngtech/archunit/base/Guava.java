@@ -27,7 +27,7 @@ import com.tngtech.archunit.Internal;
  */
 @Internal
 public final class Guava {
-    private static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
+    public static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
         return new Predicate<T>() {
             @Override
             public boolean apply(T input) {

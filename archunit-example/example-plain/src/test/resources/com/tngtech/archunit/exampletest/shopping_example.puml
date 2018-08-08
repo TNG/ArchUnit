@@ -1,0 +1,29 @@
+@startuml
+
+skinparam componentStyle uml2
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+[Address] <<..address..>>
+[Customer] <<..customer..>>
+[Order] <<..order..>>
+[Products] <<..product..>>
+[Product Catalog] <<..catalog..>> as catalog
+[Product Import] <<..importer..>> as import
+
+' Could be some random comment
+[XML] <<..xml.processor..>> <<..xml.types..>> as xml
+
+[Order] --> [Customer]
+[Order] --> [Products]
+
+[Customer] --> [Address]
+
+catalog ---> [Products]
+import --> catalog
+import --> xml
+note top on link #lightgreen: is responsible for translating XML to java classes
+
+@enduml

@@ -136,6 +136,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return isEnum;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public boolean isInnerClass() {
+        return enclosingClass.isPresent();
+    }
+
     @Override
     public Set<JavaModifier> getModifiers() {
         return modifiers;

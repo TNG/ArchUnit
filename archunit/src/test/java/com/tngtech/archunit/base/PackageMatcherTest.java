@@ -113,10 +113,13 @@ public class PackageMatcherTest {
 
     @Test
     public void should_reject_illegal_characters() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier may only consist of valid java identifier parts or the symbols '.)(*'");
+        String illegalPackageIdentifier = "some" + PackageMatcher.TWO_STAR_REGEX_MARKER + "package";
 
-        PackageMatcher.of("some" + PackageMatcher.TWO_STAR_REGEX_MARKER + "package");
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(String.format(
+                "Package Identifier '%s' may only consist of valid java identifier parts or the symbols '.)(*'", illegalPackageIdentifier));
+
+        PackageMatcher.of(illegalPackageIdentifier);
     }
 
     @Test
