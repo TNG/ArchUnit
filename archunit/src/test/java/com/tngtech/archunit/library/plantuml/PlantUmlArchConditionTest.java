@@ -18,8 +18,8 @@ import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.DataProviders;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,9 +32,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.considerAllDependencies;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.considerOnlyDependenciesInAnyPackage;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.considerOnlyDependenciesInDiagram;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringAllDependencies;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInAnyPackage;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInDiagram;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,22 +52,22 @@ public class PlantUmlArchConditionTest {
                 new PlantUmlCreationTestCase("file") {
                     @Override
                     PlantUmlArchCondition createConditionFrom(File file) {
-                        return adhereToPlantUmlDiagram(file, considerOnlyDependenciesInDiagram());
+                        return adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram());
                     }
                 }, new PlantUmlCreationTestCase("URL") {
                     @Override
                     PlantUmlArchCondition createConditionFrom(File file) {
-                        return adhereToPlantUmlDiagram(toUrl(file), considerOnlyDependenciesInDiagram());
+                        return adhereToPlantUmlDiagram(toUrl(file), consideringOnlyDependenciesInDiagram());
                     }
                 }, new PlantUmlCreationTestCase("path") {
                     @Override
                     PlantUmlArchCondition createConditionFrom(File file) {
-                        return adhereToPlantUmlDiagram(file.toPath(), considerOnlyDependenciesInDiagram());
+                        return adhereToPlantUmlDiagram(file.toPath(), consideringOnlyDependenciesInDiagram());
                     }
                 }, new PlantUmlCreationTestCase("file name") {
                     @Override
                     PlantUmlArchCondition createConditionFrom(File file) {
-                        return adhereToPlantUmlDiagram(file.getAbsolutePath(), considerOnlyDependenciesInDiagram());
+                        return adhereToPlantUmlDiagram(file.getAbsolutePath(), consideringOnlyDependenciesInDiagram());
                     }
                 }
         );
@@ -116,10 +116,10 @@ public class PlantUmlArchConditionTest {
         String reportedDependencyOnJavaLangPattern = String.format(".*%s.*(calls|extends).*%s.*",
                 SomeTargetClass.class.getSimpleName(), Object.class.getSimpleName());
 
-        assertThatEvaluatedConditionWithConfiguration(file, considerAllDependencies())
+        assertThatEvaluatedConditionWithConfiguration(file, consideringAllDependencies())
                 .has(lineMatching(reportedDependencyOnJavaLangPattern));
 
-        assertThatEvaluatedConditionWithConfiguration(file, considerOnlyDependenciesInDiagram())
+        assertThatEvaluatedConditionWithConfiguration(file, consideringOnlyDependenciesInDiagram())
                 .doesNotHave(lineMatching(reportedDependencyOnJavaLangPattern));
     }
 
@@ -150,7 +150,7 @@ public class PlantUmlArchConditionTest {
                 .component("SomeComponent").withStereoTypes("..someStereotype.")
                 .write();
         JavaClasses notContained = importClasses(Object.class);
-        PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, considerAllDependencies());
+        PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, consideringAllDependencies());
 
         classes().should(condition.ignoreDependenciesWithOrigin(equivalentTo(Object.class)))
                 .check(notContained);
@@ -176,15 +176,15 @@ public class PlantUmlArchConditionTest {
         JavaClasses classes = getClassesFrom("multipledependencies");
 
         PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file,
-                considerOnlyDependenciesInAnyPackage("..origin", "..intermediary", "..target"));
+                consideringOnlyDependenciesInAnyPackage("..origin", "..intermediary", "..target"));
         assertConditionHasNumberOfFailures(classes, condition, 3);
 
         condition = adhereToPlantUmlDiagram(file,
-                considerOnlyDependenciesInAnyPackage("..origin", "..intermediary"));
+                consideringOnlyDependenciesInAnyPackage("..origin", "..intermediary"));
         assertConditionHasNumberOfFailures(classes, condition, 2);
 
         condition = adhereToPlantUmlDiagram(file,
-                considerOnlyDependenciesInAnyPackage("..origin"));
+                consideringOnlyDependenciesInAnyPackage("..origin"));
         assertConditionHasNumberOfFailures(classes, condition, 1);
     }
 
@@ -199,7 +199,7 @@ public class PlantUmlArchConditionTest {
                 .write();
 
         JavaClasses classes = getClassesFrom("multipledependencies");
-        PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, considerOnlyDependenciesInDiagram());
+        PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram());
 
         assertConditionHasNumberOfFailures(classes, condition,
                 3);
@@ -220,7 +220,7 @@ public class PlantUmlArchConditionTest {
                 0);
     }
 
-    private AbstractListAssert<?, ? extends List<? extends String>, String> assertThatEvaluatedConditionWithConfiguration(
+    private ListAssert<String> assertThatEvaluatedConditionWithConfiguration(
             File diagramFile, Configuration configuration) {
         PlantUmlArchCondition condition = adhereToPlantUmlDiagram(diagramFile, configuration);
         EvaluationResult result = createEvaluationResult(condition, "simpledependency");
@@ -266,7 +266,7 @@ public class PlantUmlArchConditionTest {
     }
 
     private EvaluationResult createEvaluationResult(File file, String packageToImport) {
-        return createEvaluationResult(adhereToPlantUmlDiagram(file, considerOnlyDependenciesInDiagram()), packageToImport);
+        return createEvaluationResult(adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram()), packageToImport);
     }
 
     private EvaluationResult createEvaluationResult(PlantUmlArchCondition condition, String packageToImport) {

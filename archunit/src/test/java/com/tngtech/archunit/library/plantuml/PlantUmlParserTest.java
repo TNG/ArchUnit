@@ -116,18 +116,6 @@ public class PlantUmlParserTest {
     }
 
     @Test
-    public void rejects_a_component_with_an_illegal_name() {
-        File file = TestDiagram.in(temporaryFolder)
-                .component("what-_ever").withAlias("someAlias").withStereoTypes("..packageIdentifier..")
-                .write();
-
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("Component Name 'what-_ever' should not contain character(s): '-' or '_'");
-
-        createDiagram(file);
-    }
-
-    @Test
     public void rejects_a_component_with_an_illegal_alias() {
         File file = TestDiagram.in(temporaryFolder)
                 .component("irrelevant").withAlias("ill[]egal").withStereoTypes("..irrelevant..")
