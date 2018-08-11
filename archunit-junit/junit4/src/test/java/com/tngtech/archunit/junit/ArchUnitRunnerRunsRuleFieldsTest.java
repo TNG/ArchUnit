@@ -18,13 +18,13 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.ArchTestWithPrivateInstanceField.PRIVATE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.FAILING_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.IGNORED_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.SATISFIED_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTestWrongFieldType.NO_RULE_AT_ALL_FIELD_NAME;
-import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongArchTestWrongModifier.WRONG_MODIFIER_FIELD_NAME;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
@@ -97,13 +97,16 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
-    public void should_fail_on_wrong_field_visibility() {
-        ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongModifier.class, cache);
+    public void should_allow_instance_fields_of_all_visibility() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithPrivateInstanceField.class, cache);
 
-        thrown.expectMessage("With @" + ArchTest.class.getSimpleName() +
-                " annotated members must be static");
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(PRIVATE_RULE_FIELD_NAME, runner), runNotifier);
 
-        runner.runChild(ArchUnitRunnerTestUtils.getRule(WRONG_MODIFIER_FIELD_NAME, runner), runNotifier);
+        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+
+        assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
+                .contains(PRIVATE_RULE_FIELD_NAME);
     }
 
     @Test
@@ -174,11 +177,11 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @AnalyzeClasses(packages = "some.pkg")
-    public static class WrongArchTestWrongModifier {
-        static final String WRONG_MODIFIER_FIELD_NAME = "ruleWithWrongModifier";
+    public static class ArchTestWithPrivateInstanceField {
+        static final String PRIVATE_RULE_FIELD_NAME = "privateField";
 
         @ArchTest
-        private ArchRule ruleWithWrongModifier = all(classes()).should(BE_SATISFIED);
+        private ArchRule privateField = all(classes()).should(BE_SATISFIED);
     }
 
     @AnalyzeClasses(packages = "some.pkg")

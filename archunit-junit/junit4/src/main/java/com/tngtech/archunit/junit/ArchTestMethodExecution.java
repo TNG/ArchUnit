@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -30,7 +29,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean ignore) {
         super(testClass, ignore);
-        this.testMethod = validateStatic(testMethod);
+        this.testMethod = testMethod;
     }
 
     @Override
@@ -49,6 +48,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
                 "Methods annotated with @%s must have exactly one parameter of type %s",
                 ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName());
 
+        testMethod.setAccessible(true);
         new FrameworkMethod(testMethod).invokeExplosively(newInstanceOf(testClass), classes);
     }
 
@@ -62,8 +62,4 @@ class ArchTestMethodExecution extends ArchTestExecution {
         return testMethod.getName();
     }
 
-    @Override
-    <T extends Annotation> T getAnnotation(Class<T> type) {
-        return testMethod.getAnnotation(type);
-    }
 }
