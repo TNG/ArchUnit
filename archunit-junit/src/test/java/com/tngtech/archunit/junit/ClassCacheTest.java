@@ -97,7 +97,7 @@ public class ClassCacheTest {
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
-            assertThat(clazz.getPackage()).doesNotContain("tngtech");
+            assertThat(clazz.getPackageName()).doesNotContain("tngtech");
         }
     }
 
@@ -142,8 +142,8 @@ public class ClassCacheTest {
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
-            assertThat(clazz.getPackage()).doesNotContain(ClassCache.class.getSimpleName());
-            assertThat(clazz.getPackage()).contains("junit");
+            assertThat(clazz.getPackageName()).doesNotContain("tngtech");
+            assertThat(clazz.getPackageName()).contains("junit");
         }
     }
 

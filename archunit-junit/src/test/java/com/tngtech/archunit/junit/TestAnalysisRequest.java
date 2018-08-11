@@ -7,11 +7,11 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     private String[] packages = new String[0];
     private Class<?>[] packageRoots = new Class[0];
     private Class<? extends LocationProvider>[] locationProviders = new Class[0];
-    private Class[] importOptions = new Class[0];
+    private Class<? extends ImportOption>[] importOptions = new Class[0];
     private CacheMode cacheMode = CacheMode.FOREVER;
 
     @Override
-    public String[] getPackages() {
+    public String[] getPackageNames() {
         return packages;
     }
 

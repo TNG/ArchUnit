@@ -45,7 +45,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
-import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
@@ -164,7 +163,7 @@ public final class Architectures {
 
         private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
             DescribedPredicate<Dependency> originPackageMatches =
-                    dependencyOrigin(GET_PACKAGE.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
+                    dependencyOrigin(JavaClass.Functions.GET_PACKAGE_NAME.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
 
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
@@ -207,7 +206,7 @@ public final class Architectures {
         }
 
         private String[] toArray(Set<String> strings) {
-            return strings.toArray(new String[strings.size()]);
+            return strings.toArray(new String[0]);
         }
 
         private SortedSet<String> packagesOf(String layerName) {

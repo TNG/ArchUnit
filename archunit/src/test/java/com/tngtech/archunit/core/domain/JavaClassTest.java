@@ -99,14 +99,14 @@ public class JavaClassTest {
 
         JavaClass anonymous = importClassWithContext(input.getClass());
 
-        assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
+        assertThat(anonymous.getPackageName()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void inner_class_has_package_of_declaring_class() {
         JavaClass anonymous = importClassWithContext(ClassWithInnerClass.Inner.class);
 
-        assertThat(anonymous.getPackage()).isEqualTo(getClass().getPackage().getName());
+        assertThat(anonymous.getPackageName()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class JavaClassTest {
         JavaClass arrayType = importClassWithContext(Arrays.class)
                 .getMethod("toString", Object[].class).getParameters().get(0);
 
-        assertThat(arrayType.getPackage()).isEmpty();
+        assertThat(arrayType.getPackageName()).isEmpty();
     }
 
     @Test
@@ -414,6 +414,10 @@ public class JavaClassTest {
 
     @Test
     public void function_getPackage() {
+        assertThat(JavaClass.Functions.GET_PACKAGE_NAME.apply(importClassWithContext(List.class)))
+                .as("result of GET_PACKAGE_NAME(clazz)")
+                .isEqualTo(List.class.getPackage().getName());
+
         assertThat(JavaClass.Functions.GET_PACKAGE.apply(importClassWithContext(List.class)))
                 .as("result of GET_PACKAGE(clazz)")
                 .isEqualTo(List.class.getPackage().getName());
@@ -674,7 +678,7 @@ public class JavaClassTest {
 
     private JavaClass classWithHierarchy(Class<?> clazz) {
         Set<Class<?>> classesToImport = getHierarchy(clazz);
-        return importClasses(classesToImport.toArray(new Class[classesToImport.size()])).get(clazz);
+        return importClasses(classesToImport.toArray(new Class[0])).get(clazz);
     }
 
     private static DependencyConditionCreation callDependency() {
@@ -807,7 +811,7 @@ public class JavaClassTest {
 
     private static JavaClass fakeClassWithPackage(String pkg) {
         JavaClass javaClass = mock(JavaClass.class);
-        when(javaClass.getPackage()).thenReturn(pkg);
+        when(javaClass.getPackageName()).thenReturn(pkg);
         return javaClass;
     }
 

@@ -41,7 +41,7 @@ public interface JavaType {
 
     String getSimpleName();
 
-    String getPackage();
+    String getPackageName();
 
     @ResolvesTypesViaReflection
     Class<?> resolveClass();
@@ -148,7 +148,7 @@ public interface JavaType {
             }
 
             @Override
-            public String getPackage() {
+            public String getPackageName() {
                 return javaPackage;
             }
 
@@ -227,7 +227,7 @@ public interface JavaType {
             }
 
             @Override
-            Class<?> classForName(ClassLoader classLoader) throws ClassNotFoundException {
+            Class<?> classForName(ClassLoader classLoader) {
                 return primitiveClassesByName.get(getName());
             }
 

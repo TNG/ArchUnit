@@ -92,7 +92,7 @@ public class JavaTypeTest {
 
         assertThat(anonymousType.getName()).isEqualTo(getClass().getName() + "$1");
         assertThat(anonymousType.getSimpleName()).isEmpty();
-        assertThat(anonymousType.getPackage()).isEqualTo(getClass().getPackage().getName());
+        assertThat(anonymousType.getPackageName()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class JavaTypeTest {
 
         assertThat(specialChars.getName()).isEqualTo("s_123_wéirdâ.Weird_αρετη_Type");
         assertThat(specialChars.getSimpleName()).isEqualTo("Weird_αρετη_Type");
-        assertThat(specialChars.getPackage()).isEqualTo("s_123_wéirdâ");
+        assertThat(specialChars.getPackageName()).isEqualTo("s_123_wéirdâ");
     }
 
     @Test
@@ -110,7 +110,7 @@ public class JavaTypeTest {
 
         assertThat(specialChars.getName()).isEqualTo("DefaultPackage");
         assertThat(specialChars.getSimpleName()).isEqualTo("DefaultPackage");
-        assertThat(specialChars.getPackage()).isEmpty();
+        assertThat(specialChars.getPackageName()).isEmpty();
     }
 
     @DataProvider

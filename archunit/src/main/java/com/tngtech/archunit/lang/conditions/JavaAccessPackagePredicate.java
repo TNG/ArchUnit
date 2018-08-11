@@ -22,12 +22,12 @@ import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaAccess;
 
 class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
-    private final Function<JavaAccess<?>, String> getPackage;
+    private final Function<JavaAccess<?>, String> getPackageName;
     private final PackageMatchers packageMatchers;
 
-    private JavaAccessPackagePredicate(String[] packageIdentifiers, Function<JavaAccess<?>, String> getPackage) {
+    private JavaAccessPackagePredicate(String[] packageIdentifiers, Function<JavaAccess<?>, String> getPackageName) {
         super(String.format("any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
-        this.getPackage = getPackage;
+        this.getPackageName = getPackageName;
         packageMatchers = PackageMatchers.of(packageIdentifiers);
     }
 
@@ -35,7 +35,7 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
         return new Creator(new Function<JavaAccess<?>, String>() {
             @Override
             public String apply(JavaAccess<?> input) {
-                return input.getOriginOwner().getPackage();
+                return input.getOriginOwner().getPackageName();
             }
         });
     }
@@ -44,25 +44,25 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
         return new Creator(new Function<JavaAccess<?>, String>() {
             @Override
             public String apply(JavaAccess<?> input) {
-                return input.getTargetOwner().getPackage();
+                return input.getTargetOwner().getPackageName();
             }
         });
     }
 
     @Override
     public boolean apply(JavaAccess<?> input) {
-        return packageMatchers.apply(getPackage.apply(input));
+        return packageMatchers.apply(getPackageName.apply(input));
     }
 
     static class Creator {
-        private final Function<JavaAccess<?>, String> getPackage;
+        private final Function<JavaAccess<?>, String> getPackageName;
 
-        private Creator(Function<JavaAccess<?>, String> getPackage) {
-            this.getPackage = getPackage;
+        private Creator(Function<JavaAccess<?>, String> getPackageName) {
+            this.getPackageName = getPackageName;
         }
 
         JavaAccessPackagePredicate matching(final String... packageIdentifiers) {
-            return new JavaAccessPackagePredicate(packageIdentifiers, getPackage);
+            return new JavaAccessPackagePredicate(packageIdentifiers, getPackageName);
         }
     }
 }

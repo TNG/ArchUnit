@@ -734,7 +734,7 @@ class ArchUnitTestEngineTest {
             verify(classCache).getClassesToAnalyzeFor(eq(FullAnalyzeClassesSpec.class), classAnalysisRequestCaptor.capture());
             ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
             AnalyzeClasses expected = FullAnalyzeClassesSpec.class.getAnnotation(AnalyzeClasses.class);
-            assertThat(request.getPackages()).isEqualTo(expected.packages());
+            assertThat(request.getPackageNames()).isEqualTo(expected.packages());
             assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
             assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
             assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
@@ -942,7 +942,7 @@ class ArchUnitTestEngineTest {
     }
 
     private ClassAnalysisRequest classAnalysisRequestOf(Class<?> testClass) {
-        return argThat(r -> Arrays.equals(r.getPackages(), testClass.getAnnotation(AnalyzeClasses.class).packages()));
+        return argThat(r -> Arrays.equals(r.getPackageNames(), testClass.getAnnotation(AnalyzeClasses.class).packages()));
     }
 
     private EngineExecutionTestListener execute(UniqueId uniqueId, Class<?> testClass) {

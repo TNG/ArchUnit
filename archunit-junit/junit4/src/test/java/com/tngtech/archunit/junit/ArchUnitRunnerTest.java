@@ -63,7 +63,7 @@ public class ArchUnitRunnerTest {
 
         AnalyzeClasses analyzeClasses = MaxAnnotatedTest.class.getAnnotation(AnalyzeClasses.class);
         ClassAnalysisRequest analysisRequest = analysisRequestCaptor.getValue();
-        assertThat(analysisRequest.getPackages()).isEqualTo(analyzeClasses.packages());
+        assertThat(analysisRequest.getPackageNames()).isEqualTo(analyzeClasses.packages());
         assertThat(analysisRequest.getPackageRoots()).isEqualTo(analyzeClasses.packagesOf());
         assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
         assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());

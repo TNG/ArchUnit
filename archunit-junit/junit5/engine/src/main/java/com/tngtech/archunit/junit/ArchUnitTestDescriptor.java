@@ -289,7 +289,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
 
         @Override
-        public String[] getPackages() {
+        public String[] getPackageNames() {
             return analyzeClasses.packages();
         }
 
