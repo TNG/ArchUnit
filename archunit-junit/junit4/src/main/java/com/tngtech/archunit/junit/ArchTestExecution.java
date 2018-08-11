@@ -16,15 +16,14 @@
 package com.tngtech.archunit.junit;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
-import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
-import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
+import static com.tngtech.archunit.junit.ArchTestInitializationException.WRAP_CAUSE;
+import static com.tngtech.archunit.junit.ReflectionUtils.getValueOrThrowException;
 
 abstract class ArchTestExecution {
     final Class<?> testClass;
@@ -51,15 +50,7 @@ abstract class ArchTestExecution {
     }
 
     static <T> T getValue(Field field) {
-        try {
-            if (Modifier.isStatic(field.getModifiers())) {
-                return ReflectionUtils.getValue(field, null);
-            } else {
-                return ReflectionUtils.getValue(field, newInstanceOf(field.getDeclaringClass()));
-            }
-        } catch (ReflectionException e) {
-            throw new ArchTestInitializationException(e.getCause());
-        }
+        return getValueOrThrowException(field, WRAP_CAUSE);
     }
 
     abstract static class Result {
