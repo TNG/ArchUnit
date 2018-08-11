@@ -281,6 +281,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     .isEqualTo(ensureArrayName(clazz.getSimpleName()));
             assertThat(actual.getPackage()).as("Package of " + actual)
                     .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+            assertThat(actual.getPackageName()).as("Package name of " + actual)
+                    .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
             assertThat(actual.getModifiers()).as("Modifiers of " + actual)
                     .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
             assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
@@ -776,7 +778,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void isEquivalentTo(Class<?> clazz) {
             assertThat(actual.getName()).as("name").isEqualTo(clazz.getName());
             assertThat(actual.getSimpleName()).as("simple name").isEqualTo(clazz.getSimpleName());
-            assertThat(actual.getPackage()).as("package").isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+            assertThat(actual.getPackageName()).as("package").isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
         }
     }
 }

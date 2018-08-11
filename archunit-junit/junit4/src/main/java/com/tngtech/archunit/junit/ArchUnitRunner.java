@@ -196,7 +196,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         }
 
         @Override
-        public String[] getPackages() {
+        public String[] getPackageNames() {
             return analyzeClasses.packages();
         }
 

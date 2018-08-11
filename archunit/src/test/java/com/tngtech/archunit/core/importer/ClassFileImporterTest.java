@@ -242,7 +242,7 @@ public class ClassFileImporterTest {
 
         assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
-        assertThat(javaClass.getPackage()).as("package").isEqualTo(ClassToImportOne.class.getPackage().getName());
+        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC);
         assertThat(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
@@ -260,7 +260,7 @@ public class ClassFileImporterTest {
 
         assertThat(javaClass.getName()).as("full name").isEqualTo(EnumToImport.class.getName());
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(EnumToImport.class.getSimpleName());
-        assertThat(javaClass.getPackage()).as("package").isEqualTo(EnumToImport.class.getPackage().getName());
+        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(EnumToImport.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
         assertThat(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
@@ -275,7 +275,7 @@ public class ClassFileImporterTest {
 
         assertThat(simpleInterface.getName()).as("full name").isEqualTo(InterfaceToImport.class.getName());
         assertThat(simpleInterface.getSimpleName()).as("simple name").isEqualTo(InterfaceToImport.class.getSimpleName());
-        assertThat(simpleInterface.getPackage()).as("package").isEqualTo(InterfaceToImport.class.getPackage().getName());
+        assertThat(simpleInterface.getPackageName()).as("package name").isEqualTo(InterfaceToImport.class.getPackage().getName());
         assertThat(simpleInterface.getSuperClass()).as("super class").isAbsent();
         assertThat(simpleInterface.getInterfaces()).as("interfaces").isEmpty();
         assertThat(simpleInterface.isInterface()).as("is interface").isTrue();
@@ -927,8 +927,8 @@ public class ClassFileImporterTest {
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
         assertThat(anonymousClass.getName()).isEqualTo(ClassWithInnerClass.class.getName() + "$1");
         assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
-        assertThat(anonymousClass.getSimpleName()).isEmpty();
-        assertThat(anonymousClass.getPackage()).isEqualTo(ClassWithInnerClass.class.getPackage().getName());
+        assertThat(anonymousClass.getSimpleName()).as("simple name").isEmpty();
+        assertThat(anonymousClass.getPackageName()).as("package name").isEqualTo(ClassWithInnerClass.class.getPackage().getName());
 
         JavaMethodCall call = getOnlyElement(innerClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
 
@@ -1461,7 +1461,7 @@ public class ClassFileImporterTest {
 
         Set<JavaClass> targetClasses = new HashSet<>();
         for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-            if (dependency.getTargetClass().getPackage().contains("testexamples")) {
+            if (dependency.getTargetClass().getPackageName().contains("testexamples")) {
                 targetClasses.add(dependency.getTargetClass());
             }
         }
@@ -1825,7 +1825,7 @@ public class ClassFileImporterTest {
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
         Set<Dependency> result = new HashSet<>();
         for (Dependency dependency : dependencies) {
-            if (!dependency.getTargetClass().getPackage().startsWith("java.lang")) {
+            if (!dependency.getTargetClass().getPackageName().startsWith("java.lang")) {
                 result.add(dependency);
             }
         }

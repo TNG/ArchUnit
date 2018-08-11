@@ -77,7 +77,7 @@ public class ArchUnitArchitectureTest {
         return new DescribedPredicate<JavaClass>("belong to the import context") {
             @Override
             public boolean apply(JavaClass input) {
-                return input.getPackage().startsWith(ClassFileImporter.class.getPackage().getName())
+                return input.getPackageName().startsWith(ClassFileImporter.class.getPackage().getName())
                         && !input.getName().contains(DomainBuilders.class.getSimpleName());
             }
         };

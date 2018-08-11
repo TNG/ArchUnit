@@ -40,7 +40,7 @@ import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
 
 /**
  * The {@link ClassCache} takes care of caching {@link JavaClasses} between test runs. On the one hand,
- * it caches {@link JavaClasses} between different {@link ArchTest @ArchTest} evaluations,
+ * it caches {@link JavaClasses} between different test runs,
  * on the other hand, it caches {@link JavaClasses} between different test classes,
  * i.e. if two test classes <code>ATest</code> and <code>BTest</code>
  * import the same locations (e.g. packages, URLs, etc.), the imported {@link JavaClasses} from <code>ATest</code> will be
@@ -181,7 +181,7 @@ class ClassCache {
 
             private Set<Location> getLocationsOfPackages() {
                 Set<String> packages = ImmutableSet.<String>builder()
-                        .add(classAnalysisRequest.getPackages())
+                        .add(classAnalysisRequest.getPackageNames())
                         .addAll(toPackageStrings(classAnalysisRequest.getPackageRoots()))
                         .build();
                 return locationsOf(packages);
@@ -235,7 +235,7 @@ class ClassCache {
         }
 
         private static boolean noSpecificLocationRequested(ClassAnalysisRequest classAnalysisRequest) {
-            return classAnalysisRequest.getPackages().length == 0
+            return classAnalysisRequest.getPackageNames().length == 0
                     && classAnalysisRequest.getPackageRoots().length == 0
                     && classAnalysisRequest.getLocationProviders().length == 0;
         }

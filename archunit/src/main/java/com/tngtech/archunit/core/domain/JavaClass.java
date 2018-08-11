@@ -116,9 +116,20 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return javaType.getSimpleName();
     }
 
+    /**
+     * Please use {@link #getPackageName()} instead. This name was chosen poorly since a method 'getPackage' should
+     * have returned an object, not a mere String. This method will be refactored in a future release to return
+     * an object.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public String getPackage() {
-        return javaType.getPackage();
+        return getPackageName();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public String getPackageName() {
+        return javaType.getPackageName();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -851,12 +862,21 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = GET_SIMPLE_NAME;
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, String> GET_PACKAGE = new ChainableFunction<JavaClass, String>() {
+        public static final ChainableFunction<JavaClass, String> GET_PACKAGE_NAME = new ChainableFunction<JavaClass, String>() {
             @Override
             public String apply(JavaClass input) {
-                return input.getPackage();
+                return input.getPackageName();
             }
         };
+
+        /**
+         * @deprecated This was named poorly, 'getPackage' should return a real object, not a mere String.
+         * Compare notes on {@link #getPackage()}. This function will be refactored to return an object in a future release.
+         * Use {@link #GET_PACKAGE_NAME} instead.
+         */
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, String> GET_PACKAGE = GET_PACKAGE_NAME;
     }
 
     public static final class Predicates {
@@ -1081,7 +1101,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             @Override
             public boolean apply(JavaClass input) {
                 for (PackageMatcher matcher : packageMatchers) {
-                    if (matcher.matches(input.getPackage())) {
+                    if (matcher.matches(input.getPackageName())) {
                         return true;
                     }
                 }
