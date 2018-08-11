@@ -61,6 +61,7 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final Function<JavaClass, Set<String>> superClassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
+    private final MemberDependenciesByTarget memberDependenciesByTarget = new MemberDependenciesByTarget();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -176,17 +177,32 @@ class ClassGraphCreator implements ImportContext {
         return result.build();
     }
 
+    @Override
+    public Set<JavaField> getFieldsOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getFieldsOfType(javaClass);
+    }
+
+    @Override
+    public Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getMethodsWithParameterOfType(javaClass);
+    }
+
+    @Override
+    public Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getMethodsWithReturnType(javaClass);
+    }
+
+    @Override
+    public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getConstructorsWithParameterOfType(javaClass);
+    }
+
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
                 .withOrigin(record.getCaller())
                 .withTarget(record.getTarget())
                 .withLineNumber(record.getLineNumber());
-    }
-
-    @Override
-    public JavaClass getJavaClassWithType(String typeName) {
-        return classes.getOrResolve(typeName);
     }
 
     @Override
@@ -208,17 +224,23 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
+        Set<JavaField> fields = build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
+        memberDependenciesByTarget.registerFields(fields);
+        return fields;
     }
 
     @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
-        return build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byTypeName());
+        Set<JavaMethod> methods = build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byTypeName());
+        memberDependenciesByTarget.registerMethods(methods);
+        return methods;
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
+        Set<JavaConstructor> constructors = build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
+        memberDependenciesByTarget.registerConstructors(constructors);
+        return constructors;
     }
 
     @Override
@@ -240,5 +262,51 @@ class ClassGraphCreator implements ImportContext {
         return enclosingClassName.isPresent() ?
                 Optional.of(classes.getOrResolve(enclosingClassName.get())) :
                 Optional.<JavaClass>absent();
+    }
+
+    private static class MemberDependenciesByTarget {
+        private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
+
+        void registerFields(Set<JavaField> fields) {
+            for (JavaField field : fields) {
+                fieldTypeDependencies.put(field.getType(), field);
+            }
+        }
+
+        void registerMethods(Set<JavaMethod> methods) {
+            for (JavaMethod method : methods) {
+                for (JavaClass parameter : method.getParameters()) {
+                    methodParameterTypeDependencies.put(parameter, method);
+                }
+                methodReturnTypeDependencies.put(method.getReturnType(), method);
+            }
+        }
+
+        void registerConstructors(Set<JavaConstructor> constructors) {
+            for (JavaConstructor constructor : constructors) {
+                for (JavaClass parameter : constructor.getParameters()) {
+                    constructorParameterTypeDependencies.put(parameter, constructor);
+                }
+            }
+        }
+
+        Set<JavaField> getFieldsOfType(JavaClass javaClass) {
+            return fieldTypeDependencies.get(javaClass);
+        }
+
+        Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
+            return methodParameterTypeDependencies.get(javaClass);
+        }
+
+        Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
+            return methodReturnTypeDependencies.get(javaClass);
+        }
+
+        Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
+            return constructorParameterTypeDependencies.get(javaClass);
+        }
     }
 }

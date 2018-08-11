@@ -120,9 +120,12 @@ public class ArchitecturesTest {
 
         assertPatternMatches(result.getFailureReport().getDetails(),
                 ImmutableSet.of(
-                        expectedViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubClass.class, "callMe"),
-                        expectedViolationPattern(SecondThreeAnyClass.class, "call", SomePkgClass.class, "callMe"),
-                        expectedViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe")));
+                        expectedAccessViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubClass.class, "callMe"),
+                        expectedAccessViolationPattern(SecondThreeAnyClass.class, "call", SomePkgClass.class, "callMe"),
+                        expectedAccessViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe"),
+                        fieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubClass.class),
+                        fieldTypePattern(FirstThreeAnyClass.class, "illegalTarget", FirstAnyPkgClass.class),
+                        fieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
     }
 
     @DataProvider
@@ -201,8 +204,12 @@ public class ArchitecturesTest {
         return false;
     }
 
-    private String expectedViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
+    private String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
         return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
+    }
+
+    private String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
+        return String.format("Field .*%s\\.%s.* has type .*%s.*", owner.getSimpleName(), fieldName, fieldType.getSimpleName());
     }
 
     private static String[] absolute(String... pkgSuffix) {

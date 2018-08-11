@@ -11,6 +11,6 @@ public class AhavingMembersOfTypeB {
         return null;
     }
 
-    void methodWithParameterTypeB(String some, SuperA b) {
+    void methodWithParameterTypeB(String some, B b) {
     }
 }

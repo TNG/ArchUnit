@@ -495,6 +495,8 @@ class ExamplesIntegrationTest {
                                 .by(inheritanceFrom(DaoCallingService.class)
                                         .implementing(ServiceInterface.class))
 
+                                .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
+
                                 .by(callFromMethod(DaoCallingService.class, "violateLayerRules")
                                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
                                         .inLine(14)
@@ -526,7 +528,9 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeMediator.class, "violateLayerRulesIndirectly")
                         .toMethod(ServiceViolatingLayerRules.class, "doSomething")
                         .inLine(15)
-                        .asDependency());
+                        .asDependency())
+                .by(constructor(SomeMediator.class).withParameter(ServiceViolatingLayerRules.class))
+                .by(field(SomeMediator.class, "service").ofType(ServiceViolatingLayerRules.class));
 
         addExpectedCommonFailure.accept("layer_dependencies_are_respected_with_exception", expectedTestFailures);
 
