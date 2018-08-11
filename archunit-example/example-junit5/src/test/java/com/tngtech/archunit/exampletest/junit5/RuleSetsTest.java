@@ -9,8 +9,8 @@ import com.tngtech.archunit.junit.ArchTest;
 @AnalyzeClasses(packages = "com.tngtech.archunit.example")
 class RuleSetsTest {
     @ArchTest
-    static final ArchRules CODING_RULES = ArchRules.in(CodingRulesTest.class);
+    private final ArchRules CODING_RULES = ArchRules.in(CodingRulesTest.class);
 
     @ArchTest
-    static final ArchRules CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
+    private final ArchRules CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
 }

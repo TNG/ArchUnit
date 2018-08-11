@@ -16,10 +16,7 @@
 package com.tngtech.archunit.junit;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -35,11 +32,12 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
+import static com.tngtech.archunit.junit.ArchTestInitializationException.WRAP_CAUSE;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
-import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
+import static com.tngtech.archunit.junit.ReflectionUtils.getValueOrThrowException;
+import static com.tngtech.archunit.junit.ReflectionUtils.invokeMethod;
 import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
-import static java.lang.reflect.Modifier.isStatic;
 
 class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
     private static final Logger LOG = LoggerFactory.getLogger(ArchUnitTestDescriptor.class);
@@ -65,8 +63,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver) {
         if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
-            LOG.warn("Class {} is not annotated with @{} and thus run as top level test. "
-                            + "This warning can be ignored, if {} is only used as part of a rules library, included via {}.in({}.class).",
+            LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
+                            + "This warning can be ignored if {} is only used as part of a rules library included via {}.in({}.class).",
                     clazz.getName(), AnalyzeClasses.class.getSimpleName(),
                     clazz.getSimpleName(), ArchRules.class.getSimpleName(), clazz.getSimpleName());
 
@@ -105,8 +103,12 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         if (ArchRules.class.isAssignableFrom(field.getType())) {
             resolveArchRules(parent, resolver, field, classes);
         } else {
-            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field, null), classes, field));
+            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
         }
+    }
+
+    private static <T> T getValue(Field field) {
+        return getValueOrThrowException(field, WRAP_CAUSE);
     }
 
     private static void resolveArchRules(
@@ -124,7 +126,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static DeclaredArchRules getDeclaredRules(Field field) {
-        return new DeclaredArchRules(getValue(field, null));
+        return new DeclaredArchRules(getValue(field));
     }
 
     @Override
@@ -174,11 +176,6 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         private void validate(Method method) {
             ArchTestInitializationException.check(
-                    isStatic(method.getModifiers()),
-                    "@%s Method %s.%s must be static",
-                    ArchTest.class.getSimpleName(), method.getDeclaringClass().getSimpleName(), method.getName());
-
-            ArchTestInitializationException.check(
                     method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JavaClasses.class),
                     "@%s Method %s.%s must have exactly one parameter of type %s",
                     ArchTest.class.getSimpleName(), method.getDeclaringClass().getSimpleName(), method.getName(), JavaClasses.class.getName());
@@ -191,29 +188,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         @Override
         public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
-            unwrapException(() -> method.invoke(null, classes.get()))
-                    .ifPresent(this::rethrowUnchecked);
+            invokeMethod(method, classes.get());
             return context;
-        }
-
-        // Exceptions occurring during reflective calls are wrapped within an InvocationTargetException
-        private Optional<Throwable> unwrapException(Callable<?> callback) {
-            try {
-                callback.call();
-                return Optional.empty();
-            } catch (Exception e) {
-                Throwable throwable = e;
-                while (throwable instanceof InvocationTargetException) {
-                    throwable = ((InvocationTargetException) e).getTargetException();
-                }
-                return Optional.of(throwable);
-            }
-        }
-
-        // Certified Hack(TM) to rethrow any exception unchecked. Uses a hole in the JLS with respect to Generics.
-        @SuppressWarnings("unchecked")
-        private <T extends Throwable> void rethrowUnchecked(Throwable throwable) throws T {
-            throw (T) throwable;
         }
     }
 

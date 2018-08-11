@@ -1,9 +1,8 @@
 package com.tngtech.archunit.junit;
 
-import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.Function;
 
-@Internal
-public class ArchTestInitializationException extends RuntimeException {
+class ArchTestInitializationException extends RuntimeException {
     private ArchTestInitializationException(String message, Object... args) {
         super(String.format(message, args));
     }
@@ -16,9 +15,16 @@ public class ArchTestInitializationException extends RuntimeException {
         super(String.format(message, args), cause);
     }
 
-    public static void check(boolean condition, String message, Object... args) {
+    static void check(boolean condition, String message, Object... args) {
         if (!condition) {
             throw new ArchTestInitializationException(message, args);
         }
     }
+
+    static final Function<Throwable, ArchTestInitializationException> WRAP_CAUSE = new Function<Throwable, ArchTestInitializationException>() {
+        @Override
+        public ArchTestInitializationException apply(Throwable throwable) {
+            return new ArchTestInitializationException(throwable);
+        }
+    };
 }

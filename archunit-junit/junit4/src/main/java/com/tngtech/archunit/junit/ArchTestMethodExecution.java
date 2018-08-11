@@ -20,9 +20,8 @@ import java.util.Arrays;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
-import org.junit.runners.model.FrameworkMethod;
 
-import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
+import static com.tngtech.archunit.junit.ReflectionUtils.invokeMethod;
 
 class ArchTestMethodExecution extends ArchTestExecution {
     private final Method testMethod;
@@ -42,14 +41,13 @@ class ArchTestMethodExecution extends ArchTestExecution {
         }
     }
 
-    private void executeTestMethod(JavaClasses classes) throws Throwable {
+    private void executeTestMethod(JavaClasses classes) {
         ArchTestInitializationException.check(
                 Arrays.equals(testMethod.getParameterTypes(), new Class<?>[]{JavaClasses.class}),
                 "Methods annotated with @%s must have exactly one parameter of type %s",
                 ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName());
 
-        testMethod.setAccessible(true);
-        new FrameworkMethod(testMethod).invokeExplosively(newInstanceOf(testClass), classes);
+        invokeMethod(testMethod, classes);
     }
 
     @Override
