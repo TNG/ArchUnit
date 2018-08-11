@@ -15,33 +15,28 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
-import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
-
 class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
-    private final ArchRule rule;
 
     ArchRuleExecution(Class<?> testClass, Field ruleField, boolean ignore) {
         super(testClass, ignore);
 
-        validateStatic(ruleField);
         ArchTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
                 "Rule field %s.%s to check must be of type %s",
                 testClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
 
-        this.ruleField = validateStatic(ruleField);
-        rule = getValue(ruleField, null);
+        this.ruleField = ruleField;
     }
 
     @Override
     Result evaluateOn(JavaClasses classes) {
+        ArchRule rule = getValue(ruleField);
         try {
             rule.check(classes);
         } catch (Exception | AssertionError e) {
@@ -58,10 +53,5 @@ class ArchRuleExecution extends ArchTestExecution {
     @Override
     String getName() {
         return ruleField.getName();
-    }
-
-    @Override
-    <T extends Annotation> T getAnnotation(Class<T> type) {
-        return ruleField.getAnnotation(type);
     }
 }

@@ -15,14 +15,16 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Member;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
+
+import static com.tngtech.archunit.junit.ReflectionUtils.newInstanceOf;
 
 abstract class ArchTestExecution {
     final Class<?> testClass;
@@ -31,13 +33,6 @@ abstract class ArchTestExecution {
     ArchTestExecution(Class<?> testClass, boolean ignore) {
         this.testClass = testClass;
         this.ignore = ignore;
-    }
-
-    static <T extends Member> T validateStatic(T member) {
-        ArchTestInitializationException.check(
-                Modifier.isStatic(member.getModifiers()),
-                "With @%s annotated members must be static", ArchTest.class.getSimpleName());
-        return member;
     }
 
     abstract Result evaluateOn(JavaClasses classes);
@@ -51,10 +46,20 @@ abstract class ArchTestExecution {
 
     abstract String getName();
 
-    abstract <T extends Annotation> T getAnnotation(Class<T> type);
-
     boolean ignore() {
         return ignore;
+    }
+
+    static <T> T getValue(Field field) {
+        try {
+            if (Modifier.isStatic(field.getModifiers())) {
+                return ReflectionUtils.getValue(field, null);
+            } else {
+                return ReflectionUtils.getValue(field, newInstanceOf(field.getDeclaringClass()));
+            }
+        } catch (ReflectionException e) {
+            throw new ArchTestInitializationException(e.getCause());
+        }
     }
 
     abstract static class Result {

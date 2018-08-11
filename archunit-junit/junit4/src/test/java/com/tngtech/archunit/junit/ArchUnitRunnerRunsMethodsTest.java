@@ -20,6 +20,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIgnoredMethod.toBeIgnored;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIllegalTestMethods.noParams;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithIllegalTestMethods.tooManyParams;
+import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithTestMethod.privateTest;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithTestMethod.testSomething;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredOne;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredTwo;
@@ -65,15 +66,28 @@ public class ArchUnitRunnerRunsMethodsTest {
     @Test
     public void executes_test_methods_and_supplies_JavaClasses() {
         runner.runChild(getRule(testSomething, runner), runNotifier);
+
         verify(runNotifier, never()).fireTestFailure(any(Failure.class));
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+
         assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
                 .contains(testSomething);
         assertThat(ArchTestWithTestMethod.suppliedClasses).as("Supplied Classes").isEqualTo(cachedClasses);
     }
 
     @Test
-    public void fails_methods_with_no_parameters() throws InitializationError {
+    public void executes_private_test_methods() {
+        runner.runChild(getRule(privateTest, runner), runNotifier);
+
+        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+
+        assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
+                .contains(privateTest);
+    }
+
+    @Test
+    public void fails_methods_with_no_parameters() {
         runAndAssertWrongParametersForChild(noParams, newRunner(ArchTestWithIllegalTestMethods.class));
     }
 
@@ -82,7 +96,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     }
 
     @Test
-    public void fails_methods_with_too_many_parameters() throws InitializationError {
+    public void fails_methods_with_too_many_parameters() {
         runAndAssertWrongParametersForChild(tooManyParams, newRunner(ArchTestWithIllegalTestMethods.class));
     }
 
@@ -120,11 +134,17 @@ public class ArchUnitRunnerRunsMethodsTest {
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithTestMethod {
         static final String testSomething = "testSomething";
+        static final String privateTest = "privateTest";
 
         static JavaClasses suppliedClasses;
 
         @ArchTest
         public static void testSomething(JavaClasses classes) {
+            suppliedClasses = classes;
+        }
+
+        @ArchTest
+        private void privateTest(JavaClasses classes) {
             suppliedClasses = classes;
         }
     }
