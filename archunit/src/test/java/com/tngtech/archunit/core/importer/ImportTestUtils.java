@@ -340,10 +340,6 @@ public class ImportTestUtils {
     }
 
     private static class ImportContextStub implements ImportContext {
-        @Override
-        public JavaClass getJavaClassWithType(String name) {
-            throw new UnsupportedOperationException("Stub can't resolve type name " + name);
-        }
 
         @Override
         public Optional<JavaClass> createSuperClass(JavaClass owner) {
@@ -397,6 +393,26 @@ public class ImportTestUtils {
 
         @Override
         public Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<JavaField> getFieldsOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
     }

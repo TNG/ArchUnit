@@ -91,6 +91,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                     .build();
         }
     });
+    private MemberDependenciesOnClass memberDependenciesOnClass;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -558,9 +559,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     public Set<Dependency> getDirectDependenciesToSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         result.addAll(dependenciesFromAccesses(getAccessesToSelf()));
-        for (JavaClass subClass : getSubClasses()) {
-            result.add(Dependency.fromInheritance(subClass, this));
-        }
+        result.addAll(inheritanceDependenciesToSelf());
+        result.addAll(fieldDependenciesToSelf());
+        result.addAll(returnTypeDependenciesToSelf());
+        result.addAll(methodParameterDependenciesToSelf());
+        result.addAll(constructorParameterDependenciesToSelf());
         return result.build();
     }
 
@@ -598,6 +601,38 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                 .addAll(getMethodCallsToSelf())
                 .addAll(getConstructorCallsToSelf())
                 .build();
+    }
+
+    /**
+     * @return Fields of all imported classes that have the type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaField> getFieldsWithTypeOfSelf() {
+        return memberDependenciesOnClass.getFieldsWithTypeOfClass();
+    }
+
+    /**
+     * @return Methods of all imported classes that have a parameter type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMethod> getMethodsWithParameterTypeOfSelf() {
+        return memberDependenciesOnClass.getMethodsWithParameterTypeOfClass();
+    }
+
+    /**
+     * @return Methods of all imported classes that have a return type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMethod> getMethodsWithReturnTypeOfSelf() {
+        return memberDependenciesOnClass.getMethodsWithReturnTypeOfClass();
+    }
+
+    /**
+     * @return Constructors of all imported classes that have a parameter type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
+        return memberDependenciesOnClass.getConstructorsWithParameterTypeOfClass();
     }
 
     /**
@@ -739,6 +774,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     CompletionProcess completeFrom(ImportContext context) {
         enclosingClass = context.createEnclosingClass(this);
+        memberDependenciesOnClass = new MemberDependenciesOnClass(
+                context.getFieldsOfType(this),
+                context.getMethodsWithParameterOfType(this),
+                context.getMethodsWithReturnType(this),
+                context.getConstructorsWithParameterOfType(this));
         return new CompletionProcess();
     }
 
@@ -818,6 +858,46 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    private Set<Dependency> inheritanceDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaClass subClass : getSubClasses()) {
+            result.add(Dependency.fromInheritance(subClass, this));
+        }
+        return result;
+    }
+
+    private Set<Dependency> fieldDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaField field : getFieldsWithTypeOfSelf()) {
+            result.add(Dependency.fromField(field));
+        }
+        return result;
+    }
+
+    private Set<Dependency> returnTypeDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaMethod method : getMethodsWithReturnTypeOfSelf()) {
+            result.add(Dependency.fromReturnType(method));
+        }
+        return result;
+    }
+
+    private Set<Dependency> methodParameterDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaMethod method : getMethodsWithParameterTypeOfSelf()) {
+            result.add(Dependency.fromParameter(method, this));
+        }
+        return result;
+    }
+
+    private Set<Dependency> constructorParameterDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaConstructor constructor : getConstructorsWithParameterTypeOfSelf()) {
+            result.add(Dependency.fromParameter(constructor, this));
+        }
+        return result;
+    }
+
     private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
         Set<JavaAccess<?>> result = new HashSet<>();
         for (JavaAccess<?> access : accesses) {
@@ -840,6 +920,41 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             }
         }
         return result.build();
+    }
+
+    private static class MemberDependenciesOnClass {
+        private final Set<JavaField> fieldsWithTypeOfClass;
+        private final Set<JavaMethod> methodsWithParameterTypeOfClass;
+        private final Set<JavaMethod> methodsWithReturnTypeOfClass;
+        private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
+
+        MemberDependenciesOnClass(
+                Set<JavaField> fieldsWithTypeOfClass,
+                Set<JavaMethod> methodsWithParameterTypeOfClass,
+                Set<JavaMethod> methodsWithReturnTypeOfClass,
+                Set<JavaConstructor> constructorsWithParameterTypeOfClass) {
+
+            this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
+            this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
+            this.methodsWithReturnTypeOfClass = ImmutableSet.copyOf(methodsWithReturnTypeOfClass);
+            this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
+        }
+
+        Set<JavaField> getFieldsWithTypeOfClass() {
+            return fieldsWithTypeOfClass;
+        }
+
+        Set<JavaMethod> getMethodsWithParameterTypeOfClass() {
+            return methodsWithParameterTypeOfClass;
+        }
+
+        Set<JavaMethod> getMethodsWithReturnTypeOfClass() {
+            return methodsWithReturnTypeOfClass;
+        }
+
+        Set<JavaConstructor> getConstructorsWithParameterTypeOfClass() {
+            return constructorsWithParameterTypeOfClass;
+        }
     }
 
     public static final class Functions {

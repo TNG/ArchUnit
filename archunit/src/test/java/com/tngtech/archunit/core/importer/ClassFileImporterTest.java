@@ -60,7 +60,10 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
+import com.tngtech.archunit.core.importer.testexamples.OtherClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.SomeClass;
+import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithAnnotationWithEmptyArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithComplexAnnotations;
@@ -80,7 +83,6 @@ import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.Cl
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.MethodAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsExternalMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray;
-import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray.SomeEnum;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOtherConstructor;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOtherMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOwnConstructor;
@@ -1429,8 +1431,8 @@ public class ClassFileImporterTest {
         JavaClass classThatCallsMethodReturningArray = classesIn("testexamples/callimport").get(CallsMethodReturningArray.class);
 
         MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
-        assertThat(target.getOwner()).matches(SomeEnum.class);
-        assertThat(target.getReturnType()).matches(SomeEnum[].class);
+        assertThat(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
+        assertThat(target.getReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
     }
 
     @Test
@@ -1611,6 +1613,39 @@ public class ClassFileImporterTest {
         expectedConstructorCalls =
                 getByTargetOwner(dependentClass.getConstructorCallsFromSelf(), subClassHoldingDependencies.getName());
         assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
+    }
+
+    @Test
+    public void classes_know_which_fields_have_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
+
+        assertThat(classes.get(SomeEnum.class).getFieldsWithTypeOfSelf())
+                .extracting("name").contains("other", "someEnum");
+    }
+
+    @Test
+    public void classes_know_which_methods_have_their_type_as_parameter() {
+        JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
+
+        assertThat(classes.get(SomeEnum.class).getMethodsWithParameterTypeOfSelf())
+                .extracting("name").contains("methodWithSomeEnumParameter", "otherMethodWithSomeEnumParameter");
+    }
+
+    @Test
+    public void classes_know_which_methods_have_their_type_as_return_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
+
+        assertThat(classes.get(SomeEnum.class).getMethodsWithReturnTypeOfSelf())
+                .extracting("name").contains("methodWithSomeEnumReturnType", "otherMethodWithSomeEnumReturnType");
+    }
+
+    @Test
+    public void classes_know_which_constructors_have_their_type_as_parameter() {
+        JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
+
+        assertThat(classes.get(SomeEnum.class).getConstructorsWithParameterTypeOfSelf())
+                .extracting("owner").extracting("name")
+                .contains(SomeClass.class.getName(), OtherClass.class.getName());
     }
 
     @Test
