@@ -23,8 +23,6 @@ import com.tngtech.archunit.base.Optional;
 
 @Internal
 public interface ImportContext {
-    JavaClass getJavaClassWithType(String name);
-
     Optional<JavaClass> createSuperClass(JavaClass owner);
 
     Set<JavaClass> createInterfaces(JavaClass owner);
@@ -46,4 +44,12 @@ public interface ImportContext {
     Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit);
 
     Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit);
+
+    Set<JavaField> getFieldsOfType(JavaClass javaClass);
+
+    Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass);
+
+    Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass);
+
+    Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
 }

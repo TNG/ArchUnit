@@ -54,10 +54,10 @@ import static java.util.Collections.singleton;
  * The supported diagram syntax uses component diagram stereotypes to associate package patterns
  * (compare {@link PackageMatcher}) with components. An example could look like
  * <pre><code>
- * [Some Source] <<..some.source..>>
- * [Some Target] <<..some.target..>>
+ * [Some Source] &lt;&lt;..some.source..&gt;&gt;
+ * [Some Target] &lt;&lt;..some.target..&gt;&gt;
  *
- * [Some Source] --> [Some Target]
+ * [Some Source] --&gt; [Some Target]
  * </code></pre>
  * Applying such a diagram as an ArchUnit rule would demand dependencies only from <code>..some.source..</code>
  * to <code>..some.target..</code>, but forbid them vice versa.<br>
@@ -82,7 +82,7 @@ import static java.util.Collections.singleton;
  *     <li>Components must have at least one stereotype. Each stereotype in the diagram must be unique</li>
  *     <li>Components may have an optional alias</li>
  *     <li>Components must be defined before declaring dependencies</li>
- *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--></code></li>
+ *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></li>
  * </ol>
  */
 public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
@@ -286,7 +286,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
 
             @Override
             public boolean apply(Dependency input) {
-                return !PackageMatchers.of(packageIdentifiers).apply(input.getTargetClass().getPackage());
+                return !PackageMatchers.of(packageIdentifiers).apply(input.getTargetClass().getPackageName());
             }
         }
     }

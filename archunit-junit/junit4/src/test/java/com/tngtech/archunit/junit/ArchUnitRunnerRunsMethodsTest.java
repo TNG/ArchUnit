@@ -26,7 +26,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredAr
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,7 +63,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     }
 
     @Test
-    public void executes_test_methods_and_supplies_JavaClasses() throws InitializationError {
+    public void executes_test_methods_and_supplies_JavaClasses() {
         runner.runChild(getRule(testSomething, runner), runNotifier);
         verify(runNotifier, never()).fireTestFailure(any(Failure.class));
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
@@ -77,7 +77,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         runAndAssertWrongParametersForChild(noParams, newRunner(ArchTestWithIllegalTestMethods.class));
     }
 
-    private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) throws InitializationError {
+    private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) {
         return newRunnerFor(testClass, cache);
     }
 

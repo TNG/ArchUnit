@@ -122,7 +122,7 @@ class JavaClassDiagramAssociation {
 
         private boolean contains(JavaClass javaClass) {
             for (PackageMatcher packageMatcher : packageMatchers) {
-                if (packageMatcher.matches(javaClass.getPackage())) {
+                if (packageMatcher.matches(javaClass.getPackageName())) {
                     return true;
                 }
             }

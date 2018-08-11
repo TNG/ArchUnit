@@ -351,13 +351,9 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
                         .inLineNumber(0))
-                .areAtLeastOne(parameterTypeDependency()
+                .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(parameterTypeDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(SuperA.class)
                         .inLineNumber(0));
     }
 
@@ -398,6 +394,25 @@ public class JavaClassTest {
                 .areAtLeastOne(implementsDependency()
                         .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(InterfaceForA.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_member_declarations() {
+        JavaClass javaClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.class).get(B.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(fieldTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(methodReturnTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeast(2, parameterTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
                         .inLineNumber(0));
     }
 
