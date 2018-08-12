@@ -215,7 +215,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         static final String someOtherMethodRuleName = "someOtherMethodRule";
 
         @ArchTest
-        public static final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
+        final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
 
         @ArchTest
         public static void someOtherMethodRule(JavaClasses classes) {
@@ -225,7 +225,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRuleSet {
         @ArchTest
-        public static final ArchRules rules = ArchRules.in(Rules.class);
+        final ArchRules rules = ArchRules.in(Rules.class);
     }
 
     @AnalyzeClasses(packages = "some.pkg")

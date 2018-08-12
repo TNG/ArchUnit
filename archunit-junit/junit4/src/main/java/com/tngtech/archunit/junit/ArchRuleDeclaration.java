@@ -26,9 +26,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.junit.ArchTestExecution.getValue;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
-import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
 import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 
 abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
@@ -87,7 +87,7 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     }
 
     private static ArchRules getArchRulesIn(Field field) {
-        ArchRules value = getValue(field, null);
+        ArchRules value = getValue(field);
         return checkNotNull(value, "Field %s.%s is not initialized",
                 field.getDeclaringClass().getName(), field.getName());
     }
