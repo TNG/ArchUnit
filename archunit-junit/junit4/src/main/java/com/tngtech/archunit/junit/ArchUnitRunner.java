@@ -40,8 +40,7 @@ import org.junit.runners.model.Statement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.ArchRuleDeclaration.toDeclarations;
-import static com.tngtech.archunit.junit.ArchTestExecution.validateStatic;
-import static com.tngtech.archunit.junit.ReflectionUtils.getValue;
+import static com.tngtech.archunit.junit.ArchTestExecution.getValue;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -127,8 +126,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchRules getArchRules(Field field) {
-        validateStatic(field);
-        return getValue(field, null);
+        return getValue(field);
     }
 
     private Collection<ArchTestExecution> findArchRuleMethods() {

@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -24,6 +25,7 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import static com.tngtech.archunit.thirdparty.com.google.common.base.Preconditions.checkState;
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joox.JOOX.$;
@@ -324,8 +326,19 @@ public class TestResultTest {
         private static <T> T getValue(Field field, Object owner) {
             try {
                 field.setAccessible(true);
+                owner = owner == null && !isStatic(field.getModifiers()) ? newInstanceOf(field.getDeclaringClass()) : owner;
                 return (T) field.get(owner);
             } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private static Object newInstanceOf(Class<?> clazz) {
+            try {
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                return constructor.newInstance();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }

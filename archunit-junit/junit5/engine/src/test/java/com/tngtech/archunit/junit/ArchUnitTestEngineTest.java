@@ -11,11 +11,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
+import com.tngtech.archunit.junit.testexamples.ClassWithPrivateTests;
 import com.tngtech.archunit.junit.testexamples.ComplexRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.testexamples.FullAnalyzeClassesSpec;
+import com.tngtech.archunit.junit.testexamples.LibraryWithPrivateTests;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.TestClassWithTags;
 import com.tngtech.archunit.junit.testexamples.TestFieldWithTags;
@@ -240,6 +243,28 @@ class ArchUnitTestEngineTest {
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("all leaf unique ids of complex hierarchy")
                     .containsOnlyElementsOf(getExpectedIdsForComplexRuleLibrary(engineId));
+        }
+
+        @Test
+        void private_instance_members() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ClassWithPrivateTests.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of private members")
+                    .containsOnly(privateRuleFieldId(engineId), privateRuleMethodId(engineId));
+        }
+
+        @Test
+        void private_instance_libraries() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(LibraryWithPrivateTests.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of private members")
+                    .containsOnlyElementsOf(privateRuleLibraryIds(engineId));
         }
 
         @Test
@@ -609,20 +634,6 @@ class ArchUnitTestEngineTest {
         private TestDescriptor findRulesDescriptor(Collection<TestDescriptor> archRulesDescriptors, Class<?> clazz) {
             return archRulesDescriptors.stream().filter(d -> d.getUniqueId().toString().contains(clazz.getSimpleName())).findFirst().get();
         }
-
-        private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
-            return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
-        }
-
-        private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
-            Set<TestDescriptor> result = new HashSet<>();
-            descriptor.accept(possibleLeaf -> {
-                if (possibleLeaf.getChildren().isEmpty()) {
-                    result.add(possibleLeaf);
-                }
-            });
-            return result;
-        }
     }
 
     @Nested
@@ -679,6 +690,16 @@ class ArchUnitTestEngineTest {
             EngineExecutionTestListener testListener = execute(engineId, SimpleRuleLibrary.class);
 
             getExpectedIdsForSimpleRuleLibrary(engineId).forEach(testId ->
+                    testListener.verifyViolation(testId, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName()));
+        }
+
+        @Test
+        void private_instance_libraries() {
+            simulateCachedClassesForTest(LibraryWithPrivateTests.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, LibraryWithPrivateTests.class);
+
+            privateRuleLibraryIds(engineId).forEach(testId ->
                     testListener.verifyViolation(testId, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName()));
         }
 
@@ -752,18 +773,6 @@ class ArchUnitTestEngineTest {
 
     @Nested
     class Rejects {
-        @Test
-        void rule_method_that_is_not_static() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(WrongRuleMethodNotStatic.class);
-
-            assertThatThrownBy(() -> testEngine.discover(discoveryRequest, engineId))
-                    .isInstanceOf(ArchTestInitializationException.class)
-                    .hasMessageContaining(ArchTest.class.getSimpleName())
-                    .hasMessageContaining(WrongRuleMethodNotStatic.class.getSimpleName())
-                    .hasMessageContaining(WrongRuleMethodNotStatic.NOT_STATIC_METHOD_NAME)
-                    .hasMessageContaining("must be static");
-        }
-
         @Test
         void rule_method_with_wrong_parameters() {
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(WrongRuleMethodWrongParameters.class);
@@ -930,6 +939,41 @@ class ArchUnitTestEngineTest {
                 .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_TWO_FIELD));
 
         return Stream.of(simpleRuleLibraryIds, simpleRulesIds).flatMap(Set::stream).collect(toSet());
+    }
+
+    private Set<UniqueId> privateRuleLibraryIds(UniqueId uniqueId) {
+        UniqueId libraryId = uniqueId
+                .append(CLASS_SEGMENT_TYPE, LibraryWithPrivateTests.class.getName())
+                .append(FIELD_SEGMENT_TYPE, LibraryWithPrivateTests.PRIVATE_RULES_FIELD_NAME)
+                .append(CLASS_SEGMENT_TYPE, LibraryWithPrivateTests.SubRules.class.getName())
+                .append(FIELD_SEGMENT_TYPE, LibraryWithPrivateTests.SubRules.PRIVATE_RULES_FIELD_NAME);
+        return ImmutableSet.of(privateRuleFieldId(libraryId), privateRuleMethodId(libraryId));
+    }
+
+    private UniqueId privateRuleFieldId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, ClassWithPrivateTests.class.getName())
+                .append(FIELD_SEGMENT_TYPE, ClassWithPrivateTests.PRIVATE_RULE_FIELD_NAME);
+    }
+
+    private UniqueId privateRuleMethodId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, ClassWithPrivateTests.class.getName())
+                .append(METHOD_SEGMENT_TYPE, ClassWithPrivateTests.PRIVATE_RULE_METHOD_NAME);
+    }
+
+    private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
+        return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
+        Set<TestDescriptor> result = new HashSet<>();
+        descriptor.accept(possibleLeaf -> {
+            if (possibleLeaf.getChildren().isEmpty()) {
+                result.add(possibleLeaf);
+            }
+        });
+        return result;
     }
 
     private Set<UniqueId> toUniqueIds(TestDescriptor rootDescriptor) {

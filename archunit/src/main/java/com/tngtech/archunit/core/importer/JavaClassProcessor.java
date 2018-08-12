@@ -91,7 +91,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public void visitSource(String source, String debug) {
-        if (source != null) {
+        if (!importAborted() && source != null) {
             javaClassBuilder.withSourceFileName(source);
         }
     }

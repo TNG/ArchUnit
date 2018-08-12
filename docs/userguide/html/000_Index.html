@@ -467,8 +467,8 @@ h4 {
 <ul class="sectlevel2">
 <li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
-<li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
-<li><a href="#_using_junit_4_with_kotlin">3.4. Using JUnit 4 with Kotlin</a></li>
+<li><a href="#_using_junit_4_or_junit_5">3.3. Using JUnit 4 or JUnit 5</a></li>
+<li><a href="#_using_junit_support_with_kotlin">3.4. Using JUnit support with Kotlin</a></li>
 </ul>
 </li>
 <li><a href="#_what_to_check">4. What to Check</a>
@@ -798,19 +798,19 @@ public void Services_should_only_be_accessed_by_Controllers() {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_junit_4"><a class="anchor" href="#_using_junit_4"></a>3.3. Using JUnit 4</h3>
+<h3 id="_using_junit_4_or_junit_5"><a class="anchor" href="#_using_junit_4_or_junit_5"></a>3.3. Using JUnit 4 or JUnit 5</h3>
 <div class="paragraph">
 <p>While ArchUnit can be used with any unit testing framework, it provides extended support
-for writing tests with JUnit 4. The main advantage is automatic caching of imported
-classes between tests (of the same classes), as well as reduction of boilerplate code.</p>
+for writing tests with JUnit 4 and JUnit 5. The main advantage is automatic caching of imported
+classes between tests (of the same imported classes), as well as reduction of boilerplate code.</p>
 </div>
 <div class="paragraph">
-<p>To use the JUnit 4 support, declare ArchUnit&#8217;s <code>ArchUnitRunner</code>, declare the classes
+<p>To use the JUnit support, declare ArchUnit&#8217;s <code>ArchUnitRunner</code> (only JUnit 4), declare the classes
 to import via <code>@AnalyzeClasses</code> and add the respective rules as fields:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -823,29 +823,30 @@ public class MyArchitectureTest {
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>ArchUnitRunner</code> will automatically import (or reuse) the specified classes and
+<p>The JUnit test support will automatically import (or reuse) the specified classes and
 evaluate any rule annotated with <code>@ArchTest</code> against those classes.</p>
 </div>
 <div class="paragraph">
-<p>For further information on how to use the JUnit 4 support refer to <a href="#_junit_support">JUnit Support</a>.</p>
+<p>For further information on how to use the JUnit support refer to <a href="#_junit_support">JUnit Support</a>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_junit_4_with_kotlin"><a class="anchor" href="#_using_junit_4_with_kotlin"></a>3.4. Using JUnit 4 with Kotlin</h3>
+<h3 id="_using_junit_support_with_kotlin"><a class="anchor" href="#_using_junit_support_with_kotlin"></a>3.4. Using JUnit support with Kotlin</h3>
 <div class="paragraph">
-<p>As Kotlin removed the <code>static</code> keyword from the language, you need to use both a companion object
-and a Java-specific annotation:</p>
+<p>Using the JUnit support with Kotlin is quite similar to Java:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class)
-@AnalyzeClasses(packages = ["com.mycompany.myapp"])
+<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+@AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
+    @ArchTest
+    val rule_as_field = ArchRuleDefinition.noClasses().should()...
 
-    companion object {
-        @ArchTest @JvmField val myRule = classes()
-            .that().resideInAPackage("..service..")
-            .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
+    @ArchTest
+    fun rule_as_method(classes: JavaClasses) {
+        ArchRule rule = ArchRuleDefinition.noClasses().should()...
+        rule.check(classes)
     }
 }</code></pre>
 </div>
@@ -863,7 +864,7 @@ class MyArchitectureTest {
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-no-access.png" alt="package deps no access" width="438" height="77">
+<img src="package-deps-no-access.png" alt="package deps no access" width="461" height="76">
 </div>
 </div>
 <div class="listingblock">
@@ -874,7 +875,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-only-access.png" alt="package deps only access" width="463" height="338">
+<img src="package-deps-only-access.png" alt="package deps only access" width="496" height="334">
 </div>
 </div>
 <div class="listingblock">
@@ -888,7 +889,7 @@ class MyArchitectureTest {
 <h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-naming-deps.png" alt="class naming deps" width="316" height="215">
+<img src="class-naming-deps.png" alt="class naming deps" width="334" height="214">
 </div>
 </div>
 <div class="listingblock">
@@ -902,7 +903,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="333" height="205">
+<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
 </div>
 </div>
 <div class="listingblock">
@@ -916,7 +917,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="447" height="231">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="478" height="225">
 </div>
 </div>
 <div class="listingblock">
@@ -927,7 +928,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="544" height="269">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="579" height="267">
 </div>
 </div>
 <div class="listingblock">
@@ -941,7 +942,7 @@ class MyArchitectureTest {
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="555" height="223">
+<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="597" height="220">
 </div>
 </div>
 <div class="listingblock">
@@ -955,7 +956,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="629" height="603">
+<img src="layer-check.png" alt="layer check" width="653" height="598">
 </div>
 </div>
 <div class="listingblock">
@@ -975,7 +976,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="730" height="401">
+<img src="cycle-check.png" alt="cycle check" width="759" height="398">
 </div>
 </div>
 <div class="listingblock">
@@ -1178,7 +1179,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="932" height="445">
+<img src="domain-overview.png" alt="domain overview" width="985" height="442">
 </div>
 </div>
 <div class="paragraph">
@@ -1207,7 +1208,7 @@ inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-example.png" alt="resolution example" width="358" height="189">
+<img src="resolution-example.png" alt="resolution example" width="377" height="188">
 </div>
 </div>
 <div class="paragraph">
@@ -1222,7 +1223,7 @@ The situation looks roughly like</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-overview.png" alt="resolution overview" width="503" height="319">
+<img src="resolution-overview.png" alt="resolution overview" width="544" height="317">
 </div>
 </div>
 <div class="paragraph">
@@ -1242,7 +1243,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="459" height="228">
+<img src="diamond-example.png" alt="diamond example" width="514" height="223">
 </div>
 </div>
 <div class="paragraph">
@@ -1574,7 +1575,7 @@ a more generic API, that controls the types of objects that our concept targets.
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="import-vs-lang.png" alt="import vs lang" width="666" height="84">
+<img src="import-vs-lang.png" alt="import vs lang" width="723" height="80">
 </div>
 </div>
 <div class="paragraph">
@@ -1780,7 +1781,7 @@ The way this works is to use the respective package identifiers (compare
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="150" height="189">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="160" height="184">
 </div>
 </div>
 <div class="listingblock">
