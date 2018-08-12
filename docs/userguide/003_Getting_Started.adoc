@@ -74,18 +74,18 @@ public void Services_should_only_be_accessed_by_Controllers() {
 }
 ----
 
-=== Using JUnit 4
+=== Using JUnit 4 or JUnit 5
 
 While ArchUnit can be used with any unit testing framework, it provides extended support
-for writing tests with JUnit 4. The main advantage is automatic caching of imported
-classes between tests (of the same classes), as well as reduction of boilerplate code.
+for writing tests with JUnit 4 and JUnit 5. The main advantage is automatic caching of imported
+classes between tests (of the same imported classes), as well as reduction of boilerplate code.
 
-To use the JUnit 4 support, declare ArchUnit's `ArchUnitRunner`, declare the classes
+To use the JUnit support, declare ArchUnit's `ArchUnitRunner` (only JUnit 4), declare the classes
 to import via `@AnalyzeClasses` and add the respective rules as fields:
 
 [source,java,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner.class)
+@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -97,26 +97,27 @@ public class MyArchitectureTest {
 }
 ----
 
-The `ArchUnitRunner` will automatically import (or reuse) the specified classes and
+The JUnit test support will automatically import (or reuse) the specified classes and
 evaluate any rule annotated with `@ArchTest` against those classes.
 
-For further information on how to use the JUnit 4 support refer to <<JUnit Support>>.
+For further information on how to use the JUnit support refer to <<JUnit Support>>.
 
-=== Using JUnit 4 with Kotlin
+=== Using JUnit support with Kotlin
 
-As Kotlin removed the `static` keyword from the language, you need to use both a companion object
-and a Java-specific annotation:
+Using the JUnit support with Kotlin is quite similar to Java:
 
 [source,kotlin,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner::class)
-@AnalyzeClasses(packages = ["com.mycompany.myapp"])
+@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+@AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
+    @ArchTest
+    val rule_as_field = ArchRuleDefinition.noClasses().should()...
 
-    companion object {
-        @ArchTest @JvmField val myRule = classes()
-            .that().resideInAPackage("..service..")
-            .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
+    @ArchTest
+    fun rule_as_method(classes: JavaClasses) {
+        ArchRule rule = ArchRuleDefinition.noClasses().should()...
+        rule.check(classes)
     }
 }
 ----
