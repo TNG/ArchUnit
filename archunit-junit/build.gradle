@@ -80,6 +80,10 @@ ext.configureJUnitArchive = { configureDependencies ->
         delegate.with addCleanThirdPartyTask
         compileJava.dependsOn project(':archunit-junit').finishArchive
 
+        javadoc {
+            source(['api', 'main'].collect { project(':archunit-junit').sourceSets[it].allJava })
+        }
+
         install.repositories.mavenInstaller.pom.whenConfigured configureDependencies
         uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependencies
     }
