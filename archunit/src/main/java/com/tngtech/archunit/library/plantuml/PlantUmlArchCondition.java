@@ -17,7 +17,6 @@ package com.tngtech.archunit.library.plantuml;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -196,11 +195,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     private static String getFileNameOf(URL url) {
-        try {
-            return new File(url.toURI()).getName();
-        } catch (URISyntaxException e) {
-            throw new PlantUmlParseException(e);
-        }
+        return new File(url.getFile()).getName();
     }
 
     private static URL toUrl(Path path) {

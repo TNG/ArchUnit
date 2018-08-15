@@ -96,7 +96,6 @@ import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.example.thirdparty.ThirdPartySubClassWithProblem;
 import com.tngtech.archunit.example.web.AnnotatedController;
 import com.tngtech.archunit.example.web.InheritedControllerImpl;
-import com.tngtech.archunit.exampletest.PlantUmlArchitectureTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
@@ -595,7 +594,7 @@ class ExamplesIntegrationTest {
     Stream<DynamicTest> PlantUmlArchitectureTest() {
         return ExpectedTestFailures
                 .forTests(
-                        PlantUmlArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.PlantUmlArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.PlantUmlArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit5.PlantUmlArchitectureTest.class)
 
