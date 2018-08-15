@@ -22,3 +22,7 @@ dependencies {
 
     testRuntime project(path: ':archunit-junit5-engine')
 }
+
+test {
+    useJUnitPlatform()
+}
