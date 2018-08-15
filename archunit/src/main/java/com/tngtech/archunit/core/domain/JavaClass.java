@@ -992,6 +992,24 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, String> GET_PACKAGE = GET_PACKAGE_NAME;
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<Dependency>> GET_DIRECT_DEPENDENCIES_FROM_SELF =
+                new ChainableFunction<JavaClass, Set<Dependency>>() {
+                    @Override
+                    public Set<Dependency> apply(JavaClass input) {
+                        return input.getDirectDependenciesFromSelf();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<Dependency>> GET_DIRECT_DEPENDENCIES_TO_SELF =
+                new ChainableFunction<JavaClass, Set<Dependency>>() {
+                    @Override
+                    public Set<Dependency> apply(JavaClass input) {
+                        return input.getDirectDependenciesToSelf();
+                    }
+                };
     }
 
     public static final class Predicates {

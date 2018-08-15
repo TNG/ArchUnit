@@ -785,6 +785,33 @@ public interface ClassesShould {
     ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
+     * Asserts that all classes selected by this rule depend on certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing to which classes a dependency should exist
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat dependOnClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule depend on certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat(DescribedPredicate) dependOnClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
      * @return A syntax element that allows restricting how classes should be accessed
      * <br>E.g.
      * <pre><code>

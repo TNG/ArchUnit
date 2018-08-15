@@ -31,12 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public final class AllDependenciesCondition extends AllAttributesMatchCondition<Dependency> {
+public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<Dependency> {
     private final DescribedPredicate<? super Dependency> conditionPredicate;
     private final Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies;
     private final DescribedPredicate<Dependency> ignorePredicate;
 
-    AllDependenciesCondition(
+    AnyDependencyCondition(
             String description,
             final DescribedPredicate<? super Dependency> predicate,
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies) {
@@ -44,7 +44,7 @@ public final class AllDependenciesCondition extends AllAttributesMatchCondition<
         this(description, predicate, javaClassToRelevantDependencies, DescribedPredicate.<Dependency>alwaysFalse());
     }
 
-    private AllDependenciesCondition(
+    private AnyDependencyCondition(
             String description,
             final DescribedPredicate<? super Dependency> conditionPredicate,
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies,
@@ -62,8 +62,8 @@ public final class AllDependenciesCondition extends AllAttributesMatchCondition<
     }
 
     @PublicAPI(usage = ACCESS)
-    public AllDependenciesCondition ignoreDependency(DescribedPredicate<Dependency> ignorePredicate) {
-        return new AllDependenciesCondition(getDescription(),
+    public AnyDependencyCondition ignoreDependency(DescribedPredicate<Dependency> ignorePredicate) {
+        return new AnyDependencyCondition(getDescription(),
                 conditionPredicate,
                 javaClassToRelevantDependencies,
                 this.ignorePredicate.or(ignorePredicate));
@@ -71,8 +71,8 @@ public final class AllDependenciesCondition extends AllAttributesMatchCondition<
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public AllDependenciesCondition as(String description, Object... args) {
-        return new AllDependenciesCondition(
+    public AnyDependencyCondition as(String description, Object... args) {
+        return new AnyDependencyCondition(
                 String.format(description, args),
                 conditionPredicate,
                 javaClassToRelevantDependencies,

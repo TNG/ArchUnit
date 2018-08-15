@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.FailureReport;
 
-class ClassesShouldThatEvaluator {
+class ClassesShouldEvaluator {
     private static String OPTIONAL_ARGS_REGEX = "(?:\\([^)]*\\))?";
     private static String METHOD_OR_FIELD_REGEX = "\\.[\\w<>]+" + OPTIONAL_ARGS_REGEX;
     private static String MEMBER_REFERENCE_REGEX = "<(.*)" + METHOD_OR_FIELD_REGEX + ">";
@@ -22,12 +23,12 @@ class ClassesShouldThatEvaluator {
 
     private final ArchRule rule;
 
-    private ClassesShouldThatEvaluator(ArchRule rule) {
+    private ClassesShouldEvaluator(ArchRule rule) {
         this.rule = rule;
     }
 
-    static ClassesShouldThatEvaluator filterClassesAppearingInFailureReport(ClassesShouldConjunction classesShould) {
-        return new ClassesShouldThatEvaluator(classesShould);
+    static ClassesShouldEvaluator filterClassesAppearingInFailureReport(ArchRule rule) {
+        return new ClassesShouldEvaluator(rule);
     }
 
     List<JavaClass> on(Class<?>... toCheck) {
@@ -45,7 +46,7 @@ class ClassesShouldThatEvaluator {
     private String getRelevantFailures(JavaClasses classes) {
         List<String> relevant = new ArrayList<>();
         for (String line : linesIn(rule.evaluate(classes).getFailureReport())) {
-            if (!isDefaultConstructor(line) && !isSelfReference(line)) {
+            if (!isDefaultConstructor(line) && !isSelfReference(line) && !isExtendsJavaLangAnnotation(line)) {
                 relevant.add(line);
             }
         }
@@ -58,6 +59,10 @@ class ClassesShouldThatEvaluator {
 
     private boolean isSelfReference(String line) {
         return line.matches(".*" + SELF_REFERENCE_REGEX + ".*");
+    }
+
+    private boolean isExtendsJavaLangAnnotation(String line) {
+        return line.matches(String.format(".*extends.*<%s> in.*", Annotation.class.getName()));
     }
 
     private List<String> linesIn(FailureReport failureReport) {
