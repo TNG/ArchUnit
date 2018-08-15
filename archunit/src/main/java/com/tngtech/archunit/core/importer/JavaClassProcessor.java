@@ -104,6 +104,10 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
+        if (isSyntheticMember(access)) {
+            return;
+        }
+
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
@@ -187,6 +191,10 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitField(access, name, desc, signature, value);
         }
 
+        if (isSyntheticMember(access)) {
+            return super.visitField(access, name, desc, signature, value);
+        }
+
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
                 .withType(JavaTypeImporter.importAsmType(Type.getType(desc)))
@@ -199,6 +207,10 @@ class JavaClassProcessor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (importAborted()) {
+            return super.visitMethod(access, name, desc, signature, exceptions);
+        }
+
+        if (isBridgeMethod(access) || (isSyntheticMember(access) && !CONSTRUCTOR_NAME.equals(name))) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
@@ -217,6 +229,18 @@ class JavaClassProcessor extends ClassVisitor {
                 ;
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
+    }
+
+    private boolean isBridgeMethod(int asmAccess) {
+        return modifierPresent(Opcodes.ACC_BRIDGE, asmAccess);
+    }
+
+    private boolean isSyntheticMember(int asmAccess) {
+        return modifierPresent(Opcodes.ACC_SYNTHETIC, asmAccess);
+    }
+
+    private boolean modifierPresent(int modifierFlag, int asmAccess) {
+        return (modifierFlag & asmAccess) != 0;
     }
 
     private List<JavaType> typesFrom(Type[] asmTypes) {
