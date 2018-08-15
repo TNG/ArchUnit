@@ -25,7 +25,6 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -53,10 +52,13 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_FROM_SELF;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
@@ -197,6 +199,14 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> dependOnClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        return new AnyDependencyCondition(
+                "depend on classes that " + predicate.getDescription(),
+                GET_TARGET_CLASS.is(predicate),
+                GET_DIRECT_DEPENDENCIES_FROM_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return new AllAccessesToClassCondition("only be accessed by classes that",
                 JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate));
@@ -255,12 +265,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsWhere(DescribedPredicate<? super Dependency> predicate) {
         String description = "only have dependents where " + predicate.getDescription();
-        return new AllDependenciesCondition(description, predicate, new Function<JavaClass, Collection<Dependency>>() {
-            @Override
-            public Collection<Dependency> apply(JavaClass input) {
-                return input.getDirectDependenciesToSelf();
-            }
-        });
+        return new AllDependenciesCondition(description, predicate, GET_DIRECT_DEPENDENCIES_TO_SELF);
     }
 
     /**
@@ -286,12 +291,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static AllDependenciesCondition onlyHaveDependenciesWhere(DescribedPredicate<? super Dependency> predicate) {
         String description = "only have dependencies where " + predicate.getDescription();
-        return new AllDependenciesCondition(description, predicate, new Function<JavaClass, Collection<Dependency>>() {
-            @Override
-            public Collection<Dependency> apply(JavaClass input) {
-                return input.getDirectDependenciesFromSelf();
-            }
-        });
+        return new AllDependenciesCondition(description, predicate, GET_DIRECT_DEPENDENCIES_FROM_SELF);
     }
 
     @PublicAPI(usage = ACCESS)

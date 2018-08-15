@@ -465,6 +465,21 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldThat dependOnClassesThat() {
+        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+            @Override
+            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> input) {
+                return ArchConditions.dependOnClassesThat(input);
+            }
+        });
+    }
+
+    @Override
+    public ClassesShouldConjunction dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.dependOnClassesThat(predicate)));
+    }
+
+    @Override
     public OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed() {
         return new OnlyBeAccessedSpecificationInternal(this);
     }
