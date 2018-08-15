@@ -55,7 +55,6 @@ public interface HasName {
             NameMatchingPredicate(String regex) {
                 super(String.format("name matching '%s'", regex));
                 this.pattern = Pattern.compile(regex);
-                ;
             }
 
             @Override

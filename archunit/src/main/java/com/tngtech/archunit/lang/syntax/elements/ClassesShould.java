@@ -821,6 +821,31 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
 
+    /**
+     * Asserts that only certain classes depend on the classes selected by this rule.<br>
+     * <br>E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing from which classes a dependency to these classes may exist
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat onlyHaveDependentClassesThat();
+
+    /**
+     * Asserts that only certain classes depend on the classes selected by this rule.<br>
+     * <br>E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat(DescribedPredicate) onlyHaveDependentClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency origin
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyHaveDependentClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
 
     /**
      * Asserts that classes are interfaces.

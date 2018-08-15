@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
@@ -38,20 +39,22 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
-public class ShouldAccessClassesThatTest {
+public class ShouldClassesThatTest {
 
     @Rule
     public final MockitoRule rule = MockitoJUnit.rule();
 
     @DataProvider
     public static Object[][] no_classes_should_that_rule_starts() {
-        return testForEach(noClasses().should().accessClassesThat(), noClasses().should().dependOnClassesThat());
+        return testForEach(
+                noClasses().should().accessClassesThat(),
+                noClasses().should().dependOnClassesThat());
     }
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveFullyQualifiedName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveFullyQualifiedName(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -61,7 +64,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontHaveFullyQualifiedName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.dontHaveFullyQualifiedName(List.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -71,7 +74,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -81,7 +84,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontHaveSimpleName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.dontHaveSimpleName(List.class.getSimpleName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -91,7 +94,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveNameMatching(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveNameMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -101,7 +104,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveNameNotMatching(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveNameNotMatching(".*\\.List"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -111,7 +114,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameStartingWith(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameStartingWith("Lis"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -121,7 +124,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameNotStartingWith(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameNotStartingWith("Lis"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -131,7 +134,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameContaining(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameContaining("is"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -141,7 +144,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameNotContaining(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameNotContaining("is"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -151,7 +154,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameEndingWith(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameEndingWith("ist"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -161,7 +164,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleNameNotEndingWith(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleNameNotEndingWith("ist"))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -171,7 +174,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void resideInAPackage(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.resideInAPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -181,7 +184,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void resideOutsideOfPackage(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.resideOutsideOfPackage("..tngtech.."))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -191,7 +194,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void resideInAnyPackage(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.resideInAnyPackage("..tngtech..", "java.lang.reflect"))
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
@@ -201,7 +204,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void resideOutsideOfPackages(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
         ).on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
 
@@ -211,7 +214,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void arePublic(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePublic())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -221,7 +224,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotPublic(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPublic())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPublic())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -232,7 +235,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areProtected(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areProtected())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -242,7 +245,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotProtected(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotProtected())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotProtected())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -253,7 +256,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void arePackagePrivate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePackagePrivate())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -263,7 +266,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotPackagePrivate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPackagePrivate())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPackagePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -274,7 +277,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void arePrivate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePrivate())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.arePrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -284,7 +287,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotPrivate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPrivate())
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.areNotPrivate())
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -295,7 +298,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveModifier(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.haveModifier(PRIVATE))
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.haveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -305,7 +308,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontHaveModifier(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.dontHaveModifier(PRIVATE))
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.dontHaveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
                         ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
 
@@ -316,7 +319,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAnnotatedWith_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -326,7 +329,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAnnotatedWith_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -336,7 +339,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAnnotatedWith_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -346,7 +349,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAnnotatedWith_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -357,7 +360,7 @@ public class ShouldAccessClassesThatTest {
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -368,7 +371,7 @@ public class ShouldAccessClassesThatTest {
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
 
@@ -378,7 +381,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areMetaAnnotatedWith_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -389,7 +392,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotMetaAnnotatedWith_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -400,7 +403,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areMetaAnnotatedWith_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -411,7 +414,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotMetaAnnotatedWith_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -423,7 +426,7 @@ public class ShouldAccessClassesThatTest {
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areMetaAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -435,7 +438,7 @@ public class ShouldAccessClassesThatTest {
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotMetaAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
         DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
@@ -446,7 +449,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void implement_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.implement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -456,7 +459,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontImplement_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.dontImplement(Collection.class))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -466,7 +469,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void implement_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.implement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -476,7 +479,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontImplement_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.dontImplement(Collection.class.getName()))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -486,7 +489,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void implement_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.implement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -496,7 +499,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void dontImplement_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.dontImplement(classWithNameOf(Collection.class)))
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
@@ -506,7 +509,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableTo_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -516,7 +519,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableTo_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableTo(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -526,7 +529,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableTo_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -536,7 +539,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableTo_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableTo(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -546,7 +549,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableTo_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -556,7 +559,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableTo_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableTo(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
@@ -566,7 +569,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableFrom_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -577,7 +580,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableFrom_type(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableFrom(Collection.class))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -588,7 +591,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableFrom_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -599,7 +602,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableFrom_typeName(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableFrom(Collection.class.getName()))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -610,7 +613,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAssignableFrom_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -621,7 +624,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAssignableFrom_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAssignableFrom(classWithNameOf(Collection.class)))
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -632,7 +635,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areInterfaces_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areInterfaces())
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
@@ -643,7 +646,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotInterfaces_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotInterfaces())
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
@@ -662,7 +665,7 @@ public class ShouldAccessClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_predicate_rule_starts")
     public void shouldThat_predicate(ArchRule rule) {
-        List<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
 
@@ -671,9 +674,9 @@ public class ShouldAccessClassesThatTest {
 
     @Test
     public void dependOnClassesThat_reports_all_dependencies() {
-        Function<ArchRule, List<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, List<JavaClass>>() {
+        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
             @Override
-            public List<JavaClass> apply(ArchRule rule) {
+            public Set<JavaClass> apply(ArchRule rule) {
                 return filterClassesAppearingInFailureReport(rule)
                         .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
                                 ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
@@ -681,7 +684,7 @@ public class ShouldAccessClassesThatTest {
             }
         };
 
-        List<JavaClass> classes = filterClassesInFailureReport.apply(
+        Set<JavaClass> classes = filterClassesInFailureReport.apply(
                 noClasses().should().dependOnClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
 
         assertThatClasses(classes).matchInAnyOrder(

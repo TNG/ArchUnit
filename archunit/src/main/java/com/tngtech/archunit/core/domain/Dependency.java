@@ -38,6 +38,9 @@ import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
  * <li>a class calls a method of another class</li>
  * <li>a class calls a constructor of another class</li>
  * <li>a class inherits from another class (which is in fact a special case of constructor call)</li>
+ * <li>a class implements an interface</li>
+ * <li>a class has a field with type of another class</li>
+ * <li>a class has a method/constructor with parameter/return type of another class</li>
  * </ul>
  */
 public class Dependency implements HasDescription, Comparable<Dependency> {
