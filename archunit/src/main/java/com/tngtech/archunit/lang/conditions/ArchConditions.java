@@ -52,6 +52,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
@@ -257,10 +258,20 @@ public final class ArchConditions {
     }
 
     /**
-     * @param predicate A predicate identifying relevant dependencies on this class
-     * @return A condition matching {@link JavaClass classes} that have other classes
-     * depending on them (e.g. calling methods of this class)
-     * where the respective dependency is matched by the predicate
+     * @param predicate A predicate specifying allowed dependencies on this class
+     * @return A condition satisfied by {@link JavaClass classes} where all classes
+     * depending on them (e.g. calling methods of this class) are matched by the predicate
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyHaveDependentClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return onlyHaveDependentsWhere(GET_ORIGIN_CLASS.is(predicate))
+                .as("only have dependent classes that " + predicate.getDescription());
+    }
+
+    /**
+     * @param predicate A predicate specifying allowed dependencies on this class
+     * @return A condition satisfied by {@link JavaClass classes} where all {@link Dependency dependencies}
+     * on them (e.g. calling methods of this class) are matched by the predicate
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsWhere(DescribedPredicate<? super Dependency> predicate) {
@@ -270,7 +281,7 @@ public final class ArchConditions {
 
     /**
      * @param packageIdentifiers Strings identifying packages according to {@link PackageMatcher}
-     * @return A condition matching {@link JavaClass classes} that depend on
+     * @return A condition matching {@link JavaClass classes} that only depend on
      * other classes (e.g. this class calling methods of other classes)
      * with a package matching any of the identifiers
      */

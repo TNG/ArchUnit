@@ -497,6 +497,19 @@ class ExamplesIntegrationTest {
                 .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
                 .by(inheritanceFrom(DaoCallingService.class).implementing(ServiceInterface.class))
 
+                .ofRule("classes that reside in a package '..service..' should " +
+                        "only have dependent classes that reside in any package ['..controller..', '..service..']")
+                .by(callFromMethod(DaoCallingService.class, violateLayerRules)
+                        .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
+                        .inLine(14).asDependency())
+                .by(callFromMethod(SomeMediator.class, violateLayerRulesIndirectly)
+                        .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
+                        .inLine(15).asDependency())
+                .by(inheritanceFrom(DaoCallingService.class).implementing(ServiceInterface.class))
+                .by(constructor(SomeMediator.class).withParameter(ServiceViolatingLayerRules.class))
+                .by(field(SomeMediator.class, "service").ofType(ServiceViolatingLayerRules.class))
+                .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
+
                 .toDynamicTests();
     }
 
