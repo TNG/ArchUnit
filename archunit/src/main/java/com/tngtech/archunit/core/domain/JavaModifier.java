@@ -46,7 +46,11 @@ public enum JavaModifier {
     @PublicAPI(usage = ACCESS)
     SYNCHRONIZED(EnumSet.of(ApplicableType.METHOD), Opcodes.ACC_SYNCHRONIZED),
     @PublicAPI(usage = ACCESS)
-    NATIVE(EnumSet.of(ApplicableType.METHOD), Opcodes.ACC_NATIVE);
+    NATIVE(EnumSet.of(ApplicableType.METHOD), Opcodes.ACC_NATIVE),
+    @PublicAPI(usage = ACCESS)
+    BRIDGE(EnumSet.of(ApplicableType.METHOD), Opcodes.ACC_BRIDGE),
+    @PublicAPI(usage = ACCESS)
+    SYNTHETIC(EnumSet.of(ApplicableType.CLASS, ApplicableType.FIELD, ApplicableType.METHOD), Opcodes.ACC_SYNTHETIC);
 
     private final Set<ApplicableType> applicableTo;
     private final int asmAccessFlag;
