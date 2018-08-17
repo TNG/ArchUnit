@@ -29,6 +29,11 @@ public class LayerDependencyRulesTest {
             classes().that().resideInAPackage("..service..")
                     .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
 
+    @ArchTest
+    static final ArchRule services_should_only_access_persistence_or_other_services =
+            classes().that().resideInAPackage("..service..")
+                    .should().onlyAccessClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..");
+
     // 'dependOn' catches a wider variety of violations, e.g. having fields of type, having method parameters of type, extending type ...
 
     @ArchTest

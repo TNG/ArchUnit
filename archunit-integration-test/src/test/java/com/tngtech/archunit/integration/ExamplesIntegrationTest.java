@@ -475,6 +475,18 @@ class ExamplesIntegrationTest {
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(15))
 
+                .ofRule("classes that reside in a package '..service..' should "
+                        + "only access classes that reside in any package ['..service..', '..persistence..', 'java..']")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .getting().field(UseCaseOneTwoController.class, UseCaseOneTwoController.someString)
+                        .inLine(15))
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toConstructor(UseCaseTwoController.class)
+                        .inLine(16))
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toMethod(UseCaseTwoController.class, UseCaseTwoController.doSomethingTwo)
+                        .inLine(17))
+
                 .ofRule("no classes that reside in a package '..service..' " +
                         "should depend on classes that reside in a package '..controller..'")
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
