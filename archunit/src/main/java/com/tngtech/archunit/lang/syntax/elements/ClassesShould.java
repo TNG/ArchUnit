@@ -758,7 +758,7 @@ public interface ClassesShould {
     ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
 
     /**
-     * Asserts that all classes selected by this rule access certain classes.<br>
+     * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat()}).<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
@@ -771,7 +771,7 @@ public interface ClassesShould {
     ClassesShouldThat accessClassesThat();
 
     /**
-     * Asserts that all classes selected by this rule access certain classes.<br>
+     * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat(DescribedPredicate)}.<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
@@ -783,6 +783,33 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat()}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing which classes should only be accessed
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat onlyAccessClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}.<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat(DescribedPredicate) onlyAccessClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Asserts that all classes selected by this rule depend on certain classes.<br>

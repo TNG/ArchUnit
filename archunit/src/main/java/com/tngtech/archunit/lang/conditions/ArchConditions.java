@@ -58,6 +58,8 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
@@ -192,11 +194,16 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
-        @SuppressWarnings({"RedundantTypeArguments", "unchecked"})
-        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget =
-                JavaAccess.Functions.Get.<JavaAccess<?>, AccessTarget>target(); // This seems to be a compiler nightmare...
-        return new AnyAccessFromClassCondition("access classes that",
-                getTarget.then(Get.<JavaClass>owner()).is(predicate));
+        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.<JavaClass>owner()).is(predicate);
+        return new AnyAccessFromClassCondition("access classes that", accessPredicate);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyAccessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.<JavaClass>owner()).is(predicate);
+        return new AllAccessesCondition("only access classes that", accessPredicate, GET_ACCESSES_FROM_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -209,8 +216,8 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return new AllAccessesToClassCondition("only be accessed by classes that",
-                JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate));
+        return new AllAccessesCondition("only be accessed by classes that",
+                JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate), GET_ACCESSES_TO_SELF);
     }
 
     /**
@@ -239,8 +246,8 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyBeAccessedByAnyPackage(String... packageIdentifiers) {
-        return new AllAccessesToClassCondition("only be accessed by",
-                JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers));
+        return new AllAccessesCondition("only be accessed by",
+                JavaAccessPackagePredicate.forAccessOrigin().matching(packageIdentifiers), GET_ACCESSES_TO_SELF);
     }
 
     /**
