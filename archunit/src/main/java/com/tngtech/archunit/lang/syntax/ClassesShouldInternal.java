@@ -27,6 +27,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -455,6 +456,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessTargetWhere(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction onlyAccessMembersThat(DescribedPredicate<? super JavaMember> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyAccessMembersThat(predicate)));
     }
 
     @Override
