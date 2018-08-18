@@ -24,6 +24,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -333,6 +334,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         String getDescription() {
             return "method <" + getFullName() + ">";
+        }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE =
+                    new ChainableFunction<MethodCallTarget, Set<JavaMethod>>() {
+                        @Override
+                        public Set<JavaMethod> apply(MethodCallTarget input) {
+                            return input.resolve();
+                        }
+                    };
         }
     }
 

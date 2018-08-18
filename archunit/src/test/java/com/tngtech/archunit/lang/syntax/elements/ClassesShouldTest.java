@@ -47,6 +47,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -65,6 +66,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.notBePrivate;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notBeProtected;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notBePublic;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notHaveModifier;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -317,7 +319,7 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         return $$(
                 $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
@@ -342,7 +344,7 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveSimpleNameNotEndingWith_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         return $$(
                 $(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
@@ -990,6 +992,31 @@ public class ClassesShouldTest {
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should call method where target is %s",
                         ClassWithMethod.class.getSimpleName()))
+                .containsPattern(callMethodRegex(
+                        ClassCallingWrongMethod.class,
+                        ClassCallingMethod.class, "call"))
+                .doesNotMatch(callMethodRegex(
+                        ClassCallingMethod.class,
+                        ClassWithMethod.class, "method", String.class));
+    }
+
+    @DataProvider
+    public static Object[][] onlyCallMethodsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))),
+                $(classes().should(ArchConditions.onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallMethodsThat_rules")
+    public void onlyCallMethodsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call methods that are declared in %s",
+                        ClassWithMethod.class.getName()))
                 .containsPattern(callMethodRegex(
                         ClassCallingWrongMethod.class,
                         ClassCallingMethod.class, "call"))
