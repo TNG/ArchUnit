@@ -282,6 +282,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         String getDescription() {
             return "constructor <" + getFullName() + ">";
         }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE =
+                    new ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>>() {
+                        @Override
+                        public Set<JavaConstructor> apply(ConstructorCallTarget input) {
+                            return input.resolve();
+                        }
+                    };
+        }
     }
 
     public static final class MethodCallTarget extends CodeUnitCallTarget {

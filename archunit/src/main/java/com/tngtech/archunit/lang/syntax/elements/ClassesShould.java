@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -745,6 +746,15 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
+
+    /**
+     * Matches all constructor calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaConstructor JavaConstructors} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate);
 
     /**
      * Matches against access of arbitrary targets (compare {@link AccessTarget})

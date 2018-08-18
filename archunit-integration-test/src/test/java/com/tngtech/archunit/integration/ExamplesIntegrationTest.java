@@ -82,6 +82,7 @@ import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.security.Secured;
+import com.tngtech.archunit.example.service.ServiceHelper;
 import com.tngtech.archunit.example.service.ServiceInterface;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
@@ -197,6 +198,13 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeController.class, "doSthController")
                         .toMethod(ServiceViolatingDaoRules.class, "doSthService")
                         .inLine(11))
+
+                .ofRule(String.format("classes that reside in a package '..controller..' should "
+                                + "only call constructors that are declared in a package '..controller..' or are annotated with @%s",
+                        Secured.class.getSimpleName()))
+                .by(callFromMethod(SomeGuiController.class, "callServiceLayer")
+                        .toConstructor(ServiceHelper.class)
+                        .inLine(7))
 
                 .toDynamicTests();
     }
