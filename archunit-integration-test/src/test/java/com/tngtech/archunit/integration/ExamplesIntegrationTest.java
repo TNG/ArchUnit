@@ -581,6 +581,22 @@ class ExamplesIntegrationTest {
                 .by(field(SomeMediator.class, "service").ofType(ServiceViolatingLayerRules.class))
                 .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
 
+                .ofRule("classes that reside in a package '..service..' should "
+                        + "only depend on classes that reside in any package ['..service..', '..persistence..', 'java..']")
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .getting().field(UseCaseOneTwoController.class, UseCaseOneTwoController.someString)
+                        .inLine(16).asDependency())
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toConstructor(UseCaseTwoController.class)
+                        .inLine(17).asDependency())
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toMethod(UseCaseTwoController.class, UseCaseTwoController.doSomethingTwo)
+                        .inLine(18).asDependency())
+                .by(method(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.dependentMethod)
+                        .withParameter(UseCaseTwoController.class))
+                .by(method(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.dependentMethod)
+                        .withReturnType(SomeGuiController.class))
+
                 .toDynamicTests();
     }
 
