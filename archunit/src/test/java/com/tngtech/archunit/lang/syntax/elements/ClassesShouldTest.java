@@ -47,6 +47,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -65,9 +66,11 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.notBePrivate;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notBeProtected;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notBePublic;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notHaveModifier;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -317,7 +320,7 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         return $$(
                 $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
@@ -342,7 +345,7 @@ public class ClassesShouldTest {
     @DataProvider
     public static Object[][] haveSimpleNameNotEndingWith_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         return $$(
                 $(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
@@ -947,12 +950,36 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] onlyAccessFieldsThat_rules() {
+        return testForEach(
+                classes().should().onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))),
+                classes().should(ArchConditions.onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyAccessFieldsThat_rules")
+    public void onlyAccessFieldsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should only access fields that are declared in " + ClassWithField.class.getName())
+                .containsPattern(accessesFieldRegex(
+                        ClassAccessingWrongField.class, "(sets|gets|accesses)",
+                        ClassAccessingField.class, "classWithField"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingField.class, "(sets|gets|accesses)",
+                        ClassWithField.class, "field"));
+    }
+
+    @DataProvider
     public static Object[][] callMethod_rules() {
-        return $$(
-                $(classes().should().callMethod(ClassWithMethod.class, "method", String.class)),
-                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class))),
-                $(classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())),
-                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())))
+        return testForEach(
+                classes().should().callMethod(ClassWithMethod.class, "method", String.class),
+                classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class)),
+                classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName()),
+                classes().should(ArchConditions.callMethod(ClassWithMethod.class.getName(), "method", String.class.getName()))
         );
     }
 
@@ -993,6 +1020,34 @@ public class ClassesShouldTest {
                 .containsPattern(callMethodRegex(
                         ClassCallingWrongMethod.class,
                         ClassCallingMethod.class, "call"))
+                .doesNotMatch(callMethodRegex(
+                        ClassCallingMethod.class,
+                        ClassWithMethod.class, "method", String.class));
+    }
+
+    @DataProvider
+    public static Object[][] onlyCallMethodsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))),
+                $(classes().should(ArchConditions.onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallMethodsThat_rules")
+    public void onlyCallMethodsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call methods that are declared in %s",
+                        ClassWithMethod.class.getName()))
+                .containsPattern(callMethodRegex(
+                        ClassCallingWrongMethod.class,
+                        ClassCallingMethod.class, "call"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callMethodRegex(
                         ClassCallingMethod.class,
                         ClassWithMethod.class, "method", String.class));
@@ -1045,6 +1100,34 @@ public class ClassesShouldTest {
                 .containsPattern(callConstructorRegex(
                         ClassCallingWrongConstructor.class,
                         ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(callConstructorRegex(
+                        ClassCallingConstructor.class,
+                        ClassWithConstructor.class, String.class));
+    }
+
+    @DataProvider
+    public static Object[][] onlyCallConstructorsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))),
+                $(classes().should(ArchConditions.onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallConstructorsThat_rules")
+    public void onlyCallConstructorsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call constructors that are declared in %s",
+                        ClassWithConstructor.class.getName()))
+                .containsPattern(callConstructorRegex(
+                        ClassCallingWrongConstructor.class,
+                        ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callConstructorRegex(
                         ClassCallingConstructor.class,
                         ClassWithConstructor.class, String.class));
@@ -1106,6 +1189,76 @@ public class ClassesShouldTest {
                 .containsPattern(callCodeUnitRegex(
                         ClassAccessingWrongFieldMethodAndConstructor.class,
                         ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
+    @DataProvider
+    public static Object[][] onlyCallCodeUnitsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallCodeUnitsThat_rules")
+    public void onlyCallCodeUnitsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call code units that are declared in %s",
+                        ClassWithFieldMethodAndConstructor.class.getName()))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME, int.class, Date.class))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
+    @DataProvider
+    public static Object[][] onlyAccessMembersThat_rules() {
+        return $$(
+                $(classes().should().onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                $(classes().should(ArchConditions.onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyAccessMembersThat_rules")
+    public void onlyAccessMembersThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only access members that are declared in %s",
+                        ClassWithFieldMethodAndConstructor.class.getName()))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME, int.class, Date.class))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .containsPattern(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callCodeUnitRegex(
                         ClassAccessingWrongFieldMethodAndConstructor.class,
                         ClassAccessingFieldMethodAndConstructor.class, "wrongField"))

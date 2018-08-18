@@ -34,6 +34,12 @@ public class LayerDependencyRulesTest {
                 .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..").check(classes);
     }
 
+    @Test
+    public void services_should_only_access_persistence_or_other_services() {
+        classes().that().resideInAPackage("..service..")
+                .should().onlyAccessClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..").check(classes);
+    }
+
     // 'dependOn' catches a wider variety of violations, e.g. having fields of type, having method parameters of type, extending type ...
 
     @Test
@@ -52,6 +58,12 @@ public class LayerDependencyRulesTest {
     public void services_should_only_be_depended_on_by_controllers_or_other_services() {
         classes().that().resideInAPackage("..service..")
                 .should().onlyHaveDependentClassesThat().resideInAnyPackage("..controller..", "..service..").check(classes);
+    }
+
+    @Test
+    public void services_should_only_depend_on_persistence_or_other_services() {
+        classes().that().resideInAPackage("..service..")
+                .should().onlyDependOnClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..").check(classes);
     }
 
 }

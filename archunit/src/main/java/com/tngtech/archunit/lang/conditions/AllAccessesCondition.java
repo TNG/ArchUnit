@@ -17,17 +17,23 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
+import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 
-class ClassCallsCodeUnitCondition extends AnyAttributeMatchesCondition<JavaCall<?>> {
-    ClassCallsCodeUnitCondition(DescribedPredicate<? super JavaCall<?>> predicate) {
-        super(new CodeUnitCallCondition(predicate));
+class AllAccessesCondition extends AllAttributesMatchCondition<JavaAccess<?>> {
+    private final Function<JavaClass, ? extends Collection<JavaAccess<?>>> getRelevantAccesses;
+
+    AllAccessesCondition(String prefix, DescribedPredicate<JavaAccess<?>> predicate,
+            Function<JavaClass, ? extends Collection<JavaAccess<?>>> getRelevantAccesses) {
+        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition<>(predicate));
+        this.getRelevantAccesses = getRelevantAccesses;
     }
 
     @Override
-    Collection<JavaCall<?>> relevantAttributes(JavaClass item) {
-        return item.getCallsFromSelf();
+    Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
+        return getRelevantAccesses.apply(item);
     }
 }

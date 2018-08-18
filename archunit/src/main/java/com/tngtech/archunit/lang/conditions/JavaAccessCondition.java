@@ -21,16 +21,16 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
-class JavaAccessCondition extends ArchCondition<JavaAccess<?>> {
-    private final DescribedPredicate<? super JavaAccess<?>> predicate;
+class JavaAccessCondition<T extends JavaAccess<?>> extends ArchCondition<T> {
+    private final DescribedPredicate<? super T> predicate;
 
-    JavaAccessCondition(DescribedPredicate<? super JavaAccess<?>> predicate) {
-        super(predicate.getDescription());
+    JavaAccessCondition(DescribedPredicate<? super T> predicate) {
+        super("access target where " + predicate.getDescription());
         this.predicate = predicate;
     }
 
     @Override
-    public void check(JavaAccess<?> item, ConditionEvents events) {
+    public void check(T item, ConditionEvents events) {
         if (!item.getOriginOwner().equals(item.getTargetOwner())) {
             events.add(new SimpleConditionEvent(item, predicate.apply(item), item.getDescription()));
         }
