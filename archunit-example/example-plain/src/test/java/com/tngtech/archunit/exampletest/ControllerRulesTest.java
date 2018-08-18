@@ -37,6 +37,14 @@ public class ControllerRulesTest {
                 .check(classes);
     }
 
+    @Test
+    public void controllers_should_only_call_secured_code_units() {
+        classes()
+                .that().resideInAPackage("..controller..")
+                .should().onlyCallCodeUnitsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))))
+                .check(classes);
+    }
+
     private DescribedPredicate<JavaMember> areDeclaredInController() {
         DescribedPredicate<JavaClass> aPackageController = GET_PACKAGE_NAME.is(PackageMatchers.of("..controller..", "java.."))
                 .as("a package '..controller..'");

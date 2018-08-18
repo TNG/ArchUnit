@@ -250,6 +250,21 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         public abstract Set<? extends JavaCodeUnit> resolve();
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>> RESOLVE =
+                    new ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>>() {
+                        @SuppressWarnings("unchecked") // Set is covariant
+                        @Override
+                        public Set<JavaCodeUnit> apply(CodeUnitCallTarget input) {
+                            return (Set<JavaCodeUnit>) input.resolve();
+                        }
+                    };
+        }
     }
 
     public static final class ConstructorCallTarget extends CodeUnitCallTarget {

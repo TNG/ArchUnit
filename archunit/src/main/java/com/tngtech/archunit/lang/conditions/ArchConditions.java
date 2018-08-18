@@ -28,6 +28,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
@@ -36,6 +37,7 @@ import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -212,6 +214,15 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
         return new ClassAccessesCondition<>(predicate, GET_CALLS_FROM_SELF)
                 .as("call code unit where " + predicate.getDescription());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
+        ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
+        DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE)
+                .is(anyElementThat(predicate.<JavaCodeUnit>forSubType()));
+        return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
+                .as("only call code units that " + predicate.getDescription());
     }
 
     @PublicAPI(usage = ACCESS)

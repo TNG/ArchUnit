@@ -75,7 +75,6 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveSimpleName(String name);
 
-
     /**
      * Asserts that classes' simple class names start with a given prefix.
      *
@@ -778,6 +777,15 @@ public interface ClassesShould {
     ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
 
     /**
+     * Matches all code unit calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaCodeUnit JavaCodeUnits} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+
+    /**
      * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat()}).<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
@@ -892,7 +900,6 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction onlyHaveDependentClassesThat(DescribedPredicate<? super JavaClass> predicate);
-
 
     /**
      * Asserts that classes are interfaces.

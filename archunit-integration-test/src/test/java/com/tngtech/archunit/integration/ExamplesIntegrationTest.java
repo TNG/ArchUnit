@@ -206,6 +206,16 @@ class ExamplesIntegrationTest {
                         .toConstructor(ServiceHelper.class)
                         .inLine(7))
 
+                .ofRule(String.format("classes that reside in a package '..controller..' should "
+                                + "only call code units that are declared in a package '..controller..' or are annotated with @%s",
+                        Secured.class.getSimpleName()))
+                .by(callFromMethod(SomeController.class, "doSthController")
+                        .toMethod(ServiceViolatingDaoRules.class, "doSthService")
+                        .inLine(11))
+                .by(callFromMethod(SomeGuiController.class, "callServiceLayer")
+                        .toConstructor(ServiceHelper.class)
+                        .inLine(7))
+
                 .toDynamicTests();
     }
 
