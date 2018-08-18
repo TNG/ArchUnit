@@ -46,6 +46,14 @@ public class ControllerRulesTest {
     }
 
     @Test
+    public void controllers_should_only_access_secured_fields() {
+        classes()
+                .that().resideInAPackage("..controller..")
+                .should().onlyAccessFieldsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))))
+                .check(classes);
+    }
+
+    @Test
     public void controllers_should_only_access_secured_members() {
         classes()
                 .that().resideInAPackage("..controller..")

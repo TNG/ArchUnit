@@ -38,6 +38,12 @@ public class ControllerRulesTest {
                     .should().onlyCallCodeUnitsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))));
 
     @ArchTest
+    static final ArchRule controllers_should_only_access_secured_fields =
+            classes()
+                    .that().resideInAPackage("..controller..")
+                    .should().onlyAccessFieldsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))));
+
+    @ArchTest
     static final ArchRule controllers_should_only_access_secured_members =
             classes()
                     .that().resideInAPackage("..controller..")

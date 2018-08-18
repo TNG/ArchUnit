@@ -28,6 +28,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -615,6 +616,15 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
+
+    /**
+     * Matches all field accesses against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaField JavaFields} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessFieldsThat(DescribedPredicate<? super JavaField> predicate);
 
     /**
      * Matches against getting of a specific field (e.g. <code>return someClass.<b>someField</b>;</code>).
