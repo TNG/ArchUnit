@@ -24,6 +24,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -182,6 +183,21 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     abstract String getDescription();
 
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE =
+                new ChainableFunction<AccessTarget, Set<JavaMember>>() {
+                    @SuppressWarnings("unchecked") // Set is covariant
+                    @Override
+                    public Set<JavaMember> apply(AccessTarget input) {
+                        return (Set<JavaMember>) input.resolve();
+                    }
+                };
+    }
+
     // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
     public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
         private final JavaClass type;
@@ -219,6 +235,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         String getDescription() {
             return "field <" + getFullName() + ">";
         }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE =
+                    new ChainableFunction<FieldAccessTarget, Set<JavaField>>() {
+                        @Override
+                        public Set<JavaField> apply(FieldAccessTarget input) {
+                            return input.resolve();
+                        }
+                    };
+        }
     }
 
     public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
@@ -249,6 +279,21 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         public abstract Set<? extends JavaCodeUnit> resolve();
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>> RESOLVE =
+                    new ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>>() {
+                        @SuppressWarnings("unchecked") // Set is covariant
+                        @Override
+                        public Set<JavaCodeUnit> apply(CodeUnitCallTarget input) {
+                            return (Set<JavaCodeUnit>) input.resolve();
+                        }
+                    };
+        }
     }
 
     public static final class ConstructorCallTarget extends CodeUnitCallTarget {
@@ -280,6 +325,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         String getDescription() {
             return "constructor <" + getFullName() + ">";
+        }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE =
+                    new ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>>() {
+                        @Override
+                        public Set<JavaConstructor> apply(ConstructorCallTarget input) {
+                            return input.resolve();
+                        }
+                    };
         }
     }
 
@@ -333,6 +392,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         String getDescription() {
             return "method <" + getFullName() + ">";
+        }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE =
+                    new ChainableFunction<MethodCallTarget, Set<JavaMethod>>() {
+                        @Override
+                        public Set<JavaMethod> apply(MethodCallTarget input) {
+                            return input.resolve();
+                        }
+                    };
         }
     }
 

@@ -32,6 +32,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -49,6 +50,13 @@ public class ShouldClassesThatTest {
         return testForEach(
                 noClasses().should().accessClassesThat(),
                 noClasses().should().dependOnClassesThat());
+    }
+
+    @DataProvider
+    public static Object[][] classes_should_only_that_rule_starts() {
+        return testForEach(
+                classes().should().onlyAccessClassesThat(),
+                classes().should().onlyDependOnClassesThat());
     }
 
     @Test
@@ -654,6 +662,609 @@ public class ShouldClassesThatTest {
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingSimpleClass.class);
     }
 
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveFullyQualifiedName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveFullyQualifiedName(List.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontHaveFullyQualifiedName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.dontHaveFullyQualifiedName(List.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleName(List.class.getSimpleName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontHaveSimpleName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.dontHaveSimpleName(List.class.getSimpleName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveNameMatching(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveNameMatching(".*\\.List"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveNameNotMatching(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveNameNotMatching(".*\\.List"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameStartingWith(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameStartingWith("Lis"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameNotStartingWith(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameNotStartingWith("Lis"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameContaining(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameContaining("is"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameNotContaining(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameNotContaining("is"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameEndingWith(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameEndingWith("ist"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveSimpleNameNotEndingWith(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.haveSimpleNameNotEndingWith("ist"))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_resideInAPackage(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.resideInAPackage("..tngtech.."))
+                .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_resideOutsideOfPackage(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.resideOutsideOfPackage("..tngtech.."))
+                .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_resideInAnyPackage(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.resideInAnyPackage("..tngtech..", "java.lang.reflect"))
+                .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_resideOutsideOfPackages(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
+        ).on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingConstructor.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class, ClassAccessingConstructor.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_arePublic(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.arePublic())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessingPrivateClass.class, ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotPublic(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.areNotPublic())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areProtected(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.areProtected())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                ClassAccessingPackagePrivateClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotProtected(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.areNotProtected())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingProtectedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_arePackagePrivate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.arePackagePrivate())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class, ClassAccessingProtectedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotPackagePrivate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.areNotPackagePrivate())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPackagePrivateClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_arePrivate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.arePrivate())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessingPublicClass.class, ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotPrivate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.areNotPrivate())
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPrivateClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_haveModifier(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.haveModifier(PRIVATE))
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessingPublicClass.class, ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontHaveModifier(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyThatRuleStart.dontHaveModifier(PRIVATE))
+                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
+                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingPrivateClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAnnotatedWith_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAnnotatedWith_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areMetaAnnotatedWith_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotMetaAnnotatedWith_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areMetaAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotMetaAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_implement_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.implement(Collection.class))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontImplement_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.dontImplement(Collection.class))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_implement_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.implement(Collection.class.getName()))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontImplement_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.dontImplement(Collection.class.getName()))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_implement_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.implement(classWithNameOf(Collection.class)))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_dontImplement_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.dontImplement(classWithNameOf(Collection.class)))
+                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableTo_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableTo(Collection.class))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableTo_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableTo(Collection.class))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableTo_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableTo(Collection.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableTo_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableTo(Collection.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableTo_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableTo(classWithNameOf(Collection.class)))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableTo_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableTo(classWithNameOf(Collection.class)))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableFrom_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableFrom(Collection.class))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableFrom_type(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableFrom(Collection.class))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingCollection.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableFrom_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableFrom(Collection.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableFrom_typeName(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableFrom(Collection.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingCollection.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areAssignableFrom_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areAssignableFrom(classWithNameOf(Collection.class)))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotAssignableFrom_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotAssignableFrom(classWithNameOf(Collection.class)))
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingCollection.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areInterfaces_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areInterfaces())
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_that_rule_starts")
+    public void only_areNotInterfaces_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyThatRuleStart.areNotInterfaces())
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingCollection.class);
+    }
+
     @DataProvider
     public static Object[][] no_classes_should_predicate_rule_starts() {
         return testForEach(
@@ -665,6 +1276,24 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_predicate_rule_starts")
     public void shouldThat_predicate(ArchRule rule) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+                .on(ClassAccessingList.class, ClassAccessingString.class,
+                        ClassAccessingCollection.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingString.class);
+    }
+
+    @DataProvider
+    public static Object[][] classes_should_only_predicate_rule_starts() {
+        return testForEach(
+                classes().should().onlyAccessClassesThat(are(assignableFrom(classWithNameOf(Collection.class)))),
+                classes().should().onlyDependOnClassesThat(are(assignableFrom(classWithNameOf(Collection.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("classes_should_only_predicate_rule_starts")
+    public void shouldThatOnly_predicate(ArchRule rule) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
                 .on(ClassAccessingList.class, ClassAccessingString.class,
                         ClassAccessingCollection.class, ClassAccessingIterable.class);
@@ -693,6 +1322,29 @@ public class ShouldClassesThatTest {
 
         classes = filterClassesInFailureReport.apply(
                 noClasses().should().accessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
+
+        assertThat(classes).isEmpty();
+    }
+
+    @Test
+    public void onlyDependOnClassesThat_reports_all_dependencies() {
+        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
+            @Override
+            public Set<JavaClass> apply(ArchRule rule) {
+                return filterClassesAppearingInFailureReport(rule)
+                        .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
+                                ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
+                                ClassHavingReturnTypeArrayList.class);
+            }
+        };
+
+        Set<JavaClass> classes = filterClassesInFailureReport.apply(
+                classes().should().onlyDependOnClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
+
+        assertThatClasses(classes).matchInAnyOrder(ClassHavingConstructorParameterOfTypeCollection.class);
+
+        classes = filterClassesInFailureReport.apply(
+                classes().should().onlyAccessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
 
         assertThat(classes).isEmpty();
     }

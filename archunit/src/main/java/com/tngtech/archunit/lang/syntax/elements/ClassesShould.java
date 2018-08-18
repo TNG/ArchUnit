@@ -26,8 +26,12 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
@@ -72,7 +76,6 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notHaveSimpleName(String name);
-
 
     /**
      * Asserts that classes' simple class names start with a given prefix.
@@ -615,6 +618,15 @@ public interface ClassesShould {
     ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate);
 
     /**
+     * Matches all field accesses against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaField JavaFields} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessFieldsThat(DescribedPredicate<? super JavaField> predicate);
+
+    /**
      * Matches against getting of a specific field (e.g. <code>return someClass.<b>someField</b>;</code>).
      *
      * @param owner     The class declaring the field
@@ -707,6 +719,15 @@ public interface ClassesShould {
     ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate);
 
     /**
+     * Matches all method calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaMethod JavaMethods} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
+
+    /**
      * Matches against a constructor call to a specific constructor (e.g. <code><b>new SomeClass()</b>;</code>).
      *
      * @param owner          Class declaring the constructor
@@ -737,6 +758,15 @@ public interface ClassesShould {
     ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate);
 
     /**
+     * Matches all constructor calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaConstructor JavaConstructors} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate);
+
+    /**
      * Matches against access of arbitrary targets (compare {@link AccessTarget})
      * where origin (a method or constructor) and target (a field, method or constructor) can be freely restricted
      * by the supplied predicate.
@@ -746,6 +776,15 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate);
+
+    /**
+     * Matches all members calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaMember JavaMembers} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessMembersThat(DescribedPredicate<? super JavaMember> predicate);
 
     /**
      * Matches against code unit calls (compare {@link JavaCodeUnit}) where origin (a code unit)
@@ -758,7 +797,16 @@ public interface ClassesShould {
     ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate);
 
     /**
-     * Asserts that all classes selected by this rule access certain classes.<br>
+     * Matches all code unit calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaCodeUnit JavaCodeUnits} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat()}).<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
@@ -771,7 +819,7 @@ public interface ClassesShould {
     ClassesShouldThat accessClassesThat();
 
     /**
-     * Asserts that all classes selected by this rule access certain classes.<br>
+     * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat(DescribedPredicate)}.<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
@@ -783,6 +831,33 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat()}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing which classes should only be accessed
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat onlyAccessClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat(DescribedPredicate) onlyAccessClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Asserts that all classes selected by this rule depend on certain classes.<br>
@@ -810,6 +885,33 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat()}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing to which classes a dependency should only exist
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat onlyDependOnClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat(DescribedPredicate)}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat(DescribedPredicate) onlyDependOnClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * @return A syntax element that allows restricting how classes should be accessed
@@ -845,7 +947,6 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction onlyHaveDependentClassesThat(DescribedPredicate<? super JavaClass> predicate);
-
 
     /**
      * Asserts that classes are interfaces.

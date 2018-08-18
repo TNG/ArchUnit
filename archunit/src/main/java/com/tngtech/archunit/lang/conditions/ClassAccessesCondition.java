@@ -15,22 +15,23 @@
  */
 package com.tngtech.archunit.lang.conditions;
 
+import java.util.Collection;
+
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.core.domain.JavaClass;
 
-class AccessTargetCondition extends ArchCondition<JavaAccess<?>> {
-    private final DescribedPredicate<? super JavaAccess<?>> callIdentifier;
+class ClassAccessesCondition<T extends JavaAccess<?>> extends AnyAttributeMatchesCondition<T> {
+    private final Function<JavaClass, ? extends Collection<T>> getRelevantAccesses;
 
-    AccessTargetCondition(DescribedPredicate<? super JavaAccess<?>> callIdentifier) {
-        super("access target where " + callIdentifier.getDescription());
-        this.callIdentifier = callIdentifier;
+    ClassAccessesCondition(DescribedPredicate<? super T> predicate, Function<JavaClass, ? extends Collection<T>> getRelevantAccesses) {
+        super(new JavaAccessCondition<>(predicate));
+        this.getRelevantAccesses = getRelevantAccesses;
     }
 
     @Override
-    public void check(JavaAccess<?> item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent(item, callIdentifier.apply(item), item.getDescription()));
+    Collection<T> relevantAttributes(JavaClass item) {
+        return getRelevantAccesses.apply(item);
     }
 }
