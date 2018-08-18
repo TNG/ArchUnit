@@ -1078,6 +1078,31 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] onlyCallConstructorsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))),
+                $(classes().should(ArchConditions.onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallConstructorsThat_rules")
+    public void onlyCallConstructorsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call constructors that are declared in %s",
+                        ClassWithConstructor.class.getName()))
+                .containsPattern(callConstructorRegex(
+                        ClassCallingWrongConstructor.class,
+                        ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(callConstructorRegex(
+                        ClassCallingConstructor.class,
+                        ClassWithConstructor.class, String.class));
+    }
+
+    @DataProvider
     public static Object[][] accessTargetWhere_rules() {
         return $$(
                 $(classes().should().accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
