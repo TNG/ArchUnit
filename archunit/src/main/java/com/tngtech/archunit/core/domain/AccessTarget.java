@@ -235,6 +235,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         String getDescription() {
             return "field <" + getFullName() + ">";
         }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE =
+                    new ChainableFunction<FieldAccessTarget, Set<JavaField>>() {
+                        @Override
+                        public Set<JavaField> apply(FieldAccessTarget input) {
+                            return input.resolve();
+                        }
+                    };
+        }
     }
 
     public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {

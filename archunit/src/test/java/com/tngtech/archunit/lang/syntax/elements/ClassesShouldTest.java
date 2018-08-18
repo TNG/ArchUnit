@@ -70,6 +70,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -949,12 +950,36 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] onlyAccessFieldsThat_rules() {
+        return testForEach(
+                classes().should().onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))),
+                classes().should(ArchConditions.onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyAccessFieldsThat_rules")
+    public void onlyAccessFieldsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should only access fields that are declared in " + ClassWithField.class.getName())
+                .containsPattern(accessesFieldRegex(
+                        ClassAccessingWrongField.class, "(sets|gets|accesses)",
+                        ClassAccessingField.class, "classWithField"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingField.class, "(sets|gets|accesses)",
+                        ClassWithField.class, "field"));
+    }
+
+    @DataProvider
     public static Object[][] callMethod_rules() {
-        return $$(
-                $(classes().should().callMethod(ClassWithMethod.class, "method", String.class)),
-                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class))),
-                $(classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())),
-                $(classes().should(ArchConditions.callMethod(ClassWithMethod.class.getName(), "method", String.class.getName())))
+        return testForEach(
+                classes().should().callMethod(ClassWithMethod.class, "method", String.class),
+                classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class)),
+                classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName()),
+                classes().should(ArchConditions.callMethod(ClassWithMethod.class.getName(), "method", String.class.getName()))
         );
     }
 

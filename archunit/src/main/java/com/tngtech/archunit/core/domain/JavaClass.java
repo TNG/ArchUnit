@@ -994,6 +994,15 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         public static final ChainableFunction<JavaClass, String> GET_PACKAGE = GET_PACKAGE_NAME;
 
         @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaFieldAccess>> GET_FIELD_ACCESSES_FROM_SELF =
+                new ChainableFunction<JavaClass, Set<JavaFieldAccess>>() {
+                    @Override
+                    public Set<JavaFieldAccess> apply(JavaClass input) {
+                        return input.getFieldAccessesFromSelf();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaMethodCall>> GET_METHOD_CALLS_FROM_SELF =
                 new ChainableFunction<JavaClass, Set<JavaMethodCall>>() {
                     @Override
