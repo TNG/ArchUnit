@@ -126,6 +126,10 @@ public abstract class DescribedPredicate<T> {
         return new NotPredicate<>(predicate);
     }
 
+    public static <T> DescribedPredicate<Iterable<T>> anyElementThat(final DescribedPredicate<T> predicate) {
+        return new AnyElementPredicate<>(predicate);
+    }
+
     private static class AsPredicate<T> extends DescribedPredicate<T> {
         private final DescribedPredicate<T> current;
 
@@ -269,6 +273,25 @@ public abstract class DescribedPredicate<T> {
         @Override
         public boolean apply(T input) {
             return input.compareTo(value) >= 0;
+        }
+    }
+
+    private static class AnyElementPredicate<T> extends DescribedPredicate<Iterable<T>> {
+        private final DescribedPredicate<T> predicate;
+
+        AnyElementPredicate(DescribedPredicate<T> predicate) {
+            super("any element that " + predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean apply(Iterable<T> iterable) {
+            for (T javaClass : iterable) {
+                if (predicate.apply(javaClass)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -17,18 +17,21 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 
-class AnyAccessFromClassCondition extends AnyAttributeMatchesCondition<JavaAccess<?>> {
-    AnyAccessFromClassCondition(String prefix, DescribedPredicate<? super JavaAccess<?>> predicate) {
-        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition(predicate));
+class ClassOnlyAccessesCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T> {
+    private final Function<JavaClass, ? extends Collection<T>> getRelevantAccesses;
+
+    ClassOnlyAccessesCondition(DescribedPredicate<? super T> predicate, Function<JavaClass, ? extends Collection<T>> getRelevantAccesses) {
+        super("only access targets where " + predicate.getDescription(), new JavaAccessCondition<>(predicate));
+        this.getRelevantAccesses = getRelevantAccesses;
     }
 
     @Override
-    Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
-        return item.getAccessesFromSelf();
+    Collection<T> relevantAttributes(JavaClass item) {
+        return getRelevantAccesses.apply(item);
     }
 }

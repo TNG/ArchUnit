@@ -25,6 +25,7 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -422,6 +423,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate) {
         return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethodWhere(predicate)));
+    }
+
+    @Override
+    public ClassesShouldConjunction onlyCallMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyCallMethodsThat(predicate)));
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.tngtech.archunit.example.SomeOtherBusinessInterface;
 import com.tngtech.archunit.example.anticorruption.WithIllegalReturnType;
 import com.tngtech.archunit.example.anticorruption.WrappedResult;
 import com.tngtech.archunit.example.anticorruption.internal.InternalType;
+import com.tngtech.archunit.example.controller.SomeController;
 import com.tngtech.archunit.example.controller.SomeGuiController;
 import com.tngtech.archunit.example.controller.SomeUtility;
 import com.tngtech.archunit.example.controller.WronglyAnnotated;
@@ -80,6 +81,7 @@ import com.tngtech.archunit.example.persistence.WrongSecurityCheck;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
+import com.tngtech.archunit.example.security.Secured;
 import com.tngtech.archunit.example.service.ServiceInterface;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
@@ -96,6 +98,7 @@ import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.example.thirdparty.ThirdPartySubClassWithProblem;
 import com.tngtech.archunit.example.web.AnnotatedController;
 import com.tngtech.archunit.example.web.InheritedControllerImpl;
+import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
@@ -155,7 +158,7 @@ class ExamplesIntegrationTest {
                         .inLine(14))
                 .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(System.class, "out")
-                        .inLine(15))
+                        .inLine(16))
                 .times(2)
 
                 .ofRule("no classes should throw generic exceptions")
@@ -176,6 +179,24 @@ class ExamplesIntegrationTest {
                 .by(callFromStaticInitializer(ClassViolatingCodingRules.class)
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(9))
+
+                .toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> ControllerRulesTest() {
+        return ExpectedTestFailures
+                .forTests(
+                        ControllerRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit4.ControllerRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit5.ControllerRulesTest.class)
+
+                .ofRule(String.format("classes that reside in a package '..controller..' should "
+                                + "only call methods that are declared in a package '..controller..' or are annotated with @%s",
+                        Secured.class.getSimpleName()))
+                .by(callFromMethod(SomeController.class, "doSthController")
+                        .toMethod(ServiceViolatingDaoRules.class, "doSthService")
+                        .inLine(11))
 
                 .toDynamicTests();
     }
@@ -452,13 +473,13 @@ class ExamplesIntegrationTest {
                         "should access classes that reside in a package '..controller..'")
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneTwoController.class, someString)
-                        .inLine(15))
-                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toConstructor(UseCaseTwoController.class)
                         .inLine(16))
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
+                        .toConstructor(UseCaseTwoController.class)
                         .inLine(17))
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
+                        .inLine(18))
 
                 .ofRule("no classes that reside in a package '..persistence..' should " +
                         "access classes that reside in a package '..service..'")
@@ -479,25 +500,25 @@ class ExamplesIntegrationTest {
                         + "only access classes that reside in any package ['..service..', '..persistence..', 'java..']")
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneTwoController.class, UseCaseOneTwoController.someString)
-                        .inLine(15))
-                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toConstructor(UseCaseTwoController.class)
                         .inLine(16))
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toMethod(UseCaseTwoController.class, UseCaseTwoController.doSomethingTwo)
+                        .toConstructor(UseCaseTwoController.class)
                         .inLine(17))
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toMethod(UseCaseTwoController.class, UseCaseTwoController.doSomethingTwo)
+                        .inLine(18))
 
                 .ofRule("no classes that reside in a package '..service..' " +
                         "should depend on classes that reside in a package '..controller..'")
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .getting().field(UseCaseOneTwoController.class, someString)
-                        .inLine(15).asDependency())
-                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toConstructor(UseCaseTwoController.class)
                         .inLine(16).asDependency())
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
+                        .toConstructor(UseCaseTwoController.class)
                         .inLine(17).asDependency())
+                .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
+                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
+                        .inLine(18).asDependency())
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
 
@@ -551,17 +572,17 @@ class ExamplesIntegrationTest {
 
                                 .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                                         .toConstructor(UseCaseTwoController.class)
-                                        .inLine(16)
-                                        .asDependency())
-
-                                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
-                                        .toMethod(UseCaseTwoController.class, "doSomethingTwo")
                                         .inLine(17)
                                         .asDependency())
 
                                 .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
+                                        .toMethod(UseCaseTwoController.class, "doSomethingTwo")
+                                        .inLine(18)
+                                        .asDependency())
+
+                                .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                                         .getting().field(UseCaseOneTwoController.class, "someString")
-                                        .inLine(15)
+                                        .inLine(16)
                                         .asDependency())
 
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))

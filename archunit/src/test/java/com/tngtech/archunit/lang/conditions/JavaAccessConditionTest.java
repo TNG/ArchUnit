@@ -15,15 +15,15 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
-public class AccessTargetConditionTest {
+public class JavaAccessConditionTest {
     @Test
     public void matches_field_access() {
         JavaClass clazz = importToCheck(ClassAccessingField.class);
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysTrue()))
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysTrue()))
                 .containNoViolation();
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysFalse()))
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysFalse()))
                 .haveOneViolationMessageContaining(ClassAccessingField.class.getSimpleName() + ".access()")
                 .haveOneViolationMessageContaining(SomeClass.class.getSimpleName() + ".field");
     }
@@ -32,10 +32,10 @@ public class AccessTargetConditionTest {
     public void matches_constructor_call() {
         JavaClass clazz = importToCheck(ClassCallingConstructor.class);
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysTrue()))
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysTrue()))
                 .containNoViolation();
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysFalse()))
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysFalse()))
                 .haveOneViolationMessageContaining(ClassCallingConstructor.class.getSimpleName() + ".call()")
                 .haveOneViolationMessageContaining(SomeClass.class.getSimpleName() + "." + CONSTRUCTOR_NAME);
     }
@@ -44,22 +44,21 @@ public class AccessTargetConditionTest {
     public void matches_method_call() {
         JavaClass clazz = importToCheck(ClassCallingMethod.class);
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysTrue()))
-                .containNoViolation();
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysTrue()));
 
-        assertThatOnlyAccessToSomeClassFor(clazz, new AccessTargetCondition(alwaysFalse()))
+        assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysFalse()))
                 .haveOneViolationMessageContaining(ClassCallingMethod.class.getSimpleName() + ".call()")
                 .haveOneViolationMessageContaining(SomeClass.class.getSimpleName() + ".method");
     }
 
     @Test
     public void description_is_correct() {
-        AccessTargetCondition condition = new AccessTargetCondition(alwaysTrue().as("some description"));
+        JavaAccessCondition<?> condition = new JavaAccessCondition<>(alwaysTrue().as("some description"));
 
         assertThat(condition.getDescription()).isEqualTo("access target where some description");
     }
 
-    private Assertions.ConditionEventsAssert assertThatOnlyAccessToSomeClassFor(JavaClass clazz, AccessTargetCondition condition) {
+    private Assertions.ConditionEventsAssert assertThatOnlyAccessToSomeClassFor(JavaClass clazz, JavaAccessCondition<JavaAccess<?>> condition) {
         Set<JavaAccess<?>> accesses = filterByTarget(clazz.getAccessesFromSelf(), SomeClass.class);
         ConditionEvents events = new ConditionEvents();
         for (JavaAccess<?> access : accesses) {

@@ -4,6 +4,7 @@ import com.tngtech.archunit.example.MyService;
 import com.tngtech.archunit.example.controller.SomeGuiController;
 import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
+import com.tngtech.archunit.example.security.Secured;
 
 @MyService
 public class ServiceViolatingLayerRules {
@@ -22,5 +23,9 @@ public class ServiceViolatingLayerRules {
 
     public SomeGuiController dependentMethod(UseCaseTwoController otherController) {
         return null;
+    }
+
+    @Secured
+    public void properlySecured() {
     }
 }

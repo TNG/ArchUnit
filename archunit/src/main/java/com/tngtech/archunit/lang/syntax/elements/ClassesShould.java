@@ -28,6 +28,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
@@ -705,6 +706,15 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate);
+
+    /**
+     * Matches all method calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaMethod JavaMethods} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyCallMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
 
     /**
      * Matches against a constructor call to a specific constructor (e.g. <code><b>new SomeClass()</b>;</code>).

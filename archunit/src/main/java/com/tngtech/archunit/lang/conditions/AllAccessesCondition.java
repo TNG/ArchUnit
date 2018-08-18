@@ -28,7 +28,7 @@ class AllAccessesCondition extends AllAttributesMatchCondition<JavaAccess<?>> {
 
     AllAccessesCondition(String prefix, DescribedPredicate<JavaAccess<?>> predicate,
             Function<JavaClass, ? extends Collection<JavaAccess<?>>> getRelevantAccesses) {
-        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition(predicate));
+        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition<>(predicate));
         this.getRelevantAccesses = getRelevantAccesses;
     }
 
