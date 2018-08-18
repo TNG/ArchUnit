@@ -31,6 +31,12 @@ public class ControllerRulesTest {
                     .that().resideInAPackage("..controller..")
                     .should().onlyCallConstructorsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))));
 
+    @ArchTest
+    static final ArchRule controllers_should_only_call_secured_code_units =
+            classes()
+                    .that().resideInAPackage("..controller..")
+                    .should().onlyCallCodeUnitsThat(areDeclaredInController().or(are(annotatedWith(Secured.class))));
+
     private static DescribedPredicate<JavaMember> areDeclaredInController() {
         DescribedPredicate<JavaClass> aPackageController = GET_PACKAGE_NAME.is(PackageMatchers.of("..controller..", "java.."))
                 .as("a package '..controller..'");

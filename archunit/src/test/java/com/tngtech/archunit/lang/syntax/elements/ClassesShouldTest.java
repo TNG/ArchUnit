@@ -1167,6 +1167,38 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] onlyCallCodeUnitsThat_rules() {
+        return $$(
+                $(classes().should().onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyCallCodeUnitsThat_rules")
+    public void onlyCallCodeUnitsThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only call code units that are declared in %s",
+                        ClassWithFieldMethodAndConstructor.class.getName()))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME, int.class, Date.class))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
+    @DataProvider
     public static Object[][] beInterfaces_rules() {
         return $$(
                 $(classes().should().beInterfaces(), Collection.class, String.class),
