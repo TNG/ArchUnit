@@ -1020,6 +1020,9 @@ public class ClassesShouldTest {
                 .containsPattern(callMethodRegex(
                         ClassCallingWrongMethod.class,
                         ClassCallingMethod.class, "call"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callMethodRegex(
                         ClassCallingMethod.class,
                         ClassWithMethod.class, "method", String.class));
@@ -1097,6 +1100,9 @@ public class ClassesShouldTest {
                 .containsPattern(callConstructorRegex(
                         ClassCallingWrongConstructor.class,
                         ClassCallingConstructor.class, int.class, Date.class))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callConstructorRegex(
                         ClassCallingConstructor.class,
                         ClassWithConstructor.class, String.class));
@@ -1190,6 +1196,44 @@ public class ClassesShouldTest {
                 .containsPattern(callCodeUnitRegex(
                         ClassAccessingWrongFieldMethodAndConstructor.class,
                         ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
+                .doesNotMatch(callCodeUnitRegex(
+                        ClassAccessingFieldMethodAndConstructor.class,
+                        ClassWithFieldMethodAndConstructor.class, ""));
+    }
+
+    @DataProvider
+    public static Object[][] onlyAccessMembersThat_rules() {
+        return $$(
+                $(classes().should().onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                $(classes().should(ArchConditions.onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("onlyAccessMembersThat_rules")
+    public void onlyAccessMembersThat(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
+                ClassAccessingWrongFieldMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should only access members that are declared in %s",
+                        ClassWithFieldMethodAndConstructor.class.getName()))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, CONSTRUCTOR_NAME, int.class, Date.class))
+                .containsPattern(callCodeUnitRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class,
+                        ClassAccessingFieldMethodAndConstructor.class, "call"))
+                .containsPattern(accessesFieldRegex(
+                        ClassAccessingWrongFieldMethodAndConstructor.class, "sets",
+                        ClassAccessingFieldMethodAndConstructor.class, "wrongField"))
                 .doesNotMatch(callCodeUnitRegex(
                         ClassAccessingWrongFieldMethodAndConstructor.class,
                         ClassAccessingFieldMethodAndConstructor.class, "wrongField"))

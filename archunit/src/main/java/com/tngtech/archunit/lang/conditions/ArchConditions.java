@@ -42,6 +42,7 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -223,6 +224,15 @@ public final class ArchConditions {
                 .is(anyElementThat(predicate.<JavaCodeUnit>forSubType()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyAccessMembersThat(final DescribedPredicate<? super JavaMember> predicate) {
+        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE)
+                .is(anyElementThat(predicate.<JavaMember>forSubType()));
+        return new ClassOnlyAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
+                .as("only access members that " + predicate.getDescription());
     }
 
     @PublicAPI(usage = ACCESS)

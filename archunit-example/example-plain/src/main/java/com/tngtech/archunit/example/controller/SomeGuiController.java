@@ -4,7 +4,13 @@ import com.tngtech.archunit.example.service.ServiceHelper;
 
 public class SomeGuiController {
     void callServiceLayer() {
-        new ServiceHelper();
+        ServiceHelper helper = new ServiceHelper();
         new ServiceHelper("this is okay");
+
+        process(helper.insecure);
+        process(helper.properlySecured);
+    }
+
+    private void process(Object object) {
     }
 }

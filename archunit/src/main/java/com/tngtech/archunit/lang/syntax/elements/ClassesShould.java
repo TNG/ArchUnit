@@ -29,6 +29,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -765,6 +766,15 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate);
+
+    /**
+     * Matches all members calls against the supplied predicate.
+     *
+     * @param predicate Determines which {@link JavaMember JavaMembers} match the rule
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyAccessMembersThat(DescribedPredicate<? super JavaMember> predicate);
 
     /**
      * Matches against code unit calls (compare {@link JavaCodeUnit}) where origin (a code unit)

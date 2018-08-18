@@ -183,6 +183,21 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     abstract String getDescription();
 
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE =
+                new ChainableFunction<AccessTarget, Set<JavaMember>>() {
+                    @SuppressWarnings("unchecked") // Set is covariant
+                    @Override
+                    public Set<JavaMember> apply(AccessTarget input) {
+                        return (Set<JavaMember>) input.resolve();
+                    }
+                };
+    }
+
     // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
     public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
         private final JavaClass type;
