@@ -275,6 +275,14 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> onlyDependOnClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        return new AllDependenciesCondition(
+                "only depend on classes that " + predicate.getDescription(),
+                GET_TARGET_CLASS.is(predicate),
+                GET_DIRECT_DEPENDENCIES_FROM_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return new AllAccessesCondition("only be accessed by classes that",
                 JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate), GET_ACCESSES_TO_SELF);

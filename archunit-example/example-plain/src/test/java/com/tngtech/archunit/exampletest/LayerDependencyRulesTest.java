@@ -60,4 +60,10 @@ public class LayerDependencyRulesTest {
                 .should().onlyHaveDependentClassesThat().resideInAnyPackage("..controller..", "..service..").check(classes);
     }
 
+    @Test
+    public void services_should_only_depend_on_persistence_or_other_services() {
+        classes().that().resideInAPackage("..service..")
+                .should().onlyDependOnClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..").check(classes);
+    }
+
 }

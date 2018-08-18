@@ -846,7 +846,7 @@ public interface ClassesShould {
     ClassesShouldThat onlyAccessClassesThat();
 
     /**
-     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}.<br>
+     * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}).<br>
      * E.g.
      * <p>
      * <pre><code>
@@ -885,6 +885,33 @@ public interface ClassesShould {
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat()}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows choosing to which classes a dependency should only exist
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldThat onlyDependOnClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat(DescribedPredicate)}).<br>
+     * E.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat(DescribedPredicate) onlyDependOnClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * @return A syntax element that allows restricting how classes should be accessed

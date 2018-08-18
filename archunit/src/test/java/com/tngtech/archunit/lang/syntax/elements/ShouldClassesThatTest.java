@@ -55,7 +55,8 @@ public class ShouldClassesThatTest {
     @DataProvider
     public static Object[][] classes_should_only_that_rule_starts() {
         return testForEach(
-                classes().should().onlyAccessClassesThat());
+                classes().should().onlyAccessClassesThat(),
+                classes().should().onlyDependOnClassesThat());
     }
 
     @Test
@@ -1285,7 +1286,8 @@ public class ShouldClassesThatTest {
     @DataProvider
     public static Object[][] classes_should_only_predicate_rule_starts() {
         return testForEach(
-                classes().should().onlyAccessClassesThat(are(assignableFrom(classWithNameOf(Collection.class))))
+                classes().should().onlyAccessClassesThat(are(assignableFrom(classWithNameOf(Collection.class)))),
+                classes().should().onlyDependOnClassesThat(are(assignableFrom(classWithNameOf(Collection.class))))
         );
     }
 
@@ -1320,6 +1322,29 @@ public class ShouldClassesThatTest {
 
         classes = filterClassesInFailureReport.apply(
                 noClasses().should().accessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
+
+        assertThat(classes).isEmpty();
+    }
+
+    @Test
+    public void onlyDependOnClassesThat_reports_all_dependencies() {
+        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
+            @Override
+            public Set<JavaClass> apply(ArchRule rule) {
+                return filterClassesAppearingInFailureReport(rule)
+                        .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
+                                ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
+                                ClassHavingReturnTypeArrayList.class);
+            }
+        };
+
+        Set<JavaClass> classes = filterClassesInFailureReport.apply(
+                classes().should().onlyDependOnClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
+
+        assertThatClasses(classes).matchInAnyOrder(ClassHavingConstructorParameterOfTypeCollection.class);
+
+        classes = filterClassesInFailureReport.apply(
+                classes().should().onlyAccessClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
 
         assertThat(classes).isEmpty();
     }
