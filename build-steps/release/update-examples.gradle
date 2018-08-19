@@ -4,6 +4,7 @@ import java.util.regex.Pattern
 
 final String archunitExamplesGitRepo = 'https://github.com/TNG/ArchUnit-Examples.git'
 final File checkoutDir = new File(project.buildDir, 'example-update')
+final List<String> exampleFolders = ['example-plain', 'example-junit4', 'example-junit5']
 
 task checkoutArchUnitExample {
     doLast {
@@ -13,38 +14,61 @@ task checkoutArchUnitExample {
 
 task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
     doLast {
-        def targetSource = new File(checkoutDir, 'src')
-        targetSource.deleteDir()
-        copy {
-            from new File(project(':archunit-example').projectDir, 'src')
-            into targetSource
+        exampleFolders.each { exampleFolder ->
+            def targetSource = new File(new File(checkoutDir, exampleFolder), 'src')
+            targetSource.deleteDir()
+            copy {
+                from new File(project(':archunit-example:example-plain').projectDir, 'src/main')
+                into new File(targetSource, 'main')
+            }
+            copy {
+                from new File(project(":archunit-example:${exampleFolder}").projectDir, 'src/test')
+                into new File(targetSource, 'test')
+            }
         }
+    }
+}
+
+def removeLines = { File file, List<String> linesToRemove ->
+    def regex = "(${linesToRemove.collect { Pattern.quote(it) }.join('|')})\n"
+    file.text = file.text.replaceAll(regex, '')
+}
+
+def removeExampleCategory = { File baseDir, String categoryFqn ->
+    new File(baseDir, "src/test/java/${categoryFqn.replace('.', '/')}.java").delete()
+
+    new File(baseDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
+        removeLines(file, [
+                '@Category(Example.class)',
+                'import org.junit.experimental.categories.Category;',
+                "import ${categoryFqn};"
+        ])
+    }
+}
+
+def removeExampleTag = { File baseDir ->
+    new File(baseDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
+        removeLines(file, [
+                '@ArchTag("example")',
+                'import com.tngtech.archunit.junit.ArchTag;'
+        ])
     }
 }
 
 task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
     doLast {
-        new File(checkoutDir, 'src/test/java/com/tngtech/archunit/exampletest/Example.java').delete()
-
-        def removeLines = { File file, List<String> linesToRemove ->
-            def regex = "(${linesToRemove.collect { Pattern.quote(it) }.join('|')})\n"
-            file.text = file.text.replaceAll(regex, '')
-        }
-
-        new File(checkoutDir, 'src').traverse(type: FileType.FILES, nameFilter: { it.endsWith('.java') }) { File file ->
-            removeLines(file, [
-                    '@Category(Example.class)',
-                    'import org.junit.experimental.categories.Category;',
-                    'import com.tngtech.archunit.exampletest.Example;'
-            ])
-        }
+        removeExampleCategory(new File(checkoutDir, 'example-plain'), 'com.tngtech.archunit.exampletest.Example')
+        removeExampleCategory(new File(checkoutDir, 'example-junit4'), 'com.tngtech.archunit.exampletest.junit4.Example')
+        removeExampleTag(new File(checkoutDir, 'example-junit5'))
     }
 }
 
 task updateArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
     doLast {
-        def buildFile = new File(checkoutDir, 'build.gradle')
-        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit-junit4:)[\d.]*/, "\$1${version}")
+        exampleFolders.each { exampleFolder ->
+            def buildFile = new File(new File(checkoutDir, exampleFolder), 'build.gradle')
+            buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\d.]*/, "\$1${version}")
+        }
     }
 }
 
