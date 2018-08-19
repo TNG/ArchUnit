@@ -543,7 +543,8 @@ using any plain Java unit testing framework.</p>
 <div class="sect2">
 <h3 id="_module_overview"><a class="anchor" href="#_module_overview"></a>1.1. Module Overview</h3>
 <div class="paragraph">
-<p>ArchUnit consists of two production modules: <code>archunit</code> and <code>archunit-junit</code>.
+<p>ArchUnit consists of the following production modules: <code>archunit</code>, <code>archunit-junit4</code> as well
+as <code>archunit-junit5-api</code>, <code>archunit-junit5-engine</code> and <code>archunit-junit5-engine-api</code>.
 Also relevant for end users is the <code>archunit-example</code> module.</p>
 </div>
 <div class="sect3">
@@ -555,14 +556,26 @@ the domain objects, as well as the rule syntax infrastructure.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_module_archunit_junit"><a class="anchor" href="#_module_archunit_junit"></a>1.1.2. Module archunit-junit</h4>
+<h4 id="_module_archunit_junit4"><a class="anchor" href="#_module_archunit_junit4"></a>1.1.2. Module archunit-junit4</h4>
 <div class="paragraph">
 <p>This module contains the infrastructure to integrate with JUnit 4, in particular
 the <code>ArchUnitRunner</code> to cache imported classes.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_module_archunit_example"><a class="anchor" href="#_module_archunit_example"></a>1.1.3. Module archunit-example</h4>
+<h4 id="_modules_archunit_junit5"><a class="anchor" href="#_modules_archunit_junit5"></a>1.1.3. Modules archunit-junit5-*</h4>
+<div class="paragraph">
+<p>These modules contain the infrastructure to integrate with JUnit 5 and contain the respective
+infrastructure to cache imported classes between test runs.
+<code>archunit-junit5-api</code> contains the user API to write tests with ArchUnit&#8217;s JUnit 5 support,
+<code>archunit-junit5-engine</code> contains the runtime engine to run those tests.
+<code>archunit-junit5-engine-api</code> contains API code for tools that want more detailes control
+over running ArchUnit JUnit 5 tests, in particular a <code>FieldSelector</code> which can be used to
+instruct the <code>ArchUnitTestEngine</code> to run a specific rule field (compare <a href="#_junit_4_5_support">JUnit 4 &amp; 5 Support</a>).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_module_archunit_example"><a class="anchor" href="#_module_archunit_example"></a>1.1.4. Module archunit-example</h4>
 <div class="paragraph">
 <p>This module contains example architecture rules and sample code that violates these rules.
 Look here to get inspiration on how to set up rules for your project, or at
@@ -593,7 +606,7 @@ Maven Central:</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-    &lt;artifactId&gt;archunit-junit&lt;/artifactId&gt;
+    &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
     &lt;version&gt;0.9.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
@@ -603,7 +616,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit:0.9.0'
+    testCompile 'com.tngtech.archunit:archunit-junit4:0.9.0'
 }</code></pre>
 </div>
 </div>
