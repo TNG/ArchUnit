@@ -459,15 +459,16 @@ h4 {
 <li><a href="#_installation">2. Installation</a>
 <ul class="sectlevel2">
 <li><a href="#_junit_4">2.1. JUnit 4</a></li>
-<li><a href="#_other_test_frameworks">2.2. Other Test Frameworks</a></li>
+<li><a href="#_junit_5">2.2. JUnit 5</a></li>
+<li><a href="#_other_test_frameworks">2.3. Other Test Frameworks</a></li>
 </ul>
 </li>
 <li><a href="#_getting_started">3. Getting Started</a>
 <ul class="sectlevel2">
 <li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
-<li><a href="#_using_junit_4">3.3. Using JUnit 4</a></li>
-<li><a href="#_using_junit_4_with_kotlin">3.4. Using JUnit 4 with Kotlin</a></li>
+<li><a href="#_using_junit_4_or_junit_5">3.3. Using JUnit 4 or JUnit 5</a></li>
+<li><a href="#_using_junit_support_with_kotlin">3.4. Using JUnit support with Kotlin</a></li>
 </ul>
 </li>
 <li><a href="#_what_to_check">4. What to Check</a>
@@ -509,11 +510,12 @@ h4 {
 <li><a href="#_architectures">8.1. Architectures</a></li>
 <li><a href="#_slices">8.2. Slices</a></li>
 <li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
+<li><a href="#_plantuml_component_diagrams_as_rules">8.4. PlantUML Component Diagrams as rules</a></li>
 </ul>
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
 <ul class="sectlevel2">
-<li><a href="#_junit_4_support">9.1. JUnit 4 Support</a></li>
+<li><a href="#_junit_4_5_support">9.1. JUnit 4 &amp; 5 Support</a></li>
 </ul>
 </li>
 <li><a href="#_advanced_configuration">10. Advanced Configuration</a>
@@ -592,7 +594,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.3&lt;/version&gt;
+    &lt;version&gt;0.9.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -601,13 +603,88 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit-junit:0.8.3'
+    testCompile 'com.tngtech.archunit:archunit-junit:0.9.0'
 }</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_other_test_frameworks"><a class="anchor" href="#_other_test_frameworks"></a>2.2. Other Test Frameworks</h3>
+<h3 id="_junit_5"><a class="anchor" href="#_junit_5"></a>2.2. JUnit 5</h3>
+<div class="paragraph">
+<p>ArchUnit&#8217;s JUnit 5 artifacts follows the pattern of JUnit Jupiter. There is one artifact containing
+the API, i.e. the compile time dependencies to write tests. Then there is another artifact containing
+the actual <code>TestEngine</code> used at runtime. The dependencies can be obtained from Maven Central.
+A typical Maven configuration could look like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">...
+&lt;build&gt;
+    &lt;plugins&gt;
+        ...
+        &lt;plugin&gt;
+            &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+            &lt;version&gt;2.21.0&lt;/version&gt;
+            &lt;dependencies&gt;
+                &lt;dependency&gt;
+                    &lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
+                    &lt;artifactId&gt;junit-platform-surefire-provider&lt;/artifactId&gt;
+                    &lt;version&gt;1.2.0&lt;/version&gt;
+                &lt;/dependency&gt;
+                &lt;dependency&gt;
+                    &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
+                    &lt;artifactId&gt;archunit-junit5-engine&lt;/artifactId&gt;
+                    &lt;version&gt;0.9.0&lt;/version&gt;
+                &lt;/dependency&gt;
+            &lt;/dependencies&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;
+...
+&lt;dependencies&gt;
+    ...
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
+        &lt;artifactId&gt;archunit-junit5-api&lt;/artifactId&gt;
+        &lt;version&gt;0.9.0&lt;/version&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+...</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+To run ArchUnit JUnit 5 tests within an IDE, it might unfortunately be necessary to add
+           <code>archunit-junit5-engine</code> as a project dependency with scope <code>test</code> as well.
+           Configuring <code>archunit-junit5-engine</code> as a dependency of the Surefire Plugin
+           compensates Maven&#8217;s lack of a test runtime scope, but is not reliably understood by IDEs.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The configuration for Gradle is much simpler due to the existence of a test runtime scope:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>dependencies {
+    ...
+    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.9.0'
+    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.9.0'
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_other_test_frameworks"><a class="anchor" href="#_other_test_frameworks"></a>2.3. Other Test Frameworks</h3>
 <div class="paragraph">
 <p>ArchUnit works with any test framework that executes Java code. To use ArchUnit in such a
 context, include the core ArchUnit dependency from Maven Central:</p>
@@ -618,7 +695,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.8.3&lt;/version&gt;
+    &lt;version&gt;0.9.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -627,7 +704,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.8.3'
+   testCompile 'com.tngtech.archunit:archunit:0.9.0'
 }</code></pre>
 </div>
 </div>
@@ -721,19 +798,19 @@ public void Services_should_only_be_accessed_by_Controllers() {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_junit_4"><a class="anchor" href="#_using_junit_4"></a>3.3. Using JUnit 4</h3>
+<h3 id="_using_junit_4_or_junit_5"><a class="anchor" href="#_using_junit_4_or_junit_5"></a>3.3. Using JUnit 4 or JUnit 5</h3>
 <div class="paragraph">
 <p>While ArchUnit can be used with any unit testing framework, it provides extended support
-for writing tests with JUnit 4. The main advantage is automatic caching of imported
-classes between tests (of the same classes), as well as reduction of boilerplate code.</p>
+for writing tests with JUnit 4 and JUnit 5. The main advantage is automatic caching of imported
+classes between tests (of the same imported classes), as well as reduction of boilerplate code.</p>
 </div>
 <div class="paragraph">
-<p>To use the JUnit 4 support, declare ArchUnit&#8217;s <code>ArchUnitRunner</code>, declare the classes
+<p>To use the JUnit support, declare ArchUnit&#8217;s <code>ArchUnitRunner</code> (only JUnit 4), declare the classes
 to import via <code>@AnalyzeClasses</code> and add the respective rules as fields:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -746,29 +823,30 @@ public class MyArchitectureTest {
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>ArchUnitRunner</code> will automatically import (or reuse) the specified classes and
+<p>The JUnit test support will automatically import (or reuse) the specified classes and
 evaluate any rule annotated with <code>@ArchTest</code> against those classes.</p>
 </div>
 <div class="paragraph">
-<p>For further information on how to use the JUnit 4 support refer to <a href="#_junit_support">JUnit Support</a>.</p>
+<p>For further information on how to use the JUnit support refer to <a href="#_junit_support">JUnit Support</a>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_junit_4_with_kotlin"><a class="anchor" href="#_using_junit_4_with_kotlin"></a>3.4. Using JUnit 4 with Kotlin</h3>
+<h3 id="_using_junit_support_with_kotlin"><a class="anchor" href="#_using_junit_support_with_kotlin"></a>3.4. Using JUnit support with Kotlin</h3>
 <div class="paragraph">
-<p>As Kotlin removed the <code>static</code> keyword from the language, you need to use both a companion object
-and a Java-specific annotation:</p>
+<p>Using the JUnit support with Kotlin is quite similar to Java:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class)
-@AnalyzeClasses(packages = ["com.mycompany.myapp"])
+<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+@AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
+    @ArchTest
+    val rule_as_field = ArchRuleDefinition.noClasses().should()...
 
-    companion object {
-        @ArchTest @JvmField val myRule = classes()
-            .that().resideInAPackage("..service..")
-            .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..")
+    @ArchTest
+    fun rule_as_method(classes: JavaClasses) {
+        ArchRule rule = ArchRuleDefinition.noClasses().should()...
+        rule.check(classes)
     }
 }</code></pre>
 </div>
@@ -839,7 +917,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="479" height="225">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="478" height="225">
 </div>
 </div>
 <div class="listingblock">
@@ -850,7 +928,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="587" height="267">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="579" height="267">
 </div>
 </div>
 <div class="listingblock">
@@ -898,7 +976,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="769" height="398">
+<img src="cycle-check.png" alt="cycle check" width="759" height="398">
 </div>
 </div>
 <div class="listingblock">
@@ -1165,7 +1243,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="513" height="223">
+<img src="diamond-example.png" alt="diamond example" width="514" height="223">
 </div>
 </div>
 <div class="paragraph">
@@ -1594,6 +1672,16 @@ It is possible to add</p>
 <p>All violations mentioning <code>some.pkg.LegacyService</code> will consequently be ignored, and rules that
 are only violated by such violations will report success instead of failure.</p>
 </div>
+<div class="paragraph">
+<p>It is possible to add comments to ignore patterns by prefixing the line with a '#':</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit_ignore_patterns.txt</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-bash hljs" data-lang="bash"># There are many known violations where LegacyService is involved; we'll ignore them all
+.*some\.pkg\.LegacyService.*</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1664,14 +1752,117 @@ Those can be found within</p>
 (but use logging instead) or not to throw generic exceptions.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_plantuml_component_diagrams_as_rules"><a class="anchor" href="#_plantuml_component_diagrams_as_rules"></a>8.4. PlantUML Component Diagrams as rules</h3>
+<div class="paragraph">
+<p>The Library API offers a feature that supports <a href="http://plantuml.com/component-diagram">PlantUML</a> diagrams.
+This feature is located in</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.plantuml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ArchUnit can derive rules straight from PlantUML diagrams and check to make sure that all imported
+<code>JavaClasses</code> abide by the dependencies of the diagram. The respective rule can be created in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">URL myDiagram = getClass().getResource("my-diagram.puml");
+
+classes().should(adhereToPlantUmlDiagram(myDiagram, consideringAllDependencies()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Diagrams supported have to be component diagrams and associate classes to components via stereotypes.
+The way this works is to use the respective package identifiers (compare
+<code>ArchConditions.onlyHaveDependenciesInAnyPackage(..)</code>) as stereotypes:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="160" height="184">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>@startuml
+[Some Source] &lt;&lt;..some.source..&gt;&gt;
+[Some Target] &lt;&lt;..some.target..&gt;&gt; as target
+
+[Some Source] --&gt; target
+@enduml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Consider this diagram applied as a rule via <code>adhereToPlantUmlDiagram(..)</code>, then for example
+a class <code>some.target.Target</code> accessing <code>some.source.Source</code> would be reported as a violation.</p>
+</div>
+<div class="sect3">
+<h4 id="_configurations"><a class="anchor" href="#_configurations"></a>8.4.1. Configurations</h4>
+<div class="paragraph">
+<p>There are different ways to deal with dependencies of imported classes not covered by the
+diagram at all. The behavior of the PlantUML API can be configured by supplying a respective
+<code>Configuration</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// considers all dependencies possible (including java.lang, java.util, ...)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringAllDependencies())
+
+// considers only dependencies specified in the PlantUML diagram
+// (so any unknown depedency will be ignored)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInDiagram())
+
+// considers only dependencies in any specified package
+// (control the set of dependencies to consider, e.g. only com.myapp..)
+classes().should(adhereToPlantUmlDiagram(
+        mydiagram, consideringOnlyDependenciesInAnyPackage("..some.package.."))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is possible to further customize which dependencies to ignore:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// there are further ignore flavors available
+classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A PlantUML diagram used with ArchUnit must abide by a certain set of rules:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Components must have a name</p>
+</li>
+<li>
+<p>Components must have at least one stereotype. Each stereotype in the diagram must be unique</p>
+</li>
+<li>
+<p>Components may have an optional alias</p>
+</li>
+<li>
+<p>Components must be defined before declaring dependencies</p>
+</li>
+<li>
+<p>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_junit_support"><a class="anchor" href="#_junit_support"></a>9. JUnit Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>At the moment ArchUnit offers extended support for writing tests with JUnit 4. This mainly tackles
-the problem of caching classes between test runs and to remove some boilerplate.</p>
+<p>At the moment ArchUnit offers extended support for writing tests with JUnit 4 and JUnit 5.
+This mainly tackles the problem of caching classes between test runs and to remove some boilerplate.</p>
 </div>
 <div class="paragraph">
 <p>Consider a straight forward approach to write tests:</p>
@@ -1703,20 +1894,21 @@ a noticeable amount of time. Also rules will always be checked against the impor
 the explicit call of <code>check(classes)</code> is bloat and error prone (i.e. it can be forgotten).</p>
 </div>
 <div class="sect2">
-<h3 id="_junit_4_support"><a class="anchor" href="#_junit_4_support"></a>9.1. JUnit 4 Support</h3>
+<h3 id="_junit_4_5_support"><a class="anchor" href="#_junit_4_5_support"></a>9.1. JUnit 4 &amp; 5 Support</h3>
 <div class="paragraph">
 <p>Make sure you follow the installation instructions at <a href="#_installation">Installation</a>, in particular to include
-the correct dependency for JUnit 4 support.</p>
+the correct dependency for the respective JUnit support.</p>
 </div>
 <div class="sect3">
 <h4 id="_writing_tests"><a class="anchor" href="#_writing_tests"></a>9.1.1. Writing tests</h4>
 <div class="paragraph">
-<p>ArchUnit offers a specific <code>Runner</code> to take care of caching and checking rules.
-It can be used the following way:</p>
+<p>Tests look and behave very similar between JUnit 4 and 5. The only difference is, that with JUnit 4
+it is necessary to add a specific <code>Runner</code> to take care of caching and checking rules, while JUnit 5
+picks up the respective <code>TestEngine</code> transparently. A test typically looks the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
@@ -1738,7 +1930,7 @@ public class ArchitectureTest {
 </div>
 <div class="paragraph">
 <p>The <code>JavaClass</code> cache will work in two ways. On the one hand it will cache the classes by test,
-so they can be reused be several rules declared within the same class. On the other hand, it
+so they can be reused by several rules declared within the same class. On the other hand, it
 will cache the classes by location, so a second test, that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
 soft references, so the classes will be dropped from memory, if the heap runs low.
@@ -1800,7 +1992,7 @@ and then supply the type to <code>@AnalyzeClasses</code>.</p>
 <div class="sect3">
 <h4 id="_controlling_the_cache"><a class="anchor" href="#_controlling_the_cache"></a>9.1.3. Controlling the Cache</h4>
 <div class="paragraph">
-<p>By default the <code>ArchUnitRunner</code> will cache all classes by location. This means that between different
+<p>By default all classes will be cached by location. This means that between different
 test class runs imported Java classes will be reused, if the exact combination of locations has already
 been imported.</p>
 </div>
@@ -1826,13 +2018,11 @@ the imported Java classes will simply be dropped.</p>
 <div class="sect3">
 <h4 id="_ignoring_tests"><a class="anchor" href="#_ignoring_tests"></a>9.1.4. Ignoring Tests</h4>
 <div class="paragraph">
-<p>The runner will ignore tests annotated with <code>@ArchIgnore</code>, for example:</p>
+<p>It is possible to skip tests by annotating them with <code>@ArchIgnore</code>, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.myapp")
-public class ArchitectureTest {
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class ArchitectureTest {
 
     // will run
     @ArchTest
@@ -1869,7 +2059,7 @@ public class PersistenceRules {
     // further rules
 }
 
-@RunWith(ArchUnitRunner.class)
+@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses
 public class ArchitectureTest {
 
@@ -1884,7 +2074,7 @@ public class ArchitectureTest {
 </div>
 <div class="paragraph">
 <p>The runner will evaluate all rules within <code>ServiceRules</code> and <code>PersistenceRules</code> against
-the classes declared in <code>ArchitectureTest</code>. This also allows an easy reuse of a rule library
+the classes declared at <code>ArchitectureTest</code>. This also allows an easy reuse of a rule library
 in different projects or modules.</p>
 </div>
 </div>
