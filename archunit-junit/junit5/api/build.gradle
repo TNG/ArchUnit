@@ -9,6 +9,13 @@ dependencies {
     compile dependency.junitPlatformCommons
 }
 
+javadoc {
+    source(project(':archunit-junit').sourceSets.api.allJava)
+}
+sourcesJar {
+    from project(':archunit-junit').sourceSets.api.allSource
+}
+
 shadowJar {
     exclude 'META-INF/maven/**'
 

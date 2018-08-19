@@ -6,7 +6,6 @@ targetCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     compile project(path: ':archunit')
     compile project(path: ':archunit-junit')
-    compile project(path: ':archunit-junit', configuration: 'api')
     compile project(path: ':archunit-junit5-api')
     compile project(path: ':archunit-junit5-engine-api')
     compile dependency.guava
@@ -22,6 +21,13 @@ dependencies {
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
 compileJava.dependsOn project(':archunit-junit5-engine-api').finishArchive
+
+javadoc {
+    source(project(':archunit-junit').sourceSets.main.allJava)
+}
+sourcesJar {
+    from project(':archunit-junit').sourceSets.main.allSource
+}
 
 configureSlowTestsFor this
 

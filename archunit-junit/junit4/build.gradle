@@ -21,11 +21,20 @@ dependencies {
     testCompile project(path: ':archunit-junit', configuration: 'tests')
 }
 
+javadoc {
+    source(['api', 'main'].collect { project(':archunit-junit').sourceSets[it].allJava })
+}
+sourcesJar {
+    ['api', 'main'].each {
+        from project(':archunit-junit').sourceSets[it].allSource
+    }
+}
+
 configureSlowTestsFor this
 
 shadowJar {
     exclude 'META-INF/**'
-    
+
     dependencies {
         exclude(project(':archunit'))
         exclude(dependency(dependency.junit4))
