@@ -10,7 +10,8 @@ using any plain Java unit testing framework.
 
 === Module Overview
 
-ArchUnit consists of two production modules: `archunit` and `archunit-junit`.
+ArchUnit consists of the following production modules: `archunit`, `archunit-junit4` as well
+as `archunit-junit5-api`, `archunit-junit5-engine` and `archunit-junit5-engine-api`.
 Also relevant for end users is the `archunit-example` module.
 
 ==== Module archunit
@@ -19,10 +20,20 @@ This module contains the actual ArchUnit core infrastructure required to write a
 tests: The `ClassFileImporter`,
 the domain objects, as well as the rule syntax infrastructure.
 
-==== Module archunit-junit
+==== Module archunit-junit4
 
 This module contains the infrastructure to integrate with JUnit 4, in particular
 the `ArchUnitRunner` to cache imported classes.
+
+==== Modules archunit-junit5-*
+
+These modules contain the infrastructure to integrate with JUnit 5 and contain the respective
+infrastructure to cache imported classes between test runs.
+`archunit-junit5-api` contains the user API to write tests with ArchUnit's JUnit 5 support,
+`archunit-junit5-engine` contains the runtime engine to run those tests.
+`archunit-junit5-engine-api` contains API code for tools that want more detailes control
+over running ArchUnit JUnit 5 tests, in particular a `FieldSelector` which can be used to
+instruct the `ArchUnitTestEngine` to run a specific rule field (compare <<JUnit 4 & 5 Support>>).
 
 ==== Module archunit-example
 
