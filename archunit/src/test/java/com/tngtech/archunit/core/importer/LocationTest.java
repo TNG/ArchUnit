@@ -57,7 +57,7 @@ public class LocationTest {
     }
 
     @Test
-    public void iterate_entries_of_whole_jar() throws Exception {
+    public void iterate_entries_of_whole_jar() {
         Set<NormalizedResourceName> entries = ImmutableSet.of(
                 classFileEntry(getClass()),
                 classFileEntry(ArchConfiguration.class),
@@ -74,7 +74,7 @@ public class LocationTest {
     }
 
     @Test
-    public void iterate_entries_of_package_of_jar_url() throws Exception {
+    public void iterate_entries_of_package_of_jar_url() {
         Set<NormalizedResourceName> entries = ImmutableSet.of(
                 classFileEntry(getClass()),
                 classFileEntry(ArchConfiguration.class),
@@ -103,7 +103,7 @@ public class LocationTest {
     }
 
     @Test
-    public void iterate_entries_of_non_existing_jar_url() throws Exception {
+    public void iterate_entries_of_non_existing_jar_url() {
         File nonExistingJar = new File(createNonExistingFolder(), "not-there.jar");
 
         Location location = Location.of(URI.create("jar:" + nonExistingJar.toURI() + "!/"));
@@ -128,7 +128,7 @@ public class LocationTest {
     }
 
     @Test
-    public void iterate_entries_of_non_existing_file_url() throws Exception {
+    public void iterate_entries_of_non_existing_file_url() {
         Location location = Location.of(createNonExistingFolder().toURI());
 
         assertThat(location.iterateEntries())
@@ -310,6 +310,20 @@ public class LocationTest {
         Location expected = Location.of(Paths.get("/some/path/bar/baz"));
         assertThat(appendAbsolute).isEqualTo(expected);
         assertThat(appendRelative).isEqualTo(expected);
+    }
+
+    @Test
+    public void append_path_with_white_space() {
+        JarFile jarFile = new TestJarFile()
+                .withEntry("path with spaces")
+                .withEntry("path with spaces/like kotlin does.class")
+                .create();
+
+        URI dirInJar = Paths.get(jarFile.getName()).toUri();
+
+        Location location = Location.of(dirInJar).append("path with spaces/like kotlin does.class");
+
+        assertThat(location.asURI().toString()).contains("kotlin");
     }
 
     private URL urlOfOwnClass() {
