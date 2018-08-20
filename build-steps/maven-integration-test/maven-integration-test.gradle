@@ -44,6 +44,12 @@ File verificationTestPath = new File(mavenTestRootDir, 'verification/TestResultT
 File verificationResultOriginPath = new File(mavenTestRootDir, 'target/surefire-reports')
 File verificationResultArchivePath = new File(mavenTestRootDir, 'verification-results')
 
+clean {
+    doLast {
+        verificationResultArchivePath.deleteDir()
+    }
+}
+
 task initializeMavenTest {
     doLast {
         verificationResultArchivePath.with {
