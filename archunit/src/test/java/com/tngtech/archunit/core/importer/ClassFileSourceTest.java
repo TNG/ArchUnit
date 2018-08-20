@@ -2,6 +2,10 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.jar.JarFile;
@@ -84,7 +88,7 @@ public class ClassFileSourceTest {
     }
 
     @Test
-    public void filters_out_module_infos_in_Jar_location() throws IOException {
+    public void filters_out_module_infos_in_Jar_location() {
         String onlyExpectedEntry = "pkg/Some.class";
         JarFile jarFile = new TestJarFile()
                 .withEntry(onlyExpectedEntry)
@@ -105,6 +109,42 @@ public class ClassFileSourceTest {
         ClassFileSource source = Location.of(dir.toPath()).asClassFileSource(new ImportOptions());
 
         assertThat(getOnlyElement(source).getUri().toString()).contains(classFile.getName());
+    }
+
+    @Test
+    public void resolves_class_files_with_whitespace() throws IOException {
+        File file = tempDir.newFile("path with spaces like kotlin does.class");
+
+        ClassFileSource classFileSource = new ClassFileSource.FromFilePath(file.toPath(), new ImportOptions());
+
+        checkAllElementsCanBeRead(classFileSource);
+    }
+
+    @Test
+    public void resolves_jar_entries_with_whitespace() throws MalformedURLException {
+        JarFile jarFile = new TestJarFile()
+                .withEntry("path with spaces")
+                .withEntry("path with spaces/like kotlin does.class")
+                .create();
+
+        ClassFileSource classFileSource = new ClassFileSource.FromJar(jarUrlOf(jarFile), "", new ImportOptions());
+
+        checkAllElementsCanBeRead(classFileSource);
+    }
+
+    @SuppressWarnings("EmptyTryBlock")
+    private void checkAllElementsCanBeRead(ClassFileSource classFileSource) {
+        for (ClassFileLocation location : classFileSource) {
+            try (InputStream ignored = location.openStream()) {
+                // if the stream can be opened, we are satisfied
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private URL jarUrlOf(JarFile jarFile) throws MalformedURLException {
+        return new URL("jar:" + Paths.get(jarFile.getName()).toUri().toURL() + "!/");
     }
 
     private void createDummyModuleInfoIn(File folder) throws IOException {

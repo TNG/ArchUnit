@@ -102,6 +102,7 @@ public abstract class Location {
 
     // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
     Location append(String relativeURI) {
+        relativeURI = encodeIllegalCharacters(relativeURI);
         if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {
             relativeURI = relativeURI.substring(1);
         }
@@ -109,6 +110,16 @@ public abstract class Location {
             relativeURI = "/" + relativeURI;
         }
         return Location.of(URI.create(uri + relativeURI));
+    }
+
+    // NOTE: new URI(..) with more than one argument does URL encoding of illegal characters. URLEncoder on the other
+    //       hand form-encodes all characters, even '/' which we do not want.
+    private String encodeIllegalCharacters(String relativeURI) {
+        try {
+            return new URI(null, null, relativeURI, null).toString();
+        } catch (URISyntaxException e) {
+            throw new LocationException(e);
+        }
     }
 
     void checkScheme(String scheme, NormalizedUri uri) {
@@ -342,7 +353,7 @@ public abstract class Location {
             final ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (file.toString().endsWith(".class")) {
                         result.add(NormalizedResourceName.from(root.relativize(file).toString()));
                     }
