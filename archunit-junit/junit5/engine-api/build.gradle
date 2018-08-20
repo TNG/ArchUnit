@@ -24,7 +24,7 @@ configureSlowTestsFor this
 
 test {
     useJUnitPlatform() {
-        excludeEngines 'junit-archunit'
+        excludeEngines 'archunit'
     }
 }
 
