@@ -1,5 +1,8 @@
 package com.tngtech.archunit.core.domain;
 
+import java.util.List;
+import java.util.Set;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -60,6 +63,18 @@ public class JavaClassesTest {
         JavaClasses classes = JavaClasses.of(iterable);
 
         assertThat(ImmutableSet.copyOf(classes)).isEqualTo(iterable);
+    }
+
+    @Test
+    public void javaClasses_return_size() {
+        Set<JavaClass> given = ImmutableSet.of(
+                importClassWithContext(Object.class),
+                importClassWithContext(String.class),
+                importClassWithContext(List.class));
+
+        JavaClasses classes = JavaClasses.of(given);
+
+        assertThat(classes.size()).as("classes.size()").isEqualTo(given.size());
     }
 
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {

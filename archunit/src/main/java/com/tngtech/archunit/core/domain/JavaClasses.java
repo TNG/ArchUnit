@@ -84,6 +84,11 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
     }
 
     @PublicAPI(usage = ACCESS)
+    public int size() {
+        return classes.size();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaClass get(String typeName) {
         return checkNotNull(classes.get(typeName), "%s don't contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), typeName);
