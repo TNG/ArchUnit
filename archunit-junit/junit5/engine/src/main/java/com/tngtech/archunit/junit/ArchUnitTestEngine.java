@@ -64,7 +64,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Internal
 public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
-    static final String UNIQUE_ID = "junit-archunit";
+    static final String UNIQUE_ID = "archunit";
 
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
