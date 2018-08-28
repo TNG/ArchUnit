@@ -87,7 +87,7 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     }
 
     private static ArchRules getArchRulesIn(Field field) {
-        ArchRules value = getValue(field);
+        ArchRules value = getValue(field, field.getDeclaringClass());
         return checkNotNull(value, "Field %s.%s is not initialized",
                 field.getDeclaringClass().getName(), field.getName());
     }

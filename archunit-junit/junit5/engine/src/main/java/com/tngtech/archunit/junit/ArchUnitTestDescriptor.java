@@ -108,7 +108,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static <T> T getValue(Field field) {
-        return getValueOrThrowException(field, WRAP_CAUSE);
+        return getValueOrThrowException(field, field.getDeclaringClass(), WRAP_CAUSE);
     }
 
     private static void resolveArchRules(
