@@ -34,22 +34,24 @@ import static com.tngtech.archunit.junit.ReflectionUtils.withAnnotation;
 abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     private final Class<?> testClass;
     final T declaration;
+    final Class<?> owner;
     private final boolean forceIgnore;
 
-    ArchRuleDeclaration(Class<?> testClass, T declaration, boolean forceIgnore) {
+    ArchRuleDeclaration(Class<?> testClass, T declaration, Class<?> owner, boolean forceIgnore) {
         this.testClass = testClass;
         this.declaration = declaration;
+        this.owner = owner;
         this.forceIgnore = forceIgnore;
     }
 
     abstract void handleWith(Handler handler);
 
-    private static ArchRuleDeclaration<Method> from(Class<?> testClass, Method method, boolean forceIgnore) {
-        return new AsMethod(testClass, method, forceIgnore);
+    private static ArchRuleDeclaration<Method> from(Class<?> testClass, Method method, Class<?> methodOwner, boolean forceIgnore) {
+        return new AsMethod(testClass, method, methodOwner, forceIgnore);
     }
 
-    private static ArchRuleDeclaration<Field> from(Class<?> testClass, Field field, boolean forceIgnore) {
-        return new AsField(testClass, field, forceIgnore);
+    private static ArchRuleDeclaration<Field> from(Class<?> testClass, Field field, Class<?> fieldOwner, boolean forceIgnore) {
+        return new AsField(testClass, field, fieldOwner, forceIgnore);
     }
 
     static <T extends AnnotatedElement & Member> boolean elementShouldBeIgnored(T member) {
@@ -69,54 +71,54 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
             ArchRules rules, Class<?> testClass, Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         ImmutableSet.Builder<ArchRuleDeclaration<?>> result = ImmutableSet.builder();
-        for (Field field : getAllFields(rules.getDefinitionLocation(), withAnnotation(archTestAnnotationType))) {
-            result.addAll(archRuleDeclarationsFrom(testClass, field, archTestAnnotationType, forceIgnore));
+        Class<?> definitionLocation = rules.getDefinitionLocation();
+        for (Field field : getAllFields(definitionLocation, withAnnotation(archTestAnnotationType))) {
+            result.addAll(archRuleDeclarationsFrom(testClass, field, definitionLocation, archTestAnnotationType, forceIgnore));
         }
-        for (Method method : getAllMethods(rules.getDefinitionLocation(), withAnnotation(archTestAnnotationType))) {
-            result.add(ArchRuleDeclaration.from(testClass, method, forceIgnore));
+        for (Method method : getAllMethods(definitionLocation, withAnnotation(archTestAnnotationType))) {
+            result.add(ArchRuleDeclaration.from(testClass, method, definitionLocation, forceIgnore));
         }
         return result.build();
     }
 
-    private static Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(Class<?> testClass, Field field,
+    private static Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(Class<?> testClass, Field field, Class<?> fieldOwner,
             Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         return ArchRules.class.isAssignableFrom(field.getType()) ?
-                toDeclarations(getArchRulesIn(field), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(field)) :
-                Collections.<ArchRuleDeclaration<?>>singleton(ArchRuleDeclaration.from(testClass, field, forceIgnore));
+                toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(field)) :
+                Collections.<ArchRuleDeclaration<?>>singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
     }
 
-    private static ArchRules getArchRulesIn(Field field) {
-        ArchRules value = getValue(field, field.getDeclaringClass());
-        return checkNotNull(value, "Field %s.%s is not initialized",
-                field.getDeclaringClass().getName(), field.getName());
+    private static ArchRules getArchRulesIn(Field field, Class<?> fieldOwner) {
+        ArchRules value = getValue(field, fieldOwner);
+        return checkNotNull(value, "Field %s.%s is not initialized", fieldOwner.getName(), field.getName());
     }
 
     private static class AsMethod extends ArchRuleDeclaration<Method> {
-        AsMethod(Class<?> testClass, Method method, boolean forceIgnore) {
-            super(testClass, method, forceIgnore);
+        AsMethod(Class<?> testClass, Method method, Class<?> methodOwner, boolean forceIgnore) {
+            super(testClass, method, methodOwner, forceIgnore);
         }
 
         @Override
         void handleWith(Handler handler) {
-            handler.handleMethodDeclaration(declaration, shouldBeIgnored());
+            handler.handleMethodDeclaration(declaration, owner, shouldBeIgnored());
         }
     }
 
     private static class AsField extends ArchRuleDeclaration<Field> {
-        AsField(Class<?> testClass, Field field, boolean forceIgnore) {
-            super(testClass, field, forceIgnore);
+        AsField(Class<?> testClass, Field field, Class<?> fieldOwner, boolean forceIgnore) {
+            super(testClass, field, fieldOwner, forceIgnore);
         }
 
         @Override
         void handleWith(Handler handler) {
-            handler.handleFieldDeclaration(declaration, shouldBeIgnored());
+            handler.handleFieldDeclaration(declaration, owner, shouldBeIgnored());
         }
     }
 
     interface Handler {
-        void handleFieldDeclaration(Field field, boolean ignore);
+        void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore);
 
-        void handleMethodDeclaration(Method method, boolean ignore);
+        void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore);
     }
 }
