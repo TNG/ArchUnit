@@ -110,11 +110,11 @@ class ReflectionUtils {
         }
     }
 
-    static <T> T invokeMethod(Method method, Object... args) {
+    static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
             return invoke(null, method, args);
         } else {
-            return invoke(newInstanceOf(method.getDeclaringClass()), method, args);
+            return invoke(newInstanceOf(methodOwner), method, args);
         }
     }
 
