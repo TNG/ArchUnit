@@ -98,12 +98,12 @@ class ReflectionUtils {
         }
     }
 
-    static <T> T getValueOrThrowException(Field field, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
+    static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
         try {
             if (Modifier.isStatic(field.getModifiers())) {
                 return getValue(field, null);
             } else {
-                return getValue(field, newInstanceOf(field.getDeclaringClass()));
+                return getValue(field, newInstanceOf(fieldOwner));
             }
         } catch (ReflectionException e) {
             throw exceptionConverter.apply(e.getCause());

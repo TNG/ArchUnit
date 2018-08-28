@@ -126,7 +126,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchRules getArchRules(Field field) {
-        return getValue(field);
+        return getValue(field, field.getDeclaringClass());
     }
 
     private Collection<ArchTestExecution> findArchRuleMethods() {

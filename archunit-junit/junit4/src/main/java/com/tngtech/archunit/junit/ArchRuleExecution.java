@@ -36,7 +36,7 @@ class ArchRuleExecution extends ArchTestExecution {
 
     @Override
     Result evaluateOn(JavaClasses classes) {
-        ArchRule rule = getValue(ruleField);
+        ArchRule rule = getValue(ruleField, testClass);
         try {
             rule.check(classes);
         } catch (Exception | AssertionError e) {
