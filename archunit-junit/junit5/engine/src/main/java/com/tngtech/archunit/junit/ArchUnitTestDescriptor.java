@@ -188,7 +188,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         @Override
         public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
-            invokeMethod(method, classes.get());
+            invokeMethod(method, method.getDeclaringClass(), classes.get());
             return context;
         }
     }

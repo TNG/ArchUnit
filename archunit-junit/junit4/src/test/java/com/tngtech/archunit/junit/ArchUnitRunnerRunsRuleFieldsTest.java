@@ -113,6 +113,15 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
+    public void should_allow_non_static_method_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithAbstractBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.NON_STATIC_METHOD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(AbstractBaseClass.NON_STATIC_METHOD_NAME);
+    }
+
+    @Test
     public void should_fail_on_wrong_field_type() {
         ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongFieldType.class, cache);
 
@@ -200,9 +209,15 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
     abstract static class AbstractBaseClass {
         static final String INSTANCE_FIELD_NAME = "abstractBaseClassInstanceField";
+        static final String NON_STATIC_METHOD_NAME = "abstractBaseClassNonStaticMethod";
 
         @ArchTest
         ArchRule abstractBaseClassInstanceField = all(classes()).should(BE_SATISFIED);
+
+        @ArchTest
+        void abstractBaseClassNonStaticMethod(JavaClasses classes) {
+            all(classes()).should(BE_SATISFIED).check(classes);
+        }
     }
 
     @AnalyzeClasses(packages = "some.pkg")
