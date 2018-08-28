@@ -122,6 +122,24 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
+    public void should_allow_ArchRules_in_class_with_instance_field_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithRulesWithAbstractBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.INSTANCE_FIELD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(AbstractBaseClass.INSTANCE_FIELD_NAME);
+    }
+
+    @Test
+    public void should_allow_ArchRules_in_class_with_non_static_method_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithRulesWithAbstractBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.NON_STATIC_METHOD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(AbstractBaseClass.NON_STATIC_METHOD_NAME);
+    }
+
+    @Test
     public void should_fail_on_wrong_field_type() {
         ArchUnitRunner runner = newRunnerFor(WrongArchTestWrongFieldType.class, cache);
 
@@ -201,6 +219,12 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         private ArchRule privateField = all(classes()).should(BE_SATISFIED);
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithRulesWithAbstractBaseClass {
+        @ArchTest
+        ArchRules rules = ArchRules.in(ArchTestWithAbstractBaseClass.class);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
