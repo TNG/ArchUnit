@@ -163,6 +163,28 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         run(someMethodRuleName, runnerForIgnoredRuleLibrary, verifyTestIgnored());
     }
 
+    @Test
+    public void should_allow_ArchRules_in_class_with_instance_field_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithRulesWithAbstractBaseClass.class, cache);
+
+        runner.runChild(getRule(ArchUnitRunnerRunsRuleFieldsTest.AbstractBaseClass.INSTANCE_FIELD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(ArchUnitRunnerRunsRuleFieldsTest.AbstractBaseClass.INSTANCE_FIELD_NAME);
+    }
+
+    @Test
+    public void should_allow_ArchRules_in_class_with_instance_method_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithRulesWithAbstractBaseClass.class, cache);
+
+        runner.runChild(getRule(ArchUnitRunnerRunsMethodsTest.AbstractBaseClass.INSTANCE_METHOD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(ArchUnitRunnerRunsMethodsTest.AbstractBaseClass.INSTANCE_METHOD_NAME);
+    }
+
+    private void verifyTestFinishedSuccessfully(String expectedDescriptionMethodName) {
+        ArchUnitRunnerRunsRuleFieldsTest.verifyTestFinishedSuccessfully(runNotifier, descriptionCaptor, expectedDescriptionMethodName);
+    }
+
     private Runnable verifyTestIgnored() {
         return new Runnable() {
             @Override
@@ -303,5 +325,13 @@ public class ArchUnitRunnerRunsRuleSetsTest {
             public void check(JavaClass item, ConditionEvents events) {
             }
         };
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithRulesWithAbstractBaseClass {
+        @ArchTest
+        ArchRules fieldRules = ArchRules.in(ArchUnitRunnerRunsRuleFieldsTest.ArchTestWithAbstractBaseClass.class);
+        @ArchTest
+        ArchRules methodRules = ArchRules.in(ArchUnitRunnerRunsMethodsTest.ArchTestWithAbstractBaseClass.class);
     }
 }

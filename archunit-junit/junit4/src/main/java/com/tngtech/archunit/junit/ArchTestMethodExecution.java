@@ -47,7 +47,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
                 "Methods annotated with @%s must have exactly one parameter of type %s",
                 ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName());
 
-        invokeMethod(testMethod, classes);
+        invokeMethod(testMethod, testClass, classes);
     }
 
     @Override

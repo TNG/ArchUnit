@@ -49,8 +49,8 @@ abstract class ArchTestExecution {
         return ignore;
     }
 
-    static <T> T getValue(Field field) {
-        return getValueOrThrowException(field, WRAP_CAUSE);
+    static <T> T getValue(Field field, Class<?> fieldOwner) {
+        return getValueOrThrowException(field, fieldOwner, WRAP_CAUSE);
     }
 
     abstract static class Result {

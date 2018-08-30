@@ -91,9 +91,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         runner.runChild(satisfiedRule, runNotifier);
 
-        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
-        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
-        assertThat(descriptionCaptor.getValue().toString()).contains(SATISFIED_FIELD_NAME);
+        verifyTestFinishedSuccessfully(SATISFIED_FIELD_NAME);
     }
 
     @Test
@@ -102,11 +100,16 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         runner.runChild(ArchUnitRunnerTestUtils.getRule(PRIVATE_RULE_FIELD_NAME, runner), runNotifier);
 
-        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
-        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        verifyTestFinishedSuccessfully(PRIVATE_RULE_FIELD_NAME);
+    }
 
-        assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
-                .contains(PRIVATE_RULE_FIELD_NAME);
+    @Test
+    public void should_allow_instance_field_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithAbstractBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.INSTANCE_FIELD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(AbstractBaseClass.INSTANCE_FIELD_NAME);
     }
 
     @Test
@@ -159,6 +162,18 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         return ArchUnitRunnerTestUtils.getRule(name, runner);
     }
 
+    private void verifyTestFinishedSuccessfully(String expectedDescriptionMethodName) {
+        verifyTestFinishedSuccessfully(runNotifier, descriptionCaptor, expectedDescriptionMethodName);
+    }
+
+    static void verifyTestFinishedSuccessfully(RunNotifier runNotifier, ArgumentCaptor<Description> descriptionCaptor,
+            String expectedDescriptionMethodName) {
+        verify(runNotifier, never()).fireTestFailure(any(Failure.class));
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        Description description = descriptionCaptor.getValue();
+        assertThat(description.getMethodName()).isEqualTo(expectedDescriptionMethodName);
+    }
+
     @AnalyzeClasses(packages = "some.pkg")
     public static class SomeArchTest {
         static final String SATISFIED_FIELD_NAME = "someSatisfiedRule";
@@ -182,6 +197,17 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         private ArchRule privateField = all(classes()).should(BE_SATISFIED);
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithAbstractBaseClass extends AbstractBaseClass {
+    }
+
+    abstract static class AbstractBaseClass {
+        static final String INSTANCE_FIELD_NAME = "abstractBaseClassInstanceField";
+
+        @ArchTest
+        ArchRule abstractBaseClassInstanceField = all(classes()).should(BE_SATISFIED);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
