@@ -126,7 +126,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchRules getArchRules(Field field) {
-        return getValue(field);
+        return getValue(field, field.getDeclaringClass());
     }
 
     private Collection<ArchTestExecution> findArchRuleMethods() {
@@ -172,13 +172,13 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
 
         @Override
-        public void handleFieldDeclaration(Field field, boolean ignore) {
-            executions.add(new ArchRuleExecution(field.getDeclaringClass(), field, ignore));
+        public void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore) {
+            executions.add(new ArchRuleExecution(fieldOwner, field, ignore));
         }
 
         @Override
-        public void handleMethodDeclaration(Method method, boolean ignore) {
-            executions.add(new ArchTestMethodExecution(method.getDeclaringClass(), method, ignore));
+        public void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore) {
+            executions.add(new ArchTestMethodExecution(methodOwner, method, ignore));
         }
 
         Set<ArchTestExecution> getExecutions() {

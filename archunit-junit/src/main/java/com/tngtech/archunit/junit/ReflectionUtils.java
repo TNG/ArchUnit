@@ -98,23 +98,23 @@ class ReflectionUtils {
         }
     }
 
-    static <T> T getValueOrThrowException(Field field, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
+    static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
         try {
             if (Modifier.isStatic(field.getModifiers())) {
                 return getValue(field, null);
             } else {
-                return getValue(field, newInstanceOf(field.getDeclaringClass()));
+                return getValue(field, newInstanceOf(fieldOwner));
             }
         } catch (ReflectionException e) {
             throw exceptionConverter.apply(e.getCause());
         }
     }
 
-    static <T> T invokeMethod(Method method, Object... args) {
+    static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
             return invoke(null, method, args);
         } else {
-            return invoke(newInstanceOf(method.getDeclaringClass()), method, args);
+            return invoke(newInstanceOf(methodOwner), method, args);
         }
     }
 

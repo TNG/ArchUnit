@@ -24,8 +24,11 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestW
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.ArchTestWithTestMethod.testSomething;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredOne;
 import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredTwo;
+import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
+import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -91,23 +94,9 @@ public class ArchUnitRunnerRunsMethodsTest {
         runAndAssertWrongParametersForChild(noParams, newRunner(ArchTestWithIllegalTestMethods.class));
     }
 
-    private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) {
-        return newRunnerFor(testClass, cache);
-    }
-
     @Test
     public void fails_methods_with_too_many_parameters() {
         runAndAssertWrongParametersForChild(tooManyParams, newRunner(ArchTestWithIllegalTestMethods.class));
-    }
-
-    private void runAndAssertWrongParametersForChild(String name, ArchUnitRunner runner) {
-        runner.runChild(getRule(name, runner), runNotifier);
-        verify(runNotifier).fireTestFailure(failureCaptor.capture());
-        Failure failure = failureCaptor.getValue();
-        assertThat(failure.getDescription().toString()).as("Failure description").contains(name);
-        assertThat(failure.getException().getMessage()).as("Failure Cause")
-                .contains("@" + ArchTest.class.getSimpleName())
-                .contains("exactly one parameter of type " + JavaClasses.class.getSimpleName());
     }
 
     @Test
@@ -129,6 +118,33 @@ public class ArchUnitRunnerRunsMethodsTest {
         runner.runChild(getRule(toBeIgnored, runner), runNotifier);
         verify(runNotifier).fireTestIgnored(descriptionCaptor.capture());
         assertThat(descriptionCaptor.getValue().toString()).contains(toBeIgnored);
+    }
+
+    @Test
+    public void should_allow_instance_method_in_abstract_base_class() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithAbstractBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.INSTANCE_METHOD_NAME, runner), runNotifier);
+
+        verifyTestFinishedSuccessfully(AbstractBaseClass.INSTANCE_METHOD_NAME);
+    }
+
+    private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) {
+        return newRunnerFor(testClass, cache);
+    }
+
+    private void runAndAssertWrongParametersForChild(String name, ArchUnitRunner runner) {
+        runner.runChild(getRule(name, runner), runNotifier);
+        verify(runNotifier).fireTestFailure(failureCaptor.capture());
+        Failure failure = failureCaptor.getValue();
+        assertThat(failure.getDescription().toString()).as("Failure description").contains(name);
+        assertThat(failure.getException().getMessage()).as("Failure Cause")
+                .contains("@" + ArchTest.class.getSimpleName())
+                .contains("exactly one parameter of type " + JavaClasses.class.getSimpleName());
+    }
+
+    private void verifyTestFinishedSuccessfully(String expectedDescriptionMethodName) {
+        ArchUnitRunnerRunsRuleFieldsTest.verifyTestFinishedSuccessfully(runNotifier, descriptionCaptor, expectedDescriptionMethodName);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
@@ -185,6 +201,19 @@ public class ArchUnitRunnerRunsMethodsTest {
         @ArchIgnore
         @ArchTest
         public static void toBeIgnored(JavaClasses classes) {
+        }
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithAbstractBaseClass extends AbstractBaseClass {
+    }
+
+    abstract static class AbstractBaseClass {
+        static final String INSTANCE_METHOD_NAME = "abstractBaseClassInstanceMethod";
+
+        @ArchTest
+        void abstractBaseClassInstanceMethod(JavaClasses classes) {
+            all(classes()).should(BE_SATISFIED).check(classes);
         }
     }
 }
