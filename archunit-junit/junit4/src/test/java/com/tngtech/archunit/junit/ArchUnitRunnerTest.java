@@ -29,6 +29,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +60,7 @@ public class ArchUnitRunnerTest {
     public void runner_creates_correct_analysis_request() {
         runnerOfMaxTest.run(new RunNotifier());
 
-        verify(cache).getClassesToAnalyzeFor(eq(MaxAnnotatedTest.class), analysisRequestCaptor.capture());
+        verify(cache, atLeast(1)).getClassesToAnalyzeFor(eq(MaxAnnotatedTest.class), analysisRequestCaptor.capture());
 
         AnalyzeClasses analyzeClasses = MaxAnnotatedTest.class.getAnnotation(AnalyzeClasses.class);
         ClassAnalysisRequest analysisRequest = analysisRequestCaptor.getValue();

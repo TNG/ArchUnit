@@ -1,11 +1,15 @@
 package com.tngtech.archunit.exampletest.extension;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.synchronizedList;
 
@@ -36,7 +40,7 @@ public class ExampleExtension implements ArchUnitExtension {
     }
 
     @Override
-    public void onFinishAnalyzingClasses(JavaClasses classes) {
+    public void onFinishedAnalyzing(JavaClasses classes) {
     }
 
     public static Set<NewConfigurationEvent> getConfigurationEvents() {

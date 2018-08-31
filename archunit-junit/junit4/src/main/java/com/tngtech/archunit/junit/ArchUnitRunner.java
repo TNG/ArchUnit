@@ -99,7 +99,8 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                final JavaClasses classes = cache.get().getClassesToAnalyzeFor(getTestClass().getJavaClass());
+                Class<?> testClass = getTestClass().getJavaClass();
+                final JavaClasses classes = cache.get().getClassesToAnalyzeFor(testClass, new JUnit4ClassAnalysisRequest(testClass));
                 try {
                     statement.evaluate();
                 } finally {

@@ -15,15 +15,19 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
 
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 
 public class VisualExtension implements ArchUnitExtension {
     private static final String REPORT_DIR_SYSTEM_PROPERTY = "archunit.visual.report.dir";
@@ -59,12 +63,12 @@ public class VisualExtension implements ArchUnitExtension {
             evaluatedRules.get(evaluatedRule.getClasses()).add(evaluatedRule.getResult());
         } else {
             evaluatedRules.put(evaluatedRule.getClasses(), Collections.synchronizedSet(
-                    new HashSet<>(Arrays.asList(evaluatedRule.getResult()))));
+                    newHashSet(evaluatedRule.getResult())));
         }
     }
 
     @Override
-    public void onFinishAnalyzingClasses(JavaClasses classes) {
+    public void onFinishedAnalyzing(JavaClasses classes) {
         createVisualization(classes);
     }
 

@@ -15,13 +15,13 @@
  */
 package com.tngtech.archunit.lang.extension;
 
+import java.util.Properties;
+
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Properties;
 
 @Internal
 public class ArchUnitExtensions {
@@ -53,7 +53,7 @@ public class ArchUnitExtensions {
         callOnEnabledExtensions(new ExtensionCallable() {
             @Override
             public void call(ArchUnitExtension extension) {
-                extension.onFinishAnalyzingClasses(classes);
+                extension.onFinishedAnalyzing(classes);
             }
         });
     }

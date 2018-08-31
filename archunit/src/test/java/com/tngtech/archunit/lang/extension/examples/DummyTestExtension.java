@@ -1,10 +1,10 @@
 package com.tngtech.archunit.lang.extension.examples;
 
+import java.util.Properties;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
-
-import java.util.Properties;
 
 public class DummyTestExtension implements ArchUnitExtension {
     public static final String UNIQUE_IDENTIFIER = DummyTestExtension.class.getName().replace(".", "_");
@@ -23,6 +23,6 @@ public class DummyTestExtension implements ArchUnitExtension {
     }
 
     @Override
-    public void onFinishAnalyzingClasses(JavaClasses classes) {
+    public void onFinishedAnalyzing(JavaClasses classes) {
     }
 }
