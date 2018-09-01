@@ -1743,6 +1743,9 @@ infixes, and then write assertions against those slices. At the moment this is f
 // then check those slices for cyclic dependencies
 SlicesRuleDefinition.slices().matching("..myapp.(*)..").should().beFreeOfCycles()
 
+// checks all subpackages of 'myapp' for cycles
+SlicesRuleDefinition.slices().matching("..myapp.(**)").should().notDependOnEachOther()
+
 // sort classes by packages between 'myapp' and 'service'
 // then check those slices for not having any dependencies on each other
 SlicesRuleDefinition.slices().matching("..myapp.(**).service..").should().notDependOnEachOther()</code></pre>
