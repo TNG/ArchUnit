@@ -16,6 +16,7 @@
 package com.tngtech.archunit.visual;
 
 import com.google.gson.annotations.Expose;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 
 class JsonViolation {
@@ -38,5 +39,9 @@ class JsonViolation {
 
     String getIdentifier() {
         return origin + "->" + target;
+    }
+
+    public static JsonViolation from(Dependency violatingObject) {
+        return new JsonViolation(violatingObject.getOriginClass().getName(), violatingObject.getTargetClass().getName());
     }
 }

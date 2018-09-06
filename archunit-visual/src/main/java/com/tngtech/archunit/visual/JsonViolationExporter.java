@@ -15,12 +15,15 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.ViolationHandler;
+import com.tngtech.archunit.library.dependencies.Cycle;
 
 import java.util.Collection;
 
@@ -31,33 +34,44 @@ class JsonViolationExporter {
             .create();
 
     String exportToJson(Iterable<EvaluationResult> results) {
-        JsonEvaluationResultList violations = new JsonEvaluationResultList();
+        Multimap<String, JsonViolation> violations = HashMultimap.create();
         for (EvaluationResult result : results) {
-            final JsonEvaluationResult evaluationResult = new JsonEvaluationResult(result.getRuleText());
-            extractFieldAccesses(result, evaluationResult);
-            extractJavaCalls(result, evaluationResult);
-            violations.insertEvaluationResult(evaluationResult);
+            extractFieldAccesses(result, violations);
+            extractJavaCalls(result, violations);
+            extractDependencies(result, violations);
         }
-        return gson.toJson(violations.getJsonEvaluationResultList());
+        return gson.toJson(JsonEvaluationResult.CreateFromMultiMap(violations));
     }
 
-    private void extractJavaCalls(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
+    private void extractJavaCalls(final EvaluationResult result, final Multimap<String, JsonViolation> violations) {
         result.handleViolations(new ViolationHandler<JavaCall<?>>() {
             @Override
             public void handle(Collection<JavaCall<?>> violatingObjects, String message) {
                 for (JavaCall<?> violatingObject : violatingObjects) {
-                    evaluationResult.addViolation(JsonViolation.from(violatingObject));
+                    violations.put(result.getRuleText(), JsonViolation.from(violatingObject));
                 }
             }
         });
     }
 
-    private void extractFieldAccesses(EvaluationResult result, final JsonEvaluationResult evaluationResult) {
+    private void extractDependencies(EvaluationResult result, final Multimap<String, JsonViolation> violations) {
+        result.handleViolations(new ViolationHandler<Cycle>() {
+            @Override
+            public void handle(Collection<Cycle> violatingObjects, String message) {
+                for (Cycle violatingObject : violatingObjects) {
+                    //FIXME:
+                    //evaluationResult.addViolation(JsonViolation.from(violatingObject));
+                }
+            }
+        });
+    }
+
+    private void extractFieldAccesses(final EvaluationResult result, final Multimap<String, JsonViolation> violations) {
         result.handleViolations(new ViolationHandler<JavaFieldAccess>() {
             @Override
             public void handle(Collection<JavaFieldAccess> violatingObjects, String message) {
                 for (JavaFieldAccess violatingObject : violatingObjects) {
-                    evaluationResult.addViolation(JsonViolation.from(violatingObject));
+                    violations.put(result.getRuleText(), JsonViolation.from(violatingObject));
                 }
             }
         });
