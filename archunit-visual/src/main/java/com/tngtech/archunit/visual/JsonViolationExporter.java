@@ -23,7 +23,6 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.ViolationHandler;
-import com.tngtech.archunit.library.dependencies.Cycle;
 
 import java.util.Collection;
 
@@ -38,7 +37,7 @@ class JsonViolationExporter {
         for (EvaluationResult result : results) {
             extractFieldAccesses(result, violations);
             extractJavaCalls(result, violations);
-            extractDependencies(result, violations);
+            //extractDependencies(result, violations);
         }
         return gson.toJson(JsonEvaluationResult.CreateFromMultiMap(violations));
     }
@@ -54,7 +53,7 @@ class JsonViolationExporter {
         });
     }
 
-    private void extractDependencies(EvaluationResult result, final Multimap<String, JsonViolation> violations) {
+    /*private void extractDependencies(EvaluationResult result, final Multimap<String, JsonViolation> violations) {
         result.handleViolations(new ViolationHandler<Cycle>() {
             @Override
             public void handle(Collection<Cycle> violatingObjects, String message) {
@@ -64,7 +63,7 @@ class JsonViolationExporter {
                 }
             }
         });
-    }
+    }*/
 
     private void extractFieldAccesses(final EvaluationResult result, final Multimap<String, JsonViolation> violations) {
         result.handleViolations(new ViolationHandler<JavaFieldAccess>() {

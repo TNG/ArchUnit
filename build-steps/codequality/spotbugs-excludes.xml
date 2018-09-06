@@ -105,4 +105,12 @@
         </Or>
         <Bug code="UrF"/>
     </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonEvaluationResult"/>
+        <Or>
+            <Field name="rule"/>
+            <Field name="violations"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
 </FindBugsFilter>
