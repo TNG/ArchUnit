@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
@@ -19,7 +20,6 @@ import com.tngtech.archunit.lang.ViolationHandler;
 import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedCall;
 import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedFieldAccess;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptySet;
@@ -162,15 +162,13 @@ class HandlingAssertion {
     }
 
     private Set<String> removeExpectedAccesses(Collection<?> violatingObjects, Set<? extends ExpectedRelation> left) {
-        Object violatingObject = getOnlyElement(violatingObjects);
-        for (Iterator<? extends ExpectedRelation> actualMethodCalls = left.iterator(); actualMethodCalls.hasNext(); ) {
-            ExpectedRelation next = actualMethodCalls.next();
-            if (next.correspondsTo(violatingObject)) {
-                actualMethodCalls.remove();
-                return emptySet();
-            }
+        removeMatchingElements(violatingObjects, left, (object, relation) -> relation.correspondsTo(object));
+
+        if (!violatingObjects.isEmpty()) {
+            return singleton("Unhandled violations: " + violatingObjects);
         }
-        return singleton("Unexpected violation handling: " + violatingObject);
+
+        return emptySet();
     }
 
     private Set<String> errorMessagesFrom(Set<?> set) {
@@ -179,6 +177,19 @@ class HandlingAssertion {
 
     HandlingAssertion copy() {
         return new HandlingAssertion(expectedFieldAccesses, expectedMethodCalls, expectedConstructorCalls, expectedDependencies);
+    }
+
+    private <T, U> void removeMatchingElements(Collection<T> actual, Collection<U> expected, BiPredicate<T, U> matches) {
+        for (Iterator<? extends T> actualIterator = actual.iterator(); actualIterator.hasNext(); ) {
+            T actualElement = actualIterator.next();
+            for (Iterator<? extends U> expectedIterator = expected.iterator(); expectedIterator.hasNext(); ) {
+                if (matches.test(actualElement, expectedIterator.next())) {
+                    actualIterator.remove();
+                    expectedIterator.remove();
+                    break;
+                }
+            }
+        }
     }
 
     static class Result {

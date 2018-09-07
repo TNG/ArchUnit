@@ -12,6 +12,8 @@ public interface ExpectedRelation {
      */
     boolean correspondsTo(Object object);
 
+    void addTo(HandlingAssertion handlingAssertion);
+
     /**
      * How we can identify a line within the exception message as belonging to this relation
      */

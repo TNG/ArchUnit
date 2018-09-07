@@ -1,5 +1,7 @@
 package com.tngtech.archunit.testutils;
 
+import java.util.function.Consumer;
+
 import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -9,11 +11,13 @@ public class ExpectedDependency implements ExpectedRelation {
     private final Class<?> origin;
     private final Class<?> target;
     private String dependencyPattern;
+    private Consumer<HandlingAssertion> addToHandlingAssertion;
 
     private ExpectedDependency(Class<?> origin, Class<?> target, String dependencyPattern) {
         this.origin = origin;
         this.target = target;
         this.dependencyPattern = dependencyPattern;
+        this.addToHandlingAssertion = handlingAssertion -> handlingAssertion.by(this);
     }
 
     @Override
@@ -61,6 +65,16 @@ public class ExpectedDependency implements ExpectedRelation {
         boolean targetMatches = dependency.getTargetClass().isEquivalentTo(target);
         boolean descriptionMatches = dependency.getDescription().matches(dependencyPattern);
         return originMatches && targetMatches && descriptionMatches;
+    }
+
+    @Override
+    public void addTo(HandlingAssertion handlingAssertion) {
+        addToHandlingAssertion.accept(handlingAssertion);
+    }
+
+    ExpectedDependency addToHandlingAssertionBy(Consumer<HandlingAssertion> addToHandlingAssertion) {
+        this.addToHandlingAssertion = addToHandlingAssertion;
+        return this;
     }
 
     private static String getDependencyPattern(String originName, String dependencyTypePattern, String targetName, int lineNumber) {

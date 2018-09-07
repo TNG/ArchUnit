@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -16,6 +18,8 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -121,12 +125,30 @@ public class ConditionEventsTest {
         assertThat(events.getFailureDescriptionLines()).containsExactlyElementsOf(expectedDescriptionLines);
     }
 
+    @Test
+    public void handles_converted_types() {
+        ConditionEvents events = events(
+                SimpleConditionEvent.violated(new CorrectType("correct type"), "message"),
+                SimpleConditionEvent.violated(new WrongType(), "message"),
+                SimpleConditionEvent.violated(new ConvertibleToSingleCorrectType("correctly converted"), "message"),
+                SimpleConditionEvent.violated(new ConvertibleToMultipleCorrectTypes("correctly converted1", "correctly converted2"), "message"));
+
+        CorrectTypeHandler handler = new CorrectTypeHandler();
+        events.handleViolations(handler);
+
+        assertThat(handler.getRecorded()).containsOnly(
+                new CorrectType("correct type"),
+                new CorrectType("correctly converted"),
+                new CorrectType("correctly converted1"),
+                new CorrectType("correctly converted2"));
+    }
+
     private static class BaseHandler<T> implements ViolationHandler<T> {
         private final List<T> recorded = new ArrayList<>();
 
         @Override
         public void handle(Collection<T> violatingObjects, String message) {
-            recorded.add(Iterables.getOnlyElement(violatingObjects));
+            recorded.addAll(violatingObjects);
         }
 
         List<T> getRecorded() {
@@ -135,6 +157,9 @@ public class ConditionEventsTest {
     }
 
     private static class StringHandler extends BaseHandler<String> {
+    }
+
+    private static class CorrectTypeHandler extends BaseHandler<CorrectType> {
     }
 
     private static ConditionEvents events(ConditionEvent... events) {
@@ -162,6 +187,23 @@ public class ConditionEventsTest {
         public String toString() {
             return message;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(message);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final CorrectType other = (CorrectType) obj;
+            return Objects.equals(this.message, other.message);
+        }
     }
 
     private static class WrongType {
@@ -170,4 +212,39 @@ public class ConditionEventsTest {
     private static class WrongSuperType {
     }
 
+    private static class ConvertibleToSingleCorrectType implements Convertible {
+        String message;
+
+        ConvertibleToSingleCorrectType(String message) {
+            this.message = message;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (CorrectType.class.isAssignableFrom(type)) {
+                return (Set<T>) singleton(new CorrectType(message));
+            }
+            return emptySet();
+        }
+    }
+
+    private static class ConvertibleToMultipleCorrectTypes implements Convertible {
+        private final String message1;
+        private final String message2;
+
+        ConvertibleToMultipleCorrectTypes(String message1, String message2) {
+            this.message1 = message1;
+            this.message2 = message2;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (CorrectType.class.isAssignableFrom(type)) {
+                return (Set<T>) ImmutableSet.of(new CorrectType(message1), new CorrectType(message2));
+            }
+            return emptySet();
+        }
+    }
 }

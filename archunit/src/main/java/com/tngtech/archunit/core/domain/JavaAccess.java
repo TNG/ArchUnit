@@ -15,12 +15,15 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
@@ -31,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
-        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
+        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation, Convertible {
 
     private final JavaCodeUnit origin;
     private final TARGET target;
@@ -91,6 +94,23 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @Override
+    public String getDescription() {
+        String description = origin.getDescription() + " " + descriptionVerb() + " " + getTarget().getDescription();
+        return description + " in " + getSourceCodeLocation();
+    }
+
+    protected abstract String descriptionVerb();
+
+    @Override
+    @SuppressWarnings("unchecked") // compatibility is explicitly checked
+    public <T> Set<T> convertTo(Class<T> type) {
+        if (type.isAssignableFrom(Dependency.class)) {
+            return (Set<T>) Dependency.tryCreateFromAccess(this).asSet();
+        }
+        return Collections.emptySet();
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }
@@ -118,15 +138,6 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     String additionalToStringFields() {
         return "";
     }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public String getDescription() {
-        String description = origin.getDescription() + " " + descriptionVerb() + " " + getTarget().getDescription();
-        return description + " in " + getSourceCodeLocation();
-    }
-
-    protected abstract String descriptionVerb();
 
     public static final class Predicates {
         private Predicates() {

@@ -80,6 +80,11 @@ public class CyclicErrorMatcher implements MessageAssertionChain.Link {
     }
 
     @Override
+    public void addTo(HandlingAssertion handlingAssertion) {
+        details.values().forEach(relation -> relation.addTo(handlingAssertion));
+    }
+
+    @Override
     public String getDescription() {
         return String.format("Message contains cycle description '%s' and details '%s'",
                 cycleText(), detailText());

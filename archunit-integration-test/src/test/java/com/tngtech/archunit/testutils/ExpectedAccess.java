@@ -160,7 +160,14 @@ public abstract class ExpectedAccess implements ExpectedRelation {
         public ExpectedDependency asDependency() {
             return ExpectedDependency.accessFrom(getOrigin().getDeclaringClass())
                     .toFieldDeclaredIn(getTarget().getDeclaringClass())
-                    .inLineNumber(getLineNumber());
+                    .inLineNumber(getLineNumber())
+                    .addToHandlingAssertionBy(this::addTo);
+        }
+
+        @Override
+        public void addTo(HandlingAssertion handlingAssertion) {
+            handlingAssertion.by(this);
+            handlingAssertion.by(asDependency());
         }
     }
 
@@ -177,7 +184,14 @@ public abstract class ExpectedAccess implements ExpectedRelation {
         public ExpectedDependency asDependency() {
             return ExpectedDependency.accessFrom(getOrigin().getDeclaringClass())
                     .toCodeUnitDeclaredIn(getTarget().getDeclaringClass())
-                    .inLineNumber(getLineNumber());
+                    .inLineNumber(getLineNumber())
+                    .addToHandlingAssertionBy(this::addTo);
+        }
+
+        @Override
+        public void addTo(HandlingAssertion handlingAssertion) {
+            handlingAssertion.by(this);
+            handlingAssertion.by(asDependency());
         }
     }
 }

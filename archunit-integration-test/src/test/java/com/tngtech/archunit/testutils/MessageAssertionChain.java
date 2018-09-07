@@ -155,6 +155,9 @@ public class MessageAssertionChain {
 
         String getDescription();
 
+        default void addTo(HandlingAssertion handlingAssertion) {
+        }
+
         @Internal
         class Result {
             private final boolean matches;
@@ -189,7 +192,10 @@ public class MessageAssertionChain {
 
             static List<String> difference(List<String> list, List<String> toSubtract) {
                 List<String> result = new ArrayList<>(list);
-                result.removeAll(toSubtract);
+                // Do not use removeAll(..), since we only want to remove the first occurrance
+                for (String element : toSubtract) {
+                    result.remove(element);
+                }
                 return result;
             }
 

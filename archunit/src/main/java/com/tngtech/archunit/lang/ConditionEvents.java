@@ -16,8 +16,10 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,6 +29,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.Convertible;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaAccess;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -120,7 +125,12 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
      * <code>SomeClass</code> will be reported. The term 'reified' means that the type parameter
      * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
-     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
+     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).<br><br>
+     * For any {@link ViolationHandler ViolationHandler&lt;T&gt;} violating objects that are not of type <code>T</code>,
+     * but implement {@link Convertible} will be {@link Convertible#convertTo(Class) converted} to <code>T</code>
+     * and the result will be passed on to the {@link ViolationHandler}. This makes sense for example for a client
+     * who wants to handle {@link Dependency}, but the {@link ConditionEvents} corresponding objects are of type
+     * {@link JavaAccess} which does not share any common meaningful type.
      *
      * @param violationHandler The violation handler that is supposed to handle all violations matching the
      *                         respective type parameter
@@ -134,29 +144,36 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
-        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
-                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
+        final Class<T> supportedElementType = getHandlerTypeParameter(handler);
 
         return new ConditionEvent.Handler() {
             @Override
             public void handle(Collection<?> correspondingObjects, String message) {
-                if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                    // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
-                    @SuppressWarnings("unchecked")
-                    Collection<T> collection = (Collection<T>) correspondingObjects;
+                Collection<T> collection = getObjectsToHandle(correspondingObjects, supportedElementType);
+                if (!collection.isEmpty()) {
                     handler.handle(collection, message);
                 }
             }
         };
     }
 
-    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        for (Object violatingObject : violatingObjects) {
-            if (!supportedElementType.isInstance(violatingObject)) {
-                return false;
+    @SuppressWarnings("unchecked") // First type parameter of handler is of type T
+    private <T> Class<T> getHandlerTypeParameter(ViolationHandler<T> handler) {
+        return (Class<T>) TypeToken.of(handler.getClass())
+                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
+    }
+
+    @SuppressWarnings("unchecked") // compatibility asserted via reflection
+    private <T> Collection<T> getObjectsToHandle(Collection<?> objects, Class<T> supportedType) {
+        Set<T> result = new HashSet<>();
+        for (Object object : objects) {
+            if (supportedType.isInstance(object)) {
+                result.add((T) object);
+            } else if (object instanceof Convertible) {
+                result.addAll(((Convertible) object).convertTo(supportedType));
             }
         }
-        return true;
+        return result;
     }
 
     @Override

@@ -17,15 +17,17 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.Convertible;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class Cycle<T, ATTACHMENT> {
+class Cycle<T, ATTACHMENT> implements Convertible {
     private final Path<T, ATTACHMENT> path;
 
-    Cycle(List<Edge<T, ATTACHMENT>> edges) {
+    Cycle(List<? extends Edge<T, ATTACHMENT>> edges) {
         this(new Path<>(ImmutableList.copyOf(edges)));
     }
 
@@ -81,5 +83,10 @@ class Cycle<T, ATTACHMENT> {
 
     public static <T, ATTACHMENT> Cycle<T, ATTACHMENT> from(Path<T, ATTACHMENT> path) {
         return new Cycle<>(path);
+    }
+
+    @Override
+    public <S> Set<S> convertTo(Class<S> type) {
+        return path.convertTo(type);
     }
 }

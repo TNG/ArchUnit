@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
+import com.tngtech.archunit.testutil.Assertions.ConversionResultAssertion;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
@@ -13,6 +14,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
 
 public class JavaAccessTest {
     @Test
@@ -55,6 +57,30 @@ public class JavaAccessTest {
 
         predicate = JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysFalse());
         assertThat(predicate).rejects(anyAccess());
+    }
+
+    @Test
+    public void convertTo() {
+        final TestJavaAccess access = javaAccessFrom(importClassWithContext(Object.class), "toString")
+                .to(String.class, "toString")
+                .inLineNumber(11);
+
+        assertThatConversionOf(access)
+                .isNotPossibleTo(JavaClass.class)
+                .isPossibleToSingleElement(Object.class, new ConversionResultAssertion<Object>() {
+                    @Override
+                    public void assertResult(Object dependency) {
+                        assertThat(dependency).as("converted dependency").isInstanceOf(Dependency.class);
+                    }
+                })
+                .isPossibleToSingleElement(Dependency.class, new ConversionResultAssertion<Dependency>() {
+                    @Override
+                    public void assertResult(Dependency dependency) {
+                        assertThat(dependency.getOriginClass().isEquivalentTo(Object.class)).as("origin is Object.class").isTrue();
+                        assertThat(dependency.getTargetClass().isEquivalentTo(String.class)).as("target is String.class").isTrue();
+                        assertThat(dependency.getDescription()).as("description of converted dependency").isEqualTo(access.getDescription());
+                    }
+                });
     }
 
     private TestJavaAccess anyAccess() {

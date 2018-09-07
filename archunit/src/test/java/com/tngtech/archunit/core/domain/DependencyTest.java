@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.testutil.Assertions;
+import com.tngtech.archunit.testutil.Assertions.ConversionResultAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -24,6 +25,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -202,6 +204,27 @@ public class DependencyTest {
         assertThat(GET_TARGET_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Target.class);
     }
 
+    @Test
+    public void convert_dependency_from_access() {
+        JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
+
+        Dependency dependency = Dependency.tryCreateFromAccess(call).get();
+
+        assertThatConversionOf(dependency)
+                .isNotPossibleTo(JavaClass.class)
+                .isNotPossibleTo(JavaFieldAccess.class)
+                .isPossibleToSingleElement(Object.class, equalTo(call))
+                .isPossibleToSingleElement(JavaAccess.class, equalTo(call))
+                .isPossibleToSingleElement(JavaMethodCall.class, equalTo(call));
+    }
+
+    @Test
+    public void dependency_not_from_access_cannot_be_converted() {
+        Dependency dependency = createDependency(Origin.class, Target.class);
+
+        assertThatConversionOf(dependency).isNotPossibleTo(JavaClass.class);
+    }
+
     private Dependency createDependency(JavaClass origin, JavaClass target) {
         Dependency dependency = Dependency.fromInheritance(origin, target);
         assertThat(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
@@ -220,6 +243,15 @@ public class DependencyTest {
     private static Dependency createDependency(Class<?> originClass, Class<?> targetClass) {
         return Dependency.fromInheritance(
                 importClassWithContext(originClass), importClassWithContext(targetClass));
+    }
+
+    private ConversionResultAssertion<Object> equalTo(final JavaMethodCall call) {
+        return new ConversionResultAssertion<Object>() {
+            @Override
+            public void assertResult(Object access) {
+                assertThat(access).isEqualTo(call);
+            }
+        };
     }
 
     @Override
@@ -257,10 +289,12 @@ public class DependencyTest {
     }
 
     @SomeAnnotation(SomeMemberType.class)
-    private static class ClassWithDependencyOnAnnotation { }
+    private static class ClassWithDependencyOnAnnotation {
+    }
 
     @SomeAnnotation(SomeMemberType.class)
-    private interface InterfaceWithDependencyOnAnnotation { }
+    private interface InterfaceWithDependencyOnAnnotation {
+    }
 
     @SuppressWarnings("unused")
     private static class ClassWithAnnotatedMembers {

@@ -24,10 +24,11 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.Convertible;
 
 import static com.google.common.collect.Iterables.getLast;
 
-class Path<T, ATTACHMENT> {
+class Path<T, ATTACHMENT> implements Convertible {
     private final List<Edge<T, ATTACHMENT>> edges;
 
     Path() {
@@ -94,8 +95,17 @@ class Path<T, ATTACHMENT> {
         return edges.get(edges.size() - 1).getTo();
     }
 
-    public boolean isCycle() {
+    boolean isCycle() {
         return !isEmpty() && getStart().equals(getEnd());
+    }
+
+    @Override
+    public <S> Set<S> convertTo(Class<S> type) {
+        ImmutableSet.Builder<S> result = ImmutableSet.builder();
+        for (Edge<T, ATTACHMENT> edge : edges) {
+            result.addAll(edge.convertTo(type));
+        }
+        return result.build();
     }
 
     @Override

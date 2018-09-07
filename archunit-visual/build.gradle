@@ -28,13 +28,6 @@ shadowJar {
     exclude 'META-INF/maven/**'
 }
 
-/* We only depend on archunit core and nothing else */
-install.repositories.mavenInstaller.pom.whenConfigured { pom ->
-    pom.dependencies.removeAll {
-        it.artifactId != 'archunit' || it.scope != 'compile'
-    }
-}
-
 configurations {
     /* Exclude archunit from the shadow jar */
     runtime.exclude module: ':archunit'
