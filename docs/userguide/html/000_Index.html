@@ -883,7 +883,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">noClasses().that().resideInAPackage("..source..")
-    .should().accessClassesThat().resideInAPackage("..foo..")</code></pre>
+    .should().dependOnClassesThat().resideInAPackage("..foo..")</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -894,7 +894,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().resideInAPackage("..foo..")
-    .should().onlyBeAccessed().byAnyPackage("..source.one..", "..foo..")</code></pre>
+    .should().onlyHaveDependentClassesThat().resideInAnyPackage("..source.one..", "..foo..")</code></pre>
 </div>
 </div>
 </div>
