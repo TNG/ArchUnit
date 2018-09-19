@@ -20,7 +20,7 @@ note top on link #crimson: forbidden
 [source,java]
 ----
 noClasses().that().resideInAPackage("..source..")
-    .should().accessClassesThat().resideInAPackage("..foo..")
+    .should().dependOnClassesThat().resideInAPackage("..foo..")
 ----
 
 [plantuml, "package-deps-only-access"]
@@ -42,7 +42,7 @@ note top on link #crimson: forbidden
 [source,java]
 ----
 classes().that().resideInAPackage("..foo..")
-    .should().onlyBeAccessed().byAnyPackage("..source.one..", "..foo..")
+    .should().onlyHaveDependentClassesThat().resideInAnyPackage("..source.one..", "..foo..")
 ----
 
 === Class Dependency Checks
