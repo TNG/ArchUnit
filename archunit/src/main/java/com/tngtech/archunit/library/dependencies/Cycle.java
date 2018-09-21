@@ -15,12 +15,12 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
+import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.Convertible;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.Convertible;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
