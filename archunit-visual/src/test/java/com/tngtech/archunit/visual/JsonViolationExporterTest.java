@@ -7,12 +7,14 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import org.json.JSONException;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class JsonViolationExporterTest {
 
@@ -44,6 +46,17 @@ public class JsonViolationExporterTest {
 
         String expectedJson = jsonFromFile("access-violations-of-different-rules.json");
         JSONAssert.assertEquals(expectedJson, json, false);
+    }
+
+    @Test
+    public void exportNonDependencyViolation() throws IOException, JSONException {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses().should().bePublic();
+        EvaluationResult result = rule.evaluate(classes);
+
+        String json = exporter.exportToJson(Collections.singletonList(result));
+
+        JSONAssert.assertEquals("[]", json, false);
     }
 
     private String jsonFromFile(String fileName) throws IOException {
@@ -79,5 +92,4 @@ public class JsonViolationExporterTest {
         public void complexMethod(String foo, Object bar, Accessor self) {
         }
     }
-
 }

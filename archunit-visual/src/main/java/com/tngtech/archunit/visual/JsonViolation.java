@@ -15,9 +15,12 @@
  */
 package com.tngtech.archunit.visual;
 
+import com.google.common.collect.Iterables;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
+
+import java.util.Set;
 
 class JsonViolation {
     @Expose
@@ -37,11 +40,17 @@ class JsonViolation {
         );
     }
 
+    //FIXME: remove
     String getIdentifier() {
         return origin + "->" + target;
     }
 
     public static JsonViolation from(Dependency violatingObject) {
+        Set<JavaAccess> javaAccesses = violatingObject.convertTo(JavaAccess.class);
+        if (javaAccesses.size() == 1) {
+            JavaAccess<?> access = Iterables.getOnlyElement(javaAccesses);
+            return new JsonViolation(access.getOrigin().getFullName(), access.getTarget().getFullName());
+        }
         return new JsonViolation(violatingObject.getOriginClass().getName(), violatingObject.getTargetClass().getName());
     }
 }

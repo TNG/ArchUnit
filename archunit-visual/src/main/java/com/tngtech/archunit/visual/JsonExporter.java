@@ -145,6 +145,6 @@ class JsonExporter {
 
     private <T extends JavaAccess<?>> boolean targetIsRelevant(T access, JsonJavaElement jsonJavaElement) {
         return !access.getTargetOwner().isAnonymous() && !access.getOriginOwner().equals(access.getTargetOwner())
-                && !jsonJavaElement.fullName.equals(access.getTargetOwner().getName()) && !access.getTargetOwner().getPackage().isEmpty();
+                && !jsonJavaElement.fullName.equals(access.getTargetOwner().getName()) && !access.getTargetOwner().getPackageName().isEmpty();
     }
 }
