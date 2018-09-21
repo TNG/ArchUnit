@@ -36,6 +36,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     nameFilter: null,
     nameFilterString: '',
 
+    //TODO: strategy for the violations-filter for nodes: introduce two filter objects (independentFilter (--> this)
+    //and dependentFilters (--> the new one)); when the nodes are filtered by name or by type, then add the corresponding
+    //filter to the independentFilters, apply the independentFilters. The independentFilters calls the listener-function
+    //of the dependencies, which updates the node-filters of the dependencies, applies the filter and calls
+    // the node-listener, if a violation is selected and if the checkbox is activated. This node-listener applies the
+    // dependentFilters; these are only applied to the filteredChildren (that means they are not reset). The dependentFilters
+    // call another dependencies-listener, that filters the dependencies again, but does not call the node-listener.
     apply: function () {
       root._resetFilteredChildren();
       const applyFilter = (node, filter) => {
@@ -83,6 +90,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
+
+      //TODO: better do this after applying all filters and not after every filter
       this._filteredChildren.forEach(child => child._matchesFilter = true);
       arrayDifference(this.getOriginalChildren(), this._filteredChildren).forEach(child => child._notMatchesFilter());
       this._updateViewOnCurrentChildrenChanged();
@@ -386,6 +395,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
       this._root.doNextAndWaitFor(() => {
         this._filters.apply();
+        //TODO: call this already in filters.apply(), as it always has to be callded
         this._listener.forEach(listener => listener.onNodeFiltersChanged());
       });
     }
@@ -399,6 +409,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
         predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
+        //TODO: call _matchesOrHasChildThatMatches only in applyFilter, not here (same for name filter)
         this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
       }
       this._root.doNextAndWaitFor(() => {
