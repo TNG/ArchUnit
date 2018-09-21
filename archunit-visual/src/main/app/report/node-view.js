@@ -28,7 +28,7 @@ const init = (transitionDuration) => {
 
         document.onkeyup = event => {
           if (event.key === 'Alt' || event.key === 'Control') {
-            node._relayoutCompletely();
+            node.relayoutCompletely();
           }
         }
       }
