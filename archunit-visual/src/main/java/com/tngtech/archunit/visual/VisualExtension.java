@@ -16,11 +16,12 @@
 package com.tngtech.archunit.visual;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -29,24 +30,21 @@ import com.tngtech.archunit.lang.extension.EvaluatedRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class VisualExtension implements ArchUnitExtension {
     private static final Logger LOG = LoggerFactory.getLogger(VisualExtension.class);
     private static final String REPORT_DIR_SYSTEM_PROPERTY = "archunit.visual.report.dir";
     private static final String UNIQUE_IDENTIFIER = "archunit-visual";
 
-    /**
-     * using the JavaClasses-references as key
-     * (that means, that two evaluated rules of the same classes, but different classes-instances, are not grouped)
-     */
-    private static ConcurrentHashMap<JavaClasses, Set<EvaluationResult>> evaluatedRules = new ConcurrentHashMap<>();
+    private static Multimap<JavaClasses, EvaluationResult> evaluatedRules =
+            Multimaps.synchronizedMultimap(HashMultimap.<JavaClasses, EvaluationResult>create());
 
-    private static final File targetDirectory;
+    private static final File targetDirectory = getReportTargetDirectory();
 
-    static {
+    private static File getReportTargetDirectory() {
         String configuredReportDir = System.getProperty(REPORT_DIR_SYSTEM_PROPERTY);
-        targetDirectory = configuredReportDir == null || configuredReportDir.length() == 0
+        return isNullOrEmpty(configuredReportDir)
                 ? new File(VisualExtension.class.getResource("/").getFile(), "archunit-report")
                 : new File(configuredReportDir);
     }
@@ -62,35 +60,28 @@ public class VisualExtension implements ArchUnitExtension {
 
     @Override
     public void handle(EvaluatedRule evaluatedRule) {
-        if (evaluatedRules.containsKey(evaluatedRule.getClasses())) {
-            evaluatedRules.get(evaluatedRule.getClasses()).add(evaluatedRule.getResult());
-        } else {
-            evaluatedRules.put(evaluatedRule.getClasses(), Collections.synchronizedSet(
-                    newHashSet(evaluatedRule.getResult())));
-        }
+        evaluatedRules.put(evaluatedRule.getClasses(), evaluatedRule.getResult());
     }
 
     @Override
-    public void onFinishedAnalyzing(JavaClasses classes) {
+    public void onFinished(JavaClasses classes) {
         createVisualization(classes);
     }
 
     /**
-     * When not using the ArchUnitRunner, this method should be called after running the archunit-tests,
-     * e.g. within an @AfterClass-annotated method, to hand the analyzed classes over
-     * and finish the visualization.
+     * Triggers this extension to handle the supplied classes, i.e. a report for these classes
+     * for all stored {@link EvaluationResult EvaluationResults} will be written and the stored
+     * {@link EvaluationResult EvaluationResults} for these classes will then be removed.<br><br>
      *
-     * @param classes the classes that are analyzed by archunit-tests
+     * Note that ArchUnit test support (e.g. for JUnit 4 or JUnit 5) will trigger this method
+     * automatically at the end of a test class.
+     *
+     * @param classes the classes that have been checked by some ArchUnit rules.
      */
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
     public static void createVisualization(JavaClasses classes) {
-        LOG.info("Writing report to {}", targetDirectory.getAbsolutePath());
-        if (evaluatedRules.containsKey(classes)) {
-            new Visualizer(classes, targetDirectory).visualize(evaluatedRules.get(classes));
-            evaluatedRules = new ConcurrentHashMap<>();
-        } else {
-            evaluatedRules = new ConcurrentHashMap<>();
-            throw new RuntimeException(classes.getDescription() + " was not part of a test");
-        }
+        Collection<EvaluationResult> results = evaluatedRules.get(classes);
+        LOG.info("Writing report for {} evaluated rules to {}", results.size(), targetDirectory.getAbsolutePath());
+        new Visualizer(classes, targetDirectory).visualize(results);
     }
 }

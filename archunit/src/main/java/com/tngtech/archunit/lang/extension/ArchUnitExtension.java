@@ -91,5 +91,5 @@ public interface ArchUnitExtension {
      *
      * @param classes classes that have been checked against a set of {@link ArchRule ArchRules}
      */
-    void onFinishedAnalyzing(JavaClasses classes);
+    void onFinished(JavaClasses classes);
 }

@@ -5,10 +5,10 @@
   "scripts": {
     "createJsBundle": "webpack --mode=development",
     "bundleHtml": "polymer-bundler --inline-scripts --inline-css",
-    "test": "./node_modules/mocha/bin/mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
+    "test": "mocha -r ./src/test/app/mocha-init.js --require babel-register --reporter spec src/test/app/**/*.js",
     "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run createJsBundle && npm run bundleHtml'",
-    "lint": "./node_modules/eslint/bin/eslint.js 'src/**/*.{js,html}'",
-    "dev-web-server": "./node_modules/http-server/bin/http-server -c-1 build/classes/example-report/"
+    "lint": "eslint 'src/**/*.{js,html}'",
+    "dev-web-server": "http-server -c-1 build/classes/example-report/"
   },
   "author": "Sebastian Mair <sebastian.mair@tngtech.com>, Peter Gafert <peter.gafert@tngtech.com>",
   "license": "Apache-2.0",

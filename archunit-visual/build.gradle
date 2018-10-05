@@ -1,5 +1,5 @@
 plugins {
-    id "com.moowork.node" version "1.1.1"
+    id "com.moowork.node" version "1.2.0"
 }
 
 ext.moduleName = 'com.tngtech.archunit.visual'
@@ -61,13 +61,11 @@ task cleanNode(type: Delete) {
 
 task cleanAll(dependsOn: [clean, cleanNode])
 
-task mocha(type: Exec, dependsOn: 'setupNode') {
-    executable = 'npm'
+task mocha(type: NpmTask, dependsOn: 'setupNode') {
     args = ['run', 'test']
 }
 
-task eslint(type: Exec, dependsOn: 'setupNode') {
-    executable = 'npm'
+task eslint(type: NpmTask, dependsOn: 'setupNode') {
     args = ['run', 'lint']
 }
 
@@ -79,13 +77,11 @@ task createReportDir {
     }
 }
 
-task webpack(type: Exec, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'eslint']) {
-    executable = 'npm'
+task webpack(type: NpmTask, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'eslint']) {
     args = ['run', 'createJsBundle', '--', '--env.buildPath=' + reportOutputDir]
 }
 
-task bundleHtml(type: Exec, dependsOn: 'webpack') {
-    executable = 'npm'
+task bundleHtml(type: NpmTask, dependsOn: 'webpack') {
     args = ['run', 'bundleHtml',
             '--',
             '--redirect', 'build://|' + reportOutputDir + '/',

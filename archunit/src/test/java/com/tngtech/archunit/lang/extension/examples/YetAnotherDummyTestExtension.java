@@ -21,6 +21,6 @@ public class YetAnotherDummyTestExtension implements ArchUnitExtension {
     }
 
     @Override
-    public void onFinishedAnalyzing(JavaClasses classes) {
+    public void onFinished(JavaClasses classes) {
     }
 }

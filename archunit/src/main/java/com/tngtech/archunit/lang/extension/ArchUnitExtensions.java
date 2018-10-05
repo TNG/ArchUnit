@@ -53,7 +53,7 @@ public class ArchUnitExtensions {
         callOnEnabledExtensions(new ExtensionCallable() {
             @Override
             public void call(ArchUnitExtension extension) {
-                extension.onFinishedAnalyzing(classes);
+                extension.onFinished(classes);
             }
         });
     }

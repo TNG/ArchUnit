@@ -39,7 +39,7 @@ public class TestExtension implements ArchUnitExtension {
     }
 
     @Override
-    public void onFinishedAnalyzing(JavaClasses classes) {
+    public void onFinished(JavaClasses classes) {
     }
 
     public ImmutableMap<Object, Object> getConfiguredProperties() {
