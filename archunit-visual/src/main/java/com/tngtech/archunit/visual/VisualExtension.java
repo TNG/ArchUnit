@@ -26,10 +26,13 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Sets.newHashSet;
 
 public class VisualExtension implements ArchUnitExtension {
+    private static final Logger LOG = LoggerFactory.getLogger(VisualExtension.class);
     private static final String REPORT_DIR_SYSTEM_PROPERTY = "archunit.visual.report.dir";
     private static final String UNIQUE_IDENTIFIER = "archunit-visual";
 
@@ -81,7 +84,7 @@ public class VisualExtension implements ArchUnitExtension {
      */
     @PublicAPI(usage = PublicAPI.Usage.ACCESS)
     public static void createVisualization(JavaClasses classes) {
-        System.out.println("Writing report to " + targetDirectory.getAbsolutePath());
+        LOG.info("Writing report to {}", targetDirectory.getAbsolutePath());
         if (evaluatedRules.containsKey(classes)) {
             new Visualizer(classes, targetDirectory).visualize(evaluatedRules.get(classes));
             evaluatedRules = new ConcurrentHashMap<>();
