@@ -17,4 +17,33 @@
             <Method name="findUrlClassLoadersInHierarchy"/>
         </Or>
     </Match>
+    <Match>
+        <!-- False positive on try-with-resources statement with JDK-11?
+            Nullcheck of in at line 189 of value previously dereferenced in com.tngtech.archunit.core.domain.Source$Md5sum.read(URI)
+            Bug type RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE
+            In class com.tngtech.archunit.core.domain.Source$Md5sum
+            In method com.tngtech.archunit.core.domain.Source$Md5sum.read(URI)
+            Value loaded from in
+            Return value of java.net.URL.openStream() of type java.io.InputStream
+            At Source.java:[line 189]
+            Redundant null check at Source.java:[line 190]
+        -->
+        <Class name="com.tngtech.archunit.core.domain.Source$Md5sum"/>
+        <Method name="read"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+    <Match>
+        <!-- False positive on try-with-resources statement with JDK-11?
+            Redundant nullcheck of inputStream, which is known to be non-null in com.tngtech.archunit.ArchConfiguration.readProperties(String)
+            Bug type RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE
+            In class com.tngtech.archunit.ArchConfiguration
+            In method com.tngtech.archunit.ArchConfiguration.readProperties(String)
+            Value loaded from inputStream
+            Return value of Class.getResourceAsStream(String) of type java.io.InputStream
+            Redundant null check at ArchConfiguration.java:[line 88]
+        -->
+        <Class name="com.tngtech.archunit.ArchConfiguration"/>
+        <Method name="readProperties"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
 </FindBugsFilter>
