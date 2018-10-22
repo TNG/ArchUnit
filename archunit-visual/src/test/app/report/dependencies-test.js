@@ -1531,7 +1531,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.pkg2.SomeClass1'];
 
-    expect([...dependencies.getNodesInvolvedInViolations()]).to.containExactlyNodes(exp);
+    expect([...dependencies.getNodesInvolvedInVisibleViolations()]).to.containExactlyNodes(exp);
   });
 
   it('can return a set of all nodes that a involved in violations when these nodes contain packages', () => {
@@ -1563,7 +1563,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.pkg.SomeClass', 'com.tngtech.SomeClass1'];
 
-    expect([...dependencies.getNodesInvolvedInViolations()]).to.containExactlyNodes(exp);
+    expect([...dependencies.getNodesInvolvedInVisibleViolations()]).to.containExactlyNodes(exp);
   });
 
   it('does not return node-fullnames of violations that are hidden by a filter', () => {

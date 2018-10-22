@@ -31,6 +31,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
+  const applyFilterToNode = (node, filter) => {
+    node._setFilteredChildren(node._filteredChildren.filter(filter));
+    node._filteredChildren.forEach(c => applyFilterToNode(c, filter));
+  };
+
+  //TODO: create parent class for these two 'classes'
   const newFilters = (root) => ({
     typeFilter: null,
     nameFilter: null,
@@ -44,16 +50,30 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     // dependentFilters; these are only applied to the filteredChildren (that means they are not reset). The dependentFilters
     // call another dependencies-listener, that filters the dependencies again, but does not call the node-listener.
     apply: function () {
-      root._resetFilteredChildren();
-      const applyFilter = (node, filter) => {
-        node._setFilteredChildren(node._filteredChildren.filter(filter));
-        node._filteredChildren.forEach(c => applyFilter(c, filter));
-      };
-      this.values().forEach(filter => applyFilter(root, filter));
+      root.doNextAndWaitFor(() => {
+        root._resetFilteredChildren();
+        const filters = this.values();
+        applyFilterToNode(root, node => node._matchesOrHasChildThatMatches(node => filters.every(filter => filter(node))));
+        root._listener.forEach(listener => listener.onNodeFiltersChanged());
+      });
     },
 
     values: function () {
       return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
+    }
+  });
+
+  const newDependentFilters = (root) => ({
+    filters: new Map(),
+
+    apply: function () {
+      const filters = this.values();
+      applyFilterToNode(root, node => node._matchesOrHasChildThatMatches(node => filters.every(filter => filter(node))));
+      root._listener.forEach(listener => listener.onDependentNodeFiltersChanged());
+    },
+
+    values: function () {
+      return [...this.filters.values()].filter(f => !!f);
     }
   });
 
@@ -91,7 +111,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
 
-      //TODO: better do this after applying all filters and not after every filter
+      //TODO: better do this after applying all filters and not after every filter --> already done now??
       this._filteredChildren.forEach(child => child._matchesFilter = true);
       arrayDifference(this.getOriginalChildren(), this._filteredChildren).forEach(child => child._notMatchesFilter());
       this._updateViewOnCurrentChildrenChanged();
@@ -232,6 +252,10 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return predicate(this) || this._filteredChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
 
+    _matches(predicate) {
+      return predicate(this);
+    }
+
     getRadius() {
       return this.nodeCircle.getRadius();
     }
@@ -325,6 +349,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     constructor(jsonNode, svgContainer, onRadiusChanged, onNodeFilterStringChanged) {
       super(jsonNode, svgContainer);
       this._filters = newFilters(this);
+      this._dependentFilters = newDependentFilters(this);
       this._root = this;
       this._parent = this;
       this._onNodeFilterStringChanged = onNodeFilterStringChanged;
@@ -360,6 +385,28 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
+    foldNodesWithMinimumDepthThatHaveNoViolations() {
+      this.foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
+    }
+
+    createListener() {
+      return {
+        onDependentFiltersChangedAfterIndependentFiltersChanged: (filterKey, filter) => {
+          this._dependentFilters.filters.set(filterKey, filter);
+          this._dependentFilters.apply();
+        },
+        onDependentFiltersChanged: () => { //(filterKey, filter) => {
+          /*this.doNextAndWaitFor(() => {
+            this._dependentFilters.filters.set(filterKey, filter);
+            this._dependentFilters.apply();
+          });
+          this.relayoutCompletely();*/
+          this._filters.apply();
+          this._root.relayoutCompletely();
+        }
+      };
+    }
+
     /**
      * changes the name-filter so that the given node is excluded
      * @param nodeFullName fullname of the node to exclude
@@ -391,13 +438,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         const stringEqualsSubstring = predicates.stringEquals(nodeNameFilterString);
         const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
 
-        this._filters.nameFilter = node => node._matchesOrHasChildThatMatches(nodeNameSatisfies(stringEqualsSubstring));
+        this._filters.nameFilter = node => node._matches(nodeNameSatisfies(stringEqualsSubstring));
       }
-      this._root.doNextAndWaitFor(() => {
-        this._filters.apply();
-        //TODO: call this already in filters.apply(), as it always has to be callded
-        this._listener.forEach(listener => listener.onNodeFiltersChanged());
-      });
+      this._filters.apply();
     }
 
     filterByType(showInterfaces, showClasses) {
@@ -409,13 +452,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
         predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
 
-        //TODO: call _matchesOrHasChildThatMatches only in applyFilter, not here (same for name filter)
-        this._filters.typeFilter = node => node._matchesOrHasChildThatMatches(predicate);
+        this._filters.typeFilter = node => node._matches(predicate);
       }
-      this._root.doNextAndWaitFor(() => {
-        this._filters.apply();
-        this._listener.forEach(listener => listener.onNodeFiltersChanged());
-      });
+      this._filters.apply();
       this._root.relayoutCompletely();
     }
 

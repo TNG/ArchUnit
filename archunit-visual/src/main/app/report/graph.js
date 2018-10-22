@@ -10,6 +10,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
       this.root.getNodesWithDependencies = () => this.dependencies.getDistinctNodesHavingDependencies();
+      this.root.getNodesInvolvedInVisibleViolations = () => this.dependencies.getNodesInvolvedInVisibleViolations();
+      this.dependencies.addListener(this.root.createListener());
       if (foldAllNodes) {
         this.root.foldAllNodes();
       }
@@ -38,8 +40,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     foldNodesWithMinimumDepthWithoutViolations() {
-      const nodesWithoutViolations = this.dependencies.getNodesInvolvedInViolations();
-      this.root.foldNodesWithMinimumDepthThatHaveNotDescendants(nodesWithoutViolations);
+      this.root.foldNodesWithMinimumDepthThatHaveNoViolations();
       this.dependencies.recreateVisible();
       this.root.relayoutCompletely();
     }
@@ -90,6 +91,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
         violationsGroup => this.dependencies.hideViolations(violationsGroup));
       violationMenu.onHideAllDependenciesChanged(
         hide => this.dependencies.onHideAllOtherDependenciesWhenViolationExists(hide));
+      violationMenu.onHideNodesWithoutViolationsChanged(hide => this.dependencies.onHideNodesWithoutViolationsChanged(hide));
       violationMenu.onClickUnfoldNodesToShowAllViolations(() => this.unfoldNodesToShowAllViolations());
       violationMenu.onClickFoldNodesToHideNodesWithoutViolations(() => this.foldNodesWithMinimumDepthWithoutViolations());
     }

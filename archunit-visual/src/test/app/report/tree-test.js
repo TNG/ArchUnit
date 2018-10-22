@@ -106,6 +106,12 @@ describe('Root', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+
+    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg1.SomeClass$InnerClass',
+      'com.tngtech.archunit.pkg2.SomeClass']
+      .map(nodeFullName => root.getByName(nodeFullName));
+
+    root.getNodesInvolvedInVisibleViolations = () => new Set(nodes);
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
 
@@ -113,11 +119,7 @@ describe('Root', () => {
       'com.tngtech.archunit.pkg1.SomeClass$InnerClass', 'com.tngtech.archunit.pkg2',
       'com.tngtech.archunit.pkg2.SomeClass', 'com.tngtech.archunit.pkg3'];
 
-    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg1.SomeClass$InnerClass',
-      'com.tngtech.archunit.pkg2.SomeClass']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
-    root.foldNodesWithMinimumDepthThatHaveNotDescendants(new Set(nodes));
+    root.foldNodesWithMinimumDepthThatHaveNoViolations();
 
     expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
     expect(root.getByName('com.tngtech.archunit.pkg3.SomeClass$InnerClass').isFolded()).to.be.false;
@@ -143,17 +145,19 @@ describe('Root', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+
+    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.pkg3.SomeClass']
+      .map(nodeFullName => root.getByName(nodeFullName));
+
+    root.getNodesInvolvedInVisibleViolations = () => new Set(nodes);
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
 
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg1.SomeClass',
       'com.tngtech.archunit.pkg2', 'com.tngtech.archunit.pkg2.pkg3', 'com.tngtech.archunit.pkg3'];
 
-    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.pkg3.SomeClass']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
     root.getByName('com.tngtech.archunit.pkg2.pkg3').fold();
-    root.foldNodesWithMinimumDepthThatHaveNotDescendants(new Set(nodes));
+    root.foldNodesWithMinimumDepthThatHaveNoViolations();
 
     expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
     return root._updatePromise;

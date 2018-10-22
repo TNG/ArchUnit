@@ -44,6 +44,12 @@ import * as d3 from 'd3';
       callback(checkbox.checked); //sync initial state
     }
 
+    onHideNodesWithoutViolationsChanged(callback) {
+      const checkbox = this.shadowRoot.querySelector('#hideNodesWithoutViolationsWhenRuleSelected');
+      checkbox.onclick = () => callback(checkbox.checked);
+      callback(checkbox.checked); //sync initial state
+    }
+
     onClickUnfoldNodesToShowAllViolations(callback) {
       const button = this.shadowRoot.querySelector('#unfoldNodesToShowAllViolations');
       button.onclick = () => callback();

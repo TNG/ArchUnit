@@ -1,8 +1,5 @@
 {
   "presets": [
-    "env"
-  ],
-  "plugins": [
-    "dynamic-import-node"
+    "es2015"
   ]
 }

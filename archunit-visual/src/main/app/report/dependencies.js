@@ -170,6 +170,8 @@ const init = (View) => {
       nodes = nodeMap;
       dependencyCreator = initDependency(View, nodeMap);
 
+      this._hideNodesWithoutDependencies = false;
+
       this._violations = new Violations();
 
       this._transformers = new Map();
@@ -178,8 +180,13 @@ const init = (View) => {
       this._filtered = this._elementary;
       this._svgContainer = svgContainer;
       this._filters = newFilters(this);
+      this._listener = [];
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
+    }
+
+    addListener(listener) {
+      this._listener.push(listener);
     }
 
     //TODO: maybe keep only one dependency of possible mutual dependencies
@@ -236,7 +243,7 @@ const init = (View) => {
       return [...distinctNodes];
     }
 
-    getNodesInvolvedInViolations() {
+    getNodesInvolvedInVisibleViolations() {
       const violationDependencies = this._getViolationDependencies();
       const nodesInvolvedInViolations = violationDependencies.map(d => nodes.getByName(d.from)).concat(violationDependencies.map(d => nodes.getByName(d.to)));
       return new Set(nodesInvolvedInViolations);
@@ -252,7 +259,8 @@ const init = (View) => {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
-        onNodeFiltersChanged: () => this._updateNodeFilters(),
+        onNodeFiltersChanged: () => this._updateNodeFilters(true),
+        onDependentNodeFiltersChanged: () => this._updateNodeFilters(false),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -335,10 +343,37 @@ const init = (View) => {
       this._refreshViolationDependencies();
     }
 
-    _updateNodeFilters() {
+    _recallNodeListeners() {
+      this._callNodeListener(listener => listener.onDependentFiltersChangedAfterIndependentFiltersChanged);
+    }
+
+    _notifyNodeListeners() {
+      this._callNodeListener(listener => listener.onDependentFiltersChanged);
+    }
+
+    _callNodeListener(getListenerFunction) {
+      const nodeFilterKey = 'violationsFilter';
+      if (this._hideNodesWithoutDependencies && !this._violations.isEmpty()) {
+        const nodesWithViolations = this.getNodesInvolvedInVisibleViolations();
+        this._listener.forEach(listener => getListenerFunction(listener)(nodeFilterKey, node => nodesWithViolations.has(node)));
+      }
+      else {
+        this._listener.forEach(listener => getListenerFunction(listener)(nodeFilterKey, null))
+      }
+    }
+
+    onHideNodesWithoutViolationsChanged(hide) {
+      this._hideNodesWithoutDependencies = hide;
+      this._notifyNodeListeners();
+    }
+
+    _updateNodeFilters(recallNodeListener) {
       //TODO: either set nameFilter already in newFilters or remove it, when both nodeFilters are null
       this._filters.nameFilter = () => dependencies => dependencies.filter(d => nodes.getByName(d.from).matchesFilter() && nodes.getByName(d.to).matchesFilter());
       this._filters.apply();
+      if (recallNodeListener) {
+        this._recallNodeListeners();
+      }
     }
 
     filterByType(typeFilterConfig) {
@@ -359,7 +394,9 @@ const init = (View) => {
     }
 
     _applyFiltersAndRepositionDependencies() {
+      //TODO: dependencies should not be shown before the nodes are relayouted...
       this._filters.apply();
+      this._notifyNodeListeners();
       this.doNext(() => this._jumpAllToTheirPositions());
     }
 
