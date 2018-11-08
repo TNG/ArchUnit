@@ -36,10 +36,10 @@ releaseProjects*.with {
                     }
                 }
                 if (project.hasProperty('tngNexusUsername') && project.hasProperty('tngNexusPassword')) {
-                    repository(url: 'https://nexus.int.tngtech.com/content/repositories/releases') {
+                    repository(url: 'https://nexus.int.tngtech.com/repository/maven-releases/') {
                         authentication(userName: tngNexusUsername, password: tngNexusPassword)
                     }
-                    snapshotRepository(url: 'https://nexus.int.tngtech.com/content/repositories/snapshots') {
+                    snapshotRepository(url: 'https://nexus.int.tngtech.com/repository/maven-snapshots/') {
                         authentication(userName: tngNexusUsername, password: tngNexusPassword)
                     }
                 }

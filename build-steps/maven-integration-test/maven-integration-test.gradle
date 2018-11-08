@@ -4,8 +4,8 @@ import java.nio.file.Files
 
 def repositoryUrls = [
         tng     : [
-                snapshots: 'https://nexus.int.tngtech.com/content/repositories/snapshots',
-                releases : 'https://nexus.int.tngtech.com/content/repositories/releases'
+                snapshots: 'https://nexus.int.tngtech.com/repository/maven-snapshots',
+                releases : 'https://nexus.int.tngtech.com/repository/maven-releases'
         ],
         sonatype: [
                 snapshots: 'https://oss.sonatype.org/content/repositories/snapshots',
@@ -26,6 +26,34 @@ def createRepositoriesTag = { repoUrls ->
             <url>${repoUrls.releases}</url>
         </repository>
     </repositories>
+"""
+}
+def createPluginRepositoriesTag = { repoUrls ->
+    """
+    <pluginRepositories>
+        <pluginRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${repoUrls.snapshots}</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>${repoUrls.releases}</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+"""
+}
+def createAllRepositoryTags = { repoUrls ->
+    """
+${createRepositoriesTag(repoUrls)}
+${createPluginRepositoriesTag(repoUrls)}
 """
 }
 
@@ -79,7 +107,7 @@ def addMavenTest = { config ->
                 Files.copy(mavenPomTemplate.toPath(), mavenPom.toPath())
 
                 def repositories = project.hasProperty('mavenRepos') ?
-                        createRepositoriesTag(getRepoUrls(project.getProperty('mavenRepos'))) :
+                        createAllRepositoryTags(getRepoUrls(project.getProperty('mavenRepos'))) :
                         ''
 
                 mavenPom.text = mavenPom.text
@@ -87,7 +115,6 @@ def addMavenTest = { config ->
                                         .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
                                         .replace('#{repositories}', repositories)
                                         .replace('#{javaVersion}', "${config.javaVersion}")
-                                        .replace('#{extraCompilerArgs}', config.extraCompilerArgs ?: '')
                                         .replace('#{surefireDependencies}', config.surefireDependencies ?: '')
                                         .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
 
@@ -156,16 +183,9 @@ def addMavenTest = { config ->
 def javaConfigs = [
         [suffix: "java7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
         [suffix: "java8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
-        [suffix: "java9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home", extraCompilerArgs:
-                """<compilerArgs>
-                            <arg>--add-modules</arg>
-                            <arg>java.xml.ws.annotation</arg>
-                        </compilerArgs>"""],
-        [suffix: "java10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home", extraCompilerArgs:
-                """<compilerArgs>
-                            <arg>--add-modules</arg>
-                            <arg>java.xml.ws.annotation</arg>
-                        </compilerArgs>"""]
+        [suffix: "java9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
+        [suffix: "java10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
+        [suffix: "java11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"]
 ]
 
 javaConfigs = javaConfigs.findAll { project.hasProperty(it.jdkProp) }
