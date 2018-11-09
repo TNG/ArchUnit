@@ -16,11 +16,13 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -31,6 +33,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -51,17 +54,19 @@ import static java.util.Collections.singleton;
  * i.e. <code>origin</code> will never be equal to <code>target</code>.
  */
 public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation, Convertible {
+    private final Type type;
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final int lineNumber;
     private final String description;
     private final SourceCodeLocation sourceCodeLocation;
 
-    private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
-        this.originClass = originClass;
-        this.targetClass = targetClass;
+    private Dependency(Type type, JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
+        this.type = checkNotNull(type);
+        this.originClass = checkNotNull(originClass);
+        this.targetClass = checkNotNull(targetClass);
         this.lineNumber = lineNumber;
-        this.description = description;
+        this.description = checkNotNull(description);
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
     }
 
@@ -87,33 +92,37 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
         String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
-        return new Dependency(origin, targetSuperType, 0, description);
+        return new Dependency(Type.INHERITANCE, origin, targetSuperType, 0, description);
     }
 
     static Optional<Dependency> tryCreateFromField(JavaField field) {
-        return tryCreateDependencyFromJavaMember(field, "has type", field.getRawType());
+        return tryCreateDependencyFromJavaMember(Type.FIELD_TYPE, field, "has type", field.getRawType());
     }
 
     static Optional<Dependency> tryCreateFromReturnType(JavaMethod method) {
-        return tryCreateDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
+        return tryCreateDependencyFromJavaMember(Type.METHOD_RETURN_TYPE, method, "has return type", method.getRawReturnType());
     }
 
-    static Optional<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
-        return tryCreateDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
+    static Optional<Dependency> tryCreateFromParameter(JavaMethod method, JavaClass parameter) {
+        return tryCreateDependencyFromJavaMember(Type.METHOD_PARAMETER_TYPE, method, "has parameter of type", parameter);
+    }
+
+    static Optional<Dependency> tryCreateFromParameter(JavaConstructor constructor, JavaClass parameter) {
+        return tryCreateDependencyFromJavaMember(Type.CONSTRUCTOR_PARAMETER_TYPE, constructor, "has parameter of type", parameter);
     }
 
     static Optional<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
-        return tryCreateDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
+        return tryCreateDependencyFromJavaMember(Type.THROWABLE_DECLARATION, declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
     static Optional<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
         Origin origin = findSuitableOrigin(target);
-        return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
+        return tryCreateDependency(Type.ANNOTATION_TYPE, origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
     }
 
     static Optional<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
         Origin origin = findSuitableOrigin(annotation);
-        return tryCreateDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
+        return tryCreateDependency(Type.ANNOTATION_MEMBER_TYPE, origin.originClass, origin.originDescription, "has annotation member of type", memberType);
     }
 
     private static Origin findSuitableOrigin(JavaAnnotation<?> annotation) {
@@ -129,12 +138,12 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         throw new IllegalStateException("Could not find suitable dependency origin for " + annotation);
     }
 
-    private static Optional<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
-        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
+    private static Optional<Dependency> tryCreateDependencyFromJavaMember(Type type, JavaMember origin, String dependencyType, JavaClass target) {
+        return tryCreateDependency(type, origin.getOwner(), origin.getDescription(), dependencyType, target);
     }
 
     private static Optional<Dependency> tryCreateDependency(
-            JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
+            Type type, JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
 
         if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
             return Optional.absent();
@@ -143,11 +152,16 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
-        return Optional.of(new Dependency(originClass, targetClass, 0, description));
+        return Optional.of(new Dependency(type, originClass, targetClass, 0, description));
     }
 
     private static String bracketFormat(String name) {
         return "<" + name + ">";
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Type getType() {
+        return type;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -173,6 +187,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public <T> Set<T> convertTo(Class<T> type) {
         return emptySet();
     }
@@ -233,6 +248,73 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             this.originClass = originClass;
             this.originDescription = originDescription;
         }
+    }
+
+    /**
+     * Represents the type of a {@link Dependency}. This can be used by clients to distinguish cases with different
+     * causes for a dependency, e.g. is it a field access or implementing an interface, ...
+     */
+    public enum Type {
+        /**
+         * The dependency originates from a {@link JavaCodeUnit} calling a {@link JavaConstructor} of another {@link JavaClass}.
+         */
+        @PublicAPI(usage = ACCESS)
+        CONSTRUCTOR_CALL,
+        /**
+         * The dependency originates from a {@link JavaClass} declaring a {@link JavaConstructor} with another {@link JavaClass}
+         * as one of its parameter types.
+         */
+        @PublicAPI(usage = ACCESS)
+        CONSTRUCTOR_PARAMETER_TYPE,
+        /**
+         * The dependency originates from a {@link JavaCodeUnit} accessing a {@link JavaField} of another {@link JavaClass}.
+         */
+        @PublicAPI(usage = ACCESS)
+        FIELD_ACCESS,
+        /**
+         * The dependency originates from a {@link JavaClass} declaring a {@link JavaField} with another {@link JavaClass} as its type.
+         */
+        @PublicAPI(usage = ACCESS)
+        FIELD_TYPE,
+        /**
+         * The dependency originates from a {@link JavaClass} either extending another {@link JavaClass} or
+         * implementing another {@link JavaClass}.
+         */
+        @PublicAPI(usage = ACCESS)
+        INHERITANCE,
+        /**
+         * The dependency originates from a {@link JavaCodeUnit} calling a {@link JavaMethod} of another {@link JavaClass}.
+         */
+        @PublicAPI(usage = ACCESS)
+        METHOD_CALL,
+        /**
+         * The dependency originates from a {@link JavaClass} declaring a {@link JavaMethod} with another {@link JavaClass}
+         * as one of its parameter types.
+         */
+        @PublicAPI(usage = ACCESS)
+        METHOD_PARAMETER_TYPE,
+        /**
+         * The dependency originates from a {@link JavaClass} declaring a {@link JavaMethod} with another {@link JavaClass}
+         * as its return type.
+         */
+        @PublicAPI(usage = ACCESS)
+        METHOD_RETURN_TYPE,
+        /**
+         * The dependency originates from a {@link ThrowsDeclaration} declaring a {@link Throwable} with another {@link JavaClass}
+         * as its type.
+         */
+        @PublicAPI(usage = ACCESS)
+        THROWABLE_DECLARATION,
+        /**
+         * The dependency originates from a {@link JavaAnnotation} having another {@link JavaClass} as its annotation type.
+         */
+        @PublicAPI(usage = ACCESS)
+        ANNOTATION_TYPE,
+        /**
+         * The dependency originates from a {@link JavaAnnotation} having a member with another {@link JavaClass} as its parameter type.
+         */
+        @PublicAPI(usage = ACCESS)
+        ANNOTATION_MEMBER_TYPE
     }
 
     public static final class Predicates {
@@ -311,11 +393,22 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     private static class FromAccess extends Dependency {
+        private static final Map<Class<? extends JavaAccess<?>>, Type> ACCESS_TYPE_TO_DEPENDENCY_TYPE = ImmutableMap.of(
+                JavaFieldAccess.class, Type.FIELD_ACCESS,
+                JavaMethodCall.class, Type.METHOD_CALL,
+                JavaConstructorCall.class, Type.CONSTRUCTOR_CALL
+        );
+
         private final JavaAccess<?> access;
 
         FromAccess(JavaAccess<?> access) {
-            super(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
+            super(getTypeOf(access), access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
             this.access = access;
+        }
+
+        private static Type getTypeOf(JavaAccess<?> access) {
+            return checkNotNull(ACCESS_TYPE_TO_DEPENDENCY_TYPE.get(access.getClass()),
+                    "Could not determine dependency type for %s. This is most likely a bug.", access);
         }
 
         @Override

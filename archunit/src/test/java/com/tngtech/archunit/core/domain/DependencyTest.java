@@ -23,9 +23,19 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importConstructor;
+import static com.tngtech.archunit.core.domain.TestUtils.importConstructorCall;
+import static com.tngtech.archunit.core.domain.TestUtils.importField;
+import static com.tngtech.archunit.core.domain.TestUtils.importFieldAccess;
+import static com.tngtech.archunit.core.domain.TestUtils.importMethod;
+import static com.tngtech.archunit.core.domain.TestUtils.importMethodCall;
+import static com.tngtech.archunit.core.domain.TestUtils.javaAnnotationFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.domain.TestUtils.throwsDeclaration;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -146,6 +156,62 @@ public class DependencyTest {
                 .contains(annotatedMember.getDescription() + " has annotation member of type <" + memberType.getName() + ">");
     }
 
+    @DataProvider
+    public static Object[][] Dependencies_with_type() {
+        return $$(
+                $(
+                        Dependency.tryCreateFromAccess(importConstructorCall(ClassWithMembers.class, DependencyClass.class)).get(),
+                        Dependency.Type.CONSTRUCTOR_CALL
+                ),
+                $(
+                        Dependency.tryCreateFromParameter(importConstructor(ClassWithMembers.class, String.class), importClassWithContext(String.class)).get(),
+                        Dependency.Type.CONSTRUCTOR_PARAMETER_TYPE
+                ),
+                $(
+                        Dependency.tryCreateFromAccess(importFieldAccess(ClassWithMembers.class, DependencyClass.class)).get(),
+                        Dependency.Type.FIELD_ACCESS
+                ),
+                $(
+                        Dependency.tryCreateFromField(importField(ClassWithMembers.class, "someField")).get(),
+                        Dependency.Type.FIELD_TYPE
+                ),
+                $(
+                        Dependency.fromInheritance(importClassWithContext(String.class), importClassWithContext(Object.class)),
+                        Dependency.Type.INHERITANCE
+                ),
+                $(
+                        Dependency.tryCreateFromAccess(importMethodCall(ClassWithMembers.class, DependencyClass.class)).get(),
+                        Dependency.Type.METHOD_CALL
+                ),
+                $(
+                        Dependency.tryCreateFromParameter(importMethod(ClassWithMembers.class, "method", String.class), importClassWithContext(String.class)).get(),
+                        Dependency.Type.METHOD_PARAMETER_TYPE
+                ),
+                $(
+                        Dependency.tryCreateFromReturnType(importMethod(ClassWithMembers.class, "method", String.class)).get(),
+                        Dependency.Type.METHOD_RETURN_TYPE
+                ),
+                $(
+                        Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration(IllegalStateException.class)).get(),
+                        Dependency.Type.THROWABLE_DECLARATION
+                ),
+                $(
+                        Dependency.tryCreateFromAnnotation(javaAnnotationFrom(ClassWithMembers.class.getAnnotation(SomeAnnotation.class), ClassWithMembers.class)).get(),
+                        Dependency.Type.ANNOTATION_TYPE
+                ),
+                $(
+                        Dependency.tryCreateFromAnnotationMember(javaAnnotationFrom(
+                                ClassWithMembers.class.getAnnotation(SomeAnnotation.class), ClassWithMembers.class), importClassWithContext(ClassWithMembers.class)).get(),
+                        Dependency.Type.ANNOTATION_MEMBER_TYPE
+                ));
+    }
+
+    @Test
+    @UseDataProvider("Dependencies_with_type")
+    public void Dependency_has_respective_Type(Dependency dependency, Dependency.Type expectedType) {
+        assertThat(dependency.getType()).as("Type of the Dependency").isEqualTo(expectedType);
+    }
+
     @Test
     public void origin_predicates_match() {
         assertThatDependency(Origin.class, Target.class)
@@ -259,7 +325,30 @@ public class DependencyTest {
         return MoreObjects.toStringHelper(this).toString();
     }
 
+    @SomeAnnotation(SomeMemberType.class)
+    private static class ClassWithMembers {
+        private String someField;
+        private DependencyClass dependencyClass;
+
+        static {
+            new DependencyClass().someField = "";
+        }
+
+        public ClassWithMembers(String someField) {
+            this.someField = someField;
+            dependencyClass.call();
+        }
+
+        String method(String param) {
+            return null;
+        }
+    }
+
     private static class DependencyClass {
+        String someField;
+
+        void call() {
+        }
     }
 
     private interface DependencySubInterface extends DependencyInterface {

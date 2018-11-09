@@ -42,10 +42,15 @@ public class TestUtils {
     }
 
     @SafeVarargs
-    public static ThrowsClause<?> throwsClause(Class<? extends Throwable>... types) {
+    public static ThrowsClause<? extends JavaCodeUnit> throwsClause(Class<? extends Throwable>... types) {
         List<JavaClass> importedTypes = ImmutableList.copyOf(importClassesWithContext(types));
         JavaMethod irrelevantOwner = importClassWithContext(Object.class).getMethod("toString");
         return ThrowsClause.from(irrelevantOwner, importedTypes);
+    }
+
+    public static ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration(Class<? extends Throwable> type) {
+        ThrowsClause<? extends JavaCodeUnit> throwsClause = throwsClause(type);
+        return new ThrowsDeclaration<>(throwsClause, throwsClause.getTypes().get(0));
     }
 
     public static JavaMethod importMethod(Class<?> clazz, String methodName, Class<?>... params) {
@@ -139,6 +144,36 @@ public class TestUtils {
         return Dependency.tryCreateFromAccess(access).get();
     }
 
+    public static JavaConstructor importConstructor(Class<?> clazz, Class<?>... parameterTypes) {
+        return importClassWithContext(clazz).getConstructor(parameterTypes);
+    }
+
+    public static JavaField importField(Class<?> clazz, String fieldName) {
+        return importClassWithContext(clazz).getField(fieldName);
+    }
+
+    public static JavaConstructorCall importConstructorCall(Class<?> fromClass, Class<?> toClass) {
+        return getOnlyElementWithTarget(importClassWithContext(fromClass).getConstructorCallsFromSelf(), toClass);
+    }
+
+    public static JavaMethodCall importMethodCall(Class<?> fromClass, Class<?> toClass) {
+        return getOnlyElementWithTarget(importClassWithContext(fromClass).getMethodCallsFromSelf(), toClass);
+    }
+
+    public static JavaFieldAccess importFieldAccess(Class<?> fromClass, Class<?> toClass) {
+        return getOnlyElementWithTarget(importClassWithContext(fromClass).getFieldAccessesFromSelf(), toClass);
+    }
+
+    private static <T extends JavaAccess<?>> T getOnlyElementWithTarget(Set<? extends T> accesses, Class<?> wantedTarget) {
+        Set<T> result = new HashSet<>();
+        for (T access : accesses) {
+            if (access.getTargetOwner().isEquivalentTo(wantedTarget)) {
+                result.add(access);
+            }
+        }
+        return getOnlyElement(result);
+    }
+
     public static class AccessesSimulator {
         private final Set<MethodCallTarget> targets = new HashSet<>();
 
@@ -164,6 +199,10 @@ public class TestUtils {
             this.targets = targets;
             this.method = method;
             this.lineNumber = lineNumber;
+        }
+
+        public AccessSimulator inLineNumber(int number) {
+            return new AccessSimulator(targets, method, number);
         }
 
         public JavaMethodCall to(JavaMethod target) {
