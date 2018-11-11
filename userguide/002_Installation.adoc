@@ -17,7 +17,7 @@ Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit4</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -26,7 +26,7 @@ Maven Central:
 .build.gradle
 ----
 dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit4:0.9.1'
+    testCompile 'com.tngtech.archunit:archunit-junit4:0.9.2'
 }
 ----
 
@@ -56,7 +56,7 @@ A typical Maven configuration could look like this:
                 <dependency>
                     <groupId>com.tngtech.archunit</groupId>
                     <artifactId>archunit-junit5-engine</artifactId>
-                    <version>0.9.1</version>
+                    <version>0.9.2</version>
                 </dependency>
             </dependencies>
         </plugin>
@@ -68,7 +68,7 @@ A typical Maven configuration could look like this:
     <dependency>
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit-junit5-api</artifactId>
-        <version>0.9.1</version>
+        <version>0.9.2</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -87,8 +87,8 @@ The configuration for Gradle is much simpler due to the existence of a test runt
 ----
 dependencies {
     ...
-    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.9.1'
-    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.9.1'
+    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.9.2'
+    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.9.2'
 }
 ----
 
@@ -103,7 +103,7 @@ context, include the core ArchUnit dependency from Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -112,6 +112,6 @@ context, include the core ArchUnit dependency from Maven Central:
 .build.gradle
 ----
 dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.9.1'
+   testCompile 'com.tngtech.archunit:archunit:0.9.2'
 }
 ----
