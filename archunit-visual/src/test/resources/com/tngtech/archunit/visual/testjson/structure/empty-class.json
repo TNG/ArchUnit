@@ -1,19 +1,23 @@
 {
-  "name": "com.tngtech.archunit.visual.testjson.structure",
-  "fullName": "com.tngtech.archunit.visual.testjson.structure",
-  "type": "package",
-  "children": [
-    {
-      "name": "EmptyClass",
-      "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
-      "type": "class",
-      "children": [],
-      "superclass": "",
-      "interfaces": [],
-      "fieldAccesses": [],
-      "methodCalls": [],
-      "constructorCalls": [],
-      "anonymousImplementation": []
-    }
+  "root": {
+    "name": "com.tngtech.archunit.visual.testjson.structure",
+    "fullName": "com.tngtech.archunit.visual.testjson.structure",
+    "type": "package",
+    "children": [
+      {
+        "name": "EmptyClass",
+        "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+        "type": "class",
+        "children": [],
+        "superclass": "",
+        "interfaces": [],
+        "fieldAccesses": [],
+        "methodCalls": [],
+        "constructorCalls": [],
+        "anonymousImplementation": []
+      }
+    ]
+  },
+  "dependencies": [
   ]
 }

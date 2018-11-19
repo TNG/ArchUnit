@@ -17,7 +17,6 @@ package com.tngtech.archunit.visual;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.*;
 
 import java.util.HashSet;
@@ -31,7 +30,26 @@ class JsonExporter {
     String exportToJson(JavaClasses classes, VisualizationContext context) {
         ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, context);
         JsonJavaPackage root = createPackageClassTree(classesToVisualize, context);
-        return GSON.toJson(root);
+        Set<JsonJavaDependency> dependencies = extractDependenciesFromClasses(classesToVisualize, context, root);
+        return GSON.toJson(new JsonExport(root, dependencies));
+    }
+
+    private Set<JsonJavaDependency> extractDependenciesFromClasses(ClassesToVisualize classesToVisualize, VisualizationContext context, JsonJavaPackage root) {
+        Set<JsonJavaDependency> result = new HashSet<>();
+        for (JavaClass c : classesToVisualize.getClasses()) {
+            result.addAll(extractDependenciesFromClass(c, context, root));
+        }
+        return result;
+    }
+
+    private Set<JsonJavaDependency> extractDependenciesFromClass(JavaClass javaClass, VisualizationContext context, JsonJavaPackage root) {
+        Set<JsonJavaDependency> res = new HashSet<>();
+        for (Dependency d : javaClass.getDirectDependenciesFromSelf()) {
+            if (context.isElementIncluded(d.getTargetClass()) && isDependencyRelevant(d)) {
+                res.add(JsonJavaDependency.from(d));
+            }
+        }
+        return res;
     }
 
     private JsonJavaPackage createPackageClassTree(ClassesToVisualize classesToVisualize, VisualizationContext context) {
@@ -48,27 +66,13 @@ class JsonExporter {
 
     private void insertClassesToRoot(Iterable<JavaClass> classes, VisualizationContext context, JsonJavaPackage root) {
         for (JavaClass c : classes) {
-            if (c.isAnonymous()) {
-                addDependenciesOfAnonymousInnerClassToParent(context, root, c);
-            }
-            else {
-                root.insert(parseJavaElement(c, context));
-            }
+            root.insert(parseJavaElement(c, context));
         }
     }
 
     private void insertDependenciesToRoot(Iterable<JavaClass> dependencies, JsonJavaPackage root) {
         for (JavaClass c : dependencies) {
             root.insert(parseJavaElementWithoutDependencies(c));
-        }
-    }
-
-    private void addDependenciesOfAnonymousInnerClassToParent(VisualizationContext context, JsonJavaPackage root, JavaClass anonymousInnerClass) {
-        Optional<? extends JsonElement> optionalParent = root.getChild(anonymousInnerClass.getEnclosingClass().get().getName());
-        if (optionalParent.isPresent() && optionalParent.get() instanceof JsonJavaElement) {
-            JsonJavaElement parent = (JsonJavaElement) optionalParent.get();
-            parseAnonymousImplementationToJavaElement(anonymousInnerClass, context, parent);
-            parseAccessesToJavaElement(anonymousInnerClass, context, parent);
         }
     }
 
@@ -113,14 +117,6 @@ class JsonExporter {
         }
     }
 
-    private void parseAnonymousImplementationToJavaElement(JavaClass clazz, VisualizationContext context, JsonJavaElement res) {
-        for (JavaClass anInterface : clazz.getInterfaces()) {
-            if (context.isElementIncluded(anInterface)) {
-                res.addAnonymousImplementation(anInterface.getName());
-            }
-        }
-    }
-
     private void parseAccessesToJavaElement(JavaClass javaClass, VisualizationContext context, JsonJavaElement jsonJavaElement) {
         for (JavaFieldAccess javaFieldAccess : filterRelevantAccesses(context, javaClass.getFieldAccessesFromSelf(), jsonJavaElement)) {
             jsonJavaElement.addFieldAccess(new JsonAccess(javaFieldAccess));
@@ -146,5 +142,11 @@ class JsonExporter {
     private <T extends JavaAccess<?>> boolean targetIsRelevant(T access, JsonJavaElement jsonJavaElement) {
         return !access.getTargetOwner().isAnonymous() && !access.getOriginOwner().equals(access.getTargetOwner())
                 && !jsonJavaElement.fullName.equals(access.getTargetOwner().getName()) && !access.getTargetOwner().getPackageName().isEmpty();
+    }
+
+    private boolean isDependencyRelevant(Dependency d) {
+        return !d.getTargetClass().isAnonymous() && !d.getTargetClass().equals(d.getOriginClass())
+                && !d.getTargetClass().getName().equals(d.getOriginClass().getName())
+                && !d.getTargetClass().getPackageName().isEmpty();
     }
 }

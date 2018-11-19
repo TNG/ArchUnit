@@ -33,12 +33,12 @@ class ClassesToVisualize {
     }
 
     private boolean isClassValid(JavaClass clazz) {
-        return !clazz.getPackage().isEmpty() && !clazz.getSimpleName().isEmpty();
+        return !clazz.getPackageName().isEmpty() && !clazz.getSimpleName().isEmpty();
     }
 
     private void addClasses(Set<JavaClass> classes) {
         for (JavaClass clazz : classes) {
-            if (!clazz.getPackage().isEmpty()) {
+            if (!clazz.getPackageName().isEmpty()) {
                 classList.addClass(clazz);
             }
         }
@@ -67,10 +67,10 @@ class ClassesToVisualize {
     Set<String> getPackages() {
         Set<String> result = new HashSet<>();
         for (JavaClass c : getAll()) {
-            if (c.getPackage().isEmpty()) {
+            if (c.getPackageName().isEmpty()) {
                 throw new RuntimeException("A class with an empty package was found");
             }
-            result.add(c.getPackage());
+            result.add(c.getPackageName());
         }
         return result;
     }

@@ -121,4 +121,22 @@
         </Or>
         <Bug code="UrF"/>
     </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonExport"/>
+        <Or>
+            <Field name="root"/>
+            <Field name="dependencies"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonJavaDependency"/>
+        <Or>
+            <Field name="description"/>
+            <Field name="originClass"/>
+            <Field name="targetClass"/>
+            <Field name="type"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
 </FindBugsFilter>

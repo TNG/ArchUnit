@@ -20,7 +20,7 @@ const appContext = AppContext.newInstance({
 });
 
 const createResources = (root, violations) => ({
-  getResources: () => ({root, violations})
+  getResources: () => ({root: {root}, violations})
 });
 
 describe('Graph', () => {

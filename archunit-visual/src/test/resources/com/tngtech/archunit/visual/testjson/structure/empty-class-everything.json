@@ -1,126 +1,166 @@
 {
-  "name": "default",
-  "fullName": "default",
-  "type": "package",
-  "children": [
+  "root": {
+    "name": "default",
+    "fullName": "default",
+    "type": "package",
+    "children": [
+      {
+        "name": "java",
+        "fullName": "java",
+        "type": "package",
+        "children": [
+          {
+            "name": "io",
+            "fullName": "java.io",
+            "type": "package",
+            "children": [
+              {
+                "name": "PrintStream",
+                "fullName": "java.io.PrintStream",
+                "type": "class",
+                "children": [],
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": []
+              }
+            ]
+          },
+          {
+            "name": "lang",
+            "fullName": "java.lang",
+            "type": "package",
+            "children": [
+              {
+                "name": "System",
+                "fullName": "java.lang.System",
+                "type": "class",
+                "children": [],
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": []
+              },
+              {
+                "name": "Object",
+                "fullName": "java.lang.Object",
+                "type": "class",
+                "children": [],
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "some.other",
+        "fullName": "some.other",
+        "type": "package",
+        "children": [
+          {
+            "name": "OtherClass",
+            "fullName": "some.other.OtherClass",
+            "type": "class",
+            "children": [],
+            "superclass": "java.lang.Object",
+            "interfaces": [],
+            "fieldAccesses": [
+              {
+                "target": "java.lang.System",
+                "startCodeUnit": "<init>()",
+                "targetCodeElement": "out"
+              }
+            ],
+            "methodCalls": [
+              {
+                "target": "java.io.PrintStream",
+                "startCodeUnit": "<init>()",
+                "targetCodeElement": "println(java.lang.String)"
+              }
+            ],
+            "constructorCalls": [
+              {
+                "target": "java.lang.Object",
+                "startCodeUnit": "<init>()",
+                "targetCodeElement": "<init>()"
+              }
+            ],
+            "anonymousImplementation": []
+          }
+        ]
+      },
+      {
+        "name": "com.tngtech.archunit.visual.testjson.structure",
+        "fullName": "com.tngtech.archunit.visual.testjson.structure",
+        "type": "package",
+        "children": [
+          {
+            "name": "EmptyClass",
+            "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+            "type": "class",
+            "children": [],
+            "superclass": "java.lang.Object",
+            "interfaces": [],
+            "fieldAccesses": [],
+            "methodCalls": [],
+            "constructorCalls": [
+              {
+                "target": "java.lang.Object",
+                "startCodeUnit": "<init>()",
+                "targetCodeElement": "<init>()"
+              }
+            ],
+            "anonymousImplementation": []
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": [
     {
-      "name": "java",
-      "fullName": "java",
-      "type": "package",
-      "children": [
-        {
-          "name": "io",
-          "fullName": "java.io",
-          "type": "package",
-          "children": [
-            {
-              "name": "PrintStream",
-              "fullName": "java.io.PrintStream",
-              "type": "class",
-              "children": [],
-              "superclass": "",
-              "interfaces": [],
-              "fieldAccesses": [],
-              "methodCalls": [],
-              "constructorCalls": [],
-              "anonymousImplementation": []
-            }
-          ]
-        },
-        {
-          "name": "lang",
-          "fullName": "java.lang",
-          "type": "package",
-          "children": [
-            {
-              "name": "System",
-              "fullName": "java.lang.System",
-              "type": "class",
-              "children": [],
-              "superclass": "",
-              "interfaces": [],
-              "fieldAccesses": [],
-              "methodCalls": [],
-              "constructorCalls": [],
-              "anonymousImplementation": []
-            },
-            {
-              "name": "Object",
-              "fullName": "java.lang.Object",
-              "type": "class",
-              "children": [],
-              "superclass": "",
-              "interfaces": [],
-              "fieldAccesses": [],
-              "methodCalls": [],
-              "constructorCalls": [],
-              "anonymousImplementation": []
-            }
-          ]
-        }
-      ]
+      "type": "FIELD_ACCESS",
+      "description": "Constructor <some.other.OtherClass.<init>()> gets field <java.lang.System.out> in (OtherClass.java:5)",
+      "originClass": "some.other.OtherClass",
+      "targetClass": "java.lang.System"
     },
     {
-      "name": "some.other",
-      "fullName": "some.other",
-      "type": "package",
-      "children": [
-        {
-          "name": "OtherClass",
-          "fullName": "some.other.OtherClass",
-          "type": "class",
-          "children": [],
-          "superclass": "java.lang.Object",
-          "interfaces": [],
-          "fieldAccesses": [
-            {
-              "target": "java.lang.System",
-              "startCodeUnit": "<init>()",
-              "targetCodeElement": "out"
-            }
-          ],
-          "methodCalls": [
-            {
-              "target": "java.io.PrintStream",
-              "startCodeUnit": "<init>()",
-              "targetCodeElement": "println(java.lang.String)"
-            }
-          ],
-          "constructorCalls": [
-            {
-              "target": "java.lang.Object",
-              "startCodeUnit": "<init>()",
-              "targetCodeElement": "<init>()"
-            }
-          ],
-          "anonymousImplementation": []
-        }
-      ]
+      "type": "INHERITANCE",
+      "description": "Class <com.tngtech.archunit.visual.testjson.structure.EmptyClass> extends class <java.lang.Object> in (EmptyClass.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "targetClass": "java.lang.Object"
     },
     {
-      "name": "com.tngtech.archunit.visual.testjson.structure",
-      "fullName": "com.tngtech.archunit.visual.testjson.structure",
-      "type": "package",
-      "children": [
-        {
-          "name": "EmptyClass",
-          "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
-          "type": "class",
-          "children": [],
-          "superclass": "java.lang.Object",
-          "interfaces": [],
-          "fieldAccesses": [],
-          "methodCalls": [],
-          "constructorCalls": [
-            {
-              "target": "java.lang.Object",
-              "startCodeUnit": "<init>()",
-              "targetCodeElement": "<init>()"
-            }
-          ],
-          "anonymousImplementation": []
-        }
-      ]
+      "type": "METHOD_CALL",
+      "description": "Constructor <some.other.OtherClass.<init>()> calls method <java.io.PrintStream.println(java.lang.String)> in (OtherClass.java:5)",
+      "originClass": "some.other.OtherClass",
+      "targetClass": "java.io.PrintStream"
+    },
+    {
+      "type": "INHERITANCE",
+      "description": "Class <some.other.OtherClass> extends class <java.lang.Object> in (OtherClass.java:0)",
+      "originClass": "some.other.OtherClass",
+      "targetClass": "java.lang.Object"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.EmptyClass.<init>()> calls constructor <java.lang.Object.<init>()> in (EmptyClass.java:3)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+      "targetClass": "java.lang.Object"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Constructor <some.other.OtherClass.<init>()> calls constructor <java.lang.Object.<init>()> in (OtherClass.java:4)",
+      "originClass": "some.other.OtherClass",
+      "targetClass": "java.lang.Object"
     }
   ]
 }

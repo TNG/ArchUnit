@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.Set;
-
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.base.Optional;
+
+import java.util.Set;
 
 abstract class JsonElement {
     static final String DEFAULT_ROOT = "default";
@@ -26,12 +26,12 @@ abstract class JsonElement {
     @Expose
     protected String name;
     @Expose
-    protected String fullName;
+    public String fullName;
     @Expose
     protected String type;
 
     JsonElement(String name, String fullName, String type) {
-        this.name = name;
+        this.name = name.isEmpty() ? fullName.substring(fullName.lastIndexOf('$') + 1) : name;
         this.fullName = fullName;
         this.type = type;
     }

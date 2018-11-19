@@ -7,9 +7,9 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   const Graph = class {
     constructor(jsonRoot, violations, svg, foldAllNodes) {
       this._view = new View(svg);
-      this.root = new Root(jsonRoot, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
+      this.root = new Root(jsonRoot.root, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
         newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
-      this.dependencies = new Dependencies(jsonRoot, this.root, this._view.svgElementForDependencies);
+      this.dependencies = new Dependencies(jsonRoot.root, this.root, this._view.svgElementForDependencies);
 
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
