@@ -18,7 +18,7 @@ package com.tngtech.archunit.visual;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.Dependency;
 
-public class JsonJavaDependency {
+class JsonJavaDependency {
     @Expose
     private String type;
     @Expose
@@ -35,11 +35,7 @@ public class JsonJavaDependency {
         this.targetClass = targetClass;
     }
 
-    public static JsonJavaDependency from(Dependency d) {
+    static JsonJavaDependency from(Dependency d) {
         return new JsonJavaDependency(d.getType().name(), d.getDescription(), d.getOriginClass().getName(), d.getTargetClass().getName());
-    }
-
-    public static JsonJavaDependency fromDependencyOfAnonymousClass(Dependency d, JsonJavaElement enclosingClass) {
-        return new JsonJavaDependency(d.getType().name(), d.getDescription(), enclosingClass.fullName, d.getTargetClass().getName());
     }
 }

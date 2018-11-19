@@ -19,13 +19,13 @@ import com.google.gson.annotations.Expose;
 
 import java.util.Set;
 
-public class JsonExport {
+class JsonExport {
     @Expose
-    private JsonJavaPackage root;
+    private final JsonJavaPackage root;
     @Expose
-    private Set<JsonJavaDependency> dependencies;
+    private final Set<JsonJavaDependency> dependencies;
 
-    public JsonExport(JsonJavaPackage root, Set<JsonJavaDependency> dependencies) {
+    JsonExport(JsonJavaPackage root, Set<JsonJavaDependency> dependencies) {
         this.root = root;
         this.dependencies = dependencies;
     }

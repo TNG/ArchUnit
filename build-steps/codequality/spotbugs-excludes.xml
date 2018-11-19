@@ -98,6 +98,14 @@
         </Or>
         <Bug code="UrF"/>
     </Match>
+    <!--FIXME: remove this exclusion-->
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonJavaElement"/>
+        <Or>
+            <Field name="anonymousImplementation"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
     <Match>
         <Class name="com.tngtech.archunit.visual.JsonElement"/>
         <Or>
