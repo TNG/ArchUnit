@@ -155,7 +155,7 @@ describe('Graph', () => {
       showDepsBetweenChildAndParent: true
     });
 
-    expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
+    return graph.root._updatePromise.then(() => expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps));
   });
 
   it('transforms the dependencies if a node is folded', () => {
@@ -313,7 +313,7 @@ describe('Graph', () => {
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violations[0]);
-      graph.dependencies.onHideNodesWithoutViolationsChanged(true);
+      graph.onHideNodesWithoutViolationsChanged(true);
 
       return graph.root._updatePromise.then(() => {
         const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
@@ -322,7 +322,7 @@ describe('Graph', () => {
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
         expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
 
-        graph.dependencies.onHideNodesWithoutViolationsChanged(false);
+        graph.onHideNodesWithoutViolationsChanged(false);
 
         return graph.root._updatePromise.then(() => {
           const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
@@ -334,7 +334,6 @@ describe('Graph', () => {
 
           return graph.root._updatePromise;
         });
-
       });
     });
   });
@@ -375,8 +374,8 @@ describe('Graph', () => {
     const graph = createGraph(appContext, createResources(jsonRoot, violations), null, false);
 
     return graph.root._updatePromise.then(() => {
-      graph.dependencies.onHideNodesWithoutViolationsChanged(true);
-      graph.dependencies.showViolations(violations[0]);
+      graph.onHideNodesWithoutViolationsChanged(true);
+      graph.showViolations(violations[0]);
 
       return graph.root._updatePromise.then(() => {
         const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
@@ -385,7 +384,7 @@ describe('Graph', () => {
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
         expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
 
-        graph.dependencies.showViolations(violations[1]);
+        graph.showViolations(violations[1]);
 
         return graph.root._updatePromise.then(() => {
           const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
@@ -395,7 +394,7 @@ describe('Graph', () => {
           expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
           expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
 
-          graph.dependencies.hideViolations(violations[0]);
+          graph.hideViolations(violations[0]);
 
           return graph.root._updatePromise.then(() => {
             const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2',
@@ -404,7 +403,7 @@ describe('Graph', () => {
             expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
             expect(graph.dependencies.getVisible()).to.haveDependencyStrings(expDeps);
 
-            graph.dependencies.hideViolations(violations[1]);
+            graph.hideViolations(violations[1]);
 
             return graph.root._updatePromise.then(() => {
               const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',

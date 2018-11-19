@@ -60,7 +60,7 @@ const stringEquals = filterExpression => {
     //remove whitespaces after '~'
     .replace(/~\s+/g, '~');
 
-  const split = withoutLeadingOrClosingWhitespace.split('|');
+  const split = withoutLeadingOrClosingWhitespace ? withoutLeadingOrClosingWhitespace.split('|') : [];
   const partitionedAndEscaped = {include: [], exclude: []};
   split.forEach(s => {
     const exclude = s.startsWith('~');

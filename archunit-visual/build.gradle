@@ -77,7 +77,7 @@ task createReportDir {
     }
 }
 
-task webpack(type: NpmTask, dependsOn: ['setupNode', 'createReportDir', 'mocha', 'eslint']) {
+task webpack(type: NpmTask, dependsOn: ['mocha', 'eslint', 'setupNode', 'createReportDir']) {
     args = ['run', 'createJsBundle', '--', '--env.buildPath=' + reportOutputDir]
 }
 

@@ -16,6 +16,10 @@ const testStringEquals = (subString) => ({
 });
 
 describe('matching strings by checking for a certain equal string or prefix-string', () => {
+  describe('empty string matches everything', () => {
+    testStringEquals('').against('foobar').is(true);
+  });
+
   describe('simple substrings', () => {
     testStringEquals('foobar').against('foobar').is(true);
     testStringEquals('foo.bar').against('foo.bar').is(true);

@@ -3,6 +3,7 @@
 import predicates from './predicates';
 import {vectors} from './vectors';
 import {NodeCircle, ZeroCircle} from './circles';
+import {buildFilterGroup} from './filter';
 
 const nodeTypes = require('./node-types.json');
 
@@ -31,52 +32,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
   };
 
-  const applyFilterToNode = (node, filter) => {
-    node._setFilteredChildren(node._filteredChildren.filter(filter));
-    node._filteredChildren.forEach(c => applyFilterToNode(c, filter));
-  };
-
-  //TODO: create parent class for these two 'classes'
-  const newFilters = (root) => ({
-    typeFilter: null,
-    nameFilter: null,
-    nameFilterString: '',
-
-    //TODO: strategy for the violations-filter for nodes: introduce two filter objects (independentFilter (--> this)
-    //and dependentFilters (--> the new one)); when the nodes are filtered by name or by type, then add the corresponding
-    //filter to the independentFilters, apply the independentFilters. The independentFilters calls the listener-function
-    //of the dependencies, which updates the node-filters of the dependencies, applies the filter and calls
-    // the node-listener, if a violation is selected and if the checkbox is activated. This node-listener applies the
-    // dependentFilters; these are only applied to the filteredChildren (that means they are not reset). The dependentFilters
-    // call another dependencies-listener, that filters the dependencies again, but does not call the node-listener.
-    apply: function () {
-      root.doNextAndWaitFor(() => {
-        root._resetFilteredChildren();
-        const filters = this.values();
-        applyFilterToNode(root, node => node._matchesOrHasChildThatMatches(node => filters.every(filter => filter(node))));
-        root._listener.forEach(listener => listener.onNodeFiltersChanged());
-      });
-    },
-
-    values: function () {
-      return [this.typeFilter, this.nameFilter].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
-    }
-  });
-
-  const newDependentFilters = (root) => ({
-    filters: new Map(),
-
-    apply: function () {
-      const filters = this.values();
-      applyFilterToNode(root, node => node._matchesOrHasChildThatMatches(node => filters.every(filter => filter(node))));
-      root._listener.forEach(listener => listener.onDependentNodeFiltersChanged());
-    },
-
-    values: function () {
-      return [...this.filters.values()].filter(f => !!f);
-    }
-  });
-
   const Node = class {
     constructor(jsonNode, svgContainer) {
       this.layer = layer++;
@@ -99,27 +54,9 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._originalChildren.forEach(child => child.addListener(listener));
     }
 
-    _notMatchesFilter() {
-      this._matchesFilter = false;
-      this.getOriginalChildren().forEach(child => child._notMatchesFilter());
-    }
-
-    matchesFilter() {
-      return this._matchesFilter;
-    }
-
     _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
-
-      //TODO: better do this after applying all filters and not after every filter --> already done now??
-      this._filteredChildren.forEach(child => child._matchesFilter = true);
-      arrayDifference(this.getOriginalChildren(), this._filteredChildren).forEach(child => child._notMatchesFilter());
       this._updateViewOnCurrentChildrenChanged();
-    }
-
-    _resetFilteredChildren() {
-      this.getOriginalChildren().forEach(node => node._resetFilteredChildren());
-      this._setFilteredChildren(this.getOriginalChildren());
     }
 
     isPackage() {
@@ -215,12 +152,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return [this, ...this._getDescendants()];
     }
 
-    _getDescendantsExceptNodeAndItsDescendants(node) {
-      const filteredChildren = this.getCurrentChildren().filter(child => child !== node);
-      const result = filteredChildren.map(child => child._getDescendantsExceptNodeAndItsDescendants(node));
-      return [].concat.apply([], [filteredChildren, ...result]);
-    }
-
     _getDescendants() {
       const result = [];
       this.getCurrentChildren().forEach(child => child._callOnSelfThenEveryDescendant(node => result.push(node)));
@@ -249,11 +180,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @return true, iff this Node or any child (after filtering) matches the predicate
      */
     _matchesOrHasChildThatMatches(predicate) {
-      return predicate(this) || this._filteredChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
-    }
-
-    _matches(predicate) {
-      return predicate(this);
+      return predicate(this) || this._originalChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
 
     getRadius() {
@@ -348,11 +275,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   const Root = class extends Node {
     constructor(jsonNode, svgContainer, onRadiusChanged, onNodeFilterStringChanged) {
       super(jsonNode, svgContainer);
-      this._filters = newFilters(this);
-      this._dependentFilters = newDependentFilters(this);
       this._root = this;
       this._parent = this;
+
       this._onNodeFilterStringChanged = onNodeFilterStringChanged;
+      this._nameFilterString = '';
+
       this.nodeCircle = new NodeCircle(this,
         {
           onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
@@ -364,6 +292,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
       this._setFilteredChildren(this._originalChildren);
+
+      this._filterGroup =
+        buildFilterGroup('nodes', this.getFilterObject())
+          .addStaticFilter('type', () => true, ['nodes.typeAndName'])
+          .withStaticFilterPrecondition(true)
+          .addDynamicFilter('name', () => this.getNameFilter(), ['nodes.typeAndName'])
+          .withStaticFilterPrecondition(true)
+          .addStaticFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'])
+          .withStaticFilterPrecondition(true)
+          .addDynamicFilter('visibleViolations', () => this.getVisibleViolationsFilter(), ['nodes.combinedFilter'])
+          .withStaticFilterPrecondition(false)
+          .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
+          .withStaticFilterPrecondition(true)
+          .build();
 
       this._updatePromise = Promise.resolve();
       const map = new Map();
@@ -385,26 +327,35 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       }
     }
 
-    foldNodesWithMinimumDepthThatHaveNoViolations() {
-      this.foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
+    get filterGroup() {
+      return this._filterGroup;
     }
 
-    createListener() {
-      return {
-        onDependentFiltersChangedAfterIndependentFiltersChanged: (filterKey, filter) => {
-          this._dependentFilters.filters.set(filterKey, filter);
-          this._dependentFilters.apply();
-        },
-        onDependentFiltersChanged: () => { //(filterKey, filter) => {
-          /*this.doNextAndWaitFor(() => {
-            this._dependentFilters.filters.set(filterKey, filter);
-            this._dependentFilters.apply();
-          });
-          this.relayoutCompletely();*/
-          this._filters.apply();
-          this._root.relayoutCompletely();
-        }
+    getFilterObject() {
+      const runFilter = (node, filter, key) => {
+        node._matchesFilter.set(key, filter(node));
+        node._originalChildren.forEach(c => runFilter(c, filter, key));
       };
+
+      const applyFilterToNode = node => {
+        node._setFilteredChildren(node._originalChildren.filter(c => c.matchesFilter('combinedFilter')));
+        node._filteredChildren.forEach(c => applyFilterToNode(c));
+      };
+
+      return {
+        runFilter: (filter, key) => this._originalChildren.forEach(c => runFilter(c, filter, key)),
+
+        applyFilters: () => applyFilterToNode(this)
+      };
+    }
+
+    changeTypeFilter(showInterfaces, showClasses) {
+      this._filterGroup.getFilter('type').filter = this.getTypeFilter(showInterfaces, showClasses);
+    }
+
+    foldNodesWithMinimumDepthThatHaveNoViolations() {
+      //FIXME: better use another function for getting the nodes involved in violations
+      this.foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
     }
 
     /**
@@ -412,50 +363,35 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * @param nodeFullName fullname of the node to exclude
      */
     addNodeToExcludeFilter(nodeFullName) {
-      this._filterByNameWithoutRelayout([this._filters.nameFilterString, '~' + nodeFullName].filter(el => el).join('|'));
-      this._onNodeFilterStringChanged(this._filters.nameFilterString);
+      this._nameFilterString = [this._nameFilterString, '~' + nodeFullName].filter(el => el).join('|');
+      this._onNodeFilterStringChanged(this._nameFilterString);
+    }
+
+    set nameFilterString(value) {
+      this._nameFilterString = value;
     }
 
     /**
-     * Hides all nodes that don't contain the supplied filterString.
-     *
-     * @param nodeNameFilterString The node's full name needs to equal this text or have this text as prefix
+     * The node's full name needs to equal the root._nameFilterString or have this text as prefix
      * with a following . or $, to pass the filter.
      * '*' matches any number of arbitrary characters.
      */
-    filterByName(nodeNameFilterString) {
-      this._filterByNameWithoutRelayout(nodeNameFilterString);
-      this._root.relayoutCompletely();
+    getNameFilter() {
+      const stringEqualsSubstring = predicates.stringEquals(this._nameFilterString);
+      const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
+      return node => nodeNameSatisfies(stringEqualsSubstring)(node);
     }
 
-    _filterByNameWithoutRelayout(nodeNameFilterString) {
-      if (!nodeNameFilterString.replace(/\s/g, '')) {
-        this._filters.nameFilter = null;
-        this._filters.nameFilterString = '';
-      }
-      else {
-        this._filters.nameFilterString = nodeNameFilterString;
-        const stringEqualsSubstring = predicates.stringEquals(nodeNameFilterString);
-        const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-
-        this._filters.nameFilter = node => node._matches(nodeNameSatisfies(stringEqualsSubstring));
-      }
-      this._filters.apply();
+    getTypeFilter(showInterfaces, showClasses) {
+      let predicate = node => !node.isPackage();
+      predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
+      predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
+      return node => predicate(node);
     }
 
-    filterByType(showInterfaces, showClasses) {
-      if (showInterfaces && showClasses) {
-        this._filters.typeFilter = null;
-      }
-      else {
-        let predicate = node => !node.isPackage();
-        predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
-        predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
-
-        this._filters.typeFilter = node => node._matches(predicate);
-      }
-      this._filters.apply();
-      this._root.relayoutCompletely();
+    getVisibleViolationsFilter() {
+      const hasNodeVisibleViolation = this.getHasNodeVisibleViolation();
+      return node => hasNodeVisibleViolation(node);
     }
 
     foldAllNodes() {
@@ -578,6 +514,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       super(jsonNode, svgContainer);
       this._root = root;
       this._parent = parent;
+      this._matchesFilter = new Map();
       this.nodeCircle = new NodeCircle(this,
         {
           onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
@@ -589,6 +526,17 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    matchesFilter(key) {
+      if (!this._matchesFilter.has(key)) {
+        throw new Error('invalid filter key');
+      }
+      return this._matchesFilter.get(key);
+    }
+
+    matchesAllFilters() {
+      return this._matchesOrHasChildThatMatches(n => [...n._matchesFilter.values()].every(v => v));
     }
 
     getSelfOrFirstPredecessorMatching(matchingFunction) {

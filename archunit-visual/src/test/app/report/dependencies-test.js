@@ -6,6 +6,7 @@ import './chai/node-chai-extensions';
 import stubs from './stubs';
 import testJson from './test-json-creator';
 import AppContext from '../../../main/app/report/app-context';
+import {buildFilterCollection} from "../../../main/app/report/filter";
 
 const expect = chai.expect;
 
@@ -17,6 +18,11 @@ const appContext = AppContext.newInstance({
 });
 const Root = appContext.getRoot();
 const Dependencies = appContext.getDependencies();
+
+const updateFilterAndRelayout = (root, filterCollection, filterKey) => {
+  root.doNextAndWaitFor(() => filterCollection.updateFilter(filterKey));
+  root.relayoutCompletely();
+};
 
 /*
  * json-root with every kind of dependency of both groups (inheritance and access),
@@ -584,11 +590,21 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = [
       'com.tngtech.MatchingClass1->com.tngtech.MatchingClass2(constructorCall)',
       'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)'
     ];
-    root.filterByName('*Matching*');
+
+    root.nameFilterString = '*Matching*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
   });
@@ -614,6 +630,13 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.MatchingClass1(methodCall)',
       'com.tngtech.MatchingClass1->com.tngtech.SomeInterface(implements)',
@@ -621,8 +644,11 @@ describe('Dependencies', () => {
       'com.tngtech.MatchingClass2->com.tngtech.MatchingClass1(methodCall)',
       'com.tngtech.SomeInterface->com.tngtech.SomeClass1(fieldAccess)'
     ];
-    root.filterByName('*Matching*');
-    root.filterByName('');
+
+    root.nameFilterString = '*Matching*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -651,11 +677,19 @@ describe('Dependencies', () => {
     root.getLinks = () => dependencies.getAllLinks();
     dependencies.recreateVisible();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const filterForVisibleDependencies = d => d.from.startsWith('com.tngtech.MatchingClass') && d.to.startsWith('com.tngtech.MatchingClass');
     const hiddenDependencies = dependencies.getVisible().filter(d => !filterForVisibleDependencies(d));
     const visibleDependencies = dependencies.getVisible().filter(filterForVisibleDependencies);
 
-    root.filterByName('*Matching*');
+    root.nameFilterString = '*Matching*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() => {
       expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
@@ -681,10 +715,18 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
-    root.filterByName('~*InnerClass*');
+    root.nameFilterString = '~*InnerClass*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
 
@@ -708,11 +750,20 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     //fold the class with the inner class, so that the two dependencies must share their nodes
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
-    root.filterByName('~*InnerClass*');
-    root.filterByName('');
+    root.nameFilterString = '~*InnerClass*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     const mapToMustShareNodes = dependencies => dependencies.map(d => d.visualData.mustShareNodes);
     return root._updatePromise.then(() =>
@@ -740,10 +791,18 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -764,11 +823,18 @@ describe('Dependencies', () => {
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -795,13 +861,21 @@ describe('Dependencies', () => {
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
 
     const exp = ['com.tngtech.pkgToFold->com.tngtech.SomeInterface()',
       'com.tngtech.SomeClass->com.tngtech.pkgToFold()'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('~*X*');
-    root.filterByName('');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -823,12 +897,20 @@ describe('Dependencies', () => {
     const dependencies = new Dependencies(jsonRoot, root);
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
 
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('~*X*');
-    root.filterByName('');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -851,10 +933,20 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('~*X*');
+
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
+
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
     return root._updatePromise.then(() =>
@@ -877,10 +969,18 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
     return root._updatePromise.then(() =>
@@ -904,9 +1004,17 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
 
     return root._updatePromise.then(() =>
@@ -929,9 +1037,17 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
 
     return root._updatePromise.then(() =>
@@ -955,9 +1071,17 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold.NotMatchingClass(methodCall)'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', false);
 
@@ -981,9 +1105,17 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements)'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', false);
 
@@ -1009,12 +1141,21 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeInterface->com.tngtech.pkgToFold()',
       'com.tngtech.pkgToFold->com.tngtech.SomeInterface()'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.pkgToFold', true);
-    root.filterByName('');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -1036,11 +1177,20 @@ describe('Dependencies', () => {
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(root.filterGroup)
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+    root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+    root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+
     const exp = ['com.tngtech.SomeClassWithInnerClass->com.tngtech.SomeInterface(implements childrenAccess)'];
 
-    root.filterByName('~*X*');
+    root.nameFilterString = '~*X*';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
     dependencies.updateOnNodeFolded('com.tngtech.SomeClassWithInnerClass', true);
-    root.filterByName('');
+    root.nameFilterString = '';
+    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
       expect(dependencies.getVisible()).to.haveDependencyStrings(exp));
@@ -1069,6 +1219,10 @@ describe('Dependencies', () => {
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
     dependencies.recreateVisible();
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     const filter = d1 => dependencies._elementary.filter(
       d2 =>
         d1.from === d2.from &&
@@ -1077,7 +1231,7 @@ describe('Dependencies', () => {
     const visibleDependencies = dependencies.getVisible().filter(filter);
     const hiddenDependencies = dependencies.getVisible().filter(d => !filter(d));
 
-    dependencies.filterByType({
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: false,
       showConstructorCall: false,
@@ -1086,6 +1240,7 @@ describe('Dependencies', () => {
       showAnonymousImplementation: false,
       showDepsBetweenChildAndParent: true
     });
+    filterCollection.updateFilter('dependencies.type');
 
 
     expect(dependencies.getVisible().map(d => d.isVisible())).to.not.include(false);
@@ -1095,34 +1250,20 @@ describe('Dependencies', () => {
     expect(dependencies.getVisible()).to.include.members(visibleDependencies);
   });
 
-  it('updates the position of the dependencies after filtering by type', () => {
-    const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
-
-    dependencies.filterByType({
-      showImplementing: true,
-      showExtending: true,
-      showConstructorCall: false,
-      showMethodCall: false,
-      showFieldAccess: false,
-      showAnonymousImplementation: false,
-      showDepsBetweenChildAndParent: true
-    });
-
-    return dependencies._updatePromise.then(() =>
-      expect(dependencies.getVisible().map(d => d._view.hasJumpedToPosition)).to.not.include(false));
-  });
-
   it('can filter by type: only show inheritance-dependencies', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
+
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
 
     const exp = [
       'com.tngtech.SomeClass1->com.tngtech.SomeClass2(extends)',
       'com.tngtech.SomeClass2->com.tngtech.SomeInterface(implements)'
     ];
 
-    dependencies.filterByType({
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: false,
@@ -1131,6 +1272,7 @@ describe('Dependencies', () => {
       showAnonymousImplementation: false,
       showDepsBetweenChildAndParent: true
     });
+    filterCollection.updateFilter('dependencies.type');
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
@@ -1150,9 +1292,13 @@ describe('Dependencies', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRoot, root);
 
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     const exp = ['com.tngtech.archunit.Class1$InnerClass1$InnerInnerClass2->com.tngtech.archunit.Class1$InnerClass1$InnerInnerClass1(fieldAccess)'];
 
-    dependencies.filterByType({
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: true,
@@ -1161,6 +1307,7 @@ describe('Dependencies', () => {
       showAnonymousImplementation: true,
       showDepsBetweenChildAndParent: false
     });
+    filterCollection.updateFilter('dependencies.type');
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
@@ -1169,9 +1316,14 @@ describe('Dependencies', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonRootWithAllDependencies, root);
     dependencies.recreateVisible();
+
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     const exp = dependencies.getVisible().map(d => d.toString());
 
-    dependencies.filterByType({
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: false,
@@ -1180,7 +1332,8 @@ describe('Dependencies', () => {
       showAnonymousImplementation: false,
       showDependenciesBetweenClassAndItsInnerClasses: true
     });
-    dependencies.filterByType({
+    filterCollection.updateFilter('dependencies.type');
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: true,
@@ -1189,6 +1342,7 @@ describe('Dependencies', () => {
       showAnonymousImplementation: true,
       showDependenciesBetweenClassAndItsInnerClasses: true
     });
+    filterCollection.updateFilter('dependencies.type');
 
     expect(dependencies.getVisible()).to.haveDependencyStrings(exp);
   });
@@ -1355,7 +1509,13 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
+
     expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass1')[0].isViolation).to.be.true;
     expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass2')[0].isViolation).to.be.false;
   });
@@ -1369,8 +1529,17 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
+
     dependencies.hideViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
+
     expect(dependencies.getVisible().map(d => d.isViolation)).to.not.include(true);
   });
 
@@ -1391,9 +1560,20 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule1);
+    filterCollection.updateFilter('dependencies.violations');
+
     dependencies.showViolations(rule2);
+    filterCollection.updateFilter('dependencies.violations');
+
     dependencies.hideViolations(rule1);
+    filterCollection.updateFilter('dependencies.violations');
+
     expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass1')[0].isViolation).to.be.true;
     expect(dependencies.getVisible().filter(d => d.from === 'com.tngtech.SomeClass2')[0].isViolation).to.be.false;
   });
@@ -1407,9 +1587,19 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
+
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule);
-    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
+    filterCollection.updateFilter('dependencies.violations');
+
+    filterCollection.getFilter('dependencies.violations').filterPrecondition.filterIsEnabled = true;
+    filterCollection.updateFilter('dependencies.violations');
+
     dependencies.hideViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
 
     const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
       'com.tngtech.SomeClass2->com.tngtech.SomeClass1(fieldAccess)'];
@@ -1426,9 +1616,14 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
-    dependencies.showViolations(rule);
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
 
-    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
+    dependencies.showViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
+    filterCollection.getFilter('dependencies.violations').filterPrecondition.filterIsEnabled = true;
+    filterCollection.updateFilter('dependencies.violations');
 
     const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)'];
 
@@ -1444,10 +1639,18 @@ describe('Dependencies', () => {
       }]
     };
     const dependencies = new Dependencies(jsonRootWithTwoClassesAndTwoDeps, rootWithTwoClassesAndTwoDeps);
-    dependencies.showViolations(rule);
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
 
-    dependencies.onHideAllOtherDependenciesWhenViolationExists(true);
-    dependencies.onHideAllOtherDependenciesWhenViolationExists(false);
+    dependencies.showViolations(rule);
+    filterCollection.updateFilter('dependencies.violations');
+
+    filterCollection.getFilter('dependencies.violations').filterPrecondition.filterIsEnabled = true;
+    filterCollection.updateFilter('dependencies.violations');
+
+    filterCollection.getFilter('dependencies.violations').filterPrecondition.filterIsEnabled = false;
+    filterCollection.updateFilter('dependencies.violations');
 
     const exp = ['com.tngtech.SomeClass1->com.tngtech.SomeClass2(fieldAccess)',
       'com.tngtech.SomeClass2->com.tngtech.SomeClass1(fieldAccess)'];
@@ -1501,7 +1704,7 @@ describe('Dependencies', () => {
     expect(dependencies.getNodesContainingViolations()).to.containExactlyNodes(exp);
   });
 
-  it('can return a set of all nodes that a involved in violations when these nodes are classes only', () => {
+  it('can return a set of all nodes that are involved in violations when these nodes are classes only', () => {
     const jsonRoot =
       testJson.package('com.tngtech')
         .add(testJson.package('pkg1')
@@ -1527,6 +1730,10 @@ describe('Dependencies', () => {
     };
 
     const dependencies = new Dependencies(jsonRoot, root);
+    buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule);
 
     const exp = ['com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.pkg2.SomeClass1'];
@@ -1557,6 +1764,10 @@ describe('Dependencies', () => {
     };
 
     const dependencies = new Dependencies(jsonRoot, root);
+    buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule);
 
     root.getByName('com.tngtech.pkg').fold();
@@ -1586,9 +1797,13 @@ describe('Dependencies', () => {
     };
 
     const dependencies = new Dependencies(jsonRoot, root);
+    const filterCollection = buildFilterCollection()
+      .addFilterGroup(dependencies.filterGroup)
+      .build();
+
     dependencies.showViolations(rule1);
 
-    dependencies.filterByType({
+    dependencies.changeTypeFilter({
       showImplementing: true,
       showExtending: true,
       showConstructorCall: true,
@@ -1597,6 +1812,7 @@ describe('Dependencies', () => {
       showAnonymousImplementation: true,
       showDepsBetweenChildAndParent: true
     });
+    filterCollection.updateFilter('dependencies.type');
 
     expect(dependencies.getNodesContainingViolations()).to.containExactlyNodes([]);
   });

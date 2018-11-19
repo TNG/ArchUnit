@@ -216,6 +216,19 @@ const init = (View, nodeMap) => {
       this.to = to;
       this.description = description;
       this.isViolation = isViolation;
+      this._matchesFilter = new Map();
+    }
+
+    setMatchesFilter(key, value) {
+      this._matchesFilter.set(key, value);
+    }
+
+    matchesAllFilters() {
+      return [...this._matchesFilter.values()].every(v => v);
+    }
+
+    matchesFilter(key) {
+      return this._matchesFilter.get(key);
     }
 
     getStartNode() {

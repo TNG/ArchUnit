@@ -113,4 +113,12 @@
         </Or>
         <Bug code="UrF"/>
     </Match>
+    <Match>
+        <Class name="com.tngtech.archunit.visual.JsonViolation"/>
+        <Or>
+            <Field name="origin"/>
+            <Field name="target"/>
+        </Or>
+        <Bug code="UrF"/>
+    </Match>
 </FindBugsFilter>

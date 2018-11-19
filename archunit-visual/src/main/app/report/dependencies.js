@@ -3,6 +3,7 @@
 const dependencyTypes = require('./dependency-types.json');
 const nodeTypes = require('./node-types.json');
 import initDependency from './dependency.js';
+import {buildFilterGroup} from './filter';
 
 const init = (View) => {
 
@@ -80,26 +81,6 @@ const init = (View) => {
   const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-  const reapplyFilters = (dependencies, filters) => {
-    dependencies._filtered = Array.from(filters).reduce((filtered_deps, filter) => filter(filtered_deps),
-      dependencies._elementary);
-    dependencies.recreateVisible();
-  };
-
-  const newFilters = (dependencies) => ({
-    typeFilter: () => null,
-    nameFilter: () => null,
-    violationsFilter: () => null,
-
-    apply: function () {
-      reapplyFilters(dependencies, this.values());
-    },
-
-    values: function () {
-      return [this.nameFilter(), this.typeFilter(), this.violationsFilter()].filter(f => !!f); // FIXME: We should not pass this object around to other modules (this is the reason for the name for now)
-    }
-  });
-
   //TODO: maybe extract to own file and create tests??
   const Violations = class {
     constructor() {
@@ -121,14 +102,16 @@ const init = (View) => {
         .map(violation => `${violation.origin}-${violation.target}`));
     }
 
-    addViolationGroup(violationGroup) {
+    addViolationGroup(violationGroup, elementaryDependencies) {
       this._violationGroups.set(violationGroup.rule, violationGroup);
       this._recreateViolationsSet();
+      this.refreshMarkOfViolationDependencies(elementaryDependencies);
     }
 
-    removeViolationGroup(violationGroup) {
+    removeViolationGroup(violationGroup, elementaryDependencies) {
       this._violationGroups.delete(violationGroup.rule);
       this._recreateViolationsSet();
+      this.refreshMarkOfViolationDependencies(elementaryDependencies);
     }
 
     refreshMarkOfViolationDependencies(dependencies) {
@@ -137,8 +120,7 @@ const init = (View) => {
     }
 
     getFilter() {
-      const violationsFilter = dependency => this.isEmpty() || this.containsDependency(dependency);
-      return dependencies => dependencies.filter(violationsFilter);
+      return dependency => this.isEmpty() || this.containsDependency(dependency);
     }
   };
 
@@ -170,23 +152,45 @@ const init = (View) => {
       nodes = nodeMap;
       dependencyCreator = initDependency(View, nodeMap);
 
-      this._hideNodesWithoutDependencies = false;
-
       this._violations = new Violations();
 
       this._transformers = new Map();
       this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
 
+      this._filterGroup = buildFilterGroup('dependencies', this.getFilterObject())
+        .addStaticFilter('type', () => true)
+        .withStaticFilterPrecondition(true)
+        .addDynamicFilter('nodeTypeAndName', () => this.getNodeTypeAndNameFilter())
+        .withStaticFilterPrecondition(true)
+        .addDynamicFilter('violations', () => this._violations.getFilter())
+        .withStaticFilterPrecondition(false)
+        .addDynamicFilter('visibleNodes', () => this.getVisibleNodesFilter(), [])
+        .withStaticFilterPrecondition(true)
+        .build();
+
       this._filtered = this._elementary;
       this._svgContainer = svgContainer;
-      this._filters = newFilters(this);
-      this._listener = [];
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
 
-    addListener(listener) {
-      this._listener.push(listener);
+    get filterGroup() {
+      return this._filterGroup;
+    }
+
+    getFilterObject() {
+      return {
+        runFilter: (filter, key) => this._elementary.forEach(d => d.setMatchesFilter(key, filter(d))),
+
+        applyFilters: () => {
+          this._filtered = this._elementary.filter(d => d.matchesAllFilters());
+          this.recreateVisible();
+        }
+      };
+    }
+
+    changeTypeFilter(typeFilterConfig) {
+      this._filterGroup.getFilter('type').filter = this.getTypeFilter(typeFilterConfig);
     }
 
     //TODO: maybe keep only one dependency of possible mutual dependencies
@@ -222,13 +226,11 @@ const init = (View) => {
     }
 
     showViolations(violationGroup) {
-      this._violations.addViolationGroup(violationGroup);
-      this._refreshViolationDependencies();
+      this._violations.addViolationGroup(violationGroup, this._elementary);
     }
 
     hideViolations(violationGroup) {
-      this._violations.removeViolationGroup(violationGroup);
-      this._refreshViolationDependencies();
+      this._violations.removeViolationGroup(violationGroup, this._elementary);
     }
 
     _getViolationDependencies() {
@@ -244,14 +246,15 @@ const init = (View) => {
     }
 
     getNodesInvolvedInVisibleViolations() {
-      const violationDependencies = this._getViolationDependencies();
+      const violationDependencies = this._elementary.filter(d => this._violations.containsDependency(d)
+        && d.matchesFilter('type') && d.matchesFilter('nodeTypeAndName'));
       const nodesInvolvedInViolations = violationDependencies.map(d => nodes.getByName(d.from)).concat(violationDependencies.map(d => nodes.getByName(d.to)));
       return new Set(nodesInvolvedInViolations);
     }
 
-    _refreshViolationDependencies() {
-      this._violations.refreshMarkOfViolationDependencies(this._elementary);
-      this._applyFiltersAndRepositionDependencies();
+    getHasNodeVisibleViolation() {
+      const nodesInvolvedInVisibleViolations = this.getNodesInvolvedInVisibleViolations();
+      return node => this._violations.isEmpty() || nodesInvolvedInVisibleViolations.has(node);
     }
 
     createListener() {
@@ -259,8 +262,6 @@ const init = (View) => {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
         onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
         onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
-        onNodeFiltersChanged: () => this._updateNodeFilters(true),
-        onDependentNodeFiltersChanged: () => this._updateNodeFilters(false),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -302,10 +303,6 @@ const init = (View) => {
       arrayDifference(dependenciesBefore, this.getVisible()).forEach(d => d.hide());
     }
 
-    _jumpAllToTheirPositions() {
-      this.getVisible().forEach(d => d.jumpToPosition())
-    }
-
     jumpSpecificDependenciesToTheirPositions(node) {
       this.getVisible().filter(d => node.isPredecessorOfOrNodeItself(d.from) || node.isPredecessorOfOrNodeItself(d.to)).forEach(d => d.jumpToPosition());
     }
@@ -333,51 +330,19 @@ const init = (View) => {
       this.recreateVisible();
     }
 
-    onHideAllOtherDependenciesWhenViolationExists(hideAllOtherDependencies) {
-      if (hideAllOtherDependencies) {
-        this._filters.violationsFilter = () => this._violations.getFilter();
-      }
-      else {
-        this._filters.violationsFilter = () => null;
-      }
-      this._refreshViolationDependencies();
-    }
-
-    _recallNodeListeners() {
-      this._callNodeListener(listener => listener.onDependentFiltersChangedAfterIndependentFiltersChanged);
-    }
-
-    _notifyNodeListeners() {
-      this._callNodeListener(listener => listener.onDependentFiltersChanged);
-    }
-
-    _callNodeListener(getListenerFunction) {
-      const nodeFilterKey = 'violationsFilter';
-      if (this._hideNodesWithoutDependencies && !this._violations.isEmpty()) {
-        const nodesWithViolations = this.getNodesInvolvedInVisibleViolations();
-        this._listener.forEach(listener => getListenerFunction(listener)(nodeFilterKey, node => nodesWithViolations.has(node)));
-      }
-      else {
-        this._listener.forEach(listener => getListenerFunction(listener)(nodeFilterKey, null))
+    getNodeTypeAndNameFilter() {
+      return d => {
+        return nodes.getByName(d.from).matchesFilter('typeAndName')
+          && nodes.getByName(d.to).matchesFilter('typeAndName');
       }
     }
 
-    onHideNodesWithoutViolationsChanged(hide) {
-      this._hideNodesWithoutDependencies = hide;
-      this._notifyNodeListeners();
+    getVisibleNodesFilter() {
+      return d => nodes.getByName(d.from).matchesFilter('combinedFilter') && nodes.getByName(d.to).matchesFilter('combinedFilter');
     }
 
-    _updateNodeFilters(recallNodeListener) {
-      //TODO: either set nameFilter already in newFilters or remove it, when both nodeFilters are null
-      this._filters.nameFilter = () => dependencies => dependencies.filter(d => nodes.getByName(d.from).matchesFilter() && nodes.getByName(d.to).matchesFilter());
-      this._filters.apply();
-      if (recallNodeListener) {
-        this._recallNodeListeners();
-      }
-    }
-
-    filterByType(typeFilterConfig) {
-      const typeFilter = dependency => {
+    getTypeFilter(typeFilterConfig) {
+      return dependency => {
         const type = dependency.description.getDependencyTypeNamesAsString();
         return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
           && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
@@ -389,15 +354,6 @@ const init = (View) => {
             && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
             || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
       };
-      this._filters.typeFilter = () => dependencies => dependencies.filter(typeFilter);
-      this._applyFiltersAndRepositionDependencies();
-    }
-
-    _applyFiltersAndRepositionDependencies() {
-      //TODO: dependencies should not be shown before the nodes are relayouted...
-      this._filters.apply();
-      this._notifyNodeListeners();
-      this.doNext(() => this._jumpAllToTheirPositions());
     }
 
     getVisible() {
