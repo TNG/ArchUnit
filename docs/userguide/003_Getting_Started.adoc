@@ -116,7 +116,7 @@ class MyArchitectureTest {
 
     @ArchTest
     fun rule_as_method(classes: JavaClasses) {
-        ArchRule rule = ArchRuleDefinition.noClasses().should()...
+        val rule = ArchRuleDefinition.noClasses().should()...
         rule.check(classes)
     }
 }
