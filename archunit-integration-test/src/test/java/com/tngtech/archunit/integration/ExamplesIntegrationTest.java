@@ -106,6 +106,10 @@ import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedMethod;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
+import com.tngtech.archunit.testutils.ResultStoringExtension;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -138,6 +142,21 @@ import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDe
 import static java.lang.System.lineSeparator;
 
 class ExamplesIntegrationTest {
+
+    @BeforeAll
+    static void initExtension() {
+        ResultStoringExtension.enable();
+    }
+
+    @AfterEach
+    void tearDown() {
+        ResultStoringExtension.reset();
+    }
+
+    @AfterAll
+    static void disableExtension() {
+        ResultStoringExtension.disable();
+    }
 
     @TestFactory
     Stream<DynamicTest> CodingRulesTest() {
