@@ -89,8 +89,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
             report = report.filter(notMatchedByAny(patterns));
             if (!report.isEmpty()) {
-                String message = report.toString();
-                throw new AssertionError(message, result);
+                throw new AssertionError(report.toString());
             }
         }
 
@@ -259,20 +258,6 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             public String toString() {
                 return String.format("because '%s'", reason);
             }
-        }
-    }
-
-    final class AssertionError extends java.lang.AssertionError {
-        private final EvaluationResult result;
-
-        private AssertionError(String message, EvaluationResult result) {
-            super(message);
-            this.result = result;
-        }
-
-        @PublicAPI(usage = ACCESS)
-        public EvaluationResult getResult() {
-            return result;
         }
     }
 }
