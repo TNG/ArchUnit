@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.JUnitCore;
@@ -259,8 +259,8 @@ public class ExpectedTestFailures {
             this.error = error;
         }
 
-        ArchRule.AssertionError getAssertionError() {
-            return (ArchRule.AssertionError) error;
+        AssertionError getAssertionError() {
+            return (AssertionError) error;
         }
 
         @Override
@@ -281,13 +281,13 @@ public class ExpectedTestFailures {
 
         void assertNoUnexpectedErrorType() {
             List<TestFailure> unexpectedFailureTypes = failures.stream()
-                    .filter(f -> !(f.error instanceof ArchRule.AssertionError))
+                    .filter(f -> !(f.error instanceof AssertionError))
                     .collect(toList());
 
             if (!unexpectedFailureTypes.isEmpty()) {
                 throw new AssertionError(String.format(
                         "Some failures were due to an unexpected error (i.e. not %s): %s",
-                        ArchRule.AssertionError.class.getName(),
+                        AssertionError.class.getName(),
                         unexpectedFailureTypes));
             }
         }
@@ -358,9 +358,10 @@ public class ExpectedTestFailures {
             return new ExpectedViolationToAssign(failurePredicate, expectedViolation.copy(), handlingAssertion.copy());
         }
 
-        Result evaluate(ArchRule.AssertionError error) {
+        Result evaluate(AssertionError error) {
             ViolationComparisonResult violationResult = expectedViolation.evaluate(error);
-            HandlingAssertion.Result handlingResult = handlingAssertion.evaluate(error.getResult());
+            EvaluationResult evaluationResult = ResultStoringExtension.getEvaluationResultFor(error.getMessage());
+            HandlingAssertion.Result handlingResult = handlingAssertion.evaluate(evaluationResult);
             return new Result(violationResult, handlingResult);
         }
 
