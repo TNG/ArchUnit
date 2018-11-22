@@ -149,8 +149,15 @@ class JsonExporter {
     }
 
     private boolean isDependencyRelevant(Dependency d) {
-        return !d.getTargetClass().isEquivalentTo(Object.class)
-                && !d.getTargetClass().isAnonymous()
-                && !d.getTargetClass().getPackageName().isEmpty();
+        return !d.getTargetClass().isEquivalentTo(Object.class) && !isDefaultDependencyFromInnerClassToEnclosingClass(d);
+    }
+
+    private boolean isDefaultDependencyFromInnerClassToEnclosingClass(Dependency d) {
+        boolean isDependencyFromInnerClassToEnclosingClass = d.getOriginClass().isInnerClass()
+                && d.getOriginClass().getEnclosingClass().isPresent() //should be unnecessary - but is safer
+                && d.getOriginClass().getEnclosingClass().get().getName().equals(d.getTargetClass().getName());
+        boolean isDefaultDependency = d.getLineNumber() == 0 &&
+                (d.getType() == Dependency.Type.CONSTRUCTOR_PARAMETER_TYPE || d.getType() == Dependency.Type.FIELD_TYPE);
+        return isDependencyFromInnerClassToEnclosingClass && isDefaultDependency;
     }
 }

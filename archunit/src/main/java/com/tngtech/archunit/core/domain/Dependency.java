@@ -165,6 +165,11 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     @PublicAPI(usage = ACCESS)
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaClass getOriginClass() {
         return originClass;
     }
