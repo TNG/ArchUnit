@@ -22,14 +22,16 @@ import java.util.Objects;
 
 import com.google.common.collect.ImmutableList;
 
-class Edge<T, ATTACHMENT> {
+final class Edge<T, ATTACHMENT> {
     private final T from;
     private final T to;
     private final List<ATTACHMENT> attachments = new ArrayList<>();
+    private final int hashCode;
 
     Edge(T from, T to) {
         this.from = from;
         this.to = to;
+        hashCode = Objects.hash(from, to);
     }
 
     Edge(T from, T to, Collection<ATTACHMENT> attachments) {
@@ -55,7 +57,7 @@ class Edge<T, ATTACHMENT> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, to);
+        return hashCode;
     }
 
     @Override
