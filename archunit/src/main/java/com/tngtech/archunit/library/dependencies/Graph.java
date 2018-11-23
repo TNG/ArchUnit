@@ -16,76 +16,93 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.singleton;
 
 class Graph<T, ATTACHMENT> {
-    private final Set<T> nodes = new HashSet<>();
-    private final Multimap<T, Edge<T, ATTACHMENT>> outgoingEdges = HashMultimap.create();
-    private final Set<Cycle<T, ATTACHMENT>> cycles = new HashSet<>();
+    private final Map<T, Integer> nodes = new HashMap<>();
+    private final ListMultimap<Integer, Edge<T, ATTACHMENT>> outgoingEdges = ArrayListMultimap.create();
 
-    void add(T node, Set<Edge<T, ATTACHMENT>> connectingEdges) {
-        nodes.add(checkNotNull(node));
-        for (Edge<T, ATTACHMENT> edge : connectingEdges) {
-            addEdge(edge);
-        }
-        cycles.addAll(cyclesThrough(node));
-    }
-
-    private void addEdge(Edge<T, ATTACHMENT> edge) {
-        checkArgument(nodes.contains(edge.getFrom()), "Node %s of edge %s is not part of the graph", edge.getFrom(), edge);
-        checkArgument(nodes.contains(edge.getTo()), "Node %s of edge %s is not part of the graph", edge.getTo(), edge);
-        outgoingEdges.put(edge.getFrom(), edge);
-    }
-
-    Set<Cycle<T, ATTACHMENT>> getCycles() {
-        return ImmutableSet.copyOf(cycles);
-    }
-
-    private Set<Cycle<T, ATTACHMENT>> cyclesThrough(T node) {
-        Set<Cycle<T, ATTACHMENT>> result = new HashSet<>();
-        for (Path<T, ATTACHMENT> pathThroughNode : follow(outgoingEdges.get(node), new Path<T, ATTACHMENT>(), singleton(node))) {
-            if (pathThroughNode.isCycle()) {
-                result.add(Cycle.from(pathThroughNode));
+    void addNodes(Iterable<T> nodes) {
+        for (T node : nodes) {
+            if (!this.nodes.containsKey(node)) {
+                this.nodes.put(node, this.nodes.size());
             }
         }
-        return result;
     }
 
-    private Set<Path<T, ATTACHMENT>> follow(Collection<Edge<T, ATTACHMENT>> edges, Path<T, ATTACHMENT> incomingPath, Set<T> visitedNodes) {
-        Set<Path<T, ATTACHMENT>> result = new HashSet<>();
-        for (Edge<T, ATTACHMENT> edge : edges) {
-            result.addAll(follow(edge, incomingPath, visitedNodes));
+    void addEdges(Iterable<Edge<T, ATTACHMENT>> outgoingEdges) {
+        for (Edge<T, ATTACHMENT> edge : outgoingEdges) {
+            checkArgument(nodes.containsKey(edge.getFrom()), "Node %s of edge %s is not part of the graph", edge.getFrom(), edge);
+            checkArgument(nodes.containsKey(edge.getTo()), "Node %s of edge %s is not part of the graph", edge.getTo(), edge);
+            this.outgoingEdges.put(nodes.get(edge.getFrom()), edge);
         }
-        return result;
     }
 
-    private Set<Path<T, ATTACHMENT>> follow(Edge<T, ATTACHMENT> edge, Path<T, ATTACHMENT> incomingPath, Set<T> visitedNodes) {
-        Path<T, ATTACHMENT> newPath = new Path<>(incomingPath).append(edge);
-        if (visitedNodes.contains(newPath.getEnd())) {
-            return singleton(newPath);
+    Collection<Cycle<T, ATTACHMENT>> findCycles() {
+        Map<Integer, Map<Integer, Edge<T, ATTACHMENT>>> edgesByTargetIndexByOriginIndex = indexEdgesByTargetIndexByOriginIndex(nodes, outgoingEdges);
+        JohnsonCycleFinder johnsonCycleFinder = new JohnsonCycleFinder(createPrimitiveGraph());
+        ImmutableList.Builder<Cycle<T, ATTACHMENT>> result = ImmutableList.builder();
+        for (int[] rawCycle : johnsonCycleFinder.findCycles()) {
+            result.add(mapToCycle(edgesByTargetIndexByOriginIndex, rawCycle));
         }
-        Set<T> nowVisited = union(visitedNodes, edge.getTo());
-        return follow(outgoingEdges.get(edge.getTo()), newPath, nowVisited);
+        return result.build();
     }
 
-    private Set<T> union(Set<T> set, T additionalElement) {
-        return ImmutableSet.<T>builder().addAll(set).add(additionalElement).build();
+    private PrimitiveGraph createPrimitiveGraph() {
+        int[][] edges = new int[nodes.size()][];
+        for (Map.Entry<T, Integer> nodeToIndex : nodes.entrySet()) {
+            List<Edge<T, ATTACHMENT>> outgoing = outgoingEdges.get(nodeToIndex.getValue());
+            edges[nodeToIndex.getValue()] = new int[outgoing.size()];
+            for (int j = 0; j < outgoing.size(); j++) {
+                edges[nodeToIndex.getValue()][j] = nodes.get(outgoing.get(j).getTo());
+            }
+        }
+        return new PrimitiveGraph(edges);
+    }
+
+    private ImmutableMap<Integer, Map<Integer, Edge<T, ATTACHMENT>>> indexEdgesByTargetIndexByOriginIndex(
+            Map<T, Integer> nodes,
+            Multimap<Integer, Edge<T, ATTACHMENT>> outgoingEdges) {
+
+        ImmutableMap.Builder<Integer, Map<Integer, Edge<T, ATTACHMENT>>> edgeMapBuilder = ImmutableMap.builder();
+        for (Map.Entry<Integer, Collection<Edge<T, ATTACHMENT>>> originIndexToEdges : outgoingEdges.asMap().entrySet()) {
+            ImmutableMap.Builder<Integer, Edge<T, ATTACHMENT>> targetIndexToEdges = ImmutableMap.builder();
+            for (Edge<T, ATTACHMENT> edge : originIndexToEdges.getValue()) {
+                targetIndexToEdges.put(nodes.get(edge.getTo()), edge);
+            }
+            edgeMapBuilder.put(originIndexToEdges.getKey(), targetIndexToEdges.build());
+        }
+        return edgeMapBuilder.build();
+    }
+
+    private Cycle<T, ATTACHMENT> mapToCycle(Map<Integer, Map<Integer, Edge<T, ATTACHMENT>>> edgesByTargetIndexByOriginIndex, int[] rawCycle) {
+        ImmutableList.Builder<Edge<T, ATTACHMENT>> edges = ImmutableList.builder();
+        int originIndex = -1;
+        for (int targetIndex : rawCycle) {
+            if (originIndex >= 0) {
+                edges.add(edgesByTargetIndexByOriginIndex.get(originIndex).get(targetIndex));
+            }
+            originIndex = targetIndex;
+        }
+        edges.add(edgesByTargetIndexByOriginIndex.get(originIndex).get(rawCycle[0]));
+        return new Cycle<>(edges.build());
     }
 
     @Override
     public String toString() {
         return "Graph{" +
                 "nodes=" + nodes +
-                ", edges=" + outgoingEdges.values() +
+                ", edges=" + outgoingEdges +
                 '}';
     }
 }
