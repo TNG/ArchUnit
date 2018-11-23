@@ -17,6 +17,11 @@ public class AhavingMembersOfTypeB {
     }
 
     void throwingBException() throws B.BException {
+    }
 
+    AhavingMembersOfTypeB ignoredField;
+
+    AhavingMembersOfTypeB ignored(AhavingMembersOfTypeB other) {
+        return null;
     }
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
