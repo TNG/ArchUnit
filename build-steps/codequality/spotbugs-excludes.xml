@@ -74,7 +74,7 @@
         <Class name="com.tngtech.archunit.visual.Visualizer"/>
         <Or>
             <Method name="exportJson"
-                    params="com.tngtech.archunit.core.domain.JavaClasses, java.io.File, com.tngtech.archunit.visual.VisualizationContext"
+                    params="com.tngtech.archunit.core.domain.JavaClasses, java.io.File"
                     returns="void"/>
             <Method name="exportViolations"
                     params="java.io.File, java.lang.String, com.tngtech.archunit.lang.EvaluationResult" returns="void"/>

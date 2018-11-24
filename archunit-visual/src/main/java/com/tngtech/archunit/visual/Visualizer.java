@@ -15,11 +15,6 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.common.io.ByteStreams;
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.lang.EvaluationResult;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +22,11 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.jar.JarEntry;
+
+import com.google.common.io.ByteStreams;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -38,22 +38,13 @@ public final class Visualizer {
 
     private final JavaClasses classes;
     private final File targetDir;
-    private final VisualizationContext context;
-
-    @PublicAPI(usage = ACCESS)
-    public Visualizer(JavaClasses classes, final File targetDir, VisualizationContext context) {
-        checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create " + targetDir.getAbsolutePath());
-        this.classes = classes;
-        this.targetDir = targetDir;
-        this.context = context;
-    }
 
     @PublicAPI(usage = ACCESS)
     public Visualizer(JavaClasses classes, final File targetDir) {
-        this(classes, targetDir, VisualizationContext.everything());
+        checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create %s", targetDir.getAbsolutePath());
+        this.classes = classes;
+        this.targetDir = targetDir;
     }
-
-    //TODO: method for only exporting violations
 
     @PublicAPI(usage = ACCESS)
     public void visualize() {
@@ -70,7 +61,7 @@ public final class Visualizer {
     }
 
     private void exportJson(ReportFile reportFile) {
-        reportFile.insertJsonRoot(new JsonExporter().exportToJson(classes, context));
+        reportFile.insertJsonRoot(new JsonExporter().exportToJson(classes));
     }
 
     private void exportViolations(Iterable<EvaluationResult> evaluationResults, ReportFile reportFile) {

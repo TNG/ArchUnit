@@ -1,5 +1,8 @@
 package com.tngtech.archunit.visual;
 
+import java.io.File;
+import java.util.Arrays;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -8,12 +11,9 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.Arrays;
-
 public class VisualizerDemo {
     @Test
-    public void build_report() throws Exception {
+    public void build_report() {
         System.out.println("Building example report...");
 
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.visual",
@@ -27,7 +27,6 @@ public class VisualizerDemo {
 
         new Visualizer(classes,
                 new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report")
-                //VisualizationContext.includeOnly("com.tngtech.archunit.visual", "java.io.File", "com.google.common.io"));
         ).visualize(Arrays.asList(evaluationResult1, evaluationResult2));
     }
 }

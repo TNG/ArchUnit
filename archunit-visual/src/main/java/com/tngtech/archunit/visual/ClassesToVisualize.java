@@ -15,28 +15,33 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
-import java.util.*;
-
 class ClassesToVisualize {
     private ClassList classList = new ClassList();
     private ClassList dependenciesClassList = new ClassList();
 
-    private ClassesToVisualize(JavaClasses classes, VisualizationContext context) {
-        Set<JavaClass> includedClasses = context.filterIncluded(classes);
-        addClasses(includedClasses);
-        addDependencies(context);
+    private ClassesToVisualize(JavaClasses classes) {
+        addClasses(classes);
+        addDependencies();
     }
 
     private boolean isClassValid(JavaClass clazz) {
         return !clazz.getPackageName().isEmpty() && !clazz.getSimpleName().isEmpty();
     }
 
-    private void addClasses(Set<JavaClass> classes) {
+    private void addClasses(Iterable<JavaClass> classes) {
         for (JavaClass clazz : classes) {
             if (!clazz.getPackageName().isEmpty()) {
                 classList.addClass(clazz);
@@ -44,11 +49,10 @@ class ClassesToVisualize {
         }
     }
 
-    private void addDependencies(VisualizationContext context) {
+    private void addDependencies() {
         for (JavaClass clazz : classList.getAllClassesOrderByDepth()) {
             for (Dependency dependency : clazz.getDirectDependenciesFromSelf()) {
-                if (context.isElementIncluded(dependency.getTargetClass())
-                        && !classList.containsClass(dependency.getTargetClass().getName())
+                if (!classList.containsClass(dependency.getTargetClass().getName())
                         && isClassValid(dependency.getTargetClass())) {
                     dependenciesClassList.addClassAndEnclosingClasses(dependency.getTargetClass());
                 }
@@ -79,8 +83,8 @@ class ClassesToVisualize {
         return Iterables.concat(getClasses(), getDependenciesClasses());
     }
 
-    static ClassesToVisualize from(JavaClasses classes, VisualizationContext context) {
-        return new ClassesToVisualize(classes, context);
+    static ClassesToVisualize from(JavaClasses classes) {
+        return new ClassesToVisualize(classes);
     }
 
     /**

@@ -15,6 +15,9 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Objects;
+
+import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -41,5 +44,33 @@ class JsonAccess {
                 Formatters.formatMethodParameterTypeNames(javaCall.getOrigin().getParameters().getNames()) + ")";
         this.targetCodeElement = javaCall.getTarget().getName() + "(" +
                 Formatters.formatMethodParameterTypeNames(javaCall.getTarget().getParameters().getNames()) + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(target, startCodeUnit, targetCodeElement);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JsonAccess other = (JsonAccess) obj;
+        return Objects.equals(this.target, other.target)
+                && Objects.equals(this.startCodeUnit, other.startCodeUnit)
+                && Objects.equals(this.targetCodeElement, other.targetCodeElement);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("target", target)
+                .add("startCodeUnit", startCodeUnit)
+                .add("targetCodeElement", targetCodeElement)
+                .toString();
     }
 }

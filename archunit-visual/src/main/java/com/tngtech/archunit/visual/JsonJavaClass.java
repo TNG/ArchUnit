@@ -25,6 +25,7 @@ class JsonJavaClass extends JsonJavaElement {
     @Expose
     private String superclass;
 
+    // FIXME: After refactoring dependencies vs class properties, we should revisit this boolean flag here
     JsonJavaClass(JavaClass clazz, boolean withSuperclass) {
         super(clazz.getSimpleName(), clazz.getName(), TYPE);
         this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";

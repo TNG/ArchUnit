@@ -15,12 +15,14 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Objects;
+import java.util.Set;
+
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
-
-import java.util.Set;
 
 class JsonViolation {
     @Expose
@@ -40,11 +42,6 @@ class JsonViolation {
         );
     }
 
-    //FIXME: remove
-    String getIdentifier() {
-        return origin + "->" + target;
-    }
-
     public static JsonViolation from(Dependency violatingObject) {
         Set<JavaAccess> javaAccesses = violatingObject.convertTo(JavaAccess.class);
         if (javaAccesses.size() == 1) {
@@ -52,5 +49,31 @@ class JsonViolation {
             return new JsonViolation(access.getOrigin().getFullName(), access.getTarget().getFullName());
         }
         return new JsonViolation(violatingObject.getOriginClass().getName(), violatingObject.getTargetClass().getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(origin, target);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JsonViolation other = (JsonViolation) obj;
+        return Objects.equals(this.origin, other.origin)
+                && Objects.equals(this.target, other.target);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("origin", origin)
+                .add("target", target)
+                .toString();
     }
 }

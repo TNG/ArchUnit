@@ -15,13 +15,15 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Multimap;
 import com.google.gson.annotations.Expose;
-
-import java.util.Collection;
-import java.util.Map;
 
 class JsonEvaluationResult {
     @Expose
@@ -42,5 +44,31 @@ class JsonEvaluationResult {
                         return new JsonEvaluationResult(input.getKey(), input.getValue());
                     }
                 });
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rule, violations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JsonEvaluationResult other = (JsonEvaluationResult) obj;
+        return Objects.equals(this.rule, other.rule)
+                && Objects.equals(this.violations, other.violations);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("rule", rule)
+                .add("violations", violations)
+                .toString();
     }
 }

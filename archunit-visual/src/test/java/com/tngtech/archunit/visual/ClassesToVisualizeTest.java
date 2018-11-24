@@ -1,7 +1,11 @@
 package com.tngtech.archunit.visual;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -29,24 +33,19 @@ public class ClassesToVisualizeTest {
             TestDependencyClassWithInnerClass.TestDependencyInnerClass.class);
 
     @Test
-    public void contain_non_filtered_classes() {
+    public void contain_classes() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes);
         Iterable<String> expected = Iterables.concat(namesOf(classes), namesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
         assertThat(namesOf(classesToVisualize.getAll())).containsOnlyElementsOf(expected);
-
-        classesToVisualize = ClassesToVisualize.from(classes,
-                VisualizationContext.includeOnly(SubPkgClass.class.getPackage().getName()));
-        assertThat(classesToVisualize.getAll()).doesNotContain(classes.get(SomeClass.class));
-        assertThat(namesOf(classesToVisualize.getAll())).doesNotContain(SUB_PKG_CLASS_DEPENDENCY.getName());
     }
 
     @Test
     public void contain_classes_in_order_of_inner_class_depth() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes);
         SortedMap<Integer, ImmutableSet<JavaClass>> sortedMap = getClassesSortedByDepth(classes);
 
         Iterator<JavaClass> iterator = classesToVisualize.getClasses().iterator();
@@ -62,7 +61,7 @@ public class ClassesToVisualizeTest {
     public void contain_dependencies() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes);
 
         assertThat(namesOf(classesToVisualize.getDependenciesClasses()))
                 .containsOnlyElementsOf(namesOf(EXTRA_DEPENDENCIES_OF_TEST_CLASSES));
@@ -72,7 +71,7 @@ public class ClassesToVisualizeTest {
     public void contain_packages() {
         JavaClasses classes = new ClassFileImporter().importPackages(SomeClass.class.getPackage().getName());
 
-        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes, VisualizationContext.everything());
+        ClassesToVisualize classesToVisualize = ClassesToVisualize.from(classes);
 
         Set<String> expectedPackages = Sets.union(
                 ImmutableSet.of(SomeClass.class.getPackage().getName(), SubPkgClass.class.getPackage().getName()),
@@ -81,7 +80,7 @@ public class ClassesToVisualizeTest {
     }
 
     private Set<String> namesOf(Set<Class<?>> classes) {
-        return ImmutableSet.copyOf(JavaClass.namesOf(classes.toArray(new Class<?>[classes.size()])));
+        return ImmutableSet.copyOf(JavaClass.namesOf(classes.toArray(new Class<?>[0])));
     }
 
     private Iterable<String> namesOf(Iterable<JavaClass> all) {

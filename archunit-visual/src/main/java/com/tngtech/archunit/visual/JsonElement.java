@@ -15,10 +15,12 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Objects;
+import java.util.Set;
+
+import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.base.Optional;
-
-import java.util.Set;
 
 abstract class JsonElement {
     static final String DEFAULT_ROOT = "default";
@@ -67,7 +69,7 @@ abstract class JsonElement {
     private void insertToChild(JsonJavaElement jsonJavaElement) {
         for (JsonElement child : getChildren()) {
             if (jsonJavaElement.fullName.startsWith(child.fullName)
-                    && jsonJavaElement.fullName.substring(child.fullName.length()).matches("(\\.|\\$).*")) {
+                    && jsonJavaElement.fullName.substring(child.fullName.length()).matches("([.$]).*")) {
                 child.insert(jsonJavaElement);
                 return;
             }
@@ -78,5 +80,29 @@ abstract class JsonElement {
          **/
         JsonJavaElement enclosingClass = JsonJavaClass.createEnclosingClassOf(jsonJavaElement, fullName);
         addClass(enclosingClass);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fullName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JsonElement other = (JsonElement) obj;
+        return Objects.equals(this.fullName, other.fullName);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("fullName", fullName)
+                .toString();
     }
 }

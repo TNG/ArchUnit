@@ -15,9 +15,11 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
-
+import java.util.Objects;
 import java.util.Set;
+
+import com.google.common.base.MoreObjects;
+import com.google.gson.annotations.Expose;
 
 class JsonExport {
     @Expose
@@ -28,5 +30,31 @@ class JsonExport {
     JsonExport(JsonJavaPackage root, Set<JsonJavaDependency> dependencies) {
         this.root = root;
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(root, dependencies);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JsonExport other = (JsonExport) obj;
+        return Objects.equals(this.root, other.root)
+                && Objects.equals(this.dependencies, other.dependencies);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("root", root)
+                .add("dependencies", dependencies)
+                .toString();
     }
 }

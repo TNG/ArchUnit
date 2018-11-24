@@ -1,24 +1,30 @@
 package com.tngtech.archunit.visual;
 
-import com.google.common.base.Charsets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
-import org.assertj.guava.api.Assertions;
-import org.assertj.guava.api.OptionalAssert;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.tngtech.archunit.base.Optional;
+import org.assertj.guava.api.Assertions;
+import org.assertj.guava.api.OptionalAssert;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 final class ResourcesUtils {
 
@@ -44,15 +50,6 @@ final class ResourcesUtils {
         return gson.toJson(element);
     }
 
-    static Optional<String> fullNameOf(Optional<? extends JsonElement> element) {
-        return element.transform(new Function<JsonElement, String>() {
-            @Override
-            public String apply(JsonElement input) {
-                return input.fullName;
-            }
-        });
-    }
-
     static Map<Object, Object> jsonToMap(File file) {
         JsonReader reader;
         try {
@@ -65,30 +62,12 @@ final class ResourcesUtils {
         return ensureOrderIgnored(imported);
     }
 
-    static Map<Object, Object>[] jsonToMapArray(File file) {
-        try (JsonReader reader = new JsonReader(new FileReader(file))) {
-            Map<Object, Object>[] imported = importJsonArrayFromReader(reader);
-            return ensureOrderIgnored(imported);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private static Map<Object, Object> importJsonObjectFromReader(JsonReader reader) {
         return checkNotNull(new Gson().<Map<Object, Object>>fromJson(reader, mapStringObjectType()));
     }
 
-    private static Map<Object, Object>[] importJsonArrayFromReader(JsonReader reader) {
-        return checkNotNull(new Gson().<Map<Object, Object>[]>fromJson(reader, mapStringObjectArrayType()));
-    }
-
     private static Type mapStringObjectType() {
         return new TypeToken<Map<String, Object>>() {
-        }.getType();
-    }
-
-    private static Type mapStringObjectArrayType() {
-        return new TypeToken<Map<String, Object>[]>() {
         }.getType();
     }
 
@@ -126,5 +105,13 @@ final class ResourcesUtils {
 
     static File getResource(String name) {
         return new File(ResourcesUtils.class.getResource(name).getFile());
+    }
+
+    static String getResourceText(Class<?> resourceRelativeClass, String resourceName) {
+        try (InputStream inputStream = resourceRelativeClass.getResourceAsStream(resourceName)) {
+            return new String(ByteStreams.toByteArray(inputStream), UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

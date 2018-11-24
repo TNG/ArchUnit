@@ -1,130 +1,299 @@
 {
   "root": {
-    "name": "com.tngtech.archunit.visual.testjson.structure",
-    "fullName": "com.tngtech.archunit.visual.testjson.structure",
+    "name": "default",
+    "fullName": "default",
     "type": "package",
     "children": [
       {
-        "name": "EmptyClass",
-        "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
-        "type": "class",
-        "children": [],
-        "superclass": "",
-        "interfaces": [],
-        "fieldAccesses": [],
-        "methodCalls": [],
-        "constructorCalls": [],
-        "anonymousImplementation": []
-      },
-      {
-        "name": "simpleinherit",
-        "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
+        "name": "java",
+        "fullName": "java",
         "type": "package",
         "children": [
           {
-            "name": "SimpleClass1",
-            "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-            "type": "class",
+            "name": "lang",
+            "fullName": "java.lang",
+            "type": "package",
             "children": [
               {
-                "name": "InnerClass1",
-                "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+                "name": "Object",
+                "fullName": "java.lang.Object",
                 "type": "class",
-                "children": [],
                 "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
+              },
+              {
+                "name": "StringBuilder",
+                "fullName": "java.lang.StringBuilder",
+                "type": "class",
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
+              },
+              {
+                "name": "System",
+                "fullName": "java.lang.System",
+                "type": "class",
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
+              },
+              {
+                "name": "String",
+                "fullName": "java.lang.String",
+                "type": "class",
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "name": "io",
+            "fullName": "java.io",
+            "type": "package",
+            "children": [
+              {
+                "name": "PrintStream",
+                "fullName": "java.io.PrintStream",
+                "type": "class",
+                "superclass": "",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "com.tngtech.archunit.visual.testjson.structure",
+        "fullName": "com.tngtech.archunit.visual.testjson.structure",
+        "type": "package",
+        "children": [
+          {
+            "name": "EmptyClass",
+            "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
+            "type": "class",
+            "superclass": "java.lang.Object",
+            "interfaces": [],
+            "fieldAccesses": [],
+            "methodCalls": [],
+            "constructorCalls": [
+              {
+                "target": "java.lang.Object",
+                "startCodeUnit": "<init>()",
+                "targetCodeElement": "<init>()"
+              }
+            ],
+            "anonymousImplementation": [],
+            "children": []
+          },
+          {
+            "name": "simpleinherit",
+            "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit",
+            "type": "package",
+            "children": [
+              {
+                "name": "SimpleClass1",
+                "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                "type": "class",
+                "superclass": "java.lang.Object",
                 "interfaces": [
                   "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
                 ],
-                "fieldAccesses": [],
-                "methodCalls": [
+                "fieldAccesses": [
                   {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                    "target": "java.lang.System",
                     "startCodeUnit": "sayHello(int)",
-                    "targetCodeElement": "sayHello(int)"
+                    "targetCodeElement": "out"
+                  },
+                  {
+                    "target": "java.lang.System",
+                    "startCodeUnit": "sayHi()",
+                    "targetCodeElement": "out"
                   }
                 ],
-                "constructorCalls": [],
-                "anonymousImplementation": []
-              }
-            ],
-            "superclass": "",
-            "interfaces": [
-              "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
-            ],
-            "fieldAccesses": [],
-            "methodCalls": [
-              {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                "startCodeUnit": "sayHello(int)",
-                "targetCodeElement": "sayHello(int)"
-              }
-            ],
-            "constructorCalls": [
-              {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                "startCodeUnit": "sayHello(int)",
-                "targetCodeElement": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)"
-              }
-            ],
-            "anonymousImplementation": []
-          },
-          {
-            "name": "SimpleClass2",
-            "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-            "type": "class",
-            "children": [],
-            "superclass": "",
-            "interfaces": [],
-            "fieldAccesses": [],
-            "methodCalls": [
-              {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                "startCodeUnit": "sayHelloAndBye()",
-                "targetCodeElement": "sayHello(int)"
+                "methodCalls": [
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+                    "startCodeUnit": "sayHello(int)",
+                    "targetCodeElement": "sayHello(int)"
+                  },
+                  {
+                    "target": "java.io.PrintStream",
+                    "startCodeUnit": "sayHi()",
+                    "targetCodeElement": "println(java.lang.String)"
+                  },
+                  {
+                    "target": "java.io.PrintStream",
+                    "startCodeUnit": "sayHello(int)",
+                    "targetCodeElement": "println(java.lang.String)"
+                  }
+                ],
+                "constructorCalls": [
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+                    "startCodeUnit": "sayHello(int)",
+                    "targetCodeElement": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)"
+                  },
+                  {
+                    "target": "java.lang.Object",
+                    "startCodeUnit": "<init>(java.lang.String)",
+                    "targetCodeElement": "<init>()"
+                  }
+                ],
+                "anonymousImplementation": [],
+                "children": [
+                  {
+                    "name": "InnerClass1",
+                    "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+                    "type": "class",
+                    "superclass": "java.lang.Object",
+                    "interfaces": [
+                      "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
+                    ],
+                    "fieldAccesses": [],
+                    "methodCalls": [
+                      {
+                        "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                        "startCodeUnit": "sayHello(int)",
+                        "targetCodeElement": "sayHello(int)"
+                      }
+                    ],
+                    "constructorCalls": [
+                      {
+                        "target": "java.lang.Object",
+                        "startCodeUnit": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)",
+                        "targetCodeElement": "<init>()"
+                      }
+                    ],
+                    "anonymousImplementation": [],
+                    "children": []
+                  }
+                ]
               },
               {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                "startCodeUnit": "sayHelloAndBye()",
-                "targetCodeElement": "sayHi()"
-              }
-            ],
-            "constructorCalls": [
+                "name": "SimpleClass2",
+                "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+                "type": "class",
+                "superclass": "java.lang.Object",
+                "interfaces": [],
+                "fieldAccesses": [
+                  {
+                    "target": "java.lang.System",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "out"
+                  }
+                ],
+                "methodCalls": [
+                  {
+                    "target": "java.lang.StringBuilder",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "append(java.lang.String)"
+                  },
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "sayHello(int)"
+                  },
+                  {
+                    "target": "java.lang.StringBuilder",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "toString()"
+                  },
+                  {
+                    "target": "java.io.PrintStream",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "println(java.lang.String)"
+                  },
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "sayHi()"
+                  }
+                ],
+                "constructorCalls": [
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "<init>(java.lang.String)"
+                  },
+                  {
+                    "target": "java.lang.StringBuilder",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "<init>()"
+                  },
+                  {
+                    "target": "java.lang.Object",
+                    "startCodeUnit": "<init>(java.lang.String)",
+                    "targetCodeElement": "<init>()"
+                  }
+                ],
+                "anonymousImplementation": [],
+                "children": []
+              },
               {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                "startCodeUnit": "sayHelloAndBye()",
-                "targetCodeElement": "<init>(java.lang.String)"
-              }
-            ],
-            "anonymousImplementation": []
-          },
-          {
-            "name": "SimpleClass3",
-            "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
-            "type": "class",
-            "children": [],
-            "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-            "interfaces": [],
-            "fieldAccesses": [],
-            "methodCalls": [],
-            "constructorCalls": [
+                "name": "SimpleClass3",
+                "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+                "type": "class",
+                "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+                "interfaces": [],
+                "fieldAccesses": [
+                  {
+                    "target": "java.lang.System",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "out"
+                  }
+                ],
+                "methodCalls": [
+                  {
+                    "target": "java.io.PrintStream",
+                    "startCodeUnit": "sayHelloAndBye()",
+                    "targetCodeElement": "println(java.lang.String)"
+                  }
+                ],
+                "constructorCalls": [
+                  {
+                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+                    "startCodeUnit": "<init>(java.lang.String)",
+                    "targetCodeElement": "<init>(java.lang.String)"
+                  }
+                ],
+                "anonymousImplementation": [],
+                "children": []
+              },
               {
-                "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-                "startCodeUnit": "<init>(java.lang.String)",
-                "targetCodeElement": "<init>(java.lang.String)"
+                "name": "SimpleInterface1",
+                "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
+                "type": "interface",
+                "interfaces": [],
+                "fieldAccesses": [],
+                "methodCalls": [],
+                "constructorCalls": [],
+                "anonymousImplementation": [],
+                "children": []
               }
-            ],
-            "anonymousImplementation": []
-          },
-          {
-            "name": "SimpleInterface1",
-            "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
-            "type": "interface",
-            "children": [],
-            "interfaces": [],
-            "fieldAccesses": [],
-            "methodCalls": [],
-            "constructorCalls": [],
-            "anonymousImplementation": []
+            ]
           }
         ]
       }
@@ -132,16 +301,10 @@
   },
   "dependencies": [
     {
-      "type": "CONSTRUCTOR_CALL",
-      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> calls constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> in (SimpleClass1.java:13)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1"
-    },
-    {
-      "type": "METHOD_CALL",
-      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> in (SimpleClass2.java:12)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
+      "type": "INHERITANCE",
+      "description": "Class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1> implements interface <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1> in (SimpleClass1.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
     },
     {
       "type": "INHERITANCE",
@@ -150,15 +313,123 @@
       "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
     },
     {
+      "type": "INHERITANCE",
+      "description": "Class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3> extends class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2> in (SimpleClass3.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2"
+    },
+    {
+      "type": "CONSTRUCTOR_PARAMETER_TYPE",
+      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> has parameter of type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
+    },
+    {
+      "type": "CONSTRUCTOR_PARAMETER_TYPE",
+      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.<init>(java.lang.String)> has parameter of type <java.lang.String> in (SimpleClass1.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.lang.String"
+    },
+    {
+      "type": "CONSTRUCTOR_PARAMETER_TYPE",
+      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.<init>(java.lang.String)> has parameter of type <java.lang.String> in (SimpleClass2.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.String"
+    },
+    {
       "type": "CONSTRUCTOR_CALL",
       "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3.<init>(java.lang.String)> calls constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.<init>(java.lang.String)> in (SimpleClass3.java:5)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
       "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2"
     },
     {
+      "type": "CONSTRUCTOR_PARAMETER_TYPE",
+      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3.<init>(java.lang.String)> has parameter of type <java.lang.String> in (SimpleClass3.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+      "targetClass": "java.lang.String"
+    },
+    {
+      "type": "FIELD_TYPE",
+      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.this$0> has type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
+    },
+    {
+      "type": "FIELD_TYPE",
+      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.s> has type <java.lang.String> in (SimpleClass1.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.lang.String"
+    },
+    {
+      "type": "FIELD_TYPE",
+      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.name> has type <java.lang.String> in (SimpleClass2.java:0)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.String"
+    },
+    {
       "type": "METHOD_CALL",
       "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.sayHello(int)> calls method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> in (SimpleClass1.java:24)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> calls constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> in (SimpleClass1.java:13)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> calls method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.sayHello(int)> in (SimpleClass1.java:14)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> calls method <java.io.PrintStream.println(java.lang.String)> in (SimpleClass1.java:12)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.io.PrintStream"
+    },
+    {
+      "type": "FIELD_ACCESS",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> gets field <java.lang.System.out> in (SimpleClass1.java:12)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.lang.System"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHi()> calls method <java.io.PrintStream.println(java.lang.String)> in (SimpleClass1.java:18)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.io.PrintStream"
+    },
+    {
+      "type": "FIELD_ACCESS",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHi()> gets field <java.lang.System.out> in (SimpleClass1.java:18)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
+      "targetClass": "java.lang.System"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.<init>(java.lang.String)> in (SimpleClass2.java:11)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls constructor <java.lang.StringBuilder.<init>()> in (SimpleClass2.java:11)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls constructor <java.lang.StringBuilder.<init>()> in (SimpleClass2.java:14)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> in (SimpleClass2.java:12)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
       "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
     },
     {
@@ -168,40 +439,52 @@
       "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
     },
     {
-      "type": "CONSTRUCTOR_CALL",
-      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.<init>(java.lang.String)> in (SimpleClass2.java:11)",
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <java.io.PrintStream.println(java.lang.String)> in (SimpleClass2.java:14)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
-    },
-    {
-      "type": "INHERITANCE",
-      "description": "Class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1> implements interface <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
-    },
-    {
-      "type": "CONSTRUCTOR_PARAMETER_TYPE",
-      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> has parameter of type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
-    },
-    {
-      "type": "FIELD_TYPE",
-      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.this$0> has type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
-    },
-    {
-      "type": "INHERITANCE",
-      "description": "Class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3> extends class <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2> in (SimpleClass3.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2"
+      "targetClass": "java.io.PrintStream"
     },
     {
       "type": "METHOD_CALL",
-      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.sayHello(int)> calls method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.sayHello(int)> in (SimpleClass1.java:14)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1"
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <java.lang.StringBuilder.append(java.lang.String)> in (SimpleClass2.java:11)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <java.lang.StringBuilder.append(java.lang.String)> in (SimpleClass2.java:14)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <java.lang.StringBuilder.toString()> in (SimpleClass2.java:11)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> calls method <java.lang.StringBuilder.toString()> in (SimpleClass2.java:14)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.StringBuilder"
+    },
+    {
+      "type": "FIELD_ACCESS",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2.sayHelloAndBye()> gets field <java.lang.System.out> in (SimpleClass2.java:14)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
+      "targetClass": "java.lang.System"
+    },
+    {
+      "type": "METHOD_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3.sayHelloAndBye()> calls method <java.io.PrintStream.println(java.lang.String)> in (SimpleClass3.java:10)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+      "targetClass": "java.io.PrintStream"
+    },
+    {
+      "type": "FIELD_ACCESS",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3.sayHelloAndBye()> gets field <java.lang.System.out> in (SimpleClass3.java:10)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
+      "targetClass": "java.lang.System"
     }
   ]
 }
