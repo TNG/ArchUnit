@@ -27,15 +27,14 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
     private final String description;
 
-    public ArchCondition(String description) {
-        this.description = checkNotNull(description);
+    public ArchCondition(String description, Object... args) {
+        this.description = String.format(description, args);
     }
 
     /**
@@ -72,7 +71,7 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> as(String description, Object... args) {
-        return new ArchCondition<T>(String.format(description, args)) {
+        return new ArchCondition<T>(description, args) {
             @Override
             public void init(Iterable<T> allObjectsToTest) {
                 ArchCondition.this.init(allObjectsToTest);

@@ -28,8 +28,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsRuleFieldsTest.WrongA
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -181,24 +180,26 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String IGNORED_FIELD_NAME = "someIgnoredRule";
 
         @ArchTest
-        public static final ArchRule someSatisfiedRule = all(classes()).should(BE_SATISFIED);
+        public static final ArchRule someSatisfiedRule = classes().should(BE_SATISFIED);
 
         @ArchTest
-        public static final ArchRule someFailingRule = all(classes()).should(NEVER_BE_SATISFIED);
+        public static final ArchRule someFailingRule = classes().should(NEVER_BE_SATISFIED);
 
         @ArchIgnore
         @ArchTest
-        public static final ArchRule someIgnoredRule = all(classes()).should(NEVER_BE_SATISFIED);
+        public static final ArchRule someIgnoredRule = classes().should(NEVER_BE_SATISFIED);
     }
 
+    @SuppressWarnings("WeakerAccess")
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithPrivateInstanceField {
         static final String PRIVATE_RULE_FIELD_NAME = "privateField";
 
         @ArchTest
-        private ArchRule privateField = all(classes()).should(BE_SATISFIED);
+        private ArchRule privateField = classes().should(BE_SATISFIED);
     }
 
+    @SuppressWarnings("WeakerAccess")
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithAbstractBaseClass extends AbstractBaseClass {
     }
@@ -207,7 +208,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String INSTANCE_FIELD_NAME = "abstractBaseClassInstanceField";
 
         @ArchTest
-        ArchRule abstractBaseClassInstanceField = all(classes()).should(BE_SATISFIED);
+        ArchRule abstractBaseClassInstanceField = classes().should(BE_SATISFIED);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
@@ -225,9 +226,9 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";
 
         @ArchTest
-        public static final ArchRule someRuleOne = all(classes()).should(NEVER_BE_SATISFIED);
+        public static final ArchRule someRuleOne = classes().should(NEVER_BE_SATISFIED);
 
         @ArchTest
-        public static final ArchRule someRuleTwo = all(classes()).should(NEVER_BE_SATISFIED);
+        public static final ArchRule someRuleTwo = classes().should(NEVER_BE_SATISFIED);
     }
 }

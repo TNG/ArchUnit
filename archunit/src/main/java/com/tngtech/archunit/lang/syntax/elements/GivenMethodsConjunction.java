@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2018 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,17 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenClassesConjunction extends GivenConjunction<JavaClass> {
-    @Override
-    @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition);
-
-    @PublicAPI(usage = ACCESS)
-    ClassesShould should();
+public interface GivenMethodsConjunction extends GivenCodeUnitsConjunction<JavaMethod> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenClassesConjunction and(DescribedPredicate<? super JavaClass> predicate);
-
-    /**
-     * @see #and(DescribedPredicate)
-     */
-    @PublicAPI(usage = ACCESS)
-    GivenClassesThat and();
+    GivenMethodsConjunction and(DescribedPredicate<? super JavaMethod> predicate);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenClassesConjunction or(DescribedPredicate<? super JavaClass> predicate);
-
-    /**
-     * @see #or(DescribedPredicate)
-     */
-    @PublicAPI(usage = ACCESS)
-    GivenClassesThat or();
+    GivenMethodsConjunction or(DescribedPredicate<? super JavaMethod> predicate);
 }
