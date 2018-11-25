@@ -25,7 +25,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenConjunction<OBJECTS> {
     @PublicAPI(usage = ACCESS)
-    ArchRule should(ArchCondition<OBJECTS> condition);
+    ArchRule should(ArchCondition<? super OBJECTS> condition);
 
     /**
      * Combines the current predicate (e.g. {@link Predicates#simpleName(String) simpleName} == 'SomeClass') with

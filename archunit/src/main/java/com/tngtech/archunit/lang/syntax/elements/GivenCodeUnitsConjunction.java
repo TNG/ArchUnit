@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2018 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  */
 package com.tngtech.archunit.lang.syntax.elements;
 
-import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 
-import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+public interface GivenCodeUnitsConjunction<CODE_UNIT extends JavaCodeUnit> extends GivenMembersConjunction<CODE_UNIT> {
 
-public interface GivenObjects<T> {
-    @PublicAPI(usage = ACCESS)
-    ArchRule should(ArchCondition<? super T> condition);
+    @Override
+    GivenCodeUnitsConjunction<CODE_UNIT> and(DescribedPredicate<? super CODE_UNIT> predicate);
 
-    @PublicAPI(usage = ACCESS)
-    GivenConjunction<T> that(DescribedPredicate<? super T> predicate);
+    @Override
+    GivenCodeUnitsConjunction<CODE_UNIT> or(DescribedPredicate<? super CODE_UNIT> predicate);
 }

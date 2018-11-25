@@ -416,18 +416,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> be(final String className) {
-        return new ArchCondition<JavaClass>("be " + className) {
-            @Override
-            public void check(JavaClass javaClass, ConditionEvents events) {
-                boolean itemEquivalentToClazz = javaClass.getName().equals(className);
-                String message = String.format("class %s %s %s in %s",
-                        javaClass.getName(),
-                        itemEquivalentToClazz ? "is" : "is not",
-                        className,
-                        formatLocation(javaClass, 0));
-                events.add(new SimpleConditionEvent(javaClass, itemEquivalentToClazz, message));
-            }
-        };
+        return new BeClassCondition(className);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -438,18 +427,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveFullyQualifiedName(final String name) {
         final DescribedPredicate<HasName> haveFullyQualifiedName = have(fullyQualifiedName(name));
-        return new ArchCondition<JavaClass>(haveFullyQualifiedName.getDescription()) {
-            @Override
-            public void check(JavaClass clazz, ConditionEvents events) {
-                boolean satisfied = haveFullyQualifiedName.apply(clazz);
-                String message = String.format("class %s %s fully qualified name '%s' in %s",
-                        clazz.getName(),
-                        satisfied ? "has" : "doesn't have",
-                        name,
-                        formatLocation(clazz, 0));
-                events.add(new SimpleConditionEvent(clazz, satisfied, message));
-            }
-        };
+        return new FullyQualfiedNameCondition(haveFullyQualifiedName, name);
     }
 
     @Internal
@@ -466,18 +444,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleName(final String name) {
         final DescribedPredicate<JavaClass> haveSimpleName = have(simpleName(name));
-        return new ArchCondition<JavaClass>(haveSimpleName.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = haveSimpleName.apply(item);
-                String message = String.format("class %s %s simple name '%s' in %s",
-                        item.getName(),
-                        satisfied ? "has" : "doesn't have",
-                        name,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new SimpleNameCondition(haveSimpleName, name);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -489,18 +456,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> haveSimpleNameStartingWith(final String prefix) {
         final DescribedPredicate<JavaClass> predicate = have(simpleNameStartingWith(prefix));
 
-        return new ArchCondition<JavaClass>(predicate.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = predicate.apply(item);
-                String message = String.format("simple name of %s %s with '%s' in %s",
-                        item.getName(),
-                        satisfied ? "starts" : "doesn't start",
-                        prefix,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new SimpleNameStartingWithCondition(predicate, prefix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -512,18 +468,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> haveSimpleNameContaining(final String infix) {
         final DescribedPredicate<JavaClass> predicate = have(simpleNameContaining(infix));
 
-        return new ArchCondition<JavaClass>(predicate.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = predicate.apply(item);
-                String message = String.format("simple name of %s %s '%s' in %s",
-                        item.getName(),
-                        satisfied ? "contains" : "doesn't contain",
-                        infix,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new SimpleNameContainingCondition(predicate, infix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -535,18 +480,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> haveSimpleNameEndingWith(final String suffix) {
         final DescribedPredicate<JavaClass> predicate = have(simpleNameEndingWith(suffix));
 
-        return new ArchCondition<JavaClass>(predicate.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = predicate.apply(item);
-                String message = String.format("simple name of %s %s with '%s' in %s",
-                        item.getName(),
-                        satisfied ? "ends" : "doesn't end",
-                        suffix,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new SimpleNameEndingWithCondition(predicate, suffix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -557,18 +491,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveNameMatching(final String regex) {
         final DescribedPredicate<HasName> haveNameMatching = have(nameMatching(regex));
-        return new ArchCondition<JavaClass>(haveNameMatching.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = haveNameMatching.apply(item);
-                String message = String.format("class %s %s '%s' in %s",
-                        item.getName(),
-                        satisfied ? "matches" : "doesn't match",
-                        regex,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new NameMatchingCondition(haveNameMatching, regex);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -578,54 +501,27 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAPackage(final String packageIdentifier) {
-        return residesConditionForPredicate(JavaClass.Predicates.resideInAPackage(packageIdentifier));
+        return new PackageCondition(JavaClass.Predicates.resideInAPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAnyPackage(String... packageIdentifiers) {
-        return residesConditionForPredicate(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
+        return new PackageCondition(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
-        return residesConditionForPredicate(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
+        return new PackageCondition(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
-        return residesConditionForPredicate(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
-    }
-
-    private static ArchCondition<JavaClass> residesConditionForPredicate(final DescribedPredicate<JavaClass> resideInAPackage) {
-        return new ArchCondition<JavaClass>(resideInAPackage.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = resideInAPackage.apply(item);
-                String message = String.format("class %s %s %s in %s",
-                        item.getName(),
-                        satisfied ? "does" : "doesn't",
-                        resideInAPackage.getDescription(),
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new PackageCondition(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveModifier(final JavaModifier modifier) {
-        final DescribedPredicate<HasModifiers> haveModifier = have(modifier(modifier));
-        return new ArchCondition<JavaClass>(haveModifier.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = haveModifier.apply(item);
-                String message = String.format("class %s %s modifier %s in %s",
-                        item.getName(),
-                        satisfied ? "has" : "doesn't have",
-                        modifier,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
+        return new ModifierCondition(modifier);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -678,33 +574,12 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveOnlyFinalFields() {
-        return new ArchCondition<JavaClass>("have only final fields") {
-            @Override
-            public void check(JavaClass javaClass, ConditionEvents events) {
-                SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
-                boolean satisfied = notFinalFieldNames.isEmpty();
-                String message = String.format("class %s %s in %s",
-                        javaClass.getName(),
-                        satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames,
-                        formatLocation(javaClass, 0));
-                events.add(new SimpleConditionEvent(javaClass, satisfied, message));
-            }
-
-            private SortedSet<String> getNonFinalFieldNamesOf(JavaClass javaClass) {
-                TreeSet<String> notFinalFieldNames = new TreeSet<>();
-                for (JavaField field : javaClass.getFields()) {
-                    if (!field.getModifiers().contains(FINAL)) {
-                        notFinalFieldNames.add(field.getName());
-                    }
-                }
-                return notFinalFieldNames;
-            }
-        };
+        return new HaveOnlyFinalFieldsCondition();
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAnnotatedWith(Class<? extends Annotation> type) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.annotatedWith(type));
+        return new AnnotatedCondition(HasAnnotations.Predicates.annotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -714,7 +589,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAnnotatedWith(String typeName) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.annotatedWith(typeName));
+        return new AnnotatedCondition(HasAnnotations.Predicates.annotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -724,7 +599,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.annotatedWith(predicate));
+        return new AnnotatedCondition(HasAnnotations.Predicates.annotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -734,7 +609,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beMetaAnnotatedWith(Class<? extends Annotation> type) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(type));
+        return new AnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -744,7 +619,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beMetaAnnotatedWith(String typeName) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(typeName));
+        return new AnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -754,7 +629,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
-        return createAnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(predicate));
+        return new AnnotatedCondition(HasAnnotations.Predicates.metaAnnotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -762,24 +637,9 @@ public final class ArchConditions {
         return not(beMetaAnnotatedWith(predicate));
     }
 
-    private static ArchCondition<JavaClass> createAnnotatedCondition(final DescribedPredicate<CanBeAnnotated> annotatedWith) {
-        return new ArchCondition<JavaClass>(ArchPredicates.be(annotatedWith).getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = annotatedWith.apply(item);
-                String message = String.format("class %s is %s%s in %s",
-                        item.getName(),
-                        satisfied ? "" : "not ",
-                        annotatedWith.getDescription(),
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
-    }
-
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(Class<?> interfaceType) {
-        return createImplementsCondition(JavaClass.Predicates.implement(interfaceType));
+        return new ImplementsCondition(JavaClass.Predicates.implement(interfaceType));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -789,7 +649,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(String interfaceTypeName) {
-        return createImplementsCondition(JavaClass.Predicates.implement(interfaceTypeName));
+        return new ImplementsCondition(JavaClass.Predicates.implement(interfaceTypeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -799,7 +659,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
-        return createImplementsCondition(JavaClass.Predicates.implement(predicate));
+        return new ImplementsCondition(JavaClass.Predicates.implement(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -807,26 +667,9 @@ public final class ArchConditions {
         return not(implement(predicate));
     }
 
-    private static ArchCondition<JavaClass> createImplementsCondition(final DescribedPredicate<? super JavaClass> implement) {
-        return new ArchCondition<JavaClass>(implement.getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = implement.apply(item);
-                String description = satisfied
-                        ? implement.getDescription().replace("implement", "implements")
-                        : implement.getDescription().replace("implement", "doesn't implement");
-                String message = String.format("class %s %s in %s",
-                        item.getName(),
-                        description,
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
-            }
-        };
-    }
-
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(Class<?> type) {
-        return createAssignableCondition(JavaClass.Predicates.assignableTo(type));
+        return new AssignableCondition(JavaClass.Predicates.assignableTo(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -836,7 +679,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(String typeName) {
-        return createAssignableCondition(JavaClass.Predicates.assignableTo(typeName));
+        return new AssignableCondition(JavaClass.Predicates.assignableTo(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -846,7 +689,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return createAssignableCondition(JavaClass.Predicates.assignableTo(predicate));
+        return new AssignableCondition(JavaClass.Predicates.assignableTo(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -856,7 +699,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(Class<?> type) {
-        return createAssignableCondition(JavaClass.Predicates.assignableFrom(type));
+        return new AssignableCondition(JavaClass.Predicates.assignableFrom(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -866,7 +709,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(String typeName) {
-        return createAssignableCondition(JavaClass.Predicates.assignableFrom(typeName));
+        return new AssignableCondition(JavaClass.Predicates.assignableFrom(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -876,7 +719,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
-        return createAssignableCondition(JavaClass.Predicates.assignableFrom(predicate));
+        return new AssignableCondition(JavaClass.Predicates.assignableFrom(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -886,17 +729,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beInterfaces() {
-        return new ArchCondition<JavaClass>("be interfaces") {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean isInterface = item.isInterface();
-                String message = String.format("class %s is %s interface in %s",
-                        item.getName(),
-                        isInterface ? "an" : "not an",
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, isInterface, message));
-            }
-        };
+        return new InterfacesCondition();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -906,41 +739,337 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> containNumberOfElements(final DescribedPredicate<Integer> predicate) {
-        return new ArchCondition<JavaClass>("contain number of elements " + predicate.getDescription()) {
-            private SortedSet<String> allClassNames = new TreeSet<>();
-
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                allClassNames.add(item.getName());
-            }
-
-            @Override
-            public void finish(ConditionEvents events) {
-                int size = allClassNames.size();
-                boolean conditionSatisfied = predicate.apply(size);
-                String message = String.format("there is/are %d element(s) in classes %s", size, join(allClassNames));
-                events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
-            }
-
-            private String join(SortedSet<String> strings) {
-                return "[" + Joiner.on(", ").join(strings) + "]";
-            }
-        };
+        return new NumberOfElementsCondition(predicate);
     }
 
-    private static ArchCondition<JavaClass> createAssignableCondition(final DescribedPredicate<JavaClass> assignable) {
-        return new ArchCondition<JavaClass>(ArchPredicates.be(assignable).getDescription()) {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = assignable.apply(item);
-                String message = String.format("class %s is %s%s in %s",
-                        item.getName(),
-                        satisfied ? "" : "not ",
-                        assignable.getDescription(),
-                        formatLocation(item, 0));
-                events.add(new SimpleConditionEvent(item, satisfied, message));
+    private static class HaveOnlyFinalFieldsCondition extends ArchCondition<JavaClass> {
+        HaveOnlyFinalFieldsCondition() {
+            super("have only final fields");
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
+            boolean satisfied = notFinalFieldNames.isEmpty();
+            String message = String.format("class %s %s in %s",
+                    javaClass.getName(),
+                    satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames,
+                    formatLocation(javaClass, 0));
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
+        }
+
+        private SortedSet<String> getNonFinalFieldNamesOf(JavaClass javaClass) {
+            TreeSet<String> notFinalFieldNames = new TreeSet<>();
+            for (JavaField field : javaClass.getFields()) {
+                if (!field.getModifiers().contains(FINAL)) {
+                    notFinalFieldNames.add(field.getName());
+                }
             }
-        };
+            return notFinalFieldNames;
+        }
     }
 
+    private static class AnnotatedCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<CanBeAnnotated> annotatedWith;
+
+        AnnotatedCondition(DescribedPredicate<CanBeAnnotated> annotatedWith) {
+            super(ArchPredicates.be(annotatedWith).getDescription());
+            this.annotatedWith = annotatedWith;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = annotatedWith.apply(item);
+            String message = String.format("class %s is %s%s in %s",
+                    item.getName(),
+                    satisfied ? "" : "not ",
+                    annotatedWith.getDescription(),
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class ImplementsCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<? super JavaClass> implement;
+
+        ImplementsCondition(DescribedPredicate<? super JavaClass> implement) {
+            super(implement.getDescription());
+            this.implement = implement;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = implement.apply(item);
+            String description = satisfied
+                    ? implement.getDescription().replace("implement", "implements")
+                    : implement.getDescription().replace("implement", "doesn't implement");
+            String message = String.format("class %s %s in %s",
+                    item.getName(),
+                    description,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class InterfacesCondition extends ArchCondition<JavaClass> {
+        InterfacesCondition() {
+            super("be interfaces");
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean isInterface = item.isInterface();
+            String message = String.format("class %s is %s interface in %s",
+                    item.getName(),
+                    isInterface ? "an" : "not an",
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, isInterface, message));
+        }
+    }
+
+    private static class NumberOfElementsCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<Integer> predicate;
+        private SortedSet<String> allClassNames;
+
+        NumberOfElementsCondition(DescribedPredicate<Integer> predicate) {
+            super("contain number of elements " + predicate.getDescription());
+            this.predicate = predicate;
+            allClassNames = new TreeSet<>();
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            allClassNames.add(item.getName());
+        }
+
+        @Override
+        public void finish(ConditionEvents events) {
+            int size = allClassNames.size();
+            boolean conditionSatisfied = predicate.apply(size);
+            String message = String.format("there is/are %d element(s) in classes %s", size, join(allClassNames));
+            events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
+        }
+
+        private String join(SortedSet<String> strings) {
+            return "[" + Joiner.on(", ").join(strings) + "]";
+        }
+    }
+
+    private static class AssignableCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> assignable;
+
+        AssignableCondition(DescribedPredicate<JavaClass> assignable) {
+            super(ArchPredicates.be(assignable).getDescription());
+            this.assignable = assignable;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = assignable.apply(item);
+            String message = String.format("class %s is %s%s in %s",
+                    item.getName(),
+                    satisfied ? "" : "not ",
+                    assignable.getDescription(),
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class BeClassCondition extends ArchCondition<JavaClass> {
+        private final String className;
+
+        BeClassCondition(String className) {
+            super("be " + className);
+            this.className = className;
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean itemEquivalentToClazz = javaClass.getName().equals(className);
+            String message = String.format("class %s %s %s in %s",
+                    javaClass.getName(),
+                    itemEquivalentToClazz ? "is" : "is not",
+                    className,
+                    formatLocation(javaClass, 0));
+            events.add(new SimpleConditionEvent(javaClass, itemEquivalentToClazz, message));
+        }
+    }
+
+    private static class FullyQualfiedNameCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<HasName> haveFullyQualifiedName;
+        private final String name;
+
+        FullyQualfiedNameCondition(DescribedPredicate<HasName> haveFullyQualifiedName, String name) {
+            super(haveFullyQualifiedName.getDescription());
+            this.haveFullyQualifiedName = haveFullyQualifiedName;
+            this.name = name;
+        }
+
+        @Override
+        public void check(JavaClass clazz, ConditionEvents events) {
+            boolean satisfied = haveFullyQualifiedName.apply(clazz);
+            String message = String.format("class %s %s fully qualified name '%s' in %s",
+                    clazz.getName(),
+                    satisfied ? "has" : "doesn't have",
+                    name,
+                    formatLocation(clazz, 0));
+            events.add(new SimpleConditionEvent(clazz, satisfied, message));
+        }
+    }
+
+    private static class SimpleNameCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> haveSimpleName;
+        private final String name;
+
+        SimpleNameCondition(DescribedPredicate<JavaClass> haveSimpleName, String name) {
+            super(haveSimpleName.getDescription());
+            this.haveSimpleName = haveSimpleName;
+            this.name = name;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = haveSimpleName.apply(item);
+            String message = String.format("class %s %s simple name '%s' in %s",
+                    item.getName(),
+                    satisfied ? "has" : "doesn't have",
+                    name,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class SimpleNameStartingWithCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> predicate;
+        private final String prefix;
+
+        SimpleNameStartingWithCondition(DescribedPredicate<JavaClass> predicate, String prefix) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = predicate.apply(item);
+            String message = String.format("simple name of %s %s with '%s' in %s",
+                    item.getName(),
+                    satisfied ? "starts" : "doesn't start",
+                    prefix,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class SimpleNameContainingCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> predicate;
+        private final String infix;
+
+        SimpleNameContainingCondition(DescribedPredicate<JavaClass> predicate, String infix) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
+            this.infix = infix;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = predicate.apply(item);
+            String message = String.format("simple name of %s %s '%s' in %s",
+                    item.getName(),
+                    satisfied ? "contains" : "doesn't contain",
+                    infix,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class SimpleNameEndingWithCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> predicate;
+        private final String suffix;
+
+        SimpleNameEndingWithCondition(DescribedPredicate<JavaClass> predicate, String suffix) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
+            this.suffix = suffix;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = predicate.apply(item);
+            String message = String.format("simple name of %s %s with '%s' in %s",
+                    item.getName(),
+                    satisfied ? "ends" : "doesn't end",
+                    suffix,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class NameMatchingCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<HasName> haveNameMatching;
+        private final String regex;
+
+        NameMatchingCondition(DescribedPredicate<HasName> haveNameMatching, String regex) {
+            super(haveNameMatching.getDescription());
+            this.haveNameMatching = haveNameMatching;
+            this.regex = regex;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = haveNameMatching.apply(item);
+            String message = String.format("class %s %s '%s' in %s",
+                    item.getName(),
+                    satisfied ? "matches" : "doesn't match",
+                    regex,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class PackageCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<JavaClass> resideInAPackage;
+
+        PackageCondition(DescribedPredicate<JavaClass> resideInAPackage) {
+            super(resideInAPackage.getDescription());
+            this.resideInAPackage = resideInAPackage;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = resideInAPackage.apply(item);
+            String message = String.format("class %s %s %s in %s",
+                    item.getName(),
+                    satisfied ? "does" : "doesn't",
+                    resideInAPackage.getDescription(),
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class ModifierCondition extends ArchCondition<JavaClass> {
+        private final DescribedPredicate<HasModifiers> haveModifier;
+        private final JavaModifier modifier;
+
+        ModifierCondition(JavaModifier modifier) {
+            this(have(modifier(modifier)), modifier);
+        }
+
+        private ModifierCondition(DescribedPredicate<HasModifiers> haveModifier, JavaModifier modifier) {
+            super(haveModifier.getDescription());
+            this.haveModifier = haveModifier;
+            this.modifier = modifier;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            boolean satisfied = haveModifier.apply(item);
+            String message = String.format("class %s %s modifier %s in %s",
+                    item.getName(),
+                    satisfied ? "has" : "doesn't have",
+                    modifier,
+                    formatLocation(item, 0));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
 }

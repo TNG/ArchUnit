@@ -27,8 +27,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerRunsMethodsTest.IgnoredAr
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -204,6 +203,7 @@ public class ArchUnitRunnerRunsMethodsTest {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithAbstractBaseClass extends AbstractBaseClass {
     }
@@ -213,7 +213,7 @@ public class ArchUnitRunnerRunsMethodsTest {
 
         @ArchTest
         void abstractBaseClassInstanceMethod(JavaClasses classes) {
-            all(classes()).should(BE_SATISFIED).check(classes);
+            classes().should(BE_SATISFIED).check(classes);
         }
     }
 }
