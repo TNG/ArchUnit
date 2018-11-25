@@ -37,27 +37,33 @@ class ObjectsShouldInternal<T> implements ArchRule {
     final Priority priority;
     final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition;
 
-    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+    ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this(classesTransformer, priority, new ConditionAggregator<>(AddMode.<T>and()), prepareCondition);
     }
 
-    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+    ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             ArchCondition<T> condition,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this(classesTransformer, priority, new ConditionAggregator<>(condition, AddMode.<T>and()), prepareCondition);
     }
 
-    ObjectsShouldInternal(ClassesTransformer<T> classesTransformer,
+    ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             ConditionAggregator<T> conditionAggregator,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
         this.conditionAggregator = conditionAggregator;
-        this.classesTransformer = classesTransformer;
+        this.classesTransformer = getTyped(classesTransformer);
         this.priority = priority;
         this.prepareCondition = prepareCondition;
+    }
+
+    // A ClassesTransformer<? extends T> is in particular a ClassesTransformer<T> (covariance)
+    @SuppressWarnings("unchecked")
+    private ClassesTransformer<T> getTyped(ClassesTransformer<? extends T> classesTransformer) {
+        return (ClassesTransformer<T>) classesTransformer;
     }
 
     @Override

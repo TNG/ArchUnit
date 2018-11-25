@@ -29,7 +29,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
-import static com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,7 +52,7 @@ public class ArchRuleTest {
         thrown.expect(AssertionError.class);
         thrown.expectMessage("Priority: HIGH");
 
-        ArchRuleDefinition.priority(HIGH).all(classes())
+        ArchRuleDefinition.priority(HIGH).classes()
                 .should(ALWAYS_BE_VIOLATED)
                 .check(JavaClassesTest.ALL_CLASSES);
     }
@@ -61,7 +61,7 @@ public class ArchRuleTest {
     public void evaluation_should_print_all_event_messages() {
         expectAssertionErrorWithMessages("first", "second");
 
-        all(classes()).should(conditionThatReportsErrors("first", "second"))
+        classes().should(conditionThatReportsErrors("first", "second"))
                 .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
@@ -71,7 +71,7 @@ public class ArchRuleTest {
 
         expectAssertionErrorWithMessages("third one more", "fourth");
 
-        all(classes()).should(conditionThatReportsErrors("first one", "second two", "third one more", "fourth"))
+        classes().should(conditionThatReportsErrors("first one", "second two", "third one more", "fourth"))
                 .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
@@ -79,7 +79,7 @@ public class ArchRuleTest {
     public void if_all_messages_are_ignored_the_test_passes() throws IOException {
         writeIgnoreFileWithPatterns(".*");
 
-        all(classes()).should(conditionThatReportsErrors("first one", "second two"))
+        classes().should(conditionThatReportsErrors("first one", "second two"))
                 .check(importClassesWithContext(EvaluationResultTest.class));
     }
 
@@ -89,7 +89,7 @@ public class ArchRuleTest {
 
         expectAssertionErrorWithMessages("# comment1", "#comment2");
 
-        all(classes())
+        classes()
                 .should(conditionThatReportsErrors("# comment1", "#comment2", "regular_reg_exp"))
                 .check(importClassesWithContext(EvaluationResultTest.class));
     }
@@ -98,7 +98,7 @@ public class ArchRuleTest {
     public void description_can_be_overridden() throws IOException {
         writeIgnoreFileWithPatterns(".*");
 
-        ArchRule ruleWithOverriddenDescription = all(classes()).should(conditionThatReportsErrors("first one", "second two"))
+        ArchRule ruleWithOverriddenDescription = classes().should(conditionThatReportsErrors("first one", "second two"))
                 .as("rule text overridden");
         String description = ruleWithOverriddenDescription.getDescription();
 
@@ -112,15 +112,11 @@ public class ArchRuleTest {
 
     @Test
     public void because_clause_can_be_added_to_description() {
-        ArchRule rule = all(classes()).should(ALWAYS_BE_VIOLATED).because("this is the way");
+        ArchRule rule = classes().should(ALWAYS_BE_VIOLATED).because("this is the way");
 
         assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
 
-        rule = ArchRule.Factory.create(classes(), ALWAYS_BE_VIOLATED, Priority.MEDIUM).because("this is the way");
-
-        assertThat(rule.getDescription()).isEqualTo("classes should always be violated, because this is the way");
-
-        rule = ArchRuleDefinition.classes().should().accessClassesThat().haveFullyQualifiedName("foo")
+        rule = classes().should().accessClassesThat().haveFullyQualifiedName("foo")
                 .because("this is the way");
 
         assertThat(rule.getDescription()).isEqualTo(
@@ -129,7 +125,7 @@ public class ArchRuleTest {
 
     @Test
     public void reports_number_of_violations() {
-        EvaluationResult result = all(classes()).should(addFixedNumberOfViolations(3)).evaluate(importClassesWithContext(Object.class, String.class));
+        EvaluationResult result = classes().should(addFixedNumberOfViolations(3)).evaluate(importClassesWithContext(Object.class, String.class));
 
         assertThat(result.getFailureReport().toString()).contains("(6 times)");
     }
@@ -235,7 +231,7 @@ public class ArchRuleTest {
     }
 
     private static ArchCondition<JavaClass> addFixedNumberOfViolations(final int number) {
-        return new ArchCondition<JavaClass>(String.format("be violated exactly %d times", number)) {
+        return new ArchCondition<JavaClass>("be violated exactly %d times", number) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 for (int i = 0; i < number; i++) {

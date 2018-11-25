@@ -20,14 +20,23 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.AbstractGivenCodeUnitsInternal.GivenCodeUnitsInternal;
+import com.tngtech.archunit.lang.syntax.AbstractGivenMembersInternal.GivenMembersInternal;
 import com.tngtech.archunit.lang.syntax.elements.GivenClass;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
+import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnits;
+import com.tngtech.archunit.lang.syntax.elements.GivenConstructors;
+import com.tngtech.archunit.lang.syntax.elements.GivenFields;
+import com.tngtech.archunit.lang.syntax.elements.GivenMembers;
+import com.tngtech.archunit.lang.syntax.elements.GivenMethods;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -90,6 +99,31 @@ public final class ArchRuleDefinition {
         return priority(MEDIUM).noClass(className);
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static GivenMembers<JavaMember> members() {
+        return priority(MEDIUM).members();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static GivenFields fields() {
+        return priority(MEDIUM).fields();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static GivenCodeUnits<JavaCodeUnit> codeUnits() {
+        return priority(MEDIUM).codeUnits();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static GivenConstructors constructors() {
+        return priority(MEDIUM).constructors();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static GivenMethods methods() {
+        return priority(MEDIUM).methods();
+    }
+
     public static final class Creator {
         private final Priority priority;
 
@@ -99,15 +133,40 @@ public final class ArchRuleDefinition {
 
         @PublicAPI(usage = ACCESS)
         public GivenClasses classes() {
-            return new GivenClassesInternal(priority, ClassesIdentityTransformer.classes());
+            return new GivenClassesInternal(priority, Transformers.classes());
         }
 
         @PublicAPI(usage = ACCESS)
         public GivenClasses noClasses() {
             return new GivenClassesInternal(
                     priority,
-                    ClassesIdentityTransformer.classes().as("no classes"),
+                    Transformers.classes().as("no classes"),
                     ArchRuleDefinition.<JavaClass>negateCondition());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenMembers<JavaMember> members() {
+            return new GivenMembersInternal(priority, Transformers.members());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenFields fields() {
+            return new GivenFieldsInternal(priority, Transformers.fields());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenCodeUnits<JavaCodeUnit> codeUnits() {
+            return new GivenCodeUnitsInternal(priority, Transformers.codeUnits());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenConstructors constructors() {
+            return new GivenConstructorsInternal(priority, Transformers.constructors());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public GivenMethods methods() {
+            return new GivenMethodsInternal(priority, Transformers.methods());
         }
 
         /**
