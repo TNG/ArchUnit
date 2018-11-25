@@ -21,6 +21,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
@@ -28,6 +29,11 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noCodeUnits;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noConstructors;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMembers;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,39 +44,68 @@ public class GivenMembersTest {
     @DataProvider
     public static Object[][] member_syntax_testcases() {
         return $$(
-                $(members(), "members", ImmutableList.of(
-                        "Name 'fieldB' is not annotated with @C",
-                        "Name '<init>' is not annotated with @C",
-                        "Name 'methodB' is not annotated with @C"
-                )),
-                $(fields(), "fields", ImmutableList.of(
-                        "Name 'fieldB' is not annotated with @C"
-                )),
-                $(codeUnits(), "code units", ImmutableList.of(
-                        "Name '<init>' is not annotated with @C",
-                        "Name 'methodB' is not annotated with @C"
-                )),
-                $(methods(), "methods", ImmutableList.of(
-                        "Name 'methodB' is not annotated with @C"
-                )),
-                $(constructors(), "constructors", ImmutableList.of(
-                        "Name '<init>' is not annotated with @C"
-                ))
+                $(members(), "members", never(beAnnotatedWith(C.class)),
+                        ImmutableList.of(
+                                "Name 'fieldB' is annotated with @C",
+                                "Name '<init>' is annotated with @C",
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(noMembers(), "no members", beAnnotatedWith(C.class),
+                        ImmutableList.of(
+                                "Name 'fieldB' is annotated with @C",
+                                "Name '<init>' is annotated with @C",
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(fields(), "fields", never(beAnnotatedWith(C.class)),
+                        ImmutableList.of(
+                                "Name 'fieldB' is annotated with @C"
+                        )),
+                $(noFields(), "no fields", beAnnotatedWith(C.class),
+                        ImmutableList.of(
+                                "Name 'fieldB' is annotated with @C"
+                        )),
+                $(codeUnits(), "code units", never(beAnnotatedWith(C.class)),
+                        ImmutableList.of(
+                                "Name '<init>' is annotated with @C",
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(noCodeUnits(), "no code units", beAnnotatedWith(C.class),
+                        ImmutableList.of(
+                                "Name '<init>' is annotated with @C",
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(methods(), "methods", never(beAnnotatedWith(C.class)),
+                        ImmutableList.of(
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(noMethods(), "no methods", beAnnotatedWith(C.class),
+                        ImmutableList.of(
+                                "Name 'methodB' is annotated with @C"
+                        )),
+                $(constructors(), "constructors", never(beAnnotatedWith(C.class)),
+                        ImmutableList.of(
+                                "Name '<init>' is annotated with @C"
+                        )),
+                $(noConstructors(), "no constructors", beAnnotatedWith(C.class),
+                        ImmutableList.of(
+                                "Name '<init>' is annotated with @C"
+                        ))
         );
     }
 
     @Test
     @UseDataProvider("member_syntax_testcases")
-    public void test_members(GivenMembers<JavaMember> members, String ruleStart, List<String> expectedViolationDetails) {
+    public void test_members(GivenMembers<JavaMember> members, String ruleStart, ArchCondition<JavaMember> condition,
+            List<String> expectedViolationDetails) {
         ArchRule rule = members
                 .that(have(modifier(PRIVATE)))
                 .or(have(modifier(PROTECTED)))
                 .and(are(annotatedWith(B.class)))
-                .should(beAnnotatedWith(C.class));
+                .should(condition);
 
         assertThat(rule.getDescription()).as("rule description")
                 .isEqualTo(ruleStart + " that have modifier PRIVATE or have modifier PROTECTED and are annotated with @B "
-                        + "should be annotated with @C");
+                        + "should " + condition.getDescription());
 
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
@@ -79,7 +114,7 @@ public class GivenMembersTest {
                 .containsOnlyElementsOf(expectedViolationDetails);
     }
 
-    private ArchCondition<JavaMember> beAnnotatedWith(final Class<? extends Annotation> annotationType) {
+    private static ArchCondition<JavaMember> beAnnotatedWith(final Class<? extends Annotation> annotationType) {
         return new ArchCondition<JavaMember>("be annotated with @%s", annotationType.getSimpleName()) {
             @Override
             public void check(JavaMember member, ConditionEvents events) {
@@ -96,6 +131,7 @@ public class GivenMembersTest {
         @A
         private String fieldA;
         @B
+        @C
         protected Object fieldB;
         @C
         public List<?> fieldC;
@@ -106,6 +142,7 @@ public class GivenMembersTest {
         }
 
         @B
+        @C
         protected ClassWithVariousMembers(String fieldA, Object fieldB) {
             this.fieldA = fieldA;
             this.fieldB = fieldB;
@@ -124,6 +161,7 @@ public class GivenMembersTest {
         }
 
         @B
+        @C
         protected Object methodB() {
             return null;
         }

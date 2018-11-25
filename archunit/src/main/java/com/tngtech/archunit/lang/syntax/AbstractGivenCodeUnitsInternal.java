@@ -44,15 +44,23 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
     static class GivenCodeUnitsInternal extends AbstractGivenCodeUnitsInternal<JavaCodeUnit, GivenCodeUnitsInternal> {
 
         GivenCodeUnitsInternal(Priority priority, ClassesTransformer<JavaCodeUnit> classesTransformer) {
+            this(priority, classesTransformer, Functions.<ArchCondition<JavaCodeUnit>>identity());
+        }
+
+        GivenCodeUnitsInternal(
+                Priority priority,
+                ClassesTransformer<JavaCodeUnit> classesTransformer,
+                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition) {
+
             super(new GivenCodeUnitsFactory(),
                     priority,
                     classesTransformer,
-                    Functions.<ArchCondition<JavaCodeUnit>>identity(),
+                    prepareCondition,
                     new PredicateAggregator<JavaCodeUnit>(),
                     Optional.<String>absent());
         }
 
-        GivenCodeUnitsInternal(
+        private GivenCodeUnitsInternal(
                 Factory<JavaCodeUnit, GivenCodeUnitsInternal> factory,
                 Priority priority,
                 ClassesTransformer<JavaCodeUnit> classesTransformer,

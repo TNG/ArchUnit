@@ -82,8 +82,10 @@ import com.tngtech.archunit.example.cycle.simplescenario.report.ReportService;
 import com.tngtech.archunit.example.persistence.WrongSecurityCheck;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
+import com.tngtech.archunit.example.persistence.first.dao.jpa.SomeJpa;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
+import com.tngtech.archunit.example.persistence.second.dao.jpa.OtherJpa;
 import com.tngtech.archunit.example.security.Secured;
 import com.tngtech.archunit.example.service.ServiceHelper;
 import com.tngtech.archunit.example.service.ServiceInterface;
@@ -106,6 +108,7 @@ import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
+import com.tngtech.archunit.testutils.ExpectedConstructor;
 import com.tngtech.archunit.testutils.ExpectedMethod;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
@@ -738,18 +741,23 @@ class ExamplesIntegrationTest {
     }
 
     @TestFactory
-    Stream<DynamicTest> MethodReturnTypeTest() {
+    Stream<DynamicTest> MethodsTest() {
         return ExpectedTestFailures
                 .forTests(
-                        com.tngtech.archunit.exampletest.MethodReturnTypeTest.class,
-                        com.tngtech.archunit.exampletest.junit4.MethodReturnTypeTest.class,
-                        com.tngtech.archunit.exampletest.junit5.MethodReturnTypeTest.class)
+                        com.tngtech.archunit.exampletest.MethodsTest.class,
+                        com.tngtech.archunit.exampletest.junit4.MethodsTest.class,
+                        com.tngtech.archunit.exampletest.junit5.MethodsTest.class)
 
                 .ofRule("methods that reside in a package '..anticorruption..' and are public "
                         + String.format("should return type %s, ", WrappedResult.class.getName())
                         + "because we don't want to couple the client code directly to the return types of the encapsulated module")
                 .by(ExpectedMethod.of(WithIllegalReturnType.class, "directlyReturnInternalType").returningType(InternalType.class))
                 .by(ExpectedMethod.of(WithIllegalReturnType.class, "otherIllegalMethod", String.class).returningType(int.class))
+
+                .ofRule("no code units that reside in a package '..persistence..' "
+                        + "should be annotated with @" + Secured.class.getSimpleName())
+                .by(ExpectedConstructor.of(SomeJpa.class).beingAnnotatedWith(Secured.class))
+                .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").beingAnnotatedWith(Secured.class))
 
                 .toDynamicTests();
     }
