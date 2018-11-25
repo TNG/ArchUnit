@@ -1,5 +1,7 @@
 package com.tngtech.archunit.testutils;
 
+import java.lang.annotation.Annotation;
+
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
@@ -32,6 +34,12 @@ public class ExpectedMethod {
                     formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
                     type.getName(),
                     clazz.getSimpleName()));
+        }
+
+        public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
+            return new ExpectedMessage(String.format("%s is annotated with @%s",
+                    formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
+                    annotationType.getSimpleName()));
         }
     }
 }

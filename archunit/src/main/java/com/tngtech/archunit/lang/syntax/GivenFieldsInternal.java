@@ -29,10 +29,18 @@ import com.tngtech.archunit.lang.syntax.elements.GivenFieldsConjunction;
 class GivenFieldsInternal extends AbstractGivenMembersInternal<JavaField, GivenFieldsInternal> implements GivenFields, GivenFieldsConjunction {
 
     GivenFieldsInternal(Priority priority, ClassesTransformer<JavaField> classesTransformer) {
+        this(priority, classesTransformer, Functions.<ArchCondition<JavaField>>identity());
+    }
+
+    GivenFieldsInternal(
+            Priority priority,
+            ClassesTransformer<JavaField> classesTransformer,
+            Function<ArchCondition<JavaField>, ArchCondition<JavaField>> prepareCondition) {
+
         super(new GivenFieldsFactory(),
                 priority,
                 classesTransformer,
-                Functions.<ArchCondition<JavaField>>identity(),
+                prepareCondition,
                 new PredicateAggregator<JavaField>(),
                 Optional.<String>absent());
     }

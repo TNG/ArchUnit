@@ -30,10 +30,18 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
         implements GivenConstructors, GivenConstructorsConjunction {
 
     GivenConstructorsInternal(Priority priority, ClassesTransformer<JavaConstructor> classesTransformer) {
+        this(priority, classesTransformer, Functions.<ArchCondition<JavaConstructor>>identity());
+    }
+
+    GivenConstructorsInternal(
+            Priority priority,
+            ClassesTransformer<JavaConstructor> classesTransformer,
+            Function<ArchCondition<JavaConstructor>, ArchCondition<JavaConstructor>> prepareCondition) {
+
         this(new GivenConstructorsFactory(),
                 priority,
                 classesTransformer,
-                Functions.<ArchCondition<JavaConstructor>>identity(),
+                prepareCondition,
                 new PredicateAggregator<JavaConstructor>(),
                 Optional.<String>absent());
     }

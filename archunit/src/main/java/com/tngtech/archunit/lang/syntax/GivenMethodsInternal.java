@@ -30,10 +30,18 @@ class GivenMethodsInternal extends AbstractGivenCodeUnitsInternal<JavaMethod, Gi
         implements GivenMethods, GivenMethodsConjunction {
 
     GivenMethodsInternal(Priority priority, ClassesTransformer<JavaMethod> classesTransformer) {
+        this(priority, classesTransformer, Functions.<ArchCondition<JavaMethod>>identity());
+    }
+
+    GivenMethodsInternal(
+            Priority priority,
+            ClassesTransformer<JavaMethod> classesTransformer,
+            Function<ArchCondition<JavaMethod>, ArchCondition<JavaMethod>> prepareCondition) {
+
         this(new GivenMethodsFactory(),
                 priority,
                 classesTransformer,
-                Functions.<ArchCondition<JavaMethod>>identity(),
+                prepareCondition,
                 new PredicateAggregator<JavaMethod>(),
                 Optional.<String>absent());
     }
