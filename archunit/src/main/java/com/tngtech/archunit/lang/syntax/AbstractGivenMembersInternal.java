@@ -44,15 +44,23 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     static class GivenMembersInternal extends AbstractGivenMembersInternal<JavaMember, GivenMembersInternal> {
 
         GivenMembersInternal(Priority priority, ClassesTransformer<JavaMember> classesTransformer) {
+            this(priority, classesTransformer, Functions.<ArchCondition<JavaMember>>identity());
+        }
+
+        GivenMembersInternal(
+                Priority priority,
+                ClassesTransformer<JavaMember> classesTransformer,
+                Function<ArchCondition<JavaMember>, ArchCondition<JavaMember>> prepareCondition) {
+
             this(new GivenMembersFactory(),
                     priority,
                     classesTransformer,
-                    Functions.<ArchCondition<JavaMember>>identity(),
+                    prepareCondition,
                     new PredicateAggregator<JavaMember>(),
                     Optional.<String>absent());
         }
 
-        GivenMembersInternal(
+        private GivenMembersInternal(
                 Factory<JavaMember, GivenMembersInternal> factory,
                 Priority priority,
                 ClassesTransformer<JavaMember> classesTransformer,

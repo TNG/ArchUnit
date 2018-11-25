@@ -2,15 +2,10 @@ package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -18,7 +13,6 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
@@ -35,8 +29,8 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 
 public class PublicAPIRules {
     @ArchTest
@@ -55,8 +49,7 @@ public class PublicAPIRules {
 
     @ArchTest
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
-            // TODO: all(members()) should instead be members() and part of the fluent API
-            all(members())
+            members()
                     .that(are(withoutAPIMarking()))
                     .and(dont(inheritPublicAPI()))
                     .and(are(relevantArchUnitMembers()))
@@ -194,7 +187,7 @@ public class PublicAPIRules {
 
     private static DescribedPredicate<JavaMember> withoutAPIMarking() {
         return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubType()
-                .and(not(annotatedWith(Internal.class)).<JavaMember>forSubType())
+                .and(not(annotatedWith(Internal.class)).forSubType())
                 .and(declaredIn(modifier(PUBLIC)))
                 .as("without API marking");
     }
@@ -283,48 +276,5 @@ public class PublicAPIRules {
                         String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
             }
         };
-    }
-
-    private static ClassesTransformer<JavaMember> members() {
-        return new ToMembersTransformer();
-    }
-
-    private static class ToMembersTransformer implements ClassesTransformer<JavaMember> {
-        private String description;
-        private DescribedPredicate<JavaMember> selected;
-
-        private ToMembersTransformer() {
-            this("members", DescribedPredicate.<JavaMember>alwaysTrue());
-        }
-
-        private ToMembersTransformer(String description, DescribedPredicate<JavaMember> selected) {
-            this.description = description;
-            this.selected = selected;
-        }
-
-        @Override
-        public DescribedIterable<JavaMember> transform(JavaClasses collection) {
-            ImmutableSet.Builder<JavaMember> result = ImmutableSet.builder();
-            for (JavaClass javaClass : collection) {
-                result.addAll(Guava.Iterables.filter(javaClass.getMembers(), selected));
-            }
-            return DescribedIterable.From.iterable(result.build(), description);
-        }
-
-        @Override
-        public ClassesTransformer<JavaMember> that(DescribedPredicate<? super JavaMember> predicate) {
-            String newDescription = Joiner.on(" that ").join(description, predicate.getDescription());
-            return new ToMembersTransformer(newDescription, predicate.<JavaMember>forSubType());
-        }
-
-        @Override
-        public ClassesTransformer<JavaMember> as(String description) {
-            return new ToMembersTransformer(description, selected);
-        }
-
-        @Override
-        public String getDescription() {
-            return description;
-        }
     }
 }
