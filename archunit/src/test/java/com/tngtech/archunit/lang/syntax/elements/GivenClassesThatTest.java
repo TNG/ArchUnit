@@ -42,7 +42,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -100,7 +100,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameStartingWith() throws Exception {
+    public void haveSimpleNameStartingWith() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameStartingWith("String"))
                 .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
 
@@ -108,7 +108,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameNotStartingWith() throws Exception {
+    public void haveSimpleNameNotStartingWith() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotStartingWith("String"))
                 .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
 
@@ -116,7 +116,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameContaining() throws Exception {
+    public void haveSimpleNameContaining() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameContaining("rin"))
                 .on(List.class, String.class, Iterable.class);
 
@@ -124,7 +124,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameNotContaining() throws Exception {
+    public void haveSimpleNameNotContaining() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotContaining("rin"))
                 .on(List.class, String.class, Iterable.class);
 
@@ -132,7 +132,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameEndingWith() throws Exception {
+    public void haveSimpleNameEndingWith() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameEndingWith("String"))
                 .on(String.class, AttributedString.class, StringBuilder.class);
 
@@ -140,7 +140,7 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void haveSimpleNameNotEndingWith() throws Exception {
+    public void haveSimpleNameNotEndingWith() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotEndingWith("String"))
                 .on(String.class, AttributedString.class, StringBuilder.class);
 
