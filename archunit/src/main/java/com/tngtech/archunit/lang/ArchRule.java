@@ -165,7 +165,11 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
 
         public static ArchRule withBecause(ArchRule rule, String reason) {
-            return rule.as(rule.getDescription() + ", because " + reason);
+            return rule.as(createBecauseDescription(rule, reason));
+        }
+
+        static String createBecauseDescription(ArchRule rule, String reason) {
+            return rule.getDescription() + ", because " + reason;
         }
 
         private static class SimpleArchRule<T> implements ArchRule {
@@ -214,6 +218,11 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 return overriddenDescription.isPresent() ?
                         overriddenDescription.get() :
                         ConfiguredMessageFormat.get().formatRuleText(classesTransformer, condition);
+            }
+
+            @Override
+            public String toString() {
+                return getDescription();
             }
         }
     }

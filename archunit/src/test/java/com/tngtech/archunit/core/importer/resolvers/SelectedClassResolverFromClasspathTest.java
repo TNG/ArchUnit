@@ -18,7 +18,7 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;

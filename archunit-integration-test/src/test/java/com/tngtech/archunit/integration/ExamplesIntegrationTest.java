@@ -160,13 +160,33 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> CodingRulesTest() {
-        return ExpectedTestFailures
+        ExpectedTestFailures expectFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CodingRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.CodingRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.CodingRulesTest.class)
+                        com.tngtech.archunit.exampletest.junit5.CodingRulesTest.class);
 
-                .ofRule("no classes should access standard streams")
+        expectFailures.ofRule("no classes should access standard streams");
+        expectAccessToStandardStreams(expectFailures);
+        expectFailures.times(2);
+
+        expectFailures.ofRule("no classes should throw generic exceptions");
+        expectThrownGenericExceptions(expectFailures);
+
+        expectFailures.ofRule("no classes should use java.util.logging")
+                .by(callFromStaticInitializer(ClassViolatingCodingRules.class)
+                        .setting().field(ClassViolatingCodingRules.class, "log")
+                        .inLine(9));
+
+        expectFailures.ofRule("no classes should access standard streams and no classes should throw generic exceptions");
+        expectAccessToStandardStreams(expectFailures);
+        expectThrownGenericExceptions(expectFailures);
+
+        return expectFailures.toDynamicTests();
+    }
+
+    private static void expectAccessToStandardStreams(ExpectedTestFailures expectFailures) {
+        expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
                         .getting().field(System.class, "out")
                         .inLine(12))
@@ -178,10 +198,11 @@ class ExamplesIntegrationTest {
                         .inLine(14))
                 .by(callFromMethod(ServiceViolatingLayerRules.class, "illegalAccessToController")
                         .getting().field(System.class, "out")
-                        .inLine(16))
-                .times(2)
+                        .inLine(16));
+    }
 
-                .ofRule("no classes should throw generic exceptions")
+    private static void expectThrownGenericExceptions(ExpectedTestFailures expectFailures) {
+        expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
                         .inLine(22))
@@ -193,14 +214,7 @@ class ExamplesIntegrationTest {
                         .inLine(26))
                 .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Exception.class, String.class)
-                        .inLine(26))
-
-                .ofRule("no classes should use java.util.logging")
-                .by(callFromStaticInitializer(ClassViolatingCodingRules.class)
-                        .setting().field(ClassViolatingCodingRules.class, "log")
-                        .inLine(9))
-
-                .toDynamicTests();
+                        .inLine(26));
     }
 
     @TestFactory
