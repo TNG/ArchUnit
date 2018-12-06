@@ -96,17 +96,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
         .onNodeTypeFilterChanged(filter => this.filterNodesByType(filter))
         .initializeDependencyFilter(this.dependencies.dependencyTypes)
         .onDependencyFilterChanged(filter => this.filterDependenciesByType(filter))
-        .onNodeNameFilterChanged((filterString) => this.filterNodesByName(filterString))
-        .initializeLegend([
-          visualizationStyles.getLineStyle('constructorCall', 'constructor call'),
-          visualizationStyles.getLineStyle('methodCall', 'method call'),
-          visualizationStyles.getLineStyle('fieldAccess', 'field access'),
-          visualizationStyles.getLineStyle('extends', 'extends'),
-          visualizationStyles.getLineStyle('implements', 'implements'),
-          visualizationStyles.getLineStyle('implementsAnonymous', 'implements anonymous'),
-          visualizationStyles.getLineStyle('childrenAccess', 'innerclass access'),
-          visualizationStyles.getLineStyle('several', 'grouped access')
-        ]);
+        .onNodeNameFilterChanged((filterString) => this.filterNodesByName(filterString));
     }
 
     onHideNodesWithoutViolationsChanged(hide) {

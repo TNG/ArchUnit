@@ -33,7 +33,6 @@ module.exports = env => {
       'webcomponents-loader': './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
       'filter': `${srcPath}menu/filter.js`,
       'filter-bar': `${srcPath}menu/filter-bar`,
-      'legend': `${srcPath}menu/legend.js`,
       'menu': `${srcPath}menu/menu.js`,
       'settings': `${srcPath}menu/settings.js`,
       'violation-menu': `${srcPath}violation-menu/violation-menu.js`
