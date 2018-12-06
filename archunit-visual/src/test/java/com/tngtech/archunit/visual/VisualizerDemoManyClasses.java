@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 import java.util.jar.JarFile;
 
 public class VisualizerDemoManyClasses {
-    //@Ignore
+    @Ignore
     @Test
     public void build_report() throws IOException {
         System.out.println("Building large example report...");
