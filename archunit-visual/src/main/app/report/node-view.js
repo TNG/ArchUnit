@@ -37,14 +37,13 @@ const init = (transitionDuration) => {
         .append('text')
         .text(node.getName())
         .node();
-      this._textWidth = this._text.getComputedTextLength();
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
     }
 
     getTextWidth() {
-      return this._textWidth;
+      return this._text.getComputedTextLength();
     }
 
     updateNodeType(nodeType) {
