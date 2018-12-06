@@ -32,19 +32,19 @@ class JsonViolationExporter {
             .create();
 
     String exportToJson(Iterable<EvaluationResult> results) {
-        Multimap<String, JsonViolation> violations = HashMultimap.create();
+        Multimap<String, String> violations = HashMultimap.create();
         for (EvaluationResult result : results) {
             extractDependencies(result, violations);
         }
         return gson.toJson(JsonEvaluationResult.CreateFromMultiMap(violations));
     }
 
-    private void extractDependencies(final EvaluationResult result, final Multimap<String, JsonViolation> violations) {
+    private void extractDependencies(final EvaluationResult result, final Multimap<String, String> violations) {
         result.handleViolations(new ViolationHandler<Dependency>() {
             @Override
             public void handle(Collection<Dependency> dependencies, String message) {
                 for (Dependency dependency : dependencies) {
-                    violations.put(result.getRuleText(), JsonViolation.from(dependency));
+                    violations.put(result.getRuleText(), dependency.getDescription());
                 }
             }
         });

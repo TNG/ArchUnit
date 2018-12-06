@@ -49,7 +49,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _update(coordinates, detailedDeps) {
-      const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d.description, 'access'))) + 2 * textPadding + 10;
+      const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d, 'access'))) + 2 * textPadding + 10;
 
       d3.select(this._svgElement).attr('transform', () => {
         const transform = d3.select('#translater').attr('transform');
@@ -74,8 +74,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
       d3.select(this._svgElement).select('text')
         .selectAll('tspan')
-        .text(d => d.description)
-        .attr('class', d => d.cssClass)
+        .text(d => d)
         .attr('x', -maxWidth / 2)
         .attr('dy', fontSize + textPadding);
 

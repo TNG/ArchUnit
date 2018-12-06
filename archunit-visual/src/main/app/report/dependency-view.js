@@ -27,7 +27,7 @@ const init = (DetailedView, transitionDuration) => {
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
-          .attr('id', dependency.getIdentifyingString())
+          .attr('id', dependency.toString())
           .style('visibility', 'hidden')
           .node();
 
@@ -41,7 +41,7 @@ const init = (DetailedView, transitionDuration) => {
         .style('visibility', 'hidden')
         .style('stroke-width', clickAreaWidth);
 
-      this._createDetailedView(parentSvgElement, dependency.getIdentifyingString(),
+      this._createDetailedView(parentSvgElement, dependency.toString(),
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 

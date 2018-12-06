@@ -5,11 +5,11 @@ import {buildFilterCollection} from './filter';
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonRoot, violations, svg, foldAllNodes) {
+    constructor(jsonGraph, violations, svg, foldAllNodes) {
       this._view = new View(svg);
-      this.root = new Root(jsonRoot.root, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
+      this.root = new Root(jsonGraph.root, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
         newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
-      this.dependencies = new Dependencies(jsonRoot.root, this.root, this._view.svgElementForDependencies);
+      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root, this._view.svgElementForDependencies);
 
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
@@ -94,6 +94,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
             this.root.relayoutCompletely();
           })
         .onNodeTypeFilterChanged(filter => this.filterNodesByType(filter))
+        .initializeDependencyFilter(this.dependencies.dependencyTypes)
         .onDependencyFilterChanged(filter => this.filterDependenciesByType(filter))
         .onNodeNameFilterChanged((filterString) => this.filterNodesByName(filterString))
         .initializeLegend([
@@ -151,6 +152,6 @@ export default (appContext, resources, svgElement, foldAllNodes) => {
   const Graph = init(appContext.getRoot(), appContext.getDependencies(),
     appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
-  const {root, violations} = resources.getResources();
-  return new Graph(root, violations, svgElement, foldAllNodes);
+  const {graph, violations} = resources.getResources();
+  return new Graph(graph, violations, svgElement, foldAllNodes);
 };

@@ -1,12 +1,17 @@
 'use strict';
 
-const dependencyTypes = require('./dependency-types.json');
-
 import {Vector, vectors} from './vectors';
 
 const OVERLAP_DELTA = 0.1;
 
+const coloredDependencyTypes = new Set();
+const dashedDependencyTypes = new Set();
+
 const init = (View, nodeMap) => {
+
+  const ownDependencyTypes = {
+    INNERCLASS_DEPENDENCY: 'INNERCLASS_DEPENDENCY'
+  };
 
   const nodes = nodeMap;
   const allDependencies = new Map();
@@ -63,158 +68,20 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const mergeTypeNames = (ownTypeName, otherTypeName) => {
-    if (otherTypeName) {
-      return otherTypeName === ownTypeName ? otherTypeName : 'several';
-    } else {
-      return ownTypeName;
-    }
-  };
-
-  const SingleDependencyDescription = class {
-    constructor(typeName) {
-      this.typeName = typeName;
-    }
-
-    getDependencyTypeNamesAsString() {
-      return this.typeName;
-    }
-
-    mergeAccessTypeWithOtherAccessType(accessTypeName) {
-      return accessTypeName;
-    }
-
-    mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
-      return inheritanceTypeName;
-    }
-
-    toString() {
-      return this.typeName;
-    }
-  };
-
-  const AccessDescription = class extends SingleDependencyDescription {
-    constructor(typeName, startCodeUnit, targetElement) {
-      super(typeName);
-      this.startCodeUnit = startCodeUnit;
-      this.targetElement = targetElement;
-    }
-
-    hasDetailedDescription() {
-      return true;
-    }
-
-    hasTitle() {
-      return true;
-    }
-
-    mergeAccessTypeWithOtherAccessType(accessTypeName) {
-      return mergeTypeNames(this.typeName, accessTypeName);
-    }
-
-    toString() {
-      return joinStrings(' ', this.startCodeUnit, this.typeName, this.targetElement);
-    }
-  };
-
-  const InheritanceDescription = class extends SingleDependencyDescription {
-    constructor(typeName) {
-      super(typeName);
-    }
-
-    hasDetailedDescription() {
-      return false;
-    }
-
-    hasTitle() {
-      return false;
-    }
-
-    mergeInheritanceTypeWithOtherInheritanceType(inheritanceTypeName) {
-      return mergeTypeNames(this.typeName, inheritanceTypeName);
-    }
-  };
-
-  const ChildAccessDescription = class extends SingleDependencyDescription {
-    constructor(hasDetailedDescription) {
-      super('childrenAccess');
-      this._hasDetailedDescription = hasDetailedDescription;
-    }
-
-    hasDetailedDescription() {
-      return this._hasDetailedDescription;
-    }
-
-    mergeAccessTypeWithOtherAccessType(accessTypeName) {
-      return mergeTypeNames(this.typeName, accessTypeName);
-    }
-  };
-
-  const EmptyDependencyDescription = class extends SingleDependencyDescription {
-    hasDetailedDescription() {
-      return false;
-    }
-
-    getDependencyTypeNamesAsString() {
-      return '';
-    }
-
-    toString() {
-      return this.getDependencyTypeNamesAsString();
-    }
-  };
-
-  const GroupedDependencyDescription = class {
-    constructor(hasDetailedDescription = false, accessTypeName = '', inheritanceTypeName = '') {
-      this.accessTypeName = accessTypeName;
-      this.inheritanceTypeName = inheritanceTypeName;
-      this._hasDetailedDescription = hasDetailedDescription;
-    }
-
-    hasDetailedDescription() {
-      return this._hasDetailedDescription;
-    }
-
-    getDependencyTypeNamesAsString() {
-      return joinStrings(' ', this.inheritanceTypeName, this.accessTypeName);
-    }
-
-    toString() {
-      return this.getDependencyTypeNamesAsString();
-    }
-
-    addDependencyDescription(dependencyDescription) {
-      this.accessTypeName = dependencyDescription.mergeAccessTypeWithOtherAccessType(this.accessTypeName);
-      this.inheritanceTypeName = dependencyDescription.mergeInheritanceTypeWithOtherInheritanceType(this.inheritanceTypeName);
-      this._hasDetailedDescription = this._hasDetailedDescription || dependencyDescription.hasDetailedDescription();
-    }
-  };
-
-  const getOrCreateUniqueDependency = (from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
+  const getOrCreateUniqueDependency = (type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
     if (!allDependencies.has(`${from}-${to}`)) {
-      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies));
+      allDependencies.set(`${from}-${to}`, new GroupedDependency(type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies));
     }
-    return allDependencies.get(`${from}-${to}`).withDescriptionAndViolation(description, isViolation)
+    return allDependencies.get(`${from}-${to}`).withTypeAndViolation(type, isViolation)
   };
-
-  const createDependencyDescription = (type, startCodeUnit, targetElement) => {
-    if (dependencyTypes.groupedDependencies.access.types.filter(accessType => accessType.dependency === type).length > 0) {
-      return new AccessDescription(type, startCodeUnit, targetElement);
-    }
-    else if (dependencyTypes.groupedDependencies.inheritance.types.filter(inheritanceType => inheritanceType.dependency === type).length > 0) {
-      return new InheritanceDescription(type);
-    }
-  };
-
-  const combinePathAndCodeUnit = (path, codeUnit) => (path || '') + ((path && codeUnit) ? '.' : '') + (codeUnit || '');
-
-  const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
   const ElementaryDependency = class {
-    constructor(from, to, description, isViolation = false) {
+    //TODO: change parameter order
+    constructor(type, description, from, to, isViolation = false) {
+      this.type = type;
+      this.description = description;
       this.from = from;
       this.to = to;
-      this.description = description;
       this.isViolation = isViolation;
       this._matchesFilter = new Map();
     }
@@ -239,24 +106,8 @@ const init = (View, nodeMap) => {
       return nodes.getByName(this.to);
     }
 
-    toShortStringRelativeToPredecessors(from, to) {
-      const start = combinePathAndCodeUnit(this.from.substring(from.length + 1), this.description.startCodeUnit);
-      const end = combinePathAndCodeUnit(this.to.substring(to.length + 1), this.description.targetElement);
-      return `${start}->${end}`;
-    }
-
-    getTypeNames() {
-      return joinStrings(' ', 'dependency', this.description.getDependencyTypeNamesAsString());
-    }
-
     toString() {
-      return `${this.from}->${this.to}(${this.description.toString()})`;
-    }
-
-    getIdentifyingString() {
-      const start = combinePathAndCodeUnit(this.from, this.description.startCodeUnit);
-      const end = combinePathAndCodeUnit(this.to, this.description.targetElement);
-      return `${start}-${end}`;
+      return this.description;
     }
 
     markAsViolation() {
@@ -268,9 +119,11 @@ const init = (View, nodeMap) => {
     }
   };
 
+  const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
+
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(from, to, description, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
-      super(from, to, description, isViolation);
+    constructor(type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
+      super(type, '', from, to, '', isViolation);
       this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
       this._isVisible = false;
       this.visualData = new VisualData({
@@ -279,14 +132,14 @@ const init = (View, nodeMap) => {
       });
     }
 
-    withDescriptionAndViolation(description, isViolation) {
-      this.description = description;
+    withTypeAndViolation(type, isViolation) {
+      this.type = type;
       this.isViolation = isViolation;
       return this;
     }
 
     hasDetailedDescription() {
-      return !containsPackage(this.from, this.to) && this.description.hasDetailedDescription();
+      return !containsPackage(this.from, this.to);
     }
 
     jumpToPosition() {
@@ -321,10 +174,10 @@ const init = (View, nodeMap) => {
     }
 
     getProperties() {
-      return joinStrings(' ', this.getTypeNames(), (this.isViolation ? 'violation' : ''));
+      return joinStrings(' ', 'dependency', this.isViolation ? 'violation' : '', this.type);
     }
 
-    getIdentifyingString() {
+    toString() {
       return `${this.from}-${this.to}`;
     }
   };
@@ -333,39 +186,52 @@ const init = (View, nodeMap) => {
     return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
   };
 
-  const createElementaryDependency = (from, to) => ({
-    withDependencyDescription: (type, startCodeUnit = null, targetElement = null) => {
-      return new ElementaryDependency(from, to, createDependencyDescription(type, startCodeUnit, targetElement));
+  const getSingleStyledDependencyType = (dependencies, styledDependencyTypes, mixedStyle) => {
+    const currentDependencyTypes = new Set(dependencies.map(d => d.type));
+    const currentStyledDependencyTypes = [...currentDependencyTypes].filter(t => styledDependencyTypes.has(t));
+    if (currentStyledDependencyTypes.length === 0) {
+      return '';
+    } else if (currentStyledDependencyTypes.length === 1) {
+      return currentStyledDependencyTypes[0];
+    } else {
+      return mixedStyle;
     }
-  });
+  };
 
   const getUniqueDependency = (from, to, svgElement, callForAllViews, getDetailedDependencies) => ({
-    byGroupingDependencies: (dependencies) => {
+    byGroupingDependencies: dependencies => {
       if (containsPackage(from, to)) {
-        return getOrCreateUniqueDependency(from, to, new EmptyDependencyDescription(), dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
-      }
-      else {
-        const description = new GroupedDependencyDescription();
-        dependencies.forEach(d => description.addDependencyDescription(d.description));
-        return getOrCreateUniqueDependency(from, to, description, dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
+        return getOrCreateUniqueDependency('', from, to,
+          dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
+      } else {
+        const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
+        const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
+
+        return getOrCreateUniqueDependency(joinStrings(' ', colorType, dashedType), from, to,
+          dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       }
     }
   });
 
   const shiftElementaryDependency = (dependency, newFrom, newTo) => {
     if (containsPackage(newFrom, newTo)) {
-      return new ElementaryDependency(newFrom, newTo, new EmptyDependencyDescription(), dependency.isViolation);
+      return new ElementaryDependency('', '', newFrom, newTo, dependency.isViolation);
     }
     if (newFrom === dependency.from && newTo === dependency.to) {
       return dependency;
     }
-    return new ElementaryDependency(newFrom, newTo, new ChildAccessDescription(dependency.description.hasDetailedDescription()), dependency.isViolation);
+    return new ElementaryDependency(ownDependencyTypes.INNERCLASS_DEPENDENCY, '', newFrom, newTo, dependency.isViolation);
   };
 
+  const createElementaryDependency = jsonDependency =>
+    new ElementaryDependency(jsonDependency.type, jsonDependency.description,
+      jsonDependency.originClass, jsonDependency.targetClass);
+
   return {
-    createElementaryDependency: createElementaryDependency,
+    createElementaryDependency,
     getUniqueDependency: getUniqueDependency,
-    shiftElementaryDependency: shiftElementaryDependency
+    shiftElementaryDependency: shiftElementaryDependency,
+    getOwnDependencyTypes: () => [...Object.values(ownDependencyTypes)]
   };
 };
 

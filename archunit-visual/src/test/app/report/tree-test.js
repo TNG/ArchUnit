@@ -6,8 +6,8 @@ import './chai/node-chai-extensions';
 import {Vector} from '../../../main/app/report/vectors';
 import stubs from './stubs';
 import AppContext from '../../../main/app/report/app-context';
-import testJson from './test-json-creator';
-import testRoot from './test-object-creator';
+import {testRoot} from './test-json-creator';
+import testRootCreator from './test-object-creator';
 import {buildFilterCollection} from "../../../main/app/report/filter";
 
 const expect = chai.expect;
@@ -35,21 +35,21 @@ const updateFilterAndRelayout = (root, filterCollection, filterKey) => {
 
 describe('Root', () => {
   it('should have itself as parent', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit').build();
+    const jsonRoot = testRoot.package('com.tngtech.archunit').build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getParent()).to.equal(root);
   });
 
   it('should know that it is the root', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.isRoot()).to.equal(true);
   });
 
   it('should not fold or change its fold-state', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit').build();
+    const jsonRoot = testRoot.package('com.tngtech.archunit').build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root._initialFold();
     expect(root.isFolded()).to.equal(false);
@@ -60,9 +60,9 @@ describe('Root', () => {
   });
 
   it('should return the correct node by name', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass1', 'class').build())
-      .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass1', 'class').build())
+      .add(testRoot.clazz('SomeClass2', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass1').getFullName()).to.equal('com.tngtech.archunit.SomeClass1');
@@ -70,13 +70,13 @@ describe('Root', () => {
   });
 
   it('can fold all nodes', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg1')
-        .add(testJson.clazz('SomeClass', 'class')
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg1')
+        .add(testRoot.clazz('SomeClass', 'class')
           .build())
         .build())
-      .add(testJson.package('pkg2')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('pkg2')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -93,20 +93,20 @@ describe('Root', () => {
   });
 
   it('can fold all visible nodes with minimum depth that have no specific descendant, when no nodes are folded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg1')
-        .add(testJson.clazz('SomeClass', 'class')
-          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg1')
+        .add(testRoot.clazz('SomeClass', 'class')
+          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
           .build())
         .build())
-      .add(testJson.package('pkg2')
-        .add(testJson.clazz('SomeClass', 'class')
-          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+      .add(testRoot.package('pkg2')
+        .add(testRoot.clazz('SomeClass', 'class')
+          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
           .build())
         .build())
-      .add(testJson.package('pkg3')
-        .add(testJson.clazz('SomeClass', 'class')
-          .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+      .add(testRoot.package('pkg3')
+        .add(testRoot.clazz('SomeClass', 'class')
+          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
           .build())
         .build())
       .build();
@@ -133,20 +133,20 @@ describe('Root', () => {
   });
 
   it('can fold all visible nodes with minimum depth that have no specific descendant, when nodes are folded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg1')
-        .add(testJson.clazz('SomeClass', 'class')
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg1')
+        .add(testRoot.clazz('SomeClass', 'class')
           .build())
         .build())
-      .add(testJson.package('pkg2')
-        .add(testJson.package('pkg3')
-          .add(testJson.clazz('SomeClass', 'class')
-            .havingInnerClass(testJson.clazz('InnerClass', 'class').build())
+      .add(testRoot.package('pkg2')
+        .add(testRoot.package('pkg3')
+          .add(testRoot.clazz('SomeClass', 'class')
+            .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
             .build())
           .build())
         .build())
-      .add(testJson.package('pkg3')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('pkg3')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -171,18 +171,18 @@ describe('Root', () => {
 
   it('can hide interfaces: hides packages with only interfaces, changes CSS-class of classes with only inner ' +
     'interfaces, does not hide interfaces with an inner class', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.clazz('SomeInterface', 'interface').build())
-      .add(testJson.clazz('SomeInterfaceWithInnerClass', 'interface')
-        .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
+        .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
         .build())
-      .add(testJson.package('interfaces')
-        .add(testJson.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.package('interfaces')
+        .add(testRoot.clazz('SomeInterface', 'interface').build())
         .build())
-      .add(testJson.package('classes')
-        .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
-          .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+      .add(testRoot.package('classes')
+        .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
+          .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
           .build())
         .build())
       .build();
@@ -215,18 +215,18 @@ describe('Root', () => {
 
   it('can hide classes: hides packages with only classes, changes CSS-class of interfaces with only inner ' +
     'classes, does not hide classes with an inner interface', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.clazz('SomeInterface', 'interface').build())
-      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
         .build())
-      .add(testJson.package('classes')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('classes')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('interfaces')
-        .add(testJson.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+      .add(testRoot.package('interfaces')
+        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
+          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
           .build())
         .build())
       .build();
@@ -258,18 +258,18 @@ describe('Root', () => {
   });
 
   it('can hide classes and interfaces, so that only the root remains', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.clazz('SomeInterface', 'interface').build())
-      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
         .build())
-      .add(testJson.package('classes')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('classes')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('interfaces')
-        .add(testJson.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+      .add(testRoot.package('interfaces')
+        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
+          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
           .build())
         .build())
       .build();
@@ -300,18 +300,18 @@ describe('Root', () => {
 
   it('can hide classes and show again: sets visibilities correctly and ' +
     'resets the CSS-class of interfaces with only inner classes', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.clazz('SomeInterface', 'interface').build())
-      .add(testJson.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testJson.clazz('SomeInnerInterface', 'interface').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
+        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
         .build())
-      .add(testJson.package('classes')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('classes')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('interfaces')
-        .add(testJson.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+      .add(testRoot.package('interfaces')
+        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
+          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
           .build())
         .build())
       .build();
@@ -346,24 +346,24 @@ describe('Root', () => {
 
   it('can filter nodes by name using a simple string: hides packages with no matching classes, does not hide not ' +
     'matching class with matching inner classes', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('MatchingClass', 'class').build())
-      .add(testJson.clazz('MatchingInterface', 'interface').build())
-      .add(testJson.clazz('NotMatchingClassWithMatchingInnerChild', 'class')
-        .havingInnerClass(testJson.clazz('MatchingClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('MatchingClass', 'class').build())
+      .add(testRoot.clazz('MatchingInterface', 'interface').build())
+      .add(testRoot.clazz('NotMatchingClassWithMatchingInnerChild', 'class')
+        .havingInnerClass(testRoot.clazz('MatchingClass', 'class').build())
         .build())
-      .add(testJson.package('pkgWithNoMatchingClass')
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.package('pkgWithNoMatchingClass')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('MatchingPkg')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('MatchingPkg')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('pkgWithMatchingClass')
-        .add(testJson.clazz('MatchingClass', 'class').build())
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.package('pkgWithMatchingClass')
+        .add(testRoot.clazz('MatchingClass', 'class').build())
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
-      .add(testJson.clazz('MatchingClassWithNotMatchingInnerClass', 'class')
-        .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.clazz('MatchingClassWithNotMatchingInnerClass', 'class')
+        .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -399,20 +399,20 @@ describe('Root', () => {
   });
 
   it('can filter nodes by name using a string with a star in it', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('XMatchingClassY', 'class').build())
-      .add(testJson.clazz('XNotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testJson.clazz('MatchingYClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('XMatchingClassY', 'class').build())
+      .add(testRoot.clazz('XNotMatchingClassWithMatchingChild', 'class')
+        .havingInnerClass(testRoot.clazz('MatchingYClass', 'class').build())
         .build())
-      .add(testJson.package('notMatchingXPkgWithMatchingClass')
-        .add(testJson.clazz('YMatchingClass', 'class').build())
+      .add(testRoot.package('notMatchingXPkgWithMatchingClass')
+        .add(testRoot.clazz('YMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('XMatchingYPkg')
-        .add(testJson.clazz('MatchingClass', 'class').build())
+      .add(testRoot.package('XMatchingYPkg')
+        .add(testRoot.clazz('MatchingClass', 'class').build())
         .build())
-      .add(testJson.package('pkgWithNoMatchingYClass')
-        .add(testJson.clazz('NotMatchingXClass1', 'class').build())
-        .add(testJson.clazz('NotMatchingClass2', 'class').build())
+      .add(testRoot.package('pkgWithNoMatchingYClass')
+        .add(testRoot.clazz('NotMatchingXClass1', 'class').build())
+        .add(testRoot.clazz('NotMatchingClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -441,7 +441,7 @@ describe('Root', () => {
   });
 
   it('should filter out a node not matching a part with wildcard', () => {
-    const root = testRoot(
+    const root = testRootCreator(
       'my.company.first.SomeClass',
       'my.company.first.OtherClass',
       'my.company.second.SomeClass',
@@ -474,7 +474,7 @@ describe('Root', () => {
   });
 
   it('should filter out nodes that are excluded explicitly by the filter', () => {
-    const root = testRoot(
+    const root = testRootCreator(
       'my.company.first.SomeClass',
       'my.company.first.OtherClass',
       'my.company.second.SomeClass',
@@ -503,21 +503,21 @@ describe('Root', () => {
 
   it('can filter nodes by name and exclude the matching nodes: changes CSS-class of not matching class with ' +
     'matching inner class (can occur in this scenario)', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('XMatchingClass', 'class').build())
-      .add(testJson.clazz('XMatchingInterface', 'interface').build())
-      .add(testJson.clazz('NotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testJson.clazz('XMatchingClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('XMatchingClass', 'class').build())
+      .add(testRoot.clazz('XMatchingInterface', 'interface').build())
+      .add(testRoot.clazz('NotMatchingClassWithMatchingChild', 'class')
+        .havingInnerClass(testRoot.clazz('XMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('notMatchingPkgWithOnlyMatchingClasses')
-        .add(testJson.clazz('XMatchingClass', 'class').build())
+      .add(testRoot.package('notMatchingPkgWithOnlyMatchingClasses')
+        .add(testRoot.clazz('XMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('XMatchingPkg')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('XMatchingPkg')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('pkgWithMatchingClass')
-        .add(testJson.clazz('XMatchingClass', 'class').build())
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.package('pkgWithMatchingClass')
+        .add(testRoot.clazz('XMatchingClass', 'class').build())
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -551,13 +551,13 @@ describe('Root', () => {
   });
 
   it('can filter nodes by name and exclude the matching nodes', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('MatchingClassXX', 'class').build())
-      .add(testJson.clazz('MatchingClassWithNotMatchingChildXX', 'class')
-        .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('MatchingClassXX', 'class').build())
+      .add(testRoot.clazz('MatchingClassWithNotMatchingChildXX', 'class')
+        .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('MatchingPkgWithNoMatchingChildXX')
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.package('MatchingPkgWithNoMatchingChildXX')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -585,18 +585,18 @@ describe('Root', () => {
 
   it('can reset the node-filter by name: the CSS-class of a node, that was matching the filter but has no child ' +
     'matching the filter, is reset correctly', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('MatchingClassXX', 'class').build())
-      .add(testJson.clazz('MatchingInterfaceXX', 'interface').build())
-      .add(testJson.clazz('NotMatchingXXClass', 'class').build())
-      .add(testJson.package('matchingPkgWithNoMatchingClassXX')
-        .add(testJson.clazz('NotMatchingClassXx', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('MatchingClassXX', 'class').build())
+      .add(testRoot.clazz('MatchingInterfaceXX', 'interface').build())
+      .add(testRoot.clazz('NotMatchingXXClass', 'class').build())
+      .add(testRoot.package('matchingPkgWithNoMatchingClassXX')
+        .add(testRoot.clazz('NotMatchingClassXx', 'class').build())
         .build())
-      .add(testJson.package('pkgWithMatchingClass')
-        .add(testJson.clazz('MatchingClassWithNotMatchingChildXX', 'class')
-          .havingInnerClass(testJson.clazz('NotMatchingClass', 'class').build())
+      .add(testRoot.package('pkgWithMatchingClass')
+        .add(testRoot.clazz('MatchingClassWithNotMatchingChildXX', 'class')
+          .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
           .build())
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -635,14 +635,14 @@ describe('Root', () => {
 
   it('can change the node filter by name (without resetting it before): shows nodes matching the new filter but not ' +
     'the old one again', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('XMatchingClass', 'class').build())
-      .add(testJson.clazz('YMatchingInterface', 'interface').build())
-      .add(testJson.clazz('NotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testJson.clazz('YMatchingClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('XMatchingClass', 'class').build())
+      .add(testRoot.clazz('YMatchingInterface', 'interface').build())
+      .add(testRoot.clazz('NotMatchingClassWithMatchingChild', 'class')
+        .havingInnerClass(testRoot.clazz('YMatchingClass', 'class').build())
         .build())
-      .add(testJson.package('pkgWithNoMatchingClasses')
-        .add(testJson.clazz('XMatchingClass', 'class').build())
+      .add(testRoot.package('pkgWithNoMatchingClasses')
+        .add(testRoot.clazz('XMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -676,25 +676,25 @@ describe('Root', () => {
     'without children matching both filters and does not hide not matching nodes with a matching child, and changes ' +
     'CSS-class of a node loosing its children only because of both filters (that means every child is matching exactly ' +
     'one filter)', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgWithoutChildrenMatchingBothFilters')
-        .add(testJson.clazz('NameMatchingClassX', 'class').build())
-        .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgWithoutChildrenMatchingBothFilters')
+        .add(testRoot.clazz('NameMatchingClassX', 'class').build())
+        .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
         .build())
-      .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
-      .add(testJson.clazz('NameMatchingClassX', 'class').build())
-      .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
-      .add(testJson.package('nameMatchingPkgX')
-        .add(testJson.clazz('NotMatchingClass', 'class').build()).build())
-      .add(testJson.package('pkgWithChildMatchingBothFilters')
-        .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
-        .add(testJson.clazz('NotNameMatchingClassWithChildMatchingBothFilters', 'class')
-          .havingInnerClass(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
+      .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
+      .add(testRoot.clazz('NameMatchingClassX', 'class').build())
+      .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
+      .add(testRoot.package('nameMatchingPkgX')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build()).build())
+      .add(testRoot.package('pkgWithChildMatchingBothFilters')
+        .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
+        .add(testRoot.clazz('NotNameMatchingClassWithChildMatchingBothFilters', 'class')
+          .havingInnerClass(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
           .build())
         .build())
-      .add(testJson.clazz('NameMatchingInterfaceWithNoMatchingChildX', 'interface')
-        .havingInnerClass(testJson.clazz('NotNameMatchingInterface', 'interface').build())
-        .havingInnerClass(testJson.clazz('NameMatchingClassX', 'class').build())
+      .add(testRoot.clazz('NameMatchingInterfaceWithNoMatchingChildX', 'interface')
+        .havingInnerClass(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
+        .havingInnerClass(testRoot.clazz('NameMatchingClassX', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -736,15 +736,15 @@ describe('Root', () => {
 
   it('can filter by name and by type and then reset the name-filter: resets CSS-class of node with a child matching ' +
     'the type-filter but not the name-filter', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('NameMatchingClassX', 'class').build())
-      .add(testJson.clazz('NameMatchingInterfaceX', 'interface').build())
-      .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
-      .add(testJson.clazz('NameMatchingInterfaceWithChildOnlyMatchingNameFilterX', 'interface')
-        .havingInnerClass(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('NameMatchingClassX', 'class').build())
+      .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
+      .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
+      .add(testRoot.clazz('NameMatchingInterfaceWithChildOnlyMatchingNameFilterX', 'interface')
+        .havingInnerClass(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
         .build())
-      .add(testJson.package('pkgWithNoNameMatchingChild')
-        .add(testJson.clazz('NotNameMatchingInterface', 'interface').build())
+      .add(testRoot.package('pkgWithNoNameMatchingChild')
+        .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -780,9 +780,9 @@ describe('Root', () => {
 
   it('can fold and then filter by name: the not matching folded node with matching children (but which are hidden ' +
     'through folding) should not be hidden', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFold')
-        .add(testJson.clazz('MatchingXClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFold')
+        .add(testRoot.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -811,10 +811,10 @@ describe('Root', () => {
 
   it('can filter by name, fold and unfold a node in this order: the filter should be still applied after unfolding ' +
     '(especially on the hidden nodes)', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFold')
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
-        .add(testJson.clazz('MatchingXClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFold')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
+        .add(testRoot.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -844,9 +844,9 @@ describe('Root', () => {
 
   it('can fold, filter by name and reset the filter in this order: filtering should not influence the fold-state of the ' +
     'folded node', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFoldX')
-        .add(testJson.clazz('SomeClass1', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFoldX')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -873,10 +873,10 @@ describe('Root', () => {
   });
 
   it('can filter by name, fold and reset the filter in this order: the fold-state should not be changed by resetting the filter', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFold')
-        .add(testJson.clazz('MatchingClassX', 'class').build())
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFold')
+        .add(testRoot.clazz('MatchingClassX', 'class').build())
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -905,10 +905,10 @@ describe('Root', () => {
 
   it('can fold, filter by name and unfold: then the filter should be applied on the hidden children of the folded ' +
     'node', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFold')
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
-        .add(testJson.clazz('MatchingXClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFold')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
+        .add(testRoot.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -939,10 +939,10 @@ describe('Root', () => {
 
   it('can unfold and filter by name: then the node, which would have been shown by unfolding but does not pass ' +
     'the filter, is hidden', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToFold')
-        .add(testJson.clazz('NotMatchingClass', 'class').build())
-        .add(testJson.clazz('MatchingXClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToFold')
+        .add(testRoot.clazz('NotMatchingClass', 'class').build())
+        .add(testRoot.clazz('MatchingXClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -971,10 +971,10 @@ describe('Root', () => {
   });
 
   it('can hide specific nodes by adding them to the filter when the filter is empty', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg')
-        .add(testJson.clazz('ClassToHide', 'class').build())
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg')
+        .add(testRoot.clazz('ClassToHide', 'class').build())
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     let resultFilterString;
@@ -1000,14 +1000,14 @@ describe('Root', () => {
   });
 
   it('can hide specific nodes by adding them to the filter when the filter already contains something', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg1')
-        .add(testJson.clazz('ClassToHide1', 'class').build())
-        .add(testJson.clazz('ClassToHide2', 'class').build())
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg1')
+        .add(testRoot.clazz('ClassToHide1', 'class').build())
+        .add(testRoot.clazz('ClassToHide2', 'class').build())
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('pkg2')
-        .add(testJson.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('pkg2')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     let resultFilterString;
@@ -1041,10 +1041,10 @@ describe('Root', () => {
   });
 
   it('can hide specific nodes by adding them to the filter after resetting the filter', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg')
-        .add(testJson.clazz('ClassToHide', 'class').build())
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg')
+        .add(testRoot.clazz('ClassToHide', 'class').build())
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     let resultFilterString;
@@ -1078,10 +1078,10 @@ describe('Root', () => {
 
 describe('Inner node', () => {
   it('can fold a node initially', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1099,10 +1099,10 @@ describe('Inner node', () => {
   });
 
   it('can change the fold-state to folded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1121,10 +1121,10 @@ describe('Inner node', () => {
   });
 
   it('can change the fold-state to unfolded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1146,10 +1146,10 @@ describe('Inner node', () => {
   });
 
   it('can be folded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1167,10 +1167,10 @@ describe('Inner node', () => {
   });
 
   it('can unfold', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1189,10 +1189,10 @@ describe('Inner node', () => {
   });
 
   it('does not call the listeners on folding if it is already folded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1208,10 +1208,10 @@ describe('Inner node', () => {
   });
 
   it('does not call the listeners on unfolding if it is already unfolded', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeClass1', 'class').build())
-        .add(testJson.clazz('SomeClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(testRoot.clazz('SomeClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1228,8 +1228,8 @@ describe('Inner node', () => {
 
 describe('Leaf', () => {
   it('should not fold or change its fold-state', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('Leaf', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('Leaf', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const leaf = root.getByName('com.tngtech.archunit.Leaf');
@@ -1240,8 +1240,8 @@ describe('Leaf', () => {
   });
 
   it('should know that it is a leaf', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('Leaf', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('Leaf', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const leaf = root.getByName('com.tngtech.archunit.Leaf');
@@ -1251,16 +1251,16 @@ describe('Leaf', () => {
 
 describe('Inner node or leaf', () => {
   it('should know its parent', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass').getParent()).to.equal(root);
   });
 
   it('should know that is not the root', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
@@ -1268,10 +1268,10 @@ describe('Inner node or leaf', () => {
 
   it('can be dragged: changes its relative and absolute coordinates and the ones of its descendants,' +
     ' updates its view and calls the listener', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('visual')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1303,8 +1303,8 @@ describe('Inner node or leaf', () => {
   });
 
   it('can be dragged anywhere if it is a child of the root', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
@@ -1324,10 +1324,10 @@ describe('Inner node or leaf', () => {
   });
 
   it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('visual')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1346,11 +1346,11 @@ describe('Inner node or leaf', () => {
   });
 
   it('notifies its listeners, if it is dragged so that nodes (class and folded package) are overlapping', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToBeOverlapped')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToBeOverlapped')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.clazz('ClassToDrag', 'class').build())
+      .add(testRoot.clazz('ClassToDrag', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
@@ -1381,11 +1381,11 @@ describe('Inner node or leaf', () => {
   });
 
   it('does not notify its listeners, if it is dragged so that a class and an unfolded package are overlapping', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkgToBeOverlapped')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkgToBeOverlapped')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.clazz('ClassToDrag', 'class').build())
+      .add(testRoot.clazz('ClassToDrag', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
@@ -1411,10 +1411,10 @@ describe('Inner node or leaf', () => {
   });
 
   it('does not notify its listeners, if it is dragged so that a class and a folded package are overlapping and the package is in front of the class', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('ClassToDrag', 'class').build())
-      .add(testJson.package('pkgToBeOverlapped')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('ClassToDrag', 'class').build())
+      .add(testRoot.package('pkgToBeOverlapped')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1441,10 +1441,10 @@ describe('Inner node or leaf', () => {
   });
 
   it('notifies its listeners, if it is dragged so that three nodes are mutually overlapping', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass1', 'class').build())
-      .add(testJson.clazz('SomeClass2', 'class').build())
-      .add(testJson.clazz('SomeClass3', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass1', 'class').build())
+      .add(testRoot.clazz('SomeClass2', 'class').build())
+      .add(testRoot.clazz('SomeClass3', 'class').build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
@@ -1497,10 +1497,10 @@ describe('Inner node or leaf', () => {
   });
 
   it('notifies its listeners, if it is dragged so that a child node of the dragged node is overlapping another node', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('ClassToBeOverlapped', 'class').build())
-      .add(testJson.package('pkgToDrag')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('ClassToBeOverlapped', 'class').build())
+      .add(testRoot.package('pkgToDrag')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1533,10 +1533,10 @@ describe('Inner node or leaf', () => {
   });
 
   it('notifies its listeners, if an inner class is dragged and overlapping a sibling', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class')
-        .havingInnerClass(testJson.clazz('InnerClass1', 'class').build())
-        .havingInnerClass(testJson.clazz('InnerClass2', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class')
+        .havingInnerClass(testRoot.clazz('InnerClass1', 'class').build())
+        .havingInnerClass(testRoot.clazz('InnerClass2', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1570,9 +1570,9 @@ describe('Inner node or leaf', () => {
 
 describe('Arbitrary node', () => {
   it('should know whether it is the predecessor of another node', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg')
-        .add(testJson.clazz('SomeClass1', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1582,9 +1582,9 @@ describe('Arbitrary node', () => {
   });
 
   it('should know whether it is the predecessor of another node or the node itself', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.package('pkg')
-        .add(testJson.clazz('SomeClass1', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.package('pkg')
+        .add(testRoot.clazz('SomeClass1', 'class').build())
         .build())
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
@@ -1595,13 +1595,13 @@ describe('Arbitrary node', () => {
 });
 
 describe('Node layout', () => {
-  const jsonRoot = testJson.package('com.tngtech.archunit')
-    .add(testJson.clazz('SomeClass1', 'class').build())
-    .add(testJson.clazz('SomeClass2', 'class').build())
-    .add(testJson.package('visual')
-      .add(testJson.clazz('SomeClass1', 'class').build())
-      .add(testJson.clazz('SomeClass2', 'class').build())
-      .add(testJson.clazz('SomeClass3', 'class').build())
+  const jsonRoot = testRoot.package('com.tngtech.archunit')
+    .add(testRoot.clazz('SomeClass1', 'class').build())
+    .add(testRoot.clazz('SomeClass2', 'class').build())
+    .add(testRoot.package('visual')
+      .add(testRoot.clazz('SomeClass1', 'class').build())
+      .add(testRoot.clazz('SomeClass2', 'class').build())
+      .add(testRoot.clazz('SomeClass3', 'class').build())
       .build())
     .build();
 
@@ -1714,15 +1714,15 @@ describe('Node layout', () => {
 
 describe('Node', () => {
   it('creates the correct tree-structure from json-input', () => {
-    const jsonRoot = testJson.package('com.tngtech.archunit')
-      .add(testJson.clazz('SomeClass', 'class').build())
-      .add(testJson.clazz('SomeInterface', 'interface').build())
-      .add(testJson.package('visual')
-        .add(testJson.clazz('SomeClass', 'class').build())
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.clazz('SomeInterface', 'interface').build())
+      .add(testRoot.package('visual')
+        .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
-      .add(testJson.package('test')
-        .add(testJson.clazz('SomeTestClass', 'class')
-          .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+      .add(testRoot.package('test')
+        .add(testRoot.clazz('SomeTestClass', 'class')
+          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
           .build())
         .build())
       .build();
@@ -1736,8 +1736,8 @@ describe('Node', () => {
   });
 
   it('Adds CSS to make the mouse a pointer, if there are children to unfold', () => {
-    const jsonRoot = testJson.package("com.tngtech")
-      .add(testJson.clazz("Class1", "abstractclass").build())
+    const jsonRoot = testRoot.package("com.tngtech")
+      .add(testRoot.clazz("Class1", "abstractclass").build())
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());

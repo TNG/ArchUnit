@@ -19,6 +19,11 @@ import {defineCustomElement} from '../web-component-infrastructure';
       return this;
     }
 
+    initializeDependencyFilter(dependencyTypes) {
+      this.shadowRoot.querySelector('#filter-menu').initializeDependencyFilter(dependencyTypes);
+      return this;
+    }
+
     onDependencyFilterChanged(onChanged) {
       this.shadowRoot.querySelector('#filter-menu').onDependencyFilterChanged(onChanged);
       return this;

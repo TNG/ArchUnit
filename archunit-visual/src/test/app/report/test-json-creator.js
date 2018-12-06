@@ -7,7 +7,12 @@ const changeFullName = (node, path, separator) => {
   }
 };
 
-export default {
+const createTestGraph = (root, dependencies) => ({
+  root,
+  dependencies
+});
+
+const testRoot = {
   package: function (pkgname) {
     const res = {
       fullName: pkgname,
@@ -32,41 +37,12 @@ export default {
       fullName: simpleName,
       name: simpleName,
       type: type,
-      children: [],
-      interfaces: [],
-      fieldAccesses: [],
-      methodCalls: [],
-      constructorCalls: [],
-      anonymousImplementation: []
+      children: []
     };
     const builder = {
-      extending: function (superclassfullName) {
-        res.superclass = superclassfullName;
-        return builder;
-      },
-      implementing: function (interfacefullName) {
-        res.interfaces.push(interfacefullName);
-        return builder;
-      },
-      callingMethod: function (target, startCodeUnit, targetCodeElement) {
-        res.methodCalls.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
-        return builder;
-      },
-      callingConstructor: function (target, startCodeUnit, targetCodeElement) {
-        res.constructorCalls.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
-        return builder;
-      },
-      accessingField: function (target, startCodeUnit, targetCodeElement) {
-        res.fieldAccesses.push({target: target, startCodeUnit: startCodeUnit, targetCodeElement: targetCodeElement});
-        return builder;
-      },
       havingInnerClass: function (innerClass) {
         changeFullName(innerClass, res.fullName, '$');
         res.children.push(innerClass);
-        return builder;
-      },
-      implementingAnonymous: function (interfacefullName) {
-        res.anonymousImplementation.push(interfacefullName);
         return builder;
       },
       build: function () {
@@ -76,3 +52,35 @@ export default {
     return builder;
   }
 };
+
+const addDotBefore = str => str ? '.' + str : '';
+
+const createTestDependencies = () => {
+  const res = [];
+  const betweenBuilder = type => ({
+    from: (from, startCodeUnit = '') => ({
+      to: (to, targetCodeUnit = '') => {
+        res.push({
+          type,
+          originClass: from,
+          targetClass: to,
+          description: `<${from + addDotBefore(startCodeUnit)}> ${type} to <${to + addDotBefore(targetCodeUnit)}>`
+        });
+        return builder;
+      }
+    })
+  });
+
+  const builder = {
+    addMethodCall: () => betweenBuilder('METHOD_CALL'),
+    addConstructorCall: () => betweenBuilder('CONSTRUCTOR_CALL'),
+    addFieldAccess: () => betweenBuilder('FIELD_ACCESS'),
+    addInheritance: () => betweenBuilder('INHERITANCE'),
+    build: () => {
+      return res;
+    }
+  };
+  return builder;
+};
+
+export {testRoot, createTestDependencies, createTestGraph}

@@ -1,7 +1,5 @@
 'use strict';
 
-const dependencyTypes = require('./dependency-types.json');
-const nodeTypes = require('./node-types.json');
 import initDependency from './dependency.js';
 import {buildFilterGroup} from './filter';
 
@@ -89,7 +87,7 @@ const init = (View) => {
     }
 
     containsDependency(dependency) {
-      return this.violationsSet.has(dependency.getIdentifyingString());
+      return this.violationsSet.has(dependency.description);
     }
 
     isEmpty() {
@@ -98,8 +96,7 @@ const init = (View) => {
 
     _recreateViolationsSet() {
       this.violationsSet = new Set([].concat.apply([], Array.from(this._violationGroups.values())
-        .map(violationGroup => violationGroup.violations))
-        .map(violation => `${violation.origin}-${violation.target}`));
+        .map(violationGroup => violationGroup.violations)));
     }
 
     addViolationGroup(violationGroup, elementaryDependencies) {
@@ -148,14 +145,17 @@ const init = (View) => {
   };
 
   const Dependencies = class {
-    constructor(jsonRoot, nodeMap, svgContainer) {
+    constructor(jsonDependencies, nodeMap, svgContainer) {
       nodes = nodeMap;
       dependencyCreator = initDependency(View, nodeMap);
 
       this._violations = new Violations();
 
       this._transformers = new Map();
-      this._elementary = addAllDependenciesOfJsonElementToArray(jsonRoot, []);
+      this._elementary = jsonDependencies.map(jsonDependency =>
+        dependencyCreator.createElementaryDependency(jsonDependency));
+
+      this._dependencyTypes = [...new Set(this._elementary.map(d => d.type))].concat(dependencyCreator.getOwnDependencyTypes());
 
       this._filterGroup = buildFilterGroup('dependencies', this.getFilterObject())
         .addStaticFilter('type', () => true)
@@ -176,6 +176,10 @@ const init = (View) => {
 
     get filterGroup() {
       return this._filterGroup;
+    }
+
+    get dependencyTypes() {
+      return this._dependencyTypes;
     }
 
     getFilterObject() {
@@ -314,8 +318,7 @@ const init = (View) => {
     noteThatNodeFolded(foldedNode, isFolded) {
       if (isFolded) {
         this._transformers.set(foldedNode, foldTransformer(foldedNode));
-      }
-      else {
+      } else {
         this._transformers.delete(foldedNode);
       }
     }
@@ -323,8 +326,7 @@ const init = (View) => {
     updateOnNodeFolded(foldedNode, isFolded) {
       if (isFolded) {
         this._transformers.set(foldedNode, foldTransformer(foldedNode));
-      }
-      else {
+      } else {
         this._transformers.delete(foldedNode);
       }
       this.recreateVisible();
@@ -342,18 +344,10 @@ const init = (View) => {
     }
 
     getTypeFilter(typeFilterConfig) {
-      return dependency => {
-        const type = dependency.description.getDependencyTypeNamesAsString();
-        return (type !== dependencyTypes.allDependencies.implements || typeFilterConfig.showImplementing)
-          && ((type !== dependencyTypes.allDependencies.extends || typeFilterConfig.showExtending))
-          && ((type !== dependencyTypes.allDependencies.constructorCall || typeFilterConfig.showConstructorCall))
-          && ((type !== dependencyTypes.allDependencies.methodCall || typeFilterConfig.showMethodCall))
-          && ((type !== dependencyTypes.allDependencies.fieldAccess || typeFilterConfig.showFieldAccess))
-          && ((type !== dependencyTypes.allDependencies.implementsAnonymous || typeFilterConfig.showAnonymousImplementation))
-          && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
+      return dependency => this.dependencyTypes.every(type => dependency.type !== type || typeFilterConfig[type])
+        && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
             && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
-            || typeFilterConfig.showDependenciesBetweenClassAndItsInnerClasses);
-      };
+          || typeFilterConfig.INNERCLASS_DEPENDENCY);
     }
 
     getVisible() {
@@ -371,46 +365,15 @@ const init = (View) => {
         const startNode = nodes.getByName(depEnd);
         if (startNode.isPackage() || startNode.isCurrentlyLeaf()) {
           return matchingDependencies.startsWith(depEnd);
-        }
-        else {
+        } else {
           return matchingDependencies.equals(depEnd);
         }
       };
-      let matching = this._filtered.filter(d => d.description.hasTitle());
-      matching = getDependenciesMatching(matching, d => d.from, from);
+      let matching = getDependenciesMatching(this._filtered, d => d.from, from);
       matching = getDependenciesMatching(matching, d => d.to, to);
-      const detailedDeps = matching.map(d => ({
-        description: d.toShortStringRelativeToPredecessors(from, to),
-        cssClass: d.getTypeNames()
-      }));
-      return makeUniqueByProperty(detailedDeps, d => d.description);
+      const detailedDeps = matching.map(d => d.description);
+      return makeUniqueByProperty(detailedDeps, d => d);
     }
-  };
-
-  const addAllDependenciesOfJsonElementToArray = (jsonElement, arr) => {
-    const allDependencyTypes = dependencyTypes.groupedDependencies.inheritance.types
-      .concat(dependencyTypes.groupedDependencies.access.types);
-
-    if (jsonElement.type !== nodeTypes.package) {
-      const presentDependencyTypes = allDependencyTypes.filter(type => jsonElement.hasOwnProperty(type.name));
-      presentDependencyTypes.forEach(type => {
-          if (type.isUnique && jsonElement[type.name]) {
-            arr.push(dependencyCreator.createElementaryDependency(jsonElement.fullName, jsonElement[type.name])
-              .withDependencyDescription(type.dependency));
-          }
-          else if (!type.isUnique && jsonElement[type.name].length > 0) {
-            jsonElement[type.name].forEach(d => arr.push(
-              dependencyCreator.createElementaryDependency(jsonElement.fullName, d.target || d)
-                .withDependencyDescription(type.dependency, d.startCodeUnit, d.targetCodeElement)));
-          }
-        }
-      );
-    }
-
-    if (jsonElement.hasOwnProperty('children')) {
-      jsonElement.children.forEach(c => addAllDependenciesOfJsonElementToArray(c, arr));
-    }
-    return arr;
   };
 
   return Dependencies;

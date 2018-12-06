@@ -1,7 +1,7 @@
 'use strict';
 
 const getResources = () => ({
-  root: JSON.parse(window.jsonRoot),
+  graph: JSON.parse(window.jsonGraph),
   violations: JSON.parse(window.jsonViolations)
 });
 

@@ -22,6 +22,10 @@ import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.Dependency;
 
 class JsonJavaDependency {
+    static final String ARRAY_MARKER = "[";
+    static final String OBJECT_MARKER = "L";
+    private static final String ARRAY_END_MARKER = ";";
+
     @Expose
     private String type;
     @Expose
@@ -39,7 +43,14 @@ class JsonJavaDependency {
     }
 
     static JsonJavaDependency from(Dependency d) {
-        return new JsonJavaDependency(d.getType().name(), d.getDescription(), d.getOriginClass().getName(), d.getTargetClass().getName());
+        String targetClassName = d.getTargetClass().getName();
+        if (targetClassName.startsWith(ARRAY_MARKER)) {
+            if (!targetClassName.startsWith(ARRAY_MARKER + OBJECT_MARKER) || !targetClassName.endsWith(ARRAY_END_MARKER)) {
+                throw new RuntimeException("A dependency to a primitive type cannot be exported");
+            }
+            targetClassName = targetClassName.substring(ARRAY_MARKER.length() + OBJECT_MARKER.length(), targetClassName.length() - 1);
+        }
+        return new JsonJavaDependency(d.getType().name(), d.getDescription(), d.getOriginClass().getName(), targetClassName);
     }
 
     @Override

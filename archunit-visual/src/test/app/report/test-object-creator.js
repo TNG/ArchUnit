@@ -1,7 +1,7 @@
 'use strict';
 
 import stubs from './stubs';
-import testJson from './test-json-creator';
+import {testRoot} from './test-json-creator';
 import AppContext from '../../../main/app/report/app-context';
 
 const appContext = AppContext.newInstance({
@@ -46,9 +46,9 @@ const mapToJson = jsonAsMap => {
   const childrenMap = onlyEntry[1];
 
   if (childrenMap.size === 0) {
-    return testJson.clazz(currentElement).build();
+    return testRoot.clazz(currentElement).build();
   } else {
-    const result = testJson.package(currentElement);
+    const result = testRoot.package(currentElement);
     Array.from(childrenMap.entries())
       .map(e => mapToJson(new Map([e])))
       .forEach(json => result.add(json));

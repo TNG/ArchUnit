@@ -29,18 +29,18 @@ class JsonEvaluationResult {
     @Expose
     private String rule;
     @Expose
-    private Collection<JsonViolation> violations;
+    private Collection<String> violations;
 
-    private JsonEvaluationResult(String rule, Collection<JsonViolation> violations) {
+    private JsonEvaluationResult(String rule, Collection<String> violations) {
         this.rule = rule;
         this.violations = violations;
     }
 
-    static Collection<JsonEvaluationResult> CreateFromMultiMap(Multimap<String, JsonViolation> violations) {
+    static Collection<JsonEvaluationResult> CreateFromMultiMap(Multimap<String, String> violations) {
         return Collections2.transform(violations.asMap().entrySet(),
-                new Function<Map.Entry<String, Collection<JsonViolation>>, JsonEvaluationResult>() {
+                new Function<Map.Entry<String, Collection<String>>, JsonEvaluationResult>() {
                     @Override
-                    public JsonEvaluationResult apply(Map.Entry<String, Collection<JsonViolation>> input) {
+                    public JsonEvaluationResult apply(Map.Entry<String, Collection<String>> input) {
                         return new JsonEvaluationResult(input.getKey(), input.getValue());
                     }
                 });

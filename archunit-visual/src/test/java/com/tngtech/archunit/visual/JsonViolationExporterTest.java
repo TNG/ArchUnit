@@ -18,52 +18,6 @@ import java.util.Collections;
 
 public class JsonViolationExporterTest {
 
-    private final JsonViolationExporter exporter = new JsonViolationExporter();
-
-    @Test
-    public void testExportProducesCorrectOutput() throws Exception {
-        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
-        ArchRule rule = ArchRuleDefinition.noClasses()
-                .should().accessClassesThat().areAssignableTo(Target.class);
-        EvaluationResult result = rule.evaluate(classes);
-
-        String json = exporter.exportToJson(Arrays.asList(result));
-
-        String expectedJson = jsonFromFile("access-violations.json");
-        JSONAssert.assertEquals(expectedJson, json, false);
-    }
-
-    @Test
-    public void exportViolationsOfDifferentRules() throws Exception {
-        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
-        ArchRule rule1 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field1");
-        EvaluationResult result1 = rule1.evaluate(classes);
-
-        ArchRule rule2 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field2");
-        EvaluationResult result2 = rule2.evaluate(classes);
-
-        String json = exporter.exportToJson(Arrays.asList(result1, result2));
-
-        String expectedJson = jsonFromFile("access-violations-of-different-rules.json");
-        JSONAssert.assertEquals(expectedJson, json, false);
-    }
-
-    @Test
-    public void exportNonDependencyViolation() throws IOException, JSONException {
-        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
-        ArchRule rule = ArchRuleDefinition.noClasses().should().bePublic();
-        EvaluationResult result = rule.evaluate(classes);
-
-        String json = exporter.exportToJson(Collections.singletonList(result));
-
-        JSONAssert.assertEquals("[]", json, false);
-    }
-
-    private String jsonFromFile(String fileName) throws IOException {
-        File jsonFile = ResourcesUtils.getResource("testjson/violation/" + fileName);
-        return Files.toString(jsonFile, Charsets.UTF_8);
-    }
-
     public static class Accessor {
         public void simpleMethodCall() {
             new Target().method();
@@ -91,5 +45,53 @@ public class JsonViolationExporterTest {
 
         public void complexMethod(String foo, Object bar, Accessor self) {
         }
+    }
+
+    private final JsonViolationExporter exporter = new JsonViolationExporter();
+
+    @Test
+    public void testExportProducesCorrectOutput() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses()
+                .should().accessClassesThat().areAssignableTo(Target.class);
+        EvaluationResult result = rule.evaluate(classes);
+
+        String json = exporter.exportToJson(Arrays.asList(result));
+
+        String expectedJson = jsonFromFile("access-violations.json");
+
+        JSONAssert.assertEquals(expectedJson, json, false);
+    }
+
+    @Test
+    public void exportViolationsOfDifferentRules() throws Exception {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule1 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field1");
+        EvaluationResult result1 = rule1.evaluate(classes);
+
+        ArchRule rule2 = ArchRuleDefinition.noClasses().should().accessField(Target.class, "field2");
+        EvaluationResult result2 = rule2.evaluate(classes);
+
+        String json = exporter.exportToJson(Arrays.asList(result1, result2));
+
+        String expectedJson = jsonFromFile("access-violations-of-different-rules.json");
+
+        JSONAssert.assertEquals(expectedJson, json, false);
+    }
+
+    @Test
+    public void exportNonDependencyViolation() throws IOException, JSONException {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = ArchRuleDefinition.noClasses().should().bePublic();
+        EvaluationResult result = rule.evaluate(classes);
+
+        String json = exporter.exportToJson(Collections.singletonList(result));
+
+        JSONAssert.assertEquals("[]", json, false);
+    }
+
+    private String jsonFromFile(String fileName) throws IOException {
+        File jsonFile = ResourcesUtils.getResource("testjson/violation/" + fileName);
+        return Files.toString(jsonFile, Charsets.UTF_8);
     }
 }

@@ -2,7 +2,7 @@
 
 import chai from 'chai';
 import generalExtensions from './chai/general-chai-extensions';
-import testJson from './test-json-creator';
+import {testRoot} from './test-json-creator';
 import stubs from './stubs';
 import initDependency from '../../../main/app/report/dependency';
 import AppContext from '../../../main/app/report/app-context';
@@ -23,9 +23,9 @@ const appContext = AppContext.newInstance({
 const Root = appContext.getRoot();
 
 const createTreeWithToClasses = () => {
-  const jsonRoot = testJson.package('com.tngtech.archunit')
-    .add(testJson.clazz('SomeClass1', 'class').build())
-    .add(testJson.clazz('SomeClass2', 'class').build())
+  const jsonRoot = testRoot.package('com.tngtech.archunit')
+    .add(testRoot.clazz('SomeClass1', 'class').build())
+    .add(testRoot.clazz('SomeClass2', 'class').build())
     .build();
   return {
     root: new Root(jsonRoot, null, () => Promise.resolve()),
@@ -35,12 +35,12 @@ const createTreeWithToClasses = () => {
 };
 
 const createTreeWithToClassesInDifferentPackages = () => {
-  const jsonRoot = testJson.package('com.tngtech.archunit')
-    .add(testJson.package('pkg1')
-      .add(testJson.clazz('SomeClass1', 'class').build())
+  const jsonRoot = testRoot.package('com.tngtech.archunit')
+    .add(testRoot.package('pkg1')
+      .add(testRoot.clazz('SomeClass1', 'class').build())
       .build())
-    .add(testJson.package('pkg2')
-      .add(testJson.clazz('SomeClass2', 'class').build())
+    .add(testRoot.package('pkg2')
+      .add(testRoot.clazz('SomeClass2', 'class').build())
       .build())
     .build();
   return {
@@ -51,10 +51,10 @@ const createTreeWithToClassesInDifferentPackages = () => {
 };
 
 const createTreeWithToClassesAndOneInnerClass = () => {
-  const jsonRoot = testJson.package('com.tngtech.archunit')
-    .add(testJson.clazz('SomeClass1', 'class').build())
-    .add(testJson.clazz('SomeClass2', 'class')
-      .havingInnerClass(testJson.clazz('SomeInnerClass', 'class').build())
+  const jsonRoot = testRoot.package('com.tngtech.archunit')
+    .add(testRoot.clazz('SomeClass1', 'class').build())
+    .add(testRoot.clazz('SomeClass2', 'class')
+      .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
       .build())
     .build();
   return {
@@ -65,77 +65,26 @@ const createTreeWithToClassesAndOneInnerClass = () => {
   };
 };
 
+const jsonDependency = (from, to, type) => ({
+  originClass: from,
+  targetClass: to,
+  type,
+  description: `Class <${from}> (verb to ${type}) class <${to}>`
+});
+
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2).withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     expect(dependency.getStartNode()).to.equal(tree.root.getByName(tree.node1));
     expect(dependency.getEndNode()).to.equal(tree.root.getByName(tree.node2));
-  });
-
-  it('knows its types', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2).withDependencyDescription('methodCall');
-    expect(dependency.getTypeNames()).to.equal('dependency methodCall');
-  });
-
-  it('creates correct InheritanceDescription', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2).withDependencyDescription('implements');
-    const description = dependency.description;
-    expect(description.hasTitle()).to.equal(false);
-    expect(description.hasDetailedDescription()).to.equal(false);
-  });
-
-  it('creates correct AccessDescription', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('fieldAccess');
-    const description = dependency.description;
-    expect(description.hasTitle()).to.equal(true);
-    expect(description.hasDetailedDescription()).to.equal(true);
-  });
-
-  it('creates correct string relative to itself', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('fieldAccess', 'startMethod()', 'targetMethod()');
-    expect(dependency.toShortStringRelativeToPredecessors(tree.node1, tree.node2)).to.equal('startMethod()->targetMethod()');
-  });
-
-  it('creates correct string relative to the parent of the target node', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('fieldAccess', 'startMethod()', 'targetMethod()');
-    const targetNode = dependency.getEndNode();
-    expect(dependency.toShortStringRelativeToPredecessors(tree.node1, targetNode.getParent().getFullName())).to
-      .equal(`startMethod()->${targetNode.getName()}.targetMethod()`);
-  });
-
-  it('creates correct string relative to the parents of both end nodes', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('fieldAccess', 'startMethod()', 'targetMethod()');
-    const startNode = dependency.getStartNode();
-    const targetNode = dependency.getEndNode();
-    const exp = `${startNode.getName()}.startMethod()->${targetNode.getName()}.targetMethod()`;
-    const act = dependency.toShortStringRelativeToPredecessors(startNode.getParent().getFullName(),
-      targetNode.getParent().getFullName());
-    expect(act).to.equal(exp);
   });
 
   it('can be shifted to one of the end-nodes: the same dependency should be returned', () => {
     const tree = createTreeWithToClassesInDifferentPackages();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.class2)
-      .withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.class2, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getFullName(), dependency.getEndNode().getFullName());
     expect(act).to.equal(dependency);
@@ -144,146 +93,57 @@ describe('ElementaryDependency', () => {
   it('can be shifted to one of the end-nodes\' parents if one of them is a package', () => {
     const tree = createTreeWithToClassesInDifferentPackages();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.class2)
-      .withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.class2, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
-    expect(act.getTypeNames()).to.equal('dependency');
-    expect(act.description.hasDetailedDescription()).to.equal(false);
+    expect(act.description).to.equal('');
+    expect(act.type).to.equal('');
     expect(act.isViolation).to.equal(false);
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
     const tree = createTreeWithToClassesInDifferentPackages();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.class2)
-      .withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.class2, 'INHERITANCE'));
     dependency.isViolation = true;
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
     expect(act.isViolation).to.equal(true);
   });
 
-  it('can be shifted to one of the end-nodes\' parents if both are classes and if the dependency has no detailed ' +
-    'description: a correct child-access-description is created (with also no detailed description)', () => {
+  it('can be shifted to one of the end-nodes\' parents if both are classes', () => {
     const tree = createTreeWithToClassesAndOneInnerClass();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.innerClass)
-      .withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.innerClass, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
-    expect(act.getTypeNames()).to.equal('dependency childrenAccess');
-    expect(act.description.hasDetailedDescription()).to.equal(false);
+    expect(act.type).to.equal('INNERCLASS_DEPENDENCY');
     expect(act.isViolation).to.equal(false);
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
     const tree = createTreeWithToClassesAndOneInnerClass();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.innerClass)
-      .withDependencyDescription('implements');
+    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.innerClass, 'INHERITANCE'));
     dependency.isViolation = true;
     const act = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
     expect(act.isViolation).to.equal(true);
   });
-
-  it('can be shifted to one of the end-nodes\' parents if both are classes and if the dependency has a detailed ' +
-    'description: a correct child-access-description is created (with also a detailed description)', () => {
-    const tree = createTreeWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const dependency = dependencyCreator.createElementaryDependency(tree.class1, tree.innerClass)
-      .withDependencyDescription('fieldAccess', 'startCodeUnit()', 'targetField');
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
-    expect(act.getTypeNames()).to.equal('dependency childrenAccess');
-    expect(act.description.hasDetailedDescription()).to.equal(true);
-    expect(act.isViolation).to.equal(false);
-  });
-});
-
-describe('AccessDescription', () => {
-  it('can merge access type with same access type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall').description;
-    expect(description.mergeAccessTypeWithOtherAccessType('methodCall')).to.equal('methodCall');
-  });
-
-  it('can merge access type with other access type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall').description;
-    expect(description.mergeAccessTypeWithOtherAccessType('fieldAccess')).to.equal('several');
-  });
-
-  it('can merge access type with empty access type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall').description;
-    expect(description.mergeAccessTypeWithOtherAccessType()).to.equal('methodCall');
-  });
-
-  it('can merge inheritance type with other inheritance type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall').description;
-    expect(description.mergeInheritanceTypeWithOtherInheritanceType('extends')).to.equal('extends');
-  });
-});
-
-describe('InheritanceDescription', () => {
-  it('can merge inheritance type with same inheritance type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('extends').description;
-    expect(description.mergeInheritanceTypeWithOtherInheritanceType('extends')).to.equal('extends');
-  });
-
-  it('can merge inheritance type with other inheritance type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('extends').description;
-    expect(description.mergeInheritanceTypeWithOtherInheritanceType('implements')).to.equal('several');
-  });
-
-  it('can merge inheritance type with empty inheritance type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements').description;
-    expect(description.mergeInheritanceTypeWithOtherInheritanceType()).to.equal('implements');
-  });
-
-  it('can merge access type with other access type', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const description = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements').description;
-    expect(description.mergeAccessTypeWithOtherAccessType('methodCall')).to.equal('methodCall');
-  });
 });
 
 describe('GroupedDependency', () => {
-  it('is not recreated when one with the same start and end node already exists: the description and the ' +
+  it('is not recreated when one with the same start and end node already exists: the type and the ' +
     'violation-property are updated', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
     const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([]);
     expect(groupedDependency.isViolation).to.equal(false);
 
-    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements');
+    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
     expect(act).to.equal(groupedDependency);
-    expect(act.getTypeNames()).to.equal('dependency implements');
     expect(act.isViolation).to.equal(true);
   });
 
@@ -292,122 +152,68 @@ describe('GroupedDependency', () => {
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
     const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', tree.class2)
       .byGroupingDependencies([]);
-    expect(groupedDependency.getTypeNames()).to.equal('dependency');
-    expect(groupedDependency.description.hasDetailedDescription()).to.equal(false);
+    expect(groupedDependency.hasDetailedDescription()).to.equal(false);
   });
 
   it('is created correctly from one elementary dependency', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('fieldAccess');
+    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.innerClass, 'FIELD_ACCESS'))
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
       .byGroupingDependencies([elementaryDependency]);
     expect(act.hasDetailedDescription()).to.equal(true);
-    expect(act.getTypeNames()).to.equal('dependency fieldAccess');
   });
 
-  it('returns correct properties consisting of the type names and the violation-property, if both end nodes are ' +
-    'classes and the dependency is no violation', () => {
+  it('returns correct properties consisting of the violation-property', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements');
-    const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
-    expect(groupedDependency.getProperties()).to.equal('dependency implements');
-  });
-
-  it('returns correct properties consisting of the type names and the violation-property, if both end nodes are ' +
-    'classes and the dependency is a violation', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements');
+    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
     const groupedDependency = dependencyCreator.getUniqueDependency(tree.node1, tree.node2).byGroupingDependencies([elementaryDependency]);
-    expect(groupedDependency.getProperties()).to.equal('dependency implements violation');
+    expect(groupedDependency.getProperties()).to.equal('dependency violation');
   });
 
-  it('returns correct properties consisting only of the violation-property, if one end node is a package' +
-    ' and the dependency is a violation', () => {
+  it('returns correct properties consisting only of the violation-property, if one end node is a package', () => {
     const tree = createTreeWithToClassesInDifferentPackages();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('implements');
+    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(tree.class1, tree.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
     const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', tree.node2).byGroupingDependencies([elementaryDependency]);
     expect(groupedDependency.getProperties()).to.equal('dependency violation');
   });
 
-  it('is created correctly from two elementary dependencies with the same dependency group and kind', () => {
+  it('is created correctly from two elementary dependencies', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall');
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall');
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'METHOD_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
     expect(act.hasDetailedDescription()).to.equal(true);
-    expect(act.getTypeNames()).to.equal('dependency methodCall');
   });
 
-  it('is created correctly from two elementary dependencies with the same dependency group but different kind', () => {
+  it('is created correctly from three elementary dependencies', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall');
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('constructorCall');
-    const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
-      .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
-    expect(act.hasDetailedDescription()).to.equal(true);
-    expect(act.getTypeNames()).to.equal('dependency several');
-  });
-
-  it('is created correctly from two elementary dependencies with different dependency groups', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('extends');
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('constructorCall');
-    const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
-      .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
-    expect(act.hasDetailedDescription()).to.equal(true);
-    expect(act.getTypeNames()).to.equal('dependency extends constructorCall');
-  });
-
-  it('is created correctly from three elementary dependencies with two different dependency groups and three different kinds', () => {
-    const tree = createTreeWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('extends');
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('constructorCall');
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall');
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'CONSTRUCTOR_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'METHOD_CALL'));
+    const elementaryDependency3 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
     expect(act.hasDetailedDescription()).to.equal(true);
-    expect(act.getTypeNames()).to.equal('dependency extends several');
-    expect(act.getProperties()).to.equal('dependency extends several');
   });
 
   it('returns correct properties consisting of the type names and the violation-property if one of the ' +
     'elementary dependencies is a violation, when it is created correctly from three elementary dependencies', () => {
     const tree = createTreeWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, tree.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('extends');
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('constructorCall');
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'CONSTRUCTOR_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'METHOD_CALL'));
     elementaryDependency2.isViolation = true;
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(tree.node1, tree.node2)
-      .withDependencyDescription('methodCall');
+    const elementaryDependency3 = dependencyCreator.createElementaryDependency(jsonDependency(tree.node1, tree.node2, 'INHERITANCE'));
     const act = dependencyCreator.getUniqueDependency(tree.node1, tree.node2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
-    expect(act.getProperties()).to.equal('dependency extends several violation');
+    expect(act.getProperties()).to.equal('dependency violation');
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {

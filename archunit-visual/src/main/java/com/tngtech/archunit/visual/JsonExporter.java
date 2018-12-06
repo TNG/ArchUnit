@@ -149,7 +149,7 @@ class JsonExporter {
     }
 
     private boolean isDependencyRelevant(Dependency d) {
-        return !d.getTargetClass().isEquivalentTo(Object.class) && !isDefaultDependencyFromInnerClassToEnclosingClass(d);
+        return !d.getTargetClass().isEquivalentTo(Object.class) && !isDefaultDependencyFromInnerClassToEnclosingClass(d) && !isDependencyToPrimitiveArray(d);
     }
 
     private boolean isDefaultDependencyFromInnerClassToEnclosingClass(Dependency d) {
@@ -159,5 +159,10 @@ class JsonExporter {
         boolean isDefaultDependency = d.getLineNumber() == 0 &&
                 (d.getType() == Dependency.Type.CONSTRUCTOR_PARAMETER_TYPE || d.getType() == Dependency.Type.FIELD_TYPE);
         return isDependencyFromInnerClassToEnclosingClass && isDefaultDependency;
+    }
+
+    private boolean isDependencyToPrimitiveArray(Dependency d) {
+        return d.getTargetClass().getName().startsWith(JsonJavaDependency.ARRAY_MARKER)
+                && !d.getTargetClass().getName().startsWith(JsonJavaDependency.ARRAY_MARKER + JsonJavaDependency.OBJECT_MARKER);
     }
 }

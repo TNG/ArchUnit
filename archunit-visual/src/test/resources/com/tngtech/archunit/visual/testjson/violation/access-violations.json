@@ -2,30 +2,12 @@
   {
     "rule": "no classes should access classes that are assignable to com.tngtech.archunit.visual.JsonViolationExporterTest$Target",
     "violations": [
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.simpleMethodCall()",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.method()"
-      },
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.complexMethodCall(java.lang.String, java.lang.Object)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.complexMethod(java.lang.String, java.lang.Object, com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor)"
-      },
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1"
-      },
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess2(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field2"
-      },
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.complexMethodCall(java.lang.String, java.lang.Object)",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.<init>()"
-      },
-      {
-        "origin": "com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.simpleMethodCall()",
-        "target": "com.tngtech.archunit.visual.JsonViolationExporterTest$Target.\u003cinit\u003e()"
-      }
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.complexMethodCall(java.lang.String, java.lang.Object)> calls constructor <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.<init>()> in (JsonViolationExporterTest.java:32)",
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.complexMethodCall(java.lang.String, java.lang.Object)> calls method <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.complexMethod(java.lang.String, java.lang.Object, com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor)> in (JsonViolationExporterTest.java:32)",
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1> in (JsonViolationExporterTest.java:36)",
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess2(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field2> in (JsonViolationExporterTest.java:40)",
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.simpleMethodCall()> calls constructor <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.<init>()> in (JsonViolationExporterTest.java:28)",
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.simpleMethodCall()> calls method <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.method()> in (JsonViolationExporterTest.java:28)"
     ]
   }
 ]
