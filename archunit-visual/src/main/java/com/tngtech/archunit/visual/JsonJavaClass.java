@@ -21,7 +21,6 @@ class JsonJavaClass extends JsonJavaElement {
     private static final String TYPE = "class";
     private static final String CLASS_SEPARATOR = "$";
 
-    // FIXME: After refactoring dependencies vs class properties, we should revisit this boolean flag here
     JsonJavaClass(JavaClass clazz) {
         super(clazz.getSimpleName(), clazz.getName(), TYPE);
     }

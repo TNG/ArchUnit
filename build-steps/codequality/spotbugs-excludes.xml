@@ -118,6 +118,8 @@
         <Class name="com.tngtech.archunit.visual.JsonElement"/>
         <Or>
             <Field name="type"/>
+            <Field name="name"/>
+            <Field name="fullname"/>
         </Or>
         <Bug code="UrF"/>
     </Match>
