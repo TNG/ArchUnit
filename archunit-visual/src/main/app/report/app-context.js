@@ -6,7 +6,7 @@
 
 import visualizationFunctions from './visualization-functions';
 import nodeText from './node-text';
-import tree from './tree';
+import node from './node';
 import dependencies from './dependencies';
 import textWidthCalculator from './text-width-calculator';
 import visualizationStyles from './visualization-styles';
@@ -21,7 +21,7 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
   const getNodeText = () => nodeText.init(getVisualizationStyles());
 
-  const getRoot = () => tree.init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
+  const getRoot = () => node.init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
 
   const getDependencies = () => dependencies.init(getDependencyView());
 
