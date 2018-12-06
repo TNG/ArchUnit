@@ -2,13 +2,13 @@
   {
     "rule": "no classes should access field Target.field1",
     "violations": [
-      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1> in (JsonViolationExporterTest.java:36)"
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess1(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field1> in (JsonViolationExporterTest.java:31)"
     ]
   },
   {
     "rule": "no classes should access field Target.field2",
     "violations": [
-      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess2(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field2> in (JsonViolationExporterTest.java:40)"
+      "Method <com.tngtech.archunit.visual.JsonViolationExporterTest$Accessor.fieldAccess2(com.tngtech.archunit.visual.JsonViolationExporterTest$Target)> sets field <com.tngtech.archunit.visual.JsonViolationExporterTest$Target.field2> in (JsonViolationExporterTest.java:35)"
     ]
   }
 ]

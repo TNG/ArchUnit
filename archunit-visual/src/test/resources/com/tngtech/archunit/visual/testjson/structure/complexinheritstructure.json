@@ -56,9 +56,9 @@
                     ],
                     "constructorCalls": [
                       {
-                        "startCodeUnit": "\u003cinit\u003e(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)",
+                        "startCodeUnit": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)",
                         "target": "java.lang.Object",
-                        "targetCodeElement": "\u003cinit\u003e()"
+                        "targetCodeElement": "<init>()"
                       }
                     ],
                     "anonymousImplementation": []
@@ -99,9 +99,9 @@
                 ],
                 "constructorCalls": [
                   {
-                    "startCodeUnit": "\u003cinit\u003e(java.lang.String)",
+                    "startCodeUnit": "<init>(java.lang.String)",
                     "target": "java.lang.Object",
-                    "targetCodeElement": "\u003cinit\u003e()"
+                    "targetCodeElement": "<init>()"
                   },
                   {
                     "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
@@ -154,9 +154,9 @@
                 ],
                 "constructorCalls": [
                   {
-                    "startCodeUnit": "\u003cinit\u003e(java.lang.String)",
+                    "startCodeUnit": "<init>(java.lang.String)",
                     "target": "java.lang.Object",
-                    "targetCodeElement": "\u003cinit\u003e()"
+                    "targetCodeElement": "<init>()"
                   },
                   {
                     "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
@@ -166,7 +166,7 @@
                   {
                     "startCodeUnit": "sayHelloAndBye()",
                     "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "\u003cinit\u003e()"
+                    "targetCodeElement": "<init>()"
                   }
                 ],
                 "anonymousImplementation": []
@@ -284,9 +284,9 @@
                     "methodCalls": [],
                     "constructorCalls": [
                       {
-                        "startCodeUnit": "\u003cinit\u003e(com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2)",
+                        "startCodeUnit": "<init>(com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2)",
                         "target": "java.lang.Object",
-                        "targetCodeElement": "\u003cinit\u003e()"
+                        "targetCodeElement": "<init>()"
                       },
                       {
                         "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
@@ -335,9 +335,9 @@
                 ],
                 "constructorCalls": [
                   {
-                    "startCodeUnit": "\u003cinit\u003e(java.lang.String)",
+                    "startCodeUnit": "<init>(java.lang.String)",
                     "target": "java.lang.Object",
-                    "targetCodeElement": "\u003cinit\u003e()"
+                    "targetCodeElement": "<init>()"
                   },
                   {
                     "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
@@ -347,7 +347,7 @@
                   {
                     "startCodeUnit": "sayHelloAndBye()",
                     "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "\u003cinit\u003e()"
+                    "targetCodeElement": "<init>()"
                   }
                 ],
                 "anonymousImplementation": []
@@ -536,12 +536,6 @@
     },
     {
       "type": "CONSTRUCTOR_PARAMETER_TYPE",
-      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1.<init>(com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2)> has parameter of type <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2> in (ComplexClass2.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2"
-    },
-    {
-      "type": "CONSTRUCTOR_PARAMETER_TYPE",
       "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2.<init>(java.lang.String)> has parameter of type <java.lang.String> in (ComplexClass2.java:0)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
       "targetClass": "java.lang.String"
@@ -557,12 +551,6 @@
       "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass3.<init>(java.lang.String)> has parameter of type <java.lang.String> in (ComplexClass3.java:0)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass3",
       "targetClass": "java.lang.String"
-    },
-    {
-      "type": "CONSTRUCTOR_PARAMETER_TYPE",
-      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> has parameter of type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
     },
     {
       "type": "CONSTRUCTOR_PARAMETER_TYPE",
@@ -596,21 +584,9 @@
     },
     {
       "type": "FIELD_TYPE",
-      "description": "Field <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1.this$0> has type <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2> in (ComplexClass2.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2"
-    },
-    {
-      "type": "FIELD_TYPE",
       "description": "Field <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2.name> has type <java.lang.String> in (ComplexClass2.java:0)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
       "targetClass": "java.lang.String"
-    },
-    {
-      "type": "FIELD_TYPE",
-      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.this$0> has type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
     },
     {
       "type": "FIELD_TYPE",
@@ -665,6 +641,12 @@
       "description": "Method <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2.sayHelloAndBye()> calls constructor <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1.<init>(java.lang.String)> in (ComplexClass2.java:11)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
       "targetClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1"
+    },
+    {
+      "type": "CONSTRUCTOR_CALL",
+      "description": "Method <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2.sayHelloAndBye()> calls constructor <com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1.<init>(com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2)> in (ComplexClass2.java:15)",
+      "originClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
+      "targetClass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1"
     },
     {
       "type": "CONSTRUCTOR_CALL",

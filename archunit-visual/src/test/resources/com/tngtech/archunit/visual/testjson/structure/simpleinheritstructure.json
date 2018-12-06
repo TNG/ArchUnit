@@ -320,12 +320,6 @@
     },
     {
       "type": "CONSTRUCTOR_PARAMETER_TYPE",
-      "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)> has parameter of type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
-    },
-    {
-      "type": "CONSTRUCTOR_PARAMETER_TYPE",
       "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1.<init>(java.lang.String)> has parameter of type <java.lang.String> in (SimpleClass1.java:0)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
       "targetClass": "java.lang.String"
@@ -347,12 +341,6 @@
       "description": "Constructor <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3.<init>(java.lang.String)> has parameter of type <java.lang.String> in (SimpleClass3.java:0)",
       "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
       "targetClass": "java.lang.String"
-    },
-    {
-      "type": "FIELD_TYPE",
-      "description": "Field <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1.this$0> has type <com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1> in (SimpleClass1.java:0)",
-      "originClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-      "targetClass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1"
     },
     {
       "type": "FIELD_TYPE",
