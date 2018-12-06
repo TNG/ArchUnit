@@ -114,6 +114,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           || keyAfterFullName === fullNameSeparators.classSeparator);
     }
 
+    isPredecessorOfNodeOrItself(otherNode) {
+      if (this === otherNode) {
+        return true;
+      }
+
+      while (!otherNode.isRoot()) {
+        if (otherNode.getParent() === this) {
+          return true;
+        }
+        otherNode = otherNode.getParent();
+      }
+    }
+
     foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
       const childrenWithResults = this.getCurrentChildren().map(child => ({
         node: child,

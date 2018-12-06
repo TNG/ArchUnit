@@ -10,13 +10,7 @@ const init = (View) => {
   let nodes = new Map();
   let dependencyCreator;
 
-  const fullNameSeparators = {
-    packageSeparator: '.',
-    classSeparator: '$'
-  };
-
-  const fullNameStartsWithOtherFullName = (fullName, prefix) => fullName.startsWith(prefix) && (fullName.length === prefix.length || isFullNameSeparator(fullName.charAt(prefix.length)));
-  const isFullNameSeparator = char => char === fullNameSeparators.packageSeparator || char === fullNameSeparators.classSeparator;
+  const fullNameStartsWithOtherFullName = (fullName, prefix) => nodes.getByName(prefix).isPredecessorOfNodeOrItself(nodes.getByName(fullName));
 
   const filter = dependencies => ({
     by: propertyFunc => ({
@@ -38,12 +32,12 @@ const init = (View) => {
   });
 
   const uniteDependencies = (dependencies, svgElement, callForAllViews, getDetailedDependencies) => {
-    const tmp = Array.from(dependencies.map(r => [`${r.from}->${r.to}`, r]));
+    const tmp = dependencies.map(r => ({key: r.from + '->' + r.to, dependency: r}));
     const map = new Map();
-    tmp.forEach(e => map.set(e[0], []));
-    tmp.forEach(e => map.get(e[0]).push(e[1]));
+    tmp.forEach(e => map.set(e.key, []));
+    tmp.forEach(e => map.get(e.key).push(e.dependency));
 
-    return Array.from(map).map(([, dependencies]) =>
+    return [...map.values()].map(dependencies =>
       dependencyCreator.getUniqueDependency(dependencies[0].from, dependencies[0].to, svgElement, callForAllViews, getDetailedDependencies)
         .byGroupingDependencies(dependencies));
   };
@@ -53,9 +47,9 @@ const init = (View) => {
       startsWith: prefix => ({
         eliminateSelfDeps: noSelfDeps => ({
           to: transformer => {
-            const splitted = split(dependencies).by(propertyFunc).startsWith(prefix);
-            const matching = splitted.matching;
-            const rest = splitted.notMatching;
+            const splitResult = split(dependencies).by(propertyFunc).startsWith(prefix);
+            const matching = splitResult.matching;
+            const rest = splitResult.notMatching;
             let folded = matching.map(transformer);
             if (noSelfDeps) {
               folded = folded.filter(r => r.from !== r.to);
