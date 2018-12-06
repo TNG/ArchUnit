@@ -15,20 +15,15 @@
  */
 package com.tngtech.archunit.visual;
 
-import com.google.gson.annotations.Expose;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 class JsonJavaClass extends JsonJavaElement {
     private static final String TYPE = "class";
     private static final String CLASS_SEPARATOR = "$";
 
-    @Expose
-    private String superclass;
-
     // FIXME: After refactoring dependencies vs class properties, we should revisit this boolean flag here
-    JsonJavaClass(JavaClass clazz, boolean withSuperclass) {
+    JsonJavaClass(JavaClass clazz) {
         super(clazz.getSimpleName(), clazz.getName(), TYPE);
-        this.superclass = withSuperclass && clazz.getSuperClass().isPresent() ? clazz.getSuperClass().get().getName() : "";
     }
 
     private JsonJavaClass(String simpleName, String fullName, JsonJavaElement innerClass) {

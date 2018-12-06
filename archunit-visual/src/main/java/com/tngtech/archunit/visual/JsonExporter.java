@@ -15,18 +15,14 @@
  */
 package com.tngtech.archunit.visual;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.domain.Dependency;
-import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
+
+import java.util.HashSet;
+import java.util.Set;
 
 class JsonExporter {
     private static final Gson GSON = new GsonBuilder()
@@ -67,7 +63,7 @@ class JsonExporter {
 
     private void insertVisualizedClassesToRoot(ClassesToVisualize classesToVisualize, JsonJavaPackage root) {
         insertClassesToRoot(classesToVisualize.getClasses(), root);
-        insertDependenciesToRoot(classesToVisualize.getDependenciesClasses(), root);
+        insertClassesToRoot(classesToVisualize.getDependenciesClasses(), root);
     }
 
     private void insertClassesToRoot(Iterable<JavaClass> classes, JsonJavaPackage root) {
@@ -76,76 +72,12 @@ class JsonExporter {
         }
     }
 
-    private void insertDependenciesToRoot(Iterable<JavaClass> dependencies, JsonJavaPackage root) {
-        for (JavaClass c : dependencies) {
-            root.insert(parseJavaElementWithoutDependencies(c));
-        }
-    }
-
-    private JsonJavaElement parseJavaElementWithoutDependencies(JavaClass clazz) {
+    private JsonJavaElement parseJavaElement(JavaClass clazz) {
         if (clazz.isInterface()) {
             return new JsonJavaInterface(clazz);
         } else {
-            return new JsonJavaClass(clazz, false);
+            return new JsonJavaClass(clazz);
         }
-    }
-
-    private JsonJavaElement parseJavaElement(JavaClass clazz) {
-        if (clazz.isInterface()) {
-            return parseJavaInterface(clazz);
-        } else {
-            return parseJavaClass(clazz);
-        }
-    }
-
-    private JsonJavaElement parseJavaClass(final JavaClass javaClass) {
-        final JsonJavaClass jsonJavaClass = new JsonJavaClass(javaClass, true);
-        parseToJavaElement(javaClass, jsonJavaClass);
-        return jsonJavaClass;
-    }
-
-    private JsonJavaElement parseJavaInterface(JavaClass javaClass) {
-        JsonJavaInterface jsonJavaInterface = new JsonJavaInterface(javaClass);
-        parseToJavaElement(javaClass, jsonJavaInterface);
-        return jsonJavaInterface;
-    }
-
-    private void parseToJavaElement(JavaClass javaClass, JsonJavaElement result) {
-        parseImplementationToJavaElement(javaClass, result);
-        parseAccessesToJavaElement(javaClass, result);
-    }
-
-    private void parseImplementationToJavaElement(JavaClass javaClass, JsonJavaElement res) {
-        for (JavaClass iFace : javaClass.getInterfaces()) {
-            res.addInterface(iFace.getName());
-        }
-    }
-
-    private void parseAccessesToJavaElement(JavaClass javaClass, JsonJavaElement jsonJavaElement) {
-        for (JavaFieldAccess javaFieldAccess : filterRelevantAccesses(javaClass.getFieldAccessesFromSelf(), jsonJavaElement)) {
-            jsonJavaElement.addFieldAccess(new JsonAccess(javaFieldAccess));
-        }
-        for (JavaMethodCall javaMethodCall : filterRelevantAccesses(javaClass.getMethodCallsFromSelf(), jsonJavaElement)) {
-            jsonJavaElement.addMethodCall(new JsonAccess(javaMethodCall));
-        }
-        for (JavaConstructorCall javaConstructorCall : filterRelevantAccesses(javaClass.getConstructorCallsFromSelf(), jsonJavaElement)) {
-            jsonJavaElement.addConstructorCall(new JsonAccess(javaConstructorCall));
-        }
-    }
-
-    private <T extends JavaAccess<?>> Set<T> filterRelevantAccesses(Set<T> accesses, JsonJavaElement jsonJavaElement) {
-        Set<T> result = new HashSet<>();
-        for (T access : accesses) {
-            if (targetIsRelevant(access, jsonJavaElement)) {
-                result.add(access);
-            }
-        }
-        return result;
-    }
-
-    private <T extends JavaAccess<?>> boolean targetIsRelevant(T access, JsonJavaElement jsonJavaElement) {
-        return !access.getTargetOwner().isAnonymous() && !access.getOriginOwner().equals(access.getTargetOwner())
-                && !jsonJavaElement.fullName.equals(access.getTargetOwner().getName()) && !access.getTargetOwner().getPackageName().isEmpty();
     }
 
     private boolean isDependencyRelevant(Dependency d) {

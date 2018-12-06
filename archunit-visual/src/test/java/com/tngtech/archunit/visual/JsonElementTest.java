@@ -22,7 +22,7 @@ public class JsonElementTest {
         JavaClasses classes = TestUtils.importClasses(SomeInterface.class, SomeClass.class);
         return $$(
                 $(new JsonJavaInterface(classes.get(SomeInterface.class)), SomeInterface.class.getPackage().getName()),
-                $(new JsonJavaClass(classes.get(SomeClass.class), true), SomeClass.class.getPackage().getName()),
+                $(new JsonJavaClass(classes.get(SomeClass.class)), SomeClass.class.getPackage().getName()),
                 $(new JsonJavaPackage("sub", "com.tngtech.pkg.sub"), "com.tngtech.pkg"));
     }
 

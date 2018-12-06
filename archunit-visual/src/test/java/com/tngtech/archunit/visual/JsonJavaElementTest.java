@@ -13,8 +13,8 @@ public class JsonJavaElementTest {
     @Test
     public void testInsertToJsonJavaElement() {
         JavaClasses classes = TestUtils.importClasses(SomeClass.class, SomeClass.InnerClass.class);
-        JsonJavaElement jsonJavaClass = new JsonJavaClass(classes.get(SomeClass.class), false);
-        JsonJavaElement jsonJavaInnerClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class), false);
+        JsonJavaElement jsonJavaClass = new JsonJavaClass(classes.get(SomeClass.class));
+        JsonJavaElement jsonJavaInnerClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class));
         jsonJavaClass.insert(jsonJavaInnerClass);
         assertThat(jsonJavaClass.getChildren().contains(jsonJavaInnerClass)).isTrue();
     }
@@ -23,11 +23,11 @@ public class JsonJavaElementTest {
     public void testInsertToChildOfJsonElement() {
         JavaClasses classes = TestUtils.importClasses(ThirdSubPkgClass.class, ThirdSubPkgClass.InnerClass1.class,
                 ThirdSubPkgClass.InnerClass1.InnerClass2.class);
-        JsonElement jsonElement = new JsonJavaClass(classes.get(ThirdSubPkgClass.class), false);
-        JsonJavaElement innerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.class), false);
+        JsonElement jsonElement = new JsonJavaClass(classes.get(ThirdSubPkgClass.class));
+        JsonJavaElement innerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.class));
         jsonElement.insert(innerJsonJavaClass);
 
-        JsonJavaElement innerInnerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class), false);
+        JsonJavaElement innerInnerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class));
         jsonElement.insert(innerInnerJsonJavaClass);
 
         assertThat(jsonElement.getChildren().iterator().next().getChildren().contains(innerInnerJsonJavaClass)).isTrue();
@@ -39,9 +39,9 @@ public class JsonJavaElementTest {
     @Test
     public void testInsertIsolatedInnerClassToJsonElement() {
         JavaClasses classes = TestUtils.importClasses(ThirdSubPkgClass.class, ThirdSubPkgClass.InnerClass1.InnerClass2.class);
-        JsonElement jsonElement = new JsonJavaClass(classes.get(ThirdSubPkgClass.class), false);
+        JsonElement jsonElement = new JsonJavaClass(classes.get(ThirdSubPkgClass.class));
 
-        JsonJavaElement isolatedInnerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class), false);
+        JsonJavaElement isolatedInnerJsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class));
         jsonElement.insert(isolatedInnerJsonJavaClass);
 
         JsonElement generatedJsonElement = jsonElement.getChildren().iterator().next();

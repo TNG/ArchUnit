@@ -9,7 +9,7 @@ import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
 
 public class JsonJavaInterfaceTest {
     @Test
-    public void getChild_returns_self_or_child_by_full_name() throws Exception {
+    public void getChild_returns_self_or_child_by_full_name() {
         JavaClasses classes = importClasses(SomeInterface.class, SomeInterface.InnerInterface.class);
 
         String root = SomeInterface.class.getPackage().getName();

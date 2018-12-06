@@ -18,13 +18,7 @@
                 "name": "PrintStream",
                 "fullName": "java.io.PrintStream",
                 "type": "class",
-                "children": [],
-                "superclass": "",
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               }
             ]
           },
@@ -37,25 +31,13 @@
                 "name": "System",
                 "fullName": "java.lang.System",
                 "type": "class",
-                "children": [],
-                "superclass": "",
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "Object",
                 "fullName": "java.lang.Object",
                 "type": "class",
-                "children": [],
-                "superclass": "",
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               }
             ]
           }
@@ -70,31 +52,7 @@
             "name": "OtherClass",
             "fullName": "some.other.OtherClass",
             "type": "class",
-            "children": [],
-            "superclass": "java.lang.Object",
-            "interfaces": [],
-            "fieldAccesses": [
-              {
-                "target": "java.lang.System",
-                "startCodeUnit": "<init>()",
-                "targetCodeElement": "out"
-              }
-            ],
-            "methodCalls": [
-              {
-                "target": "java.io.PrintStream",
-                "startCodeUnit": "<init>()",
-                "targetCodeElement": "println(java.lang.String)"
-              }
-            ],
-            "constructorCalls": [
-              {
-                "target": "java.lang.Object",
-                "startCodeUnit": "<init>()",
-                "targetCodeElement": "<init>()"
-              }
-            ],
-            "anonymousImplementation": []
+            "children": []
           }
         ]
       },
@@ -107,19 +65,7 @@
             "name": "EmptyClass",
             "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
             "type": "class",
-            "children": [],
-            "superclass": "java.lang.Object",
-            "interfaces": [],
-            "fieldAccesses": [],
-            "methodCalls": [],
-            "constructorCalls": [
-              {
-                "target": "java.lang.Object",
-                "startCodeUnit": "<init>()",
-                "targetCodeElement": "<init>()"
-              }
-            ],
-            "anonymousImplementation": []
+            "children": []
           }
         ]
       }

@@ -16,9 +16,9 @@ public class JsonJavaClassTest {
 
         String root = SomeClass.class.getPackage().getName();
         JsonJavaPackage jsonPackage = new JsonJavaPackage(root, root);
-        JsonJavaClass jsonClass = new JsonJavaClass(classes.get(SomeClass.class), false);
+        JsonJavaClass jsonClass = new JsonJavaClass(classes.get(SomeClass.class));
         jsonPackage.insert(jsonClass);
-        JsonJavaClass jsonInnerClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class), false);
+        JsonJavaClass jsonInnerClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class));
         jsonClass.insert(jsonInnerClass);
 
         assertThatOptional(jsonClass.getChild(SomeClass.class.getName())).contains(jsonClass);
@@ -30,7 +30,7 @@ public class JsonJavaClassTest {
     @Test
     public void testCreateEnclosingClass() {
         JavaClasses classes = importClasses(SomeClass.InnerClass.class);
-        JsonJavaClass jsonJavaClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class), false);
+        JsonJavaClass jsonJavaClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class));
         JsonJavaClass enclosingClass = jsonJavaClass.createEnclosingClassOf(jsonJavaClass, "com.tngtech.archunit.visual.testclasses");
 
         assertThat(enclosingClass.fullName).isEqualTo("com.tngtech.archunit.visual.testclasses.SomeClass");
@@ -41,7 +41,7 @@ public class JsonJavaClassTest {
     @Test
     public void testCreateTwoEnclosingClasses() {
         JavaClasses classes = importClasses(ThirdSubPkgClass.InnerClass1.InnerClass2.class);
-        JsonJavaClass jsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class), false);
+        JsonJavaClass jsonJavaClass = new JsonJavaClass(classes.get(ThirdSubPkgClass.InnerClass1.InnerClass2.class));
         JsonJavaClass enclosingClass = jsonJavaClass.createEnclosingClassOf(jsonJavaClass, "com.tngtech.archunit.visual.testclasses.subpkg");
 
         assertThat(enclosingClass.fullName).isEqualTo("com.tngtech.archunit.visual.testclasses.subpkg.ThirdSubPkgClass");

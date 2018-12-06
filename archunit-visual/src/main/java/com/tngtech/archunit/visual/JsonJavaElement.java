@@ -22,16 +22,6 @@ import java.util.Set;
 
 abstract class JsonJavaElement extends JsonElement {
     @Expose
-    private Set<String> interfaces = new HashSet<>();
-    @Expose
-    private Set<JsonAccess> fieldAccesses = new HashSet<>();
-    @Expose
-    private Set<JsonAccess> methodCalls = new HashSet<>();
-    @Expose
-    private Set<JsonAccess> constructorCalls = new HashSet<>();
-    @Expose
-    private Set<String> anonymousImplementation = new HashSet<>();
-    @Expose
     protected Set<JsonJavaElement> children = new HashSet<>();
 
     JsonJavaElement(String name, String fullName, String type) {
@@ -46,21 +36,5 @@ abstract class JsonJavaElement extends JsonElement {
     @Override
     Set<? extends JsonElement> getChildren() {
         return children;
-    }
-
-    void addInterface(String className) {
-        interfaces.add(className);
-    }
-
-    void addFieldAccess(JsonAccess access) {
-        fieldAccesses.add(access);
-    }
-
-    void addMethodCall(JsonAccess access) {
-        methodCalls.add(access);
-    }
-
-    void addConstructorCall(JsonAccess access) {
-        constructorCalls.add(access);
     }
 }

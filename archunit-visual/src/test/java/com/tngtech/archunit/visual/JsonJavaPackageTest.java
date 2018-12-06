@@ -48,8 +48,8 @@ public class JsonJavaPackageTest {
     public void testInsert() {
         JsonJavaPackage rootPackage = new JsonJavaPackage("com", "com");
         rootPackage.insertPackage(SubPkgClass.class.getPackage().getName());
-        rootPackage.insert(new JsonJavaClass(classes.get(SomeClass.class), false));
-        rootPackage.insert(new JsonJavaClass(classes.get(SubPkgClass.class), false));
+        rootPackage.insert(new JsonJavaClass(classes.get(SomeClass.class)));
+        rootPackage.insert(new JsonJavaClass(classes.get(SubPkgClass.class)));
 
         File expectedJson = ResourcesUtils.getResource("/testinsert.json");
         assertThat(ResourcesUtils.jsonToMap(ResourcesUtils.getJsonStringOf(rootPackage)))
@@ -71,13 +71,13 @@ public class JsonJavaPackageTest {
     @Test
     public void testNormalize() {
         JsonJavaPackage pkg = new JsonJavaPackage("com", "com");
-        List<String> packageParts = Splitter.on(".").splitToList(classes.get(SomeClass.class).getPackage());
+        List<String> packageParts = Splitter.on(".").splitToList(classes.get(SomeClass.class).getPackageName());
         for (int i = 1; i < packageParts.size(); i++) {
             pkg.insertPackage(Joiner.on(".").join(packageParts.subList(0, i + 1)));
         }
-        pkg.insert(new JsonJavaClass(classes.get(SomeClass.class), false));
-        pkg.insertPackage(classes.get(SubPkgClass.class).getPackage());
-        pkg.insert(new JsonJavaClass(classes.get(SubPkgClass.class), false));
+        pkg.insert(new JsonJavaClass(classes.get(SomeClass.class)));
+        pkg.insertPackage(classes.get(SubPkgClass.class).getPackageName());
+        pkg.insert(new JsonJavaClass(classes.get(SubPkgClass.class)));
         pkg.normalize();
 
         File expectedJson = ResourcesUtils.getResource("/testnormalize2.json");
@@ -92,7 +92,7 @@ public class JsonJavaPackageTest {
         JavaClass someClass = classes.get(SomeClass.class);
         String aPackage = someClass.getPackage();
         javaPackage.insertPackage(aPackage);
-        JsonJavaClass jsonSomeClass = new JsonJavaClass(someClass, false);
+        JsonJavaClass jsonSomeClass = new JsonJavaClass(someClass);
         javaPackage.insert(jsonSomeClass);
 
         assertThatOptional(javaPackage.getChild("com")).contains(javaPackage);

@@ -3,12 +3,6 @@
     {
       "children": [
         {
-          "superclass": "",
-          "interfaces": [],
-          "fieldAccesses": [],
-          "methodCalls": [],
-          "constructorCalls": [],
-          "anonymousImplementation": [],
           "children": [],
           "name": "SubPkgClass",
           "fullName": "com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass",
@@ -20,12 +14,6 @@
       "type": "package"
     },
     {
-      "superclass": "",
-      "interfaces": [],
-      "fieldAccesses": [],
-      "methodCalls": [],
-      "constructorCalls": [],
-      "anonymousImplementation": [],
       "children": [],
       "name": "SomeClass",
       "fullName": "com.tngtech.archunit.visual.testclasses.SomeClass",

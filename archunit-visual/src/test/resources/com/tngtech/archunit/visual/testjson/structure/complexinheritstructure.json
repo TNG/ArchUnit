@@ -13,19 +13,7 @@
             "name": "EmptyClass",
             "fullName": "com.tngtech.archunit.visual.testjson.structure.EmptyClass",
             "type": "class",
-            "children": [],
-            "superclass": "java.lang.Object",
-            "interfaces": [],
-            "fieldAccesses": [],
-            "methodCalls": [],
-            "constructorCalls": [
-              {
-                "target": "java.lang.Object",
-                "startCodeUnit": "<init>()",
-                "targetCodeElement": "<init>()"
-              }
-            ],
-            "anonymousImplementation": []
+            "children": []
           },
           {
             "name": "simpleinherit",
@@ -41,176 +29,27 @@
                     "name": "InnerClass1",
                     "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
                     "type": "class",
-                    "children": [],
-                    "superclass": "java.lang.Object",
-                    "interfaces": [
-                      "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
-                    ],
-                    "fieldAccesses": [],
-                    "methodCalls": [
-                      {
-                        "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                        "startCodeUnit": "sayHello(int)",
-                        "targetCodeElement": "sayHello(int)"
-                      }
-                    ],
-                    "constructorCalls": [
-                      {
-                        "startCodeUnit": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)",
-                        "target": "java.lang.Object",
-                        "targetCodeElement": "<init>()"
-                      }
-                    ],
-                    "anonymousImplementation": []
+                    "children": []
                   }
-                ],
-                "superclass": "java.lang.Object",
-                "interfaces": [
-                  "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1"
-                ],
-                "fieldAccesses": [
-                  {
-                    "startCodeUnit": "sayHello(int)",
-                    "target": "java.lang.System",
-                    "targetCodeElement": "out"
-                  },
-                  {
-                    "startCodeUnit": "sayHi()",
-                    "target": "java.lang.System",
-                    "targetCodeElement": "out"
-                  }
-                ],
-                "methodCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                    "startCodeUnit": "sayHello(int)",
-                    "targetCodeElement": "sayHello(int)"
-                  },
-                  {
-                    "startCodeUnit": "sayHello(int)",
-                    "target": "java.io.PrintStream",
-                    "targetCodeElement": "println(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHi()",
-                    "target": "java.io.PrintStream",
-                    "targetCodeElement": "println(java.lang.String)"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "target": "java.lang.Object",
-                    "targetCodeElement": "<init>()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1$InnerClass1",
-                    "startCodeUnit": "sayHello(int)",
-                    "targetCodeElement": "<init>(com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1)"
-                  }
-                ],
-                "anonymousImplementation": []
+                ]
               },
               {
                 "name": "SimpleClass2",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
                 "type": "class",
-                "children": [],
-                "superclass": "java.lang.Object",
-                "interfaces": [],
-                "fieldAccesses": [
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.System",
-                    "targetCodeElement": "out"
-                  }
-                ],
-                "methodCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "sayHello(int)"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "sayHi()"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.io.PrintStream",
-                    "targetCodeElement": "println(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "append(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "toString()"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "target": "java.lang.Object",
-                    "targetCodeElement": "<init>()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "<init>()"
-                  }
-                ],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "SimpleClass3",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass3",
                 "type": "class",
-                "children": [],
-                "superclass": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-                "interfaces": [],
-                "fieldAccesses": [
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.System",
-                    "targetCodeElement": "out"
-                  }
-                ],
-                "methodCalls": [
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.io.PrintStream",
-                    "targetCodeElement": "println(java.lang.String)"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass2",
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  }
-                ],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "SimpleInterface1",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleInterface1",
                 "type": "interface",
-                "children": [],
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               }
             ]
           },
@@ -223,48 +62,7 @@
                 "name": "ComplexClass1",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
                 "type": "class",
-                "children": [],
-                "superclass": "java.lang.Object",
-                "interfaces": [
-                  "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1",
-                  "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface2"
-                ],
-                "fieldAccesses": [],
-                "methodCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHello()",
-                    "targetCodeElement": "sayHi()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHi()",
-                    "targetCodeElement": "sayHello(int)"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "target": "java.lang.Object",
-                    "targetCodeElement": "<init>()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
-                    "startCodeUnit": "sayHello()",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHello()",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1",
-                    "startCodeUnit": "sayHi()",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  }
-                ],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "ComplexClass2",
@@ -275,128 +73,27 @@
                     "name": "1",
                     "fullName": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2$1",
                     "type": "class",
-                    "children": [],
-                    "superclass": "java.lang.Object",
-                    "interfaces": [
-                      "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1"
-                    ],
-                    "fieldAccesses": [],
-                    "methodCalls": [],
-                    "constructorCalls": [
-                      {
-                        "startCodeUnit": "<init>(com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2)",
-                        "target": "java.lang.Object",
-                        "targetCodeElement": "<init>()"
-                      },
-                      {
-                        "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
-                        "startCodeUnit": "sayHello()",
-                        "targetCodeElement": "<init>(java.lang.String)"
-                      }
-                    ],
-                    "anonymousImplementation": []
+                    "children": []
                   }
-                ],
-                "superclass": "java.lang.Object",
-                "interfaces": [],
-                "fieldAccesses": [
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.System",
-                    "targetCodeElement": "out"
-                  }
-                ],
-                "methodCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "sayHello()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "sayHi()"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.io.PrintStream",
-                    "targetCodeElement": "println(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "append(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "toString()"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "target": "java.lang.Object",
-                    "targetCodeElement": "<init>()"
-                  },
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass1",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  },
-                  {
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "target": "java.lang.StringBuilder",
-                    "targetCodeElement": "<init>()"
-                  }
-                ],
-                "anonymousImplementation": []
+                ]
               },
               {
                 "name": "ComplexClass3",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass3",
                 "type": "class",
-                "children": [],
-                "superclass": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
-                    "startCodeUnit": "sayHelloAndBye()",
-                    "targetCodeElement": "sayHelloAndBye()"
-                  }
-                ],
-                "constructorCalls": [
-                  {
-                    "target": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexClass2",
-                    "startCodeUnit": "<init>(java.lang.String)",
-                    "targetCodeElement": "<init>(java.lang.String)"
-                  }
-                ],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "ComplexInterface1",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface1",
                 "type": "interface",
-                "children": [],
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               },
               {
                 "name": "ComplexInterface2",
                 "fullName": "com.tngtech.archunit.visual.testjson.structure.complexinherit.ComplexInterface2",
                 "type": "interface",
-                "children": [],
-                "interfaces": [],
-                "fieldAccesses": [],
-                "methodCalls": [],
-                "constructorCalls": [],
-                "anonymousImplementation": []
+                "children": []
               }
             ]
           }
@@ -407,15 +104,9 @@
           {
             "children": [
               {
-                "anonymousImplementation": [],
                 "children": [],
-                "constructorCalls": [],
-                "fieldAccesses": [],
                 "fullName": "java.io.PrintStream",
-                "interfaces": [],
-                "methodCalls": [],
                 "name": "PrintStream",
-                "superclass": "",
                 "type": "class"
               }
             ],
@@ -426,51 +117,27 @@
           {
             "children": [
               {
-                "anonymousImplementation": [],
                 "children": [],
-                "constructorCalls": [],
-                "fieldAccesses": [],
                 "fullName": "java.lang.Object",
-                "interfaces": [],
-                "methodCalls": [],
                 "name": "Object",
-                "superclass": "",
                 "type": "class"
               },
               {
-                "anonymousImplementation": [],
                 "children": [],
-                "constructorCalls": [],
-                "fieldAccesses": [],
                 "fullName": "java.lang.String",
-                "interfaces": [],
-                "methodCalls": [],
                 "name": "String",
-                "superclass": "",
                 "type": "class"
               },
               {
-                "anonymousImplementation": [],
                 "children": [],
-                "constructorCalls": [],
-                "fieldAccesses": [],
                 "fullName": "java.lang.StringBuilder",
-                "interfaces": [],
-                "methodCalls": [],
                 "name": "StringBuilder",
-                "superclass": "",
                 "type": "class"
               },
               {
-                "anonymousImplementation": [],
                 "children": [],
-                "constructorCalls": [],
-                "fieldAccesses": [],
                 "fullName": "java.lang.System",
-                "interfaces": [],
-                "methodCalls": [],
                 "name": "System",
-                "superclass": "",
                 "type": "class"
               }
             ],
