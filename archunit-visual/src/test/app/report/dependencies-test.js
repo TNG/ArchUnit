@@ -318,7 +318,7 @@ describe('Dependencies', () => {
 
   it('should update whether they must share one of the end nodes after folding', () => {
     const root = new Root(jsonRootSharingNodes, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root); //FIXME
+    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root);
 
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
 
@@ -328,7 +328,7 @@ describe('Dependencies', () => {
 
   it('should update whether they must share one of the end nodes after unfolding ', () => {
     const root = new Root(jsonRootSharingNodes, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root); //FIXME
+    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root);
 
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', true);
     dependencies.updateOnNodeFolded('com.tngtech.ClassWithInnerClass', false);
@@ -556,7 +556,7 @@ describe('Dependencies', () => {
 
   it('can jump the dependencies of a specific node to their positions', () => {
     const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root); //FIXME
+    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);
     dependencies.recreateVisible();
 
     const draggedNode = 'com.tngtech.SomeClass1';
@@ -573,7 +573,7 @@ describe('Dependencies', () => {
 
   it('can move all dependencies to their positions', () => {
     const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root); //FIXME
+    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);
     dependencies.recreateVisible();
 
     const promise = dependencies.moveAllToTheirPositions();
@@ -630,7 +630,7 @@ describe('Dependencies', () => {
 
   it('sets and applies the node filter correctly', () => {
     const root = new Root(jsonRootForFilterTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root); //FIXME
+    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root);
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
