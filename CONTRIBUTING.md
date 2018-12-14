@@ -2,6 +2,36 @@
 
 Contributions are very welcome. The following will provide some helpful guidelines.
 
+## How to build the project
+
+### Building locally on an OSX machine
+
+Assumptions
+
+* Java 9
+* Gradle
+
+The following is just an example input/output from the command line
+
+```
+$ java --version
+openjdk 9.0.4
+OpenJDK Runtime Environment (build 9.0.4+11)
+OpenJDK 64-Bit Server VM (build 9.0.4+11, mixed mode)
+$ cd /path/to/git/clone/of/ArchUnit
+$ ./gradlew clean build
+```
+
+
+### Building locally on a Linux machine
+
+TBD
+
+### Building locally on a Windows machine
+
+TBD
+
+
 ## How to contribute
 
 If you want to submit a contribution, please follow the following workflow:
