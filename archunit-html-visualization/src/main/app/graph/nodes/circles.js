@@ -100,6 +100,7 @@ const ZeroCircle = class extends FixableCircle {
   }
 };
 
+//TODO: Maybe create RootCircle for avoiding case distinction
 const NodeCircle = class {
   constructor(node, listener, absoluteReferenceCircle, x = 0, y = 0, r = 0) {
     this._node = node;
@@ -115,19 +116,37 @@ const NodeCircle = class {
 
   changeRadius(r) {
     this.absoluteCircle.r = r;
-    return this._listener.onRadiusChanged();
+    const promise = this._node.isRoot() ? this.moveToPosition(r, r) : Promise.resolve(); // Shift root to the middle
+    const listenerPromise = this._listener.onRadiusChanged();
+    return Promise.all([promise, listenerPromise]);
   }
 
-  jumpToRelativeDisplacement(dx, dy) {
+  expandRadius(r, padding) {
+    this.absoluteCircle.r = r + padding;
+    if (!this.absoluteReferenceCircle.containsRelativeCircle(Circle.from(this.relativePosition, this.getRadius()))) {
+      this._node.getParent().nodeCircle.expandRadius(this.relativePosition.length() + this.getRadius(), padding);
+    }
+    if (this._node.isRoot()) {
+      this.jumpToPosition(this.absoluteCircle.r, this.absoluteCircle.r, padding);
+    }
+    this._listener.onRadiusSet();
+  }
+
+  jumpToRelativeDisplacement(dx, dy, padding) {
     const directionVector = new Vector(dx, dy);
-    let newRelativeCircle = Circle.from(vectors.add(this.relativePosition, directionVector), this.getRadius());
-    if (!this._node.getParent().isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle)) {
-      newRelativeCircle = Circle.from(this.relativePosition, this.getRadius())
-        .translateWithinEnclosingCircleAsFarAsPossibleInTheDirection(this.absoluteReferenceCircle.r, directionVector);
+    const position = vectors.add(this.relativePosition, directionVector);
+    this.jumpToPosition(position.x, position.y, padding);
+  }
+
+  jumpToPosition(x, y, padding) {
+    const newRelativeCircle = Circle.from(new Vector(x, y), this.getRadius());
+    if (!this._node.isRoot() && !this.absoluteReferenceCircle.containsRelativeCircle(newRelativeCircle)) {
+      this._node.getParent().nodeCircle.expandRadius(newRelativeCircle.length() + newRelativeCircle.r, padding);
     }
     this.relativePosition.changeTo(newRelativeCircle);
     this._updateAbsolutePositionAndDescendants();
     this._listener.onJumpedToPosition();
+    this._listener.onRimPositionChanged();
   }
 
   _updateAbsolutePosition() {

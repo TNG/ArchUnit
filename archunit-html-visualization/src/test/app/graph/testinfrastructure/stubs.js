@@ -13,7 +13,9 @@ const createVisualizationStylesStub = (circlePadding = 1, nodeFontSize = 10) => 
 
 //all nodes are added to this list when they are moved to their position to be able to track the process
 let movedNodes = [];
+let nodesWhoseRadiusWasChanged = [];
 const saveMovedNodesTo = arr => movedNodes = arr;
+const saveNodesWhoseRadiusWasChangedTo = arr => nodesWhoseRadiusWasChanged = arr;
 
 const NodeViewStub = class {
   constructor(parentSvgElement, node) {
@@ -41,6 +43,9 @@ const NodeViewStub = class {
         movedNodes.push(node.getFullName());
         setTimeout(resolve, 10);
       });
+    };
+    this.setRadius = () => {
+      nodesWhoseRadiusWasChanged.push(node.getFullName());
     };
     this.updateNodeType = cssClass => this.cssClass = cssClass;
     this.showIfVisible = node => {
@@ -127,5 +132,6 @@ module.exports = {
   GraphViewStub: GraphViewStub,
   NodeListenerStub: createNodeListenerStub,
   saveMovedDependenciesTo: saveMovedDependenciesTo,
-  saveMovedNodesTo: saveMovedNodesTo
+  saveMovedNodesTo: saveMovedNodesTo,
+  saveNodesWhoseRadiusWasChangedTo: saveNodesWhoseRadiusWasChangedTo
 };

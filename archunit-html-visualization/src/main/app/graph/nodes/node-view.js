@@ -74,6 +74,11 @@ const init = (transitionDuration) => {
       return Promise.all([radiusPromise, textPromise]);
     }
 
+    setRadius(r, textOffset) {
+      d3.select(this._circle).attr('r', r);
+      d3.select(this._text).attr('dy', textOffset);
+    }
+
     startMoveToPosition(position) {
       return createPromiseOnEndAndInterruptOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }

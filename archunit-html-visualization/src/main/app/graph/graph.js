@@ -8,7 +8,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     constructor(jsonGraph, violations, svg) {
       this._view = new View(svg);
       this.root = new Root(jsonGraph.root, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
-        newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
+        newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString), rootRadius => this._view.render(rootRadius));
       this.dependencies = new Dependencies(jsonGraph.dependencies, this.root, this._view.svgElementForDependencies);
 
       this.root.addListener(this.dependencies.createListener());

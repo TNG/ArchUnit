@@ -302,7 +302,7 @@ const init = (View) => {
     }
 
     jumpSpecificDependenciesToTheirPositions(node) {
-      this.getVisible().filter(d => node.isPredecessorOfOrNodeItself(d.from) || node.isPredecessorOfOrNodeItself(d.to)).forEach(d => d.jumpToPosition());
+      this.getVisible().filter(d => node.isPredecessorOfNodeOrItself(nodes.getByName(d.from)) || node.isPredecessorOfNodeOrItself(nodes.getByName(d.to))).forEach(d => d.jumpToPosition());
     }
 
     moveAllToTheirPositions() {

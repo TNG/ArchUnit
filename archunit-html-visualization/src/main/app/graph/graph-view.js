@@ -37,7 +37,7 @@ const init = (transitionDuration) => {
       const windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
       const requiredSize = parseInt(2 * rootRadius + 4);
-      const expandedSize = parseInt(3 * rootRadius + 4);
+      const expandedSize = parseInt(2 * rootRadius + 4);
       const minWidth = Math.max(windowWidth, requiredSize);
       const maxWidth = Math.max(windowWidth, expandedSize);
       const minHeight = Math.max(windowHeight, requiredSize);
