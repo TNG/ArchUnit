@@ -1,6 +1,13 @@
 {
-  "children": [],
-  "name": "com",
-  "fullName": "com",
+  "children": [
+    {
+      "children": [],
+      "name": "com",
+      "fullName": "com",
+      "type": "package"
+    }
+  ],
+  "name": "default",
+  "fullName": "default",
   "type": "package"
 }

@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.google.gson.annotations.Expose;
 
 class JsonJavaPackage extends JsonElement {
     static final String PACKAGE_SEPARATOR = ".";
@@ -95,7 +95,7 @@ class JsonJavaPackage extends JsonElement {
     }
 
     void normalize() {
-        if (subPackages.size() == 1 && classes.size() == 0) {
+        if (!isDefault && subPackages.size() == 1 && classes.size() == 0) {
             mergeWithSubpackage();
             normalize();
         } else {
@@ -108,9 +108,7 @@ class JsonJavaPackage extends JsonElement {
     private void mergeWithSubpackage() {
         JsonJavaPackage newRoot = subPackages.iterator().next();
         if (isDefault) {
-            fullName = newRoot.fullName;
-            name = newRoot.name;
-            isDefault = false;
+            throw new RuntimeException("The default root cannot be merged with the sub package");
         } else {
             fullName = newRoot.fullName;
             name += PACKAGE_SEPARATOR + newRoot.name;
