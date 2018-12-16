@@ -83,11 +83,20 @@ public final class Formatters {
     }
 
     /**
-     * @param typeNames List of type names
+     * @param typeNames List of method parameter type names
      * @return Arguments formatted as "param1, param2, ..."
      */
     @PublicAPI(usage = ACCESS)
     public static String formatMethodParameterTypeNames(List<String> typeNames) {
+        return Joiner.on(", ").join(typeNames);
+    }
+
+    /**
+     * @param typeNames List of throws declaration type names
+     * @return Arguments formatted as "param1, param2, ..."
+     */
+    @PublicAPI(usage = ACCESS)
+    public static String formatThrowsDeclarationTypeNames(List<String> typeNames) {
         return Joiner.on(", ").join(typeNames);
     }
 

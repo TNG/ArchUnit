@@ -52,9 +52,11 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsDeclaration;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -206,6 +208,7 @@ public final class DomainBuilders {
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
         private JavaType returnType;
         private List<JavaType> parameters;
+        private List<JavaType> throwsDeclarations;
 
         private JavaCodeUnitBuilder() {
         }
@@ -220,14 +223,35 @@ public final class DomainBuilders {
             return self();
         }
 
+        SELF withThrowsDeclarations(List<JavaType> throwsDeclarations) {
+            this.throwsDeclarations = throwsDeclarations;
+            return self();
+        }
+
         public JavaClass getReturnType() {
             return get(returnType.getName());
         }
 
         public List<JavaClass> getParameters() {
+            return asJavaClasses(parameters);
+        }
+
+        public List<ThrowsDeclaration> getThrowsDeclarations() {
+            return asThrowsDeclarations(this.throwsDeclarations);
+        }
+
+        private List<JavaClass> asJavaClasses(List<JavaType> javaTypes) {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            for (JavaType parameter : parameters) {
-                result.add(get(parameter.getName()));
+            for (JavaType javaType : javaTypes) {
+                result.add(get(javaType.getName()));
+            }
+            return result.build();
+        }
+
+        private List<ThrowsDeclaration> asThrowsDeclarations(List<JavaType> javaTypes) {
+            ImmutableList.Builder<ThrowsDeclaration> result = ImmutableList.builder();
+            for (JavaType javaType : javaTypes) {
+                result.add(createThrowsDeclaration(get(javaType.getName())));
             }
             return result.build();
         }
@@ -427,6 +451,7 @@ public final class DomainBuilders {
             withDescriptor("()V");
             withAnnotations(Collections.<JavaAnnotationBuilder>emptySet());
             withModifiers(Collections.<JavaModifier>emptySet());
+            withThrowsDeclarations(Collections.<JavaType>emptyList());
         }
 
         @Override

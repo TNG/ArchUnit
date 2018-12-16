@@ -16,13 +16,20 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -33,6 +40,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
+import com.tngtech.archunit.core.domain.properties.HasThrowsDeclarations;
 import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
@@ -278,7 +286,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
      * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
      */
-    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
+    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType, HasThrowsDeclarations {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -296,6 +304,29 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public JavaClass getReturnType() {
             return returnType;
+        }
+
+        @Override
+        public ThrowsDeclarations getThrowsDeclarations() {
+            Set<ThrowsDeclarations> resolvedThrowsDeclarations = FluentIterable.from(resolve())
+                    .transform(new Function<JavaCodeUnit, ThrowsDeclarations>() {
+                        @Override
+                        public ThrowsDeclarations apply(JavaCodeUnit input) {
+                            return input.getThrowsDeclarations();
+                        }
+                    }).toSet();
+            if (resolvedThrowsDeclarations.isEmpty()) {
+                return new ThrowsDeclarations(Collections.<ThrowsDeclaration>emptyList());
+            } else if (resolvedThrowsDeclarations.size() == 1) {
+                return Iterables.getOnlyElement(resolvedThrowsDeclarations);
+            } else {
+                Iterator<ThrowsDeclarations> iterator = resolvedThrowsDeclarations.iterator();
+                Set<ThrowsDeclaration> intersection = ImmutableSet.copyOf(iterator.next());
+                while (iterator.hasNext()) {
+                    intersection = Sets.intersection(intersection, ImmutableSet.copyOf(iterator.next()));
+                }
+                return new ThrowsDeclarations(ImmutableList.copyOf(intersection));
+            }
         }
 
         /**

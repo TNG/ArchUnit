@@ -80,7 +80,8 @@ public class ImportTestUtils {
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
                     .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
+                    .withThrowsDeclarations(typesFrom(method.getExceptionTypes())));
         }
         return methodBuilders;
     }
@@ -95,7 +96,8 @@ public class ImportTestUtils {
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
                     .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
+                    .withThrowsDeclarations(typesFrom(constructor.getExceptionTypes())));
         }
         return constructorBuilders;
     }
@@ -412,7 +414,17 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
             return Collections.emptySet();
         }
     }

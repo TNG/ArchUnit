@@ -91,6 +91,14 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
         return createDependencyFromJavaMember("Constructor", constructor, "has parameter of type", parameter);
     }
 
+    static Dependency fromThrowsDeclaration(JavaMethod method, JavaClass throwsDeclaration) {
+        return createDependencyFromJavaMember("Method", method, "throws type", throwsDeclaration);
+    }
+
+    static Dependency fromThrowsDeclaration(JavaConstructor constructor, JavaClass throwsDeclaration) {
+        return createDependencyFromJavaMember("Constructor", constructor, "throws type", throwsDeclaration);
+    }
+
     private static Dependency createDependencyFromJavaMember(String memberType, JavaMember origin, String dependencyType, JavaClass target) {
         String originDescription = memberType + " " + bracketFormat(origin.getFullName());
         String targetDescription = bracketFormat(target.getName());

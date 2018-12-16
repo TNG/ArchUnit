@@ -212,7 +212,9 @@ class JavaClassProcessor extends ClassVisitor {
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withParameters(typesFrom(methodType.getArgumentTypes()))
                 .withReturnType(JavaTypeImporter.importAsmType(methodType.getReturnType()))
-                .withDescriptor(desc);
+                .withDescriptor(desc)
+                .withThrowsDeclarations(typesFrom(exceptions))
+                ;
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
     }
@@ -221,6 +223,16 @@ class JavaClassProcessor extends ClassVisitor {
         List<JavaType> result = new ArrayList<>();
         for (Type asmType : asmTypes) {
             result.add(JavaTypeImporter.importAsmType(asmType));
+        }
+        return result;
+    }
+
+    private List<JavaType> typesFrom(String[] throwsDeclarations) {
+        List<JavaType> result = new ArrayList<>();
+        if (throwsDeclarations != null) {
+            for (String throwsDeclaration : throwsDeclarations) {
+                result.add(JavaTypeImporter.createFromAsmObjectTypeName(throwsDeclaration));
+            }
         }
         return result;
     }
