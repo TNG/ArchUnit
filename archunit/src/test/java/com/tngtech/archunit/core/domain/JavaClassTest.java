@@ -351,6 +351,10 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
                         .inLineNumber(0))
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.BException.class)
+                        .inLineNumber(0))
                 .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
@@ -413,6 +417,15 @@ public class JavaClassTest {
                 .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
+                        .inLineNumber(0));
+
+        JavaClass exceptionClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.BException.class)
+                .get(B.BException.class);
+
+        assertThat(exceptionClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.BException.class)
                         .inLineNumber(0));
     }
 
@@ -722,6 +735,10 @@ public class JavaClassTest {
 
     private static DependencyConditionCreation methodReturnTypeDependency() {
         return new DependencyConditionCreation("has return type");
+    }
+
+    private static DependencyConditionCreation methodThrowsDeclarationDependency() {
+        return new DependencyConditionCreation("throws type");
     }
 
     private static AnyDependencyConditionCreation anyDependency() {

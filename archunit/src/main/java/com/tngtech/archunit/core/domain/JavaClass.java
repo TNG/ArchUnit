@@ -533,6 +533,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
      * <li>constructor call</li>
      * <li>extending a class</li>
      * <li>implementing an interface</li>
+     * <li>referencing in throws declaration</li>
      * </ul>
      *
      * @return All dependencies originating directly from this class (i.e. where this class is the origin)
@@ -545,7 +546,9 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         result.addAll(fieldDependenciesFromSelf());
         result.addAll(returnTypeDependenciesFromSelf());
         result.addAll(methodParameterDependenciesFromSelf());
+        result.addAll(methodThrowsDeclarationDependenciesFromSelf());
         result.addAll(constructorParameterDependenciesFromSelf());
+        result.addAll(constructorThrowsDeclarationDependenciesFromSelf());
         return result.build();
     }
 
@@ -563,7 +566,9 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         result.addAll(fieldDependenciesToSelf());
         result.addAll(returnTypeDependenciesToSelf());
         result.addAll(methodParameterDependenciesToSelf());
+        result.addAll(methodThrowsDeclarationDependenciesToSelf());
         result.addAll(constructorParameterDependenciesToSelf());
+        result.addAll(constructorThrowsDeclarationDependenciesToSelf());
         return result.build();
     }
 
@@ -628,11 +633,27 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     /**
+     * @return Methods of all imported classes that have a throws type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMethod> getMethodsWithThrowsDeclarationbTypeOfSelf() {
+        return memberDependenciesOnClass.getMethodsWithThrowsDeclarationTypeOfClass();
+    }
+
+    /**
      * @return Constructors of all imported classes that have a parameter type of this class.
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
         return memberDependenciesOnClass.getConstructorsWithParameterTypeOfClass();
+    }
+
+    /**
+     * @return Constructors of all imported classes that have a throws type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaConstructor> getConstructorsWithThrowsDeclarationTypeOfSelf() {
+        return memberDependenciesOnClass.getConstructorsWithThrowsDeclarationTypeOfClass();
     }
 
     /**
@@ -778,7 +799,9 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
                 context.getFieldsOfType(this),
                 context.getMethodsWithParameterOfType(this),
                 context.getMethodsWithReturnType(this),
-                context.getConstructorsWithParameterOfType(this));
+                context.getMethodsWithThrowsDeclaration(this),
+                context.getConstructorsWithParameterOfType(this),
+                context.getConstructorsWithThrowsDeclaration(this));
         return new CompletionProcess();
     }
 
@@ -848,11 +871,31 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result.build();
     }
 
+    private Set<Dependency> methodThrowsDeclarationDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaMethod method : getMethods()) {
+            for (ThrowsDeclaration throwsDeclaration : method.getThrowsDeclarations()) {
+                result.add(Dependency.fromThrowsDeclaration(method, throwsDeclaration.getType()));
+            }
+        }
+        return result.build();
+    }
+
     private Set<Dependency> constructorParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaConstructor constructor : getConstructors()) {
             for (JavaClass parameter : nonPrimitive(constructor.getParameters())) {
                 result.add(Dependency.fromParameter(constructor, parameter));
+            }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> constructorThrowsDeclarationDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaConstructor constructor : getConstructors()) {
+            for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsDeclarations()) {
+                result.add(Dependency.fromThrowsDeclaration(constructor, throwsDeclaration.getType()));
             }
         }
         return result.build();
@@ -890,10 +933,26 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return result;
     }
 
+    private Set<Dependency> methodThrowsDeclarationDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaMethod method : getMethodsWithThrowsDeclarationbTypeOfSelf()) {
+            result.add(Dependency.fromThrowsDeclaration(method, this));
+        }
+        return result;
+    }
+
     private Set<Dependency> constructorParameterDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaConstructor constructor : getConstructorsWithParameterTypeOfSelf()) {
             result.add(Dependency.fromParameter(constructor, this));
+        }
+        return result;
+    }
+
+    private Set<Dependency> constructorThrowsDeclarationDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaConstructor constructor : getConstructorsWithThrowsDeclarationTypeOfSelf()) {
+            result.add(Dependency.fromThrowsDeclaration(constructor, this));
         }
         return result;
     }
@@ -926,18 +985,24 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         private final Set<JavaField> fieldsWithTypeOfClass;
         private final Set<JavaMethod> methodsWithParameterTypeOfClass;
         private final Set<JavaMethod> methodsWithReturnTypeOfClass;
+        private final Set<JavaMethod> methodsWithThrowsDeclarationTypeOfClass;
         private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
+        private final Set<JavaConstructor> constructorsWithThrowsDeclarationTypeOfClass;
 
         MemberDependenciesOnClass(
                 Set<JavaField> fieldsWithTypeOfClass,
                 Set<JavaMethod> methodsWithParameterTypeOfClass,
                 Set<JavaMethod> methodsWithReturnTypeOfClass,
-                Set<JavaConstructor> constructorsWithParameterTypeOfClass) {
+                Set<JavaMethod> methodsWithThrowsDeclarationTypeOfClass,
+                Set<JavaConstructor> constructorsWithParameterTypeOfClass,
+                Set<JavaConstructor> constructorsWithThrowsDeclarationTypeOfClass) {
 
             this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
             this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
             this.methodsWithReturnTypeOfClass = ImmutableSet.copyOf(methodsWithReturnTypeOfClass);
+            this.methodsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(methodsWithThrowsDeclarationTypeOfClass);
             this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
+            this.constructorsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(constructorsWithThrowsDeclarationTypeOfClass);
         }
 
         Set<JavaField> getFieldsWithTypeOfClass() {
@@ -952,8 +1017,16 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             return methodsWithReturnTypeOfClass;
         }
 
+        Set<JavaMethod> getMethodsWithThrowsDeclarationTypeOfClass() {
+            return methodsWithThrowsDeclarationTypeOfClass;
+        }
+
         Set<JavaConstructor> getConstructorsWithParameterTypeOfClass() {
             return constructorsWithParameterTypeOfClass;
+        }
+
+        Set<JavaConstructor> getConstructorsWithThrowsDeclarationTypeOfClass() {
+            return constructorsWithThrowsDeclarationTypeOfClass;
         }
     }
 

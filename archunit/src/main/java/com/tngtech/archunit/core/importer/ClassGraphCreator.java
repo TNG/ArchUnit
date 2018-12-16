@@ -40,6 +40,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
@@ -193,8 +194,18 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
+        return memberDependenciesByTarget.getMethodsWithThrowsDeclaration(javaClass);
+    }
+
+    @Override
     public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
         return memberDependenciesByTarget.getConstructorsWithParameterOfType(javaClass);
+    }
+
+    @Override
+    public Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
+        return memberDependenciesByTarget.getConstructorsWithThrowsDeclaration(javaClass);
     }
 
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
@@ -268,7 +279,9 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaMethod> methodsThrowsDeclarationDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaConstructor>  constructorParameterTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaConstructor> constructorThrowsDeclarationDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -282,6 +295,9 @@ class ClassGraphCreator implements ImportContext {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
                 methodReturnTypeDependencies.put(method.getReturnType(), method);
+                for (ThrowsDeclaration throwsDeclaration : method.getThrowsDeclarations()) {
+                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), method);
+                }
             }
         }
 
@@ -289,6 +305,9 @@ class ClassGraphCreator implements ImportContext {
             for (JavaConstructor constructor : constructors) {
                 for (JavaClass parameter : constructor.getParameters()) {
                     constructorParameterTypeDependencies.put(parameter, constructor);
+                }
+                for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsDeclarations()) {
+                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), constructor);
                 }
             }
         }
@@ -305,8 +324,16 @@ class ClassGraphCreator implements ImportContext {
             return methodReturnTypeDependencies.get(javaClass);
         }
 
+        Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
+            return methodsThrowsDeclarationDependencies.get(javaClass);
+        }
+
         Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
             return constructorParameterTypeDependencies.get(javaClass);
+        }
+
+        Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
+            return constructorThrowsDeclarationDependencies.get(javaClass);
         }
     }
 }

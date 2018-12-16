@@ -47,6 +47,8 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.core.domain.ThrowsDeclarations;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -130,6 +132,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaTypeAssertion assertThat(JavaType javaType) {
         return new JavaTypeAssertion(javaType);
+    }
+
+    public static ThrowsDeclarationAssertion assertThat(ThrowsDeclaration throwsDeclaration) {
+        return new ThrowsDeclarationAssertion(throwsDeclaration);
+    }
+
+    public static ThrowsDeclarationsAssertion assertThat(ThrowsDeclarations throwsDeclarations) {
+        return new ThrowsDeclarationsAssertion(throwsDeclarations);
     }
 
     @SuppressWarnings("unchecked") // covariant
@@ -382,6 +392,36 @@ public class Assertions extends org.assertj.core.api.Assertions {
             for (int i = 0; i < actual.length; i++) {
                 assertThat(actual[i]).as("Element %d", i).isEquivalentTo(enumConstants[i]);
             }
+        }
+    }
+
+    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration> {
+        private ThrowsDeclarationAssertion(ThrowsDeclaration throwsDeclaration) {
+            super(throwsDeclaration, ThrowsDeclarationAssertion.class);
+        }
+
+        public void matches(Class<?> clazz) {
+            assertThat(actual.getType()).as("Type of " + actual)
+                    .matches(clazz);
+        }
+    }
+
+    public static class ThrowsDeclarationsAssertion
+            extends AbstractListAssert<ThrowsDeclarationsAssertion, List<? extends ThrowsDeclaration>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+        private ThrowsDeclarationsAssertion(ThrowsDeclarations throwsDeclarations) {
+            super(throwsDeclarations, ThrowsDeclarationsAssertion.class);
+        }
+
+        public void matches(Class<?>... classes) {
+            assertThat(actual).as("ThrowsDeclarations").hasSize(classes.length);
+            for (int i = 0; i < actual.size(); i++) {
+                assertThat(actual.get(i)).as("Element %d", i).matches(classes[i]);
+            }
+        }
+
+        @Override
+        protected ObjectAssert<ThrowsDeclaration> toAssert(ThrowsDeclaration value, String description) {
+            return new ObjectAssertFactory<ThrowsDeclaration>().createAssert(value).as(description);
         }
     }
 

@@ -40,6 +40,14 @@ public class TestUtils {
         return new JavaClassList(classes);
     }
 
+    public static ThrowsDeclarations throwsDeclarations(Class<?>... types) {
+        List<ThrowsDeclaration> throwsDeclarations = new ArrayList<ThrowsDeclaration>();
+        for (Class<?> type : types) {
+            throwsDeclarations.add(new ThrowsDeclaration(importClassWithContext(type)));
+        }
+        return new ThrowsDeclarations(throwsDeclarations);
+    }
+
     public static JavaClasses importClasses(Class<?>... classes) {
         return new ClassFileImporter().importClasses(classes);
     }

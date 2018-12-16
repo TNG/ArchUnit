@@ -51,5 +51,9 @@ public interface ImportContext {
 
     Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass);
 
+    Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass);
+
     Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
+
+    Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass);
 }
