@@ -305,7 +305,7 @@ public class ExpectedTestFailures {
 
         static ExpectedViolationToAssign byRuleText(String ruleText) {
             return new ExpectedViolationToAssign(
-                    failure -> failure.error.getMessage().contains(ruleText),
+                    failure -> failure.error.getMessage().contains(String.format("Rule '%s'", ruleText)),
                     ExpectedViolation.ofRule(ruleText),
                     HandlingAssertion.ofRule());
         }
