@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
@@ -30,6 +31,8 @@ import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlComponentM
 import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlDependencyMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.containsPattern;
+import static com.google.common.base.Predicates.not;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class PlantUmlParser {
@@ -40,15 +43,20 @@ class PlantUmlParser {
         return createDiagram(readLines(url));
     }
 
-    private PlantUmlDiagram createDiagram(List<String> umlTextAsList) {
-        Set<PlantUmlComponent> components = parseComponents(umlTextAsList);
+    private PlantUmlDiagram createDiagram(List<String> rawDiagramLines) {
+        List<String> diagramLines = filterOutComments(rawDiagramLines);
+        Set<PlantUmlComponent> components = parseComponents(diagramLines);
         PlantUmlComponents plantUmlComponents = new PlantUmlComponents(components);
 
-        List<ParsedDependency> dependencies = parseDependencies(plantUmlComponents, umlTextAsList);
+        List<ParsedDependency> dependencies = parseDependencies(plantUmlComponents, diagramLines);
 
         return new PlantUmlDiagram.Builder(plantUmlComponents)
                 .withDependencies(dependencies)
                 .build();
+    }
+
+    private List<String> filterOutComments(List<String> lines) {
+        return FluentIterable.from(lines).filter(not(containsPattern("^\\s*'"))).toList();
     }
 
     private List<String> readLines(URL url) {
@@ -66,9 +74,13 @@ class PlantUmlParser {
     }
 
     private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {
-        return plantUmlPatterns.filterDependencies(plantUmlDiagramLines)
-                .transform(toPlantUmlDependency(plantUmlComponents))
-                .toList();
+        ImmutableList.Builder<ParsedDependency> result = ImmutableList.builder();
+        for (PlantUmlDependencyMatcher matcher : plantUmlPatterns.matchDependencies(plantUmlDiagramLines)) {
+            PlantUmlComponent origin = findComponentMatching(plantUmlComponents, matcher.matchOrigin());
+            PlantUmlComponent target = findComponentMatching(plantUmlComponents, matcher.matchTarget());
+            result.add(new ParsedDependency(origin.getIdentifier(), target.getIdentifier()));
+        }
+        return result.build();
     }
 
     private Function<String, PlantUmlComponent> toPlantUmlComponent() {
@@ -76,15 +88,6 @@ class PlantUmlParser {
             @Override
             public PlantUmlComponent apply(String input) {
                 return createNewComponent(input);
-            }
-        };
-    }
-
-    private Function<String, ParsedDependency> toPlantUmlDependency(final PlantUmlComponents plantUmlComponents) {
-        return new Function<String, ParsedDependency>() {
-            @Override
-            public ParsedDependency apply(String input) {
-                return createNewDependency(plantUmlComponents, input);
             }
         };
     }
@@ -117,20 +120,10 @@ class PlantUmlParser {
         return result;
     }
 
-    private ParsedDependency createNewDependency(PlantUmlComponents plantUmlComponents, String input) {
-        PlantUmlDependencyMatcher matcher = plantUmlPatterns.matchDependency(input);
-
-        PlantUmlComponent origin = findComponentMatching(plantUmlComponents, matcher.matchOrigin());
-        PlantUmlComponent target = findComponentMatching(plantUmlComponents, matcher.matchTarget());
-
-        return new ParsedDependency(origin.getIdentifier(), target.getIdentifier());
-    }
-
     private PlantUmlComponent findComponentMatching(PlantUmlComponents plantUmlComponents, String originOrTargetString) {
         originOrTargetString = originOrTargetString.trim()
                 .replaceAll("^\\[", "")
-                .replaceAll("]$", "")
-                .replaceAll("\"", "");
+                .replaceAll("]$", "");
 
         return plantUmlComponents.findComponentWith(originOrTargetString);
     }

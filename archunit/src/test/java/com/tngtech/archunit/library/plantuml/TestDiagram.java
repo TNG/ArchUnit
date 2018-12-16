@@ -45,19 +45,12 @@ class TestDiagram {
         return this;
     }
 
-    DependencyCreator dependencyFrom(String origin) {
-        return new DependencyCreator(origin);
+    DependencyFromCreator dependencyFrom(String origin) {
+        return new DependencyFromCreator(origin);
     }
 
-    private TestDiagram addDependency(DependencyCreator creator) {
-        String dependency = creator.origin + " --> ";
-        if (creator.target != null) {
-            dependency += creator.target;
-        } else {
-            throw new IllegalStateException("dependency must have target");
-        }
-        lines.add(dependency);
-        return this;
+    DependencyToCreator dependencyTo(String target) {
+        return new DependencyToCreator(target);
     }
 
     TestDiagram rawLine(String line) {
@@ -111,22 +104,31 @@ class TestDiagram {
             this.stereotypes.addAll(ImmutableList.copyOf(stereoTypes));
             return addComponent(this);
         }
-
     }
 
-    class DependencyCreator {
+    class DependencyFromCreator {
         private final String origin;
 
-        private String target = "";
-
-        private DependencyCreator(String origin) {
+        private DependencyFromCreator(String origin) {
             this.origin = origin;
         }
 
         TestDiagram to(String target) {
+            String dependency = origin + " --> " + target;
+            return TestDiagram.this.rawLine(dependency);
+        }
+    }
+
+    class DependencyToCreator {
+        private final String target;
+
+        private DependencyToCreator(String target) {
             this.target = target;
-            return addDependency(this);
         }
 
+        TestDiagram from(String origin) {
+            String dependency = target + " <-- " + origin;
+            return TestDiagram.this.rawLine(dependency);
+        }
     }
 }
