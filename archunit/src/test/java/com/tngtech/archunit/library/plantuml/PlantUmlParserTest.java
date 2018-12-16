@@ -3,18 +3,29 @@ package com.tngtech.archunit.library.plantuml;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
+@RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
     private static PlantUmlParser parser = new PlantUmlParser();
 
@@ -46,13 +57,41 @@ public class PlantUmlParserTest {
         assertThat(origin.getAlias().isPresent()).as("alias is present").isFalse();
     }
 
+    @DataProvider
+    public static Object[][] simple_diagrams() {
+        return testForEach(
+                new Function<TestDiagram, TestDiagram>() {
+                    @Override
+                    public TestDiagram apply(TestDiagram diagram) {
+                        return diagram.dependencyFrom("[SomeOrigin]").to("[SomeTarget]");
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "[SomeOrigin] --> [SomeTarget]";
+                    }
+                },
+                new Function<TestDiagram, TestDiagram>() {
+                    @Override
+                    public TestDiagram apply(TestDiagram diagram) {
+                        return diagram.dependencyTo("[SomeTarget]").from("[SomeOrigin]");
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "[SomeTarget] <-- [SomeOrigin]";
+                    }
+                }
+        );
+    }
+
     @Test
-    public void parses_dependency_of_simple_component_diagram() {
-        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+    @UseDataProvider("simple_diagrams")
+    public void parses_dependency_of_simple_component_diagram(Function<TestDiagram, TestDiagram> testCase) {
+        TestDiagram initialDiagram = TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin..")
-                .component("SomeTarget").withStereoTypes("..target..")
-                .dependencyFrom("[SomeOrigin]").to("[SomeTarget]")
-                .write());
+                .component("SomeTarget").withStereoTypes("..target..");
+        PlantUmlDiagram diagram = createDiagram(testCase.apply(initialDiagram).write());
 
         PlantUmlComponent origin = getComponentWithName("SomeOrigin", diagram);
         PlantUmlComponent target = getOnlyElement(origin.getDependencies());
@@ -62,6 +101,41 @@ public class PlantUmlParserTest {
         assertThat(getOnlyElement(target.getStereotypes())).as("dependency component's stereotype")
                 .isEqualTo(new Stereotype("..target.."));
         assertThat(target.getAlias()).as("dependency component's alias is present").isAbsent();
+    }
+
+    @DataProvider
+    public static Object[][] dependency_arrow_testcases() {
+        List<String> arrowCenters = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            arrowCenters.add(Strings.repeat("-", i));
+        }
+        for (int i = 2; i <= 10; i++) {
+            for (String infix : ImmutableList.of("left", "right", "up", "down", "[#green]")) {
+                arrowCenters.add(Strings.repeat("-", i - 1) + infix + "-");
+            }
+        }
+        List<String> testCase = new ArrayList<>();
+        for (String arrowCenter : arrowCenters) {
+            testCase.add("[SomeOrigin] " + arrowCenter + "> [SomeTarget]");
+            testCase.add("[SomeTarget] <" + arrowCenter + " [SomeOrigin]");
+        }
+        return testForEach(testCase);
+    }
+
+    @Test
+    @UseDataProvider("dependency_arrow_testcases")
+    public void parses_various_types_of_dependency_arrows(String dependency) {
+        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+                .component("SomeOrigin").withStereoTypes("..origin..")
+                .component("SomeTarget").withStereoTypes("..target..")
+                .rawLine(dependency)
+                .write());
+
+        PlantUmlComponent target = getOnlyElement(getComponentWithName("SomeOrigin", diagram).getDependencies());
+
+        assertThat(target.getComponentName())
+                .as("dependency component name")
+                .isEqualTo(new ComponentName("SomeTarget"));
     }
 
     @Test
@@ -77,6 +151,21 @@ public class PlantUmlParserTest {
 
         assertThat(getOnlyElement(diagram.getAllComponents())).isEqualTo(uncommentedComponent);
         assertThat(uncommentedComponent.getDependencies().isEmpty()).isTrue();
+    }
+
+    @Test
+    public void does_not_include_dependency_descriptions() {
+        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+                .component("component").withStereoTypes("..somePackage..")
+                .component("otherComponent").withStereoTypes("..somePackage2..")
+                .rawLine("[component] --> [otherComponent] : this part should be ignored, no matter the comment tick ' ")
+                .write());
+
+        PlantUmlComponent component = getComponentWithName("component", diagram);
+        PlantUmlComponent targetOfDescribedDependency = getOnlyElement(component.getDependencies());
+        assertThat(targetOfDescribedDependency.getComponentName())
+                .as("target of dependency with description")
+                .isEqualTo(new ComponentName("otherComponent"));
     }
 
     @Test

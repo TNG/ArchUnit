@@ -769,28 +769,38 @@ class ExamplesIntegrationTest {
                         .ofType(ProductCatalog.class))
                 .by(field(Product.class, "customer")
                         .ofType(Customer.class))
+                .by(method(Product.class, "getOrder")
+                        .withReturnType(Order.class))
+                .by(method(Customer.class, "addOrder")
+                        .withParameter(Order.class))
                 .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
                         .toConstructor(Order.class).inLine(12).asDependency())
                 .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
-                        .toMethod(Order.class, "addProducts", Set.class).inLine(13).asDependency())
+                        .toMethod(Order.class, "addProducts", Set.class).inLine(16).asDependency())
                 .by(callFromMethod(ProductImport.class, "getCustomer")
                         .toConstructor(Customer.class).inLine(14).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
+                .by(method(Order.class, "report")
+                        .withParameter(Address.class))
 
                 .ofRule(String.format("classes should adhere to PlantUML diagram <shopping_example.puml>,"
                                 + " ignoring dependencies with origin equivalent to %s,"
-                                + " ignoring dependencies with target equivalent to %s,"
+                                + " ignoring dependencies with target that is part of JDK,"
                                 + " ignoring dependencies from %s to %s",
-                        ProductCatalog.class.getName(), Object.class.getName(), Order.class.getName(), Set.class.getName()))
+                        ProductCatalog.class.getName(), Product.class.getName(), Order.class.getName()))
                 .by(field(Address.class, "productCatalog")
                         .ofType(ProductCatalog.class))
                 .by(field(Product.class, "customer")
                         .ofType(Customer.class))
+                .by(method(Customer.class, "addOrder")
+                        .withParameter(Order.class))
                 .by(callFromMethod(ProductImport.class, "getCustomer")
                         .toConstructor(Customer.class).inLine(14).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
+                .by(method(Order.class, "report")
+                        .withParameter(Address.class))
 
                 .toDynamicTests();
     }
