@@ -24,27 +24,35 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.ArchRule.Factory.createBecauseDescription;
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static java.util.Collections.singletonList;
 
 public final class CompositeArchRule implements ArchRule {
+    private final Priority priority;
     private final List<ArchRule> rules;
     private final String description;
 
-    private CompositeArchRule(List<ArchRule> rules, String description) {
+    private CompositeArchRule(Priority priority, List<ArchRule> rules, String description) {
+        this.priority = priority;
         this.rules = checkNotNull(rules);
         this.description = checkNotNull(description);
     }
 
     @PublicAPI(usage = ACCESS)
     public static CompositeArchRule of(ArchRule rule) {
-        return new CompositeArchRule(singletonList(rule), rule.getDescription());
+        return priority(MEDIUM).of(rule);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static Creator priority(Priority priority) {
+        return new Creator(priority);
     }
 
     @PublicAPI(usage = ACCESS)
     public CompositeArchRule and(ArchRule rule) {
         List<ArchRule> newRules = ImmutableList.<ArchRule>builder().addAll(rules).add(rule).build();
         String newDescription = description + " and " + rule.getDescription();
-        return new CompositeArchRule(newRules, newDescription);
+        return new CompositeArchRule(priority, newRules, newDescription);
     }
 
     @Override
@@ -54,12 +62,12 @@ public final class CompositeArchRule implements ArchRule {
 
     @Override
     public CompositeArchRule because(String reason) {
-        return new CompositeArchRule(rules, createBecauseDescription(this, reason));
+        return new CompositeArchRule(priority, rules, createBecauseDescription(this, reason));
     }
 
     @Override
     public EvaluationResult evaluate(JavaClasses classes) {
-        EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
+        EvaluationResult result = new EvaluationResult(this, priority);
         for (ArchRule rule : rules) {
             result.add(rule.evaluate(classes));
         }
@@ -68,11 +76,25 @@ public final class CompositeArchRule implements ArchRule {
 
     @Override
     public CompositeArchRule as(String newDescription) {
-        return new CompositeArchRule(rules, newDescription);
+        return new CompositeArchRule(priority, rules, newDescription);
     }
 
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static final class Creator {
+        private final Priority priority;
+
+        private Creator(Priority priority) {
+            this.priority = priority;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public final CompositeArchRule of(ArchRule rule) {
+            return new CompositeArchRule(priority, singletonList(rule), rule.getDescription());
+        }
     }
 }
