@@ -16,13 +16,13 @@ skinparam component {
 ' Could be some random comment
 [XML] <<..xml.processor..>> <<..xml.types..>> as xml
 
-[Order] --> [Customer]
+[Order] ---> [Customer] : is placed by
 [Order] --> [Products]
 
 [Customer] --> [Address]
 
-catalog ---> [Products]
-import --> catalog
+[Products] <--[#green]- catalog
+import -left-> catalog : parse products
 import --> xml
 note top on link #lightgreen: is responsible for translating XML to java classes
 

@@ -11,6 +11,10 @@ public class ProductImport {
     public XmlProcessor xmlProcessor;
 
     public Customer getCustomer() {
-        return new Customer();
+        return new Customer(); // violates diagram -> product import may not directly know Customer
+    }
+
+    ProductCatalog parse(byte[] xml) {
+        return new ProductCatalog();
     }
 }
