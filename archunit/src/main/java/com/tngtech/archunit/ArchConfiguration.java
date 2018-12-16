@@ -50,8 +50,8 @@ public final class ArchConfiguration {
     private static final Pattern EXTENSION_PROP___GROUP_ONE_ID_GROUP_TWO_KEY = Pattern.compile("^extension\\.([^.]+)\\.(.+)");
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
-            RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, "" + false,
-            ENABLE_MD5_IN_CLASS_SOURCES, "" + false
+            RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
+            ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
     );
 
     private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(new Supplier<ArchConfiguration>() {

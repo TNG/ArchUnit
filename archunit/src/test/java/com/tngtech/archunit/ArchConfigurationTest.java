@@ -78,13 +78,13 @@ public class ArchConfigurationTest {
     @Test
     public void reset_works() {
         ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
-        assertThat(configuration.resolveMissingDependenciesFromClassPath()).isFalse();
-
-        configuration.setResolveMissingDependenciesFromClassPath(true);
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
 
-        configuration.reset();
+        configuration.setResolveMissingDependenciesFromClassPath(false);
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isFalse();
+
+        configuration.reset();
+        assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
     }
 
     @Test
@@ -189,7 +189,7 @@ public class ArchConfigurationTest {
     }
 
     private void assertDefault(ArchConfiguration configuration) {
-        assertThat(configuration.resolveMissingDependenciesFromClassPath()).isFalse();
+        assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
         assertThat(configuration.md5InClassSourcesEnabled()).isFalse();
     }
 
