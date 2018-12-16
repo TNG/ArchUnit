@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.lang.Priority.HIGH;
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -35,6 +37,7 @@ public class CompositeArchRuleTest {
         EvaluationResult result = CompositeArchRule.of(first).and(second).evaluate(importClasses(getClass()));
 
         assertThat(result.hasViolation()).as("result has violation").isEqualTo(!expectedSatisfied);
+        assertPriority(result.getFailureReport().toString(), MEDIUM);
     }
 
     @Test
@@ -53,6 +56,22 @@ public class CompositeArchRuleTest {
                 .and(classes().should().bePublic().as("changed"));
 
         assertThat(modified.getDescription()).isEqualTo("overridden, because reason and changed");
+    }
+
+    @Test
+    public void priority_is_passed() {
+        Priority priority = HIGH;
+        CompositeArchRule rule = CompositeArchRule
+                .priority(priority)
+                .of(classes().should().bePublic()).and(classes().should().bePrivate());
+
+        String failureMessage = rule.evaluate(importClasses(getClass())).getFailureReport().toString();
+
+        assertPriority(failureMessage, priority);
+    }
+
+    private void assertPriority(String failureMessage, Priority priority) {
+        assertThat(failureMessage).contains(String.format("[Priority: %s]", priority));
     }
 
     private static ArchRule archRuleThatSucceeds() {
