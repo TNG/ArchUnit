@@ -45,20 +45,12 @@ module.exports = env => {
     module: {
       rules: [
         {
-          test: /.css$/,
+          test: /\.css$/,
           use: [
             {loader: 'style-loader', options: {attrs: {id: 'visualization-styles'}}},
             {loader: 'css-loader'}
           ],
-          include: /visualizationstyles.css/
-        },
-        {
-          test: /.css$/,
-          use: [
-            {loader: 'style-loader'},
-            {loader: 'css-loader'}
-          ],
-          exclude: /visualizationstyles.css/
+          include: /visualization-styles.css/
         }
       ]
     }

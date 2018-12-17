@@ -110,7 +110,7 @@ public class ClassesToVisualizeTest {
         return -1;
     }
 
-    private SortedMap<Integer, ImmutableSet<JavaClass>> getClassesSortedByDepth(JavaClasses classes){
+    private SortedMap<Integer, ImmutableSet<JavaClass>> getClassesSortedByDepth(JavaClasses classes) {
         SortedMap<Integer, ImmutableSet<JavaClass>> map = new TreeMap<>();
         map.put(0, ImmutableSet.of(
                 classes.get(SomeClass.class), classes.get(OtherClass.class), classes.get(ThirdClass.class),

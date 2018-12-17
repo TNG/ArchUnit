@@ -34,7 +34,7 @@ configurations {
     runtime.exclude module: ':archunit'
 }
 
-def nodeVersion = '7.2.0'
+def nodeVersion = '10.14.2'
 def nodeDir = "${project.projectDir}/nodejs"
 
 node {

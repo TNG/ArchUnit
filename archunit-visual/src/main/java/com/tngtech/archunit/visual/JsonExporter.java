@@ -15,14 +15,14 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-
-import java.util.HashSet;
-import java.util.Set;
 
 class JsonExporter {
     private static final Gson GSON = new GsonBuilder()
@@ -84,6 +84,7 @@ class JsonExporter {
         return !d.getTargetClass().isEquivalentTo(Object.class) && !isDefaultDependencyFromInnerClassToEnclosingClass(d) && !isDependencyToPrimitiveArray(d);
     }
 
+    // FIXME: We don't need this anymore, once we remove those boring dependecies from inner to outer classes -> AU-73
     private boolean isDefaultDependencyFromInnerClassToEnclosingClass(Dependency d) {
         boolean isDependencyFromInnerClassToEnclosingClass = d.getOriginClass().isInnerClass()
                 && d.getOriginClass().getEnclosingClass().isPresent() //should be unnecessary - but is safer
