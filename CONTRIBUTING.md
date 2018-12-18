@@ -2,6 +2,21 @@
 
 Contributions are very welcome. The following will provide some helpful guidelines.
 
+## How to build the project
+
+ArchUnit requires at least JDK 9 to build. The following is just an example input/output from a 
+Unix command line. Windows users should use `gradlew.bat` instead.
+
+```
+$ cd /path/to/git/clone/of/ArchUnit
+$ ./gradlew showJdkVersion
+Configured JDK: 1.9
+$ ./gradlew build
+```
+
+You can configure the JDK Gradle uses according to the 
+[Gradle User Guide](https://docs.gradle.org/current/userguide/build_environment.html)
+
 ## How to contribute
 
 If you want to submit a contribution, please follow the following workflow:

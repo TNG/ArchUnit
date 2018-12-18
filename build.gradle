@@ -121,6 +121,10 @@ allprojects {
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
 
+task showJdkVersion {
+    println "Configured JDK: ${JavaVersion.current()}"
+}
+
 task clean {
     doLast {
         project.buildDir.deleteDir()
