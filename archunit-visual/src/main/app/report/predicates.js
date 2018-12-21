@@ -82,4 +82,4 @@ const stringEquals = filterExpression => {
   }
 };
 
-export default {not, and, stringEquals};
+module.exports = {not, and, stringEquals};

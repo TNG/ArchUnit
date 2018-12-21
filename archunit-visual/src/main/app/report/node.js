@@ -1,9 +1,9 @@
 'use strict';
 
-import predicates from './predicates';
-import {vectors} from './vectors';
-import {NodeCircle, ZeroCircle} from './circles';
-import {buildFilterGroup} from './filter';
+const predicates = require('./predicates');
+const {vectors} = require('./vectors');
+const {NodeCircle, ZeroCircle} = require('./circles');
+const {buildFilterGroup} = require('./filter');
 
 const nodeTypes = require('./node-types.json');
 
@@ -609,4 +609,4 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   return Root;
 };
 
-export default {init};
+module.exports = {init};

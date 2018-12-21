@@ -1,10 +1,8 @@
 'use strict';
 
-import chai from 'chai';
+const Assertion = require('chai').Assertion;
 
-const Assertion = chai.Assertion;
-
-Assertion.addMethod('haveDependencyStrings', function() {
+Assertion.addMethod('haveDependencyStrings', function () {
   const actDependencies = Array.from(this._obj);
   const expStrings = arguments[0].sort();
 

@@ -1,7 +1,7 @@
 'use strict';
 
-import {defineCustomElement} from '../web-component-infrastructure';
-import * as d3 from 'd3';
+const d3 = require('d3');
+const {defineCustomElement} = require('../web-component-infrastructure');
 
 (function () {
   defineCustomElement('violation-menu', class extends HTMLElement {

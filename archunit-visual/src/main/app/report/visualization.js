@@ -1,7 +1,7 @@
 'use strict';
 
-import resources from './resources';
-import appContext from './app-context';
-import createGraph from './graph';
+const resources = require('./resources');
+const appContext = require('./app-context');
+const createGraph = require('./graph').create;
 
-export default (svgElement, foldAllNodes) => createGraph(appContext.newInstance(), resources, svgElement, foldAllNodes);
+module.exports = (svgElement, foldAllNodes) => createGraph(appContext.newInstance(), resources, svgElement, foldAllNodes);

@@ -1,6 +1,6 @@
 'use strict';
 
-import {defineCustomElement} from '../web-component-infrastructure';
+const {defineCustomElement} = require('../web-component-infrastructure');
 
 (function () {
   let filterStringInput;

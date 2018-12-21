@@ -5,4 +5,4 @@ const getResources = () => ({
   violations: JSON.parse(window.jsonViolations)
 });
 
-export default {getResources};
+module.exports = {getResources};

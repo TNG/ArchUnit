@@ -1,7 +1,7 @@
 'use strict';
 
-import initDependency from './dependency.js';
-import {buildFilterGroup} from './filter';
+const initDependency = require('./dependency.js');
+const {buildFilterGroup} = require('./filter');
 
 const init = (View) => {
 
@@ -340,7 +340,7 @@ const init = (View) => {
     getTypeFilter(typeFilterConfig) {
       return dependency => this.dependencyTypes.every(type => dependency.type !== type || typeFilterConfig[type])
         && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
-            && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
+          && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
           || typeFilterConfig.INNERCLASS_DEPENDENCY);
     }
 
@@ -373,4 +373,4 @@ const init = (View) => {
   return Dependencies;
 };
 
-export default {init};
+module.exports = {init};

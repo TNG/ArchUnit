@@ -29,4 +29,4 @@ const init = visualizationStyles => {
   };
 };
 
-export default {init};
+module.exports = {init};

@@ -83,4 +83,4 @@ const createTestDependencies = () => {
   return builder;
 };
 
-export {testRoot, createTestDependencies, createTestGraph}
+module.exports = {testRoot, createTestDependencies, createTestGraph};

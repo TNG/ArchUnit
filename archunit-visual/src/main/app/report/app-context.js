@@ -4,16 +4,16 @@
  * Some poor man's DI solution...
  */
 
-import visualizationFunctions from './visualization-functions';
-import nodeText from './node-text';
-import node from './node';
-import dependencies from './dependencies';
-import textWidthCalculator from './text-width-calculator';
-import visualizationStyles from './visualization-styles';
-import nodeView from './node-view';
-import detailedDependencyView from './detailed-dependency-view';
-import dependencyView from './dependency-view';
-import graphView from './graph-view';
+const visualizationFunctions = require('./visualization-functions');
+const nodeText = require('./node-text');
+const node = require('./node');
+const dependencies = require('./dependencies');
+const textWidthCalculator = require('./text-width-calculator');
+const visualizationStyles = require('./visualization-styles');
+const nodeView = require('./node-view');
+const detailedDependencyView = require('./detailed-dependency-view');
+const dependencyView = require('./dependency-view');
+const graphView = require('./graph-view');
 
 const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles) => {
 
@@ -35,7 +35,7 @@ const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyl
 
 const TRANSITION_DURATION = 1000;
 
-export default {
+module.exports = {
   newInstance: overrides => {
     overrides = overrides || {};
 

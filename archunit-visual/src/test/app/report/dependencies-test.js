@@ -1,12 +1,12 @@
 'use strict';
 
-import chai from 'chai';
-import './chai/dependencies-chai-extension';
-import './chai/node-chai-extensions';
-import stubs from './stubs';
-import {createTestDependencies, testRoot} from './test-json-creator';
-import AppContext from '../../../main/app/report/app-context';
-import {buildFilterCollection} from "../../../main/app/report/filter";
+const chai = require('chai');
+require('./chai/dependencies-chai-extension');
+require('./chai/node-chai-extensions');
+const stubs = require('./stubs');
+const {createTestDependencies, testRoot} = require('./test-json-creator');
+const AppContext = require('../../../main/app/report/app-context');
+const {buildFilterCollection} = require("../../../main/app/report/filter");
 
 const expect = chai.expect;
 

@@ -1,9 +1,7 @@
 'use strict';
 
-import chai from 'chai';
-import {Vector} from '../../../../main/app/report/vectors';
-
-const Assertion = chai.Assertion;
+const {Vector} = require('../../../../main/app/report/vectors');
+const Assertion = require('chai').Assertion;
 
 const MAXIMUM_DELTA = 0.0001;
 

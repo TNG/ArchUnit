@@ -1,11 +1,11 @@
 'use strict';
 
-import chai from 'chai';
-import generalExtensions from './chai/general-chai-extensions';
-import {testRoot} from './test-json-creator';
-import stubs from './stubs';
-import initDependency from '../../../main/app/report/dependency';
-import AppContext from '../../../main/app/report/app-context';
+const chai = require('chai');
+const generalExtensions = require('./chai/general-chai-extensions');
+const {testRoot} = require('./test-json-creator');
+const stubs = require('./stubs');
+const initDependency = require('../../../main/app/report/dependency');
+const AppContext = require('../../../main/app/report/app-context');
 
 const expect = chai.expect;
 
@@ -158,7 +158,7 @@ describe('GroupedDependency', () => {
   it('is created correctly from one elementary dependency', () => {
     const root = createRootWithToClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.innerClass, 'FIELD_ACCESS'))
+    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.innerClass, 'FIELD_ACCESS'));
     const act = dependencyCreator.getUniqueDependency(root.class1, root.class2)
       .byGroupingDependencies([elementaryDependency]);
     expect(act.hasDetailedDescription()).to.equal(true);

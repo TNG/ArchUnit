@@ -1,9 +1,9 @@
 'use strict';
 
-import chai from 'chai';
-import generalExtensions from './chai/general-chai-extensions';
-import {Vector} from '../../../main/app/report/vectors';
-import {Circle} from '../../../main/app/report/circles';
+const chai = require('chai');
+const generalExtensions = require('./chai/general-chai-extensions');
+const {Vector} = require('../../../main/app/report/vectors');
+const {Circle} = require('../../../main/app/report/circles');
 
 const expect = chai.expect;
 chai.use(generalExtensions);

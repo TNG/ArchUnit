@@ -1,6 +1,6 @@
 'use strict';
 
-import {buildFilterCollection} from './filter';
+const {buildFilterCollection} = require('./filter');
 
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
@@ -138,10 +138,12 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   };
 };
 
-export default (appContext, resources, svgElement, foldAllNodes) => {
-  const Graph = init(appContext.getRoot(), appContext.getDependencies(),
-    appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
+module.exports = {
+  create: (appContext, resources, svgElement, foldAllNodes) => {
+    const Graph = init(appContext.getRoot(), appContext.getDependencies(),
+      appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
-  const {graph, violations} = resources.getResources();
-  return new Graph(graph, violations, svgElement, foldAllNodes);
+    const {graph, violations} = resources.getResources();
+    return new Graph(graph, violations, svgElement, foldAllNodes);
+  }
 };

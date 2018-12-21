@@ -1,7 +1,7 @@
 'use strict';
 
-import * as d3 from 'd3';
-import {defineCustomElement} from '../web-component-infrastructure';
+const d3 = require('d3');
+const {defineCustomElement} = require('../web-component-infrastructure');
 
 const checkBoxesFrom = function (nodes) {
   const checkBoxes = Array.from(nodes);

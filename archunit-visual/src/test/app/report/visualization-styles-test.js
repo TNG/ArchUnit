@@ -1,7 +1,7 @@
 'use strict';
 
-import visualizationStyles from '../../../main/app/report/visualization-styles';
-import chai from 'chai';
+const chai = require('chai');
+const visualizationStyles = require('../../../main/app/report/visualization-styles');
 
 const expect = chai.expect;
 

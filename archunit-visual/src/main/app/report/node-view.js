@@ -1,6 +1,6 @@
 'use strict';
 
-import * as d3 from 'd3';
+const d3 = require('d3');
 
 const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
@@ -106,4 +106,4 @@ const init = (transitionDuration) => {
 };
 
 
-export default {init};
+module.exports = {init};

@@ -1,6 +1,6 @@
 'use strict';
 
-import {Vector, vectors} from './vectors';
+const {Vector, vectors} = require('./vectors');
 
 const OVERLAP_DELTA = 0.1;
 
@@ -235,4 +235,4 @@ const init = (View, nodeMap) => {
   };
 };
 
-export default init;
+module.exports = init;

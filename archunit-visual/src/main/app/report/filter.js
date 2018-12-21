@@ -269,7 +269,7 @@ const buildFilterCollection = () => {
   const res = new FilterCollection();
   const builder = {
     addFilterGroup: (filterGroup) => {
-      res.addFilterGroup(filterGroup)
+      res.addFilterGroup(filterGroup);
       return builder;
     },
 
@@ -281,4 +281,4 @@ const buildFilterCollection = () => {
   return builder;
 };
 
-export {buildFilterCollection, buildFilterGroup};
+module.exports = {buildFilterCollection, buildFilterGroup};

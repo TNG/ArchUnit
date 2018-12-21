@@ -1,7 +1,7 @@
 'use strict';
 
 const textPadding = 5;
-import * as d3 from 'd3';
+const d3 = require('d3');
 
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
@@ -140,4 +140,4 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
   return View;
 };
 
-export default {init};
+module.exports = {init};

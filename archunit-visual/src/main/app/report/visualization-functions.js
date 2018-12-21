@@ -1,6 +1,6 @@
 'use strict';
 
-import * as d3 from 'd3';
+const d3 = require('d3');
 
 const newInstance = () => {
   const CIRCLE_TEXT_PADDING = 5;
@@ -102,4 +102,4 @@ const newInstance = () => {
   };
 };
 
-export default {newInstance};
+module.exports = {newInstance};

@@ -1,15 +1,13 @@
 'use strict';
 
-import chai from 'chai';
-import './chai/node-chai-extensions';
-import './chai/dependencies-chai-extension';
+const {expect} = require('chai');
+require('./chai/node-chai-extensions');
+require('./chai/dependencies-chai-extension');
 
-import stubs from './stubs';
-import {createTestDependencies, createTestGraph, testRoot} from './test-json-creator';
-import AppContext from '../../../main/app/report/app-context';
-import createGraph from '../../../main/app/report/graph';
-
-const expect = chai.expect;
+const stubs = require('./stubs');
+const {createTestDependencies, createTestGraph, testRoot} = require('./test-json-creator');
+const AppContext = require('../../../main/app/report/app-context');
+const createGraph = require('../../../main/app/report/graph').create;
 
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),

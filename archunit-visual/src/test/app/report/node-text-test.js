@@ -1,8 +1,8 @@
 'use strict';
 
-import chai from 'chai';
-import stubs from './stubs';
-import nodeTextFactory from '../../../main/app/report/node-text';
+const chai = require('chai');
+const stubs = require('./stubs');
+const nodeTextFactory = require('../../../main/app/report/node-text');
 
 const expect = chai.expect;
 

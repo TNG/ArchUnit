@@ -66,9 +66,9 @@ const stylesFrom = (styleSheet) => {
   };
 };
 
-import {getVisualizationStyleSheet} from './gui-elements';
+const {getVisualizationStyleSheet} = require('./gui-elements');
 
-export default {
+module.exports = {
   from: stylesFrom,
   fromEmbeddedStyleSheet: () => stylesFrom(getVisualizationStyleSheet())
 };

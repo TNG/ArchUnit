@@ -1,8 +1,8 @@
 'use strict';
 
-import chai from 'chai';
-import './chai/filter-chai-extensions';
-import {buildFilterCollection, buildFilterGroup} from '../../../main/app/report/filter';
+const chai = require('chai');
+require('./chai/filter-chai-extensions');
+const {buildFilterCollection, buildFilterGroup} = require('../../../main/app/report/filter');
 
 const expect = chai.expect;
 

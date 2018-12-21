@@ -2,7 +2,7 @@
 
 const isNumber = n => !isNaN(parseFloat(n)) && !isNaN(n - 0);
 
-export default function (chai, utils) {
+module.exports = function (chai, utils) {
   const Assertion = chai.Assertion;
 
   Assertion.overwriteMethod('closeTo', function (_super) {
@@ -21,4 +21,4 @@ export default function (chai, utils) {
       }
     };
   });
-}
+};

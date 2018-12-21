@@ -1,7 +1,7 @@
 'use strict';
 
-import chai from 'chai';
-import nodePredicates from '../../../main/app/report/predicates';
+const chai = require('chai');
+const nodePredicates = require('../../../main/app/report/predicates');
 
 const expect = chai.expect;
 

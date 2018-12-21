@@ -1,8 +1,8 @@
 'use strict';
 
-import stubs from './stubs';
-import {testRoot} from './test-json-creator';
-import AppContext from '../../../main/app/report/app-context';
+const stubs = require('./stubs');
+const {testRoot} = require('./test-json-creator');
+const AppContext = require('../../../main/app/report/app-context');
 
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),
@@ -97,5 +97,5 @@ const classNamesToJson = (classNames) => {
   return mapToJson(jsonAsMap);
 };
 
-export default (...classNames) => new Root(classNamesToJson(classNames), null, () => {
+module.exports = (...classNames) => new Root(classNamesToJson(classNames), null, () => {
 });

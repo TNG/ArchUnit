@@ -1,14 +1,14 @@
 'use strict';
 
-import chai from 'chai';
-import generalExtensions from './chai/general-chai-extensions';
-import './chai/node-chai-extensions';
-import {Vector} from '../../../main/app/report/vectors';
-import stubs from './stubs';
-import AppContext from '../../../main/app/report/app-context';
-import {testRoot} from './test-json-creator';
-import testRootCreator from './test-object-creator';
-import {buildFilterCollection} from "../../../main/app/report/filter";
+const chai = require('chai');
+const generalExtensions = require('./chai/general-chai-extensions');
+require('./chai/node-chai-extensions');
+const {Vector} = require('../../../main/app/report/vectors');
+const stubs = require('./stubs');
+const AppContext = require('../../../main/app/report/app-context');
+const {testRoot} = require('./test-json-creator');
+const testRootCreator = require('./test-object-creator');
+const {buildFilterCollection} = require("../../../main/app/report/filter");
 
 const expect = chai.expect;
 chai.use(generalExtensions);
@@ -831,7 +831,7 @@ describe('Root', () => {
 
     root.nameFilterString = '*X*';
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-    
+
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
     pkgToFold._changeFoldIfInnerNodeAndRelayout();
 
@@ -1680,7 +1680,7 @@ describe('Node layout', () => {
     return doNext(root, () => {
       root.callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
-          node.getParent().getOriginalChildren().filter(child => child != node).forEach(sibling =>
+          node.getParent().getOriginalChildren().filter(child => child !== node).forEach(sibling =>
             expect(node).to.notOverlapWith(sibling, 2 * circlePadding));
         }
       });
