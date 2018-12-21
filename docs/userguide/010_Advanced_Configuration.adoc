@@ -6,17 +6,18 @@ those configuration options.
 
 === Configuring the Resolution Behavior
 
-As mentioned in <<Dealing with Missing Classes>>, it might be necessary to configure a different
-behavior, when referenced classes are missing from the import. One way that can be chosen out of
-the box is to resolve those classes from the classpath:
+As mentioned in <<Dealing with Missing Classes>>, it might be preferable to configure a different
+import behavior if dealing with missing classes wastes too much performance.
+One way that can be chosen out of the box is to never resolve any missing class from the classpath:
 
 [source,options="nowrap"]
 .archunit.properties
 ----
-resolveMissingDependenciesFromClassPath=true
+resolveMissingDependenciesFromClassPath=false
 ----
 
-If this resolves too many classes from the classpath (which can have a performance impact),
+If you want to resolve just some classes from the classpath (e.g. to import missing classes from
+your own organization but avoid the performance impact of importing classes from 3rd party packages),
 it is possible, to configure only specific packages to be resolved from the classpath:
 
 [source,options="nowrap"]
