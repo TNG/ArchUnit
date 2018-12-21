@@ -99,13 +99,13 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependenciesWithOrigin(DescribedPredicate<JavaClass> ignorePredicate) {
+    public PlantUmlArchCondition ignoreDependenciesWithOrigin(DescribedPredicate<? super JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_ORIGIN_CLASS.is(ignorePredicate)
                 .as("ignoring dependencies with origin " + ignorePredicate.getDescription()));
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependenciesWithTarget(DescribedPredicate<JavaClass> ignorePredicate) {
+    public PlantUmlArchCondition ignoreDependenciesWithTarget(DescribedPredicate<? super JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_TARGET_CLASS.is(ignorePredicate)
                 .as("ignoring dependencies with target " + ignorePredicate.getDescription()));
     }
@@ -123,7 +123,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependencies(DescribedPredicate<Dependency> ignorePredicate) {
+    public PlantUmlArchCondition ignoreDependencies(DescribedPredicate<? super Dependency> ignorePredicate) {
         String description = getDescription() + ", " + ignorePredicate.getDescription();
         return new PlantUmlArchCondition(description,
                 this.ignorePredicate.or(ignorePredicate),

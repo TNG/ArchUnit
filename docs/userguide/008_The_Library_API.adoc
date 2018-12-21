@@ -135,8 +135,15 @@ classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate
 
 A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
 
-1. Components must have a name
-2. Components must have at least one stereotype. Each stereotype in the diagram must be unique
-3. Components may have an optional alias
-4. Components must be defined before declaring dependencies
-5. Dependencies must use arrows only consisting of dashes, pointing right, e.g. `-\->`
+1. Components must be declared in the bracket notation (i.e. `[Some Component]`)
+2. Components must have at least one (possible multiple) stereotype(s). Each stereotype in the diagram
+must be unique and represent a valid package identifier (e.g. `\<<..example..>>` where `..` represents
+an arbitrary number of packages; compare the core API)
+3. Components may have an optional alias (e.g. `[Some Component] \<<..example..>> as myalias`)
+4. Dependencies must use arrows only consisting of dashes (e.g. `-\->`)
+5. Dependencies may go from left to right `-\->` or right to left `\<--`
+6. Dependencies may consist of any number of dashes (e.g `\->` or `----\->`)
+7. Dependencies may contain direction hints (e.g. `-up\->`) or color directives (e.g. `-[#green]\->`)
+
+You can compare this
+https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml[diagram of ArchUnit-Examples].
