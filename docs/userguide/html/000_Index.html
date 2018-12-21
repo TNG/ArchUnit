@@ -1168,18 +1168,22 @@ since then for example any dependency on <code>Object.class</code> will be unres
 </div>
 <div class="paragraph">
 <p>At this point ArchUnit needs to decide how to treat these classes that are missing from the
-import. By default, ArchUnit creates a stub, i.e. a <code>JavaClass</code> that has all the known
-information, like the fully qualified name or the method called. However, this stub might
-naturally lack some information, like superclasses, annotations or other details that cannot
-be determined without importing the bytecode of this class.</p>
+import. By default, ArchUnit searches within the classpath for missing classes and if found
+imports them. This obviously has the advantage, that information about those classes
+(which interfaces they implement, how they are annotated) is present during rule evaluation.</p>
 </div>
 <div class="paragraph">
-<p>Obviously in some cases this might not be the desired behavior, since for example rules that target
-superclasses or annotations might not behave as expected, if the information is missing from
-the import. Thus how the importer behaves when classes are missing can be freely configured,
-for example by telling ArchUnit to try to resolve those missing dependencies from the classpath
-and do a full import with the complete type hierarchy. To find out, how to configure this behavior,
-refer to <a href="#_configuring_the_resolution_behavior">Configuring the Resolution Behavior</a>.</p>
+<p>On the downside this additional lookup from the classpath will cost some performance and in some
+cases might not make sense (e.g. if information about classes not present in the original import
+is known to be unnecessary for evaluating rules).
+Thus ArchUnit can be configured to create stubs instead, i.e. a <code>JavaClass</code> that has all the known
+information, like the fully qualified name or the method called. However, this stub might
+naturally lack some information, like superclasses, annotations or other details that cannot
+be determined without importing the bytecode of this class. This behavior will also happen,
+if ArchUnit fails to determine the location of a missing class from the classpath.</p>
+</div>
+<div class="paragraph">
+<p>To find out, how to configure the default behavior, refer to <a href="#_configuring_the_resolution_behavior">Configuring the Resolution Behavior</a>.</p>
 </div>
 </div>
 </div>
@@ -2120,18 +2124,19 @@ those configuration options.</p>
 <div class="sect2">
 <h3 id="_configuring_the_resolution_behavior"><a class="anchor" href="#_configuring_the_resolution_behavior"></a>10.1. Configuring the Resolution Behavior</h3>
 <div class="paragraph">
-<p>As mentioned in <a href="#_dealing_with_missing_classes">Dealing with Missing Classes</a>, it might be necessary to configure a different
-behavior, when referenced classes are missing from the import. One way that can be chosen out of
-the box is to resolve those classes from the classpath:</p>
+<p>As mentioned in <a href="#_dealing_with_missing_classes">Dealing with Missing Classes</a>, it might be preferable to configure a different
+import behavior if dealing with missing classes wastes too much performance.
+One way that can be chosen out of the box is to never resolve any missing class from the classpath:</p>
 </div>
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>resolveMissingDependenciesFromClassPath=true</code></pre>
+<pre class="highlightjs highlight nowrap"><code>resolveMissingDependenciesFromClassPath=false</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If this resolves too many classes from the classpath (which can have a performance impact),
+<p>If you want to resolve just some classes from the classpath (e.g. to import missing classes from
+your own organization but avoid the performance impact of importing classes from 3rd party packages),
 it is possible, to configure only specific packages to be resolved from the classpath:</p>
 </div>
 <div class="listingblock">
