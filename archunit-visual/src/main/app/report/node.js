@@ -39,7 +39,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._text = new NodeText(this);
       this._folded = false;
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
-        () => this._root.addNodeToExcludeFilter(this.getFullName()));
+        () => this._root._addNodeToExcludeFilter(this.getFullName()));
       this._listener = [];
     }
 
@@ -73,10 +73,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     getFullName() {
       return this._description.fullName;
-    }
-
-    getText() {
-      return this._text;
     }
 
     getParent() {
@@ -156,11 +152,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       callback();
     }
 
-    getClass() {
+    _getClass() {
       const foldableStyle = this._isLeaf() ? "not-foldable" : "foldable";
       return `node ${this._description.type} ${foldableStyle}`;
     }
 
+    // FIXME: Only used by tests
     getSelfAndDescendants() {
       return [this, ...this._getDescendants()];
     }
@@ -176,8 +173,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(fun));
     }
 
-    callOnEveryDescendantThenSelf(fun) {
-      this.getCurrentChildren().forEach(c => c.callOnEveryDescendantThenSelf(fun));
+    _callOnEveryDescendantThenSelf(fun) {
+      this.getCurrentChildren().forEach(c => c._callOnEveryDescendantThenSelf(fun));
       fun(this);
     }
 
@@ -188,10 +185,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       fun(this);
     }
 
-    /**
-     * @param predicate A predicate (i.e. function Node -> boolean)
-     * @return true, iff this Node or any child (after filtering) matches the predicate
-     */
     _matchesOrHasChildThatMatches(predicate) {
       return predicate(this) || this._originalChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
@@ -201,12 +194,12 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _updateViewOnCurrentChildrenChanged() {
-      this._view.updateNodeType(this.getClass());
-      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child.hide());
+      this._view.updateNodeType(this._getClass());
+      arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
     }
 
-    hide() {
+    _hide() {
       this._isVisible = false;
       this._view.hide();
     }
@@ -310,11 +303,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         buildFilterGroup('nodes', this.getFilterObject())
           .addStaticFilter('type', () => true, ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
-          .addDynamicFilter('name', () => this.getNameFilter(), ['nodes.typeAndName'])
+          .addDynamicFilter('name', () => this._getNameFilter(), ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
           .addStaticFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(true)
-          .addDynamicFilter('visibleViolations', () => this.getVisibleViolationsFilter(), ['nodes.combinedFilter'])
+          .addDynamicFilter('visibleViolations', () => this._getVisibleViolationsFilter(), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(false)
           .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
           .withStaticFilterPrecondition(true)
@@ -363,7 +356,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     changeTypeFilter(showInterfaces, showClasses) {
-      this._filterGroup.getFilter('type').filter = this.getTypeFilter(showInterfaces, showClasses);
+      this._filterGroup.getFilter('type').filter = this._getTypeFilter(showInterfaces, showClasses);
     }
 
     foldNodesWithMinimumDepthThatHaveNoViolations() {
@@ -375,7 +368,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * changes the name-filter so that the given node is excluded
      * @param nodeFullName fullname of the node to exclude
      */
-    addNodeToExcludeFilter(nodeFullName) {
+    _addNodeToExcludeFilter(nodeFullName) {
       this._nameFilterString = [this._nameFilterString, '~' + nodeFullName].filter(el => el).join('|');
       this._onNodeFilterStringChanged(this._nameFilterString);
     }
@@ -389,26 +382,26 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      * with a following . or $, to pass the filter.
      * '*' matches any number of arbitrary characters.
      */
-    getNameFilter() {
+    _getNameFilter() {
       const stringEqualsSubstring = predicates.stringEquals(this._nameFilterString);
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
       return node => nodeNameSatisfies(stringEqualsSubstring)(node);
     }
 
-    getTypeFilter(showInterfaces, showClasses) {
+    _getTypeFilter(showInterfaces, showClasses) {
       let predicate = node => !node.isPackage();
       predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
       predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
       return node => predicate(node);
     }
 
-    getVisibleViolationsFilter() {
+    _getVisibleViolationsFilter() {
       const hasNodeVisibleViolation = this.getHasNodeVisibleViolation();
       return node => hasNodeVisibleViolation(node);
     }
 
     foldAllNodes() {
-      this.callOnEveryDescendantThenSelf(node => node._initialFold());
+      this._callOnEveryDescendantThenSelf(node => node._initialFold());
     }
 
     getSelfOrFirstPredecessorMatching(matchingFunction) {
@@ -546,10 +539,6 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         throw new Error('invalid filter key');
       }
       return this._matchesFilter.get(key);
-    }
-
-    matchesAllFilters() {
-      return this._matchesOrHasChildThatMatches(n => [...n._matchesFilter.values()].every(v => v));
     }
 
     getSelfOrFirstPredecessorMatching(matchingFunction) {

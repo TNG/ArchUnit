@@ -988,7 +988,7 @@ describe('Root', () => {
       'com.tngtech.archunit.pkg.SomeClass'];
     const expHiddenNodes = ['com.tngtech.archunit.pkg.ClassToHide'].map(nodeFullName => root.getByName(nodeFullName));
 
-    root.addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
+    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return doNext(root, () => {
@@ -1026,10 +1026,10 @@ describe('Root', () => {
     root.nameFilterString = '~*pkg2';
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
-    root.addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide1');
+    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide1');
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
-    root.addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide2');
+    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide2');
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return doNext(root, () => {
@@ -1064,7 +1064,7 @@ describe('Root', () => {
     root.nameFilterString = '';
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
-    root.addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
+    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return doNext(root, () => {
@@ -1610,7 +1610,7 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
         expect(node.nodeCircle.absoluteCircle).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
       });
@@ -1622,7 +1622,7 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         expect(node.nodeCircle.absoluteCircle.fx).to.not.be.undefined;
         expect(node.nodeCircle.absoluteCircle.fy).to.not.be.undefined;
         expect(node.nodeCircle.absoluteCircle.isFixed()).to.be.true;
@@ -1635,7 +1635,7 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           expect(node).to.locatedWithinWithPadding(node.getParent(), circlePadding);
         }
@@ -1666,7 +1666,7 @@ describe('Node layout', () => {
     return doNext(root, () => {
       expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
       expect(onRadiusChangedWasCalled).to.equal(true);
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         expect(node._view.hasMovedToPosition).to.equal(true);
         expect(node._view.hasMovedToRadius).to.equal(true);
       });
@@ -1678,7 +1678,7 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         if (!node.isRoot()) {
           node.getParent().getOriginalChildren().filter(child => child !== node).forEach(sibling =>
             expect(node).to.notOverlapWith(sibling, 2 * circlePadding));
@@ -1694,7 +1694,7 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root.callOnEveryDescendantThenSelf(node => {
+      root._callOnEveryDescendantThenSelf(node => {
         if (node.isRoot()) {
           expect(node._view.textOffset).to.closeTo(-node.getRadius() + nodeFontsize, MAXIMUM_DELTA);
         }
@@ -1742,9 +1742,9 @@ describe('Node', () => {
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
 
-    expect(root.getClass()).to.contain(' foldable');
-    expect(root.getClass()).not.to.contain(' not-foldable');
-    expect(root.getCurrentChildren()[0].getClass()).to.contain(' not-foldable');
-    expect(root.getCurrentChildren()[0].getClass()).not.to.contain(' foldable');
+    expect(root._getClass()).to.contain(' foldable');
+    expect(root._getClass()).not.to.contain(' not-foldable');
+    expect(root.getCurrentChildren()[0]._getClass()).to.contain(' not-foldable');
+    expect(root.getCurrentChildren()[0]._getClass()).not.to.contain(' foldable');
   });
 });

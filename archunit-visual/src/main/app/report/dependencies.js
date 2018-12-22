@@ -188,7 +188,7 @@ const init = (View) => {
     }
 
     changeTypeFilter(typeFilterConfig) {
-      this._filterGroup.getFilter('type').filter = this.getTypeFilter(typeFilterConfig);
+      this._filterGroup.getFilter('type').filter = this._getTypeFilter(typeFilterConfig);
     }
 
     //TODO: maybe keep only one dependency of possible mutual dependencies
@@ -337,7 +337,7 @@ const init = (View) => {
       return d => nodes.getByName(d.from).matchesFilter('combinedFilter') && nodes.getByName(d.to).matchesFilter('combinedFilter');
     }
 
-    getTypeFilter(typeFilterConfig) {
+    _getTypeFilter(typeFilterConfig) {
       return dependency => this.dependencyTypes.every(type => dependency.type !== type || typeFilterConfig[type])
         && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
           && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
