@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const visualizationStyles = require('../../../main/app/report/visualization-styles');
+const visualizationStyles = require('../../../main/app/graph/visualization-styles');
 
 const expect = chai.expect;
 

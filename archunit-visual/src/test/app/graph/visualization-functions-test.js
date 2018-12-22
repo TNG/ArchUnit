@@ -1,8 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const visualizationFunctionsFactory = require('../../../main/app/report/visualization-functions');
-const {Vector} = require('../../../main/app/report/vectors');
+const visualizationFunctionsFactory = require('../../../main/app/graph/visualization-functions');
+const {Vector} = require('../../../main/app/graph/vectors');
 
 const expect = chai.expect;
 

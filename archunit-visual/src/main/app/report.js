@@ -1,9 +1,9 @@
 'use strict';
 
-const createGraph = require('./visualization');
+const createGraph = require('./graph/visualization');
 const d3 = require('d3');
 // We need this style tag to have a specific ID, which is only possible if we do an inline via Webpack (compare webpack.config.js)
-require('./visualization-styles.css');
+require('./graph/visualization-styles.css');
 
 window.addEventListener('WebComponentsReady', () => {
   const graph = createGraph(d3.select('#visualization').node(), true);

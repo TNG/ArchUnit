@@ -17,7 +17,7 @@
 
 .show-bar {
     font-size: 30px;
-    font-family: "Calibri";
+    font-family: "Calibri", sans-serif;
     border-right: 1px solid silver;
     border-left: 1px solid silver;
     min-height: inherit;

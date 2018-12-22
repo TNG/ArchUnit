@@ -33,7 +33,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public final class Visualizer {
-    private static final String DIR = "report";
     private static final String REPORT_FILE_NAME = "report.html";
 
     private final JavaClasses classes;
@@ -69,7 +68,7 @@ public final class Visualizer {
     }
 
     private void copyFiles() {
-        URL url = getClass().getResource(DIR + "/" + REPORT_FILE_NAME);
+        URL url = getClass().getResource(REPORT_FILE_NAME);
         //FIXME: the url null found when using the IntelliJ-Test-Runner
         try {
             createCopyFor(url).copyTo(targetDir);

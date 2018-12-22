@@ -69,28 +69,28 @@ task eslint(type: NpmTask, dependsOn: 'setupNode') {
     args = ['run', 'lint']
 }
 
-def reportOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual/report"
+def visualizationOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual"
 
 task createReportDir {
     doFirst {
-        file(reportOutputDir).mkdirs()
+        file(visualizationOutputDir).mkdirs()
     }
 }
 
 task webpack(type: NpmTask, dependsOn: ['mocha', 'eslint', 'setupNode', 'createReportDir']) {
-    args = ['run', 'createJsBundle', '--', '--env.buildPath=' + reportOutputDir]
+    args = ['run', 'createJsBundle', '--', '--env.buildPath=' + visualizationOutputDir]
 }
 
 task bundleHtml(type: NpmTask, dependsOn: 'webpack') {
     args = ['run', 'bundleHtml',
             '--',
-            '--redirect', 'build://|' + reportOutputDir + '/',
-            '--out-file', reportOutputDir + '/report.html',
-            'src/main/app/report/report.html']
+            '--redirect', 'build://|' + visualizationOutputDir + '/',
+            '--out-file', visualizationOutputDir + '/report.html',
+            'src/main/app/report.html']
 }
 
 task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
-    delete fileTree(reportOutputDir) {
+    delete fileTree(visualizationOutputDir) {
         include '**/*.js'
     }
 }

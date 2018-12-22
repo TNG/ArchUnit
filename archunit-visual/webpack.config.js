@@ -1,5 +1,5 @@
 const path = require('path');
-const srcPath = './src/main/app/report/';
+const srcPath = './src/main/app';
 const buildPath = './build/resources/main/com/tngtech/archunit/visual/report';
 
 module.exports = env => {
@@ -29,13 +29,13 @@ module.exports = env => {
       minimize: false
     },
     entry: {
-      'report-bundle': `${srcPath}report.js`,
+      'report-bundle': `${srcPath}/report.js`,
       'webcomponents-loader': './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
-      'filter': `${srcPath}menu/filter.js`,
-      'filter-bar': `${srcPath}menu/filter-bar`,
-      'menu': `${srcPath}menu/menu.js`,
-      'settings': `${srcPath}menu/settings.js`,
-      'violation-menu': `${srcPath}violation-menu/violation-menu.js`
+      'filter': `${srcPath}/menu/filter.js`,
+      'filter-bar': `${srcPath}/menu/filter-bar`,
+      'menu': `${srcPath}/menu/menu.js`,
+      'settings': `${srcPath}/menu/settings.js`,
+      'violation-menu': `${srcPath}/violation-menu/violation-menu.js`
     },
     output: {
       filename: '[name].js',

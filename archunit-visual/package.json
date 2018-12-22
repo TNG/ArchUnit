@@ -6,7 +6,7 @@
     "createJsBundle": "webpack --mode=development",
     "bundleHtml": "polymer-bundler --inline-scripts --inline-css",
     "test": "mocha -r ./src/test/app/mocha-init.js --reporter spec src/test/app/**/*.js",
-    "watch-js": "nodemon -e js,html,json,css -w src/main/app/report -x 'npm run createJsBundle && npm run bundleHtml'",
+    "watch-js": "nodemon -e js,html,json,css -w src/main/app -x 'npm run createJsBundle && npm run bundleHtml'",
     "lint": "eslint 'src/**/*.{js,html}'"
   },
   "author": "Sebastian Mair <sebastian.mair@tngtech.com>, Peter Gafert <peter.gafert@tngtech.com>",

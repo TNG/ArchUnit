@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const stubs = require('./stubs');
-const nodeTextFactory = require('../../../main/app/report/node-text');
+const nodeTextFactory = require('../../../main/app/graph/node-text');
 
 const expect = chai.expect;
 

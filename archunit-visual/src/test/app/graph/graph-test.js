@@ -1,13 +1,13 @@
 'use strict';
 
 const {expect} = require('chai');
-require('./chai/node-chai-extensions');
-require('./chai/dependencies-chai-extension');
+require('../chai/node-chai-extensions');
+require('../chai/dependencies-chai-extension');
 
 const stubs = require('./stubs');
 const {createTestDependencies, createTestGraph, testRoot} = require('./test-json-creator');
-const AppContext = require('../../../main/app/report/app-context');
-const createGraph = require('../../../main/app/report/graph').create;
+const AppContext = require('../../../main/app/graph/app-context');
+const createGraph = require('../../../main/app/graph/graph').create;
 
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),

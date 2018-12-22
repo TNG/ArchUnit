@@ -1,9 +1,9 @@
 'use strict';
 
 const chai = require('chai');
-const generalExtensions = require('./chai/general-chai-extensions');
-const {Vector} = require('../../../main/app/report/vectors');
-const {Circle} = require('../../../main/app/report/circles');
+const generalExtensions = require('../chai/general-chai-extensions');
+const {Vector} = require('../../../main/app/graph/vectors');
+const {Circle} = require('../../../main/app/graph/circles');
 
 const expect = chai.expect;
 chai.use(generalExtensions);
