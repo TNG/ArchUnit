@@ -1,0 +1,28 @@
+<template id="visualization-filter-template">
+  <!-- href-path doesn't match, but Polymer Bundler seems to want it this way -->
+  <!--suppress HtmlUnknownTarget -->
+  <link rel="stylesheet" href="menu/filter.css">
+
+  <div id="filter-root">
+    <div class="filter-group-panel">
+      <div class="filter-type">Nodes</div>
+      <div class="filter-group">
+        <div class="filter">
+          <input type="checkbox" class="nodeCheckBox" id="showInterfaces" checked>
+          <label for="showInterfaces">show interfaces</label>
+        </div>
+        <div class="filter">
+          <input type="checkbox" class="nodeCheckBox" id="showClasses" checked>
+          <label for="showClasses">show classes</label>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group-panel">
+      <div class="filter-type">Dependencies</div>
+      <div class="filter-group" id="dependency-types">
+      </div>
+    </div>
+  </div>
+</template>
+
+<script src="build://filter.js"></script>

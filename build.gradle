@@ -69,7 +69,7 @@ ext {
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
             project(':archunit-junit5'),
-            project(':archunit-visual')]
+            project(':archunit-html-visualization')]
     releaseProjects = [
             project(':archunit'),
             project(':archunit-junit4'),
@@ -77,7 +77,7 @@ ext {
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
             project(':archunit-junit5'),
-            project(':archunit-visual')]
+            project(':archunit-html-visualization')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     addTestJarTo = { proj ->

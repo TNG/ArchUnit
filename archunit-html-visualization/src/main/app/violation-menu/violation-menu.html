@@ -1,0 +1,34 @@
+<template id="violation-menu-template">
+  <!-- href-path doesn't match, but Polymer Bundler seems to want it this way -->
+  <!--suppress HtmlUnknownTarget -->
+  <link rel="stylesheet" href="violation-menu/violation-menu.css">
+  <div id="bar-root">
+    <div id="showbar" class="show-bar"><</div>
+    <div id="menuContainer" class="verticalDivider">
+      <div class="title">Violation-rules:</div>
+      <div class="violation-rule-list verticalDivider"></div>
+      <div class="verticalDivider group">
+        <div class="buttons">
+          <button id="unfoldNodesToShowAllViolations" title="unfold all nodes that contain selected violations">
+            open selected violations
+          </button>
+          <button id="foldNodesToHideNodesWithoutViolations"
+                  title="fold all nodes with minimal depth that have no violation">
+            fold other nodes
+          </button>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox" id="hideAllDepsWhenRuleSelected" checked>
+          <label for="hideAllDepsWhenRuleSelected">hide all other dependencies when rule selected</label>
+        </div>
+        <div>
+          <input type="checkbox" class="checkbox" id="hideNodesWithoutViolationsWhenRuleSelected" checked>
+          <label for="hideNodesWithoutViolationsWhenRuleSelected">hide nodes without violations when rule
+            selected</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script src="build://violation-menu.js"></script>
