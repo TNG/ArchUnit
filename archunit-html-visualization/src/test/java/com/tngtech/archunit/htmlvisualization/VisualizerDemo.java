@@ -13,8 +13,8 @@ import org.junit.Test;
 
 public class VisualizerDemo {
     @Test
-    public void build_report() {
-        System.out.println("Building example report...");
+    public void build_visualization() {
+        System.out.println("Building example visualization...");
 
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.htmlvisualization",
                 "java.io", "com.google.common.io");
@@ -26,7 +26,8 @@ public class VisualizerDemo {
         EvaluationResult evaluationResult2 = rule2.evaluate(classes);
 
         new Visualizer(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report/visualization.html")
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(),
+                        "example-visualization/visualization.html")
         ).visualize(Arrays.asList(evaluationResult1, evaluationResult2));
     }
 }

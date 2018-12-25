@@ -71,13 +71,13 @@ task eslint(type: NpmTask, dependsOn: 'setupNode') {
 
 def visualizationOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/htmlvisualization"
 
-task createReportDir {
+task createVisualizationOutputDir {
     doFirst {
         file(visualizationOutputDir).mkdirs()
     }
 }
 
-task webpack(type: NpmTask, dependsOn: ['mocha', 'eslint', 'setupNode', 'createReportDir']) {
+task webpack(type: NpmTask, dependsOn: ['mocha', 'eslint', 'setupNode', 'createVisualizationOutputDir']) {
     args = ['run', 'createJsBundle', '--', '--env.buildPath=' + visualizationOutputDir]
 }
 
@@ -85,8 +85,8 @@ task bundleHtml(type: NpmTask, dependsOn: 'webpack') {
     args = ['run', 'bundleHtml',
             '--',
             '--redirect', 'build://|' + visualizationOutputDir + '/',
-            '--out-file', visualizationOutputDir + '/report.html',
-            'src/main/app/report.html']
+            '--out-file', visualizationOutputDir + '/visualization.html',
+            'src/main/app/visualization.html']
 }
 
 task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
@@ -95,7 +95,7 @@ task deleteJsBundles(type: Delete, dependsOn: 'bundleHtml') {
     }
 }
 
-task buildReport(dependsOn: ['mocha', 'eslint', 'webpack', 'bundleHtml', 'deleteJsBundles']) {}
+task buildVisualization(dependsOn: ['mocha', 'eslint', 'webpack', 'bundleHtml', 'deleteJsBundles']) {}
 
-test.dependsOn buildReport
-assemble.dependsOn buildReport
+test.dependsOn buildVisualization
+assemble.dependsOn buildVisualization

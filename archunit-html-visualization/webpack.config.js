@@ -29,7 +29,7 @@ module.exports = env => {
       minimize: false
     },
     entry: {
-      'report-bundle': `${srcPath}/report.js`,
+      'visualization-bundle': `${srcPath}/visualization.js`,
       'webcomponents-loader': './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
       'filter': `${srcPath}/menu/filter.js`,
       'filter-bar': `${srcPath}/menu/filter-bar`,

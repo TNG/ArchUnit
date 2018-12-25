@@ -62,7 +62,7 @@ public class VisualExtension implements ArchUnitExtension {
     }
 
     /**
-     * Triggers this extension to handle the supplied classes, i.e. a report for these classes
+     * Triggers this extension to handle the supplied classes, i.e. a visualization for these classes
      * for all stored {@link EvaluationResult EvaluationResults} will be written and the stored
      * {@link EvaluationResult EvaluationResults} for these classes will then be removed.<br><br>
      *

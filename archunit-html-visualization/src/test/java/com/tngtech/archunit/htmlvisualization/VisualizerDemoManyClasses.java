@@ -16,15 +16,15 @@ import org.junit.Test;
 public class VisualizerDemoManyClasses {
     @Ignore
     @Test
-    public void build_report() throws IOException {
-        System.out.println("Building large example report...");
+    public void build_visualization() throws IOException {
+        System.out.println("Building large example visualization...");
 
         JavaClasses classes = new ClassFileImporter().importJar(new JarFile(ResourcesUtils.getResource("/exampleProjects/hibernate-core-5.2.17.Final.jar")));
         ArchRule rule1 = ArchRuleDefinition.noClasses().should().callMethod(Object.class, "toString");
         EvaluationResult evaluationResult1 = rule1.evaluate(classes);
 
         new Visualizer(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report-many-classes")
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-visualization-many-classes")
         ).visualize(Arrays.asList(evaluationResult1));
     }
 }

@@ -40,9 +40,9 @@ public class VisualExtensionTest {
 
         VisualExtension.createVisualization(classes);
 
-        String reportContent = ResourcesUtils.getTextOfFile(visualizationOutput);
-        assertThat(reportContent).contains("\"default\"");
-        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
+        String visualizationHtml = ResourcesUtils.getTextOfFile(visualizationOutput);
+        assertThat(visualizationHtml).contains("\"default\"");
+        assertThat(visualizationHtml).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
     }
 
     @Test
@@ -54,11 +54,11 @@ public class VisualExtensionTest {
 
         VisualExtension.createVisualization(classes);
 
-        String reportContent = ResourcesUtils.getTextOfFile(visualizationOutput);
-        assertThat(reportContent).contains("\"default\"");
-        assertThat(reportContent).contains("\"no classes should call method SimpleClass1.sayHi()\"");
-        assertThat(reportContent).contains("\"no classes should call method ComplexClass1.sayHello()\"");
-        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
+        String visualizationHtml = ResourcesUtils.getTextOfFile(visualizationOutput);
+        assertThat(visualizationHtml).contains("\"default\"");
+        assertThat(visualizationHtml).contains("\"no classes should call method SimpleClass1.sayHi()\"");
+        assertThat(visualizationHtml).contains("\"no classes should call method ComplexClass1.sayHello()\"");
+        assertThat(visualizationHtml).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
     }
 
     @Test
@@ -69,10 +69,10 @@ public class VisualExtensionTest {
 
         VisualExtension.createVisualization(complexStructure);
 
-        String reportContent = ResourcesUtils.getTextOfFile(visualizationOutput);
-        assertThat(reportContent).contains("\"default\"");
-        assertThat(reportContent).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
-        assertThat(reportContent).doesNotContain("no classes should call method SimpleClass1.sayHi()");
+        String visualizationHtml = ResourcesUtils.getTextOfFile(visualizationOutput);
+        assertThat(visualizationHtml).contains("\"default\"");
+        assertThat(visualizationHtml).contains("\"no classes should call method ComplexClass2.sayHelloAndBye()\"");
+        assertThat(visualizationHtml).doesNotContain("no classes should call method SimpleClass1.sayHi()");
     }
 
     private File configureTemporaryVisualizationOutput() throws IOException {
