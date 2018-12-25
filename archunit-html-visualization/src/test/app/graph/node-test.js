@@ -1270,7 +1270,7 @@ describe('Inner node or leaf', () => {
     ' updates its view and calls the listener', () => {
     const jsonRoot = testRoot.package('com.tngtech.archunit')
       .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('visual')
+      .add(testRoot.package('htmlvisualization')
         .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
@@ -1281,7 +1281,7 @@ describe('Inner node or leaf', () => {
     root.addListener(listenerStub);
     root.relayoutCompletely();
 
-    const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
+    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.SomeClass');
     const dx = -5;
     const dy = 5;
     const expCoordinates = {x: dx, y: dy};
@@ -1326,7 +1326,7 @@ describe('Inner node or leaf', () => {
   it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
     const jsonRoot = testRoot.package('com.tngtech.archunit')
       .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('visual')
+      .add(testRoot.package('htmlvisualization')
         .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
@@ -1334,7 +1334,7 @@ describe('Inner node or leaf', () => {
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
     root.relayoutCompletely();
-    const nodeToDrag = root.getByName('com.tngtech.archunit.visual.SomeClass');
+    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.SomeClass');
 
     nodeToDrag._drag(-50, 50);
     return doNext(root, () => {
@@ -1598,7 +1598,7 @@ describe('Node layout', () => {
   const jsonRoot = testRoot.package('com.tngtech.archunit')
     .add(testRoot.clazz('SomeClass1', 'class').build())
     .add(testRoot.clazz('SomeClass2', 'class').build())
-    .add(testRoot.package('visual')
+    .add(testRoot.package('htmlvisualization')
       .add(testRoot.clazz('SomeClass1', 'class').build())
       .add(testRoot.clazz('SomeClass2', 'class').build())
       .add(testRoot.clazz('SomeClass3', 'class').build())
@@ -1717,7 +1717,7 @@ describe('Node', () => {
     const jsonRoot = testRoot.package('com.tngtech.archunit')
       .add(testRoot.clazz('SomeClass', 'class').build())
       .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.package('visual')
+      .add(testRoot.package('htmlvisualization')
         .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .add(testRoot.package('test')
@@ -1728,8 +1728,8 @@ describe('Node', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     const exp = ['com.tngtech.archunit(package)', 'com.tngtech.archunit.SomeClass(class)',
-      'com.tngtech.archunit.SomeInterface(interface)', 'com.tngtech.archunit.visual(package)',
-      'com.tngtech.archunit.visual.SomeClass(class)', 'com.tngtech.archunit.test(package)',
+      'com.tngtech.archunit.SomeInterface(interface)', 'com.tngtech.archunit.htmlvisualization(package)',
+      'com.tngtech.archunit.htmlvisualization.SomeClass(class)', 'com.tngtech.archunit.test(package)',
       'com.tngtech.archunit.test.SomeTestClass(class)', 'com.tngtech.archunit.test.SomeTestClass$SomeInnerClass(class)'];
     const act = root.getSelfAndDescendants().map(node => `${node.getFullName()}(${node._description.type})`);
     expect(act).to.deep.equal(exp);

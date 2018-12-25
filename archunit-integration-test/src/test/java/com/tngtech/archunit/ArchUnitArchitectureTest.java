@@ -51,14 +51,14 @@ public class ArchUnitArchitectureTest {
             .layer("Lang").definedBy("com.tngtech.archunit.lang..")
             .layer("Library").definedBy("com.tngtech.archunit.library..")
             .layer("JUnit").definedBy("com.tngtech.archunit.junit..")
-            .layer("Visual").definedBy("com.tngtech.archunit.visual..")
+            .layer("HTML-Visualization").definedBy("com.tngtech.archunit.htmlvisualization..")
 
-            .whereLayer("Visual").mayNotBeAccessedByAnyLayer()
+            .whereLayer("HTML-Visualization").mayNotBeAccessedByAnyLayer()
             .whereLayer("JUnit").mayNotBeAccessedByAnyLayer()
-            .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit", "Visual")
-            .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit", "Visual")
-            .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit", "Visual")
-            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit", "Visual");
+            .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit", "HtTMLVisualization")
+            .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit", "HtTMLVisualization")
+            .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit", "HtTMLVisualization")
+            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit", "HtTMLVisualization");
 
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =

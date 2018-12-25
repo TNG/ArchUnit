@@ -69,7 +69,7 @@ task eslint(type: NpmTask, dependsOn: 'setupNode') {
     args = ['run', 'lint']
 }
 
-def visualizationOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/visual"
+def visualizationOutputDir = "${sourceSets.main.output.resourcesDir}/com/tngtech/archunit/htmlvisualization"
 
 task createReportDir {
     doFirst {

@@ -71,7 +71,7 @@
     <Match>
         <!-- exclude these methods from the bug-check OBL_UNSATISFIED_OBLIGATION, as a false positive warning would be
              created (because of using of try-with-resources-statement in Java 9) -->
-        <Class name="com.tngtech.archunit.visual.Visualizer"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.Visualizer"/>
         <Or>
             <Method name="exportJson"
                     params="com.tngtech.archunit.core.domain.JavaClasses, java.io.File"
@@ -83,7 +83,7 @@
     </Match>
     <Match>
         <!-- exclude these fields, as they are marked as unread, but they are read by Gson through the annotations -->
-        <Class name="com.tngtech.archunit.visual.JsonAccess"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonAccess"/>
         <Or>
             <Field name="target"/>
             <Field name="startCodeUnit"/>
@@ -92,7 +92,7 @@
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonJavaClass"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonJavaClass"/>
         <Or>
             <Field name="superclass"/>
         </Or>
@@ -100,14 +100,14 @@
     </Match>
     <!--FIXME: remove this exclusion-->
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonJavaElement"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonJavaElement"/>
         <Or>
             <Field name="anonymousImplementation"/>
         </Or>
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonViolation"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonViolation"/>
         <Or>
             <Field name="origin"/>
             <Field name="target"/>
@@ -115,7 +115,7 @@
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonElement"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonElement"/>
         <Or>
             <Field name="type"/>
             <Field name="name"/>
@@ -124,7 +124,7 @@
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonEvaluationResult"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonEvaluationResult"/>
         <Or>
             <Field name="rule"/>
             <Field name="violations"/>
@@ -132,15 +132,7 @@
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonViolation"/>
-        <Or>
-            <Field name="origin"/>
-            <Field name="target"/>
-        </Or>
-        <Bug code="UrF"/>
-    </Match>
-    <Match>
-        <Class name="com.tngtech.archunit.visual.JsonExport"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonExport"/>
         <Or>
             <Field name="root"/>
             <Field name="dependencies"/>
@@ -148,7 +140,7 @@
         <Bug code="UrF"/>
     </Match>
     <Match>
-        <Class name="com.tngtech.archunit.visual.JsonJavaDependency"/>
+        <Class name="com.tngtech.archunit.htmlvisualization.JsonJavaDependency"/>
         <Or>
             <Field name="description"/>
             <Field name="originClass"/>

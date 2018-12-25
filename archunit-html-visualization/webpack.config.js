@@ -1,6 +1,6 @@
 const path = require('path');
 const srcPath = './src/main/app';
-const buildPath = './build/resources/main/com/tngtech/archunit/visual/report';
+const buildPath = './build/resources/main/com/tngtech/archunit/htmlvisualization';
 
 module.exports = env => {
   if (!env || !env.buildPath) {

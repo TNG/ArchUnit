@@ -13,28 +13,28 @@
                         {
                           "children": [],
                           "name": "SubPkgClass",
-                          "fullName": "com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass",
+                          "fullName": "com.tngtech.archunit.htmlvisualization.testclasses.subpkg.SubPkgClass",
                           "type": "class"
                         }
                       ],
                       "name": "subpkg",
-                      "fullName": "com.tngtech.archunit.visual.testclasses.subpkg",
+                      "fullName": "com.tngtech.archunit.htmlvisualization.testclasses.subpkg",
                       "type": "package"
                     },
                     {
                       "children": [],
                       "name": "SomeClass",
-                      "fullName": "com.tngtech.archunit.visual.testclasses.SomeClass",
+                      "fullName": "com.tngtech.archunit.htmlvisualization.testclasses.SomeClass",
                       "type": "class"
                     }
                   ],
                   "name": "testclasses",
-                  "fullName": "com.tngtech.archunit.visual.testclasses",
+                  "fullName": "com.tngtech.archunit.htmlvisualization.testclasses",
                   "type": "package"
                 }
               ],
-              "name": "visual",
-              "fullName": "com.tngtech.archunit.visual",
+              "name": "htmlvisualization",
+              "fullName": "com.tngtech.archunit.htmlvisualization",
               "type": "package"
             }
           ],
