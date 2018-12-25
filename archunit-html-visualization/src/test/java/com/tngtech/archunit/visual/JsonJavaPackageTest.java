@@ -17,9 +17,8 @@ import com.tngtech.archunit.visual.testclasses.SomeClass;
 import com.tngtech.archunit.visual.testclasses.subpkg.SubPkgClass;
 import org.junit.Test;
 
-import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Collections.singleton;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonJavaPackageTest {
     private static final JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeClass.class);
@@ -101,11 +100,11 @@ public class JsonJavaPackageTest {
         JsonJavaClass jsonSomeClass = new JsonJavaClass(someClass);
         javaPackage.insert(jsonSomeClass);
 
-        assertThatOptional(javaPackage.getChild("com")).contains(javaPackage);
+        assertThat(javaPackage.getChild("com")).contains(javaPackage);
         assertThat(javaPackage.getChild(aPackage).get().fullName).isEqualTo(aPackage);
-        assertThatOptional(javaPackage.getChild(someClass.getName())).contains(jsonSomeClass);
+        assertThat(javaPackage.getChild(someClass.getName())).contains(jsonSomeClass);
 
-        assertThatOptional(javaPackage.getChild("com.tngtech.pkg.NotExisting")).isAbsent();
+        assertThat(javaPackage.getChild("com.tngtech.pkg.NotExisting")).isAbsent();
     }
 
     @Test

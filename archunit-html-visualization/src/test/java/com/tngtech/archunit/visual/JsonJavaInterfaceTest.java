@@ -5,7 +5,7 @@ import com.tngtech.archunit.visual.testclasses.SomeInterface;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JsonJavaInterfaceTest {
     @Test
@@ -19,9 +19,9 @@ public class JsonJavaInterfaceTest {
         JsonJavaInterface jsonInnerClass = new JsonJavaInterface(classes.get(SomeInterface.InnerInterface.class));
         jsonClass.insert(jsonInnerClass);
 
-        assertThatOptional(jsonClass.getChild(SomeInterface.class.getName())).contains(jsonClass);
-        assertThatOptional(jsonClass.getChild(SomeInterface.InnerInterface.class.getName())).contains(jsonInnerClass);
+        assertThat(jsonClass.getChild(SomeInterface.class.getName())).contains(jsonClass);
+        assertThat(jsonClass.getChild(SomeInterface.InnerInterface.class.getName())).contains(jsonInnerClass);
 
-        assertThatOptional(jsonClass.getChild("something.not.There")).isAbsent();
+        assertThat(jsonClass.getChild("something.not.There")).isAbsent();
     }
 }

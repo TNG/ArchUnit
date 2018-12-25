@@ -19,19 +19,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.tngtech.archunit.base.Optional;
-import org.assertj.guava.api.Assertions;
-import org.assertj.guava.api.OptionalAssert;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 final class ResourcesUtils {
-
-    // FIXME: We have to make a shadow Jar of archunit-visual to use the test support, but for that we need to refactor the shrinking process within archunit-junit and make it reusable
-    static <T> OptionalAssert<T> assertThatOptional(Optional<T> optional) {
-        return Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
-    }
 
     static String getTextOfFile(File file) {
         byte[] encodedContent;

@@ -6,8 +6,7 @@ import com.tngtech.archunit.visual.testclasses.subpkg.ThirdSubPkgClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.visual.ResourcesUtils.assertThatOptional;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JsonJavaClassTest {
     @Test
@@ -21,10 +20,10 @@ public class JsonJavaClassTest {
         JsonJavaClass jsonInnerClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class));
         jsonClass.insert(jsonInnerClass);
 
-        assertThatOptional(jsonClass.getChild(SomeClass.class.getName())).contains(jsonClass);
-        assertThatOptional(jsonClass.getChild(SomeClass.InnerClass.class.getName())).contains(jsonInnerClass);
+        assertThat(jsonClass.getChild(SomeClass.class.getName())).contains(jsonClass);
+        assertThat(jsonClass.getChild(SomeClass.InnerClass.class.getName())).contains(jsonInnerClass);
 
-        assertThatOptional(jsonClass.getChild("something.not.There")).isAbsent();
+        assertThat(jsonClass.getChild("something.not.There")).isAbsent();
     }
 
     @Test
