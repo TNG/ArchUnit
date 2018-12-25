@@ -33,7 +33,7 @@ final class ResourcesUtils {
         return Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
     }
 
-    static String getStringOfFile(File file) {
+    static String getTextOfFile(File file) {
         byte[] encodedContent;
         try {
             encodedContent = Files.readAllBytes(file.toPath());

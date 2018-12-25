@@ -27,7 +27,9 @@ import java.util.regex.Matcher;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 
-class ReportFile {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+class VisualizationFile {
     private static final String[] JSON_ROOT_MARKERS = {
             "\"injectJsonClassesToVisualizeHere\"",
             "'injectJsonClassesToVisualizeHere'"
@@ -41,12 +43,13 @@ class ReportFile {
     private String jsonRootMarker;
     private String jsonViolationMarker;
 
-    ReportFile(File targetDir, String reportFileName) {
-        file = new File(targetDir, reportFileName);
+    VisualizationFile(File file) {
+        this.file = checkNotNull(file);
         byte[] encodedContent;
         try {
             encodedContent = Files.readAllBytes(file.toPath());
         } catch (IOException e) {
+            // FIXME: Custom Exception, is this the only place we read file content?
             throw new RuntimeException(e);
         }
         content = new String(encodedContent, Charsets.UTF_8);
@@ -73,6 +76,7 @@ class ReportFile {
     }
 
     private void checkContent() {
+        // FIXME: Why once '>1' and once '!=1' ?? Shouldn't it be both !=1 ?
         if (countOccurrencesInContent(jsonRootMarker) > 1) {
             throw new RuntimeException(jsonRootMarker + " may exactly occur once in " + file.getName());
         }

@@ -26,7 +26,7 @@ public class VisualizerDemo {
         EvaluationResult evaluationResult2 = rule2.evaluate(classes);
 
         new Visualizer(classes,
-                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report")
+                new File(new File(Visualizer.class.getResource("/").getFile()).getParentFile().getParentFile(), "example-report/visualization.html")
         ).visualize(Arrays.asList(evaluationResult1, evaluationResult2));
     }
 }

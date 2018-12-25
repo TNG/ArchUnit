@@ -33,16 +33,20 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public final class Visualizer {
-    private static final String REPORT_FILE_NAME = "report.html";
+    private static final String VISUALIZATION_FILE_NAME = "report.html";
+
+    private final JsonExporter jsonExporter = new JsonExporter();
 
     private final JavaClasses classes;
-    private final File targetDir;
+    private final File targetFile;
 
     @PublicAPI(usage = ACCESS)
-    public Visualizer(JavaClasses classes, final File targetDir) {
+    public Visualizer(JavaClasses classes, final File targetFile) {
+        File targetDir = targetFile.getParentFile();
         checkArgument(targetDir.exists() || targetDir.mkdirs(), "Can't create %s", targetDir.getAbsolutePath());
+
         this.classes = classes;
-        this.targetDir = targetDir;
+        this.targetFile = targetFile;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -53,25 +57,19 @@ public final class Visualizer {
     @PublicAPI(usage = ACCESS)
     public void visualize(Iterable<EvaluationResult> evaluationResults) {
         copyFiles();
-        ReportFile reportFile = new ReportFile(targetDir, REPORT_FILE_NAME);
-        exportJson(reportFile);
-        exportViolations(evaluationResults, reportFile);
-        reportFile.write();
-    }
-
-    private void exportJson(ReportFile reportFile) {
-        reportFile.insertJsonRoot(new JsonExporter().exportToJson(classes));
-    }
-
-    private void exportViolations(Iterable<EvaluationResult> evaluationResults, ReportFile reportFile) {
-        reportFile.insertJsonViolations(new JsonViolationExporter().exportToJson(evaluationResults));
+        VisualizationFile visualizationFile = new VisualizationFile(targetFile);
+        visualizationFile.insertJsonRoot(jsonExporter.exportToJson(classes));
+        visualizationFile.insertJsonViolations(jsonExporter.exportToJson(evaluationResults));
+        visualizationFile.write();
     }
 
     private void copyFiles() {
-        URL url = getClass().getResource(REPORT_FILE_NAME);
+        URL url = getClass().getResource(VISUALIZATION_FILE_NAME);
         //FIXME: the url null found when using the IntelliJ-Test-Runner
+        // -> hard to fix out of the box, the bundled report is missing from IntelliJ's out folder
+        //    either copy it manually or set up JUnit execution to copy it before, but no matter what it's not working without manual tweaking
         try {
-            createCopyFor(url).copyTo(targetDir);
+            createCopyFor(url).copyTo(targetFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -92,7 +90,7 @@ public final class Visualizer {
             this.url = url;
         }
 
-        abstract void copyTo(File targetDir) throws IOException;
+        abstract void copyTo(File targetFile) throws IOException;
 
         private static class FromFile extends Copy {
             FromFile(URL url) {
@@ -100,9 +98,9 @@ public final class Visualizer {
             }
 
             @Override
-            public void copyTo(final File targetDir) throws IOException {
+            public void copyTo(final File targetFile) throws IOException {
                 File file = new File(url.getFile());
-                com.google.common.io.Files.copy(file, new File(targetDir, file.getName()));
+                com.google.common.io.Files.copy(file, targetFile);
             }
         }
 
@@ -113,12 +111,12 @@ public final class Visualizer {
             }
 
             @Override
-            public void copyTo(File targetDir) throws IOException {
+            public void copyTo(File targetFile) throws IOException {
                 String folder = getClass().getPackage().getName().replace(".", "/") + "/" + "report";
                 JarURLConnection connection = (JarURLConnection) url.openConnection();
                 JarEntry entry = connection.getJarEntry();
                 if (entry.getName().startsWith(folder)) {
-                    try (FileOutputStream to = new FileOutputStream(new File(targetDir, entry.getName().replaceAll(".*/", "")))) {
+                    try (FileOutputStream to = new FileOutputStream(new File(targetFile, entry.getName().replaceAll(".*/", "")))) {
                         ByteStreams.copy(connection.getJarFile().getInputStream(entry), to);
                     }
                 }

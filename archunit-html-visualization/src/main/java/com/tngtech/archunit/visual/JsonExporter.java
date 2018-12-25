@@ -15,14 +15,19 @@
  */
 package com.tngtech.archunit.visual;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.ViolationHandler;
 
 class JsonExporter {
     private static final Gson GSON = new GsonBuilder()
@@ -34,6 +39,14 @@ class JsonExporter {
         JsonJavaPackage root = createPackageClassTree(classesToVisualize);
         Set<JsonJavaDependency> dependencies = extractDependenciesFromClasses(classesToVisualize);
         return GSON.toJson(new JsonExport(root, dependencies));
+    }
+
+    String exportToJson(Iterable<EvaluationResult> results) {
+        Multimap<String, String> violations = HashMultimap.create();
+        for (EvaluationResult result : results) {
+            extractDependencies(result, violations);
+        }
+        return GSON.toJson(JsonEvaluationResult.CreateFromMultiMap(violations));
     }
 
     private Set<JsonJavaDependency> extractDependenciesFromClasses(ClassesToVisualize classesToVisualize) {
@@ -97,5 +110,16 @@ class JsonExporter {
     private boolean isDependencyToPrimitiveArray(Dependency d) {
         return d.getTargetClass().getName().startsWith(JsonJavaDependency.ARRAY_MARKER)
                 && !d.getTargetClass().getName().startsWith(JsonJavaDependency.ARRAY_MARKER + JsonJavaDependency.OBJECT_MARKER);
+    }
+
+    private void extractDependencies(final EvaluationResult result, final Multimap<String, String> violations) {
+        result.handleViolations(new ViolationHandler<Dependency>() {
+            @Override
+            public void handle(Collection<Dependency> dependencies, String message) {
+                for (Dependency dependency : dependencies) {
+                    violations.put(result.getRuleText(), dependency.getDescription());
+                }
+            }
+        });
     }
 }

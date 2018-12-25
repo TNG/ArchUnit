@@ -1,6 +1,7 @@
 package com.tngtech.archunit.visual;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,18 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.visual.testjson.structure.EmptyClass;
 import com.tngtech.archunit.visual.testjson.structure.simpleinherit.SimpleClass1;
+import com.tngtech.archunit.visual.testjson.violations.Accessor;
+import com.tngtech.archunit.visual.testjson.violations.Target;
 import org.junit.Test;
 import some.other.OtherClass;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.visual.ResourcesUtils.getResourceText;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonExporterTest {
@@ -37,7 +44,7 @@ public class JsonExporterTest {
 
         String result = jsonExporter.exportToJson(classes);
 
-        assertJsonEqualToFile(result, "empty-class.json");
+        assertClassesStructureJsonEqualToFile(result, "empty-class.json");
     }
 
     @Test
@@ -46,7 +53,7 @@ public class JsonExporterTest {
 
         String result = jsonExporter.exportToJson(classes);
 
-        assertJsonEqualToFile(result, "simpleinheritstructure.json");
+        assertClassesStructureJsonEqualToFile(result, "simpleinheritstructure.json");
     }
 
     @Test
@@ -55,7 +62,43 @@ public class JsonExporterTest {
 
         String result = jsonExporter.exportToJson(classes);
 
-        assertJsonEqualToFile(result, "complexinheritstructure.json");
+        assertClassesStructureJsonEqualToFile(result, "complexinheritstructure.json");
+    }
+
+    @Test
+    public void exports_violations_of_a_simple_rule() {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = noClasses().should().accessClassesThat().areAssignableTo(Target.class);
+        EvaluationResult result = rule.evaluate(classes);
+
+        String json = jsonExporter.exportToJson(singletonList(result));
+
+        assertViolationsJsonEqualToFile(json, "access-violations.json");
+    }
+
+    @Test
+    public void exports_violations_of_two_different_rules() {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule1 = noClasses().should().accessField(Target.class, "field1");
+        EvaluationResult result1 = rule1.evaluate(classes);
+
+        ArchRule rule2 = noClasses().should().accessField(Target.class, "field2");
+        EvaluationResult result2 = rule2.evaluate(classes);
+
+        String json = jsonExporter.exportToJson(Arrays.asList(result1, result2));
+
+        assertViolationsJsonEqualToFile(json, "access-violations-of-different-rules.json");
+    }
+
+    @Test
+    public void exports_non_existing_violation() {
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class);
+        ArchRule rule = noClasses().should().bePublic();
+        EvaluationResult result = rule.evaluate(classes);
+
+        String json = jsonExporter.exportToJson(singletonList(result));
+
+        assertThat(json).isEqualTo("[]");
     }
 
     private JavaClasses importClassesThatAreInPackagesOf(Class... classes) {
@@ -76,8 +119,13 @@ public class JsonExporterTest {
         };
     }
 
-    private void assertJsonEqualToFile(String actualJson, String expectedJsonFileName) {
+    private void assertClassesStructureJsonEqualToFile(String actualJson, String expectedJsonFileName) {
         String expectedJson = getResourceText(getClass(), "testjson/structure/" + expectedJsonFileName);
+        assertThat(sortJson(actualJson)).isEqualTo(sortJson(expectedJson));
+    }
+
+    private void assertViolationsJsonEqualToFile(String actualJson, String expectedJsonFileName) {
+        String expectedJson = getResourceText(getClass(), "testjson/violations/" + expectedJsonFileName);
         assertThat(sortJson(actualJson)).isEqualTo(sortJson(expectedJson));
     }
 
@@ -151,4 +199,5 @@ public class JsonExporterTest {
         }
         return result.entrySet();
     }
+
 }

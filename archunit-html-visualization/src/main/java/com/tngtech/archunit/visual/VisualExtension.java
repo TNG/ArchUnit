@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Properties;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -31,23 +32,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public class VisualExtension implements ArchUnitExtension {
     private static final Logger LOG = LoggerFactory.getLogger(VisualExtension.class);
-    private static final String REPORT_DIR_SYSTEM_PROPERTY = "archunit.visual.report.dir";
+    private static final String VISUALIZATION_FILE_SYSTEM_PROPERTY = "archunit.htmlvisualization.targetfile";
     private static final String UNIQUE_IDENTIFIER = "archunit-visual";
 
     private static Multimap<JavaClasses, EvaluationResult> evaluatedRules =
             Multimaps.synchronizedMultimap(HashMultimap.<JavaClasses, EvaluationResult>create());
-
-    private static final File targetDirectory = getReportTargetDirectory();
-
-    private static File getReportTargetDirectory() {
-        String configuredReportDir = System.getProperty(REPORT_DIR_SYSTEM_PROPERTY);
-        return isNullOrEmpty(configuredReportDir)
-                ? new File(VisualExtension.class.getResource("/").getFile(), "archunit-report")
-                : new File(configuredReportDir);
-    }
 
     @Override
     public String getUniqueIdentifier() {
@@ -78,10 +71,26 @@ public class VisualExtension implements ArchUnitExtension {
      *
      * @param classes the classes that have been checked by some ArchUnit rules.
      */
-    @PublicAPI(usage = PublicAPI.Usage.ACCESS)
+    @PublicAPI(usage = ACCESS)
     public static void createVisualization(JavaClasses classes) {
         Collection<EvaluationResult> results = evaluatedRules.get(classes);
-        LOG.info("Writing report for {} evaluated rules to {}", results.size(), targetDirectory.getAbsolutePath());
-        new Visualizer(classes, targetDirectory).visualize(results);
+        Optional<File> visualizationTargetFile = getConfiguredVisualizationTargetFile();
+        if (visualizationTargetFile.isPresent()) {
+            LOG.info("Creating HTML visualization for {} evaluated rules to {}",
+                    results.size(), visualizationTargetFile.get().getAbsolutePath());
+            new Visualizer(classes, visualizationTargetFile.get()).visualize(results);
+        } else {
+            LOG.warn("No target file for HTML visualization was specified, skipping visualization. "
+                            + "Provide the respective target HTML file to write the visualization to "
+                            + "via system property -D{}=/some/target/file.hml",
+                    VISUALIZATION_FILE_SYSTEM_PROPERTY);
+        }
+    }
+
+    private static Optional<File> getConfiguredVisualizationTargetFile() {
+        String configuredVisualizationFile = System.getProperty(VISUALIZATION_FILE_SYSTEM_PROPERTY);
+        return !isNullOrEmpty(configuredVisualizationFile)
+                ? Optional.of(new File(configuredVisualizationFile))
+                : Optional.<File>absent();
     }
 }

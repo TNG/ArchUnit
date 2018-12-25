@@ -1,0 +1,13 @@
+[
+  {
+    "rule": "no classes should access classes that are assignable to com.tngtech.archunit.visual.testjson.violations.Target",
+    "violations": [
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.complexMethodCall(java.lang.String, java.lang.Object)\u003e calls constructor \u003ccom.tngtech.archunit.visual.testjson.violations.Target.\u003cinit\u003e()\u003e in (Accessor.java:9)",
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.complexMethodCall(java.lang.String, java.lang.Object)\u003e calls method \u003ccom.tngtech.archunit.visual.testjson.violations.Target.complexMethod(java.lang.String, java.lang.Object, com.tngtech.archunit.visual.testjson.violations.Accessor)\u003e in (Accessor.java:9)",
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.fieldAccess1(com.tngtech.archunit.visual.testjson.violations.Target)\u003e sets field \u003ccom.tngtech.archunit.visual.testjson.violations.Target.field1\u003e in (Accessor.java:13)",
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.fieldAccess2(com.tngtech.archunit.visual.testjson.violations.Target)\u003e sets field \u003ccom.tngtech.archunit.visual.testjson.violations.Target.field2\u003e in (Accessor.java:17)",
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.simpleMethodCall()\u003e calls constructor \u003ccom.tngtech.archunit.visual.testjson.violations.Target.\u003cinit\u003e()\u003e in (Accessor.java:5)",
+      "Method \u003ccom.tngtech.archunit.visual.testjson.violations.Accessor.simpleMethodCall()\u003e calls method \u003ccom.tngtech.archunit.visual.testjson.violations.Target.method()\u003e in (Accessor.java:5)"
+    ]
+  }
+]
