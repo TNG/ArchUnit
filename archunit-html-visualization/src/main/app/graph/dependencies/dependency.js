@@ -1,6 +1,6 @@
 'use strict';
 
-const {Vector, vectors} = require('./vectors');
+const {Vector, vectors} = require('../infrastructure/vectors');
 
 const OVERLAP_DELTA = 0.1;
 

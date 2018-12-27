@@ -2,7 +2,7 @@
 
 const stubs = require('./stubs');
 const {testRoot} = require('./test-json-creator');
-const AppContext = require('../../../main/app/graph/app-context');
+const AppContext = require('../../../../main/app/graph/app-context');
 
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),

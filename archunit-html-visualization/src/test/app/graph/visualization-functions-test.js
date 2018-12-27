@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const visualizationFunctionsFactory = require('../../../main/app/graph/visualization-functions');
-const {Vector} = require('../../../main/app/graph/vectors');
+const {Vector} = require('../../../main/app/graph/infrastructure/vectors');
 
 const expect = chai.expect;
 

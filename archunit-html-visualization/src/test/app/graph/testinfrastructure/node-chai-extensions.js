@@ -1,6 +1,6 @@
 'use strict';
 
-const {Vector} = require('../../../main/app/graph/vectors');
+const {Vector} = require('../../../../main/app/graph/infrastructure/vectors');
 const Assertion = require('chai').Assertion;
 
 const MAXIMUM_DELTA = 0.0001;

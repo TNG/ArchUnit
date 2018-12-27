@@ -1,7 +1,7 @@
 'use strict';
 
 const initDependency = require('./dependency.js');
-const {buildFilterGroup} = require('./filter');
+const {buildFilterGroup} = require('../filter');
 
 const init = (View) => {
 

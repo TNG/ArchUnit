@@ -1,8 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const stubs = require('./stubs');
-const nodeTextFactory = require('../../../main/app/graph/node-text');
+const stubs = require('../testinfrastructure/stubs');
+const nodeTextFactory = require('../../../../main/app/graph/nodes/node-text');
 
 const expect = chai.expect;
 

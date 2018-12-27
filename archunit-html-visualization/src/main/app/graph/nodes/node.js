@@ -1,9 +1,9 @@
 'use strict';
 
-const predicates = require('./predicates');
-const {vectors} = require('./vectors');
+const predicates = require('../infrastructure/predicates');
+const {vectors} = require('../infrastructure/vectors');
 const {NodeCircle, ZeroCircle} = require('./circles');
-const {buildFilterGroup} = require('./filter');
+const {buildFilterGroup} = require('../filter');
 
 const nodeTypes = require('./node-types.json');
 

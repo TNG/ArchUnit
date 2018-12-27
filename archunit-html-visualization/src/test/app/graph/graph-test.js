@@ -1,11 +1,11 @@
 'use strict';
 
 const {expect} = require('chai');
-require('../chai/node-chai-extensions');
-require('../chai/dependencies-chai-extension');
+require('./testinfrastructure/node-chai-extensions');
+require('./testinfrastructure/dependencies-chai-extension');
 
-const stubs = require('./stubs');
-const {createTestDependencies, createTestGraph, testRoot} = require('./test-json-creator');
+const stubs = require('./testinfrastructure/stubs');
+const {createTestDependencies, createTestGraph, testRoot} = require('./testinfrastructure/test-json-creator');
 const AppContext = require('../../../main/app/graph/app-context');
 const createGraph = require('../../../main/app/graph/graph').create;
 

@@ -1,6 +1,6 @@
 'use strict';
 
-const {Vector, vectors} = require('./vectors');
+const {Vector, vectors} = require('../infrastructure/vectors');
 
 // FIXME: This inheritance looks like a 'I wanna share some fields' type of thing?? In which universe is a circle a special type of vector??
 const Circle = class extends Vector {

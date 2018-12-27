@@ -5,14 +5,14 @@
  */
 
 const visualizationFunctions = require('./visualization-functions');
-const nodeText = require('./node-text');
-const node = require('./node');
-const dependencies = require('./dependencies');
-const textWidthCalculator = require('./text-width-calculator');
+const nodeText = require('./nodes/node-text');
+const node = require('./nodes/node');
+const dependencies = require('./dependencies/dependencies');
+const textWidthCalculator = require('./infrastructure/text-width-calculator');
 const visualizationStyles = require('./visualization-styles');
-const nodeView = require('./node-view');
-const detailedDependencyView = require('./detailed-dependency-view');
-const dependencyView = require('./dependency-view');
+const nodeView = require('./nodes/node-view');
+const detailedDependencyView = require('./dependencies/detailed-dependency-view');
+const dependencyView = require('./dependencies/dependency-view');
 const graphView = require('./graph-view');
 
 const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles) => {

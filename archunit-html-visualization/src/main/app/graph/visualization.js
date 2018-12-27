@@ -1,6 +1,6 @@
 'use strict';
 
-const resources = require('./resources');
+const resources = require('./infrastructure/resources');
 const appContext = require('./app-context');
 const createGraph = require('./graph').create;
 

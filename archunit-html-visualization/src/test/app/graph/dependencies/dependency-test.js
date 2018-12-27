@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai');
-const generalExtensions = require('../chai/general-chai-extensions');
-const {testRoot} = require('./test-json-creator');
-const stubs = require('./stubs');
-const initDependency = require('../../../main/app/graph/dependency');
-const AppContext = require('../../../main/app/graph/app-context');
+const generalExtensions = require('../testinfrastructure/general-chai-extensions');
+const {testRoot} = require('../testinfrastructure/test-json-creator');
+const stubs = require('../testinfrastructure/stubs');
+const initDependency = require('../../../../main/app/graph/dependencies/dependency');
+const AppContext = require('../../../../main/app/graph/app-context');
 
 const expect = chai.expect;
 

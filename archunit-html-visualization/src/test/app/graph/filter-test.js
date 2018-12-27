@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-require('../chai/filter-chai-extensions');
+require('./testinfrastructure/filter-chai-extensions');
 const {buildFilterCollection, buildFilterGroup} = require('../../../main/app/graph/filter');
 
 const expect = chai.expect;

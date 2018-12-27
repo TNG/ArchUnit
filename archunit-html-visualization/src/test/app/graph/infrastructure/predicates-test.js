@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const nodePredicates = require('../../../main/app/graph/predicates');
+const nodePredicates = require('../../../../main/app/graph/infrastructure/predicates');
 
 const expect = chai.expect;
 
