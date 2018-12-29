@@ -43,6 +43,23 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
+/**
+ * Represents the target of a {@link JavaAccess}. ArchUnit distinguishes between an 'access target' and a concrete field/method/constructor, because
+ * the bytecode does not allow a 1-to-1 association here.
+ * <br><br>
+ * For one part, the target might be missing from the import, e.g. some method
+ * <code>Foo.origin()</code> of some imported class <code>Foo</code> might call a method <code>Bar.target()</code>. But if <code>Bar</code>
+ * is missing from the import (i.e. the bytecode of <code>Bar.class</code> has not been scanned together with <code>Foo.class</code>),
+ * there will not be a {@link JavaMethod} representing <code>Bar.target()</code>.
+ * So even though we can derive an {@link AccessTarget} that is <code>Bar.target()</code>
+ * from <code>Foo's</code> bytecode (including method name and parameters), we cannot associate any {@link JavaMethod} with that target.
+ * <br><br>
+ * For the other part, even if all the participating classes are imported, there are still situations, where the respective access target cannot
+ * be associated with one single {@link JavaMethod}. I.e. some diamond scenarios, where two interfaces <code>A</code> and <code>B</code>
+ * both declare a method <code>target()</code>, interface <code>C</code> extends both, and some third party calls <code>C.target()</code>.
+ * For further elaboration refer to the documentation of {@link #resolve()}. In particular {@link #resolve()} attempts to find
+ * matching {@link JavaMember JavaMembers} for the respective {@link AccessTarget}.
+ */
 public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
     private final String name;
     private final JavaClass owner;
@@ -78,6 +95,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Tries to resolve the targeted members (methods, fields or constructors). In most cases this will be a
      * single element, if the target was imported, or an empty set, if the target was not imported. However,
      * for {@link MethodCallTarget MethodCallTargets}, there can be multiple possible targets.
+     * For further information refer to {@link AccessTarget}.
      *
      * @see MethodCallTarget#resolve()
      * @see FieldAccessTarget#resolve()
@@ -198,6 +216,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                 };
     }
 
+    /**
+     * Represents an {@link AccessTarget} where the target is a field. For further elaboration about the necessity to distinguish
+     * {@link FieldAccessTarget FieldAccessTarget} from {@link JavaField}, refer to the documentation at {@link AccessTarget}.
+     */
     // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
     public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
         private final JavaClass type;
@@ -251,6 +273,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
+    /**
+     * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
+     * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
+     * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
+     */
     public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
@@ -342,6 +369,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
+    /**
+     * Represents an {@link CodeUnitCallTarget CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
+     * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod}, refer to the documentation at {@link AccessTarget} and in particular the
+     * documentation at {@link #resolve()}.
+     */
     public static final class MethodCallTarget extends CodeUnitCallTarget {
         private final Supplier<Set<JavaMethod>> methods;
 
@@ -355,20 +387,20 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * target (if imported), it is possible that the call is ambiguous. For example consider
          * <pre><code>
          * interface A {
-         *     void foo();
+         *     void target();
          * }
          *
          * interface B {
-         *     void foo();
+         *     void target();
          * }
          *
-         * interface D extends A, B {}
+         * interface C extends A, B {}
          *
          * class X {
-         *     D d;
+         *     C c;
          *     // ...
-         *     void bar() {
-         *         d.foo();
+         *     void origin() {
+         *         c.target();
          *     }
          * }
          * </code></pre>
@@ -380,7 +412,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * <li>a single method - if the method was imported and can uniquely be identified</li>
          * <li>several methods - in scenarios where there is no unique method that matches the target</li>
          * </ul>
-         * Note that the target would be uniquely determinable, if D would declare <code>void foo()</code> itself.
+         * Note that the target would be uniquely determinable, if C would declare <code>void target()</code> itself.
          *
          * @return Set of matching methods, usually a single target
          */
