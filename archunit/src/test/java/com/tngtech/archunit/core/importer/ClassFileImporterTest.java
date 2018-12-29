@@ -550,7 +550,7 @@ public class ClassFileImporterTest {
     public void imports_methods_with_correct_throws_declarations() throws Exception {
         Set<JavaCodeUnit> methods = classesIn("testexamples/methodimport").getCodeUnits();
 
-        assertThat(findAnyByName(methods, "throwExceptions").getThrowsDeclarations())
+        assertThat(findAnyByName(methods, "throwExceptions").getThrowsClause())
                 .as("Throws types of method 'throwsExceptions'").matches(IOException.class, InterruptedException.class);
     }
 
@@ -774,7 +774,7 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/constructorimport").get(ClassWithThrowingConstructor.class);
 
         assertThat(clazz.getConstructors()).as("Constructors").hasSize(1);
-        assertThat(clazz.getConstructor().getThrowsDeclarations()).as("Throws types of sole constructor")
+        assertThat(clazz.getConstructor().getThrowsClause()).as("Throws types of sole constructor")
                 .matches(IOException.class, InterruptedException.class);
     }
 

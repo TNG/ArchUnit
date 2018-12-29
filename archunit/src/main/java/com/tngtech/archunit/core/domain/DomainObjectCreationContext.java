@@ -135,6 +135,10 @@ public class DomainObjectCreationContext {
         return new ThrowsDeclaration(type);
     }
 
+    public static ThrowsClause createThrowsClause(List<JavaClass> types) {
+        return ThrowsClause.fromThrownTypes(types);
+    }
+
     static class AccessContext {
         final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();
         final SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget = HashMultimap.create();

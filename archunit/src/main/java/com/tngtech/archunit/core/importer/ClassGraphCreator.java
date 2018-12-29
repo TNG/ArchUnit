@@ -295,7 +295,7 @@ class ClassGraphCreator implements ImportContext {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
                 methodReturnTypeDependencies.put(method.getReturnType(), method);
-                for (ThrowsDeclaration throwsDeclaration : method.getThrowsDeclarations()) {
+                for (ThrowsDeclaration throwsDeclaration : method.getThrowsClause()) {
                     methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), method);
                 }
             }
@@ -306,7 +306,7 @@ class ClassGraphCreator implements ImportContext {
                 for (JavaClass parameter : constructor.getParameters()) {
                     constructorParameterTypeDependencies.put(parameter, constructor);
                 }
-                for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsDeclarations()) {
+                for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsClause()) {
                     constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), constructor);
                 }
             }

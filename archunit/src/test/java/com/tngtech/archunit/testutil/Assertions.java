@@ -47,8 +47,8 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
-import com.tngtech.archunit.core.domain.ThrowsDeclarations;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -138,8 +138,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ThrowsDeclarationAssertion(throwsDeclaration);
     }
 
-    public static ThrowsDeclarationsAssertion assertThat(ThrowsDeclarations throwsDeclarations) {
-        return new ThrowsDeclarationsAssertion(throwsDeclarations);
+    public static ThrowsClauseAssertion assertThat(ThrowsClause throwsClause) {
+        return new ThrowsClauseAssertion(throwsClause);
     }
 
     @SuppressWarnings("unchecked") // covariant
@@ -406,14 +406,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ThrowsDeclarationsAssertion
-            extends AbstractListAssert<ThrowsDeclarationsAssertion, List<? extends ThrowsDeclaration>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
-        private ThrowsDeclarationsAssertion(ThrowsDeclarations throwsDeclarations) {
-            super(throwsDeclarations, ThrowsDeclarationsAssertion.class);
+    public static class ThrowsClauseAssertion
+            extends AbstractListAssert<ThrowsClauseAssertion, List<? extends ThrowsDeclaration>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+        private ThrowsClauseAssertion(ThrowsClause throwsClause) {
+            super(throwsClause, ThrowsClauseAssertion.class);
         }
 
         public void matches(Class<?>... classes) {
-            assertThat(actual).as("ThrowsDeclarations").hasSize(classes.length);
+            assertThat(actual).as("ThrowsClause").hasSize(classes.length);
             for (int i = 0; i < actual.size(); i++) {
                 assertThat(actual.get(i)).as("Element %d", i).matches(classes[i]);
             }

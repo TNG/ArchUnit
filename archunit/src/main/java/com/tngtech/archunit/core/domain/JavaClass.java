@@ -874,7 +874,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Set<Dependency> methodThrowsDeclarationDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaMethod method : getMethods()) {
-            for (ThrowsDeclaration throwsDeclaration : method.getThrowsDeclarations()) {
+            for (ThrowsDeclaration throwsDeclaration : method.getThrowsClause()) {
                 result.add(Dependency.fromThrowsDeclaration(method, throwsDeclaration.getType()));
             }
         }
@@ -894,7 +894,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Set<Dependency> constructorThrowsDeclarationDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaConstructor constructor : getConstructors()) {
-            for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsDeclarations()) {
+            for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsClause()) {
                 result.add(Dependency.fromThrowsDeclaration(constructor, throwsDeclaration.getType()));
             }
         }

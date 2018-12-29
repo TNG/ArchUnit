@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -40,12 +41,9 @@ public class TestUtils {
         return new JavaClassList(classes);
     }
 
-    public static ThrowsDeclarations throwsDeclarations(Class<?>... types) {
-        List<ThrowsDeclaration> throwsDeclarations = new ArrayList<ThrowsDeclaration>();
-        for (Class<?> type : types) {
-            throwsDeclarations.add(new ThrowsDeclaration(importClassWithContext(type)));
-        }
-        return new ThrowsDeclarations(throwsDeclarations);
+    public static ThrowsClause throwsClause(Class<?>... types) {
+        List<JavaClass> importedTypes = ImmutableList.copyOf(new ClassFileImporter().importClasses(types));
+        return ThrowsClause.fromThrownTypes(importedTypes);
     }
 
     public static JavaClasses importClasses(Class<?>... classes) {
@@ -108,7 +106,7 @@ public class TestUtils {
         for (JavaClass javaClass : parameters) {
             result.add(javaClass.reflect());
         }
-        return result.toArray(new Class[result.size()]);
+        return result.toArray(new Class[0]);
     }
 
     static ImportedTestClasses simpleImportedClasses() {
