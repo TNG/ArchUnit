@@ -15,59 +15,59 @@
  */
 package com.tngtech.archunit.core.domain.properties;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.ThrowsDeclarations;
-
-import java.util.List;
+import com.tngtech.archunit.core.domain.ThrowsClause;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.formatThrowsDeclarationTypeNames;
+import static com.tngtech.archunit.core.domain.ThrowsClause.GET_NAMES;
 import static com.tngtech.archunit.core.domain.ThrowsDeclaration.namesOf;
-import static com.tngtech.archunit.core.domain.ThrowsDeclarations.GET_NAMES;
 
-public interface HasThrowsDeclarations {
+public interface HasThrowsClause {
     @PublicAPI(usage = ACCESS)
-    ThrowsDeclarations getThrowsDeclarations();
+    ThrowsClause getThrowsClause();
 
     final class Predicates {
         private Predicates() {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsDeclarations> throwsDeclarations(final Class<?>... types) {
-            return throwsDeclarations(namesOf(types));
+        public static DescribedPredicate<HasThrowsClause> throwsClauseWithTypes(final Class<?>... types) {
+            return throwsClauseWithTypes(namesOf(types));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsDeclarations> throwsDeclarations(final String... types) {
-            return throwsDeclarations(ImmutableList.copyOf(types));
+        public static DescribedPredicate<HasThrowsClause> throwsClauseWithTypes(final String... types) {
+            return throwsClauseWithTypes(ImmutableList.copyOf(types));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsDeclarations> throwsDeclarations(final List<String> typeNames) {
-            return throwsDeclarations(equalTo(typeNames).onResultOf(GET_NAMES)
+        public static DescribedPredicate<HasThrowsClause> throwsClauseWithTypes(final List<String> typeNames) {
+            return throwsClause(equalTo(typeNames).onResultOf(GET_NAMES)
                     .as("[%s]", formatThrowsDeclarationTypeNames(typeNames)));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsDeclarations> throwsDeclarations(final DescribedPredicate<ThrowsDeclarations> predicate) {
+        public static DescribedPredicate<HasThrowsClause> throwsClause(final DescribedPredicate<ThrowsClause> predicate) {
             return new ThrowsTypesPredicate(predicate);
         }
 
-        private static class ThrowsTypesPredicate extends DescribedPredicate<HasThrowsDeclarations> {
-            private final DescribedPredicate<ThrowsDeclarations> predicate;
+        private static class ThrowsTypesPredicate extends DescribedPredicate<HasThrowsClause> {
+            private final DescribedPredicate<ThrowsClause> predicate;
 
-            ThrowsTypesPredicate(DescribedPredicate<ThrowsDeclarations> predicate) {
+            ThrowsTypesPredicate(DescribedPredicate<ThrowsClause> predicate) {
                 super("throws types " + predicate.getDescription());
                 this.predicate = predicate;
             }
 
             @Override
-            public boolean apply(HasThrowsDeclarations input) {
-                return predicate.apply(input.getThrowsDeclarations());
+            public boolean apply(HasThrowsClause input) {
+                return predicate.apply(input.getThrowsClause());
             }
         }
     }

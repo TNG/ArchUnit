@@ -52,11 +52,12 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
-import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.core.domain.ThrowsClause;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsDeclaration;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -223,7 +224,7 @@ public final class DomainBuilders {
             return self();
         }
 
-        SELF withThrowsDeclarations(List<JavaType> throwsDeclarations) {
+        SELF withThrowsClause(List<JavaType> throwsDeclarations) {
             this.throwsDeclarations = throwsDeclarations;
             return self();
         }
@@ -232,12 +233,12 @@ public final class DomainBuilders {
             return get(returnType.getName());
         }
 
-        public List<JavaClass> getParameters() {
-            return asJavaClasses(parameters);
+        public JavaClassList getParameters() {
+            return createJavaClassList(asJavaClasses(parameters));
         }
 
-        public List<ThrowsDeclaration> getThrowsDeclarations() {
-            return asThrowsDeclarations(this.throwsDeclarations);
+        public ThrowsClause getThrowsClause() {
+            return asThrowsClause(this.throwsDeclarations);
         }
 
         private List<JavaClass> asJavaClasses(List<JavaType> javaTypes) {
@@ -248,12 +249,8 @@ public final class DomainBuilders {
             return result.build();
         }
 
-        private List<ThrowsDeclaration> asThrowsDeclarations(List<JavaType> javaTypes) {
-            ImmutableList.Builder<ThrowsDeclaration> result = ImmutableList.builder();
-            for (JavaType javaType : javaTypes) {
-                result.add(createThrowsDeclaration(get(javaType.getName())));
-            }
-            return result.build();
+        private ThrowsClause asThrowsClause(List<JavaType> javaTypes) {
+            return createThrowsClause(asJavaClasses(javaTypes));
         }
     }
 
@@ -451,7 +448,7 @@ public final class DomainBuilders {
             withDescriptor("()V");
             withAnnotations(Collections.<JavaAnnotationBuilder>emptySet());
             withModifiers(Collections.<JavaModifier>emptySet());
-            withThrowsDeclarations(Collections.<JavaType>emptyList());
+            withThrowsClause(Collections.<JavaType>emptyList());
         }
 
         @Override

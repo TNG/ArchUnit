@@ -81,7 +81,7 @@ public class ImportTestUtils {
                     .withDescriptor(Type.getMethodDescriptor(method))
                     .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations(), importedClasses))
                     .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
-                    .withThrowsDeclarations(typesFrom(method.getExceptionTypes())));
+                    .withThrowsClause(typesFrom(method.getExceptionTypes())));
         }
         return methodBuilders;
     }
@@ -97,7 +97,7 @@ public class ImportTestUtils {
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
                     .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations(), importedClasses))
                     .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
-                    .withThrowsDeclarations(typesFrom(constructor.getExceptionTypes())));
+                    .withThrowsClause(typesFrom(constructor.getExceptionTypes())));
         }
         return constructorBuilders;
     }

@@ -15,19 +15,19 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.List;
+
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Function;
 
-import java.util.List;
-
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public final class ThrowsDeclarations extends ForwardingList<ThrowsDeclaration> {
+public final class ThrowsClause extends ForwardingList<ThrowsDeclaration> {
     private final ImmutableList<ThrowsDeclaration> elements;
 
-    ThrowsDeclarations(List<ThrowsDeclaration> elements) {
+    private ThrowsClause(List<ThrowsDeclaration> elements) {
         this.elements = ImmutableList.copyOf(elements);
     }
 
@@ -46,10 +46,22 @@ public final class ThrowsDeclarations extends ForwardingList<ThrowsDeclaration> 
     }
 
     @PublicAPI(usage = ACCESS)
-    public static final Function<ThrowsDeclarations, List<String>> GET_NAMES = new Function<ThrowsDeclarations, List<String>>() {
+    public static final Function<ThrowsClause, List<String>> GET_NAMES = new Function<ThrowsClause, List<String>>() {
         @Override
-        public List<String> apply(ThrowsDeclarations input) {
+        public List<String> apply(ThrowsClause input) {
             return input.getNames();
         }
     };
+
+    static ThrowsClause fromThrowsDeclarations(List<ThrowsDeclaration> declarations) {
+        return new ThrowsClause(declarations);
+    }
+
+    static ThrowsClause fromThrownTypes(List<JavaClass> types) {
+        ImmutableList.Builder<ThrowsDeclaration> result = ImmutableList.builder();
+        for (JavaClass type : types) {
+            result.add(new ThrowsDeclaration(type));
+        }
+        return fromThrowsDeclarations(result.build());
+    }
 }

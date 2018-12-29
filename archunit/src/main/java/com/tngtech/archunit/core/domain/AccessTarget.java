@@ -40,7 +40,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
-import com.tngtech.archunit.core.domain.properties.HasThrowsDeclarations;
+import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
@@ -286,7 +286,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
      * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
      */
-    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType, HasThrowsDeclarations {
+    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType, HasThrowsClause {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -307,25 +307,25 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
 
         @Override
-        public ThrowsDeclarations getThrowsDeclarations() {
-            Set<ThrowsDeclarations> resolvedThrowsDeclarations = FluentIterable.from(resolve())
-                    .transform(new Function<JavaCodeUnit, ThrowsDeclarations>() {
+        public ThrowsClause getThrowsClause() {
+            Set<ThrowsClause> resolvedThrowsClause = FluentIterable.from(resolve())
+                    .transform(new Function<JavaCodeUnit, ThrowsClause>() {
                         @Override
-                        public ThrowsDeclarations apply(JavaCodeUnit input) {
-                            return input.getThrowsDeclarations();
+                        public ThrowsClause apply(JavaCodeUnit input) {
+                            return input.getThrowsClause();
                         }
                     }).toSet();
-            if (resolvedThrowsDeclarations.isEmpty()) {
-                return new ThrowsDeclarations(Collections.<ThrowsDeclaration>emptyList());
-            } else if (resolvedThrowsDeclarations.size() == 1) {
-                return Iterables.getOnlyElement(resolvedThrowsDeclarations);
+            if (resolvedThrowsClause.isEmpty()) {
+                return ThrowsClause.fromThrowsDeclarations(Collections.<ThrowsDeclaration>emptyList());
+            } else if (resolvedThrowsClause.size() == 1) {
+                return Iterables.getOnlyElement(resolvedThrowsClause);
             } else {
-                Iterator<ThrowsDeclarations> iterator = resolvedThrowsDeclarations.iterator();
+                Iterator<ThrowsClause> iterator = resolvedThrowsClause.iterator();
                 Set<ThrowsDeclaration> intersection = ImmutableSet.copyOf(iterator.next());
                 while (iterator.hasNext()) {
                     intersection = Sets.intersection(intersection, ImmutableSet.copyOf(iterator.next()));
                 }
-                return new ThrowsDeclarations(ImmutableList.copyOf(intersection));
+                return ThrowsClause.fromThrowsDeclarations(ImmutableList.copyOf(intersection));
             }
         }
 

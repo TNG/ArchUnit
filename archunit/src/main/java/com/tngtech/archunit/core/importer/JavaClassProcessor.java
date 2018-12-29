@@ -213,7 +213,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withParameters(typesFrom(methodType.getArgumentTypes()))
                 .withReturnType(JavaTypeImporter.importAsmType(methodType.getReturnType()))
                 .withDescriptor(desc)
-                .withThrowsDeclarations(typesFrom(exceptions))
+                .withThrowsClause(typesFrom(exceptions))
                 ;
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);

@@ -28,7 +28,7 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
-import com.tngtech.archunit.core.domain.properties.HasThrowsDeclarations;
+import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -44,11 +44,11 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsDeclarations {
+public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause {
     private final JavaClass returnType;
-    private final List<JavaClass> parameters;
+    private final JavaClassList parameters;
     private final String fullName;
-    private final List<ThrowsDeclaration> throwsDeclarations;
+    private final ThrowsClause throwsClause;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
@@ -58,7 +58,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
-        this.throwsDeclarations = builder.getThrowsDeclarations();
+        this.throwsClause = builder.getThrowsClause();
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -69,12 +69,12 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
 
     @Override
     public JavaClassList getParameters() {
-        return new JavaClassList(parameters);
+        return parameters;
     }
 
     @Override
-    public ThrowsDeclarations getThrowsDeclarations() {
-        return new ThrowsDeclarations(throwsDeclarations);
+    public ThrowsClause getThrowsClause() {
+        return throwsClause;
     }
 
     @Override
@@ -117,7 +117,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         for (JavaClass parameter : parameters) {
             result.add(parameter.reflect());
         }
-        return result.toArray(new Class<?>[result.size()]);
+        return result.toArray(new Class<?>[0]);
     }
 
     public static final class Predicates {
