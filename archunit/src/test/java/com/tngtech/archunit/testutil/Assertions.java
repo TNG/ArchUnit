@@ -406,8 +406,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ThrowsClauseAssertion
-            extends AbstractListAssert<ThrowsClauseAssertion, List<? extends ThrowsDeclaration>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+    public static class ThrowsClauseAssertion extends
+            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
         private ThrowsClauseAssertion(ThrowsClause throwsClause) {
             super(throwsClause, ThrowsClauseAssertion.class);
         }
@@ -415,7 +415,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void matches(Class<?>... classes) {
             assertThat(actual).as("ThrowsClause").hasSize(classes.length);
             for (int i = 0; i < actual.size(); i++) {
-                assertThat(actual.get(i)).as("Element %d", i).matches(classes[i]);
+                assertThat(Iterables.get(actual, i)).as("Element %d", i).matches(classes[i]);
             }
         }
 

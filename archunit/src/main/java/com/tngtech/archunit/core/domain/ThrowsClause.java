@@ -15,25 +15,23 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Iterator;
 import java.util.List;
 
-import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
-public final class ThrowsClause extends ForwardingList<ThrowsDeclaration> {
+public final class ThrowsClause implements Iterable<ThrowsDeclaration> {
     private final ImmutableList<ThrowsDeclaration> elements;
 
     private ThrowsClause(List<ThrowsDeclaration> elements) {
         this.elements = ImmutableList.copyOf(elements);
-    }
-
-    @Override
-    protected List<ThrowsDeclaration> delegate() {
-        return elements;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -43,6 +41,36 @@ public final class ThrowsClause extends ForwardingList<ThrowsDeclaration> {
             result.add(throwsDeclaration.getName());
         }
         return result.build();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean containsType(Class<?> type) {
+        return containsType(type.getName());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean containsType(String typeName) {
+        return containsType(GET_NAME.is(equalTo(typeName)));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean containsType(DescribedPredicate<? super JavaClass> predicate) {
+        for (ThrowsDeclaration throwsDeclaration : elements) {
+            if (predicate.apply(throwsDeclaration.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public int size() {
+        return elements.size();
+    }
+
+    @Override
+    public Iterator<ThrowsDeclaration> iterator() {
+        return elements.iterator();
     }
 
     @PublicAPI(usage = ACCESS)

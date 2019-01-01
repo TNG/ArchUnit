@@ -46,6 +46,10 @@ public class TestUtils {
         return ThrowsClause.fromThrownTypes(importedTypes);
     }
 
+    public static JavaMethod importMethod(Class<?> clazz, String methodName, Class<?>... params) {
+        return importClassWithContext(clazz).getMethod(methodName, params);
+    }
+
     public static JavaClasses importClasses(Class<?>... classes) {
         return new ClassFileImporter().importClasses(classes);
     }
