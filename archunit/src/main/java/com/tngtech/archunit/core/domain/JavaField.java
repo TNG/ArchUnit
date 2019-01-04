@@ -63,7 +63,7 @@ public class JavaField extends JavaMember implements HasType {
     }
 
     @Override
-    String getDescription() {
+    public String getDescription() {
         return "Field <" + getFullName() + ">";
     }
 

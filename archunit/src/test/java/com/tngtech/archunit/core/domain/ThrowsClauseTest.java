@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importMethod;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThrowsClauseTest {
@@ -25,6 +26,13 @@ public class ThrowsClauseTest {
     public void size() {
         assertThat(importMethod(SomeClass.class, "method").getThrowsClause().size())
                 .as("size of throws clause").isEqualTo(2);
+    }
+
+    @Test
+    public void getTypes() {
+        JavaMethod method = importMethod(SomeClass.class, "method");
+
+        assertThatClasses(method.getThrowsClause().getTypes()).matchInAnyOrder(IOException.class, SQLDataException.class);
     }
 
     private void assertAllTrue(Iterable<? extends AbstractBooleanAssert<?>> asserts) {

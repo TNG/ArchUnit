@@ -41,9 +41,10 @@ public class TestUtils {
         return new JavaClassList(classes);
     }
 
-    public static ThrowsClause throwsClause(Class<?>... types) {
+    public static ThrowsClause<?> throwsClause(Class<?>... types) {
         List<JavaClass> importedTypes = ImmutableList.copyOf(new ClassFileImporter().importClasses(types));
-        return ThrowsClause.fromThrownTypes(importedTypes);
+        JavaMethod irrelevantOwner = importedTypes.get(0).getMethod("toString");
+        return ThrowsClause.from(irrelevantOwner, importedTypes);
     }
 
     public static JavaMethod importMethod(Class<?> clazz, String methodName, Class<?>... params) {

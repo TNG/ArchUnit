@@ -43,10 +43,10 @@ public class HasThrowsClauseTest {
     public void predicate_on_parameters_by_Predicate() {
         HasThrowsClause hasThrowsClause = newHasThrowsClause(String.class, Serializable.class);
 
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause>alwaysTrue()).apply(hasThrowsClause)).isTrue();
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause>alwaysFalse()).apply(hasThrowsClause)).isFalse();
+        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysTrue()).apply(hasThrowsClause)).isTrue();
+        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse()).apply(hasThrowsClause)).isFalse();
 
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause>alwaysFalse().as("some text")).getDescription())
+        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse().as("some text")).getDescription())
                 .isEqualTo("throws types some text");
     }
 

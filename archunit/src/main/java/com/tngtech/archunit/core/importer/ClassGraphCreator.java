@@ -194,8 +194,8 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMethodsWithThrowsDeclaration(javaClass);
+    public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getMethodThrowsDeclarationsOfType(javaClass);
     }
 
     @Override
@@ -204,8 +204,8 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
-        return memberDependenciesByTarget.getConstructorsWithThrowsDeclaration(javaClass);
+    public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getConstructorThrowsDeclarationsOfType(javaClass);
     }
 
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
@@ -279,9 +279,9 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMethod> methodsThrowsDeclarationDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaConstructor>  constructorParameterTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaConstructor> constructorThrowsDeclarationDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, ThrowsDeclaration<JavaMethod>> methodsThrowsDeclarationDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -295,8 +295,8 @@ class ClassGraphCreator implements ImportContext {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
                 methodReturnTypeDependencies.put(method.getReturnType(), method);
-                for (ThrowsDeclaration throwsDeclaration : method.getThrowsClause()) {
-                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), method);
+                for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
+                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
                 }
             }
         }
@@ -306,8 +306,8 @@ class ClassGraphCreator implements ImportContext {
                 for (JavaClass parameter : constructor.getParameters()) {
                     constructorParameterTypeDependencies.put(parameter, constructor);
                 }
-                for (ThrowsDeclaration throwsDeclaration : constructor.getThrowsClause()) {
-                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), constructor);
+                for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
+                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
                 }
             }
         }
@@ -324,7 +324,7 @@ class ClassGraphCreator implements ImportContext {
             return methodReturnTypeDependencies.get(javaClass);
         }
 
-        Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
+        Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
             return methodsThrowsDeclarationDependencies.get(javaClass);
         }
 
@@ -332,7 +332,7 @@ class ClassGraphCreator implements ImportContext {
             return constructorParameterTypeDependencies.get(javaClass);
         }
 
-        Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
+        Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return constructorThrowsDeclarationDependencies.get(javaClass);
         }
     }

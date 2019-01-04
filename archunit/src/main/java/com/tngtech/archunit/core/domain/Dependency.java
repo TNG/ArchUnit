@@ -76,31 +76,23 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     static Dependency fromField(JavaField field) {
-        return createDependencyFromJavaMember("Field", field, "has type", field.getType());
+        return createDependencyFromJavaMember(field, "has type", field.getType());
     }
 
     static Dependency fromReturnType(JavaMethod method) {
-        return createDependencyFromJavaMember("Method", method, "has return type", method.getReturnType());
+        return createDependencyFromJavaMember(method, "has return type", method.getReturnType());
     }
 
-    static Dependency fromParameter(JavaMethod method, JavaClass parameter) {
-        return createDependencyFromJavaMember("Method", method, "has parameter of type", parameter);
+    static Dependency fromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
+        return createDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
     }
 
-    static Dependency fromParameter(JavaConstructor constructor, JavaClass parameter) {
-        return createDependencyFromJavaMember("Constructor", constructor, "has parameter of type", parameter);
+    static Dependency fromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
+        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getType());
     }
 
-    static Dependency fromThrowsDeclaration(JavaMethod method, JavaClass throwsDeclaration) {
-        return createDependencyFromJavaMember("Method", method, "throws type", throwsDeclaration);
-    }
-
-    static Dependency fromThrowsDeclaration(JavaConstructor constructor, JavaClass throwsDeclaration) {
-        return createDependencyFromJavaMember("Constructor", constructor, "throws type", throwsDeclaration);
-    }
-
-    private static Dependency createDependencyFromJavaMember(String memberType, JavaMember origin, String dependencyType, JavaClass target) {
-        String originDescription = memberType + " " + bracketFormat(origin.getFullName());
+    private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
+        String originDescription = origin.getDescription();
         String targetDescription = bracketFormat(target.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + formatLocation(origin.getOwner(), 0);

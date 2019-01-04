@@ -37,6 +37,7 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import org.objectweb.asm.Type;
 
@@ -414,7 +415,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaMethod> getMethodsWithThrowsDeclaration(JavaClass javaClass) {
+        public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
 
@@ -424,7 +425,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaConstructor> getConstructorsWithThrowsDeclaration(JavaClass javaClass) {
+        public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
     }
