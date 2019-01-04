@@ -40,7 +40,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       this._folded = false;
       this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
         () => this._root._addNodeToExcludeFilter(this.getFullName()));
-      this._listener = [];
+      this._listeners = [];
     }
 
     //TODO: declare abstract methods and throw errors in them
@@ -50,7 +50,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     addListener(listener) {
-      this._listener.push(listener);
+      this._listeners.push(listener);
       this._originalChildren.forEach(child => child.addListener(listener));
     }
 
@@ -244,13 +244,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
         this.nodeCircle.jumpToRelativeDisplacement(dx, dy);
-        this._listener.forEach(listener => listener.onDrag(this));
+        this._listeners.forEach(listener => listener.onDrag(this));
         const allRelevantNodes = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
         const allRelevantNodesMap = new Map(allRelevantNodes.map(node => [node.getFullName(), node]));
         const nodesHavingDeps = this._root.getNodesWithDependencies(); //subset of allRelevantNodes
-        this._listener.forEach(listener => listener.resetNodesOverlapping());
+        this._listeners.forEach(listener => listener.resetNodesOverlapping());
         allRelevantNodes.forEach(node => node._checkOverlappingWithNodesIfHavingDeps(allRelevantNodesMap, nodesHavingDeps));
-        this._listener.forEach(listener => listener.finishOnNodesOverlapping());
+        this._listeners.forEach(listener => listener.finishOnNodesOverlapping());
       });
     }
 
@@ -272,7 +272,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
       const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
       if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
-        this._listener.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
+        this._listeners.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
           sortedNodes.second.nodeCircle.absoluteCircle));
       }
     }
@@ -510,7 +510,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         currentNodes = newNodes;
       }
 
-      this._listener.forEach(listener => promises.push(listener.onLayoutChanged()));
+      this._listeners.forEach(listener => promises.push(listener.onLayoutChanged()));
       return Promise.all(promises);
     }
   };
@@ -566,7 +566,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
-        this._setFolded(!this._folded, () => this._listener.forEach(listener => listener.onFold(this)));
+        this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFold(this)));
         this._root.relayoutCompletely();
       }
     }
@@ -585,7 +585,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _setFoldedIfInnerNode(folded) {
       if (!this._isLeaf()) {
-        this._setFolded(folded, () => this._listener.forEach(listener => listener.onInitialFold(this)));
+        this._setFolded(folded, () => this._listeners.forEach(listener => listener.onInitialFold(this)));
       }
     }
 
