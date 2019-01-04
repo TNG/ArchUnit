@@ -131,12 +131,8 @@ public class DomainObjectCreationContext {
         return new Source(uri, sourceFileName);
     }
 
-    public static ThrowsDeclaration createThrowsDeclaration(JavaClass type) {
-        return new ThrowsDeclaration(type);
-    }
-
-    public static ThrowsClause createThrowsClause(List<JavaClass> types) {
-        return ThrowsClause.fromThrownTypes(types);
+    public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
+        return ThrowsClause.from(codeUnit, types);
     }
 
     static class AccessContext {

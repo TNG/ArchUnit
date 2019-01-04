@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,11 +45,10 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause {
+public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause<JavaCodeUnit> {
     private final JavaClass returnType;
     private final JavaClassList parameters;
     private final String fullName;
-    private final ThrowsClause throwsClause;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
@@ -58,7 +58,6 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
-        this.throwsClause = builder.getThrowsClause();
         fullName = formatMethod(getOwner().getName(), getName(), getParameters());
     }
 
@@ -73,8 +72,14 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     }
 
     @Override
-    public ThrowsClause getThrowsClause() {
-        return throwsClause;
+    public abstract ThrowsClause<? extends JavaCodeUnit> getThrowsClause();
+
+    /**
+     * @return The types thrown by this method, similar to {@link Method#getExceptionTypes()}
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaClassList getExceptionTypes() {
+        return getThrowsClause().getTypes();
     }
 
     @Override
@@ -147,6 +152,23 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
                         return input.getReturnType();
                     }
                 };
-    }
 
+        public static final class Get {
+            private Get() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static <T extends JavaCodeUnit> ChainableFunction<T, ThrowsClause<T>> throwsClause() {
+                return new ChainableFunction<T, ThrowsClause<T>>() {
+                    // getThrowsClause() will always return a ThrowsClause typed to the owner, i.e. T
+                    // We want to avoid that annoying recursive SELF type parameter and instead override covariantly...
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public ThrowsClause<T> apply(T input) {
+                        return (ThrowsClause<T>) input.getThrowsClause();
+                    }
+                };
+            }
+        }
+    }
 }

@@ -237,8 +237,8 @@ public final class DomainBuilders {
             return createJavaClassList(asJavaClasses(parameters));
         }
 
-        public ThrowsClause getThrowsClause() {
-            return asThrowsClause(this.throwsDeclarations);
+        public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
+            return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
         }
 
         private List<JavaClass> asJavaClasses(List<JavaType> javaTypes) {
@@ -247,10 +247,6 @@ public final class DomainBuilders {
                 result.add(get(javaType.getName()));
             }
             return result.build();
-        }
-
-        private ThrowsClause asThrowsClause(List<JavaType> javaTypes) {
-            return createThrowsClause(asJavaClasses(javaTypes));
         }
     }
 

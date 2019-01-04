@@ -134,11 +134,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaTypeAssertion(javaType);
     }
 
-    public static ThrowsDeclarationAssertion assertThat(ThrowsDeclaration throwsDeclaration) {
+    public static ThrowsDeclarationAssertion assertThat(ThrowsDeclaration<?> throwsDeclaration) {
         return new ThrowsDeclarationAssertion(throwsDeclaration);
     }
 
-    public static ThrowsClauseAssertion assertThat(ThrowsClause throwsClause) {
+    public static ThrowsClauseAssertion assertThat(ThrowsClause<?> throwsClause) {
         return new ThrowsClauseAssertion(throwsClause);
     }
 
@@ -407,8 +407,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static class ThrowsClauseAssertion extends
-            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
-        private ThrowsClauseAssertion(ThrowsClause throwsClause) {
+            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+        private ThrowsClauseAssertion(ThrowsClause<?> throwsClause) {
             super(throwsClause, ThrowsClauseAssertion.class);
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TNG Technology Consulting GmbH
+ * Copyright 2019 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,42 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
+import com.tngtech.archunit.core.domain.properties.HasReturnType;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 
-public final class ThrowsClause implements Iterable<ThrowsDeclaration> {
-    private final ImmutableList<ThrowsDeclaration> elements;
+public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
+        implements HasOwner<LOCATION>, Iterable<ThrowsDeclaration<LOCATION>> {
 
-    private ThrowsClause(List<ThrowsDeclaration> elements) {
-        this.elements = ImmutableList.copyOf(elements);
-    }
+    private final LOCATION location;
+    private final List<ThrowsDeclaration<LOCATION>> throwsDeclarations;
 
-    @PublicAPI(usage = ACCESS)
-    public List<String> getNames() {
-        ImmutableList.Builder<String> result = ImmutableList.builder();
-        for (ThrowsDeclaration throwsDeclaration : this) {
-            result.add(throwsDeclaration.getName());
+    private ThrowsClause(LOCATION location, List<JavaClass> thrownTypes) {
+        this.location = checkNotNull(location);
+        ImmutableList.Builder<ThrowsDeclaration<LOCATION>> result = ImmutableList.builder();
+        for (JavaClass type : thrownTypes) {
+            result.add(new ThrowsDeclaration<>(this, type));
         }
-        return result.build();
+        this.throwsDeclarations = result.build();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -55,7 +65,7 @@ public final class ThrowsClause implements Iterable<ThrowsDeclaration> {
 
     @PublicAPI(usage = ACCESS)
     public boolean containsType(DescribedPredicate<? super JavaClass> predicate) {
-        for (ThrowsDeclaration throwsDeclaration : elements) {
+        for (ThrowsDeclaration throwsDeclaration : throwsDeclarations) {
             if (predicate.apply(throwsDeclaration.getType())) {
                 return true;
             }
@@ -64,32 +74,75 @@ public final class ThrowsClause implements Iterable<ThrowsDeclaration> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public int size() {
-        return elements.size();
+    public JavaClassList getTypes() {
+        return new JavaClassList(FluentIterable.from(throwsDeclarations).transform(toGuava(GET_TYPE)).toList());
     }
 
     @Override
-    public Iterator<ThrowsDeclaration> iterator() {
-        return elements.iterator();
+    @PublicAPI(usage = ACCESS)
+    public LOCATION getOwner() {
+        return location;
     }
 
     @PublicAPI(usage = ACCESS)
-    public static final Function<ThrowsClause, List<String>> GET_NAMES = new Function<ThrowsClause, List<String>>() {
-        @Override
-        public List<String> apply(ThrowsClause input) {
-            return input.getNames();
-        }
-    };
-
-    static ThrowsClause fromThrowsDeclarations(List<ThrowsDeclaration> declarations) {
-        return new ThrowsClause(declarations);
+    public JavaClass getDeclaringClass() {
+        return getOwner().getOwner();
     }
 
-    static ThrowsClause fromThrownTypes(List<JavaClass> types) {
-        ImmutableList.Builder<ThrowsDeclaration> result = ImmutableList.builder();
-        for (JavaClass type : types) {
-            result.add(new ThrowsDeclaration(type));
+    @PublicAPI(usage = ACCESS)
+    public int size() {
+        return throwsDeclarations.size();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Iterator<ThrowsDeclaration<LOCATION>> iterator() {
+        return throwsDeclarations.iterator();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(location, getTypes());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
-        return fromThrowsDeclarations(result.build());
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ThrowsClause other = (ThrowsClause) obj;
+        return Objects.equals(this.location, other.location)
+                && Objects.equals(this.getTypes(), other.getTypes());
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{location=" + location.getFullName() + ", throwsDeclarations=" + throwsDeclarations + '}';
+    }
+
+    static <LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
+    ThrowsClause<LOCATION> from(LOCATION location, List<JavaClass> types) {
+        return new ThrowsClause<>(location, types);
+    }
+
+    static <LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
+    ThrowsClause<LOCATION> empty(LOCATION location) {
+        return new ThrowsClause<>(location, Collections.<JavaClass>emptyList());
+    }
+
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<ThrowsClause<?>, JavaClassList> GET_TYPES = new ChainableFunction<ThrowsClause<?>, JavaClassList>() {
+            @Override
+            public JavaClassList apply(ThrowsClause<?> input) {
+                return input.getTypes();
+            }
+        };
     }
 }

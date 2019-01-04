@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.google.common.base.MoreObjects;
@@ -9,12 +10,14 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -48,11 +51,18 @@ public class DependencyTest {
                 .contains("Interface <" + origin.getName() + "> extends interface <" + target.getName() + ">");
     }
 
-    private Dependency createDependency(JavaClass origin, JavaClass target) {
-        Dependency dependency = Dependency.fromInheritance(origin, target);
-        assertThat(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
-        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
-        return dependency;
+    @Test
+    public void Dependency_from_throws_declaration() {
+        JavaMethod origin = importClassesWithContext(ClassWithDependencyOnThrowable.class, IOException.class)
+                .get(ClassWithDependencyOnThrowable.class).getMethod("method");
+        ThrowsDeclaration<JavaMethod> throwsDeclaration = getOnlyElement(origin.getThrowsClause());
+
+        Dependency dependency = Dependency.fromThrowsDeclaration(throwsDeclaration);
+
+        assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnThrowable.class);
+        assertThat(dependency.getTargetClass()).matches(IOException.class);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
     }
 
     @Test
@@ -113,6 +123,13 @@ public class DependencyTest {
         assertThat(GET_TARGET_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Target.class);
     }
 
+    private Dependency createDependency(JavaClass origin, JavaClass target) {
+        Dependency dependency = Dependency.fromInheritance(origin, target);
+        assertThat(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
+        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
+        return dependency;
+    }
+
     private DescribedPredicate<JavaClass> predicateWithDescription(String description) {
         return DescribedPredicate.<JavaClass>alwaysTrue().as(description);
     }
@@ -144,6 +161,12 @@ public class DependencyTest {
     }
 
     private static class Target {
+    }
+
+    @SuppressWarnings({"RedundantThrows", "unused"})
+    private static class ClassWithDependencyOnThrowable {
+        void method() throws IOException {
+        }
     }
 
     private static class DependencyAssertion {

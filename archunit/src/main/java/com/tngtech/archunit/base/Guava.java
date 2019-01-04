@@ -17,6 +17,7 @@ package com.tngtech.archunit.base;
 
 import java.util.Map;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.tngtech.archunit.Internal;
 
@@ -32,6 +33,15 @@ public final class Guava {
             @Override
             public boolean apply(T input) {
                 return predicate.apply(input);
+            }
+        };
+    }
+
+    public static <F, T> Function<F, T> toGuava(final com.tngtech.archunit.base.Function<F, T> function) {
+        return new Function<F, T>() {
+            @Override
+            public T apply(F input) {
+                return function.apply(input);
             }
         };
     }

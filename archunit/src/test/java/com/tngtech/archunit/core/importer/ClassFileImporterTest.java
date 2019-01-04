@@ -56,11 +56,14 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.Source;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
+import com.tngtech.archunit.core.importer.testexamples.FirstCheckedException;
 import com.tngtech.archunit.core.importer.testexamples.OtherClass;
+import com.tngtech.archunit.core.importer.testexamples.SecondCheckedException;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
@@ -151,6 +154,7 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependi
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
+import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithThrowingMethod;
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
@@ -548,10 +552,12 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_methods_with_correct_throws_declarations() throws Exception {
-        Set<JavaCodeUnit> methods = classesIn("testexamples/methodimport").getCodeUnits();
+        JavaMethod method = classesIn("testexamples/methodimport").get(ClassWithThrowingMethod.class).getMethod("throwExceptions");
 
-        assertThat(findAnyByName(methods, "throwExceptions").getThrowsClause())
-                .as("Throws types of method 'throwsExceptions'").matches(IOException.class, InterruptedException.class);
+        assertThat(method.getThrowsClause())
+                .as("Throws types of method 'throwsExceptions'")
+                .matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThat(method.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
     }
 
     @Test
@@ -773,9 +779,10 @@ public class ClassFileImporterTest {
     public void imports_constructor_with_correct_throws_declarations() throws Exception {
         JavaClass clazz = classesIn("testexamples/constructorimport").get(ClassWithThrowingConstructor.class);
 
-        assertThat(clazz.getConstructors()).as("Constructors").hasSize(1);
-        assertThat(clazz.getConstructor().getThrowsClause()).as("Throws types of sole constructor")
-                .matches(IOException.class, InterruptedException.class);
+        JavaConstructor constructor = getOnlyElement(clazz.getConstructors());
+        assertThat(constructor.getThrowsClause()).as("Throws types of sole constructor")
+                .matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThat(constructor.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
     }
 
     @Test
@@ -1658,12 +1665,31 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_which_method_throws_clauses_contain_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithThrowingMethod.class, FirstCheckedException.class);
+
+        Set<ThrowsDeclaration<JavaMethod>> throwsDeclarations = classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf();
+        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingMethod.class);
+        assertThat(classes.get(FirstCheckedException.class).getConstructorsWithParameterTypeOfSelf()).isEmpty();
+    }
+
+    @Test
     public void classes_know_which_constructors_have_their_type_as_parameter() {
         JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
 
         assertThat(classes.get(SomeEnum.class).getConstructorsWithParameterTypeOfSelf())
                 .extracting("owner").extracting("name")
                 .contains(SomeClass.class.getName(), OtherClass.class.getName());
+    }
+
+    @Test
+    public void classes_know_which_constructor_throws_clauses_contain_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithThrowingConstructor.class, FirstCheckedException.class);
+
+        Set<ThrowsDeclaration<JavaConstructor>> throwsDeclarations =
+                classes.get(FirstCheckedException.class).getConstructorsWithThrowsDeclarationTypeOfSelf();
+        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingConstructor.class);
+        assertThat(classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
     }
 
     @Test
