@@ -139,11 +139,13 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 };
 
 module.exports = {
-  create: (appContext, resources, svgElement, foldAllNodes) => {
-    const Graph = init(appContext.getRoot(), appContext.getDependencies(),
-      appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
+  init: (appContext, resources) => ({
+    create: (svgElement, foldAllNodes) => {
+      const Graph = init(appContext.getRoot(), appContext.getDependencies(),
+        appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
-    const {graph, violations} = resources.getResources();
-    return new Graph(graph, violations, svgElement, foldAllNodes);
-  }
+      const {graph, violations} = resources.getResources();
+      return new Graph(graph, violations, svgElement, foldAllNodes);
+    }
+  })
 };
