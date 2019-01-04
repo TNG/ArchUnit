@@ -146,8 +146,8 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
       return this._folded;
     }
 
-    _setFolded(getFolded, callback) {
-      this._folded = getFolded();
+    _setFolded(newFolded, callback) {
+      this._folded = newFolded;
       this._updateViewOnCurrentChildrenChanged();
       callback();
     }
@@ -566,7 +566,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
-        this._setFolded(() => !this._folded, () => this._listener.forEach(listener => listener.onFold(this)));
+        this._setFolded(!this._folded, () => this._listener.forEach(listener => listener.onFold(this)));
         this._root.relayoutCompletely();
       }
     }
@@ -585,7 +585,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
     _setFoldedIfInnerNode(folded) {
       if (!this._isLeaf()) {
-        this._setFolded(() => folded, () => this._listener.forEach(listener => listener.onInitialFold(this)));
+        this._setFolded(folded, () => this._listener.forEach(listener => listener.onInitialFold(this)));
       }
     }
 
