@@ -9,7 +9,7 @@ const Graph = require('./graph/graph').init(appContext, resources);
 require('./graph/visualization-styles.css');
 
 window.addEventListener('WebComponentsReady', () => {
-  const graph = Graph.create(d3.select('#visualization').node(), true);
+  const graph = Graph.create(d3.select('#visualization').node());
   graph.attachToMenu(document.querySelector('#menu'));
   graph.attachToViolationMenu(document.querySelector('#violations'));
   document.body.onresize = graph.render;

@@ -7,7 +7,21 @@ require('./testinfrastructure/dependencies-chai-extension');
 const stubs = require('./testinfrastructure/stubs');
 const {createTestDependencies, createTestGraph, testRoot} = require('./testinfrastructure/test-json-creator');
 const AppContext = require('../../../main/app/graph/app-context');
-const initGraph = require('../../../main/app/graph/graph').init;
+
+const realInitGraph = require('../../../main/app/graph/graph').init;
+// FIXME: Workaround -> removing foldAllNodes (which was ALWAYS true in production) broke half the tests. Obviously they should test real public API and not some cases that can never happen in production
+const initGraph = function () {
+  const initGraphArgs = arguments;
+  return {
+    create: (createGraphArgs) => {
+      const graph = realInitGraph.apply(null, initGraphArgs).create(createGraphArgs);
+      // FIXME: What is the public API we want to test? Tests were not realistic, since removing foldAllNodes broke 50% of all tests and restoring the behavior demands some weird touches to interna
+      graph.root._callOnSelfThenEveryDescendant(node => node.unfold());
+      graph.dependencies.recreateVisible();
+      return graph;
+    }
+  }
+};
 
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),
@@ -51,8 +65,8 @@ describe('Graph', () => {
     return graph.root._updatePromise;
   });
 
-  it('can initially fold all nodes', () => {
-    const graph = initGraph(appContext, createResources(jsonGraphWithTwoClasses)).create(null, true);
+  it('initially folds all nodes', () => {
+    const graph = realInitGraph(appContext, createResources(jsonGraphWithTwoClasses)).create(null);
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
     const expDeps = ['com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2'];
 
@@ -228,7 +242,7 @@ describe('Graph', () => {
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
     }];
 
-    const graph = initGraph(appContext, createResources(jsonGraph, violations)).create(null, true);
+    const graph = realInitGraph(appContext, createResources(jsonGraph, violations)).create(null);
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violations[0]);

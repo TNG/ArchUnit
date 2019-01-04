@@ -5,7 +5,7 @@ const {buildFilterCollection} = require('./filter');
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonGraph, violations, svg, foldAllNodes) {
+    constructor(jsonGraph, violations, svg) {
       this._view = new View(svg);
       this.root = new Root(jsonGraph.root, this._view.svgElementForNodes, rootRadius => this._view.renderWithTransition(rootRadius),
         newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
@@ -19,9 +19,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this._createFilters();
 
-      if (foldAllNodes) {
-        this.root.foldAllNodes();
-      }
+      this.root.foldAllNodes();
       this.dependencies.recreateVisible();
 
       this.root.relayoutCompletely();
@@ -140,12 +138,12 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
 module.exports = {
   init: (appContext, resources) => ({
-    create: (svgElement, foldAllNodes) => {
+    create: (svgElement) => {
       const Graph = init(appContext.getRoot(), appContext.getDependencies(),
         appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
       const {graph, violations} = resources.getResources();
-      return new Graph(graph, violations, svgElement, foldAllNodes);
+      return new Graph(graph, violations, svgElement);
     }
   })
 };
