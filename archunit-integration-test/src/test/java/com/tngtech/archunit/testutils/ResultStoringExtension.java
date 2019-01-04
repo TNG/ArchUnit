@@ -4,6 +4,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.extension.ArchUnitExtension;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
@@ -27,6 +28,10 @@ public class ResultStoringExtension implements ArchUnitExtension {
     @Override
     public void handle(EvaluatedRule evaluatedRule) {
         storedResults.put(evaluatedRule.getResult().getFailureReport().toString(), evaluatedRule.getResult());
+    }
+
+    @Override
+    public void onFinished(JavaClasses classes) {
     }
 
     public static void reset() {
