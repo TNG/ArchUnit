@@ -23,19 +23,20 @@ const appContext = AppContext.newInstance({
 
 const Root = appContext.getRoot();
 
-const createRootWithToClasses = () => {
+const createRootWithTwoClasses = () => {
   const jsonRoot = testRoot.package('com.tngtech.archunit')
     .add(testRoot.clazz('SomeClass1', 'class').build())
     .add(testRoot.clazz('SomeClass2', 'class').build())
     .build();
+  const root = new Root(jsonRoot, null, () => Promise.resolve());
   return {
-    root: new Root(jsonRoot, null, () => Promise.resolve()),
-    class1: 'com.tngtech.archunit.SomeClass1',
-    class2: 'com.tngtech.archunit.SomeClass2'
+    root: root,
+    class1: root.getByName('com.tngtech.archunit.SomeClass1'),
+    class2: root.getByName('com.tngtech.archunit.SomeClass2')
   };
 };
 
-const createRootWithToClassesInDifferentPackages = () => {
+const createRootWithTwoClassesInDifferentPackages = () => {
   const jsonRoot = testRoot.package('com.tngtech.archunit')
     .add(testRoot.package('pkg1')
       .add(testRoot.clazz('SomeClass1', 'class').build())
@@ -44,91 +45,93 @@ const createRootWithToClassesInDifferentPackages = () => {
       .add(testRoot.clazz('SomeClass2', 'class').build())
       .build())
     .build();
+  const root = new Root(jsonRoot, null, () => Promise.resolve());
   return {
-    root: new Root(jsonRoot, null, () => Promise.resolve()),
-    class1: 'com.tngtech.archunit.pkg1.SomeClass1',
-    class2: 'com.tngtech.archunit.pkg2.SomeClass2'
+    root: root,
+    class1: root.getByName('com.tngtech.archunit.pkg1.SomeClass1'),
+    class2: root.getByName('com.tngtech.archunit.pkg2.SomeClass2')
   };
 };
 
-const createRootWithToClassesAndOneInnerClass = () => {
+const createRootWithTwoClassesAndOneInnerClass = () => {
   const jsonRoot = testRoot.package('com.tngtech.archunit')
     .add(testRoot.clazz('SomeClass1', 'class').build())
     .add(testRoot.clazz('SomeClass2', 'class')
       .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
       .build())
     .build();
+  const root = new Root(jsonRoot, null, () => Promise.resolve());
   return {
-    root: new Root(jsonRoot, null, () => Promise.resolve()),
-    class1: 'com.tngtech.archunit.SomeClass1',
-    classWithInnerClass: 'com.tngtech.archunit.SomeClass2',
-    innerClass: 'com.tngtech.archunit.SomeClass2$SomeInnerClass'
+    root: root,
+    class1: root.getByName('com.tngtech.archunit.SomeClass1'),
+    classWithInnerClass: root.getByName('com.tngtech.archunit.SomeClass2'),
+    innerClass: root.getByName('com.tngtech.archunit.SomeClass2$SomeInnerClass')
   };
 };
 
-const jsonDependency = (from, to, type) => ({
-  originClass: from,
-  targetClass: to,
+const dependencyParams = (originNode, targetNode, type) => ({
+  originNode,
+  targetNode,
   type,
-  description: `Class <${from}> (verb to ${type}) class <${to}>`
+  description: `Class <${originNode}> (verb to ${type}) class <${targetNode}>`
 });
 
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
-    expect(dependency.getStartNode()).to.equal(root.root.getByName(root.class1));
-    expect(dependency.getEndNode()).to.equal(root.root.getByName(root.class2));
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
+    expect(dependency.originNode).to.equal(testData.class1);
+    expect(dependency.targetNode).to.equal(testData.class2);
   });
 
   it('can be shifted to one of the end-nodes: the same dependency should be returned', () => {
-    const root = createRootWithToClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getFullName(), dependency.getEndNode().getFullName());
+      dependency.originNode, dependency.targetNode);
     expect(act).to.equal(dependency);
   });
 
   it('can be shifted to one of the end-nodes\' parents if one of them is a package', () => {
-    const root = createRootWithToClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
+      dependency.originNode.getParent(), dependency.targetNode);
     expect(act.description).to.equal('');
     expect(act.type).to.equal('');
     expect(act.isViolation).to.equal(false);
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
-    const root = createRootWithToClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     dependency.isViolation = true;
     const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getParent().getFullName(), dependency.getEndNode().getFullName());
+      dependency.originNode.getParent(), dependency.targetNode);
     expect(act.isViolation).to.equal(true);
   });
 
   it('can be shifted to one of the end-nodes\' parents if both are classes', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.innerClass, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
     const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
+      dependency.originNode, dependency.targetNode.getParent());
     expect(act.type).to.equal('INNERCLASS_DEPENDENCY');
     expect(act.isViolation).to.equal(false);
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const dependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.innerClass, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
     dependency.isViolation = true;
     const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.getStartNode().getFullName(), dependency.getEndNode().getParent().getFullName());
+      dependency.originNode, dependency.targetNode.getParent());
     expect(act.isViolation).to.equal(true);
   });
 });
@@ -136,83 +139,83 @@ describe('ElementaryDependency', () => {
 describe('GroupedDependency', () => {
   it('is not recreated when one with the same start and end node already exists: the type and the ' +
     'violation-property are updated', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     expect(groupedDependency.isViolation).to.equal(false);
 
-    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
-    const act = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([elementaryDependency]);
+    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
     expect(act).to.equal(groupedDependency);
     expect(act.isViolation).to.equal(true);
   });
 
   it('has no detailed description and no types, if one of the end nodes is a package', () => {
-    const root = createRootWithToClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', root.class2)
+    const testData = createRootWithTwoClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2)
       .byGroupingDependencies([]);
     expect(groupedDependency.hasDetailedDescription()).to.equal(false);
   });
 
   it('is created correctly from one elementary dependency', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.innerClass, 'FIELD_ACCESS'));
-    const act = dependencyCreator.getUniqueDependency(root.class1, root.class2)
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'FIELD_ACCESS'));
+    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency]);
     expect(act.hasDetailedDescription()).to.equal(true);
   });
 
   it('returns correct properties consisting of the violation-property', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
-    const groupedDependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([elementaryDependency]);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
     expect(groupedDependency.getProperties()).to.equal('dependency violation');
   });
 
   it('returns correct properties consisting only of the violation-property, if one end node is a package', () => {
-    const root = createRootWithToClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
+    const testData = createRootWithTwoClassesInDifferentPackages();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
-    const groupedDependency = dependencyCreator.getUniqueDependency('com.tngtech.archunit.pkg1', root.class2).byGroupingDependencies([elementaryDependency]);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2).byGroupingDependencies([elementaryDependency]);
     expect(groupedDependency.getProperties()).to.equal('dependency violation');
   });
 
   it('is created correctly from two elementary dependencies', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'METHOD_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(root.class1, root.class2)
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
+    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
     expect(act.hasDetailedDescription()).to.equal(true);
   });
 
   it('is created correctly from three elementary dependencies', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'CONSTRUCTOR_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'METHOD_CALL'));
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(root.class1, root.class2)
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
+    const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
+    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
     expect(act.hasDetailedDescription()).to.equal(true);
   });
 
   it('returns correct properties consisting of the type names and the violation-property if one of the ' +
     'elementary dependencies is a violation, when it is created correctly from three elementary dependencies', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'CONSTRUCTOR_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'METHOD_CALL'));
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
+    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
     elementaryDependency2.isViolation = true;
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(jsonDependency(root.class1, root.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(root.class1, root.class2)
+    const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
+    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
     expect(act.getProperties()).to.equal('dependency violation');
   });
@@ -226,15 +229,15 @@ describe('GroupedDependency', () => {
   };
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 45, 40, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 33.287, y: 30.6296};
@@ -245,15 +248,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper side', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 20, 60, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 20, y: 45};
@@ -264,15 +267,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper right corner', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 40, 10);
     setNodeVisualDataTo(startNode, 45, 20, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 33.287, y: 29.370};
@@ -283,15 +286,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the right side', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 60, 20, 10);
     setNodeVisualDataTo(startNode, 20, 20, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 35, y: 20};
@@ -302,15 +305,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower right corner', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 45, 40, 15);
     setNodeVisualDataTo(startNode, 20, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 27.809, y: 26.247};
@@ -321,15 +324,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower side', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 60, 15);
     setNodeVisualDataTo(startNode, 20, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 20, y: 30};
@@ -340,15 +343,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower left corner', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 45, 20, 15);
     setNodeVisualDataTo(startNode, 20, 40, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 27.809, y: 33.753};
@@ -359,15 +362,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the left side', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 15);
     setNodeVisualDataTo(startNode, 60, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 50, y: 20};
@@ -378,15 +381,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the end node is within the start node', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.classWithInnerClass);
-    const endNode = root.root.getByName(root.innerClass);
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.classWithInnerClass;
+    const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.classWithInnerClass, root.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 16.718, y: 27.812};
@@ -397,15 +400,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points, if the start node is within the end node', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.innerClass);
-    const endNode = root.root.getByName(root.classWithInnerClass);
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.innerClass;
+    const endNode = testData.classWithInnerClass;
 
     setNodeVisualDataTo(endNode, 50, 50, 40);
     setNodeVisualDataTo(startNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.innerClass, root.classWithInnerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.innerClass, testData.classWithInnerClass).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 22.519, y: 31.680};
@@ -417,15 +420,15 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the end node is exactly in the middle of the start node: ' +
     'then the dependency points to the lower left corner', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.classWithInnerClass);
-    const endNode = root.root.getByName(root.innerClass);
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.classWithInnerClass;
+    const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, 0, 0, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.classWithInnerClass, root.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 78.284, y: 78.284};
@@ -436,15 +439,15 @@ describe('GroupedDependency', () => {
   });
 
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.class1);
-    const endNode = root.root.getByName(root.class2);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.class1;
+    const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 45, 40, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.visualData.mustShareNodes = true;
     dependency.jumpToPosition();
 
@@ -457,15 +460,15 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency ' +
     'and the end node is within the start node', () => {
-    const root = createRootWithToClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
-    const startNode = root.root.getByName(root.classWithInnerClass);
-    const endNode = root.root.getByName(root.innerClass);
+    const testData = createRootWithTwoClassesAndOneInnerClass();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const startNode = testData.classWithInnerClass;
+    const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.classWithInnerClass, root.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
     dependency.visualData.mustShareNodes = true;
     dependency.jumpToPosition();
 
@@ -477,10 +480,10 @@ describe('GroupedDependency', () => {
   });
 
   it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.hide();
     dependency.jumpToPosition();
 
@@ -489,10 +492,10 @@ describe('GroupedDependency', () => {
   });
 
   it('updates its view after moving to its position: does not show the view if the dependency is hidden', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency.hide();
     const promise = dependency.moveToPosition();
 
@@ -501,10 +504,10 @@ describe('GroupedDependency', () => {
   });
 
   it('shows the view on jumping to position if the dependency is visible', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency._isVisible = true;
     dependency.jumpToPosition();
 
@@ -512,10 +515,10 @@ describe('GroupedDependency', () => {
   });
 
   it('shows the view on moving to position if the dependency is visible', () => {
-    const root = createRootWithToClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, root.root);
+    const testData = createRootWithTwoClasses();
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(root.class1, root.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
     dependency._isVisible = true;
     const promise = dependency.moveToPosition();
 

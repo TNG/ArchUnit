@@ -38,7 +38,7 @@ const init = (View) => {
     tmp.forEach(e => map.get(e.key).push(e.dependency));
 
     return [...map.values()].map(dependencies =>
-      dependencyCreator.getUniqueDependency(dependencies[0].from, dependencies[0].to, svgElement, callForAllViews, getDetailedDependencies)
+      dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, svgElement, callForAllViews, getDetailedDependencies)
         .byGroupingDependencies(dependencies));
   };
 
@@ -61,12 +61,12 @@ const init = (View) => {
     })
   });
 
-  const foldTransformer = foldedElement => (
+  const foldTransformer = foldedNode => (
     dependencies => {
-      const targetFolded = transform(dependencies).where(r => r.to).startsWith(foldedElement).eliminateSelfDeps(false)
-        .to(r => dependencyCreator.shiftElementaryDependency(r, r.from, foldedElement));
-      return transform(targetFolded).where(r => r.from).startsWith(foldedElement).eliminateSelfDeps(true)
-        .to(r => dependencyCreator.shiftElementaryDependency(r, foldedElement, r.to));
+      const targetFolded = transform(dependencies).where(d => d.to).startsWith(foldedNode.getFullName()).eliminateSelfDeps(false)
+        .to(d => dependencyCreator.shiftElementaryDependency(d, d.originNode, foldedNode));
+      return transform(targetFolded).where(r => r.from).startsWith(foldedNode.getFullName()).eliminateSelfDeps(true)
+        .to(d => dependencyCreator.shiftElementaryDependency(d, foldedNode, d.targetNode));
     }
   );
 
@@ -141,13 +141,17 @@ const init = (View) => {
   const Dependencies = class {
     constructor(jsonDependencies, nodeMap, svgContainer) {
       nodes = nodeMap;
-      dependencyCreator = initDependency(View, nodeMap);
+      dependencyCreator = initDependency(View);
 
       this._violations = new Violations();
 
       this._transformers = new Map();
-      this._elementary = jsonDependencies.map(jsonDependency =>
-        dependencyCreator.createElementaryDependency(jsonDependency));
+      this._elementary = jsonDependencies.map(jsonDependency => dependencyCreator.createElementaryDependency({
+        originNode: nodes.getByName(jsonDependency.originClass),
+        targetNode: nodes.getByName(jsonDependency.targetClass),
+        type: jsonDependency.type,
+        description: jsonDependency.description
+      }));
 
       this._dependencyTypes = [...new Set(this._elementary.map(d => d.type))].concat(dependencyCreator.getOwnDependencyTypes());
 
@@ -258,8 +262,8 @@ const init = (View) => {
     createListener() {
       return {
         onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
-        onFold: node => this.updateOnNodeFolded(node.getFullName(), node.isFolded()),
-        onInitialFold: node => this.noteThatNodeFolded(node.getFullName(), node.isFolded()),
+        onFold: node => this.updateNodeFold(node),
+        onInitialFold: node => this.setInitialNodeFold(node),
         onLayoutChanged: () => this.moveAllToTheirPositions(),
         onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
         resetNodesOverlapping: () => this._resetVisibility(),
@@ -309,21 +313,21 @@ const init = (View) => {
       return this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
     }
 
-    noteThatNodeFolded(foldedNode, isFolded) {
-      if (isFolded) {
-        this._transformers.set(foldedNode, foldTransformer(foldedNode));
-      } else {
-        this._transformers.delete(foldedNode);
-      }
+    setInitialNodeFold(node) {
+      this._setNodeFold(node);
     }
 
-    updateOnNodeFolded(foldedNode, isFolded) {
-      if (isFolded) {
-        this._transformers.set(foldedNode, foldTransformer(foldedNode));
-      } else {
-        this._transformers.delete(foldedNode);
-      }
+    updateNodeFold(node) {
+      this._setNodeFold(node);
       this.recreateVisible();
+    }
+
+    _setNodeFold(node) {
+      if (node.isFolded()) {
+        this._transformers.set(node.getFullName(), foldTransformer(node));
+      } else {
+        this._transformers.delete(node.getFullName());
+      }
     }
 
     getNodeTypeAndNameFilter() {
@@ -339,8 +343,8 @@ const init = (View) => {
 
     _getTypeFilter(typeFilterConfig) {
       return dependency => this.dependencyTypes.every(type => dependency.type !== type || typeFilterConfig[type])
-        && ((!dependency.getStartNode().isPredecessorOfOrNodeItself(dependency.getEndNode().getFullName())
-          && !dependency.getEndNode().isPredecessorOfOrNodeItself(dependency.getStartNode().getFullName()))
+        && ((!dependency.originNode.isPredecessorOfOrNodeItself(dependency.targetNode.getFullName())
+          && !dependency.targetNode.isPredecessorOfOrNodeItself(dependency.originNode.getFullName()))
           || typeFilterConfig.INNERCLASS_DEPENDENCY);
     }
 

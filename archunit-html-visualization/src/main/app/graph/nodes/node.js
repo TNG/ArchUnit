@@ -588,6 +588,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       }
     }
 
+    // FIXME: Why does _setFoldedIfInnerNode(..) trigger 'onINITIALFold'??
     _setFoldedIfInnerNode(folded) {
       if (!this._isLeaf()) {
         this._setFolded(folded, () => this._listeners.forEach(listener => listener.onInitialFold(this)));

@@ -7,13 +7,12 @@ const OVERLAP_DELTA = 0.1;
 const coloredDependencyTypes = new Set();
 const dashedDependencyTypes = new Set();
 
-const init = (View, nodeMap) => {
+const init = (View) => {
 
   const ownDependencyTypes = {
     INNERCLASS_DEPENDENCY: 'INNERCLASS_DEPENDENCY'
   };
 
-  const nodes = nodeMap;
   const allDependencies = new Map();
 
   const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
@@ -68,21 +67,32 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const getOrCreateUniqueDependency = (from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
-    if (!allDependencies.has(`${from}-${to}`)) {
-      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies));
+  const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
+    const key = `${originNode.getFullName()}-${targetNode.getFullName()}`;
+    if (!allDependencies.has(key)) {
+      allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies));
     }
-    return allDependencies.get(`${from}-${to}`).withTypeAndViolation(type, isViolation)
+    return allDependencies.get(key).withTypeAndViolation(type, isViolation)
   };
 
   const ElementaryDependency = class {
-    constructor(from, to, type, description, isViolation = false) {
-      this.from = from;
-      this.to = to;
+    constructor(originNode, targetNode, type, description, isViolation = false) {
+      this._originNode = originNode;
+      this._targetNode = targetNode;
+      this.from = originNode.getFullName();
+      this.to = targetNode.getFullName();
       this.type = type;
       this.description = description;
       this.isViolation = isViolation;
       this._matchesFilter = new Map();
+    }
+
+    get originNode() {
+      return this._originNode;
+    }
+
+    get targetNode() {
+      return this._targetNode;
     }
 
     setMatchesFilter(key, value) {
@@ -95,14 +105,6 @@ const init = (View, nodeMap) => {
 
     matchesFilter(key) {
       return this._matchesFilter.get(key);
-    }
-
-    getStartNode() {
-      return nodes.getByName(this.from);
-    }
-
-    getEndNode() {
-      return nodes.getByName(this.to);
     }
 
     toString() {
@@ -121,9 +123,10 @@ const init = (View, nodeMap) => {
   const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
-      super(from, to, type, '', '', isViolation);
-      this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
+    constructor(originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
+      super(originNode, targetNode, type, '', '', isViolation);
+      this._view = new View(svgElement, this, callForAllViews, () =>
+        getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
       this._isVisible = false;
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(this),
@@ -138,15 +141,15 @@ const init = (View, nodeMap) => {
     }
 
     hasDetailedDescription() {
-      return !containsPackage(this.from, this.to);
+      return !(this.originNode.isPackage() || this.targetNode.isPackage());
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.getStartNode().nodeShape.absoluteCircle, this.getEndNode().nodeShape.absoluteCircle);
+      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.getStartNode().nodeShape.absoluteCircle, this.getEndNode().nodeShape.absoluteCircle);
+      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
     }
 
     hide() {
@@ -177,12 +180,8 @@ const init = (View, nodeMap) => {
     }
 
     toString() {
-      return `${this.from}-${this.to}`;
+      return `${this.originNode.getFullName()}-${this.targetNode.getFullName()}`;
     }
-  };
-
-  const containsPackage = (from, to) => {
-    return nodes.getByName(from).isPackage() || nodes.getByName(to).isPackage();
   };
 
   const getSingleStyledDependencyType = (dependencies, styledDependencyTypes, mixedStyle) => {
@@ -197,34 +196,37 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const getUniqueDependency = (from, to, svgElement, callForAllViews, getDetailedDependencies) => ({
+  const getUniqueDependency = (originNode, targetNode, svgElement, callForAllViews, getDetailedDependencies) => ({
     byGroupingDependencies: dependencies => {
-      if (containsPackage(from, to)) {
-        return getOrCreateUniqueDependency(from, to, '',
+      if (originNode.isPackage() || targetNode.isPackage()) {
+        return getOrCreateUniqueDependency(originNode, targetNode, '',
           dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       } else {
         const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
         const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
 
-        return getOrCreateUniqueDependency(from, to, joinStrings(' ', colorType, dashedType),
+        return getOrCreateUniqueDependency(originNode, targetNode, joinStrings(' ', colorType, dashedType),
           dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       }
     }
   });
 
-  const shiftElementaryDependency = (dependency, newFrom, newTo) => {
-    if (containsPackage(newFrom, newTo)) {
-      return new ElementaryDependency(newFrom, newTo, '', '', dependency.isViolation);
+  // FIXME: Why do we have to handle the identity case? In any case this should be moved into Dependency, if it makes sense...
+  //        Also: Why does !from.isPackage && !to.isPackage && !isIdentity imply that the dependency type is 'inner class'? -> needs to be clearer
+  const shiftElementaryDependency = (dependency, newOriginNode, newTargetNode) => {
+    if (newOriginNode.isPackage() || newTargetNode.isPackage()) {
+      return new ElementaryDependency(newOriginNode, newTargetNode, '', '', dependency.isViolation);
     }
-    if (newFrom === dependency.from && newTo === dependency.to) {
+    if (newOriginNode.getFullName() === dependency.originNode.getFullName()
+      && newTargetNode.getFullName() === dependency.targetNode.getFullName()) {
+
       return dependency;
     }
-    return new ElementaryDependency(newFrom, newTo, ownDependencyTypes.INNERCLASS_DEPENDENCY, '', dependency.isViolation);
+    return new ElementaryDependency(newOriginNode, newTargetNode, ownDependencyTypes.INNERCLASS_DEPENDENCY, '', dependency.isViolation);
   };
 
-  const createElementaryDependency = jsonDependency =>
-    new ElementaryDependency(jsonDependency.originClass, jsonDependency.targetClass,
-      jsonDependency.type, jsonDependency.description);
+  const createElementaryDependency = ({originNode, targetNode, type, description}) =>
+    new ElementaryDependency(originNode, targetNode, type, description);
 
   return {
     createElementaryDependency,
