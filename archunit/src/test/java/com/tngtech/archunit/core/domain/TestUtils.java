@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -38,6 +39,16 @@ public class TestUtils {
             classes.add(importClassWithContext(type));
         }
         return new JavaClassList(classes);
+    }
+
+    public static ThrowsClause<?> throwsClause(Class<?>... types) {
+        List<JavaClass> importedTypes = ImmutableList.copyOf(new ClassFileImporter().importClasses(types));
+        JavaMethod irrelevantOwner = importedTypes.get(0).getMethod("toString");
+        return ThrowsClause.from(irrelevantOwner, importedTypes);
+    }
+
+    public static JavaMethod importMethod(Class<?> clazz, String methodName, Class<?>... params) {
+        return importClassWithContext(clazz).getMethod(methodName, params);
     }
 
     public static JavaClasses importClasses(Class<?>... classes) {
@@ -100,7 +111,7 @@ public class TestUtils {
         for (JavaClass javaClass : parameters) {
             result.add(javaClass.reflect());
         }
-        return result.toArray(new Class[result.size()]);
+        return result.toArray(new Class[0]);
     }
 
     static ImportedTestClasses simpleImportedClasses() {

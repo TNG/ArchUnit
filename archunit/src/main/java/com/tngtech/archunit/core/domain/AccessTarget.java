@@ -16,12 +16,15 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -33,13 +36,17 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
+import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
@@ -278,7 +285,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
      * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
      */
-    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType {
+    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType, HasThrowsClause {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -296,6 +303,31 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         public JavaClass getReturnType() {
             return returnType;
+        }
+
+        @Override
+        public ThrowsClause<CodeUnitCallTarget> getThrowsClause() {
+            List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = FluentIterable.from(resolve())
+                    .transform(toGuava(JavaCodeUnit.Functions.Get.throwsClause()))
+                    .toList();
+
+            if (resolvedThrowsClauses.isEmpty()) {
+                return ThrowsClause.empty(this);
+            } else if (resolvedThrowsClauses.size() == 1) {
+                return ThrowsClause.from(this, getOnlyElement(resolvedThrowsClauses).getTypes());
+            } else {
+                return ThrowsClause.from(this, intersectTypesOf(resolvedThrowsClauses));
+            }
+        }
+
+        private List<JavaClass> intersectTypesOf(List<ThrowsClause<JavaCodeUnit>> throwsClauses) {
+            checkArgument(throwsClauses.size() > 1, "Can only intersect more than one throws clause");
+
+            List<JavaClass> result = new ArrayList<>(throwsClauses.get(0).getTypes());
+            for (ThrowsClause<?> throwsClause : throwsClauses.subList(1, throwsClauses.size())) {
+                result.retainAll(throwsClause.getTypes());
+            }
+            return result;
         }
 
         /**

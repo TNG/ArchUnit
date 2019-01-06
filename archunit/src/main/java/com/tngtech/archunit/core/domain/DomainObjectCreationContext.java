@@ -131,6 +131,10 @@ public class DomainObjectCreationContext {
         return new Source(uri, sourceFileName);
     }
 
+    public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
+        return ThrowsClause.from(codeUnit, types);
+    }
+
     static class AccessContext {
         final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();
         final SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget = HashMultimap.create();

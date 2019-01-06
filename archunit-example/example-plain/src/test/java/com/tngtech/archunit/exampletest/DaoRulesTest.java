@@ -1,16 +1,23 @@
 package com.tngtech.archunit.exampletest;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import java.sql.SQLException;
+
+import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -41,4 +48,27 @@ public class DaoRulesTest {
                 .as("Only DAOs may use the " + EntityManager.class.getSimpleName())
                 .check(classes);
     }
+
+    @Test
+    public void DAOs_must_not_throw_SQLException() {
+        classes().that().haveNameMatching(".*Dao").should(notContainMethodsThrowing(SQLException.class))
+                .check(classes);
+    }
+
+    private static ArchCondition<JavaClass> notContainMethodsThrowing(final Class<? extends Exception> exception) {
+        return new ArchCondition<JavaClass>("not contain methods throwing " + exception.getName()) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                for (JavaMethod method : item.getMethods()) {
+                    if (method.getThrowsClause().containsType(exception)) {
+                        String message = String.format("%s throws %s in %s",
+                                method.getFullName(), exception.getName(),
+                                formatLocation(method.getOwner(), 0));
+                        events.add(SimpleConditionEvent.violated(method, message));
+                    }
+                }
+            }
+        };
+    }
+
 }

@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
@@ -42,7 +43,7 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.t
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
 public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass> {
+        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription {
     private final String name;
     private final String descriptor;
     private final Supplier<Map<String, JavaAnnotation>> annotations;
@@ -148,11 +149,6 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public abstract Set<? extends JavaAccess<?>> getAccessesToSelf();
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + '{' + getFullName() + '}';
-    }
-
     /**
      * Resolves the respective {@link Member} from the classpath.<br>
      * NOTE: This method will throw an exception, if the owning {@link Class} or any of its dependencies
@@ -163,7 +159,10 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
 
-    abstract String getDescription();
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + '{' + getFullName() + '}';
+    }
 
     public static final class Predicates {
         private Predicates() {
