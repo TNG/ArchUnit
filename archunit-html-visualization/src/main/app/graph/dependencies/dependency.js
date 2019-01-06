@@ -68,20 +68,19 @@ const init = (View, nodeMap) => {
     }
   };
 
-  const getOrCreateUniqueDependency = (type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
+  const getOrCreateUniqueDependency = (from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
     if (!allDependencies.has(`${from}-${to}`)) {
-      allDependencies.set(`${from}-${to}`, new GroupedDependency(type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies));
+      allDependencies.set(`${from}-${to}`, new GroupedDependency(from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies));
     }
     return allDependencies.get(`${from}-${to}`).withTypeAndViolation(type, isViolation)
   };
 
   const ElementaryDependency = class {
-    //TODO: change parameter order
-    constructor(type, description, from, to, isViolation = false) {
-      this.type = type;
-      this.description = description;
+    constructor(from, to, type, description, isViolation = false) {
       this.from = from;
       this.to = to;
+      this.type = type;
+      this.description = description;
       this.isViolation = isViolation;
       this._matchesFilter = new Map();
     }
@@ -122,8 +121,8 @@ const init = (View, nodeMap) => {
   const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(type, from, to, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
-      super(type, '', from, to, '', isViolation);
+    constructor(from, to, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
+      super(from, to, type, '', '', isViolation);
       this._view = new View(svgElement, this, callForAllViews, () => getDetailedDependencies(this.from, this.to));
       this._isVisible = false;
       this.visualData = new VisualData({
@@ -201,13 +200,13 @@ const init = (View, nodeMap) => {
   const getUniqueDependency = (from, to, svgElement, callForAllViews, getDetailedDependencies) => ({
     byGroupingDependencies: dependencies => {
       if (containsPackage(from, to)) {
-        return getOrCreateUniqueDependency('', from, to,
+        return getOrCreateUniqueDependency(from, to, '',
           dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       } else {
         const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
         const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
 
-        return getOrCreateUniqueDependency(joinStrings(' ', colorType, dashedType), from, to,
+        return getOrCreateUniqueDependency(from, to, joinStrings(' ', colorType, dashedType),
           dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
       }
     }
@@ -215,22 +214,22 @@ const init = (View, nodeMap) => {
 
   const shiftElementaryDependency = (dependency, newFrom, newTo) => {
     if (containsPackage(newFrom, newTo)) {
-      return new ElementaryDependency('', '', newFrom, newTo, dependency.isViolation);
+      return new ElementaryDependency(newFrom, newTo, '', '', dependency.isViolation);
     }
     if (newFrom === dependency.from && newTo === dependency.to) {
       return dependency;
     }
-    return new ElementaryDependency(ownDependencyTypes.INNERCLASS_DEPENDENCY, '', newFrom, newTo, dependency.isViolation);
+    return new ElementaryDependency(newFrom, newTo, ownDependencyTypes.INNERCLASS_DEPENDENCY, '', dependency.isViolation);
   };
 
   const createElementaryDependency = jsonDependency =>
-    new ElementaryDependency(jsonDependency.type, jsonDependency.description,
-      jsonDependency.originClass, jsonDependency.targetClass);
+    new ElementaryDependency(jsonDependency.originClass, jsonDependency.targetClass,
+      jsonDependency.type, jsonDependency.description);
 
   return {
     createElementaryDependency,
-    getUniqueDependency: getUniqueDependency,
-    shiftElementaryDependency: shiftElementaryDependency,
+    getUniqueDependency,
+    shiftElementaryDependency,
     getOwnDependencyTypes: () => [...Object.values(ownDependencyTypes)]
   };
 };
