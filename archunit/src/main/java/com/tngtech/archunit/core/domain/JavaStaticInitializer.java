@@ -43,7 +43,12 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     }
 
     @Override
-    String getDescription() {
+    public String getDescription() {
         return "Static Initializer <" + getFullName() + ">";
+    }
+
+    @Override
+    public ThrowsClause<JavaStaticInitializer> getThrowsClause() {
+        return ThrowsClause.empty(this);
     }
 }

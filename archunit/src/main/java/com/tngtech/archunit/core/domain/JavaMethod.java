@@ -34,13 +34,20 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public class JavaMethod extends JavaCodeUnit {
     private final Supplier<Method> methodSupplier;
+    private final ThrowsClause<JavaMethod> throwsClause;
     private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
     private final Supplier<Optional<Object>> annotationDefaultValue;
 
     JavaMethod(DomainBuilders.JavaMethodBuilder builder) {
         super(builder);
+        throwsClause = builder.getThrowsClause(this);
         methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
         annotationDefaultValue = builder.getAnnotationDefaultValue();
+    }
+
+    @Override
+    public ThrowsClause<JavaMethod> getThrowsClause() {
+        return throwsClause;
     }
 
     /**
@@ -73,7 +80,7 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @Override
-    String getDescription() {
+    public String getDescription() {
         return "Method <" + getFullName() + ">";
     }
 

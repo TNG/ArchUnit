@@ -4,6 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -12,7 +13,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.TestUtils.withinImportedClasses;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class AccessTargetTest {
     @Test
@@ -122,6 +123,38 @@ public class AccessTargetTest {
     }
 
     @Test
+    public void no_throws_clause_is_resolved() {
+        CodeUnitCallTarget target = getTarget("withoutThrowsDeclaration");
+
+        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        assertThat(throwsClause).as("throws clause").isEmpty();
+        assertThat(throwsClause.getTypes()).isEmpty();
+        assertThat(throwsClause.getOwner()).isEqualTo(target);
+        assertThat(throwsClause.getDeclaringClass()).matches(Target.class);
+    }
+
+    @Test
+    public void single_throws_declaration_is_resolved() {
+        CodeUnitCallTarget target = getTarget("withASingleThrowsDeclaration");
+
+        assertDeclarations(target, FirstCheckedException.class);
+    }
+
+    @Test
+    public void multiple_throws_declarations_are_resolved() {
+        CodeUnitCallTarget target = getTarget("withMultipleThrowsDeclarations");
+
+        assertDeclarations(target, FirstCheckedException.class, SecondCheckedException.class);
+    }
+
+    @Test
+    public void throws_declarations_on_non_unique_call_Targets_are_intersected() {
+        CodeUnitCallTarget target = getTarget("diamondMethod");
+
+        assertDeclarations(target, SecondCheckedException.class, ThirdCheckedException.class);
+    }
+
+    @Test
     public void predicate_declaredIn() {
         JavaCall<?> call = simulateCall().from(Origin.class, "call").to(Target.class, "called");
 
@@ -166,15 +199,53 @@ public class AccessTargetTest {
                 .as("description").isEqualTo("constructor");
     }
 
-    private static class Origin {
-        private Target target;
-
-        void call() {
-            target = new Target();
-            target.called();
+    private void assertDeclarations(CodeUnitCallTarget target, Class<?>... exceptionTypes) {
+        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        assertThat(throwsClause.getTypes()).matches(exceptionTypes);
+        for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
+            assertThat(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
+            assertThat(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
+            assertThat(throwsDeclaration.getLocation()).isEqualTo(target);
         }
     }
 
+    private CodeUnitCallTarget getTarget(String targetName) {
+        JavaClass origin = importClassesWithContext(Origin.class, Target.class).get(Origin.class);
+        return getTarget(origin, targetName);
+    }
+
+    private CodeUnitCallTarget getTarget(JavaClass javaClass, String targetName) {
+        for (JavaCall<?> call : javaClass.getCallsFromSelf()) {
+            if (call.getTarget().getName().equals(targetName)) {
+                return call.getTarget();
+            }
+        }
+        throw new AssertionError(String.format("Couldn't find target %s.%s", javaClass.getSimpleName(), targetName));
+    }
+
+    @SuppressWarnings("unused")
+    private static class Origin {
+        private Target target;
+        private C c;
+
+        void call() throws Exception {
+            target = new Target();
+            target.called();
+            target.withoutThrowsDeclaration();
+            target.withASingleThrowsDeclaration();
+            target.withMultipleThrowsDeclarations();
+        }
+
+        void callDiamond() {
+            try {
+                c.diamondMethod();
+            } catch (SecondCheckedException | ThirdCheckedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @SuppressWarnings("RedundantThrows")
     private static class Target {
         Target() {
         }
@@ -182,9 +253,42 @@ public class AccessTargetTest {
         @QueriedAnnotation
         void called() {
         }
+
+        void withoutThrowsDeclaration() {
+        }
+
+        void withASingleThrowsDeclaration() throws FirstCheckedException {
+        }
+
+        void withMultipleThrowsDeclarations() throws FirstCheckedException, SecondCheckedException {
+        }
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     private @interface QueriedAnnotation {
+    }
+
+    private interface A {
+        void diamondMethod() throws FirstCheckedException, SecondCheckedException, ThirdCheckedException;
+    }
+
+    @SuppressWarnings("unused")
+    private interface B {
+        void diamondMethod() throws SecondCheckedException, ThirdCheckedException, FourthCheckedException;
+    }
+
+    private interface C extends A, B {
+    }
+
+    private static class FirstCheckedException extends Exception {
+    }
+
+    private static class SecondCheckedException extends Exception {
+    }
+
+    private static class ThirdCheckedException extends Exception {
+    }
+
+    private static class FourthCheckedException extends Exception {
     }
 }

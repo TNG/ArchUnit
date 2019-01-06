@@ -37,6 +37,7 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import org.objectweb.asm.Type;
 
@@ -80,7 +81,8 @@ public class ImportTestUtils {
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
                     .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
+                    .withThrowsClause(typesFrom(method.getExceptionTypes())));
         }
         return methodBuilders;
     }
@@ -95,7 +97,8 @@ public class ImportTestUtils {
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
                     .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations(), importedClasses))
-                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers())));
+                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
+                    .withThrowsClause(typesFrom(constructor.getExceptionTypes())));
         }
         return constructorBuilders;
     }
@@ -412,7 +415,17 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
     }

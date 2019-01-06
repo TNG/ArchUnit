@@ -2,6 +2,7 @@ package com.tngtech.archunit.integration;
 
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -81,6 +82,7 @@ import com.tngtech.archunit.example.persistence.WrongSecurityCheck;
 import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
 import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
+import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.security.Secured;
 import com.tngtech.archunit.example.service.ServiceHelper;
 import com.tngtech.archunit.example.service.ServiceInterface;
@@ -507,6 +509,10 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager")
                         .toMethod(ServiceViolatingDaoRules.MyEntityManager.class, "persist", Object.class)
                         .inLine(27))
+
+                .ofRule("classes that have name matching '.*Dao' "
+                        + String.format("should not contain methods throwing %s", SQLException.class.getName()))
+                .by(ExpectedMethod.of(OtherDao.class, "testConnection").throwsException(SQLException.class))
 
                 .toDynamicTests();
     }

@@ -56,11 +56,14 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.Source;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
+import com.tngtech.archunit.core.importer.testexamples.FirstCheckedException;
 import com.tngtech.archunit.core.importer.testexamples.OtherClass;
+import com.tngtech.archunit.core.importer.testexamples.SecondCheckedException;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
@@ -108,6 +111,7 @@ import com.tngtech.archunit.core.importer.testexamples.complexexternal.ParentCla
 import com.tngtech.archunit.core.importer.testexamples.complexmethodimport.ClassWithComplexMethod;
 import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithComplexConstructor;
 import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithSimpleConstructors;
+import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithThrowingConstructor;
 import com.tngtech.archunit.core.importer.testexamples.dependents.ClassDependingOnParentThroughChild;
 import com.tngtech.archunit.core.importer.testexamples.dependents.ClassHoldingDependencies;
 import com.tngtech.archunit.core.importer.testexamples.dependents.FirstClassWithDependency;
@@ -150,6 +154,7 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependi
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
+import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithThrowingMethod;
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
@@ -546,6 +551,16 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_methods_with_correct_throws_declarations() throws Exception {
+        JavaMethod method = classesIn("testexamples/methodimport").get(ClassWithThrowingMethod.class).getMethod("throwExceptions");
+
+        assertThat(method.getThrowsClause())
+                .as("Throws types of method 'throwsExceptions'")
+                .matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThat(method.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
+    }
+
+    @Test
     public void imports_methods_with_one_annotation_correctly() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
@@ -758,6 +773,16 @@ public class ClassFileImporterTest {
         assertThat(clazz.getConstructor(String.class, long.class, long.class, Serializable.class, Serializable.class))
                 .isEquivalentTo(ClassWithComplexConstructor.class.getDeclaredConstructor(
                         String.class, long.class, long.class, Serializable.class, Serializable.class));
+    }
+
+    @Test
+    public void imports_constructor_with_correct_throws_declarations() throws Exception {
+        JavaClass clazz = classesIn("testexamples/constructorimport").get(ClassWithThrowingConstructor.class);
+
+        JavaConstructor constructor = getOnlyElement(clazz.getConstructors());
+        assertThat(constructor.getThrowsClause()).as("Throws types of sole constructor")
+                .matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThat(constructor.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
     }
 
     @Test
@@ -1640,12 +1665,31 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_which_method_throws_clauses_contain_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithThrowingMethod.class, FirstCheckedException.class);
+
+        Set<ThrowsDeclaration<JavaMethod>> throwsDeclarations = classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf();
+        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingMethod.class);
+        assertThat(classes.get(FirstCheckedException.class).getConstructorsWithParameterTypeOfSelf()).isEmpty();
+    }
+
+    @Test
     public void classes_know_which_constructors_have_their_type_as_parameter() {
         JavaClasses classes = new ClassFileImporter().importClasses(SomeClass.class, OtherClass.class, SomeEnum.class);
 
         assertThat(classes.get(SomeEnum.class).getConstructorsWithParameterTypeOfSelf())
                 .extracting("owner").extracting("name")
                 .contains(SomeClass.class.getName(), OtherClass.class.getName());
+    }
+
+    @Test
+    public void classes_know_which_constructor_throws_clauses_contain_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithThrowingConstructor.class, FirstCheckedException.class);
+
+        Set<ThrowsDeclaration<JavaConstructor>> throwsDeclarations =
+                classes.get(FirstCheckedException.class).getConstructorsWithThrowsDeclarationTypeOfSelf();
+        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingConstructor.class);
+        assertThat(classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
     }
 
     @Test

@@ -34,6 +34,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public final class JavaConstructor extends JavaCodeUnit {
     private final Supplier<Constructor<?>> constructorSupplier;
+    private final ThrowsClause<JavaConstructor> throwsClause;
     private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
     @PublicAPI(usage = ACCESS)
@@ -41,7 +42,13 @@ public final class JavaConstructor extends JavaCodeUnit {
 
     JavaConstructor(JavaConstructorBuilder builder) {
         super(builder);
+        throwsClause = builder.getThrowsClause(this);
         constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
+    }
+
+    @Override
+    public ThrowsClause<JavaConstructor> getThrowsClause() {
+        return throwsClause;
     }
 
     @Override
@@ -67,7 +74,7 @@ public final class JavaConstructor extends JavaCodeUnit {
     }
 
     @Override
-    String getDescription() {
+    public String getDescription() {
         return "Constructor <" + getFullName() + ">";
     }
 
