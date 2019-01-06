@@ -26,5 +26,12 @@ public class ExpectedMethod {
                     type.getName(),
                     clazz.getSimpleName()));
         }
+
+        public ExpectedMessage throwsException(Class<?> type) {
+            return new ExpectedMessage(String.format("%s throws %s in (%s.java:0)",
+                    formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
+                    type.getName(),
+                    clazz.getSimpleName()));
+        }
     }
 }
