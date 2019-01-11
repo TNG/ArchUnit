@@ -9,7 +9,7 @@ const init = (transitionDuration) => {
       return Promise.resolve();
     }
     else {
-      return new Promise(resolve => transitionRunner(transition).on('end', resolve));
+      return new Promise(resolve => transitionRunner(transition).on('end', () => resolve()));
     }
   };
 
@@ -23,39 +23,41 @@ const init = (transitionDuration) => {
       this._height = 0;
     }
 
-    render(rootRadius) {
-      this.renderSizeIfNecessary(rootRadius);
-      this.renderPosition(d3.select(this._translater), rootRadius);
+    render(halfWidth, halfHeight) {
+      this.renderSizeIfNecessary(halfWidth, halfHeight);
+      this.renderPosition(d3.select(this._translater), halfWidth, halfHeight);
     }
 
-    renderWithTransition(rootRadius) {
-      this.renderSizeIfNecessary(rootRadius);
-      return createPromiseOnEndOfTransition(d3.select(this._translater).transition().duration(transitionDuration), t => this.renderPosition(t, rootRadius));
+    renderWithTransition(halfWidth, halfHeight) {
+      this.renderSizeIfNecessary(halfWidth, halfHeight);
+      return createPromiseOnEndOfTransition(d3.select(this._translater).transition().duration(transitionDuration), t => this.renderPosition(t, halfWidth, halfHeight));
     }
 
-    renderSizeIfNecessary(rootRadius) {
+    renderSizeIfNecessary(halfWidth, halfHeight) {
       const windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-      const requiredSize = parseInt(2 * rootRadius + 4);
-      const expandedSize = parseInt(2 * rootRadius + 4);
-      const minWidth = Math.max(windowWidth, requiredSize);
-      const maxWidth = Math.max(windowWidth, expandedSize);
-      const minHeight = Math.max(windowHeight, requiredSize);
-      const maxHeight = Math.max(windowHeight, expandedSize);
+      const requiredWidth = parseInt(2 * halfWidth + 4);
+      const expandedWidth = parseInt(2 * halfWidth + 4);
+      const requiredHeight = parseInt(2 * halfHeight + 4);
+      const expandedHeight = parseInt(2 * halfHeight + 4);
+      const minWidth = Math.max(windowWidth, requiredWidth);
+      const maxWidth = Math.max(windowWidth, expandedWidth);
+      const minHeight = Math.max(windowHeight, requiredHeight);
+      const maxHeight = Math.max(windowHeight, expandedHeight);
       if (minWidth > this._width || maxWidth < this._width) {
-        this._width = Math.max(expandedSize, windowWidth);
+        this._width = Math.max(expandedWidth, windowWidth);
         d3.select(this._svg).attr('width', this._width);
       }
 
       if (minHeight > this._height || maxHeight < this._height) {
-        this._height = Math.max(expandedSize, windowHeight);
+        this._height = Math.max(expandedHeight, windowHeight);
         d3.select(this._svg).attr('height', this._height);
       }
     }
 
-    renderPosition(selection, rootRadius) {
+    renderPosition(selection, halfWidth, halfHeight) {
       return selection.attr('transform',
-        `translate(${parseInt(d3.select(this._svg).attr('width')) / 2 - rootRadius}, ${parseInt(d3.select(this._svg).attr('height')) / 2 - rootRadius})`);
+        `translate(${parseInt(d3.select(this._svg).attr('width')) / 2 - halfWidth}, ${parseInt(d3.select(this._svg).attr('height')) / 2 - halfHeight})`);
     }
   };
 

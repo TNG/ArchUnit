@@ -16,7 +16,8 @@ chai.use(generalExtensions);
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),
   calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub
+  NodeView: stubs.NodeViewStub,
+  RootView: stubs.NodeViewStub
 });
 const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
 const Root = appContext.getRoot();
@@ -24,7 +25,7 @@ const Root = appContext.getRoot();
 const MAXIMUM_DELTA = 0.0001;
 
 const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((acc, p) =>
-  ({x: acc.x + p.nodeCircle.relativePosition.x, y: acc.y + p.nodeCircle.relativePosition.y}), {x: 0, y: 0});
+  ({x: acc.x + p.nodeShape.relativePosition.x, y: acc.y + p.nodeShape.relativePosition.y}), {x: 0, y: 0});
 
 const doNext = (root, fun) => root._updatePromise.then(fun);
 
@@ -978,7 +979,8 @@ describe('Root', () => {
         .build())
       .build();
     let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), newFilterString => resultFilterString = newFilterString);
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    }, newFilterString => resultFilterString = newFilterString);
     root.getLinks = () => [];
     const filterCollection = buildFilterCollection()
       .addFilterGroup(root.filterGroup)
@@ -1011,7 +1013,8 @@ describe('Root', () => {
         .build())
       .build();
     let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), newFilterString => resultFilterString = newFilterString);
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    }, newFilterString => resultFilterString = newFilterString);
     root.getLinks = () => [];
     const filterCollection = buildFilterCollection()
       .addFilterGroup(root.filterGroup)
@@ -1048,7 +1051,8 @@ describe('Root', () => {
         .build())
       .build();
     let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), newFilterString => resultFilterString = newFilterString);
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    }, newFilterString => resultFilterString = newFilterString);
     root.getLinks = () => [];
     const filterCollection = buildFilterCollection()
       .addFilterGroup(root.filterGroup)
@@ -1289,59 +1293,173 @@ describe('Inner node or leaf', () => {
     nodeToDrag._drag(dx, dy);
     return doNext(root, () => {
       expect({
-        x: nodeToDrag.nodeCircle.relativePosition.x,
-        y: nodeToDrag.nodeCircle.relativePosition.y
+        x: nodeToDrag.nodeShape.relativePosition.x,
+        y: nodeToDrag.nodeShape.relativePosition.y
       }).to.deep.equal(expCoordinates);
       nodeToDrag.getSelfAndDescendants().forEach(node =>
         expect({
-          x: node.nodeCircle.absoluteCircle.x,
-          y: node.nodeCircle.absoluteCircle.y
+          x: node.nodeShape.absoluteCircle.x,
+          y: node.nodeShape.absoluteCircle.y
         }).to.deep.equal(getAbsolutePositionOfNode(node)));
       expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
       expect(listenerStub.onDragWasCalled()).to.equal(true);
     });
   });
 
-  it('can be dragged anywhere if it is a child of the root', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.relayoutCompletely();
-
-    const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass');
-    const dx = -100;
-    const dy = 100;
-    const expCoordinates = {x: dx, y: dy};
-    nodeToDrag._drag(dx, dy);
-    return doNext(root, () =>
-      expect({
-        x: nodeToDrag.nodeCircle.relativePosition.x,
-        y: nodeToDrag.nodeCircle.relativePosition.y
-      }).to.deep.equal(expCoordinates));
-  });
-
-  it('is shifted to the rim of the parent if it dragged out of its parent and the parent is not the root', () => {
+  it('can be dragged out of the circle of the parent: the radius of the parent is extended', () => {
     const jsonRoot = testRoot.package('com.tngtech.archunit')
       .add(testRoot.clazz('SomeClass', 'class').build())
       .add(testRoot.package('htmlvisualization')
         .add(testRoot.clazz('SomeClass', 'class').build())
         .build())
       .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    });
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
     root.relayoutCompletely();
+
     const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.SomeClass');
+    const parentOfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
 
-    nodeToDrag._drag(-50, 50);
     return doNext(root, () => {
-      const expD = Math.trunc(Math.sqrt(Math.pow(nodeToDrag.getParent().getRadius() - nodeToDrag.getRadius(), 2) / 2));
-      const expCoordinates = {x: -expD, y: expD};
+      const minDragDistance = parentOfDraggedNode.nodeShape.getRadius() - nodeToDrag.nodeShape.getRadius();
 
-      expect(nodeToDrag.nodeCircle.relativePosition).to.deep.closeTo(expCoordinates, MAXIMUM_DELTA);
+      const dx = -minDragDistance;
+      const dy = minDragDistance;
+      const expCoordinates = {x: dx, y: dy};
+
+      nodeToDrag._drag(dx, dy);
+      return doNext(root, () => {
+        expect({
+          x: nodeToDrag.nodeShape.relativePosition.x,
+          y: nodeToDrag.nodeShape.relativePosition.y
+        }).to.deep.equal(expCoordinates);
+
+        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.SomeClass', 'com.tngtech.archunit.htmlvisualization']);
+        expect(nodeToDrag).to.be.locatedWithinWithPadding(parentOfDraggedNode, circlePadding);
+      });
+    });
+  });
+
+  it('can be dragged out of the circle of the parent: the radius of the parent is extended and recursively of all predecessors of the parent, ' +
+    'so that every node is completely within its parent node', () => {
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('htmlvisualization')
+        .add(testRoot.package('pkg')
+          .add(testRoot.clazz('SomeClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    });
+    root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.pkg.SomeClass');
+    const predecessor1OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization.pkg');
+    const predecessor2OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
+
+    return doNext(root, () => {
+      const minDragDistance = predecessor2OfDraggedNode.nodeShape.getRadius() - nodeToDrag.nodeShape.getRadius();
+
+      const dx = -minDragDistance;
+      const dy = minDragDistance;
+      const expCoordinates = {x: dx, y: dy};
+
+      nodeToDrag._drag(dx, dy);
+      return doNext(root, () => {
+        expect({
+          x: nodeToDrag.nodeShape.relativePosition.x,
+          y: nodeToDrag.nodeShape.relativePosition.y
+        }).to.deep.equal(expCoordinates);
+
+        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.pkg.SomeClass', 'com.tngtech.archunit.htmlvisualization.pkg', 'com.tngtech.archunit.htmlvisualization']);
+        expect(nodeToDrag).to.be.locatedWithinWithPadding(predecessor1OfDraggedNode, circlePadding);
+        expect(predecessor1OfDraggedNode).to.be.locatedWithinWithPadding(predecessor2OfDraggedNode, circlePadding);
+      });
+    });
+  });
+
+  it('can be dragged out of the circle of the parent: the size of the root is extended, if some node would not be completely within ' +
+    'the root rectangle otherwise', () => {
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .add(testRoot.package('htmlvisualization')
+        .add(testRoot.package('pkg')
+          .add(testRoot.clazz('SomeClass', 'class').build())
+          .build())
+        .build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    });
+    root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.pkg.SomeClass');
+    const predecessor2OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
+
+    return doNext(root, () => {
+      const minDragDistance = Math.max(root.nodeShape.absoluteRect.halfWidth, root.nodeShape.absoluteRect.halfHeight) - nodeToDrag.nodeShape.getRadius() + 10;
+
+      const dx = -minDragDistance;
+      const dy = minDragDistance;
+      const expCoordinates = {x: dx, y: dy};
+
+      nodeToDrag._drag(dx, dy);
+      return doNext(root, () => {
+        expect({
+          x: nodeToDrag.nodeShape.relativePosition.x,
+          y: nodeToDrag.nodeShape.relativePosition.y
+        }).to.deep.equal(expCoordinates);
+
+        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.pkg.SomeClass',
+          'com.tngtech.archunit.htmlvisualization.pkg', 'com.tngtech.archunit.htmlvisualization', 'com.tngtech.archunit']);
+        expect(predecessor2OfDraggedNode).to.be.locatedWithinWithPadding(root, circlePadding);
+      });
+    });
+  });
+
+  it('can be dragged out of the root: as the root has a rectangular form, its width and/or height are extended', () => {
+    const jsonRoot = testRoot.package('com.tngtech.archunit')
+      .add(testRoot.clazz('SomeClass', 'class').build())
+      .build();
+    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+    });
+    root.getLinks = () => [];
+    root.getNodesWithDependencies = () => new Map();
+    const listenerStub = stubs.NodeListenerStub();
+    root.addListener(listenerStub);
+    root.relayoutCompletely();
+
+    const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass');
+
+    return doNext(root, () => {
+      const minDragDistance = Math.max(root.nodeShape.absoluteRect.halfWidth, root.nodeShape.absoluteRect.halfHeight) - nodeToDrag.nodeShape.getRadius() + 10;
+
+      const dx = -minDragDistance;
+      const dy = minDragDistance;
+      const expCoordinates = {x: dx, y: dy};
+
+      nodeToDrag._drag(dx, dy);
+      return doNext(root, () => {
+        expect({
+          x: nodeToDrag.nodeShape.relativePosition.x,
+          y: nodeToDrag.nodeShape.relativePosition.y
+        }).to.deep.equal(expCoordinates);
+
+        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit']);
+        expect(nodeToDrag).to.be.locatedWithinWithPadding(root, circlePadding);
+      });
     });
   });
 
@@ -1365,7 +1483,7 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -1373,7 +1491,7 @@ describe('Inner node or leaf', () => {
       return doNext(root, () => {
         const exp = [{
           overlappedNode: 'com.tngtech.archunit.pkgToBeOverlapped',
-          position: nodeToDrag.nodeCircle.absoluteCircle
+          position: nodeToDrag.nodeShape.absoluteCircle
         }];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
       });
@@ -1399,7 +1517,7 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [node.getFullName(), node]]);
 
     return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
       dragVector.norm(3 * circlePadding);
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -1429,7 +1547,7 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -1458,14 +1576,14 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[node1.getFullName(), node1], [node2.getFullName(), node2], [node3.getFullName(), node3]]);
 
     return doNext(root, () => {
-      const vectorToNode3 = Vector.between(node2.nodeCircle.relativePosition, node3.nodeCircle.relativePosition);
+      const vectorToNode3 = Vector.between(node2.nodeShape.relativePosition, node3.nodeShape.relativePosition);
       vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
       node2._drag(vectorToNode3.x, vectorToNode3.y);
 
       return doNext(root, () => {
-        const vectorToNode2 = Vector.between(node1.nodeCircle.relativePosition, node2.nodeCircle.relativePosition);
+        const vectorToNode2 = Vector.between(node1.nodeShape.relativePosition, node2.nodeShape.relativePosition);
         vectorToNode2.norm(vectorToNode2.length() - node2.getRadius());
-        const vectorToNode3 = Vector.between(node1.nodeCircle.relativePosition, node3.nodeCircle.relativePosition);
+        const vectorToNode3 = Vector.between(node1.nodeShape.relativePosition, node3.nodeShape.relativePosition);
         vectorToNode3.norm(vectorToNode3.length() - node3.getRadius());
         const dragVector = vectorToNode2.scale(0.5).add(vectorToNode3.scale(0.5));
 
@@ -1475,19 +1593,19 @@ describe('Inner node or leaf', () => {
           const exp = [
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.nodeCircle.absoluteCircle
+              position: node3.nodeShape.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node2.nodeCircle.absoluteCircle
+              position: node2.nodeShape.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass1',
-              position: node3.nodeCircle.absoluteCircle
+              position: node3.nodeShape.absoluteCircle
             },
             {
               overlappedNode: 'com.tngtech.archunit.SomeClass2',
-              position: node3.nodeCircle.absoluteCircle
+              position: node3.nodeShape.absoluteCircle
             }
           ];
           expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -1515,7 +1633,7 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[nodeToOverlap.getFullName(), nodeToOverlap], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
-      const dragVector = Vector.between(nodeToOverlap.nodeCircle.absoluteCircle, nodeToBeOverlapped.nodeCircle.absoluteCircle);
+      const dragVector = Vector.between(nodeToOverlap.nodeShape.absoluteCircle, nodeToBeOverlapped.nodeShape.absoluteCircle);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -1524,7 +1642,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.ClassToBeOverlapped',
-            position: nodeToOverlap.nodeCircle.absoluteCircle
+            position: nodeToOverlap.nodeShape.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -1550,7 +1668,7 @@ describe('Inner node or leaf', () => {
     root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
 
     return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeCircle.relativePosition, nodeToBeOverlapped.nodeCircle.relativePosition);
+      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
       dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
 
       nodeToDrag._drag(dragVector.x, dragVector.y);
@@ -1559,7 +1677,7 @@ describe('Inner node or leaf', () => {
         const exp = [
           {
             overlappedNode: 'com.tngtech.archunit.SomeClass$InnerClass1',
-            position: nodeToDrag.nodeCircle.absoluteCircle
+            position: nodeToDrag.nodeShape.absoluteCircle
           }
         ];
         expect(listenerStub.overlappedNodesAndPosition()).to.deep.equal(exp);
@@ -1612,7 +1730,7 @@ describe('Node layout', () => {
     return doNext(root, () => {
       root._callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.nodeCircle.absoluteCircle).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
+        expect(node.nodeShape.absoluteShape.position).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
       });
     });
   });
@@ -1622,11 +1740,11 @@ describe('Node layout', () => {
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
-      root._callOnEveryDescendantThenSelf(node => {
-        expect(node.nodeCircle.absoluteCircle.fx).to.not.be.undefined;
-        expect(node.nodeCircle.absoluteCircle.fy).to.not.be.undefined;
-        expect(node.nodeCircle.absoluteCircle.isFixed()).to.be.true;
-      });
+      root.getCurrentChildren().forEach(c => c._callOnEveryDescendantThenSelf(node => {
+        expect(node.nodeShape.absoluteShape.fx).to.not.be.undefined;
+        expect(node.nodeShape.absoluteShape.fy).to.not.be.undefined;
+        expect(node.nodeShape.absoluteShape.position.fixed).to.be.true;
+      }));
     });
   });
 
@@ -1652,7 +1770,7 @@ describe('Node layout', () => {
     root.relayoutCompletely();
     root.relayoutCompletely();
     return root._updatePromise.then(() => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(movedNodes);
+      expect(root._getDescendants()).to.containExactlyNodes(movedNodes);
     });
   });
 
@@ -1668,7 +1786,9 @@ describe('Node layout', () => {
       expect(onRadiusChangedWasCalled).to.equal(true);
       root._callOnEveryDescendantThenSelf(node => {
         expect(node._view.hasMovedToPosition).to.equal(true);
-        expect(node._view.hasMovedToRadius).to.equal(true);
+        if (!node.isRoot()) {
+          expect(node._view.hasMovedToRadius).to.equal(true);
+        }
       });
     });
   });
@@ -1689,23 +1809,20 @@ describe('Node layout', () => {
 
   it('should put the text at the correct position in the circle: for leaves in the middle, for inner nodes at the top ' +
     'and for the root at the very top; furthermore the text must be within the circle (except for the root)', () => {
-    const nodeFontsize = appContext.getVisualizationStyles().getNodeFontSize();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.relayoutCompletely();
     return doNext(root, () => {
       root._callOnEveryDescendantThenSelf(node => {
-        if (node.isRoot()) {
-          expect(node._view.textOffset).to.closeTo(-node.getRadius() + nodeFontsize, MAXIMUM_DELTA);
-        }
-        else if (node.isCurrentlyLeaf()) {
-          expect(node._view.textOffset).to.equal(0);
-          expect(node.getNameWidth() / 2).to.be.at.most(node.getRadius());
-        }
-        else {
-          const halfTextWith = node.getNameWidth() / 2;
-          const offset = node._view.textOffset;
-          expect(Math.sqrt(halfTextWith * halfTextWith + offset * offset)).to.be.at.most(node.getRadius());
+        if (!node.isRoot()) {
+          if (node.isCurrentlyLeaf()) {
+            expect(node._view.textOffset).to.equal(0);
+            expect(node.getNameWidth() / 2).to.be.at.most(node.getRadius());
+          } else {
+            const halfTextWith = node.getNameWidth() / 2;
+            const offset = node._view.textOffset;
+            expect(Math.sqrt(halfTextWith * halfTextWith + offset * offset)).to.be.at.most(node.getRadius());
+          }
         }
       });
     });

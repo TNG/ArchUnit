@@ -14,6 +14,7 @@ const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub,
+  RootView: stubs.NodeViewStub,
   DependencyView: stubs.DependencyViewStub
 });
 const Root = appContext.getRoot();

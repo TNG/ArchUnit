@@ -33,6 +33,10 @@ const Vector = class {
     return condition ? this.revert() : this;
   }
 
+  relativeTo(position) {
+    return Vector.from(this).sub(position);
+  }
+
   isWithinCircle(vector, radius) {
     return Vector.between(this, vector).length() <= radius;
   }
@@ -93,7 +97,41 @@ const Vector = class {
   }
 };
 
+const FixableVector = class extends Vector {
+  constructor(x, y) {
+    super(x, y);
+    this._fixed = false;
+  }
+
+  fix() {
+    this._fixed = true;
+    this._updateFixPosition();
+  }
+
+  get fixed() {
+    return this._fixed;
+  }
+
+  unfix() {
+    this._fixed = false;
+    this.fx = undefined;
+    this.fy = undefined;
+  }
+
+  _updateFixPosition() {
+    if (this._fixed) {
+      this.fx = this.x;
+      this.fy = this.y;
+    }
+  }
+
+  changeTo(position) {
+    super.changeTo(position);
+    this._updateFixPosition();
+  }
+};
+
 const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
 const zeroVector = new Vector(0, 0);
 
-module.exports = {Vector, vectors};
+module.exports = {Vector, FixableVector, vectors};

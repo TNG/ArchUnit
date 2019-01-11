@@ -17,7 +17,8 @@ const CIRCLE_PADDING = 30;
 const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(CIRCLE_PADDING),
   calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub
+  NodeView: stubs.NodeViewStub,
+  RootView: stubs.NodeViewStub //FIXME: necessary??
 });
 
 const Root = appContext.getRoot();
@@ -217,11 +218,11 @@ describe('GroupedDependency', () => {
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {
-    node.nodeCircle.relativePosition.x = x;
-    node.nodeCircle.absoluteCircle.x = node.getParent() ? node.getParent().nodeCircle.absoluteCircle.x + x : x;
-    node.nodeCircle.relativePosition.y = y;
-    node.nodeCircle.absoluteCircle.y = node.getParent() ? node.getParent().nodeCircle.absoluteCircle.y + y : y;
-    node.nodeCircle.absoluteCircle.r = r;
+    node.nodeShape.relativePosition.x = x;
+    node.nodeShape.absoluteCircle.x = node.getParent() ? node.getParent().nodeShape.absoluteShape.position.x + x : x;
+    node.nodeShape.relativePosition.y = y;
+    node.nodeShape.absoluteCircle.y = node.getParent() ? node.getParent().nodeShape.absoluteShape.position.y + y : y;
+    node.nodeShape.absoluteCircle.r = r;
   };
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {

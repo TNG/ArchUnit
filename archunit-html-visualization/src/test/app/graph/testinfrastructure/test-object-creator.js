@@ -8,6 +8,7 @@ const appContext = AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(10),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub,
+  RootView: stubs.NodeViewStub, //FIXME: maybe own stub??
   DependencyView: stubs.DependencyViewStub
 });
 

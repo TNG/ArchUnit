@@ -2,7 +2,7 @@
 
 const predicates = require('../infrastructure/predicates');
 const {vectors} = require('../infrastructure/vectors');
-const {NodeCircle, ZeroCircle} = require('./circles');
+const {NodeCircle, RootRect} = require('./node-shapes');
 const {buildFilterGroup} = require('../filter');
 
 const nodeTypes = require('./node-types.json');
@@ -14,7 +14,7 @@ const fullNameSeparators = {
   classSeparator: '$'
 };
 
-const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
+const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizationStyles) => {
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
@@ -33,21 +33,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
   };
 
   const Node = class {
-    constructor(jsonNode, svgContainer) {
+    constructor(jsonNode) {
       this.layer = layer++;
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
-      this._view = new View(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
-        () => this._root._addNodeToExcludeFilter(this.getFullName()));
       this._listeners = [];
     }
 
     //TODO: declare abstract methods and throw errors in them
-
-    getNameWidth() {
-      return this._view.getTextWidth();
-    }
 
     addListener(listener) {
       this._listeners.push(listener);
@@ -135,8 +129,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           return false;
         }
         return true;
-      }
-      else {
+      } else {
         childrenWithResults.filter(n => n.canBeHidden).forEach(n => n.node.fold());
         return false;
       }
@@ -190,18 +183,13 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     getRadius() {
-      return this.nodeCircle.getRadius();
+      return this.nodeShape.getRadius();
     }
 
     _updateViewOnCurrentChildrenChanged() {
       this._view.updateNodeType(this._getClass());
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
-    }
-
-    _hide() {
-      this._isVisible = false;
-      this._view.hide();
     }
 
     isVisible() {
@@ -218,19 +206,19 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
 
       const promises = [];
       if (this.isCurrentlyLeaf()) {
-        promises.push(this.nodeCircle.changeRadius(calculateDefaultRadius(this)));
+        promises.push(this.nodeShape.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.nodeCircle.moveToPosition(0, 0));
-        promises.push(this.nodeCircle.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+        promises.push(onlyChild.nodeShape.moveToPosition(0, 0));
+        promises.push(this.nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
           onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
-          r: c.nodeCircle.getRadius()
+          r: c.nodeShape.getRadius()
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.nodeCircle.changeRadius(r));
+        promises.push(this.nodeShape.changeRadius(r));
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -243,7 +231,7 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this.nodeCircle.jumpToRelativeDisplacement(dx, dy);
+        this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._listeners.forEach(listener => listener.onDrag(this));
         const allRelevantNodes = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
         const allRelevantNodesMap = new Map(allRelevantNodes.map(node => [node.getFullName(), node]));
@@ -261,40 +249,42 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         [...nodesMap.values()]
           .map(node => this._checkOverlappingWithSingleNode(node));
         removedNodes.forEach(node => nodesMap.set(node.getFullName(), node));
-      }
-      else {
+      } else {
         nodesMap.delete(this.getFullName());
       }
     }
 
     _checkOverlappingWithSingleNode(node) {
-      const middlePointDistance = vectors.distance(this.nodeCircle.absoluteCircle, node.nodeCircle.absoluteCircle);
+      const middlePointDistance = vectors.distance(this.nodeShape.absoluteCircle, node.nodeShape.absoluteCircle);
       const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
       const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
       if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
         this._listeners.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
-          sortedNodes.second.nodeCircle.absoluteCircle));
+          sortedNodes.second.nodeShape.absoluteCircle));
       }
     }
   };
 
   const Root = class extends Node {
-    constructor(jsonNode, svgContainer, onRadiusChanged, onNodeFilterStringChanged) {
-      super(jsonNode, svgContainer);
+    constructor(jsonNode, svgContainer, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
+      super(jsonNode);
+
+      this._view = new RootView(svgContainer, this);
+
       this._root = this;
       this._parent = this;
 
       this._onNodeFilterStringChanged = onNodeFilterStringChanged;
       this._nameFilterString = '';
 
-      this.nodeCircle = new NodeCircle(this,
+      this.nodeShape = new RootRect(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
-          onRadiusChanged: () => Promise.all([this._view.changeRadius(this.nodeCircle.getRadius(), this._text.getY()), onRadiusChanged(this.getRadius())]),
-          onMovedToPosition: () => this._view.moveToPosition(this.nodeCircle.relativePosition).then(() => this._view.showIfVisible(this)),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeCircle.relativePosition)
-        },
-        new ZeroCircle(this.getFullName()));
+          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeShape.relativePosition),
+          onRadiusChanged: () => onSizeChanged(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight),
+          onRadiusSet: () => this._listeners.forEach(listener => listener.onDrag(this)),
+          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition),
+          onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
+        });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
       this._setFilteredChildren(this._originalChildren);
@@ -325,12 +315,15 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           if (mustRelayout) {
             mustRelayout = false;
             return this._relayoutCompletely();
-          }
-          else {
+          } else {
             return Promise.resolve();
           }
         });
       }
+    }
+
+    getNameWidth() {
+      return 0;
     }
 
     get filterGroup() {
@@ -443,16 +436,11 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
     }
 
     _relayoutCompletely() {
-      this._callOnSelfThenEveryDescendant(node => node.nodeCircle.absoluteCircle.unfix());
+      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node.nodeShape.absoluteCircle.position.unfix()));
+
       const promiseInitialLayout = this._initialLayout();
       const promiseForceLayout = this._forceLayout();
       return Promise.all([promiseInitialLayout, promiseForceLayout]);
-    }
-
-    _initialLayout() {
-      const layoutPromise = super._initialLayout();
-      const promise = this.nodeCircle.moveToPosition(this.getRadius(), this.getRadius()); // Shift root to the middle
-      return Promise.all([layoutPromise, promise]);
     }
 
     /**
@@ -484,20 +472,20 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
           && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
 
         const padding = visualizationStyles.getCirclePadding();
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.nodeCircle.absoluteCircle);
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.nodeShape.absoluteCircle);
         const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
         const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
         const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.nodeCircle.absoluteCircle)));
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.nodeShape.absoluteCircle)));
 
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.nodeCircle.takeAbsolutePosition(padding));
+          newNodesArray.forEach(node => node.nodeShape.takeAbsolutePosition(padding));
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.map(node => node.nodeCircle.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.map(node => node.nodeShape.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -506,32 +494,49 @@ const init = (View, NodeText, visualizationFunctions, visualizationStyles) => {
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k, onTick);
 
-        newNodesArray.forEach(node => node.nodeCircle.completeMoveToIntermediatePosition());
+        newNodesArray.forEach(node => node.nodeShape.completeMoveToIntermediatePosition());
         currentNodes = newNodes;
       }
 
       this._listeners.forEach(listener => promises.push(listener.onLayoutChanged()));
+
       return Promise.all(promises);
     }
   };
 
   const InnerNode = class extends Node {
     constructor(jsonNode, svgContainer, root, parent) {
-      super(jsonNode, svgContainer);
+      super(jsonNode);
+
+      this._view = new NodeView(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
+        () => this._root._addNodeToExcludeFilter(this.getFullName()));
+
       this._root = root;
       this._parent = parent;
       this._matchesFilter = new Map();
-      this.nodeCircle = new NodeCircle(this,
+      this.nodeShape = new NodeCircle(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeCircle.relativePosition),
-          onRadiusChanged: () => this._view.changeRadius(this.nodeCircle.getRadius(), this._text.getY()),
-          onMovedToPosition: () => this._view.moveToPosition(this.nodeCircle.relativePosition).then(() => this._view.showIfVisible(this)),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeCircle.relativePosition)
-        },
-        this._parent.nodeCircle.absoluteCircle);
+          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeShape.relativePosition),
+          onRadiusChanged: () => this._view.changeRadius(this.nodeShape.getRadius(), this._text.getY()),
+          onRadiusSet: () => {
+            this._view.setRadius(this.nodeShape.getRadius(), this._text.getY());
+            this._listeners.forEach(listener => listener.onDrag(this));
+          },
+          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
+        });
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    _hide() {
+      this._isVisible = false;
+      this._view.hide();
+    }
+
+    getNameWidth() {
+      return this._view.getTextWidth();
     }
 
     matchesFilter(key) {

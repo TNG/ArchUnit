@@ -7,7 +7,7 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('end', resolve));
 
   const createPromiseOnEndAndInterruptOfTransition = (transition, transitionRunner) =>
-    new Promise(resolve => transitionRunner(transition).on('interrupt', resolve).on('end', resolve));
+    new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
   const View = class {
     constructor(parentSvgElement, node, onClick, onDrag, onCtrlClick) {
@@ -20,18 +20,6 @@ const init = (transitionDuration) => {
       this._circle = d3.select(this._svgElement)
         .append('circle')
         .node();
-
-      if (node.isRoot()) {
-        d3.select(this._svgElement)
-          .select('circle')
-          .style('visibility', 'hidden');
-
-        document.onkeyup = event => {
-          if (event.key === 'Alt' || event.key === 'Control') {
-            node.relayoutCompletely();
-          }
-        }
-      }
 
       this._text = d3.select(this._svgElement)
         .append('text')

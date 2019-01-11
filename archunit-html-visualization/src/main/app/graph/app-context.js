@@ -11,17 +11,18 @@ const dependencies = require('./dependencies/dependencies');
 const textWidthCalculator = require('./infrastructure/text-width-calculator');
 const visualizationStyles = require('./visualization-styles');
 const nodeView = require('./nodes/node-view');
+const rootView = require('./nodes/root-view');
 const detailedDependencyView = require('./dependencies/detailed-dependency-view');
 const dependencyView = require('./dependencies/dependency-view');
 const graphView = require('./graph-view');
 
-const init = (getNodeView, getDependencyView, getGraphView, getVisualizationStyles) => {
+const init = (getNodeView, getRootView, getDependencyView, getGraphView, getVisualizationStyles) => {
 
   const getVisualizationFunctions = () => visualizationFunctions.newInstance();
 
   const getNodeText = () => nodeText.init(getVisualizationStyles());
 
-  const getRoot = () => node.init(getNodeView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
+  const getRoot = () => node.init(getNodeView(), getRootView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
 
   const getDependencies = () => dependencies.init(getDependencyView());
 
@@ -42,10 +43,11 @@ module.exports = {
     const getCalculateTextWidth = () => overrides.calculateTextWidth || textWidthCalculator;
     const getVisualizationStyles = () => overrides.visualizationStyles || visualizationStyles.fromEmbeddedStyleSheet();
     const getNodeView = () => overrides.NodeView || nodeView.init(TRANSITION_DURATION);
+    const getRootView = () => overrides.RootView || rootView.init(TRANSITION_DURATION);
     const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(TRANSITION_DURATION, getCalculateTextWidth(), getVisualizationStyles());
     const getDependencyView = () => overrides.DependencyView || dependencyView.init(getDetailedDependencyView(), TRANSITION_DURATION);
     const getGraphView = () => overrides.GraphView || graphView.init(TRANSITION_DURATION);
 
-    return init(getNodeView, getDependencyView, getGraphView, getVisualizationStyles);
+    return init(getNodeView, getRootView, getDependencyView, getGraphView, getVisualizationStyles);
   }
 };

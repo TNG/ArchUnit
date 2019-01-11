@@ -33,9 +33,7 @@ const NodeViewStub = class {
       this.hasMovedToPosition = true;
       return Promise.resolve();
     };
-    this.startMoveToPosition = () => {
-      return Promise.resolve();
-    };
+    this.startMoveToPosition = () => Promise.resolve();
     this.changeRadius = (r, textOffset) => {
       this.hasMovedToRadius = true;
       this.textOffset = textOffset;
@@ -95,6 +93,7 @@ const GraphViewStub = class {
 
 const createNodeListenerStub = () => {
   let _onDragWasCalled = false;
+  const _draggedNodes = [];
   let _foldedNode;
   let _initialFoldedNode = null;
   let _onLayoutChangedWasCalled = false;
@@ -102,12 +101,16 @@ const createNodeListenerStub = () => {
   const overlappedNodesAndPosition = [];
 
   return {
-    onDrag: () => _onDragWasCalled = true,
+    onDrag: (node) => {
+      _onDragWasCalled = true;
+      _draggedNodes.push(node.getFullName());
+    },
     onFold: node => _foldedNode = node,
     onLayoutChanged: () => _onLayoutChangedWasCalled = true,
     onInitialFold: node => _initialFoldedNode = node,
 
     onDragWasCalled: () => _onDragWasCalled,
+    draggedNodes: () => _draggedNodes,
     foldedNode: () => _foldedNode,
     initialFoldedNode: () => _initialFoldedNode,
     onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled,
