@@ -7,12 +7,12 @@ circle {
 }
 
 .package circle {
-    fill: #FF0000;
+    fill: #0064A6;
     fill-opacity: 0.25;
 }
 
 .class circle, .abstractclass circle, .interface circle {
-    fill: #98AFC7;
+    fill: #A2A7AE;
     fill-opacity: 1;
 }
 
@@ -81,7 +81,7 @@ line.methodCall {
 }
 
 tspan.methodCall {
-    fill: #0000FF;
+    fill: black;
 }
 
 line.fieldAccess {
@@ -89,7 +89,7 @@ line.fieldAccess {
 }
 
 tspan.fieldAccess {
-    fill: #FFFF00;
+    fill: black;
 }
 
 line.constructorCall {
@@ -97,7 +97,7 @@ line.constructorCall {
 }
 
 tspan.constructorCall {
-    fill: #FFA500;
+    fill: black;
 }
 
 line.implementsAnonymous {
@@ -106,7 +106,7 @@ line.implementsAnonymous {
 }
 
 tspan.implementsAnonymous {
-    fill: #00FFCC;
+    fill: black;
 }
 
 line.childrenAccess {
