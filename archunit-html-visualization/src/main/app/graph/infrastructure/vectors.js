@@ -34,7 +34,7 @@ const Vector = class {
   }
 
   relativeTo(position) {
-    return Vector.from(this).sub(position);
+    return Vector.from(this).subtract(position);
   }
 
   isWithinCircle(vector, radius) {
@@ -78,7 +78,7 @@ const Vector = class {
     return this.scale(scale / length);
   }
 
-  sub(vector = zeroVector) {
+  subtract(vector = zeroVector) {
     this.x -= vector.x;
     this.y -= vector.y;
     return this;
@@ -90,10 +90,6 @@ const Vector = class {
 
   static between(originPoint, targetPoint) {
     return new Vector(targetPoint.x - originPoint.x, targetPoint.y - originPoint.y);
-  }
-
-  static zeroVector() {
-    return new Vector(0, 0);
   }
 };
 

@@ -60,7 +60,7 @@ const saveMovedDependenciesTo = arr => movedDependencies = arr;
 
 const DependencyViewStub = class {
   constructor() {
-    this.isVisible = true;
+    this.refreshWasCalled = false;
     this.hasJumpedToPosition = false;
     this.hasMovedToPosition = false;
 
@@ -71,7 +71,8 @@ const DependencyViewStub = class {
       this.hasJumpedToPosition = true;
       this.isVisible = dependency.isVisible();
     };
-    this._showIfVisible = () => {
+    this.refresh = () => {
+      this.refreshWasCalled = true;
     };
     this.moveToPositionAndShowIfVisible = dependency => {
       this.hasMovedToPosition = true;

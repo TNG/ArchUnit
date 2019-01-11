@@ -1,7 +1,6 @@
 'use strict';
 
 const predicates = require('../infrastructure/predicates');
-const {vectors} = require('../infrastructure/vectors');
 const {NodeCircle, RootRect} = require('./node-shapes');
 const {buildFilterGroup} = require('../filter');
 
@@ -196,6 +195,10 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       return this._isVisible;
     }
 
+    overlapsWith(otherNode) {
+      return this.nodeShape.overlapsWith(otherNode.nodeShape);
+    }
+
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
@@ -233,35 +236,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._root.doNextAndWaitFor(() => {
         this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._listeners.forEach(listener => listener.onDrag(this));
-        const allRelevantNodes = this._root._getDescendants().filter(node => node._description.type !== nodeTypes.package || node.isFolded());
-        const allRelevantNodesMap = new Map(allRelevantNodes.map(node => [node.getFullName(), node]));
-        const nodesHavingDeps = this._root.getNodesWithDependencies(); //subset of allRelevantNodes
-        this._listeners.forEach(listener => listener.resetNodesOverlapping());
-        allRelevantNodes.forEach(node => node._checkOverlappingWithNodesIfHavingDeps(allRelevantNodesMap, nodesHavingDeps));
-        this._listeners.forEach(listener => listener.finishOnNodesOverlapping());
       });
-    }
-
-    _checkOverlappingWithNodesIfHavingDeps(nodesMap, nodesHavingDepsMap) {
-      if (nodesHavingDepsMap.has(this.getFullName())) {
-        const removedNodes = [];
-        this._callOnSelfThenEveryDescendant(node => nodesMap.delete(node.getFullName()) && node !== this ? removedNodes.push(node) : {});
-        [...nodesMap.values()]
-          .map(node => this._checkOverlappingWithSingleNode(node));
-        removedNodes.forEach(node => nodesMap.set(node.getFullName(), node));
-      } else {
-        nodesMap.delete(this.getFullName());
-      }
-    }
-
-    _checkOverlappingWithSingleNode(node) {
-      const middlePointDistance = vectors.distance(this.nodeShape.absoluteCircle, node.nodeShape.absoluteCircle);
-      const areOverlapping = middlePointDistance <= this.getRadius() + node.getRadius();
-      const sortedNodes = this.layer < node.layer ? {first: this, second: node} : {first: node, second: this};
-      if (areOverlapping && sortedNodes.second._description.type !== nodeTypes.package) {
-        this._listeners.forEach(listener => listener.onNodesOverlapping(sortedNodes.first.getFullName(),
-          sortedNodes.second.nodeShape.absoluteCircle));
-      }
     }
   };
 

@@ -11,6 +11,9 @@ const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
     .attr('y2', visualData.endPoint.y);
 };
 
+const getCssClass = (dependency) => 'dependency' + (dependency.isViolation ? ' violation' : '');
+
+// FIXME: Write test for relevant logic (like style changes on property changes -> violation)
 const init = (DetailedView, transitionDuration) => {
 
   const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
@@ -24,6 +27,7 @@ const init = (DetailedView, transitionDuration) => {
 
   const View = class {
     constructor(parentSvgElement, dependency, callForAllViews, getDetailedDependencies) {
+      this._dependency = dependency;
       this._svgElement =
         d3.select(parentSvgElement)
           .append('g')
@@ -33,7 +37,7 @@ const init = (DetailedView, transitionDuration) => {
 
       d3.select(this._svgElement)
         .append('line')
-        .attr('class', dependency.getProperties());
+        .attr('class', getCssClass(this._dependency));
 
       d3.select(this._svgElement)
         .append('line')
@@ -51,10 +55,10 @@ const init = (DetailedView, transitionDuration) => {
       this.onMouseOut(() => this._detailedView.fadeOut());
     }
 
-    _show(dependency) {
-      d3.select(this._svgElement).select('line.dependency').attr('class', dependency.getProperties());
+    show() {
+      d3.select(this._svgElement).select('line.dependency').attr('class', getCssClass(this._dependency));
       d3.select(this._svgElement).style('visibility', 'visible');
-      d3.select(this._svgElement).select('line.area').style('pointer-events', dependency.hasDetailedDescription() ? 'all' : 'none');
+      d3.select(this._svgElement).select('line.area').style('pointer-events', this._dependency.hasDetailedDescription() ? 'all' : 'none');
     }
 
     hide() {
@@ -62,9 +66,11 @@ const init = (DetailedView, transitionDuration) => {
       d3.select(this._svgElement).select('line.area').style('pointer-events', 'none');
     }
 
-    _showIfVisible(dependency) {
-      if (dependency.isVisible()) {
-        this._show(dependency);
+    refresh() {
+      if (this._dependency.isVisible()) {
+        this.show();
+      } else {
+        this.hide();
       }
     }
 
@@ -75,14 +81,14 @@ const init = (DetailedView, transitionDuration) => {
     jumpToPositionAndShowIfVisible(dependency) {
       positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), dependency.visualData);
       this._updateAreaPosition(dependency.visualData);
-      this._showIfVisible(dependency);
+      this.refresh();
     }
 
     moveToPositionAndShowIfVisible(dependency) {
       const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
       const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, dependency.visualData));
       this._updateAreaPosition(dependency.visualData);
-      return promise.then(() => this._showIfVisible(dependency));
+      return promise.then(() => this.refresh());
     }
 
     onMouseOver(parentSvgElement, handler) {

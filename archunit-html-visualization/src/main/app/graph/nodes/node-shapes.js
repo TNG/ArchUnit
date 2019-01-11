@@ -161,6 +161,10 @@ const NodeCircle = class extends NodeShape {
     }
     this._listener.onRadiusSet();
   }
+
+  overlapsWith(otherCircle) {
+    return this.absoluteCircle.overlapsWith(otherCircle.absoluteCircle);
+  }
 };
 
 module.exports = {NodeCircle, RootRect};

@@ -2,8 +2,6 @@
 
 const {Vector, vectors} = require('../infrastructure/vectors');
 
-const OVERLAP_DELTA = 0.1;
-
 const coloredDependencyTypes = new Set();
 const dashedDependencyTypes = new Set();
 
@@ -127,7 +125,7 @@ const init = (View) => {
       super(originNode, targetNode, type, '', '', isViolation);
       this._view = new View(svgElement, this, callForAllViews, () =>
         getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
-      this._isVisible = false;
+      this._isVisible = true;
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(this),
         onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible(this)
@@ -154,29 +152,24 @@ const init = (View) => {
 
     hide() {
       this._isVisible = false;
-      this._view.hide();
+      this._view.refresh();
+    }
+
+    show() {
+      this._isVisible = true;
+      this._view.refresh();
     }
 
     isVisible() {
       return this._isVisible;
     }
 
-    hideOnStartOverlapping(nodePosition) {
-      this._hideOnOverlapping(this.visualData.startPoint, nodePosition);
-    }
-
-    hideOnTargetOverlapping(nodePosition) {
-      this._hideOnOverlapping(this.visualData.endPoint, nodePosition);
-    }
-
-    _hideOnOverlapping(point, nodePosition) {
-      if (point.isWithinCircle(nodePosition, nodePosition.r + OVERLAP_DELTA)) {
+    refresh() {
+      if (this.originNode.overlapsWith(this.targetNode)) {
         this.hide();
+      } else {
+        this.show();
       }
-    }
-
-    getProperties() {
-      return joinStrings(' ', 'dependency', this.isViolation ? 'violation' : '', this.type);
     }
 
     toString() {
@@ -211,18 +204,8 @@ const init = (View) => {
     }
   });
 
-  // FIXME: Why do we have to handle the identity case? In any case this should be moved into Dependency, if it makes sense...
-  //        Also: Why does !from.isPackage && !to.isPackage && !isIdentity imply that the dependency type is 'inner class'? -> needs to be clearer
   const shiftElementaryDependency = (dependency, newOriginNode, newTargetNode) => {
-    if (newOriginNode.isPackage() || newTargetNode.isPackage()) {
-      return new ElementaryDependency(newOriginNode, newTargetNode, '', '', dependency.isViolation);
-    }
-    if (newOriginNode.getFullName() === dependency.originNode.getFullName()
-      && newTargetNode.getFullName() === dependency.targetNode.getFullName()) {
-
-      return dependency;
-    }
-    return new ElementaryDependency(newOriginNode, newTargetNode, ownDependencyTypes.INNERCLASS_DEPENDENCY, '', dependency.isViolation);
+    return new ElementaryDependency(newOriginNode, newTargetNode, '', '', dependency.isViolation);
   };
 
   const createElementaryDependency = ({originNode, targetNode, type, description}) =>
@@ -232,6 +215,7 @@ const init = (View) => {
     createElementaryDependency,
     getUniqueDependency,
     shiftElementaryDependency,
+    // FIXME: 'own' dependency types -> default dependency types
     getOwnDependencyTypes: () => [...Object.values(ownDependencyTypes)]
   };
 };

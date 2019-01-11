@@ -18,4 +18,21 @@ describe('Circle', () => {
     const exp = new Vector(1.10940, 1.66410);
     expect(circle).to.deep.closeTo(exp, MAXIMUM_DELTA);
   });
+
+  it('detects overlap with another circle', () => {
+    let first = new Circle({x: 1, y: 1}, 0.5);
+    let second = new Circle({x: 1, y: -1}, 0.5);
+
+    expect(first.overlapsWith(second)).to.be.false;
+
+    first = new Circle({x: 1, y: 1}, 1);
+    second = new Circle({x: 1, y: -1}, 1);
+
+    expect(first.overlapsWith(second)).to.be.true;
+
+    first = new Circle({x: 0, y: 0}, 2);
+    second = new Circle({x: 1, y: 0}, 3);
+
+    expect(first.overlapsWith(second)).to.be.true;
+  });
 });

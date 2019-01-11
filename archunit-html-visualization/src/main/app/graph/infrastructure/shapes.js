@@ -2,10 +2,27 @@
 
 const {Vector, FixableVector} = require('../infrastructure/vectors');
 
+// FIXME: 'position' unclear -> centerPosition?
 const Shape = class {
 
   constructor(position) {
     this.position = position;
+  }
+
+  get x() {
+    return this.position.x;
+  }
+
+  get y() {
+    return this.position.y;
+  }
+
+  set x(value) {
+    this.position.x = value;
+  }
+
+  set y(value) {
+    this.position.y = value;
   }
 
   /**
@@ -37,6 +54,10 @@ const Circle = class extends Shape {
 
   translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
     enclosedCircle.position.norm(this.r - enclosedCircle.r - padding);
+  }
+
+  overlapsWith(otherCircle) {
+    return Vector.between(this, otherCircle).length() <= (this.r + otherCircle.r);
   }
 
   static from(vector, r) {
@@ -91,22 +112,6 @@ const CircleWithFixablePosition = class extends Circle {
   constructor(x, y, r, id) {
     super(new FixableVector(x, y), r);
     this.id = id;
-  }
-
-  get x() {
-    return this.position.x;
-  }
-
-  get y() {
-    return this.position.y;
-  }
-
-  set x(value) {
-    this.position.x = value;
-  }
-
-  set y(value) {
-    this.position.y = value;
   }
 
   get fx() {

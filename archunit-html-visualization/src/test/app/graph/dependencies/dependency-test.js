@@ -76,6 +76,19 @@ const dependencyParams = (originNode, targetNode, type) => ({
   description: `Class <${originNode}> (verb to ${type}) class <${targetNode}>`
 });
 
+const shiftEnds = (createFromDependency) => {
+  const testData = createRootWithTwoClassesInDifferentPackages();
+  const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+  const testDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
+
+  const testSetup = createFromDependency(testDependency);
+  testSetup.originalDependency = testSetup.originalDependency || testDependency;
+  testSetup.newOrigin = testSetup.newOrigin || testDependency.originNode.getParent();
+  testSetup.newTarget = testSetup.newTarget || testDependency.targetNode.getParent();
+  const shiftedDependency = dependencyCreator.shiftElementaryDependency(testSetup.originalDependency, testSetup.newOrigin, testSetup.newTarget);
+  return {originalDependency: testSetup.originalDependency, shiftedDependency};
+};
+
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {
     const testData = createRootWithTwoClasses();
@@ -85,24 +98,34 @@ describe('ElementaryDependency', () => {
     expect(dependency.targetNode).to.equal(testData.class2);
   });
 
-  it('can be shifted to one of the end-nodes: the same dependency should be returned', () => {
-    const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode, dependency.targetNode);
-    expect(act).to.equal(dependency);
+  it('can be shifted', () => {
+    const {originalDependency, shiftedDependency} = shiftEnds(dependency => ({
+      newOrigin: dependency.originNode.getParent(),
+      newTarget: dependency.targetNode.getParent()
+    }));
+
+    expect(shiftedDependency.originNode).to.equal(originalDependency.originNode.getParent());
+    expect(shiftedDependency.targetNode).to.equal(originalDependency.targetNode.getParent());
   });
 
-  it('can be shifted to one of the end-nodes\' parents if one of them is a package', () => {
-    const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode.getParent(), dependency.targetNode);
-    expect(act.description).to.equal('');
-    expect(act.type).to.equal('');
-    expect(act.isViolation).to.equal(false);
+  it('shifted dependencies retain violation property', () => {
+    const shiftedWithViolation = shiftEnds(dependency => ({
+      originalDependency: (() => {
+        dependency.isViolation = true;
+        return dependency;
+      })()
+    })).shiftedDependency;
+
+    expect(shiftedWithViolation.isViolation).to.be.true;
+
+    const shiftedWithoutViolation = shiftEnds(dependency => ({
+      originalDependency: (() => {
+        dependency.isViolation = false;
+        return dependency;
+      })()
+    })).shiftedDependency;
+
+    expect(shiftedWithoutViolation.isViolation).to.be.false;
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
@@ -110,19 +133,21 @@ describe('ElementaryDependency', () => {
     const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     dependency.isViolation = true;
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
+    const actual = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.originNode.getParent(), dependency.targetNode);
-    expect(act.isViolation).to.equal(true);
+    expect(actual.isViolation).to.equal(true);
   });
 
   it('can be shifted to one of the end-nodes\' parents if both are classes', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode, dependency.targetNode.getParent());
-    expect(act.type).to.equal('INNERCLASS_DEPENDENCY');
-    expect(act.isViolation).to.equal(false);
+    const newTarget = dependency.targetNode.getParent();
+    const actual = dependencyCreator.shiftElementaryDependency(dependency,
+      dependency.originNode, newTarget);
+    expect(actual.isViolation).to.equal(false);
+    expect(actual.originNode).to.equal(dependency.originNode);
+    expect(actual.targetNode).to.equal(newTarget);
   });
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
@@ -130,9 +155,9 @@ describe('ElementaryDependency', () => {
     const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
     dependency.isViolation = true;
-    const act = dependencyCreator.shiftElementaryDependency(dependency,
+    const actual = dependencyCreator.shiftElementaryDependency(dependency,
       dependency.originNode, dependency.targetNode.getParent());
-    expect(act.isViolation).to.equal(true);
+    expect(actual.isViolation).to.equal(true);
   });
 });
 
@@ -146,9 +171,9 @@ describe('GroupedDependency', () => {
 
     const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
-    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
-    expect(act).to.equal(groupedDependency);
-    expect(act.isViolation).to.equal(true);
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
+    expect(actual).to.equal(groupedDependency);
+    expect(actual.isViolation).to.equal(true);
   });
 
   it('has no detailed description and no types, if one of the end nodes is a package', () => {
@@ -163,27 +188,9 @@ describe('GroupedDependency', () => {
     const testData = createRootWithTwoClasses();
     const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
     const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'FIELD_ACCESS'));
-    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency]);
-    expect(act.hasDetailedDescription()).to.equal(true);
-  });
-
-  it('returns correct properties consisting of the violation-property', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    elementaryDependency.isViolation = true;
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
-    expect(groupedDependency.getProperties()).to.equal('dependency violation');
-  });
-
-  it('returns correct properties consisting only of the violation-property, if one end node is a package', () => {
-    const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    elementaryDependency.isViolation = true;
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2).byGroupingDependencies([elementaryDependency]);
-    expect(groupedDependency.getProperties()).to.equal('dependency violation');
+    expect(actual.hasDetailedDescription()).to.equal(true);
   });
 
   it('is created correctly from two elementary dependencies', () => {
@@ -191,9 +198,9 @@ describe('GroupedDependency', () => {
     const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
     const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
     const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
-    expect(act.hasDetailedDescription()).to.equal(true);
+    expect(actual.hasDetailedDescription()).to.equal(true);
   });
 
   it('is created correctly from three elementary dependencies', () => {
@@ -202,22 +209,9 @@ describe('GroupedDependency', () => {
     const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
     const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
     const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
-    expect(act.hasDetailedDescription()).to.equal(true);
-  });
-
-  it('returns correct properties consisting of the type names and the violation-property if one of the ' +
-    'elementary dependencies is a violation, when it is created correctly from three elementary dependencies', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
-    elementaryDependency2.isViolation = true;
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const act = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
-      .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
-    expect(act.getProperties()).to.equal('dependency violation');
+    expect(actual.hasDetailedDescription()).to.equal(true);
   });
 
   const setNodeVisualDataTo = (node, x, y, r) => {

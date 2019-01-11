@@ -14,7 +14,6 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();
-      this.root.getNodesWithDependencies = () => this.dependencies.getDistinctNodesHavingDependencies();
       this.root.getNodesInvolvedInVisibleViolations = () => this.dependencies.getNodesInvolvedInVisibleViolations();
       this.root.getHasNodeVisibleViolation = () => this.dependencies.getHasNodeVisibleViolation();
 

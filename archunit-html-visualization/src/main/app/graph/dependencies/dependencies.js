@@ -158,11 +158,11 @@ const init = (View) => {
       this._filterGroup = buildFilterGroup('dependencies', this.getFilterObject())
         .addStaticFilter('type', () => true)
         .withStaticFilterPrecondition(true)
-        .addDynamicFilter('nodeTypeAndName', () => this.getNodeTypeAndNameFilter())
+        .addDynamicFilter('nodeTypeAndName', () => this._getNodeTypeAndNameFilter())
         .withStaticFilterPrecondition(true)
         .addDynamicFilter('violations', () => this._violations.getFilter())
         .withStaticFilterPrecondition(false)
-        .addDynamicFilter('visibleNodes', () => this.getVisibleNodesFilter(), [])
+        .addDynamicFilter('visibleNodes', () => this._getVisibleNodesFilter(), [])
         .withStaticFilterPrecondition(true)
         .build();
 
@@ -198,7 +198,7 @@ const init = (View) => {
     //TODO: maybe keep only one dependency of possible mutual dependencies
     getAllLinks() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
-      const simpleDependencies = this.getVisible().map(dependency => createSimpleDependency(dependency.from, dependency.to));
+      const simpleDependencies = this._getVisibleDependencies().map(dependency => createSimpleDependency(dependency.from, dependency.to));
 
       const groupedTransferredSimpleDependencies = simpleDependencies.map(dep => {
         const sourceNode = nodes.getByName(dep.source);
@@ -254,6 +254,8 @@ const init = (View) => {
       return new Set(nodesInvolvedInViolations);
     }
 
+    // FIXME: Name is weird, hasVisibleViolations is true, if _violations (which is actually 'visibleViolations') is empty??
+    // Should graph know this?
     getHasNodeVisibleViolation() {
       const nodesInvolvedInVisibleViolations = this.getNodesInvolvedInVisibleViolations();
       return node => this._violations.isEmpty() || nodesInvolvedInVisibleViolations.has(node);
@@ -261,13 +263,15 @@ const init = (View) => {
 
     createListener() {
       return {
-        onDrag: node => this.jumpSpecificDependenciesToTheirPositions(node),
-        onFold: node => this.updateNodeFold(node),
-        onInitialFold: node => this.setInitialNodeFold(node),
-        onLayoutChanged: () => this.moveAllToTheirPositions(),
-        onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) => this._hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode),
-        resetNodesOverlapping: () => this._resetVisibility(),
-        finishOnNodesOverlapping: () => this.getVisible().forEach(d => d._view._showIfVisible(d))
+        onDrag: node => {
+          // FIXME: Bad naming, what's 'specific'??
+          this._jumpSpecificDependenciesToTheirPositions(node);
+          // FIXME: Only refresh participating dependencies?
+          this._getVisibleDependencies().forEach(d => d.refresh())
+        },
+        onFold: node => this._updateNodeFold(node),
+        onInitialFold: node => this._setNodeFold(node),
+        onLayoutChanged: () => this._moveAllToTheirPositions()
       }
     }
 
@@ -278,8 +282,8 @@ const init = (View) => {
       const transformedDependencies = applyTransformersOnDependencies(relevantTransformers, this._filtered);
       this._visibleDependencies = uniteDependencies(transformedDependencies,
         this._svgContainer,
-        fun => this.getVisible().forEach(d => fun(d._view)),
-        (from, to) => this.getDetailedDependenciesOf(from, to));
+        fun => this._getVisibleDependencies().forEach(d => fun(d._view)),
+        (from, to) => this._getDetailedDependenciesOf(from, to));
 
       this._setMustShareNodes();
       this._visibleDependencies.forEach(d => d._isVisible = true);
@@ -292,32 +296,19 @@ const init = (View) => {
       this._visibleDependencies.forEach(setMustShareNodes);
     }
 
-    _resetVisibility() {
-      this.getVisible().forEach(dependency => dependency._isVisible = true);
-    }
-
-    _hideDependenciesOnNodesOverlapping(fullNameOfOverlappedNode, positionOfOverlappingNode) {
-      this.getVisible().filter(d => d.from === fullNameOfOverlappedNode).forEach(dependency => dependency.hideOnStartOverlapping(positionOfOverlappingNode));
-      this.getVisible().filter(d => d.to === fullNameOfOverlappedNode).forEach(dependency => dependency.hideOnTargetOverlapping(positionOfOverlappingNode));
-    }
-
     _updateViewsOnVisibleDependenciesChanged(dependenciesBefore) {
-      arrayDifference(dependenciesBefore, this.getVisible()).forEach(d => d.hide());
+      arrayDifference(dependenciesBefore, this._getVisibleDependencies()).forEach(d => d.hide());
     }
 
-    jumpSpecificDependenciesToTheirPositions(node) {
-      this.getVisible().filter(d => node.isPredecessorOfNodeOrItself(nodes.getByName(d.from)) || node.isPredecessorOfNodeOrItself(nodes.getByName(d.to))).forEach(d => d.jumpToPosition());
+    _jumpSpecificDependenciesToTheirPositions(node) {
+      this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(nodes.getByName(d.from)) || node.isPredecessorOfNodeOrItself(nodes.getByName(d.to))).forEach(d => d.jumpToPosition());
     }
 
-    moveAllToTheirPositions() {
-      return this.doNext(() => Promise.all(this.getVisible().map(d => d.moveToPosition())));
+    _moveAllToTheirPositions() {
+      return this.doNext(() => Promise.all(this._getVisibleDependencies().map(d => d.moveToPosition())));
     }
 
-    setInitialNodeFold(node) {
-      this._setNodeFold(node);
-    }
-
-    updateNodeFold(node) {
+    _updateNodeFold(node) {
       this._setNodeFold(node);
       this.recreateVisible();
     }
@@ -330,14 +321,14 @@ const init = (View) => {
       }
     }
 
-    getNodeTypeAndNameFilter() {
+    _getNodeTypeAndNameFilter() {
       return d => {
         return nodes.getByName(d.from).matchesFilter('typeAndName')
           && nodes.getByName(d.to).matchesFilter('typeAndName');
       }
     }
 
-    getVisibleNodesFilter() {
+    _getVisibleNodesFilter() {
       return d => nodes.getByName(d.from).matchesFilter('combinedFilter') && nodes.getByName(d.to).matchesFilter('combinedFilter');
     }
 
@@ -348,16 +339,11 @@ const init = (View) => {
           || typeFilterConfig.INNERCLASS_DEPENDENCY);
     }
 
-    getVisible() {
+    _getVisibleDependencies() {
       return this._visibleDependencies;
     }
 
-    getDistinctNodesHavingDependencies() {
-      const nodeFullNames = this.getVisible().map(dep => dep.from).concat(this.getVisible().map(dep => dep.to));
-      return new Map(nodeFullNames.map(nodeFullName => [nodeFullName, nodes.getByName(nodeFullName)]));
-    }
-
-    getDetailedDependenciesOf(from, to) {
+    _getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);
         const startNode = nodes.getByName(depEnd);
