@@ -137,13 +137,13 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 };
 
 module.exports = {
-  init: (appContext, resources) => ({
+  init: (appContext) => ({
     create: (svgElement) => {
       const Graph = init(appContext.getRoot(), appContext.getDependencies(),
         appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
-      const {graph, violations} = resources.getResources();
-      return new Graph(graph, violations, svgElement);
+      const visualizationData = appContext.getVisualizationData();
+      return new Graph(visualizationData.jsonGraph, visualizationData.jsonViolations, svgElement);
     }
   })
 };

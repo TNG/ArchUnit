@@ -23,17 +23,17 @@ const initGraph = function () {
   }
 };
 
-const appContext = AppContext.newInstance({
+const appContextWith = (graph, violations) => AppContext.newInstance({
   visualizationStyles: stubs.visualizationStylesStub(30),
   calculateTextWidth: stubs.calculateTextWidthStub,
   NodeView: stubs.NodeViewStub,
   RootView: stubs.NodeViewStub,
   DependencyView: stubs.DependencyViewStub,
-  GraphView: stubs.GraphViewStub
-});
-
-const createResources = (graph, violations) => ({
-  getResources: () => ({graph, violations})
+  GraphView: stubs.GraphViewStub,
+  visualizationData: {
+    jsonGraph: graph,
+    jsonViolations: violations
+  }
 });
 
 describe('Graph', () => {
@@ -52,7 +52,7 @@ describe('Graph', () => {
   const jsonGraphWithTwoClasses = createTestGraph(jsonRootWithTwoClasses, jsonDependenciesOfTwoClass);
 
   it('creates a correct tree-structure with dependencies and a correct layout', () => {
-    const graph = initGraph(appContext, createResources(jsonGraphWithTwoClasses)).create();
+    const graph = initGraph(appContextWith(jsonGraphWithTwoClasses)).create();
 
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1',
       'com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2',
@@ -67,7 +67,7 @@ describe('Graph', () => {
   });
 
   it('initially folds all nodes', () => {
-    const graph = realInitGraph(appContext, createResources(jsonGraphWithTwoClasses)).create(null);
+    const graph = realInitGraph(appContextWith(jsonGraphWithTwoClasses)).create(null);
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
     const expDeps = ['com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2'];
 
@@ -91,7 +91,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
     const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
 
@@ -117,7 +117,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
     const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
 
@@ -143,7 +143,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
     const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
 
@@ -168,7 +168,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
 
     graph.filterDependenciesByType({
@@ -194,7 +194,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     const exp = ['com.tngtech.archunit.pkgToFold-com.tngtech.archunit.SomeClass2'];
 
     graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
@@ -215,7 +215,7 @@ describe('Graph', () => {
       .build();
     const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
 
-    const graph = initGraph(appContext, createResources(jsonGraph)).create();
+    const graph = initGraph(appContextWith(jsonGraph)).create();
     graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
     return graph.root._updatePromise.then(() => expect(graph.dependencies._getVisibleDependencies()[0]._view.hasJumpedToPosition).to.equal(true));
   });
@@ -243,7 +243,7 @@ describe('Graph', () => {
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
     }];
 
-    const graph = realInitGraph(appContext, createResources(jsonGraph, violations)).create(null);
+    const graph = realInitGraph(appContextWith(jsonGraph, violations)).create(null);
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violations[0]);
@@ -287,7 +287,7 @@ describe('Graph', () => {
         violations: ['<com.tngtech.pkg3.SomeOtherClass.startMethod()> FIELD_ACCESS to <com.tngtech.pkg1.pkg2.SomeClass2.targetField>']
       }];
 
-    const graph = initGraph(appContext, createResources(jsonGraph, violations)).create(null, false);
+    const graph = initGraph(appContextWith(jsonGraph, violations)).create(null, false);
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violations[0]);
@@ -331,7 +331,7 @@ describe('Graph', () => {
 
   it('can hide nodes that are not involved in violations and show them again', () => {
 
-    const graph = initGraph(appContext, createResources(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
+    const graph = initGraph(appContextWith(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
 
     return graph.root._updatePromise.then(() => {
       graph.dependencies.showViolations(violationsForThreeClasses[0]);
@@ -362,7 +362,7 @@ describe('Graph', () => {
 
   it('updates the nodes and dependencies, when the shown violation groups change and the option for hiding all ' +
     'nodes that are not involved in violations is enabled', () => {
-    const graph = initGraph(appContext, createResources(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
+    const graph = initGraph(appContextWith(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
 
     return graph.root._updatePromise.then(() => {
       graph.onHideNodesWithoutViolationsChanged(true);
