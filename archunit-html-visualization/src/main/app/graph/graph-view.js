@@ -1,35 +1,36 @@
 'use strict';
 
-const d3 = require('d3');
+const {svgSelect} = require('./infrastructure/gui-elements');
 
 const init = (transitionDuration) => {
-
-  const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
-    if (transition.empty()) {
-      return Promise.resolve();
-    } else {
-      return new Promise(resolve => transitionRunner(transition).on('end', () => resolve()));
-    }
-  };
-
   const View = class {
     constructor(svg) {
-      this._svg = svg;
-      this._translater = d3.select(this._svg).append('g').attr('id', 'translater').node();
-      this.svgElementForNodes = d3.select(this._translater).append('g').node();
-      this.svgElementForDependencies = d3.select(this._translater).append('g').node();
-      this._width = 0;
-      this._height = 0;
+      this._svgElement = svgSelect(svg);
+      this._svgElement.dimension = {width: 0, height: 0};
+      this._translater = this._svgElement.addGroup({
+        id: 'translater'
+      });
+      this.svgElementForNodes = this._translater.addGroup().domElement;
+      this.svgElementForDependencies = this._translater.addGroup().domElement;
     }
 
     render(halfWidth, halfHeight) {
       this.renderSizeIfNecessary(halfWidth, halfHeight);
-      this.renderPosition(d3.select(this._translater), halfWidth, halfHeight);
+      this._translater.translate(this._toAbsoluteCoordinates({
+        relativeX: halfWidth,
+        relativeY: halfHeight
+      }));
     }
 
     renderWithTransition(halfWidth, halfHeight) {
       this.renderSizeIfNecessary(halfWidth, halfHeight);
-      return createPromiseOnEndOfTransition(d3.select(this._translater).transition().duration(transitionDuration), t => this.renderPosition(t, halfWidth, halfHeight));
+      return this._translater.createTransitionWithDuration(transitionDuration)
+        .step(element => element.translate(this._toAbsoluteCoordinates(
+          {
+            relativeX: halfWidth,
+            relativeY: halfHeight
+          })))
+        .finish();
     }
 
     renderSizeIfNecessary(halfWidth, halfHeight) {
@@ -51,20 +52,20 @@ const init = (transitionDuration) => {
       const minHeight = Math.max(windowHeight, requiredHeight);
       const maxHeight = Math.max(windowHeight, expandedHeight);
 
-      if (this._width < minWidth || maxWidth < this._width) {
-        this._width = getNewSize(windowWidth, requiredWidth, maxWidth);
-        d3.select(this._svg).attr('width', this._width);
+      if (this._svgElement.width < minWidth || maxWidth < this._svgElement.width) {
+        this._svgElement.width = getNewSize(windowWidth, requiredWidth, maxWidth);
       }
 
-      if (this._height < minHeight || maxHeight < this._height) {
-        this._height = getNewSize(windowHeight, requiredHeight, maxHeight);
-        d3.select(this._svg).attr('height', this._height);
+      if (this._svgElement.height < minHeight || maxHeight < this._svgElement.height) {
+        this._svgElement.height = getNewSize(windowHeight, requiredHeight, maxHeight);
       }
     }
 
-    renderPosition(selection, halfWidth, halfHeight) {
-      return selection.attr('transform',
-        `translate(${parseInt(d3.select(this._svg).attr('width')) / 2 - halfWidth}, ${parseInt(d3.select(this._svg).attr('height')) / 2 - halfHeight})`);
+    _toAbsoluteCoordinates({relativeX, relativeY}) {
+      return {
+        x: this._svgElement.width / 2 - relativeX,
+        y: this._svgElement.height / 2 - relativeY
+      };
     }
   };
 
