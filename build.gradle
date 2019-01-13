@@ -106,7 +106,7 @@ ext {
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
 }
 
-task wrapper(type: Wrapper) {
+wrapper {
     gradleVersion = '4.7'
 }
 
