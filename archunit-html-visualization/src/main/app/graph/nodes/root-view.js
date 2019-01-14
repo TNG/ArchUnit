@@ -1,6 +1,7 @@
 'use strict';
 
 const d3 = require('d3');
+const {Vector} = require('../infrastructure/vectors');
 
 const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
@@ -22,11 +23,23 @@ const init = (transitionDuration) => {
       }
     }
 
-    jumpToPosition(position) {
+    jumpToPosition(position, directionVector) {
+      const container = d3.select('#container').node();
+
+      if (directionVector.x < 0) {
+        container.scrollLeft += position.x - this._position.x;
+      }
+      if (directionVector.y < 0) {
+        container.scrollTop += position.y - this._position.y;
+      }
+
       d3.select(this._svgElement).attr('transform', `translate(${position.x}, ${position.y})`);
+
+      this._position = Vector.from(position);
     }
 
     moveToPosition(position) {
+      this._position = Vector.from(position);
       return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }
 

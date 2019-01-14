@@ -7,8 +7,7 @@ const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
     if (transition.empty()) {
       return Promise.resolve();
-    }
-    else {
+    } else {
       return new Promise(resolve => transitionRunner(transition).on('end', () => resolve()));
     }
   };
@@ -34,23 +33,31 @@ const init = (transitionDuration) => {
     }
 
     renderSizeIfNecessary(halfWidth, halfHeight) {
+      const calcRequiredSize = halfSize => parseInt(2 * halfSize + 4);
+      const calcExpandedSize = halfSize => parseInt(2 * halfSize + 4);
+      const getNewSize = (windowSize, requiredSize, maxSize) => requiredSize < windowSize ? windowSize : maxSize;
+
       const windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-      const requiredWidth = parseInt(2 * halfWidth + 4);
-      const expandedWidth = parseInt(2 * halfWidth + 4);
-      const requiredHeight = parseInt(2 * halfHeight + 4);
-      const expandedHeight = parseInt(2 * halfHeight + 4);
+
+      const requiredWidth = calcRequiredSize(halfWidth);
+      const expandedWidth = calcExpandedSize(halfWidth);
+      const requiredHeight = calcRequiredSize(halfHeight);
+      const expandedHeight = calcExpandedSize(halfHeight);
+
       const minWidth = Math.max(windowWidth, requiredWidth);
       const maxWidth = Math.max(windowWidth, expandedWidth);
+
       const minHeight = Math.max(windowHeight, requiredHeight);
       const maxHeight = Math.max(windowHeight, expandedHeight);
-      if (minWidth > this._width || maxWidth < this._width) {
-        this._width = Math.max(expandedWidth, windowWidth);
+
+      if (this._width < minWidth || maxWidth < this._width) {
+        this._width = getNewSize(windowWidth, requiredWidth, maxWidth);
         d3.select(this._svg).attr('width', this._width);
       }
 
-      if (minHeight > this._height || maxHeight < this._height) {
-        this._height = Math.max(expandedHeight, windowHeight);
+      if (this._height < minHeight || maxHeight < this._height) {
+        this._height = getNewSize(windowHeight, requiredHeight, maxHeight);
         d3.select(this._svg).attr('height', this._height);
       }
     }

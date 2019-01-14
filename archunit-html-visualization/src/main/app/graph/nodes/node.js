@@ -254,7 +254,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
       this.nodeShape = new RootRect(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeShape.relativePosition),
+          onJumpedToPosition: directionVector => this._view.jumpToPosition(this.nodeShape.relativePosition, directionVector),
           onRadiusChanged: () => onSizeChanged(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight),
           onRadiusSet: () => this._listeners.forEach(listener => listener.onDrag(this)),
           onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition),
