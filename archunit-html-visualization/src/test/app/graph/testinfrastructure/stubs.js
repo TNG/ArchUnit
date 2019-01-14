@@ -59,7 +59,9 @@ let movedDependencies = [];
 const saveMovedDependenciesTo = arr => movedDependencies = arr;
 
 const DependencyViewStub = class {
-  constructor() {
+  constructor(svgElement, dependency) {
+    this._dependency = dependency;
+
     this.refreshWasCalled = false;
     this.hasJumpedToPosition = false;
     this.hasMovedToPosition = false;
@@ -67,18 +69,18 @@ const DependencyViewStub = class {
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
 
-    this.jumpToPositionAndShowIfVisible = dependency => {
+    this.jumpToPositionAndShowIfVisible = () => {
       this.hasJumpedToPosition = true;
-      this.isVisible = dependency.isVisible();
+      this.isVisible = this._dependency.isVisible();
     };
     this.refresh = () => {
       this.refreshWasCalled = true;
     };
-    this.moveToPositionAndShowIfVisible = dependency => {
+    this.moveToPositionAndShowIfVisible = () => {
       this.hasMovedToPosition = true;
-      this.isVisible = dependency.isVisible();
+      this.isVisible = this._dependency.isVisible();
       return new Promise(resolve => {
-        movedDependencies.push(dependency);
+        movedDependencies.push(this._dependency);
         setTimeout(resolve, 10);
       });
     };

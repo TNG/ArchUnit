@@ -15,12 +15,27 @@ const init = (transitionDuration) => {
         .attr('id', node.getFullName().replace(/\\$/g, '.-'))
         .node();
 
+      this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
+      this._svgElementForDependencies = d3.select(this._svgElement).append('g').node();
+      this._svgElementForCurrentNode = d3.select(this._svgElement).append('g').node();
 
       document.onkeyup = event => {
         if (event.key === 'Alt' || event.key === 'Control') {
           node.relayoutCompletely();
         }
       }
+    }
+
+    get svgElementForDependencies() {
+      return this._svgElementForDependencies;
+    }
+
+    get svgElementForChildren() {
+      return this._svgElementForChildren;
+    }
+
+    get svgElementForCurrentNode() {
+      return this._svgElementForCurrentNode;
     }
 
     jumpToPosition(position, directionVector) {

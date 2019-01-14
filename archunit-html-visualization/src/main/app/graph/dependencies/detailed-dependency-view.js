@@ -6,12 +6,12 @@ const d3 = require('d3');
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
-    constructor(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
+    constructor(svgContainer, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
-      this._createSvgElement = () => d3.select(parentSvgElement).append('g').attr('id', `detailed_${dependencyIdentifier}`).node();
+      this._createSvgElement = () => d3.select(svgContainer).append('g').attr('id', `detailed_${dependencyIdentifier}`).node();
     }
 
     show(coordinates) {

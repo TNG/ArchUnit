@@ -10,7 +10,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.root = new Root(jsonGraph.root, this._view.svgElementForNodes, (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
         (halfWidth, halfHeight) => this._view.render(halfWidth, halfHeight),
         newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
-      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root, this._view.svgElementForDependencies);
+      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root, this._view.svgElementForDetailedDependencies);
 
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();

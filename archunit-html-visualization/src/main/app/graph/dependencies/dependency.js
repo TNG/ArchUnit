@@ -26,17 +26,17 @@ const init = (View) => {
       this.mustShareNodes = false;
     }
 
-    jumpToPosition(absVisualStartNode, absVisualEndNode) {
-      this.recalc(absVisualStartNode, absVisualEndNode);
+    jumpToPosition(absVisualStartNode, absVisualEndNode, absReferencePosition) {
+      this._recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition);
       this._listener.onJumpedToPosition();
     }
 
-    moveToPosition(absVisualStartNode, absVisualEndNode) {
-      this.recalc(absVisualStartNode, absVisualEndNode);
+    moveToPosition(absVisualStartNode, absVisualEndNode, absReferencePosition) {
+      this._recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition);
       return this._listener.onMovedToPosition();
     }
 
-    recalc(absVisualStartNode, absVisualEndNode) {
+    _recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);
       const nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
@@ -60,15 +60,18 @@ const init = (View) => {
       startDirectionVector.norm(absVisualStartNode.r);
       endDirectionVector.norm(absVisualEndNode.r);
 
-      this.startPoint = vectors.add(absVisualStartNode, startDirectionVector);
-      this.endPoint = vectors.add(absVisualEndNode, endDirectionVector);
+      const absoluteStartPoint = vectors.add(absVisualStartNode, startDirectionVector);
+      const absoluteEndPoint = vectors.add(absVisualEndNode, endDirectionVector);
+
+      this.startPoint = Vector.between(absReferencePosition, absoluteStartPoint);
+      this.endPoint = Vector.between(absReferencePosition, absoluteEndPoint);
     }
   };
 
-  const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) => {
+  const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) => {
     const key = `${originNode.getFullName()}-${targetNode.getFullName()}`;
     if (!allDependencies.has(key)) {
-      allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies));
+      allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies));
     }
     return allDependencies.get(key).withTypeAndViolation(type, isViolation)
   };
@@ -121,15 +124,20 @@ const init = (View) => {
   const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(originNode, targetNode, type, isViolation, svgElement, callForAllViews, getDetailedDependencies) {
+    constructor(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) {
       super(originNode, targetNode, type, '', '', isViolation);
-      this._view = new View(svgElement, this, callForAllViews, () =>
+      this._containerNode = this.originNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOfNodeOrItself(this.targetNode));
+      this._view = new View(svgContainerForDetailedDependencies, this, callForAllViews, () =>
         getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
       this._isVisible = true;
       this.visualData = new VisualData({
-        onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(this),
-        onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible(this)
+        onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(),
+        onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible()
       });
+    }
+
+    get containerNode() {
+      return this._containerNode;
     }
 
     withTypeAndViolation(type, isViolation) {
@@ -143,11 +151,11 @@ const init = (View) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
+      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._containerNode.nodeShape.absoluteShape.position);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
+      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._containerNode.nodeShape.absoluteShape.position);
     }
 
     hide() {
@@ -189,17 +197,17 @@ const init = (View) => {
     }
   };
 
-  const getUniqueDependency = (originNode, targetNode, svgElement, callForAllViews, getDetailedDependencies) => ({
+  const getUniqueDependency = (originNode, targetNode, svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies) => ({
     byGroupingDependencies: dependencies => {
       if (originNode.isPackage() || targetNode.isPackage()) {
         return getOrCreateUniqueDependency(originNode, targetNode, '',
-          dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
+          dependencies.some(d => d.isViolation), svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies);
       } else {
         const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
         const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
 
         return getOrCreateUniqueDependency(originNode, targetNode, joinStrings(' ', colorType, dashedType),
-          dependencies.some(d => d.isViolation), svgElement, callForAllViews, getDetailedDependencies);
+          dependencies.some(d => d.isViolation), svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies);
       }
     }
   });

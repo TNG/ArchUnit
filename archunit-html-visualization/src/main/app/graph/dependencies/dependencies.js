@@ -31,14 +31,14 @@ const init = (View) => {
     })
   });
 
-  const uniteDependencies = (dependencies, svgElement, callForAllViews, getDetailedDependencies) => {
+  const uniteDependencies = (dependencies, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) => {
     const tmp = dependencies.map(r => ({key: r.from + '->' + r.to, dependency: r}));
     const map = new Map();
     tmp.forEach(e => map.set(e.key, []));
     tmp.forEach(e => map.get(e.key).push(e.dependency));
 
     return [...map.values()].map(dependencies =>
-      dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, svgElement, callForAllViews, getDetailedDependencies)
+      dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies)
         .byGroupingDependencies(dependencies));
   };
 
@@ -139,7 +139,7 @@ const init = (View) => {
   };
 
   const Dependencies = class {
-    constructor(jsonDependencies, nodeMap, svgContainer) {
+    constructor(jsonDependencies, nodeMap, svgContainerForDetailedDependencies) {
       nodes = nodeMap;
       dependencyCreator = initDependency(View);
 
@@ -167,7 +167,7 @@ const init = (View) => {
         .build();
 
       this._filtered = this._elementary;
-      this._svgContainer = svgContainer;
+      this._svgContainerForDetailedDependencies = svgContainerForDetailedDependencies;
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
     }
@@ -281,7 +281,7 @@ const init = (View) => {
       const relevantTransformers = getTransformersOfTopMostNodes(this._transformers);
       const transformedDependencies = applyTransformersOnDependencies(relevantTransformers, this._filtered);
       this._visibleDependencies = uniteDependencies(transformedDependencies,
-        this._svgContainer,
+        this._svgContainerForDetailedDependencies,
         fun => this._getVisibleDependencies().forEach(d => fun(d._view)),
         (from, to) => this._getDetailedDependenciesOf(from, to));
 

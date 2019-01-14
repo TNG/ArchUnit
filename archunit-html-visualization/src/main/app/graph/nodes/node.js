@@ -261,7 +261,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view.svgElementForChildren, this, this));
       this._setFilteredChildren(this._originalChildren);
 
       this._filterGroup =
@@ -295,6 +295,10 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           }
         });
       }
+    }
+
+    get svgElementForDependencies() {
+      return this._view.svgElementForDependencies;
     }
 
     getNameWidth() {
@@ -501,8 +505,12 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElement, this._root, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElementForChildren, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    get svgElementForDependencies() {
+      return this._view._svgElementForDependencies;
     }
 
     _hide() {

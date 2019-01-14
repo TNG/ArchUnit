@@ -11,7 +11,7 @@ const init = (transitionDuration) => {
         id: 'translater'
       });
       this.svgElementForNodes = this._translater.addGroup().domElement;
-      this.svgElementForDependencies = this._translater.addGroup().domElement;
+      this.svgElementForDetailedDependencies = this._translater.addGroup().domElement;
     }
 
     render(halfWidth, halfHeight) {
