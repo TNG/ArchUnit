@@ -10,8 +10,10 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
   const View = class {
-    constructor(parentSvgElement, node, onClick, onDrag, onCtrlClick) {
-      this._svgElement = d3.select(parentSvgElement)
+    constructor(node, onClick, onDrag, onCtrlClick) {
+      this._node = node;
+
+      this._svgElement = d3.select(this._node.getParent().svgElementForChildren)
         .append('g')
         .data([node])
         .attr('id', node.getFullName().replace(/\\$/g, '.-'))
@@ -31,8 +33,6 @@ const init = (transitionDuration) => {
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
-
-      this._hasFocus = false;
     }
 
     get svgElementForDependencies() {
@@ -44,15 +44,9 @@ const init = (transitionDuration) => {
     }
 
     focus() {
-      //TODO...
-    }
-
-    unFocus() {
-      if (this._hasFocus) {
-        //TODO...
-
-        this._hasFocus = false;
-      }
+      d3.select(this._svgElement).remove();
+      this._node.getParent().svgElementForChildren.appendChild(this._svgElement);
+      this._node.shiftLayerToEnd();
     }
 
     getTextWidth() {

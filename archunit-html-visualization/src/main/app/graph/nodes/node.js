@@ -191,10 +191,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       return this._isVisible;
     }
 
-    overlapsWith(otherNode) {
-      return this.nodeShape.overlapsWith(otherNode.nodeShape);
-    }
-
     /**
      * We go bottom to top through the tree, always creating a circle packing of the children and an enclosing
      * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
@@ -244,7 +240,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._view.svgElementForChildren, this, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this, this));
       this._setFilteredChildren(this._originalChildren);
 
       this._filterGroup =
@@ -278,6 +274,18 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           }
         });
       }
+    }
+
+    overlapsWith() {
+      return false;
+    }
+
+    _focus(focusedChildNode) {
+      this._listeners.forEach(listener => listener.onNodesFocused(focusedChildNode));
+    }
+
+    get svgElementForChildren() {
+      return this._view.svgElementForChildren;
     }
 
     get svgElementForDependencies() {
@@ -467,14 +475,15 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
   };
 
   const InnerNode = class extends Node {
-    constructor(jsonNode, layerWithinParentNode, svgContainer, root, parent) {
+    constructor(jsonNode, layerWithinParentNode, root, parent) {
       super(jsonNode, layerWithinParentNode);
-
-      this._view = new NodeView(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
-        () => this._root._addNodeToExcludeFilter(this.getFullName()));
 
       this._root = root;
       this._parent = parent;
+
+      this._view = new NodeView(this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
+        () => this._root._addNodeToExcludeFilter(this.getFullName()));
+
       this._matchesFilter = new Map();
       this.nodeShape = new NodeCircle(this,
         {
@@ -488,8 +497,23 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._view._svgElementForChildren, this._root, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    overlapsWith(otherNode) {
+      if (this.isPredecessorOfNodeOrItself(otherNode) || otherNode.isPredecessorOfNodeOrItself(this)) {
+        return false;
+      }
+      return this.nodeShape.overlapsWith(otherNode.nodeShape) || this._parent.overlapsWith(otherNode) || otherNode._parent.overlapsWith(this);
+    }
+
+    get svgElementForChildren() {
+      return this._view.svgElementForChildren;
+    }
+
+    get svgElementForDependencies() {
+      return this._view._svgElementForDependencies;
     }
 
     liesInFrontOf(otherNode) {
@@ -506,13 +530,21 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
+        this._focus();
         this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._listeners.forEach(listener => listener.onDrag(this));
       });
     }
 
-    get svgElementForDependencies() {
-      return this._view._svgElementForDependencies;
+    _focus() {
+      this._view.focus();
+      this._parent._focus(this);
+    }
+
+    shiftLayerToEnd() {
+      this._parent._originalChildren.filter(node => node._layerWithinParentNode > this._layerWithinParentNode)
+        .forEach(node => node._layerWithinParentNode -= 1);
+      this._layerWithinParentNode = this._parent._originalChildren.length - 1;
     }
 
     _hide() {

@@ -271,8 +271,14 @@ const init = (View) => {
         },
         onFold: node => this._updateNodeFold(node),
         onInitialFold: node => this._setNodeFold(node),
-        onLayoutChanged: () => this._moveAllToTheirPositions()
+        onLayoutChanged: () => this._moveAllToTheirPositions(),
+        onNodesFocused: childOfTheRootWithFocusedNodes =>
+          this._getDependenciesWithAtLeastOneEndNodeWithinOrTo(childOfTheRootWithFocusedNodes).forEach(d => d.onNodesFocused())
       }
+    }
+
+    _getDependenciesWithAtLeastOneEndNodeWithinOrTo(node) {
+      return this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode));
     }
 
     recreateVisible() {
@@ -301,7 +307,7 @@ const init = (View) => {
     }
 
     _jumpSpecificDependenciesToTheirPositions(node) {
-      this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(nodes.getByName(d.from)) || node.isPredecessorOfNodeOrItself(nodes.getByName(d.to))).forEach(d => d.jumpToPosition());
+      this._getDependenciesWithAtLeastOneEndNodeWithinOrTo(node).forEach(d => d.jumpToPosition());
     }
 
     _moveAllToTheirPositions() {

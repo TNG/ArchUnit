@@ -142,6 +142,12 @@ const init = (View) => {
       return this._endNodeInForeground;
     }
 
+    onNodesFocused() {
+      this._endNodeInForeground = this._calcEndNodeInForeground();
+      this._view.onEndNodeInForegroundChanged();
+      this.jumpToPosition();
+    }
+
     withTypeAndViolation(type, isViolation) {
       this.type = type;
       this.isViolation = isViolation;

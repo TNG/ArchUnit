@@ -50,6 +50,12 @@ const init = (DetailedView, transitionDuration) => {
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
+    onEndNodeInForegroundChanged() {
+      //TODO: maybe only change if the end node has really change --> performance
+      d3.select(this._svgElement).remove();
+      this._dependency.endNodeInForeground.svgElementForDependencies.appendChild(this._svgElement);
+    }
+
     _createDetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
       this._detailedView = new DetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies);
       this.onMouseOver(parentSvgElement, coords => this._detailedView.fadeIn(coords));

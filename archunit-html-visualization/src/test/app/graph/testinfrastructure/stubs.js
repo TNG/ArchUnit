@@ -18,7 +18,7 @@ const saveMovedNodesTo = arr => movedNodes = arr;
 const saveNodesWhoseRadiusWasChangedTo = arr => nodesWhoseRadiusWasChanged = arr;
 
 const NodeViewStub = class {
-  constructor(parentSvgElement, node) {
+  constructor(node) {
     this.cssClass = '';
     this.isVisible = true;
     this.hasMovedToPosition = false;
@@ -50,6 +50,8 @@ const NodeViewStub = class {
       if (node.isVisible()) {
         this.isVisible = true;
       }
+    };
+    this.focus = () => {
     };
   }
 };
@@ -84,6 +86,8 @@ const DependencyViewStub = class {
         setTimeout(resolve, 10);
       });
     };
+    this.onEndNodeInForegroundChanged = () => {
+    };
   }
 };
 
@@ -117,6 +121,8 @@ const createNodeListenerStub = () => {
     foldedNode: () => _foldedNode,
     initialFoldedNode: () => _initialFoldedNode,
     onLayoutChangedWasCalled: () => _onLayoutChangedWasCalled,
+    onNodesFocused: () => {
+    },
 
     onNodesOverlapping: (fullNameOfOverlappedNode, positionOfOverlappingNode) =>
       overlappedNodesAndPosition.push({overlappedNode: fullNameOfOverlappedNode, position: positionOfOverlappingNode}),
