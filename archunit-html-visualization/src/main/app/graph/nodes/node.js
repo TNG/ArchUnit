@@ -110,6 +110,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
         }
         otherNode = otherNode.getParent();
       }
+      return false;
     }
 
     foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
@@ -502,10 +503,13 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     overlapsWith(otherNode) {
-      if (this.isPredecessorOfNodeOrItself(otherNode) || otherNode.isPredecessorOfNodeOrItself(this)) {
+      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(otherNode));
+      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(this));
+      if (ownPredecessor.getParent() === otherPredecessor || otherPredecessor.getParent() === ownPredecessor) {
         return false;
+      } else {
+        return ownPredecessor.liesInFrontOf(otherPredecessor) ? ownPredecessor.nodeShape.overlapsWith(otherNode.nodeShape) : otherPredecessor.nodeShape.overlapsWith(this.nodeShape);
       }
-      return this.nodeShape.overlapsWith(otherNode.nodeShape) || this._parent.overlapsWith(otherNode) || otherNode._parent.overlapsWith(this);
     }
 
     get svgElementForChildren() {
