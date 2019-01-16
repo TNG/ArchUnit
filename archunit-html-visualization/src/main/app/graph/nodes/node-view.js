@@ -28,7 +28,6 @@ const init = (transitionDuration) => {
 
       this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
       this._svgElementForDependencies = d3.select(this._svgElement).append('g').node();
-      this._svgElementForCurrentNode = d3.select(this._svgElement).append('g').node();
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
@@ -42,10 +41,6 @@ const init = (transitionDuration) => {
 
     get svgElementForChildren() {
       return this._svgElementForChildren;
-    }
-
-    get svgElementForCurrentNode() {
-      return this._svgElementForCurrentNode;
     }
 
     focus() {

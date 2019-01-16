@@ -36,7 +36,7 @@ const init = (View) => {
       return this._listener.onMovedToPosition();
     }
 
-    _recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition) {
+    _recalculate(absVisualStartNode, absVisualEndNode, absoluteReferencePosition) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);
       const nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
@@ -60,11 +60,11 @@ const init = (View) => {
       startDirectionVector.norm(absVisualStartNode.r);
       endDirectionVector.norm(absVisualEndNode.r);
 
-      const absoluteStartPoint = vectors.add(absVisualStartNode, startDirectionVector);
-      const absoluteEndPoint = vectors.add(absVisualEndNode, endDirectionVector);
+      this.startPoint = vectors.add(absVisualStartNode, startDirectionVector);
+      this.endPoint = vectors.add(absVisualEndNode, endDirectionVector);
 
-      this.startPoint = Vector.between(absReferencePosition, absoluteStartPoint);
-      this.endPoint = Vector.between(absReferencePosition, absoluteEndPoint);
+      this.relativeStartPoint = Vector.between(absoluteReferencePosition, this.startPoint);
+      this.relativeEndPoint = Vector.between(absoluteReferencePosition, this.endPoint);
     }
   };
 
@@ -123,10 +123,12 @@ const init = (View) => {
 
   const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
+  const argMax = (arr, propertyGetter) => arr.reduce((elementWithMaxSoFar, e) => propertyGetter(e) > propertyGetter(elementWithMaxSoFar) ? e : elementWithMaxSoFar, arr ? arr[0] : null);
+
   const GroupedDependency = class extends ElementaryDependency {
     constructor(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) {
       super(originNode, targetNode, type, '', '', isViolation);
-      this._containerNode = this.originNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOfNodeOrItself(this.targetNode));
+      this._endNodeInForeground = this._calcEndNodeInForeground();
       this._view = new View(svgContainerForDetailedDependencies, this, callForAllViews, () =>
         getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
       this._isVisible = true;
@@ -136,8 +138,8 @@ const init = (View) => {
       });
     }
 
-    get containerNode() {
-      return this._containerNode;
+    get endNodeInForeground() {
+      return this._endNodeInForeground;
     }
 
     withTypeAndViolation(type, isViolation) {
@@ -146,16 +148,20 @@ const init = (View) => {
       return this;
     }
 
+    _calcEndNodeInForeground() {
+      return argMax([this._originNode, this._targetNode], node => node.layer);
+    }
+
     hasDetailedDescription() {
       return !(this.originNode.isPackage() || this.targetNode.isPackage());
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._containerNode.nodeShape.absoluteShape.position);
+      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._endNodeInForeground.nodeShape.absoluteShape.position);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._containerNode.nodeShape.absoluteShape.position);
+      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._endNodeInForeground.nodeShape.absoluteShape.position); //TODO: create getter for position
     }
 
     hide() {

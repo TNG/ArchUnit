@@ -33,11 +33,15 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
   const Node = class {
     constructor(jsonNode) {
-      this.layer = layer++;
+      this._layer = layer++;
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
       this._listeners = [];
+    }
+
+    get layer() {
+      return this._layer;
     }
 
     //TODO: declare abstract methods and throw errors in them
@@ -224,19 +228,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
         promises.push(this.nodeShape.changeRadius(r));
       }
       return Promise.all([...childrenPromises, ...promises]);
-    }
-
-    /**
-     * Shifts this node and its children.
-     *
-     * @param dx The delta in x-direction
-     * @param dy The delta in y-direction
-     */
-    _drag(dx, dy) {
-      this._root.doNextAndWaitFor(() => {
-        this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
-        this._listeners.forEach(listener => listener.onDrag(this));
-      });
     }
   };
 
@@ -507,6 +498,19 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
       this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElementForChildren, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    /**
+     * Shifts this node and its children.
+     *
+     * @param dx The delta in x-direction
+     * @param dy The delta in y-direction
+     */
+    _drag(dx, dy) {
+      this._root.doNextAndWaitFor(() => {
+        this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
+        this._listeners.forEach(listener => listener.onDrag(this));
+      });
     }
 
     get svgElementForDependencies() {

@@ -17,7 +17,6 @@ const init = (transitionDuration) => {
 
       this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
       this._svgElementForDependencies = d3.select(this._svgElement).append('g').node();
-      this._svgElementForCurrentNode = d3.select(this._svgElement).append('g').node();
 
       document.onkeyup = event => {
         if (event.key === 'Alt' || event.key === 'Control') {
@@ -32,10 +31,6 @@ const init = (transitionDuration) => {
 
     get svgElementForChildren() {
       return this._svgElementForChildren;
-    }
-
-    get svgElementForCurrentNode() {
-      return this._svgElementForCurrentNode;
     }
 
     jumpToPosition(position, directionVector) {

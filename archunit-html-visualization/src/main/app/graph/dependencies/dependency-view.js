@@ -5,10 +5,10 @@ const d3 = require('d3');
 
 const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
   return selection
-    .attr('x1', visualData.startPoint.x)
-    .attr('y1', visualData.startPoint.y)
-    .attr('x2', visualData.endPoint.x)
-    .attr('y2', visualData.endPoint.y);
+    .attr('x1', visualData.relativeStartPoint.x)
+    .attr('y1', visualData.relativeStartPoint.y)
+    .attr('x2', visualData.relativeEndPoint.x)
+    .attr('y2', visualData.relativeEndPoint.y);
 };
 
 const getCssClass = (dependency) => 'dependency' + (dependency.isViolation ? ' violation' : '');
@@ -30,7 +30,7 @@ const init = (DetailedView, transitionDuration) => {
       this._dependency = dependency;
 
       this._svgElement =
-        d3.select(this._dependency.containerNode.svgElementForDependencies)
+        d3.select(this._dependency.endNodeInForeground.svgElementForDependencies)
           .append('g')
           .attr('id', dependency.toString())
           .style('visibility', 'hidden')
