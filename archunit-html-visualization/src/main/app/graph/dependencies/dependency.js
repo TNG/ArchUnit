@@ -123,7 +123,7 @@ const init = (View) => {
 
   const joinStrings = (separator, ...stringArray) => stringArray.filter(element => element).join(separator);
 
-  const argMax = (arr, propertyGetter) => arr.reduce((elementWithMaxSoFar, e) => propertyGetter(e) > propertyGetter(elementWithMaxSoFar) ? e : elementWithMaxSoFar, arr ? arr[0] : null);
+  const argMax = (arr, firstIsGreaterThanSecond) => arr.reduce((elementWithMaxSoFar, e) => firstIsGreaterThanSecond(e, elementWithMaxSoFar) ? e : elementWithMaxSoFar, arr ? arr[0] : null);
 
   const GroupedDependency = class extends ElementaryDependency {
     constructor(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) {
@@ -149,7 +149,7 @@ const init = (View) => {
     }
 
     _calcEndNodeInForeground() {
-      return argMax([this._originNode, this._targetNode], node => node.layer);
+      return argMax([this._originNode, this._targetNode], (node1, node2) => node1.liesInFrontOf(node2));
     }
 
     hasDetailedDescription() {

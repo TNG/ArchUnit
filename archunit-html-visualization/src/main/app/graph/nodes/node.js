@@ -6,8 +6,6 @@ const {buildFilterGroup} = require('../filter');
 
 const nodeTypes = require('./node-types.json');
 
-let layer = 0;
-
 const fullNameSeparators = {
   packageSeparator: '.',
   classSeparator: '$'
@@ -32,19 +30,13 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
   };
 
   const Node = class {
-    constructor(jsonNode) {
-      this._layer = layer++;
+    constructor(jsonNode, layerWithinParentNode) {
+      this._layerWithinParentNode = layerWithinParentNode;
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
       this._text = new NodeText(this);
       this._folded = false;
       this._listeners = [];
     }
-
-    get layer() {
-      return this._layer;
-    }
-
-    //TODO: declare abstract methods and throw errors in them
 
     addListener(listener) {
       this._listeners.push(listener);
@@ -233,7 +225,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
   const Root = class extends Node {
     constructor(jsonNode, svgContainer, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
-      super(jsonNode);
+      super(jsonNode, 0);
 
       this._view = new RootView(svgContainer, this);
 
@@ -252,7 +244,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view.svgElementForChildren, this, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._view.svgElementForChildren, this, this));
       this._setFilteredChildren(this._originalChildren);
 
       this._filterGroup =
@@ -475,8 +467,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
   };
 
   const InnerNode = class extends Node {
-    constructor(jsonNode, svgContainer, root, parent) {
-      super(jsonNode);
+    constructor(jsonNode, layerWithinParentNode, svgContainer, root, parent) {
+      super(jsonNode, layerWithinParentNode);
 
       this._view = new NodeView(svgContainer, this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
         () => this._root._addNodeToExcludeFilter(this.getFullName()));
@@ -496,8 +488,14 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map(jsonChild => new InnerNode(jsonChild, this._view._svgElementForChildren, this._root, this));
+      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._view._svgElementForChildren, this._root, this));
       this._setFilteredChildren(this._originalChildren);
+    }
+
+    liesInFrontOf(otherNode) {
+      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(otherNode));
+      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(this));
+      return ownPredecessor.getParent() === otherPredecessor || (otherPredecessor.getParent() !== ownPredecessor && ownPredecessor._layerWithinParentNode > otherPredecessor._layerWithinParentNode);
     }
 
     /**

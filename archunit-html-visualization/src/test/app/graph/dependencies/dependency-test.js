@@ -257,7 +257,7 @@ describe('GroupedDependency', () => {
     const expStartPoint = {x: 33.287, y: 30.6296};
     const expEndPoint = {x: 27.809, y: 26.247};
 
-    const nodeInForeground = startNode.layer > endNode.layer ? startNode : endNode;
+    const nodeInForeground = testData.class2;
 
     expect(dependency.visualData.relativeStartPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.position, expStartPoint), MAXIMUM_DELTA);
     expect(dependency.visualData.relativeEndPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.position, expEndPoint), MAXIMUM_DELTA);
