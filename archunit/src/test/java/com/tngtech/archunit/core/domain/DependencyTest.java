@@ -1,6 +1,8 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -61,6 +63,59 @@ public class DependencyTest {
         assertThat(dependency.getTargetClass()).matches(IOException.class);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
+    }
+
+    @Test
+    public void Dependency_from_annotation_on_class() {
+        JavaClass origin = importClassesWithContext(ClassWithDependencyOnAnnotation.class, SomeAnnotation.class)
+                .get(ClassWithDependencyOnAnnotation.class);
+
+        JavaAnnotation annotation = origin.getAnnotations().iterator().next();
+        Class<?> annotationClass = annotation.getType().reflect();
+
+        Dependency dependency = Dependency.fromClassAnnotation(origin, annotation);
+        assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnAnnotation.class);
+        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Class <" + origin.getName() + "> has annotation <" + annotationClass.getName() + ">");
+
+        origin = importClassesWithContext(InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class)
+                .get(InterfaceWithDependencyOnAnnotation.class);
+
+        dependency = Dependency.fromClassAnnotation(origin, annotation);
+        assertThat(dependency.getOriginClass()).matches(InterfaceWithDependencyOnAnnotation.class);
+        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Interface <" + origin.getName() + "> has annotation <" + annotationClass.getName() + ">");
+    }
+
+    @Test
+    public void Dependency_from_annotation_on_member() {
+        JavaField origin = importClassesWithContext(ClassWithAnnotatedField.class, SomeAnnotation.class)
+                .get(ClassWithAnnotatedField.class)
+                .getField("obj");
+
+        JavaAnnotation annotation = origin.getAnnotations().iterator().next();
+        Class<?> annotationClass = annotation.getType().reflect();
+
+        Dependency dependency = Dependency.fromJavaMemberAnnotation(origin, annotation);
+        assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedField.class);
+        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThat(dependency.getDescription()).as("description")
+                .contains(origin.getDescription() + " has annotation <" + annotationClass.getName() + ">");
+    }
+
+    @Test
+    public void Dependency_from_class_annotation_member() {
+        JavaClasses context = importClassesWithContext(Origin.class, Target.class);
+        JavaClass origin = context.get(Origin.class);
+        JavaClass target = context.get(Target.class);
+
+        Dependency dependency = Dependency.fromClassAnnotationMember(origin, target);
+        assertThat(dependency.getOriginClass()).matches(Origin.class);
+        assertThat(dependency.getTargetClass()).matches(Target.class);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Class <" + origin.getName() + "> has annotation member of type <" + target.getName() + ">");
     }
 
     @Test
@@ -165,6 +220,19 @@ public class DependencyTest {
     private static class ClassWithDependencyOnThrowable {
         void method() throws IOException {
         }
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface SomeAnnotation {}
+
+    @SomeAnnotation
+    private static class ClassWithDependencyOnAnnotation { }
+
+    @SomeAnnotation
+    private interface InterfaceWithDependencyOnAnnotation { }
+
+    private static class ClassWithAnnotatedField {
+        @SomeAnnotation private Object obj;
     }
 
 }

@@ -77,6 +77,26 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return new Dependency(origin, targetSuperType, 0, description);
     }
 
+    static Dependency fromClassAnnotation(JavaClass origin, JavaAnnotation target) {
+        return createDependencyBetweenClasses(origin, "has annotation", target.getType());
+    }
+
+    static Dependency fromClassAnnotationMember(JavaClass origin, JavaClass memberType) {
+        return createDependencyBetweenClasses(origin, "has annotation member of type", memberType);
+    }
+
+    private static Dependency createDependencyBetweenClasses(JavaClass origin, String dependencyType, JavaClass target) {
+        String originType = origin.isInterface() ? "Interface" : "Class";
+        String originDescription = originType + " " + bracketFormat(origin.getName());
+
+        String targetDescription = bracketFormat(target.getName());
+
+        String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
+
+        String description = dependencyDescription + " in " + formatLocation(origin, 0);
+        return new Dependency(origin, target, 0, description);
+    }
+
     static Dependency fromField(JavaField field) {
         return createDependencyFromJavaMember(field, "has type", field.getRawType());
     }
@@ -91,6 +111,10 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     static Dependency fromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
         return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
+    }
+
+    static Dependency fromJavaMemberAnnotation(JavaMember member, JavaAnnotation annotation) {
+        return createDependencyFromJavaMember(member, "has annotation", annotation.getType());
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
