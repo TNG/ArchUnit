@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
 import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
+import com.tngtech.archunit.core.domain.testobjects.IsArrayTestClass;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -65,6 +66,20 @@ import static org.mockito.Mockito.when;
 public class JavaClassTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void finds_array_type() {
+        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
+
+        assertThat(method.getReturnType().isArray()).isTrue();
+    }
+
+    @Test
+    public void finds_non_array_type() {
+        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
+
+        assertThat(method.getReturnType().isArray()).isFalse();
+    }
 
     @Test
     public void finds_fields_and_methods() {

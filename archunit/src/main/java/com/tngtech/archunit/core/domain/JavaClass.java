@@ -149,6 +149,11 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     @PublicAPI(usage = ACCESS)
+    public boolean isArray() {
+        return javaType.isArray();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public boolean isInnerClass() {
         return enclosingClass.isPresent();
     }
