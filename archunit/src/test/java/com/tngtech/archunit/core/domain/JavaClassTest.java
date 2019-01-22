@@ -416,6 +416,39 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_annotation() {
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, OnClass.class)
+                .get(ClassWithAnnotationDependencies.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnClass.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+        ;
+    }
+
+    @Test
     public void direct_dependencies_to_self_by_accesses() {
         JavaClass javaClass = importClassesWithContext(AAccessingB.class, B.class).get(B.class);
 
@@ -481,6 +514,39 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.BException.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_annotation() {
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, OnClass.class)
+                .get(ClassWithAnnotationDependencies.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnClass.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+        ;
     }
 
     @Test
@@ -834,6 +900,14 @@ public class JavaClassTest {
         return new DependencyConditionCreation("throws type");
     }
 
+    private static DependencyConditionCreation annotationTypeDependency() {
+        return new DependencyConditionCreation("has annotation");
+    }
+
+    private static DependencyConditionCreation annotationMemberOfTypeDependency() {
+        return new DependencyConditionCreation("has annotation member of type");
+    }
+
     private static AnyDependencyConditionCreation anyDependency() {
         return new AnyDependencyConditionCreation();
     }
@@ -1172,5 +1246,34 @@ public class JavaClassTest {
             private class NestedNamedInnerClass {
             }
         }
+    }
+
+    @OnClass
+    @WithNestedAnnotations(
+            nested = @WithType(type = B.class)
+    )
+    public class ClassWithAnnotationDependencies {
+        @OnField
+        Object field;
+
+        @OnConstructor
+        ClassWithAnnotationDependencies() {}
+
+        @OnMethod
+        void method() {
+        }
+
+        void method(@OnMethodParam Object obj) {
+        }
+    }
+
+    @interface OnClass {}
+    @interface OnField {}
+    @interface OnConstructor {}
+    @interface OnMethod {}
+    @interface OnMethodParam {}
+    @interface WithType { Class<?> type(); }
+    @interface WithNestedAnnotations {
+        WithType nested();
     }
 }
