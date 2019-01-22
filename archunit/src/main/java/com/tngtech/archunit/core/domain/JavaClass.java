@@ -652,6 +652,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         result.addAll(methodParameterDependenciesFromSelf());
         result.addAll(throwsDeclarationDependenciesFromSelf());
         result.addAll(constructorParameterDependenciesFromSelf());
+        result.addAll(annotationDependenciesFromSelf());
         return result.build();
     }
 
@@ -998,6 +999,75 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         for (JavaConstructor constructor : getConstructors()) {
             for (JavaClass parameter : nonPrimitive(constructor.getRawParameterTypes())) {
                 result.add(Dependency.fromParameter(constructor, parameter));
+            }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> annotationDependenciesFromSelf() {
+        return new ImmutableSet.Builder<Dependency>()
+                .addAll(annotationDependenciesOnClass(this))
+                .addAll(annotationDependenciesOnMembers(getAllMembers()))
+                .build();
+    }
+
+    private Set<Dependency> annotationDependenciesOnMembers(Set<JavaMember> javaMembers) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaMember javaMember : javaMembers) {
+            result.addAll(annotationDependenciesOnMember(javaMember));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> annotationDependenciesOnMember(JavaMember annotated) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        Set<JavaAnnotation> annotations = annotated.getAnnotations();
+        for (JavaAnnotation annotation : annotations) {
+            result.add(Dependency.fromAnnotation(annotated, annotation));
+            result.addAll(annotationParametersDependencies(annotation, annotated));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> annotationDependenciesOnClass(JavaClass annotated) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        Set<JavaAnnotation> annotations = annotated.getAnnotations();
+        for (JavaAnnotation annotation : annotations) {
+            result.add(Dependency.fromAnnotation(annotated, annotation));
+            result.addAll(annotationParametersDependencies(annotation, annotated));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> annotationParametersDependencies(JavaAnnotation annotation, JavaClass origin) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
+            if (entry.getValue() instanceof JavaClass) {
+                JavaClass annotationMember = (JavaClass) entry.getValue();
+                result.add(Dependency.fromAnnotationMember(origin, annotationMember));
+                result.addAll(annotationDependenciesOnClass(annotationMember));
+            } else if (entry.getValue() instanceof JavaAnnotation) {
+                JavaAnnotation nestedAnnotation = (JavaAnnotation) entry.getValue();
+                result.add(Dependency.fromAnnotation(origin, nestedAnnotation));
+                result.addAll(annotationDependenciesOnClass(nestedAnnotation.getType()));
+                result.addAll(annotationParametersDependencies(nestedAnnotation, origin));
+            }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> annotationParametersDependencies(JavaAnnotation annotation, JavaMember origin) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
+            if (entry.getValue() instanceof JavaClass) {
+                JavaClass annotationMember = (JavaClass) entry.getValue();
+                result.add(Dependency.fromAnnotationMember(origin, annotationMember));
+                result.addAll(annotationDependenciesOnClass(annotationMember));
+            } else if (entry.getValue() instanceof JavaAnnotation) {
+                JavaAnnotation nestedAnnotation = (JavaAnnotation) entry.getValue();
+                result.add(Dependency.fromAnnotation(origin, nestedAnnotation));
+                result.addAll(annotationDependenciesOnClass(nestedAnnotation.getType()));
+                result.addAll(annotationParametersDependencies(nestedAnnotation, origin));
             }
         }
         return result.build();

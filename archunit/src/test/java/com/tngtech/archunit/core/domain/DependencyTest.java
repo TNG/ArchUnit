@@ -73,7 +73,7 @@ public class DependencyTest {
         JavaAnnotation annotation = origin.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getType().reflect();
 
-        Dependency dependency = Dependency.fromClassAnnotation(origin, annotation);
+        Dependency dependency = Dependency.fromAnnotation(origin, annotation);
         assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnAnnotation.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -82,7 +82,7 @@ public class DependencyTest {
         origin = importClassesWithContext(InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class)
                 .get(InterfaceWithDependencyOnAnnotation.class);
 
-        dependency = Dependency.fromClassAnnotation(origin, annotation);
+        dependency = Dependency.fromAnnotation(origin, annotation);
         assertThat(dependency.getOriginClass()).matches(InterfaceWithDependencyOnAnnotation.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -98,7 +98,7 @@ public class DependencyTest {
         JavaAnnotation annotation = origin.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getType().reflect();
 
-        Dependency dependency = Dependency.fromJavaMemberAnnotation(origin, annotation);
+        Dependency dependency = Dependency.fromAnnotation(origin, annotation);
         assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedField.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -111,7 +111,7 @@ public class DependencyTest {
         JavaClass origin = context.get(Origin.class);
         JavaClass target = context.get(Target.class);
 
-        Dependency dependency = Dependency.fromClassAnnotationMember(origin, target);
+        Dependency dependency = Dependency.fromAnnotationMember(origin, target);
         assertThat(dependency.getOriginClass()).matches(Origin.class);
         assertThat(dependency.getTargetClass()).matches(Target.class);
         assertThat(dependency.getDescription()).as("description")
