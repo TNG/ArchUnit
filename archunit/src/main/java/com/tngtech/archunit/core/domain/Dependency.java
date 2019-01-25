@@ -63,9 +63,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
-        String originType = origin.isInterface() ? "Interface" : "Class";
-        String originDescription = originType + " " + bracketFormat(origin.getName());
-
+        String originDescription = origin.getDescription();
         String dependencyType = !origin.isInterface() && targetSuperType.isInterface() ? "implements" : "extends";
 
         String targetType = targetSuperType.isInterface() ? "interface" : "class";
@@ -93,20 +91,12 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
-    static Dependency fromAnnotation(JavaMember member, JavaAnnotation annotation) {
-        return createDependencyFromJavaMember(member, "has annotation", annotation.getType());
+    static Dependency fromAnnotation(HasDescription origin, JavaAnnotation target, JavaClass owner) {
+        return createDependencyFromDescribable(origin, "has annotation", target.getType(), owner);
     }
 
-    static Dependency fromAnnotation(JavaClass origin, JavaAnnotation target) {
-        return createDependencyBetweenClasses(origin, "has annotation", target.getType());
-    }
-
-    static Dependency fromAnnotationMember(JavaMember member, JavaClass memberType) {
-        return createDependencyFromJavaMember(member, "has annotation member of type", memberType);
-    }
-
-    static Dependency fromAnnotationMember(JavaClass origin, JavaClass memberType) {
-        return createDependencyBetweenClasses(origin, "has annotation member of type", memberType);
+    static Dependency fromAnnotationMember(HasDescription origin, JavaClass memberType, JavaClass owner) {
+        return createDependencyFromDescribable(origin, "has annotation member of type", memberType, owner);
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
@@ -117,16 +107,13 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return new Dependency(origin.getOwner(), target, 0, description);
     }
 
-    private static Dependency createDependencyBetweenClasses(JavaClass origin, String dependencyType, JavaClass target) {
-        String originType = origin.isInterface() ? "Interface" : "Class";
-        String originDescription = originType + " " + bracketFormat(origin.getName());
-
+    private static Dependency createDependencyFromDescribable(HasDescription hasDescription, String dependencyType,
+            JavaClass target, JavaClass owner) {
+        String originDescription = hasDescription.getDescription();
         String targetDescription = bracketFormat(target.getName());
-
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-
-        String description = dependencyDescription + " in " + formatLocation(origin, 0);
-        return new Dependency(origin, target, 0, description);
+        String description = dependencyDescription + " in " + formatLocation(owner, 0);
+        return new Dependency(owner, target, 0, description);
     }
 
     private static String bracketFormat(String name) {
