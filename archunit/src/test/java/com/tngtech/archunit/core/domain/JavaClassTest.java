@@ -517,39 +517,6 @@ public class JavaClassTest {
     }
 
     @Test
-    public void direct_dependencies_to_self_by_annotation() {
-        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, OnClass.class)
-                .get(ClassWithAnnotationDependencies.class);
-
-        assertThat(javaClass.getDirectDependenciesToSelf())
-                .areAtLeastOne(annotationTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(OnClass.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(annotationTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(OnField.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(annotationTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(OnConstructor.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(annotationTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(OnMethod.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(annotationTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(WithType.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(annotationMemberOfTypeDependency()
-                        .from(ClassWithAnnotationDependencies.class)
-                        .to(B.class)
-                        .inLineNumber(0))
-        ;
-    }
-
-    @Test
     public void function_getSimpleName() {
         assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(importClassWithContext(List.class)))
                 .as("result of GET_SIMPLE_NAME(clazz)")
