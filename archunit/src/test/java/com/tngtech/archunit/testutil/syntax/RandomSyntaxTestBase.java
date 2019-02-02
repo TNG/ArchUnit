@@ -325,7 +325,8 @@ public abstract class RandomSyntaxTestBase {
                         if (methodName.toLowerCase().contains("annotat")) {
                             return new Parameter("AnnotationType", "@AnnotationType");
                         } else if (methodName.toLowerCase().contains("assign")
-                                || methodName.toLowerCase().contains("implement")) {
+                                || methodName.toLowerCase().contains("implement")
+                                || methodName.toLowerCase().contains("declared")) {
                             return new Parameter("some.Type", "some.Type");
                         } else if (methodName.equals("be") || methodName.equals("notBe")) {
                             return new Parameter("some.Type", "some.Type");
